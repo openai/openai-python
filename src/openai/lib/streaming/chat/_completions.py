@@ -485,8 +485,10 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
 
                         choice_snapshot.logprobs.refusal.extend(choice.logprobs.refusal)
 
-        completion_snapshot.usage = chunk.usage
-        completion_snapshot.system_fingerprint = chunk.system_fingerprint
+        if chunk.usage is not None:
+            completion_snapshot.usage = chunk.usage
+        if chunk.system_fingerprint is not None:
+            completion_snapshot.system_fingerprint = chunk.system_fingerprint
         if chunk.moderation is not None:
             completion_snapshot.moderation = cast(
                 Moderation, construct_type(type_=Moderation, value=chunk.moderation.to_dict())
