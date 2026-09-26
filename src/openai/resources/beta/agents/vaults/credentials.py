@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import Dict, Optional
 from typing_extensions import Literal
 
 import httpx2
@@ -55,6 +55,7 @@ class Credentials(SyncAPIResource):
         *,
         auth: CredentialAuthCreateParam,
         name: str,
+        metadata: Dict[str, str] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -74,6 +75,9 @@ class Credentials(SyncAPIResource):
           name: The name is trimmed before storage. It must contain 1 to 256 UTF-8 bytes after
               trimming.
 
+          metadata: Up to 16 string key-value pairs, with keys up to 64 and values up to 512
+              characters. Defaults to an empty map.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -91,6 +95,7 @@ class Credentials(SyncAPIResource):
                 {
                     "auth": auth,
                     "name": name,
+                    "metadata": metadata,
                 },
                 credential_create_params.CredentialCreateParams,
             ),
@@ -154,7 +159,8 @@ class Credentials(SyncAPIResource):
         credential_id: str,
         *,
         vault_id: str,
-        auth: CredentialAuthRotateParam,
+        auth: CredentialAuthRotateParam | Omit = omit,
+        metadata: Dict[str, str] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -162,13 +168,16 @@ class Credentials(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Credential:
-        """
-        Rotates a vault credential's write-only secret and returns only credential
-        metadata. See
+        """Updates credential metadata or rotates its write-only secret.
+
+        See
         [vaults](https://developers.openai.com/api/docs/guides/agents-api/tools/vaults).
 
         Args:
           auth: Replacement values for the credential's existing authentication method.
+
+          metadata: Replaces all metadata. Omit to preserve it, or pass {} to clear it. Up to 16
+              string key-value pairs, with keys up to 64 and values up to 512 characters.
 
           extra_headers: Send extra headers
 
@@ -187,7 +196,13 @@ class Credentials(SyncAPIResource):
             path_template(
                 "/vaults/{vault_id}/credentials/{credential_id}", vault_id=vault_id, credential_id=credential_id
             ),
-            body=maybe_transform({"auth": auth}, credential_update_params.CredentialUpdateParams),
+            body=maybe_transform(
+                {
+                    "auth": auth,
+                    "metadata": metadata,
+                },
+                credential_update_params.CredentialUpdateParams,
+            ),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -338,6 +353,7 @@ class AsyncCredentials(AsyncAPIResource):
         *,
         auth: CredentialAuthCreateParam,
         name: str,
+        metadata: Dict[str, str] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -357,6 +373,9 @@ class AsyncCredentials(AsyncAPIResource):
           name: The name is trimmed before storage. It must contain 1 to 256 UTF-8 bytes after
               trimming.
 
+          metadata: Up to 16 string key-value pairs, with keys up to 64 and values up to 512
+              characters. Defaults to an empty map.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -374,6 +393,7 @@ class AsyncCredentials(AsyncAPIResource):
                 {
                     "auth": auth,
                     "name": name,
+                    "metadata": metadata,
                 },
                 credential_create_params.CredentialCreateParams,
             ),
@@ -437,7 +457,8 @@ class AsyncCredentials(AsyncAPIResource):
         credential_id: str,
         *,
         vault_id: str,
-        auth: CredentialAuthRotateParam,
+        auth: CredentialAuthRotateParam | Omit = omit,
+        metadata: Dict[str, str] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -445,13 +466,16 @@ class AsyncCredentials(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Credential:
-        """
-        Rotates a vault credential's write-only secret and returns only credential
-        metadata. See
+        """Updates credential metadata or rotates its write-only secret.
+
+        See
         [vaults](https://developers.openai.com/api/docs/guides/agents-api/tools/vaults).
 
         Args:
           auth: Replacement values for the credential's existing authentication method.
+
+          metadata: Replaces all metadata. Omit to preserve it, or pass {} to clear it. Up to 16
+              string key-value pairs, with keys up to 64 and values up to 512 characters.
 
           extra_headers: Send extra headers
 
@@ -470,7 +494,13 @@ class AsyncCredentials(AsyncAPIResource):
             path_template(
                 "/vaults/{vault_id}/credentials/{credential_id}", vault_id=vault_id, credential_id=credential_id
             ),
-            body=await async_maybe_transform({"auth": auth}, credential_update_params.CredentialUpdateParams),
+            body=await async_maybe_transform(
+                {
+                    "auth": auth,
+                    "metadata": metadata,
+                },
+                credential_update_params.CredentialUpdateParams,
+            ),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,

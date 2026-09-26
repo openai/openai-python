@@ -65,5 +65,9 @@ class VoiceID(TypedDict, total=False):
 
 
 Voice: TypeAlias = Union[
-    str, Literal["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse", "marin", "cedar"], VoiceID
+    str,
+    Literal[
+        "alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse", "marin", "cedar", "fable", "onyx", "nova"
+    ],
+    VoiceID,
 ]

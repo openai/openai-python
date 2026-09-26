@@ -29,6 +29,7 @@ def credential_response(auth: object) -> dict[str, object]:
         "vault_id": "vault_synthetic",
         "object": "vault.credential",
         "name": "Synthetic credential",
+        "metadata": {},
         "created_at": 1,
         "updated_at": 1,
         "auth": auth,

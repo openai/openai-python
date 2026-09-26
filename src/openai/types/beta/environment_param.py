@@ -31,7 +31,7 @@ class EnvironmentParamNone(TypedDict, total=False):
 class EnvironmentParamOpenAIHostedNetwork(TypedDict, total=False):
     """Network access policy for the environment.
 
-    Defaults to disabled for GA requests and enabled for alpha/beta requests.
+    Defaults to disabled for GA requests and enabled for beta requests.
     """
 
     access: Required[Literal["enabled", "disabled", "restricted"]]
@@ -89,7 +89,7 @@ class EnvironmentParamOpenAIHosted(TypedDict, total=False):
     network: Optional[EnvironmentParamOpenAIHostedNetwork]
     """Network access policy for the environment.
 
-    Defaults to disabled for GA requests and enabled for alpha/beta requests.
+    Defaults to disabled for GA requests and enabled for beta requests.
     """
 
     packages: Optional[EnvironmentParamOpenAIHostedPackages]

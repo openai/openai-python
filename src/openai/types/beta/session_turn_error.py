@@ -18,6 +18,7 @@ class SessionTurnError(BaseModel):
         "rate_limit_exceeded",
         "server_overloaded",
         "cyber_policy",
+        "misalignment_policy_violation",
         "connection_failed",
         "server_error",
         "authentication_error",
@@ -39,6 +40,8 @@ class SessionTurnError(BaseModel):
     - `rate_limit_exceeded` - The request exceeds the available rate limit.
     - `server_overloaded` - The model service is temporarily overloaded.
     - `cyber_policy` - The request was rejected by a safety policy.
+    - `misalignment_policy_violation` - The request was blocked by the safety
+      systems.
     - `connection_failed` - The request could not connect to the model service.
     - `server_error` - The model service encountered an unexpected error.
     - `authentication_error` - The API credentials are invalid or lack the required
