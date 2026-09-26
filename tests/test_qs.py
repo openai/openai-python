@@ -22,6 +22,24 @@ def test_basic() -> None:
     assert stringify({"a": None}) == ""
 
 
+def test_empty_string() -> None:
+    # an explicit empty string is distinct from omitting the key entirely
+    assert stringify({"a": ""}) == "a="
+    assert stringify({"a": "", "b": None}) == "a="
+    assert unquote(stringify({"a": {"b": ""}})) == "a[b]="
+
+
+@pytest.mark.parametrize("array_format", ["comma", "repeat", "indices", "brackets"])
+def test_empty_string_in_array(array_format: str) -> None:
+    serialised = unquote(stringify({"a": ["", "b"]}, array_format=cast(Any, array_format)))
+    assert serialised == {
+        "comma": "a=,b",
+        "repeat": "a=&a=b",
+        "indices": "a[0]=&a[1]=b",
+        "brackets": "a[]=&a[]=b",
+    }[array_format]
+
+
 @pytest.mark.parametrize("method", ["class", "function"])
 def test_nested_dotted(method: str) -> None:
     if method == "class":

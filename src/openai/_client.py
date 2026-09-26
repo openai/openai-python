@@ -303,7 +303,8 @@ class OpenAI(SyncAPIClient):
         if provider_runtime is not None:
             base_url = provider_runtime.base_url
         elif base_url is None:
-            base_url = os.environ.get("OPENAI_BASE_URL")
+            # an empty environment variable is treated as if it wasn't set at all
+            base_url = os.environ.get("OPENAI_BASE_URL") or None
         self._base_url_was_default = provider_runtime is None and base_url is None
         self._data_residency = data_residency
         if base_url is None:
@@ -1063,7 +1064,8 @@ class AsyncOpenAI(AsyncAPIClient):
         if provider_runtime is not None:
             base_url = provider_runtime.base_url
         elif base_url is None:
-            base_url = os.environ.get("OPENAI_BASE_URL")
+            # an empty environment variable is treated as if it wasn't set at all
+            base_url = os.environ.get("OPENAI_BASE_URL") or None
         self._base_url_was_default = provider_runtime is None and base_url is None
         self._data_residency = data_residency
         if base_url is None:
