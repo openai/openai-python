@@ -1,5 +1,22 @@
 # Changelog
 
+## [3.20.0](https://github.com/openai/openai-python/compare/v3.19.2...v3.20.0) (2026-09-26)
+
+
+### Features
+
+* **api:** add Cyber access programs to Responses ([#3956](https://github.com/openai/openai-python/issues/3956)) ([09c5b6f](https://github.com/openai/openai-python/commit/09c5b6f13f716ad4e417fd7ba9209a8a057e0383))
+
+
+### Chores
+
+* **api:** clarify documented API error responses ([#3965](https://github.com/openai/openai-python/issues/3965)) ([384fee3](https://github.com/openai/openai-python/commit/384fee3252e2336a85450ff38f9bae41f9199616))
+* **api:** document batch error responses ([#3961](https://github.com/openai/openai-python/issues/3961)) ([6e4a79c](https://github.com/openai/openai-python/commit/6e4a79cc8c7e640e7ac4be710db32fe20b1020f2))
+* **api:** document files and uploads error responses ([#3960](https://github.com/openai/openai-python/issues/3960)) ([a9d727f](https://github.com/openai/openai-python/commit/a9d727ff9c4a38fc5dca8d31bd3dd76f473cfc27))
+* **api:** document fine-tuning and model errors ([#3964](https://github.com/openai/openai-python/issues/3964)) ([5d4003c](https://github.com/openai/openai-python/commit/5d4003c12d5df5a5faed35971cac3bcb711fdf7d))
+* **api:** document Responses not-found errors ([#3959](https://github.com/openai/openai-python/issues/3959)) ([63099e7](https://github.com/openai/openai-python/commit/63099e739d25cb18f90cae93648471bf037bc46f))
+* **api:** document stored chat completion errors ([#3963](https://github.com/openai/openai-python/issues/3963)) ([a73fe0c](https://github.com/openai/openai-python/commit/a73fe0c3d404335a342d1251bd32709b8e3d76f2))
+
 ## [3.19.2](https://github.com/openai/openai-python/compare/v3.19.1...v3.19.2) (2026-09-23)
 
 
