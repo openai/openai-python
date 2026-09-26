@@ -27,6 +27,7 @@ from ._typing import (
     is_required_type,
     is_sequence_type,
     is_annotated_type,
+    is_not_required_type,
     strip_annotated_type,
 )
 
@@ -117,8 +118,8 @@ def _get_annotated_type(type_: type) -> type | None:
 
     This also unwraps the type when applicable, e.g. `Required[Annotated[T, ...]]`
     """
-    if is_required_type(type_):
-        # Unwrap `Required[Annotated[T, ...]]` to `Annotated[T, ...]`
+    if is_required_type(type_) or is_not_required_type(type_):
+        # Unwrap Required or NotRequired to expose the Annotated metadata
         type_ = get_args(type_)[0]
 
     if is_annotated_type(type_):
