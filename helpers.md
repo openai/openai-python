@@ -535,3 +535,102 @@ client.vector_stores.file_batches.create_and_poll(...)
 client.vector_stores.file_batches.upload_and_poll(...)
 client.videos.create_and_poll(...)
 ```
+
+# Response Status Helpers
+
+A background Response reports its own outcome inside the body of the poll, not in the HTTP status. A run that
+failed still comes back as `200 OK` with `status="failed"`, so the SDK's normal 4xx/5xx error handling never
+fires and the failure is easy to miss.
+
+`retrieve()` deliberately keeps returning the resource for every status, so you can always inspect `status`,
+`error`, partial `output` and `metadata`. When you would rather have an exception, pass the response to
+`raise_for_status()`:
+
+```py
+from openai import OpenAI, ResponseFailedError
+from openai.lib import raise_for_status
+
+client = OpenAI()
+
+response = client.responses.retrieve("resp_123")
+
+try:
+    raise_for_status(response)
+except ResponseFailedError as exc:
+    print(exc.code)  # "server_error"
+    print(exc.retryable)  # True
+    print(exc.request_id)  # "req_123"
+    print(exc.response.output)  # the parsed Response is still fully available
+```
+
+## What raises
+
+| `response.status`       | Behavior                                                                          |
+| ----------------------- | --------------------------------------------------------------------------------- |
+| `completed`             | returns                                                                           |
+| `queued`, `in_progress` | returns — not a terminal state                                                    |
+| `cancelled`             | returns — cancellation is caller-initiated, not a failure                         |
+| `failed`                | raises `ResponseFailedError`                                                      |
+| `incomplete`            | returns by default; raises `ResponseIncompleteError` with `raise_on_incomplete=True` |
+
+`incomplete` is opt-in because the usual reason is `max_output_tokens`, which still leaves usable content on
+`response.output`. Opt in when a truncated run should be treated as an error:
+
+```py
+raise_for_status(response, raise_on_incomplete=True)
+```
+
+## Exception types
+
+Both exceptions inherit from `ResponseNotCompletedError`, so you can catch either kind in one clause:
+
+```py
+from openai import ResponseNotCompletedError
+
+try:
+    raise_for_status(response, raise_on_incomplete=True)
+except ResponseNotCompletedError as exc:
+    print(exc.response.status)  # "failed" or "incomplete"
+```
+
+| Attribute    | Type              | Description                                                                |
+| ------------ | ----------------- | -------------------------------------------------------------------------- |
+| `response`   | `Response`        | The parsed resource, including any partial `output`                        |
+| `request_id` | `str \| None`     | The `x-request-id` of the poll, for reporting issues to OpenAI             |
+| `retryable`  | `bool`            | Whether submitting a **new** `create()` call is worth trying               |
+| `code`       | `str \| None`     | `ResponseFailedError` only — `response.error.code`                          |
+| `reason`     | `str \| None`     | `ResponseIncompleteError` only — `response.incomplete_details.reason`       |
+
+These are plain `OpenAIError` subclasses, **not** `APIStatusError` subclasses, and they carry no `status_code`.
+The poll that surfaced the failure really did return `200 OK`, so there is no HTTP status to report; a
+`status_code` of `400` or `429` here would be a fabrication that breaks retry and telemetry logic keyed on it.
+
+`retryable` is `True` only for transient failures — `server_error`, `rate_limit_exceeded` and
+`vector_store_timeout`. Any other code, including one this version of the SDK does not recognize, is reported as
+non-retryable so that a future validation, policy or quota code is never mistaken for a transient one.
+
+> [!NOTE]
+> `retryable` never means re-`retrieve()`ing the same id. A terminal response is immutable, so polling it again
+> returns the identical failure. It means the original operation is worth submitting again with `create()`.
+
+`ResponseFailedError` is also raised when the API reports `status="failed"` without an `error` object; `code` is
+`None` in that case, and the failure still surfaces rather than passing silently.
+
+## Async and raw responses
+
+`raise_for_status()` is a plain function over a parsed `Response`, so it behaves identically on the async client
+and across every retrieval wrapper:
+
+```py
+response = await client.responses.retrieve("resp_123")
+raise_for_status(response)
+
+# `.with_raw_response` and `.with_streaming_response` return the same resource
+raw = client.responses.with_raw_response.retrieve("resp_123")
+raise_for_status(raw.parse())
+
+# with `stream=True`, classify the response carried by the terminal event
+for event in client.responses.retrieve("resp_123", stream=True):
+    if event.type == "response.failed":
+        raise_for_status(event.response)
+```

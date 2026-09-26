@@ -714,6 +714,38 @@ Error codes are as follows:
 | >=500       | `InternalServerError`      |
 | N/A         | `APIConnectionError`       |
 
+### Responses that fail without an HTTP error
+
+A background Response reports its own outcome inside the body of the poll rather than in the HTTP status. A run
+that failed still comes back as `200 OK` with `status="failed"`, so none of the errors above are raised and
+`client.responses.retrieve()` returns the resource normally.
+
+That is deliberate — `retrieve()` returns the `Response` for every status so you can inspect `status`, `error`,
+partial `output` and `metadata`. To turn a non-completed run into an exception, pass it to `raise_for_status()`:
+
+```python
+from openai import OpenAI, ResponseFailedError
+from openai.lib import raise_for_status
+
+client = OpenAI()
+
+response = client.responses.retrieve("resp_123")
+
+try:
+    raise_for_status(response)
+except ResponseFailedError as exc:
+    print(exc.code)  # "server_error"
+    print(exc.retryable)  # whether a new `create()` call is worth trying
+    print(exc.response.output)  # the parsed Response is still available
+```
+
+`status="failed"` raises `ResponseFailedError`, and `status="incomplete"` raises `ResponseIncompleteError` only
+when you pass `raise_on_incomplete=True` — a run truncated at `max_output_tokens` still has usable output.
+`cancelled` never raises. Both exceptions inherit from `ResponseNotCompletedError` and are plain `OpenAIError`
+subclasses with no `status_code`, since the poll itself really did return `200 OK`.
+
+See [helpers.md](helpers.md#response-status-helpers) for the full list of statuses, fields and retry semantics.
+
 ## Request IDs
 
 > For more information on debugging requests, see [these docs](https://platform.openai.com/docs/api-reference/debugging-requests)
