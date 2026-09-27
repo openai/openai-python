@@ -45,7 +45,7 @@ class Agent(BaseModel):
     reasoning: AgentReasoning
     """The agent's reasoning configuration."""
 
-    service_tier: Literal["auto", "default", "flex", "priority", "fast"]
+    service_tier: Literal["auto", "default", "flex", "priority", "fast", "ultrafast"]
     """The effective service-tier policy for model requests. Defaults to `auto`."""
 
     text: AgentText
