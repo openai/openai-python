@@ -175,8 +175,8 @@ class ResponsesWebSocketAccumulator:
                 self._terminal_type = kind
             return
         index = _field(event, "output_index")
-        if not isinstance(index, int) or isinstance(index, bool):
-            raise ValueError("WebSocket output event is missing output_index")
+        if not isinstance(index, int) or isinstance(index, bool) or index < 0:
+            raise ValueError("WebSocket output_index must be a non-negative integer")
         if kind in {"response.output_item.added", "response.output_item.done"}:
             self._add_item(self._output, index, _field(event, "item"))
             self._bound, self._stream_id = True, stream_id
@@ -207,8 +207,8 @@ class ResponsesWebSocketAccumulator:
             "response.content_part.done",
             "response.output_text.delta",
             "response.output_text.done",
-        } and (not isinstance(pos, int) or isinstance(pos, bool)):
-            raise ValueError("WebSocket text event is missing content_index")
+        } and (not isinstance(pos, int) or isinstance(pos, bool) or pos < 0):
+            raise ValueError("WebSocket content_index must be a non-negative integer")
         item_id = _text_field(event, "item_id")
         self._bound, self._stream_id = True, stream_id
         item = self._output.get(index)

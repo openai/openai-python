@@ -327,7 +327,8 @@ async def test_rejects_invalid_fields_without_poisoning_prior_snapshot(mode: str
 
 @pytest.mark.parametrize("mode", ["sync", "async"])
 @pytest.mark.parametrize(
-    "invalid_index", [{}, {"content_index": "wrong"}, {"content_index": None}, {"content_index": False}]
+    "invalid_index",
+    [{}, {"content_index": "wrong"}, {"content_index": None}, {"content_index": False}, {"content_index": -1}],
 )
 @pytest.mark.parametrize(
     "fields",
@@ -420,7 +421,21 @@ async def test_invalid_lifecycle_replacement_is_atomic(mode: str, phase: str) ->
 
 
 @pytest.mark.parametrize("mode", ["sync", "async"])
-async def test_mcp_approval_items_keep_pending_arguments_and_reject_bool_output_index(mode: str) -> None:
+@pytest.mark.parametrize(
+    "invalid",
+    [
+        {"type": "response.mcp_call_arguments.delta", "output_index": False, "item_id": "approval", "delta": "bad"},
+        {"type": "response.mcp_call_arguments.delta", "output_index": -1, "item_id": "approval", "delta": "bad"},
+        {
+            "type": "response.output_item.done",
+            "output_index": -1,
+            "item": {"type": "message", "id": "bad", "content": [{"type": "output_text", "text": "bad"}]},
+        },
+    ],
+)
+async def test_mcp_approval_items_keep_pending_arguments_and_reject_invalid_output_index(
+    mode: str, invalid: dict[str, object]
+) -> None:
     approval = {
         "type": "mcp_approval_request",
         "id": "approval",
@@ -432,16 +447,7 @@ async def test_mcp_approval_items_keep_pending_arguments_and_reject_bool_output_
     def script(socket: ServerConnection) -> None:
         socket.recv(timeout=5)
         socket.send(json.dumps({"type": "response.output_item.added", "output_index": 0, "item": approval}))
-        socket.send(
-            json.dumps(
-                {
-                    "type": "response.mcp_call_arguments.delta",
-                    "output_index": False,
-                    "item_id": "approval",
-                    "delta": "bad",
-                }
-            )
-        )
+        socket.send(json.dumps(invalid))
         socket.send(json.dumps(response_event("completed", output=None)))
 
     with script_server(script) as url:
