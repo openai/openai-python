@@ -84,11 +84,12 @@ while True:
     if getattr(event, "stream_id", None) != expected_stream_id:
         continue
     accumulator.add_event(event)
+    event_type = event.type
     if event.type == "response.output_text.delta":
         pass  # Update the application's UI with event.delta (provisional).
     elif event.type == "response.output_item.done":
         pass  # Replace the provisional item at event.output_index with event.item.
-    elif event.type in {"response.completed", "response.failed", "response.incomplete"}:
+    elif isinstance(event_type, str) and event_type in {"response.completed", "response.failed", "response.incomplete"}:
         snapshot = accumulator.snapshot()  # One full projection of all items.
         response = accumulator.get_final_response()
         break
