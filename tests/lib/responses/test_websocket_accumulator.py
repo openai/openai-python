@@ -540,7 +540,8 @@ async def test_nullable_message_content_and_projected_metadata(mode: str, nullab
                 assert projection.output_text == ""
                 assert projection.output[0].name is None and projection.output[0].call_id is None
                 assert received == untouched
-            assert acc.get_final_response().to_dict() == received.response.to_dict()
+                if received.type == "response.completed":
+                    assert acc.get_final_response().to_dict() == received.response.to_dict()
 
 
 @pytest.mark.parametrize("mode", ["sync", "async"])
