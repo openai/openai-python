@@ -264,25 +264,26 @@ class ResponsesWebSocketAccumulator:
     def _add_item(output: dict[str, _Output], index: int, source: object) -> None:
         if source is None:
             return
-        item_id = _field(source, "id")
-        if item_id is not None:
-            item_id = _text_field(source, "id")
         item = _Output(
-            item_id=item_id,
+            item_id=_optional_text_field(source, "id"),
             type=_text_field(source, "type"),
-            name=_field(source, "name"),
-            call_id=_field(source, "call_id"),
+            name=_optional_text_field(source, "name"),
+            call_id=_optional_text_field(source, "call_id"),
         )
         if item.type == "message":
-            for pos, part in enumerate(_field(source, "content") or []):
-                if _field(part, "type") == "output_text" and _field(part, "text") is not None:
-                    item.text[hex(pos)] = [_text_field(part, "text")]
+            content = _field(source, "content")
+            if content is not None:
+                if not isinstance(content, list):
+                    raise ValueError("WebSocket message content must be a list or null")
+                for pos, part in enumerate(cast("list[object]", content)):
+                    if part is not None and _text_field(part, "type") == "output_text":
+                        text = _optional_text_field(part, "text")
+                        if text is not None:
+                            item.text[hex(pos)] = [text]
         elif item.type in {"function_call", "mcp_call", "mcp_approval_request"}:
-            value = _field(source, "arguments")
-            item.arguments = ["" if value is None else _text_field(source, "arguments")]
+            item.arguments = [_optional_text_field(source, "arguments") or ""]
         elif item.type == "custom_tool_call":
-            value = _field(source, "input")
-            item.input = ["" if value is None else _text_field(source, "input")]
+            item.input = [_optional_text_field(source, "input") or ""]
         key = hex(index)
         previous = output.get(key)
         if previous is not None:
@@ -297,3 +298,9 @@ def _text_field(value: object, name: str) -> str:
     if not isinstance(text, str):
         raise ValueError(f"WebSocket output {name} must be a string")
     return text
+
+
+def _optional_text_field(value: object, name: str) -> str | None:
+    if _field(value, name) is None:
+        return None
+    return _text_field(value, name)

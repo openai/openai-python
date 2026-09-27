@@ -452,6 +452,99 @@ async def test_invalid_lifecycle_replacement_is_atomic(mode: str, phase: str) ->
 
 @pytest.mark.parametrize("mode", ["sync", "async"])
 @pytest.mark.parametrize(
+    "invalid,field",
+    [
+        pytest.param({"type": "message", "content": "bad"}, "content", id="string-content"),
+        pytest.param({"type": "message", "content": 42}, "content", id="numeric-content"),
+        pytest.param({"type": "message", "content": {}}, "content", id="object-content"),
+        pytest.param({"type": "message", "content": ["bad"]}, "type", id="invalid-part"),
+        pytest.param({"type": "message", "content": [{"type": 42}]}, "type", id="invalid-part-type"),
+        pytest.param({"type": "function_call", "name": {"bad": True}}, "name", id="function-name"),
+        pytest.param({"type": "function_call", "call_id": 42}, "call_id", id="function-call-id"),
+        pytest.param({"type": "mcp_call", "name": 42}, "name", id="mcp-name"),
+        pytest.param({"type": "mcp_approval_request", "call_id": {"bad": True}}, "call_id", id="mcp-call-id"),
+        pytest.param({"type": "custom_tool_call", "name": 42}, "name", id="custom-name"),
+    ],
+)
+async def test_invalid_projected_item_fields_do_not_retire_or_replace_current(
+    mode: str, invalid: dict[str, object], field: str
+) -> None:
+    first = {
+        "type": "response.output_text.delta",
+        "item_id": "original",
+        "output_index": 0,
+        "content_index": 0,
+        "delta": "kept",
+    }
+    replacement = {"id": "replacement", **invalid}
+
+    def script(socket: ServerConnection) -> None:
+        socket.recv(timeout=5)
+        socket.send(json.dumps(first))
+        for phase in ("added", "done"):
+            socket.send(json.dumps({"type": "response.output_item." + phase, "output_index": 0, "item": replacement}))
+        socket.send(json.dumps({**first, "delta": " more"}))
+        # A lifecycle carrying an invalid later item cannot commit the earlier
+        # valid item or a final, and must retain its validation error.
+        socket.send(json.dumps(response_event("completed", output=[{"type": "message", "id": "valid"}, replacement])))
+
+    with script_server(script) as url:
+        async with session_for(mode, url) as driver:
+            lane = driver.session.default
+            await driver.call(lane, "send", {"type": "response.create", "input": "test"})
+            acc = ResponsesWebSocketAccumulator()
+            acc.add_event(await driver.call(lane, "recv"))
+            before = acc.snapshot()
+            for _ in range(2):
+                received = await driver.call(lane, "recv")
+                original = model_copy(received, deep=True)
+                with pytest.raises(ValueError, match=field):
+                    acc.add_event(received)
+                assert acc.snapshot() == before
+                assert received == original
+            acc.add_event(await driver.call(lane, "recv"))
+            assert before.output_text == "kept"
+            assert acc.snapshot().output_text == "kept more"
+            before = acc.snapshot()
+            received = await driver.call(lane, "recv")
+            original = model_copy(received, deep=True)
+            with pytest.raises(ValueError, match=field) as failure:
+                acc.add_event(received)
+            assert acc.snapshot() == before
+            assert received == original
+            with pytest.raises(ValueError) as final:
+                acc.get_final_response()
+            assert final.value is failure.value
+
+
+@pytest.mark.parametrize("mode", ["sync", "async"])
+@pytest.mark.parametrize("nullable", [{}, {"content": None, "name": None, "call_id": None}])
+async def test_nullable_message_content_and_projected_metadata(mode: str, nullable: dict[str, object]) -> None:
+    message: dict[str, object] = {"type": "message", "id": "message", **nullable}
+
+    def script(socket: ServerConnection) -> None:
+        socket.recv(timeout=5)
+        socket.send(json.dumps({"type": "response.output_item.done", "output_index": 0, "item": message}))
+        socket.send(json.dumps(response_event("completed", output=[message])))
+
+    with script_server(script) as url:
+        async with session_for(mode, url) as driver:
+            lane = driver.session.default
+            await driver.call(lane, "send", {"type": "response.create", "input": "test"})
+            acc = ResponsesWebSocketAccumulator()
+            for _ in range(2):
+                received = await driver.call(lane, "recv")
+                untouched = model_copy(received, deep=True)
+                acc.add_event(received)
+                projection = acc.snapshot()
+                assert projection.output_text == ""
+                assert projection.output[0].name is None and projection.output[0].call_id is None
+                assert received == untouched
+            assert acc.get_final_response().to_dict() == received.response.to_dict()
+
+
+@pytest.mark.parametrize("mode", ["sync", "async"])
+@pytest.mark.parametrize(
     "invalid",
     [
         {"type": "response.mcp_call_arguments.delta", "output_index": False, "item_id": "approval", "delta": "bad"},

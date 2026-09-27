@@ -79,17 +79,17 @@ expected_stream_id = "conversation"  # Same ID passed to session.lane(); None fo
 while True:
     event = await lane.recv()  # Use lane.recv(timeout=...) in a sync session.
     # Original event fields, including unknown variants/fields, remain available.
-    # Inspect or log all raw events here before filtering for this response.
+    # Inspect events in memory before filtering. Never log raw events: they can
+    # contain customer data, tool arguments, credentials, or error details.
     if getattr(event, "stream_id", None) != expected_stream_id:
         continue
     accumulator.add_event(event)
     if event.type == "response.output_text.delta":
-        print(event.delta, end="", flush=True)  # Provisional progress log.
+        pass  # Update the application's UI with event.delta (provisional).
     elif event.type == "response.output_item.done":
-        print("\nCompleted item:", event.item)  # Replaces the provisional item.
+        pass  # Replace the provisional item at event.output_index with event.item.
     elif event.type in {"response.completed", "response.failed", "response.incomplete"}:
         snapshot = accumulator.snapshot()  # One full projection of all items.
-        print("\nProjected text:", snapshot.output_text)
         response = accumulator.get_final_response()
         break
 accumulator.reset()  # Does not close the lane or connection.
@@ -112,7 +112,7 @@ fragments. It is proportional to the accumulated output, so requesting it after
 every delta or completed item repeatedly rebuilds growing prefixes. Use the
 original event for progress, including the final item itself on
 `response.output_item.done`. Read the full snapshot at a terminal or on explicit
-user demand. The progress log above is provisional; done events can shorten or
+user demand. A per-delta progress display is provisional; done events can shorten or
 correct earlier text. A UI can use the received item to replace the item at
 `event.output_index`, and use the terminal snapshot for the whole projection.
 
