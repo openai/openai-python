@@ -295,3 +295,51 @@ async def test_rejects_invalid_fields_without_poisoning_prior_snapshot(mode: str
             assert received == original
             acc.add_event(await driver.call(lane, "recv"))
             assert acc.get_final_response().status == "incomplete"
+
+
+@pytest.mark.parametrize("mode", ["sync", "async"])
+@pytest.mark.parametrize("invalid_index", [{}, {"content_index": "wrong"}, {"content_index": None}])
+@pytest.mark.parametrize(
+    "fields",
+    [
+        {"type": "response.output_text.delta", "delta": "bad"},
+        {"type": "response.output_text.done", "text": "bad"},
+        {"type": "response.content_part.added", "part": {"type": "output_text", "text": "bad"}},
+        {"type": "response.content_part.done", "part": {"type": "output_text", "text": "bad"}},
+    ],
+)
+async def test_invalid_text_position_does_not_replace_previous_item(
+    mode: str, fields: dict[str, object], invalid_index: dict[str, object]
+) -> None:
+    initial = {
+        "type": "response.output_text.delta",
+        "output_index": 0,
+        "content_index": 0,
+        "item_id": "original",
+        "delta": "saved",
+    }
+
+    def script(socket: ServerConnection) -> None:
+        socket.recv(timeout=5)
+        socket.send(json.dumps(initial))
+        socket.send(json.dumps({"output_index": 0, "item_id": "replacement", **fields, **invalid_index}))
+        socket.send(json.dumps({**initial, "delta": " after"}))
+        socket.send(json.dumps(response_event("completed", output=None)))
+
+    with script_server(script) as url:
+        async with session_for(mode, url) as driver:
+            lane = driver.session.default
+            await driver.call(lane, "send", {"type": "response.create", "input": "test"})
+            acc = ResponsesWebSocketAccumulator()
+            acc.add_event(await driver.call(lane, "recv"))
+            prior = acc.snapshot()
+            invalid = await driver.call(lane, "recv")
+            untouched = model_copy(invalid, deep=True)
+            with pytest.raises(ValueError, match="content_index"):
+                acc.add_event(invalid)
+            assert acc.snapshot() == prior
+            assert invalid == untouched
+            acc.add_event(await driver.call(lane, "recv"))
+            assert acc.snapshot().output_text == "saved after"
+            acc.add_event(await driver.call(lane, "recv"))
+            assert acc.get_final_response().status == "completed"

@@ -79,9 +79,12 @@ while True:
     event = await lane.recv()  # Use lane.recv(timeout=...) in a sync session.
     accumulator.add_event(event)
     # Original event fields, including unknown variants/fields, remain available.
-    snapshot = accumulator.snapshot()
-    print("Current text:", snapshot.output_text)
-    if snapshot.terminal_type is not None:
+    if event.type == "response.output_text.delta":
+        print(event.delta, end="", flush=True)  # Provisional progress log.
+    elif event.type == "response.output_item.done":
+        snapshot = accumulator.snapshot()
+        print("\nCurrent projected text:", snapshot.output_text)
+    elif event.type in {"response.completed", "response.failed", "response.incomplete"}:
         response = accumulator.get_final_response()
         break
 accumulator.reset()  # Does not close the lane or connection.
@@ -94,6 +97,14 @@ events replace provisional fields. Full item replacements discard old fields;
 a changed nonempty item ID starts fresh at its index. A supplied response
 output list overrides the projected items, including an explicit empty list;
 omitted or null output retains only the helper's earlier projections.
+
+`snapshot()` materializes the entire current projection and joins retained
+fragments. It is proportional to the accumulated output, so requesting it after
+every small delta repeatedly rebuilds growing prefixes. Use the original event
+for per-delta progress and request a full snapshot only when needed, such as
+after an item is done. The progress log above is provisional; done events can
+shorten or correct earlier text. A UI should replace its displayed projection
+at those boundaries, not append the cumulative `snapshot.output_text`.
 
 The helper's `get_final_response()` returns a copy of the exact received server
 response, including its original missing/null/empty output, on completed,

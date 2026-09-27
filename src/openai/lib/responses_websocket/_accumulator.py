@@ -75,6 +75,11 @@ class ResponsesWebSocketAccumulator:
         self._final = self._error = None
 
     def snapshot(self) -> ResponsesWebSocketSnapshot:
+        """Materialize the entire current immutable projection.
+
+        This joins retained fragments. Use original events for per-delta progress
+        and request snapshots intentionally (for example, on output_item.done).
+        """
         return ResponsesWebSocketSnapshot(
             stream_id=self._stream_id,
             response_id=self._response_id,
@@ -96,8 +101,9 @@ class ResponsesWebSocketAccumulator:
 
     def get_final_response(self) -> Response:
         """Return an independent copy of the received terminal response, never a partial success."""
-        if self._error is not None:
-            raise self._error
+        error = self._error
+        if error is not None:
+            raise error
         if self._final is None:
             raise RuntimeError("No terminal response has been received")
         return model_copy(self._final, deep=True)
@@ -135,8 +141,9 @@ class ResponsesWebSocketAccumulator:
         if self._terminal_type is not None or self._error is not None:
             raise RuntimeError("Reset the accumulator before adding another turn")
         if kind == "error":
-            self._error = ResponsesWebSocketError(event)
-            raise self._error
+            protocol_error = ResponsesWebSocketError(event)
+            self._error = protocol_error
+            raise protocol_error
         terminal = kind in {"response.completed", "response.failed", "response.incomplete"}
         if kind in {"response.created", "response.in_progress"} or terminal:
             response = _field(event, "response")
@@ -159,12 +166,12 @@ class ResponsesWebSocketAccumulator:
                 self._final = model_copy(response, deep=True)
                 self._terminal_type = kind
             return
-        self._bound, self._stream_id = True, stream_id
         index = _field(event, "output_index")
         if not isinstance(index, int):
             raise ValueError("WebSocket output event is missing output_index")
         if kind in {"response.output_item.added", "response.output_item.done"}:
             self._add_item(index, _field(event, "item"))
+            self._bound, self._stream_id = True, stream_id
             return
         # Validate consumed values before replacing an item's retained state.
         # The wire decoder preserves known events even when fields are malformed.
@@ -185,6 +192,15 @@ class ResponsesWebSocketAccumulator:
             part = _field(event, "part")
             if _field(part, "type") == "output_text":
                 value = _text_field(part, "text")
+        pos = _field(event, "content_index")
+        if kind in {
+            "response.content_part.added",
+            "response.content_part.done",
+            "response.output_text.delta",
+            "response.output_text.done",
+        } and not isinstance(pos, int):
+            raise ValueError("WebSocket text event is missing content_index")
+        self._bound, self._stream_id = True, stream_id
         item_id = _field(event, "item_id")
         item = self._output.get(index)
         if item is None or (item_id and item.item_id and item_id != item.item_id):
@@ -198,9 +214,6 @@ class ResponsesWebSocketAccumulator:
             "response.output_text.delta",
             "response.output_text.done",
         }:
-            pos = _field(event, "content_index")
-            if not isinstance(pos, int):
-                raise ValueError("WebSocket text event is missing content_index")
             if kind == "response.output_text.delta":
                 item.text.setdefault(pos, []).append(value)
             elif kind == "response.output_text.done":
