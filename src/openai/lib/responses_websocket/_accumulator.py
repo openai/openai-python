@@ -40,6 +40,7 @@ class ResponsesWebSocketSnapshot:
 @dataclass
 class _Output:
     item_id: str | None
+    retired_ids: set[str] = field(default_factory=set[str])
     type: str | None = None
     name: str | None = None
     call_id: str | None = None
@@ -79,8 +80,8 @@ class ResponsesWebSocketAccumulator:
     def snapshot(self) -> ResponsesWebSocketSnapshot:
         """Materialize the entire current immutable projection.
 
-        This joins retained fragments. Use original events for per-delta progress
-        and request snapshots intentionally (for example, on output_item.done).
+        This joins retained fragments. Use original events for delta and item
+        progress; read a full snapshot at a terminal or on explicit user demand.
         """
         return ResponsesWebSocketSnapshot(
             stream_id=self._stream_id,
@@ -163,6 +164,11 @@ class ResponsesWebSocketAccumulator:
             if self._response_id is not None and response_id is not None and self._response_id != response_id:
                 raise ValueError("Event belongs to another response")
             output = _field(response, "output")
+            if output is not None and not isinstance(output, list):
+                error = ValueError("WebSocket response output must be a list or null")
+                if terminal:
+                    self._error = error
+                raise error
             if isinstance(output, list):
                 replacement: dict[str, _Output] = {}
                 try:
@@ -218,8 +224,13 @@ class ResponsesWebSocketAccumulator:
         self._bound, self._stream_id = True, stream_id
         key = hex(index)
         item = self._output.get(key)
-        if item is None or (item_id and item.item_id and item_id != item.item_id):
+        if item is not None and item_id in item.retired_ids:
+            return
+        if item is None:
             item = _Output(item_id=item_id)
+            self._output[key] = item
+        elif item_id and item.item_id and item_id != item.item_id:
+            item = _Output(item_id=item_id, retired_ids=item.retired_ids | {item.item_id})
             self._output[key] = item
         if item_id:
             item.item_id = item_id
@@ -237,6 +248,8 @@ class ResponsesWebSocketAccumulator:
                 part = _field(event, "part")
                 if _field(part, "type") == "output_text":
                     item.text[hex(pos)] = [value]
+                elif isinstance(_field(part, "type"), str):
+                    item.text.pop(hex(pos), None)
         elif kind in {"response.function_call_arguments.delta", "response.mcp_call_arguments.delta"}:
             item.arguments.append(value)
         elif kind in {"response.function_call_arguments.done", "response.mcp_call_arguments.done"}:
@@ -250,9 +263,12 @@ class ResponsesWebSocketAccumulator:
     def _add_item(output: dict[str, _Output], index: int, source: object) -> None:
         if source is None:
             return
+        item_id = _field(source, "id")
+        if item_id is not None:
+            item_id = _text_field(source, "id")
         item = _Output(
-            item_id=_field(source, "id"),
-            type=_field(source, "type"),
+            item_id=item_id,
+            type=_text_field(source, "type"),
             name=_field(source, "name"),
             call_id=_field(source, "call_id"),
         )
@@ -266,7 +282,13 @@ class ResponsesWebSocketAccumulator:
         elif item.type == "custom_tool_call":
             value = _field(source, "input")
             item.input = ["" if value is None else _text_field(source, "input")]
-        output[hex(index)] = item
+        key = hex(index)
+        previous = output.get(key)
+        if previous is not None:
+            item.retired_ids = previous.retired_ids.copy()
+            if previous.item_id and item.item_id and previous.item_id != item.item_id:
+                item.retired_ids.add(previous.item_id)
+        output[key] = item
 
 
 def _text_field(value: object, name: str) -> str:

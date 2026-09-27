@@ -86,9 +86,10 @@ while True:
     if event.type == "response.output_text.delta":
         print(event.delta, end="", flush=True)  # Provisional progress log.
     elif event.type == "response.output_item.done":
-        snapshot = accumulator.snapshot()
-        print("\nCurrent projected text:", snapshot.output_text)
+        print("\nCompleted item:", event.item)  # Replaces the provisional item.
     elif event.type in {"response.completed", "response.failed", "response.incomplete"}:
+        snapshot = accumulator.snapshot()  # One full projection of all items.
+        print("\nProjected text:", snapshot.output_text)
         response = accumulator.get_final_response()
         break
 accumulator.reset()  # Does not close the lane or connection.
@@ -108,11 +109,12 @@ omitted or null output retains only the helper's earlier projections.
 
 `snapshot()` materializes the entire current projection and joins retained
 fragments. It is proportional to the accumulated output, so requesting it after
-every small delta repeatedly rebuilds growing prefixes. Use the original event
-for per-delta progress and request a full snapshot only when needed, such as
-after an item is done. The progress log above is provisional; done events can
-shorten or correct earlier text. A UI should replace its displayed projection
-at those boundaries, not append the cumulative `snapshot.output_text`.
+every delta or completed item repeatedly rebuilds growing prefixes. Use the
+original event for progress, including the final item itself on
+`response.output_item.done`. Read the full snapshot at a terminal or on explicit
+user demand. The progress log above is provisional; done events can shorten or
+correct earlier text. A UI can use the received item to replace the item at
+`event.output_index`, and use the terminal snapshot for the whole projection.
 
 The helper's `get_final_response()` returns a copy of the exact received server
 response, including its original missing/null/empty output, on completed,

@@ -9,11 +9,10 @@ from websockets.sync.server import ServerConnection
 
 from openai import omit
 from openai._compat import model_copy
-from openai._models import construct_type_unchecked
 from openai.types.responses import ResponseStreamEvent
 from openai.lib.responses_websocket import ResponsesWebSocketError, ResponsesWebSocketAccumulator
 from openai.lib.streaming.responses import ResponseStreamState
-from openai.types.responses.responses_server_event import ResponsesServerEvent
+from openai.types.responses.responses_server_event import ResponseTextWsDelta
 
 from .test_websocket_session import session_for, script_server, response_event
 
@@ -25,16 +24,14 @@ def test_large_sparse_indices_keep_numeric_order_and_prior_snapshots(field: str)
     step = sys.hash_info.modulus
     for i in reversed(range(size)):
         acc.add_event(
-            construct_type_unchecked(
-                type_=ResponsesServerEvent,
-                value={
-                    "type": "response.output_text.delta",
-                    "output_index": 0,
-                    "content_index": 0,
-                    "item_id": "msg",
-                    "delta": str(i) + ",",
-                    field: i * step,
-                },
+            ResponseTextWsDelta(
+                type="response.output_text.delta",
+                output_index=i * step if field == "output_index" else 0,
+                content_index=i * step if field == "content_index" else 0,
+                item_id="msg",
+                delta=str(i) + ",",
+                logprobs=[],
+                sequence_number=size - i,
             )
         )
     prior = acc.snapshot()
@@ -535,6 +532,162 @@ async def test_empty_output_item_keeps_previous_projection(mode: str, item_field
             assert acc.snapshot().output[0].arguments == "{}"
             acc.add_event(await driver.call(lane, "recv"))
             assert acc.get_final_response().status == "completed"
+
+
+@pytest.mark.parametrize("mode", ["sync", "async"])
+@pytest.mark.parametrize("bad_item", [0, True, "not an item", ["bad"], {"missing": "type"}])
+async def test_invalid_item_shape_preserves_retained_projection(mode: str, bad_item: object) -> None:
+    delta = {"type": "response.function_call_arguments.delta", "output_index": 0, "item_id": "fc", "delta": "saved"}
+
+    def script(socket: ServerConnection) -> None:
+        socket.recv(timeout=5)
+        socket.send(json.dumps(delta))
+        for phase in ("added", "done"):
+            socket.send(json.dumps({"type": "response.output_item." + phase, "output_index": 0, "item": bad_item}))
+        socket.send(json.dumps(response_event("completed", output=None)))
+
+    with script_server(script) as url:
+        async with session_for(mode, url) as driver:
+            lane = driver.session.default
+            await driver.call(lane, "send", {"type": "response.create", "input": "test"})
+            acc = ResponsesWebSocketAccumulator()
+            acc.add_event(await driver.call(lane, "recv"))
+            prior = acc.snapshot()
+            for _ in range(2):
+                received = await driver.call(lane, "recv")
+                original = model_copy(received, deep=True)
+                with pytest.raises(ValueError, match="type"):
+                    acc.add_event(received)
+                assert acc.snapshot() == prior
+                assert received == original
+            acc.add_event(await driver.call(lane, "recv"))
+            assert acc.snapshot().output[0].arguments == "saved"
+            assert acc.get_final_response().status == "completed"
+
+
+@pytest.mark.parametrize("mode", ["sync", "async"])
+async def test_retired_items_do_not_revert_full_or_incremental_replacements(mode: str) -> None:
+    delta = {"type": "response.output_text.delta", "output_index": 0, "content_index": 0, "item_id": "a", "delta": "A"}
+    replacement = {
+        "type": "response.output_item.done",
+        "output_index": 0,
+        "item": {"type": "message", "id": "b", "role": "assistant", "content": [{"type": "output_text", "text": "B"}]},
+    }
+    frames = [
+        delta,
+        replacement,
+        {**delta, "delta": "stale A"},
+        {**delta, "item_id": "c", "delta": "C"},
+        {**delta, "item_id": "b", "delta": "stale B"},
+        {**delta, "delta": "stale A"},
+        response_event("completed", output=None),
+    ]
+
+    def script(socket: ServerConnection) -> None:
+        socket.recv(timeout=5)
+        for frame in frames:
+            socket.send(json.dumps(frame))
+
+    with script_server(script) as url:
+        async with session_for(mode, url) as driver:
+            lane = driver.session.default
+            await driver.call(lane, "send", {"type": "response.create", "input": "test"})
+            acc = ResponsesWebSocketAccumulator()
+            for expected in ("A", "B", "B", "C", "C", "C"):
+                received = await driver.call(lane, "recv")
+                original = model_copy(received, deep=True)
+                acc.add_event(received)
+                assert acc.snapshot().output_text == expected
+                assert received == original
+            terminal = await driver.call(lane, "recv")
+            acc.add_event(terminal)
+            assert acc.snapshot().output_text == "C"
+            assert acc.get_final_response().to_dict() == terminal.response.to_dict()
+
+
+@pytest.mark.parametrize("mode", ["sync", "async"])
+@pytest.mark.parametrize("phase", ["created", "in_progress", "completed", "failed", "incomplete"])
+@pytest.mark.parametrize("bad_output", [{}, 42, "bad"])
+async def test_nonlist_lifecycle_output_is_never_a_valid_final(mode: str, phase: str, bad_output: object) -> None:
+    def script(socket: ServerConnection) -> None:
+        socket.recv(timeout=5)
+        socket.send(
+            json.dumps(
+                {
+                    "type": "response.output_text.delta",
+                    "output_index": 0,
+                    "content_index": 0,
+                    "item_id": "a",
+                    "delta": "saved",
+                }
+            )
+        )
+        socket.send(json.dumps(response_event(phase, output=bad_output)))
+
+    with script_server(script) as url:
+        async with session_for(mode, url) as driver:
+            lane = driver.session.default
+            await driver.call(lane, "send", {"type": "response.create", "input": "test"})
+            acc = ResponsesWebSocketAccumulator()
+            acc.add_event(await driver.call(lane, "recv"))
+            prior = acc.snapshot()
+            received = await driver.call(lane, "recv")
+            original = model_copy(received, deep=True)
+            with pytest.raises(ValueError, match="output"):
+                acc.add_event(received)
+            assert acc.snapshot() == prior
+            assert received == original
+            error = ValueError if phase in {"completed", "failed", "incomplete"} else RuntimeError
+            with pytest.raises(error):
+                acc.get_final_response()
+
+
+@pytest.mark.parametrize("mode", ["sync", "async"])
+@pytest.mark.parametrize("part_phase", ["added", "done"])
+async def test_nontext_part_correction_clears_only_its_own_text_position(mode: str, part_phase: str) -> None:
+    delta = {
+        "type": "response.output_text.delta",
+        "output_index": 0,
+        "content_index": 0,
+        "item_id": "a",
+        "delta": "saved",
+    }
+    frames = [
+        delta,
+        {**delta, "content_index": 1, "delta": "neighbor"},
+        {
+            "type": "response.content_part." + part_phase,
+            "output_index": 0,
+            "content_index": 0,
+            "item_id": "a",
+            "part": {"type": "refusal", "refusal": "corrected"},
+        },
+        response_event("completed", output=None),
+    ]
+
+    def script(socket: ServerConnection) -> None:
+        socket.recv(timeout=5)
+        for frame in frames:
+            socket.send(json.dumps(frame))
+
+    with script_server(script) as url:
+        async with session_for(mode, url) as driver:
+            lane = driver.session.default
+            await driver.call(lane, "send", {"type": "response.create", "input": "test"})
+            acc = ResponsesWebSocketAccumulator()
+            for _ in range(2):
+                acc.add_event(await driver.call(lane, "recv"))
+            prior = acc.snapshot()
+            correction = await driver.call(lane, "recv")
+            original = model_copy(correction, deep=True)
+            acc.add_event(correction)
+            assert correction == original
+            assert prior.output_text == "savedneighbor"
+            assert acc.snapshot().output[0].text == ((1, "neighbor"),)
+            terminal = await driver.call(lane, "recv")
+            acc.add_event(terminal)
+            assert acc.snapshot().output_text == "neighbor"
+            assert acc.get_final_response().to_dict() == terminal.response.to_dict()
 
 
 @pytest.mark.parametrize("mode", ["sync", "async"])
