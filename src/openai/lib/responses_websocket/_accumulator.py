@@ -210,7 +210,7 @@ class ResponsesWebSocketAccumulator:
             value = _text_field(event, "input")
         elif kind in {"response.content_part.added", "response.content_part.done"}:
             part = _field(event, "part")
-            if _field(part, "type") == "output_text":
+            if _text_field(part, "type") == "output_text":
                 value = _text_field(part, "text")
         pos = _field(event, "content_index")
         if kind in {
@@ -230,7 +230,8 @@ class ResponsesWebSocketAccumulator:
             item = _Output(item_id=item_id)
             self._output[key] = item
         elif item_id and item.item_id and item_id != item.item_id:
-            item = _Output(item_id=item_id, retired_ids=item.retired_ids | {item.item_id})
+            item.retired_ids.add(item.item_id)
+            item = _Output(item_id=item_id, retired_ids=item.retired_ids)
             self._output[key] = item
         if item_id:
             item.item_id = item_id
@@ -248,7 +249,7 @@ class ResponsesWebSocketAccumulator:
                 part = _field(event, "part")
                 if _field(part, "type") == "output_text":
                     item.text[hex(pos)] = [value]
-                elif isinstance(_field(part, "type"), str):
+                else:
                     item.text.pop(hex(pos), None)
         elif kind in {"response.function_call_arguments.delta", "response.mcp_call_arguments.delta"}:
             item.arguments.append(value)
@@ -285,7 +286,7 @@ class ResponsesWebSocketAccumulator:
         key = hex(index)
         previous = output.get(key)
         if previous is not None:
-            item.retired_ids = previous.retired_ids.copy()
+            item.retired_ids = previous.retired_ids
             if previous.item_id and item.item_id and previous.item_id != item.item_id:
                 item.retired_ids.add(previous.item_id)
         output[key] = item

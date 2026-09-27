@@ -691,6 +691,60 @@ async def test_nontext_part_correction_clears_only_its_own_text_position(mode: s
 
 
 @pytest.mark.parametrize("mode", ["sync", "async"])
+@pytest.mark.parametrize(
+    "bad_part",
+    [{}, {"part": None}, {"part": "bad"}, {"part": 42}, {"part": []}, {"part": {}}, {"part": {"type": 7}}],
+)
+async def test_invalid_part_never_replaces_current_item(mode: str, bad_part: dict[str, object]) -> None:
+    delta = {
+        "type": "response.output_text.delta",
+        "output_index": 0,
+        "content_index": 0,
+        "item_id": "a",
+        "delta": "kept",
+    }
+
+    def script(socket: ServerConnection) -> None:
+        socket.recv(timeout=5)
+        socket.send(json.dumps(delta))
+        for phase in ("added", "done"):
+            socket.send(
+                json.dumps(
+                    {
+                        "type": "response.content_part." + phase,
+                        "output_index": 0,
+                        "content_index": 0,
+                        "item_id": "b",
+                        **bad_part,
+                    }
+                )
+            )
+        socket.send(json.dumps({**delta, "delta": " more"}))
+        socket.send(json.dumps(response_event("completed", output=None)))
+
+    with script_server(script) as url:
+        async with session_for(mode, url) as driver:
+            lane = driver.session.default
+            await driver.call(lane, "send", {"type": "response.create", "input": "test"})
+            acc = ResponsesWebSocketAccumulator()
+            acc.add_event(await driver.call(lane, "recv"))
+            before = acc.snapshot()
+            for _ in range(2):
+                received = await driver.call(lane, "recv")
+                original = model_copy(received, deep=True)
+                with pytest.raises(ValueError, match="type"):
+                    acc.add_event(received)
+                assert acc.snapshot() == before
+                assert received == original
+            acc.add_event(await driver.call(lane, "recv"))
+            assert before.output_text == "kept"
+            assert acc.snapshot().output_text == "kept more"
+            terminal = await driver.call(lane, "recv")
+            acc.add_event(terminal)
+            assert acc.get_final_response().to_dict() == terminal.response.to_dict()
+
+
+@pytest.mark.parametrize("mode", ["sync", "async"])
 @pytest.mark.parametrize("nullable", [{}, {"text": None}])
 async def test_nullable_finalized_text_does_not_block_exact_terminal(mode: str, nullable: dict[str, object]) -> None:
     item: dict[str, object] = {
