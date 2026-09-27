@@ -75,10 +75,14 @@ fed by the events you already receive:
 from openai.lib.responses_websocket import ResponsesWebSocketAccumulator
 
 accumulator = ResponsesWebSocketAccumulator()
+expected_stream_id = "conversation"  # Same ID passed to session.lane(); None for session.default.
 while True:
     event = await lane.recv()  # Use lane.recv(timeout=...) in a sync session.
-    accumulator.add_event(event)
     # Original event fields, including unknown variants/fields, remain available.
+    # Inspect or log all raw events here before filtering for this response.
+    if getattr(event, "stream_id", None) != expected_stream_id:
+        continue
+    accumulator.add_event(event)
     if event.type == "response.output_text.delta":
         print(event.delta, end="", flush=True)  # Provisional progress log.
     elif event.type == "response.output_item.done":
@@ -90,8 +94,12 @@ while True:
 accumulator.reset()  # Does not close the lane or connection.
 ```
 
-Use one helper per lane and reset it before the next turn. Snapshots are
-immutable and contain selected text, function arguments, and custom tool input,
+Use one helper per lane and reset it before the next turn. The default lane
+also receives raw events for unregistered or detached lanes. Observe those
+events before filtering, then feed only the response you are collecting.
+The same check applies when consuming directly from a connection.
+
+Snapshots are immutable and contain selected text, function arguments, and custom tool input,
 grouped by output/content index and item ID. They never execute tools. Done
 events replace provisional fields. Full item replacements discard old fields;
 a changed nonempty item ID starts fresh at its index. A supplied response

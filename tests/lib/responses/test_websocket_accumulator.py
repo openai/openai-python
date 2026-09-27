@@ -343,3 +343,127 @@ async def test_invalid_text_position_does_not_replace_previous_item(
             assert acc.snapshot().output_text == "saved after"
             acc.add_event(await driver.call(lane, "recv"))
             assert acc.get_final_response().status == "completed"
+
+
+@pytest.mark.parametrize("mode", ["sync", "async"])
+@pytest.mark.parametrize("item_field", [{}, {"item": None}])
+async def test_empty_output_item_keeps_previous_projection(mode: str, item_field: dict[str, object]) -> None:
+    def script(socket: ServerConnection) -> None:
+        socket.recv(timeout=5)
+        socket.send(
+            json.dumps(
+                {"type": "response.function_call_arguments.delta", "output_index": 0, "item_id": "fc", "delta": "{"}
+            )
+        )
+        for phase in ("added", "done"):
+            socket.send(json.dumps({"type": "response.output_item." + phase, "output_index": 0, **item_field}))
+        socket.send(
+            json.dumps(
+                {"type": "response.function_call_arguments.delta", "output_index": 0, "item_id": "fc", "delta": "}"}
+            )
+        )
+        socket.send(json.dumps(response_event("completed", output=None)))
+
+    with script_server(script) as url:
+        async with session_for(mode, url) as driver:
+            lane = driver.session.default
+            await driver.call(lane, "send", {"type": "response.create", "input": "test"})
+            acc = ResponsesWebSocketAccumulator()
+            acc.add_event(await driver.call(lane, "recv"))
+            prior = acc.snapshot()
+            for _ in range(2):
+                received = await driver.call(lane, "recv")
+                before = model_copy(received, deep=True)
+                acc.add_event(received)
+                assert acc.snapshot() == prior
+                assert received == before
+            acc.add_event(await driver.call(lane, "recv"))
+            assert acc.snapshot().output[0].arguments == "{}"
+            acc.add_event(await driver.call(lane, "recv"))
+            assert acc.get_final_response().status == "completed"
+
+
+@pytest.mark.parametrize("mode", ["sync", "async"])
+@pytest.mark.parametrize("nullable", [{}, {"text": None}])
+async def test_nullable_finalized_text_does_not_block_exact_terminal(mode: str, nullable: dict[str, object]) -> None:
+    item: dict[str, object] = {
+        "id": "msg",
+        "type": "message",
+        "role": "assistant",
+        "content": [
+            {"type": "output_text", "text": "hello", "annotations": []},
+            {"type": "output_text", "annotations": [], **nullable},
+            {"type": "output_text", "text": " world", "annotations": []},
+        ],
+    }
+
+    def script(socket: ServerConnection) -> None:
+        socket.recv(timeout=5)
+        socket.send(
+            json.dumps(
+                {
+                    "type": "response.output_text.delta",
+                    "item_id": "msg",
+                    "output_index": 0,
+                    "content_index": 0,
+                    "delta": "old",
+                }
+            )
+        )
+        socket.send(json.dumps({"type": "response.output_item.done", "output_index": 0, "item": item}))
+        socket.send(json.dumps(response_event("incomplete", output=[item])))
+
+    with script_server(script) as url:
+        async with session_for(mode, url) as driver:
+            lane = driver.session.default
+            await driver.call(lane, "send", {"type": "response.create", "input": "test"})
+            acc = ResponsesWebSocketAccumulator()
+            acc.add_event(await driver.call(lane, "recv"))
+            for _ in range(2):
+                received = await driver.call(lane, "recv")
+                before = model_copy(received, deep=True)
+                acc.add_event(received)
+                assert acc.snapshot().output_text == "hello world"
+                assert received == before
+                if received.type == "response.incomplete":
+                    assert acc.get_final_response().to_dict() == received.response.to_dict()
+            assert acc.get_final_response().output_text == "hello world"
+
+
+@pytest.mark.parametrize("mode", ["sync", "async"])
+@pytest.mark.parametrize("foreign_first", [True, False])
+async def test_default_lane_foreign_events_can_be_inspected_without_feeding_the_projection(
+    mode: str, foreign_first: bool
+) -> None:
+    own = {
+        "type": "response.output_text.delta",
+        "item_id": "msg",
+        "output_index": 0,
+        "content_index": 0,
+        "delta": "default",
+    }
+    foreign = {**own, "stream_id": "unregistered", "delta": "foreign"}
+
+    def script(socket: ServerConnection) -> None:
+        socket.recv(timeout=5)
+        for frame in [foreign, own] if foreign_first else [own, foreign]:
+            socket.send(json.dumps(frame))
+        socket.send(json.dumps(response_event("completed", output=None)))
+
+    with script_server(script) as url:
+        async with session_for(mode, url) as driver:
+            lane = driver.session.default
+            await driver.call(lane, "send", {"type": "response.create", "input": "test"})
+            accumulator = ResponsesWebSocketAccumulator()
+            expected_stream_id = None
+            observed: list[str] = []
+            for _ in range(3):
+                event = await driver.call(lane, "recv")
+                if event.type == "response.output_text.delta":
+                    observed.append(event.delta)
+                if getattr(event, "stream_id", None) != expected_stream_id:
+                    continue
+                accumulator.add_event(event)
+            assert set(observed) == {"default", "foreign"}
+            assert accumulator.snapshot().output_text == "default"
+            assert accumulator.get_final_response().status == "completed"

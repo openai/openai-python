@@ -232,6 +232,8 @@ class ResponsesWebSocketAccumulator:
             item.input = [value]
 
     def _add_item(self, index: int, source: object) -> None:
+        if source is None:
+            return
         item = _Output(
             item_id=_field(source, "id"),
             type=_field(source, "type"),
@@ -240,7 +242,7 @@ class ResponsesWebSocketAccumulator:
         )
         if item.type == "message":
             for pos, part in enumerate(_field(source, "content") or []):
-                if _field(part, "type") == "output_text":
+                if _field(part, "type") == "output_text" and _field(part, "text") is not None:
                     item.text[pos] = [_text_field(part, "text")]
         elif item.type == "function_call":
             value = _field(source, "arguments")
