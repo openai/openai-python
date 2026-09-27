@@ -68,6 +68,40 @@ the next response. It does not wait for a hypothetical future successor. Use
 `recv()` to observe that boundary when coordinating steering; accepted steering
 alone does not prove that a successor has started.
 
+For incremental text and tool-input snapshots, opt in with a separate helper
+fed by the events you already receive:
+
+```python
+from openai.lib.responses_websocket import ResponsesWebSocketAccumulator
+
+accumulator = ResponsesWebSocketAccumulator()
+while True:
+    event = await lane.recv()  # Use lane.recv(timeout=...) in a sync session.
+    accumulator.add_event(event)
+    # Original event fields, including unknown variants/fields, remain available.
+    snapshot = accumulator.snapshot()
+    print("Current text:", snapshot.output_text)
+    if snapshot.terminal_type is not None:
+        response = accumulator.get_final_response()
+        break
+accumulator.reset()  # Does not close the lane or connection.
+```
+
+Use one helper per lane and reset it before the next turn. Snapshots are
+immutable and contain selected text, function arguments, and custom tool input,
+grouped by output/content index and item ID. They never execute tools. Done
+events replace provisional fields. Full item replacements discard old fields;
+a changed nonempty item ID starts fresh at its index. A supplied response
+output list overrides the projected items, including an explicit empty list;
+omitted or null output retains only the helper's earlier projections.
+
+The helper's `get_final_response()` returns a copy of the exact received server
+response, including its original missing/null/empty output, on completed,
+failed or incomplete. It never substitutes the projection for that response.
+Before a valid terminal it raises; protocol errors retain their original event.
+This caller-fed helper owns no socket, reader or timers and can also observe
+events from a connection when there is no session.
+
 Cancel an async `recv` or `get_final_response` wait with normal asyncio
 cancellation. It leaves queued events and accumulated state available for a later
 wait, and does not close the lane or connection. Synchronous waits accept
