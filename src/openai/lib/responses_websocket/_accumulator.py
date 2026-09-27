@@ -49,7 +49,7 @@ class _Output:
 
 
 class ResponsesWebSocketAccumulator:
-    """Opt-in, caller-fed collection of text, function arguments and custom tool input.
+    """Opt-in, caller-fed collection of text, function/MCP arguments and custom tool input.
 
     Feed typed events from a connection or lane's recv(). Use one accumulator per
     lane and call reset() before another turn. The helper never reads, sends,
@@ -130,6 +130,8 @@ class ResponsesWebSocketAccumulator:
             "response.output_text.done",
             "response.function_call_arguments.delta",
             "response.function_call_arguments.done",
+            "response.mcp_call_arguments.delta",
+            "response.mcp_call_arguments.done",
             "response.custom_tool_call_input.delta",
             "response.custom_tool_call_input.done",
             "error",
@@ -179,12 +181,13 @@ class ResponsesWebSocketAccumulator:
         if kind in {
             "response.output_text.delta",
             "response.function_call_arguments.delta",
+            "response.mcp_call_arguments.delta",
             "response.custom_tool_call_input.delta",
         }:
             value = _text_field(event, "delta")
         elif kind == "response.output_text.done":
             value = _text_field(event, "text")
-        elif kind == "response.function_call_arguments.done":
+        elif kind in {"response.function_call_arguments.done", "response.mcp_call_arguments.done"}:
             value = _text_field(event, "arguments")
         elif kind == "response.custom_tool_call_input.done":
             value = _text_field(event, "input")
@@ -200,8 +203,8 @@ class ResponsesWebSocketAccumulator:
             "response.output_text.done",
         } and not isinstance(pos, int):
             raise ValueError("WebSocket text event is missing content_index")
+        item_id = _text_field(event, "item_id")
         self._bound, self._stream_id = True, stream_id
-        item_id = _field(event, "item_id")
         item = self._output.get(index)
         if item is None or (item_id and item.item_id and item_id != item.item_id):
             item = _Output(item_id=item_id)
@@ -222,9 +225,9 @@ class ResponsesWebSocketAccumulator:
                 part = _field(event, "part")
                 if _field(part, "type") == "output_text":
                     item.text[pos] = [value]
-        elif kind == "response.function_call_arguments.delta":
+        elif kind in {"response.function_call_arguments.delta", "response.mcp_call_arguments.delta"}:
             item.arguments.append(value)
-        elif kind == "response.function_call_arguments.done":
+        elif kind in {"response.function_call_arguments.done", "response.mcp_call_arguments.done"}:
             item.arguments = [value]
         elif kind == "response.custom_tool_call_input.delta":
             item.input.append(value)
@@ -244,7 +247,7 @@ class ResponsesWebSocketAccumulator:
             for pos, part in enumerate(_field(source, "content") or []):
                 if _field(part, "type") == "output_text" and _field(part, "text") is not None:
                     item.text[pos] = [_text_field(part, "text")]
-        elif item.type == "function_call":
+        elif item.type in {"function_call", "mcp_call"}:
             value = _field(source, "arguments")
             item.arguments = ["" if value is None else _text_field(source, "arguments")]
         elif item.type == "custom_tool_call":

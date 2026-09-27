@@ -39,6 +39,19 @@ async def test_opt_in_accumulation_exact_terminals(mode: str, terminal: str, out
             "item_id": "msg",
             "text": "corrected",
         },
+        {"type": "response.mcp_call_arguments.delta", "output_index": 6, "item_id": "mcp", "delta": '{"search":'},
+        {"type": "response.mcp_call_arguments.done", "output_index": 6, "item_id": "mcp", "arguments": '{"search":1}'},
+        {
+            "type": "response.output_item.done",
+            "output_index": 6,
+            "item": {
+                "type": "mcp_call",
+                "id": "mcp",
+                "arguments": '{"search":2}',
+                "server_label": "fixture",
+                "name": "search",
+            },
+        },
         {"type": "response.future", "unmodeled": {"keep": True}},
     ]
     final = response_event(terminal)
@@ -82,11 +95,16 @@ async def test_opt_in_accumulation_exact_terminals(mode: str, terminal: str, out
                 before = event.to_dict()
                 acc.add_event(event)
                 assert event.to_dict() == before
+                if event.type == "response.mcp_call_arguments.delta":
+                    assert acc.snapshot().output[-1].arguments == '{"search":'
+                elif event.type == "response.mcp_call_arguments.done":
+                    assert acc.snapshot().output[-1].arguments == '{"search":1}'
             projected = acc.snapshot()
             assert projected.output_text == "corrected"
             assert projected.terminal_type is None
             assert projected.output[0].arguments == '{"fixed":true}'
             assert projected.output[1].input == "tool data"
+            assert projected.output[-1].arguments == '{"search":2}'
             assert saved.output_text == "pre"
             received = await driver.call(lane, "recv")
             original = received.response.to_dict()
@@ -102,7 +120,14 @@ async def test_opt_in_accumulation_exact_terminals(mode: str, terminal: str, out
             # Existing get_final_response remains a terminal/final-item collector.
             # It must not silently gain delta reconstruction.
             legacy = await driver.call(lane, "get_final_response")
-            assert not legacy.output
+            if output == "empty":
+                assert not legacy.output
+            else:
+                # Only the full MCP item can be recovered by the existing
+                # final-item collector; all provisional text/tools stay absent.
+                assert legacy.output is not None
+                assert len(legacy.output) == 1
+                assert legacy.output[0].type == "mcp_call"
             acc.reset()
             assert not acc.snapshot().output
             assert saved.output_text == "pre"
@@ -262,6 +287,9 @@ async def test_opt_in_accumulator_never_invents_a_final(mode: str, ending: str) 
         {"type": "response.output_text.delta", "content_index": 0, "delta": None},
         {"type": "response.function_call_arguments.delta", "delta": {"unexpected": True}},
         {"type": "response.custom_tool_call_input.done", "input": 22},
+        {"type": "response.output_text.delta", "content_index": 0, "delta": "corrupt", "item_id": None},
+        {"type": "response.function_call_arguments.delta", "delta": "corrupt", "item_id": 0},
+        {"type": "response.custom_tool_call_input.done", "input": "corrupt", "item_id": {"bad": True}},
     ],
 )
 async def test_rejects_invalid_fields_without_poisoning_prior_snapshot(mode: str, invalid: dict[str, object]) -> None:
