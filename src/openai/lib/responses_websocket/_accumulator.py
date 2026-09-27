@@ -122,7 +122,7 @@ class ResponsesWebSocketAccumulator:
         Original event fields remain accessible to the caller.
         """
         kind = _field(event, "type")
-        if kind not in {
+        if not isinstance(kind, str) or kind not in {
             "response.created",
             "response.in_progress",
             "response.completed",
@@ -161,6 +161,11 @@ class ResponsesWebSocketAccumulator:
                     self._error = error
                 raise error
             response_id = _field(response, "id")
+            if response_id is not None and not isinstance(response_id, str):
+                error = ValueError("WebSocket response id must be a string or null")
+                if terminal:
+                    self._error = error
+                raise error
             if self._response_id is not None and response_id is not None and self._response_id != response_id:
                 raise ValueError("Event belongs to another response")
             output = _field(response, "output")
@@ -287,6 +292,8 @@ class ResponsesWebSocketAccumulator:
         key = hex(index)
         previous = output.get(key)
         if previous is not None:
+            if item.item_id and item.item_id in previous.retired_ids:
+                return
             item.retired_ids = previous.retired_ids
             if previous.item_id and item.item_id and previous.item_id != item.item_id:
                 item.retired_ids.add(previous.item_id)
