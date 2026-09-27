@@ -475,9 +475,10 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         self._validate_max_retries(max_retries)
 
     def _enforce_trailing_slash(self, url: URL) -> URL:
-        if url.raw_path.endswith(b"/"):
+        path, separator, query = url.raw_path.partition(b"?")
+        if path.endswith(b"/"):
             return url
-        return url.copy_with(raw_path=url.raw_path + b"/")
+        return url.copy_with(raw_path=path + b"/" + separator + query)
 
     def _make_status_error_from_response(
         self,

@@ -772,7 +772,8 @@ class AsyncRealtimeConnectionManager:
             ws_scheme = "ws" if scheme == "http" else "wss"
             base_url = self.__client._base_url.copy_with(scheme=ws_scheme)
 
-        merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/realtime"
+        path, separator, query = base_url.raw_path.partition(b"?")
+        merge_raw_path = path.rstrip(b"/") + b"/realtime" + separator + query
         return base_url.copy_with(raw_path=merge_raw_path)
 
     async def __aexit__(
@@ -1281,7 +1282,8 @@ class RealtimeConnectionManager:
             ws_scheme = "ws" if scheme == "http" else "wss"
             base_url = self.__client._base_url.copy_with(scheme=ws_scheme)
 
-        merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/realtime"
+        path, separator, query = base_url.raw_path.partition(b"?")
+        merge_raw_path = path.rstrip(b"/") + b"/realtime" + separator + query
         return base_url.copy_with(raw_path=merge_raw_path)
 
     def __exit__(
