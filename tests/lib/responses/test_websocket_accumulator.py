@@ -790,6 +790,75 @@ async def test_nullable_response_id_keeps_exact_final(mode: str, id_field: dict[
 
 
 @pytest.mark.parametrize("mode", ["sync", "async"])
+@pytest.mark.parametrize("bad_id", [42, ["not", "an", "id"], {"value": "bad"}])
+@pytest.mark.parametrize("first_kind", ["delta", "completed"])
+@pytest.mark.parametrize("next_lane", [None, "next"])
+async def test_raw_connection_invalid_stream_id_cannot_bind(
+    mode: str, bad_id: object, first_kind: str, next_lane: str | None
+) -> None:
+    delta = {
+        "type": "response.output_text.delta",
+        "output_index": 0,
+        "content_index": 0,
+        "item_id": "a",
+        "delta": "saved",
+    }
+    first = {**(delta if first_kind == "delta" else response_event("completed")), "stream_id": bad_id}
+
+    def script(socket: ServerConnection) -> None:
+        for frame in (
+            first,
+            response_event("created", next_lane),
+            {**delta, "stream_id": next_lane},
+            response_event("completed", next_lane, output=None),
+        ):
+            socket.send(json.dumps(frame))
+
+    with script_server(script) as url:
+        if mode == "sync":
+            with (
+                OpenAI(
+                    api_key="fake-accumulator-key", base_url=url, http_client=httpx2.Client(trust_env=False)
+                ) as client,
+                client.responses.connect() as connection,
+            ):
+                events = [connection.recv() for _ in range(4)]
+        else:
+            async with (
+                AsyncOpenAI(
+                    api_key="fake-accumulator-key", base_url=url, http_client=httpx2.AsyncClient(trust_env=False)
+                ) as async_client,
+                async_client.responses.connect() as async_connection,
+            ):
+                events = [await async_connection.recv() for _ in range(4)]
+        acc = ResponsesWebSocketAccumulator()
+        prior = acc.snapshot()
+        malformed = events[0]
+        original = model_copy(malformed, deep=True)
+        if isinstance(malformed.stream_id, str):
+            # Pydantic may normalize a number before this helper sees it.
+            assert bad_id == 42 and malformed.stream_id == "42"
+            acc.add_event(malformed)
+            assert acc.snapshot().stream_id == "42"
+            acc.reset()
+        else:
+            with pytest.raises(ValueError, match="stream_id"):
+                acc.add_event(malformed)
+            assert acc.snapshot() == prior
+            with pytest.raises(RuntimeError, match="No terminal"):
+                acc.get_final_response()
+        assert malformed == original
+        for event in events[1:]:
+            original = model_copy(event, deep=True)
+            acc.add_event(event)
+            assert event == original
+        assert prior.stream_id is None and not prior.output
+        assert acc.snapshot().stream_id == next_lane
+        assert acc.snapshot().output_text == "saved"
+        assert acc.get_final_response().id == f"resp_{next_lane or 'default'}"
+
+
+@pytest.mark.parametrize("mode", ["sync", "async"])
 @pytest.mark.parametrize("unknown_type", [["response.future"], {"type": "response.future"}])
 async def test_raw_connection_unknown_unhashable_events_are_ignored(mode: str, unknown_type: object) -> None:
     def script(socket: ServerConnection) -> None:

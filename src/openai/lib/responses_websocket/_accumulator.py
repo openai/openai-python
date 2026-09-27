@@ -144,6 +144,8 @@ class ResponsesWebSocketAccumulator:
         }:
             return
         stream_id = _field(event, "stream_id")
+        if stream_id is not None and not isinstance(stream_id, str):
+            raise ValueError("WebSocket stream_id must be a string or null")
         if self._bound and self._stream_id != stream_id:
             raise ValueError("Event belongs to another WebSocket lane")
         if self._terminal_type is not None or self._error is not None:
