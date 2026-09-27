@@ -253,3 +253,45 @@ async def test_opt_in_accumulator_never_invents_a_final(mode: str, ending: str) 
                 acc.get_final_response()
             assert acc.snapshot().output_text == "partial"
             assert acc.snapshot().terminal_type is None
+
+
+@pytest.mark.parametrize("mode", ["sync", "async"])
+@pytest.mark.parametrize(
+    "invalid",
+    [
+        {"type": "response.output_text.delta", "content_index": 0, "delta": None},
+        {"type": "response.function_call_arguments.delta", "delta": {"unexpected": True}},
+        {"type": "response.custom_tool_call_input.done", "input": 22},
+    ],
+)
+async def test_rejects_invalid_fields_without_poisoning_prior_snapshot(mode: str, invalid: dict[str, object]) -> None:
+    good = {
+        "type": "response.output_text.delta",
+        "item_id": "msg",
+        "output_index": 0,
+        "content_index": 0,
+        "delta": "saved",
+    }
+    bad = {"output_index": 0, "item_id": "msg", **invalid}
+
+    def script(socket: ServerConnection) -> None:
+        socket.recv(timeout=5)
+        socket.send(json.dumps(good))
+        socket.send(json.dumps(bad))
+        socket.send(json.dumps(response_event("incomplete", output=None)))
+
+    with script_server(script) as url:
+        async with session_for(mode, url) as driver:
+            lane = driver.session.default
+            await driver.call(lane, "send", {"type": "response.create", "input": "test"})
+            acc = ResponsesWebSocketAccumulator()
+            acc.add_event(await driver.call(lane, "recv"))
+            prior = acc.snapshot()
+            received = await driver.call(lane, "recv")
+            original = model_copy(received, deep=True)
+            with pytest.raises(ValueError, match="must be a string"):
+                acc.add_event(received)
+            assert acc.snapshot() == prior
+            assert received == original
+            acc.add_event(await driver.call(lane, "recv"))
+            assert acc.get_final_response().status == "incomplete"

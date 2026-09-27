@@ -166,6 +166,25 @@ class ResponsesWebSocketAccumulator:
         if kind in {"response.output_item.added", "response.output_item.done"}:
             self._add_item(index, _field(event, "item"))
             return
+        # Validate consumed values before replacing an item's retained state.
+        # The wire decoder preserves known events even when fields are malformed.
+        value = ""
+        if kind in {
+            "response.output_text.delta",
+            "response.function_call_arguments.delta",
+            "response.custom_tool_call_input.delta",
+        }:
+            value = _text_field(event, "delta")
+        elif kind == "response.output_text.done":
+            value = _text_field(event, "text")
+        elif kind == "response.function_call_arguments.done":
+            value = _text_field(event, "arguments")
+        elif kind == "response.custom_tool_call_input.done":
+            value = _text_field(event, "input")
+        elif kind in {"response.content_part.added", "response.content_part.done"}:
+            part = _field(event, "part")
+            if _field(part, "type") == "output_text":
+                value = _text_field(part, "text")
         item_id = _field(event, "item_id")
         item = self._output.get(index)
         if item is None or (item_id and item.item_id and item_id != item.item_id):
@@ -183,21 +202,21 @@ class ResponsesWebSocketAccumulator:
             if not isinstance(pos, int):
                 raise ValueError("WebSocket text event is missing content_index")
             if kind == "response.output_text.delta":
-                item.text.setdefault(pos, []).append(_field(event, "delta"))
+                item.text.setdefault(pos, []).append(value)
             elif kind == "response.output_text.done":
-                item.text[pos] = [_field(event, "text")]
+                item.text[pos] = [value]
             else:
                 part = _field(event, "part")
                 if _field(part, "type") == "output_text":
-                    item.text[pos] = [_field(part, "text")]
+                    item.text[pos] = [value]
         elif kind == "response.function_call_arguments.delta":
-            item.arguments.append(_field(event, "delta"))
+            item.arguments.append(value)
         elif kind == "response.function_call_arguments.done":
-            item.arguments = [_field(event, "arguments")]
+            item.arguments = [value]
         elif kind == "response.custom_tool_call_input.delta":
-            item.input.append(_field(event, "delta"))
+            item.input.append(value)
         elif kind == "response.custom_tool_call_input.done":
-            item.input = [_field(event, "input")]
+            item.input = [value]
 
     def _add_item(self, index: int, source: object) -> None:
         item = _Output(
@@ -206,12 +225,21 @@ class ResponsesWebSocketAccumulator:
             name=_field(source, "name"),
             call_id=_field(source, "call_id"),
         )
-        self._output[index] = item
         if item.type == "message":
             for pos, part in enumerate(_field(source, "content") or []):
                 if _field(part, "type") == "output_text":
-                    item.text[pos] = [_field(part, "text")]
+                    item.text[pos] = [_text_field(part, "text")]
         elif item.type == "function_call":
-            item.arguments = [_field(source, "arguments") or ""]
+            value = _field(source, "arguments")
+            item.arguments = ["" if value is None else _text_field(source, "arguments")]
         elif item.type == "custom_tool_call":
-            item.input = [_field(source, "input") or ""]
+            value = _field(source, "input")
+            item.input = ["" if value is None else _text_field(source, "input")]
+        self._output[index] = item
+
+
+def _text_field(value: object, name: str) -> str:
+    text = _field(value, name)
+    if not isinstance(text, str):
+        raise ValueError(f"WebSocket output {name} must be a string")
+    return text
