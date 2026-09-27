@@ -326,7 +326,9 @@ async def test_rejects_invalid_fields_without_poisoning_prior_snapshot(mode: str
 
 
 @pytest.mark.parametrize("mode", ["sync", "async"])
-@pytest.mark.parametrize("invalid_index", [{}, {"content_index": "wrong"}, {"content_index": None}])
+@pytest.mark.parametrize(
+    "invalid_index", [{}, {"content_index": "wrong"}, {"content_index": None}, {"content_index": False}]
+)
 @pytest.mark.parametrize(
     "fields",
     [
@@ -371,6 +373,91 @@ async def test_invalid_text_position_does_not_replace_previous_item(
             assert acc.snapshot().output_text == "saved after"
             acc.add_event(await driver.call(lane, "recv"))
             assert acc.get_final_response().status == "completed"
+
+
+@pytest.mark.parametrize("mode", ["sync", "async"])
+@pytest.mark.parametrize("phase", ["created", "in_progress", "completed", "failed", "incomplete"])
+async def test_invalid_lifecycle_replacement_is_atomic(mode: str, phase: str) -> None:
+    first = {
+        "type": "response.output_text.delta",
+        "item_id": "m",
+        "output_index": 0,
+        "content_index": 0,
+        "delta": "safe",
+    }
+    malformed = [
+        {
+            "type": "mcp_approval_request",
+            "id": "approval",
+            "name": "search",
+            "server_label": "fixture",
+            "arguments": '{"key":1}',
+        },
+        {"type": "function_call", "id": "f", "name": "bad", "arguments": {"bad": True}, "call_id": "c"},
+    ]
+
+    def script(socket: ServerConnection) -> None:
+        socket.recv(timeout=5)
+        socket.send(json.dumps(first))
+        socket.send(json.dumps(response_event(phase, output=malformed)))
+
+    with script_server(script) as url:
+        async with session_for(mode, url) as driver:
+            lane = driver.session.default
+            await driver.call(lane, "send", {"type": "response.create", "input": "test"})
+            acc = ResponsesWebSocketAccumulator()
+            acc.add_event(await driver.call(lane, "recv"))
+            before = acc.snapshot()
+            received = await driver.call(lane, "recv")
+            untouched = model_copy(received, deep=True)
+            with pytest.raises(ValueError, match="arguments"):
+                acc.add_event(received)
+            assert acc.snapshot() == before
+            assert received == untouched
+            error = ValueError if phase in {"completed", "failed", "incomplete"} else RuntimeError
+            with pytest.raises(error):
+                acc.get_final_response()
+
+
+@pytest.mark.parametrize("mode", ["sync", "async"])
+async def test_mcp_approval_items_keep_pending_arguments_and_reject_bool_output_index(mode: str) -> None:
+    approval = {
+        "type": "mcp_approval_request",
+        "id": "approval",
+        "name": "search",
+        "server_label": "fixture",
+        "arguments": '{"key":1}',
+    }
+
+    def script(socket: ServerConnection) -> None:
+        socket.recv(timeout=5)
+        socket.send(json.dumps({"type": "response.output_item.added", "output_index": 0, "item": approval}))
+        socket.send(
+            json.dumps(
+                {
+                    "type": "response.mcp_call_arguments.delta",
+                    "output_index": False,
+                    "item_id": "approval",
+                    "delta": "bad",
+                }
+            )
+        )
+        socket.send(json.dumps(response_event("completed", output=None)))
+
+    with script_server(script) as url:
+        async with session_for(mode, url) as driver:
+            lane = driver.session.default
+            await driver.call(lane, "send", {"type": "response.create", "input": "test"})
+            acc = ResponsesWebSocketAccumulator()
+            acc.add_event(await driver.call(lane, "recv"))
+            before = acc.snapshot()
+            assert before.output[0].arguments == '{"key":1}'
+            with pytest.raises(ValueError, match="output_index"):
+                acc.add_event(await driver.call(lane, "recv"))
+            assert acc.snapshot() == before
+            terminal = await driver.call(lane, "recv")
+            acc.add_event(terminal)
+            assert acc.get_final_response().to_dict() == terminal.response.to_dict()
 
 
 @pytest.mark.parametrize("mode", ["sync", "async"])

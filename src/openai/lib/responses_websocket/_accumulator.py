@@ -157,22 +157,28 @@ class ResponsesWebSocketAccumulator:
             response_id = _field(response, "id")
             if self._response_id is not None and response_id is not None and self._response_id != response_id:
                 raise ValueError("Event belongs to another response")
-            self._response_id = response_id or self._response_id
-            self._bound, self._stream_id = True, stream_id
             output = _field(response, "output")
             if isinstance(output, list):
-                self._output.clear()
-                for index, item in enumerate(cast("list[object]", output)):
-                    self._add_item(index, item)
+                replacement: dict[int, _Output] = {}
+                try:
+                    for index, item in enumerate(cast("list[object]", output)):
+                        self._add_item(replacement, index, item)
+                except ValueError as error:
+                    if terminal:
+                        self._error = error
+                    raise
+                self._output = replacement
+            self._response_id = response_id or self._response_id
+            self._bound, self._stream_id = True, stream_id
             if terminal:
                 self._final = model_copy(response, deep=True)
                 self._terminal_type = kind
             return
         index = _field(event, "output_index")
-        if not isinstance(index, int):
+        if not isinstance(index, int) or isinstance(index, bool):
             raise ValueError("WebSocket output event is missing output_index")
         if kind in {"response.output_item.added", "response.output_item.done"}:
-            self._add_item(index, _field(event, "item"))
+            self._add_item(self._output, index, _field(event, "item"))
             self._bound, self._stream_id = True, stream_id
             return
         # Validate consumed values before replacing an item's retained state.
@@ -201,7 +207,7 @@ class ResponsesWebSocketAccumulator:
             "response.content_part.done",
             "response.output_text.delta",
             "response.output_text.done",
-        } and not isinstance(pos, int):
+        } and (not isinstance(pos, int) or isinstance(pos, bool)):
             raise ValueError("WebSocket text event is missing content_index")
         item_id = _text_field(event, "item_id")
         self._bound, self._stream_id = True, stream_id
@@ -234,7 +240,8 @@ class ResponsesWebSocketAccumulator:
         elif kind == "response.custom_tool_call_input.done":
             item.input = [value]
 
-    def _add_item(self, index: int, source: object) -> None:
+    @staticmethod
+    def _add_item(output: dict[int, _Output], index: int, source: object) -> None:
         if source is None:
             return
         item = _Output(
@@ -247,13 +254,13 @@ class ResponsesWebSocketAccumulator:
             for pos, part in enumerate(_field(source, "content") or []):
                 if _field(part, "type") == "output_text" and _field(part, "text") is not None:
                     item.text[pos] = [_text_field(part, "text")]
-        elif item.type in {"function_call", "mcp_call"}:
+        elif item.type in {"function_call", "mcp_call", "mcp_approval_request"}:
             value = _field(source, "arguments")
             item.arguments = ["" if value is None else _text_field(source, "arguments")]
         elif item.type == "custom_tool_call":
             value = _field(source, "input")
             item.input = ["" if value is None else _text_field(source, "input")]
-        self._output[index] = item
+        output[index] = item
 
 
 def _text_field(value: object, name: str) -> str:
