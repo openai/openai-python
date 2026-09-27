@@ -813,7 +813,8 @@ class AsyncLiveConnectionManager:
             ws_scheme = "ws" if scheme == "http" else "wss"
             base_url = self.__client._base_url.copy_with(scheme=ws_scheme)
 
-        merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/live/sessions"
+        path, separator, query = base_url.raw_path.partition(b"?")
+        merge_raw_path = path.rstrip(b"/") + b"/live/sessions" + separator + query
         return base_url.copy_with(raw_path=merge_raw_path)
 
     async def __aexit__(
@@ -1295,7 +1296,8 @@ class LiveConnectionManager:
             ws_scheme = "ws" if scheme == "http" else "wss"
             base_url = self.__client._base_url.copy_with(scheme=ws_scheme)
 
-        merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/live/sessions"
+        path, separator, query = base_url.raw_path.partition(b"?")
+        merge_raw_path = path.rstrip(b"/") + b"/live/sessions" + separator + query
         return base_url.copy_with(raw_path=merge_raw_path)
 
     def __exit__(
