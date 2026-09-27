@@ -41,7 +41,7 @@ class AgentCreateParams(TypedDict, total=False):
     reasoning: Optional[AgentReasoningParam]
     """Configuration for model reasoning. Omission uses the model's default effort."""
 
-    service_tier: Optional[Literal["auto", "default", "flex", "priority", "fast"]]
+    service_tier: Optional[Literal["auto", "default", "flex", "priority", "fast", "ultrafast"]]
     """The service tier used for model requests. Defaults to `auto`.
 
     - `auto` - Selects the service tier automatically.
@@ -49,6 +49,7 @@ class AgentCreateParams(TypedDict, total=False):
     - `flex` - Uses the flex service tier.
     - `priority` - Uses the priority service tier.
     - `fast` - Uses the fast service tier.
+    - `ultrafast` - Uses the ultrafast service tier.
     """
 
     text: Optional[AgentTextParam]
