@@ -180,7 +180,7 @@ class TestCredentials:
                     },
                 },
             },
-            metadata={"foo": "string"},
+            metadata={},
         )
         assert_matches_type(Credential, credential, path=["response"])
 
@@ -486,7 +486,7 @@ class TestAsyncCredentials:
                     },
                 },
             },
-            metadata={"foo": "string"},
+            metadata={},
         )
         assert_matches_type(Credential, credential, path=["response"])
 
