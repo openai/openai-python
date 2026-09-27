@@ -45,7 +45,7 @@ class _Output:
     call_id: str | None = None
     arguments: list[str] = field(default_factory=list[str])
     input: list[str] = field(default_factory=list[str])
-    text: dict[int, list[str]] = field(default_factory=dict[int, list[str]])
+    text: dict[str, list[str]] = field(default_factory=dict[str, list[str]])
 
 
 class ResponsesWebSocketAccumulator:
@@ -63,7 +63,9 @@ class ResponsesWebSocketAccumulator:
         self._response_id: str | None = None
         self._terminal_type: str | None = None
         self._bound = False
-        self._output: dict[int, _Output] = {}
+        # String keys get Python's randomized hash. Hex preserves arbitrary-size
+        # non-negative indices without decimal string conversion limits.
+        self._output: dict[str, _Output] = {}
         self._final: Response | None = None
         self._error: Exception | None = None
 
@@ -86,16 +88,19 @@ class ResponsesWebSocketAccumulator:
             terminal_type=self._terminal_type,
             output=tuple(
                 ResponsesWebSocketOutput(
-                    output_index=index,
+                    output_index=int(index, 16),
                     item_id=item.item_id,
                     type=item.type,
                     name=item.name,
                     call_id=item.call_id,
                     arguments="".join(item.arguments),
                     input="".join(item.input),
-                    text=tuple((pos, "".join(parts)) for pos, parts in sorted(item.text.items())),
+                    text=tuple(
+                        (int(pos, 16), "".join(parts))
+                        for pos, parts in sorted(item.text.items(), key=lambda pair: int(pair[0], 16))
+                    ),
                 )
-                for index, item in sorted(self._output.items())
+                for index, item in sorted(self._output.items(), key=lambda pair: int(pair[0], 16))
             ),
         )
 
@@ -159,7 +164,7 @@ class ResponsesWebSocketAccumulator:
                 raise ValueError("Event belongs to another response")
             output = _field(response, "output")
             if isinstance(output, list):
-                replacement: dict[int, _Output] = {}
+                replacement: dict[str, _Output] = {}
                 try:
                     for index, item in enumerate(cast("list[object]", output)):
                         self._add_item(replacement, index, item)
@@ -211,10 +216,11 @@ class ResponsesWebSocketAccumulator:
             raise ValueError("WebSocket content_index must be a non-negative integer")
         item_id = _text_field(event, "item_id")
         self._bound, self._stream_id = True, stream_id
-        item = self._output.get(index)
+        key = hex(index)
+        item = self._output.get(key)
         if item is None or (item_id and item.item_id and item_id != item.item_id):
             item = _Output(item_id=item_id)
-            self._output[index] = item
+            self._output[key] = item
         if item_id:
             item.item_id = item_id
         if kind in {
@@ -224,13 +230,13 @@ class ResponsesWebSocketAccumulator:
             "response.output_text.done",
         }:
             if kind == "response.output_text.delta":
-                item.text.setdefault(pos, []).append(value)
+                item.text.setdefault(hex(pos), []).append(value)
             elif kind == "response.output_text.done":
-                item.text[pos] = [value]
+                item.text[hex(pos)] = [value]
             else:
                 part = _field(event, "part")
                 if _field(part, "type") == "output_text":
-                    item.text[pos] = [value]
+                    item.text[hex(pos)] = [value]
         elif kind in {"response.function_call_arguments.delta", "response.mcp_call_arguments.delta"}:
             item.arguments.append(value)
         elif kind in {"response.function_call_arguments.done", "response.mcp_call_arguments.done"}:
@@ -241,7 +247,7 @@ class ResponsesWebSocketAccumulator:
             item.input = [value]
 
     @staticmethod
-    def _add_item(output: dict[int, _Output], index: int, source: object) -> None:
+    def _add_item(output: dict[str, _Output], index: int, source: object) -> None:
         if source is None:
             return
         item = _Output(
@@ -253,14 +259,14 @@ class ResponsesWebSocketAccumulator:
         if item.type == "message":
             for pos, part in enumerate(_field(source, "content") or []):
                 if _field(part, "type") == "output_text" and _field(part, "text") is not None:
-                    item.text[pos] = [_text_field(part, "text")]
+                    item.text[hex(pos)] = [_text_field(part, "text")]
         elif item.type in {"function_call", "mcp_call", "mcp_approval_request"}:
             value = _field(source, "arguments")
             item.arguments = ["" if value is None else _text_field(source, "arguments")]
         elif item.type == "custom_tool_call":
             value = _field(source, "input")
             item.input = ["" if value is None else _text_field(source, "input")]
-        output[index] = item
+        output[hex(index)] = item
 
 
 def _text_field(value: object, name: str) -> str:

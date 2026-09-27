@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 import json
 from typing import cast
 
@@ -8,11 +9,43 @@ from websockets.sync.server import ServerConnection
 
 from openai import omit
 from openai._compat import model_copy
+from openai._models import construct_type_unchecked
 from openai.types.responses import ResponseStreamEvent
 from openai.lib.responses_websocket import ResponsesWebSocketError, ResponsesWebSocketAccumulator
 from openai.lib.streaming.responses import ResponseStreamState
+from openai.types.responses.responses_server_event import ResponsesServerEvent
 
 from .test_websocket_session import session_for, script_server, response_event
+
+
+@pytest.mark.parametrize("field", ["output_index", "content_index"])
+def test_large_sparse_indices_keep_numeric_order_and_prior_snapshots(field: str) -> None:
+    acc = ResponsesWebSocketAccumulator()
+    size = 2048
+    step = sys.hash_info.modulus
+    for i in reversed(range(size)):
+        acc.add_event(
+            construct_type_unchecked(
+                type_=ResponsesServerEvent,
+                value={
+                    "type": "response.output_text.delta",
+                    "output_index": 0,
+                    "content_index": 0,
+                    "item_id": "msg",
+                    "delta": str(i) + ",",
+                    field: i * step,
+                },
+            )
+        )
+    prior = acc.snapshot()
+    assert prior.output_text == "".join(str(i) + "," for i in range(size))
+    if field == "output_index":
+        assert [item.output_index for item in prior.output] == [i * step for i in range(size)]
+    else:
+        assert [index for index, _ in prior.output[0].text] == [i * step for i in range(size)]
+    acc.reset()
+    assert not acc.snapshot().output
+    assert prior.output_text == "".join(str(i) + "," for i in range(size))
 
 
 @pytest.mark.parametrize("mode", ["sync", "async"])
