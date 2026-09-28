@@ -184,7 +184,7 @@ async def test_realtime_replacement_refreshes_provider_and_preserves_connection_
                     model="gpt-realtime",
                     on_reconnecting=on_retry,
                     initial_delay=0,
-                    extra_query={"contract": "socket", "tenant": "sample"},
+                    extra_query={"contract": "socket", **({"tenant": "sample"} if provider == "azure" else {})},
                     extra_headers={"X-Realtime-Test": "connection"},
                     websocket_connection_options={"compression": None},
                 ) as conn:
@@ -214,7 +214,7 @@ async def test_realtime_replacement_refreshes_provider_and_preserves_connection_
                     model="gpt-realtime",
                     on_reconnecting=on_retry,
                     initial_delay=0,
-                    extra_query={"contract": "socket", "tenant": "sample"},
+                    extra_query={"contract": "socket", **({"tenant": "sample"} if provider == "azure" else {})},
                     extra_headers={"X-Realtime-Test": "connection"},
                     websocket_connection_options={"compression": None},
                 ) as async_conn:
