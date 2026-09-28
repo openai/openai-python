@@ -9,7 +9,13 @@ import pytest
 from websockets.sync.server import ServerConnection
 
 from openai import OpenAI, AsyncOpenAI
-from openai.types.live import ServerEvent, SessionStartedEvent, SessionUpdatedEvent, OutputTranscriptDeltaEvent
+from openai.types.live import (
+    ServerEvent,
+    SessionClosedEvent,
+    SessionStartedEvent,
+    SessionUpdatedEvent,
+    OutputTranscriptDeltaEvent,
+)
 from openai.resources.live.live import LiveConnection, AsyncLiveConnection
 from openai.resources.live.forks import ForksConnection, AsyncForksConnection
 
@@ -232,8 +238,11 @@ async def test_disposed_grouper_leaves_dispatcher_other_observers_and_socket_usa
                         elif event.event_id == "part-3":
                             connection.session.close(event_id="caller-finish")
 
+                    def close_connection(_event: SessionClosedEvent) -> None:
+                        connection.close()
+
                     connection.on("session.output_transcript.delta", manage)
-                    connection.on("session.closed", lambda _event: connection.close())
+                    connection.on("session.closed", close_connection)
                     connection.session.start(session={"model": "gpt-live-1"}, event_id="caller-start")
                     connection.dispatch_events()
             second.close()
@@ -264,13 +273,16 @@ async def test_disposed_grouper_leaves_dispatcher_other_observers_and_socket_usa
                         elif event.event_id == "part-3":
                             await async_connection.session.close(event_id="caller-finish")
 
+                    async def close_async_connection(_event: SessionClosedEvent) -> None:
+                        await async_connection.close()
+
                     async_connection.on("session.output_transcript.delta", async_manage)
-                    async_connection.on("session.closed", lambda _event: async_connection.close())
+                    async_connection.on("session.closed", close_async_connection)
                     await async_connection.session.start(session={"model": "gpt-live-1"}, event_id="caller-start")
                     await asyncio.wait_for(async_connection.dispatch_events(), timeout=5)
             await async_second.close()
 
-    assert [event.event_id for event in observed] == [
+    assert [event.to_dict().get("event_id") for event in observed] == [
         "started",
         "part-0",
         "part-1",
