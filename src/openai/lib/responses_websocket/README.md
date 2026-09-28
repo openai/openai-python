@@ -108,8 +108,47 @@ a changed nonempty item ID starts fresh at its index. A supplied response
 output list overrides the projected items, including an explicit empty list;
 omitted or null output retains only the helper's earlier projections.
 
+`detailed_snapshot()` returns a separate mutable view when you need the fields
+beyond selected text and tool inputs. It contains `stream_id`, `response_id`,
+`terminal_type`, `response` and `output`. `response` is the last observed
+lifecycle response metadata (excluding `output`), or `None` if none arrived.
+`output` is a list of `{"output_index": index, "item": metadata, "content": rows}`.
+Each content row is `{"content_index": index, "part": observed_fields}`. The
+part's `annotations`, when present as a list, use
+`{"annotation_index": index, "annotation": observed_fields}` rows. Indices may
+be sparse; list position is not the API index.
+For a message that has no projected content, the row's `content` is omitted,
+null or empty according to what was actually received.
+
+For example, after collecting an item or terminal as above:
+
+```python
+details = accumulator.detailed_snapshot()
+for output in details["output"]:
+    for content in output.get("content") or []:
+        part = content["part"]
+        # Fields exist only if received: a WS delta may have no part/item type.
+        text = part.get("text")
+        citations = part.get("annotations")
+        token_scores = part.get("logprobs")
+```
+
+Logprobs accumulate with text deltas and a supplied `output_text.done.logprobs`
+replaces them, including empty or null values. Content/item/lifecycle replacements
+also replace their corresponding annotations and other metadata; text-only done
+events do not erase citations. Refusal, tool/MCP and unknown item/part fields are
+retained as observed, with unset and null distinct. Unknown standalone events still
+pass through unchanged and are not accumulated. Annotation events enrich matching
+known items on the accumulator's lane; annotations received before any matching
+item/text remain available in the original event and do not start or replace a turn.
+A partial field or unknown type
+is provisional, not a fabricated validated response or a successful tool result.
+You may mutate this returned view without changing the accumulator, events, or
+earlier snapshots. The original `snapshot()` remains immutable and hashable.
+
 `snapshot()` materializes the entire current projection and joins retained
-fragments. It is proportional to the accumulated output, so requesting it after
+fragments. `detailed_snapshot()` also materializes and copies its whole projection.
+Both are proportional to the accumulated output, so requesting either after
 every delta or completed item repeatedly rebuilds growing prefixes. Use the
 original event for progress, including the final item itself on
 `response.output_item.done`. Read the full snapshot at a terminal or on explicit
