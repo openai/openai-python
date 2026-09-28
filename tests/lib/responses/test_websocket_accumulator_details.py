@@ -116,17 +116,18 @@ async def test_partial_details_over_the_wire_preserve_metadata_and_typed_logprob
 @pytest.mark.parametrize("mode", ["sync", "async"])
 async def test_details_replaced_at_part_item_and_response_boundaries(mode: str) -> None:
     pos = sys.hash_info.modulus
-    message = {
+    fixture_parts: list[dict[str, object]] = [
+        {"type": "output_text", "text": "first", "annotations": [], "logprobs": None},
+        {"type": "refusal", "refusal": "fixture refusal"},
+        {"type": "future_fixture_part", "raw_fixture": [True]},
+    ]
+    message: dict[str, object] = {
         "id": "fixture",
         "type": "message",
         "role": "assistant",
         "status": "in_progress",
         "source_note": {"fixture": [1]},
-        "content": [
-            {"type": "output_text", "text": "first", "annotations": [], "logprobs": None},
-            {"type": "refusal", "refusal": "fixture refusal"},
-            {"type": "future_fixture_part", "raw_fixture": [True]},
-        ],
+        "content": fixture_parts,
     }
     replacement = {
         "type": "mcp_call",
@@ -138,7 +139,7 @@ async def test_details_replaced_at_part_item_and_response_boundaries(mode: str) 
         "output": None,
         "error": None,
     }
-    frames = [
+    frames: list[dict[str, object]] = [
         {"type": "response.output_item.added", "output_index": pos, "item": message},
         {
             "type": "response.output_text.annotation.added",
@@ -187,7 +188,7 @@ async def test_details_replaced_at_part_item_and_response_boundaries(mode: str) 
             assert len(acc.detailed_snapshot()["output"][0]["content"][0]["part"]["annotations"]) == 1
             acc.add_event(await driver.call(lane, "recv"))
             parts = acc.detailed_snapshot()["output"][0]["content"]
-            assert [row["part"] for row in parts] == [frames[2]["part"], *message["content"][1:]]
+            assert [row["part"] for row in parts] == [frames[2]["part"], *fixture_parts[1:]]
             assert first["output"][0]["content"][0]["part"]["text"] == "first"
             acc.add_event(await driver.call(lane, "recv"))
             saved = acc.detailed_snapshot()
@@ -239,17 +240,14 @@ async def test_malformed_new_annotation_does_not_break_old_projection_or_retire_
             acc.add_event(await driver.call(lane, "recv"))
             prior = acc.detailed_snapshot()
             event = await driver.call(lane, "recv")
-            # Preserve the prior accumulator's ignored-event semantics for
-            # fields it does not understand. V1 may first normalize false to 0.
-            if (
-                isinstance(event.annotation_index, bool)
-                or not isinstance(event.annotation_index, int)
-                or event.annotation_index < 0
-            ):
-                acc.add_event(event)
-                assert acc.detailed_snapshot() == prior
-                acc.add_event(await driver.call(lane, "recv"))
-                assert acc.snapshot().output_text == "ok next"
+            # Even if Pydantic normalizes false to 0, this other item's
+            # annotation cannot replace the original or end its progress.
+            acc.add_event(event)
+            assert acc.detailed_snapshot() == prior
+            acc.add_event(await driver.call(lane, "recv"))
+            assert acc.snapshot().output_text == "ok next"
+            acc.add_event(await driver.call(lane, "recv"))
+            assert acc.get_final_response().status == "completed"
 
 
 @pytest.mark.parametrize("mode", ["sync", "async"])
@@ -289,7 +287,7 @@ async def test_annotation_cannot_start_a_turn_or_retire_an_unrelated_item(mode: 
         "item_id": "fixture_original",
         "delta": "kept",
     }
-    annotation = {
+    annotation: dict[str, object] = {
         "type": "response.output_text.annotation.added",
         "output_index": 0,
         "content_index": 0,
