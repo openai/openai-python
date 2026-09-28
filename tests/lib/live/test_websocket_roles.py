@@ -9,10 +9,17 @@ import pytest
 from websockets.sync.server import ServerConnection
 
 from openai import OpenAI, AsyncOpenAI
-from openai.types.live import SessionStartedEvent, SessionUpdatedEvent, OutputTranscriptDeltaEvent
+from openai.types.live import (
+    ServerEvent,
+    SessionClosedEvent,
+    SessionStartedEvent,
+    SessionUpdatedEvent,
+    OutputTranscriptDeltaEvent,
+)
 from openai.resources.live.live import LiveConnection, AsyncLiveConnection
 from openai.resources.live.forks import ForksConnection, AsyncForksConnection
 
+from .helpers import FakeClock, Recording, ClockGrouper, AsyncClockGrouper
 from ..responses.test_websocket_session import script_server
 
 
@@ -157,3 +164,137 @@ async def test_live_role_startup_and_routing(role: str, mode: str, base_query: s
                     assert isinstance(async_updated, SessionUpdatedEvent)
                     assert async_updated.client_event_id == "caller-update"
                     assert async_updated.session.id == "live_fixture"
+
+
+@pytest.mark.parametrize("mode", ["sync", "async"])
+async def test_disposed_grouper_leaves_dispatcher_other_observers_and_socket_usable(mode: str) -> None:
+    session = {"id": "live_fixture", "model": "gpt-live-1", "status": "active", "expires_at": 123}
+    first_clock, second_clock = FakeClock(), FakeClock()
+    transcripts = [
+        {
+            "type": "session.output_transcript.delta",
+            "event_id": f"part-{index}",
+            "delta": value,
+            "start_ms": index * 200,
+            "end_ms": (index + 1) * 200,
+        }
+        for index, value in enumerate(["One", " two", " three", " four"])
+    ]
+    observed: list[ServerEvent] = []
+    typed: list[OutputTranscriptDeltaEvent] = []
+
+    def script(socket: ServerConnection) -> None:
+        assert json.loads(socket.recv(timeout=5)) == {
+            "type": "session.start",
+            "event_id": "caller-start",
+            "session": {"model": "gpt-live-1"},
+        }
+        socket.send(json.dumps({"type": "session.started", "event_id": "started", "session": session}))
+        for event in transcripts[:2]:
+            socket.send(json.dumps(event))
+        # Issued only after the caller detaches and closes its first grouper.
+        assert json.loads(socket.recv(timeout=5)) == {
+            "type": "session.update",
+            "event_id": "after-dispose",
+            "session": {},
+        }
+        socket.send(
+            json.dumps(
+                {
+                    "type": "session.updated",
+                    "event_id": "updated",
+                    "client_event_id": "after-dispose",
+                    "session": session,
+                    "future_metadata": {"explicit_null": None, "nested": [1, "retained"]},
+                }
+            )
+        )
+        for event in transcripts[2:]:
+            socket.send(json.dumps(event))
+        assert json.loads(socket.recv(timeout=5)) == {"type": "session.close", "event_id": "caller-finish"}
+        socket.send(json.dumps({"type": "session.closed", "event_id": "closed", "reason": "client_close"}))
+        # The shared fixture rejects extra writes/reconnects and waits for caller close.
+
+    with script_server(script) as url:
+        if mode == "sync":
+            first = ClockGrouper(first_clock)
+            second = ClockGrouper(second_clock)
+            first_record, second_record = Recording(first, first_clock), Recording(second, second_clock)
+            with OpenAI(api_key="ek_fake_live", base_url=url, http_client=httpx2.Client(trust_env=False)) as client:
+                with client.live.connect() as connection:
+                    connection.on("session.output_transcript.delta", first.push)
+                    connection.on("session.output_transcript.delta", second.push)
+                    connection.on("session.output_transcript.delta", typed.append)
+                    connection.on("event", observed.append)
+
+                    def manage(event: OutputTranscriptDeltaEvent) -> None:
+                        if event.event_id == "part-1":
+                            assert first_clock.pending
+                            connection.off("session.output_transcript.delta", first.push)
+                            first.close()
+                            first.close()
+                            assert not first_clock.pending
+                            connection.session.update(session={}, event_id="after-dispose")
+                        elif event.event_id == "part-3":
+                            connection.session.close(event_id="caller-finish")
+
+                    def close_connection(_event: SessionClosedEvent) -> None:
+                        connection.close()
+
+                    connection.on("session.output_transcript.delta", manage)
+                    connection.on("session.closed", close_connection)
+                    connection.session.start(session={"model": "gpt-live-1"}, event_id="caller-start")
+                    connection.dispatch_events()
+            second.close()
+        else:
+            async_first = AsyncClockGrouper(first_clock)
+            async_second = AsyncClockGrouper(second_clock)
+            first_record, second_record = (
+                Recording(async_first, first_clock),
+                Recording(async_second, second_clock),
+            )
+            async with AsyncOpenAI(
+                api_key="ek_fake_live", base_url=url, http_client=httpx2.AsyncClient(trust_env=False)
+            ) as async_client:
+                async with async_client.live.connect() as async_connection:
+                    async_connection.on("session.output_transcript.delta", async_first.push)
+                    async_connection.on("session.output_transcript.delta", async_second.push)
+                    async_connection.on("session.output_transcript.delta", typed.append)
+                    async_connection.on("event", observed.append)
+
+                    async def async_manage(event: OutputTranscriptDeltaEvent) -> None:
+                        if event.event_id == "part-1":
+                            assert first_clock.pending
+                            async_connection.off("session.output_transcript.delta", async_first.push)
+                            await async_first.close()
+                            await async_first.close()
+                            assert not first_clock.pending
+                            await async_connection.session.update(session={}, event_id="after-dispose")
+                        elif event.event_id == "part-3":
+                            await async_connection.session.close(event_id="caller-finish")
+
+                    async def close_async_connection(_event: SessionClosedEvent) -> None:
+                        await async_connection.close()
+
+                    async_connection.on("session.output_transcript.delta", async_manage)
+                    async_connection.on("session.closed", close_async_connection)
+                    await async_connection.session.start(session={"model": "gpt-live-1"}, event_id="caller-start")
+                    await asyncio.wait_for(async_connection.dispatch_events(), timeout=5)
+            await async_second.close()
+
+    assert [event.to_dict().get("event_id") for event in observed] == [
+        "started",
+        "part-0",
+        "part-1",
+        "updated",
+        "part-2",
+        "part-3",
+        "closed",
+    ]
+    assert [event.to_dict() for event in typed] == transcripts
+    updated = observed[3]
+    assert isinstance(updated, SessionUpdatedEvent)
+    assert updated.to_dict()["future_metadata"] == {"explicit_null": None, "nested": [1, "retained"]}
+    assert [(event.segment.text, event.reason) for event in first_record.closed] == [("One two", "manual")]
+    assert [(event.segment.text, event.reason) for event in second_record.closed] == [("One two three four", "manual")]
+    assert not first_clock.pending and not second_clock.pending
