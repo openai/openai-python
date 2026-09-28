@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import os
+import ssl
 import importlib
 from typing import Any, Iterator, AsyncIterator
 from contextlib import aclosing, nullcontext
 
+import anyio
 import httpx2
 import pytest
 
@@ -35,12 +37,19 @@ def http_module(request: pytest.FixtureRequest) -> Any:
         ("ReadTimeout", APITimeoutError),
         ("RemoteProtocolError", APIConnectionError),
         ("DecodingError", APIConnectionError),
+        (ssl.SSLError, APIConnectionError),
+        (anyio.EndOfStream, APIConnectionError),
     ],
 )
 async def test_request_errors_are_wrapped(
-    sync: bool, delivered: bool, error_name: str, expected_error: type[APIConnectionError], http_module: Any
+    sync: bool,
+    delivered: bool,
+    error_name: str | type[Exception],
+    expected_error: type[APIConnectionError],
+    http_module: Any,
 ) -> None:
-    error = getattr(http_module, error_name)("synthetic stream failure")
+    error_type = getattr(http_module, error_name) if isinstance(error_name, str) else error_name
+    error = error_type("synthetic stream failure")
     requests: list[Any] = []
     first = (
         b'data: {"id":"synthetic","object":"chat.completion.chunk","created":0,"model":"synthetic",'
