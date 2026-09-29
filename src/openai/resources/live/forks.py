@@ -14,9 +14,9 @@ import httpx2
 from pydantic import BaseModel
 
 from ..._types import Omit, Query, Headers, omit
-from ..._utils import path_template, maybe_transform, strip_not_given, async_maybe_transform
+from ..._utils import is_given, path_template, maybe_transform, strip_not_given, async_maybe_transform
 from ..._compat import cached_property
-from ..._models import construct_type_unchecked
+from ..._models import FinalRequestOptions, construct_type_unchecked
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._exceptions import OpenAIError, WebSocketConnectionClosedError
 from ..._send_queue import SendQueue
@@ -139,7 +139,7 @@ class AsyncForksConnection:
         self._extra_headers = extra_headers
         self._intentionally_closed = False
         self._is_reconnecting = False
-        self._send_queue = send_queue or SendQueue()
+        self._send_queue = send_queue if send_queue is not None else SendQueue()
         self._event_handler_registry = EventHandlerRegistry(use_lock=False)
 
         self.session = AsyncForksSessionResource(self)
@@ -215,11 +215,7 @@ class AsyncForksConnection:
         if self._is_reconnecting:
             self._send_queue.enqueue(data)
             return
-        try:
-            await self._connection.send(data)
-        except Exception:
-            self._send_queue.enqueue(data)
-            raise
+        await self._connection.send(data)
 
     async def send_raw(self, data: bytes | str) -> None:
         if self._is_reconnecting:
@@ -324,7 +320,7 @@ class AsyncForksConnection:
             await self._connection.send(data)
 
         try:
-            await self._send_queue.flush_async(_send)
+            await self._send_queue.flush_async(_send, requeue_failed=False)
         except Exception:
             log.warning("Failed to flush send queue after reconnect")
 
@@ -465,7 +461,7 @@ class AsyncForksConnectionManager:
         data = (
             event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
             if isinstance(event, BaseModel)
-            else json.dumps(event)
+            else json.dumps(maybe_transform(event, ForkClientEventParam))
         )
         self.__send_queue.enqueue(data)
 
@@ -552,19 +548,37 @@ class AsyncForksConnectionManager:
                 **extra_query,
             },
         )
+        url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
+        options = await self.__client._prepare_options(
+            FinalRequestOptions.construct(
+                method="get",
+                url=str(url),
+                headers=dict(extra_headers),
+                security={"bearer_auth": True},
+            )
+        )
+        url = self.__client._prepare_url(options.url).copy_merge_params(
+            self.__client.qs.stringify(cast(Any, options.params))
+        )
+        url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
+        headers = {
+            key.lower(): (key, value)
+            for header_set in (
+                self.__client.auth_headers,
+                {},
+                self.__client.default_headers,
+                options.headers if is_given(options.headers) else {},
+            )
+            for key, value in header_set.items()
+        }
         log.debug("Connecting to WebSocket API")
         if self.__websocket_connection_options:
             log.debug("Custom WebSocket connection options provided")
 
         return await connect(
             str(url),
-            user_agent_header=self.__client.user_agent,
-            additional_headers=_merge_mappings(
-                {
-                    **self.__client.auth_headers,
-                },
-                extra_headers,
-            ),
+            user_agent_header=None,
+            additional_headers=_merge_mappings(dict(headers.values()), {}),
             **self.__websocket_connection_options,
         )
 
@@ -576,9 +590,9 @@ class AsyncForksConnectionManager:
             ws_scheme = "ws" if scheme == "http" else "wss"
             base_url = self.__client._base_url.copy_with(scheme=ws_scheme)
 
-        merge_raw_path = base_url.raw_path.rstrip(b"/") + path_template(
-            "/live/sessions/{session_id}/fork", session_id=self.__session_id
-        ).encode("utf-8")
+        path, separator, query = base_url.raw_path.partition(b"?")
+        endpoint = path_template("/live/sessions/{session_id}/fork", session_id=self.__session_id).encode("utf-8")
+        merge_raw_path = path.rstrip(b"/") + endpoint + separator + query
         return base_url.copy_with(raw_path=merge_raw_path)
 
     async def __aexit__(
@@ -620,7 +634,7 @@ class ForksConnection:
         self._extra_headers = extra_headers
         self._intentionally_closed = False
         self._is_reconnecting = False
-        self._send_queue = send_queue or SendQueue()
+        self._send_queue = send_queue if send_queue is not None else SendQueue()
         self._event_handler_registry = EventHandlerRegistry(use_lock=True)
 
         self.session = ForksSessionResource(self)
@@ -696,11 +710,7 @@ class ForksConnection:
         if self._is_reconnecting:
             self._send_queue.enqueue(data)
             return
-        try:
-            self._connection.send(data)
-        except Exception:
-            self._send_queue.enqueue(data)
-            raise
+        self._connection.send(data)
 
     def send_raw(self, data: bytes | str) -> None:
         if self._is_reconnecting:
@@ -799,7 +809,7 @@ class ForksConnection:
     def _flush_send_queue(self) -> None:
         """Send all queued messages over the current connection."""
         try:
-            self._send_queue.flush_sync(lambda data: self._connection.send(data))
+            self._send_queue.flush_sync(lambda data: self._connection.send(data), requeue_failed=False)
         except Exception:
             log.warning("Failed to flush send queue after reconnect")
 
@@ -934,7 +944,7 @@ class ForksConnectionManager:
         data = (
             event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
             if isinstance(event, BaseModel)
-            else json.dumps(event)
+            else json.dumps(maybe_transform(event, ForkClientEventParam))
         )
         self.__send_queue.enqueue(data)
 
@@ -1021,19 +1031,37 @@ class ForksConnectionManager:
                 **extra_query,
             },
         )
+        url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
+        options = self.__client._prepare_options(
+            FinalRequestOptions.construct(
+                method="get",
+                url=str(url),
+                headers=dict(extra_headers),
+                security={"bearer_auth": True},
+            )
+        )
+        url = self.__client._prepare_url(options.url).copy_merge_params(
+            self.__client.qs.stringify(cast(Any, options.params))
+        )
+        url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
+        headers = {
+            key.lower(): (key, value)
+            for header_set in (
+                self.__client.auth_headers,
+                {},
+                self.__client.default_headers,
+                options.headers if is_given(options.headers) else {},
+            )
+            for key, value in header_set.items()
+        }
         log.debug("Connecting to WebSocket API")
         if self.__websocket_connection_options:
             log.debug("Custom WebSocket connection options provided")
 
         return connect(
             str(url),
-            user_agent_header=self.__client.user_agent,
-            additional_headers=_merge_mappings(
-                {
-                    **self.__client.auth_headers,
-                },
-                extra_headers,
-            ),
+            user_agent_header=None,
+            additional_headers=_merge_mappings(dict(headers.values()), {}),
             **self.__websocket_connection_options,
         )
 
@@ -1045,9 +1073,9 @@ class ForksConnectionManager:
             ws_scheme = "ws" if scheme == "http" else "wss"
             base_url = self.__client._base_url.copy_with(scheme=ws_scheme)
 
-        merge_raw_path = base_url.raw_path.rstrip(b"/") + path_template(
-            "/live/sessions/{session_id}/fork", session_id=self.__session_id
-        ).encode("utf-8")
+        path, separator, query = base_url.raw_path.partition(b"?")
+        endpoint = path_template("/live/sessions/{session_id}/fork", session_id=self.__session_id).encode("utf-8")
+        merge_raw_path = path.rstrip(b"/") + endpoint + separator + query
         return base_url.copy_with(raw_path=merge_raw_path)
 
     def __exit__(

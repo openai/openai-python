@@ -15,6 +15,7 @@ __all__ = [
     "EnvironmentParam",
     "EnvironmentParamNone",
     "EnvironmentParamOpenAIHosted",
+    "EnvironmentParamOpenAIHostedDesktop",
     "EnvironmentParamOpenAIHostedNetwork",
     "EnvironmentParamOpenAIHostedPackages",
     "EnvironmentParamSelfHosted",
@@ -28,24 +29,43 @@ class EnvironmentParamNone(TypedDict, total=False):
     """The type of the object. Always `none`."""
 
 
+class EnvironmentParamOpenAIHostedDesktop(TypedDict, total=False):
+    """Desktop provisioning.
+
+    Omission or null inherits the template setting, or defaults to disabled.
+    """
+
+    enabled: Required[bool]
+    """Whether to provision the desktop and its browser proxy."""
+
+
 class EnvironmentParamOpenAIHostedNetwork(TypedDict, total=False):
-    """Network access for an OpenAI-hosted environment."""
+    """Network access policy for the environment.
+
+    Defaults to disabled for GA requests and enabled for beta requests.
+    """
 
     access: Required[Literal["enabled", "disabled", "restricted"]]
     """The environment's network access mode.
 
-    - `enabled` - Allows unrestricted network access, matching an omitted network
-      policy.
+    - `enabled` - Allows unrestricted network access.
     - `disabled` - Disables network access.
-    - `restricted` - Allows access only to configured domains.
+    - `restricted` - Applies the configured domain restrictions.
     """
 
     allowed_domains: Optional[SequenceNotStr[str]]
     """Domains the environment may access when network access is restricted."""
 
+    blocked_domains: Optional[SequenceNotStr[str]]
+    """Domains blocked for both executor and browser when access is restricted.
+
+    A nonempty list requires `access: restricted` and cannot be combined with
+    nonempty `allowed_domains`. Wildcard domains are not supported.
+    """
+
 
 class EnvironmentParamOpenAIHostedPackages(TypedDict, total=False):
-    """Packages to install in an OpenAI-hosted environment."""
+    """Packages to install in the environment. Defaults to empty package lists."""
 
     npm: Optional[SequenceNotStr[str]]
     """npm packages to install globally. Defaults to an empty list."""
@@ -58,7 +78,9 @@ class EnvironmentParamOpenAIHostedPackages(TypedDict, total=False):
 
 
 class EnvironmentParamOpenAIHosted(TypedDict, total=False):
-    """An OpenAI-hosted environment, optionally based on a reusable template."""
+    """
+    An existing OpenAI-hosted environment or new inline/template-based hosted configuration.
+    """
 
     type: Required[Literal["openai_hosted"]]
     """The type of the object. Always `openai_hosted`."""
@@ -67,6 +89,12 @@ class EnvironmentParamOpenAIHosted(TypedDict, total=False):
     """Directories that contain capabilities exposed to the agent.
 
     Defaults to an empty list.
+    """
+
+    desktop: Optional[EnvironmentParamOpenAIHostedDesktop]
+    """Desktop provisioning.
+
+    Omission or null inherits the template setting, or defaults to disabled.
     """
 
     env: Optional[Dict[str, str]]
@@ -83,10 +111,13 @@ class EnvironmentParamOpenAIHosted(TypedDict, total=False):
     """Files available before the agent starts. Defaults to an empty list."""
 
     network: Optional[EnvironmentParamOpenAIHostedNetwork]
-    """Network access for an OpenAI-hosted environment."""
+    """Network access policy for the environment.
+
+    Defaults to disabled for GA requests and enabled for beta requests.
+    """
 
     packages: Optional[EnvironmentParamOpenAIHostedPackages]
-    """Packages to install in an OpenAI-hosted environment."""
+    """Packages to install in the environment. Defaults to empty package lists."""
 
     plugins: Optional[Iterable[HostedPluginParam]]
     """Plugins provided as inline ZIP archives. Defaults to an empty list."""

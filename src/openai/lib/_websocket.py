@@ -3,10 +3,21 @@ from __future__ import annotations
 from typing_extensions import override
 
 from websockets.uri import parse_uri
+from websockets.version import version as websockets_version
 from websockets.exceptions import SecurityError
+from websockets.sync.client import ClientConnection as SyncWebSocketConnection
 from websockets.asyncio.client import connect
 
-__all__ = ["_WebSocketConnect"]
+__all__ = ["_WebSocketConnect", "_recv_bytes"]
+
+
+def _recv_bytes(connection: SyncWebSocketConnection) -> bytes:
+    if not websockets_version.startswith("13."):
+        return connection.recv(decode=False)
+    # websockets 13 decodes text frames unconditionally in its sync API.
+    # Re-encoding preserves their wire bytes; binary messages are already bytes.
+    message = connection.recv()
+    return message.encode("utf-8") if isinstance(message, str) else message
 
 
 class _WebSocketConnect(connect):

@@ -50,6 +50,7 @@ class Templates(SyncAPIResource):
         self,
         *,
         capability_directories: Optional[SequenceNotStr[str]] | Omit = omit,
+        desktop: Optional[template_create_params.Desktop] | Omit = omit,
         env: Optional[Dict[str, str]] | Omit = omit,
         files: Optional[Iterable[HostedEnvironmentFileParam]] | Omit = omit,
         name: Optional[str] | Omit = omit,
@@ -74,15 +75,19 @@ class Templates(SyncAPIResource):
           capability_directories: Directories that contain capabilities exposed to the agent. Defaults to an empty
               list.
 
+          desktop: Desktop provisioning. Omission or null inherits the template setting, or
+              defaults to disabled.
+
           env: Environment variables made available to the agent.
 
           files: Files available before the agent starts. Defaults to an empty list.
 
           name: An optional human-readable display name for the template.
 
-          network: Network access for an OpenAI-hosted environment.
+          network: Network access policy for the environment. Defaults to disabled for GA requests
+              and enabled for beta requests.
 
-          packages: Packages to install in an OpenAI-hosted environment.
+          packages: Packages to install in the environment. Defaults to empty package lists.
 
           plugins: Plugins provided as inline ZIP archives. Defaults to an empty list.
 
@@ -105,6 +110,7 @@ class Templates(SyncAPIResource):
             body=maybe_transform(
                 {
                     "capability_directories": capability_directories,
+                    "desktop": desktop,
                     "env": env,
                     "files": files,
                     "name": name,
@@ -176,6 +182,7 @@ class Templates(SyncAPIResource):
         environment_template_id: str,
         *,
         capability_directories: Optional[SequenceNotStr[str]] | Omit = omit,
+        desktop: Optional[template_update_params.Desktop] | Omit = omit,
         env: Optional[Dict[str, str]] | Omit = omit,
         files: Optional[Iterable[HostedEnvironmentFileParam]] | Omit = omit,
         name: Optional[str] | Omit = omit,
@@ -199,15 +206,19 @@ class Templates(SyncAPIResource):
         Args:
           capability_directories: Directories that expose capabilities to the agent.
 
+          desktop: Replacement desktop configuration, or null to disable the desktop.
+
           env: Replacement confidential environment values.
 
           files: Replacement file configuration materialized for each new session.
 
           name: A replacement human-readable display name, or `null` to clear the name.
 
-          network: Network access for an OpenAI-hosted environment.
+          network: Network access available after setup completes. Omit to preserve the current
+              policy, or pass `null` to reset to disabled for GA requests or enabled for beta
+              requests.
 
-          packages: Packages to install in an OpenAI-hosted environment.
+          packages: Packages installed before the runtime network policy applies.
 
           plugins: Replacement plugin configuration installed for each new session.
 
@@ -236,6 +247,7 @@ class Templates(SyncAPIResource):
             body=maybe_transform(
                 {
                     "capability_directories": capability_directories,
+                    "desktop": desktop,
                     "env": env,
                     "files": files,
                     "name": name,
@@ -385,6 +397,7 @@ class AsyncTemplates(AsyncAPIResource):
         self,
         *,
         capability_directories: Optional[SequenceNotStr[str]] | Omit = omit,
+        desktop: Optional[template_create_params.Desktop] | Omit = omit,
         env: Optional[Dict[str, str]] | Omit = omit,
         files: Optional[Iterable[HostedEnvironmentFileParam]] | Omit = omit,
         name: Optional[str] | Omit = omit,
@@ -409,15 +422,19 @@ class AsyncTemplates(AsyncAPIResource):
           capability_directories: Directories that contain capabilities exposed to the agent. Defaults to an empty
               list.
 
+          desktop: Desktop provisioning. Omission or null inherits the template setting, or
+              defaults to disabled.
+
           env: Environment variables made available to the agent.
 
           files: Files available before the agent starts. Defaults to an empty list.
 
           name: An optional human-readable display name for the template.
 
-          network: Network access for an OpenAI-hosted environment.
+          network: Network access policy for the environment. Defaults to disabled for GA requests
+              and enabled for beta requests.
 
-          packages: Packages to install in an OpenAI-hosted environment.
+          packages: Packages to install in the environment. Defaults to empty package lists.
 
           plugins: Plugins provided as inline ZIP archives. Defaults to an empty list.
 
@@ -440,6 +457,7 @@ class AsyncTemplates(AsyncAPIResource):
             body=await async_maybe_transform(
                 {
                     "capability_directories": capability_directories,
+                    "desktop": desktop,
                     "env": env,
                     "files": files,
                     "name": name,
@@ -511,6 +529,7 @@ class AsyncTemplates(AsyncAPIResource):
         environment_template_id: str,
         *,
         capability_directories: Optional[SequenceNotStr[str]] | Omit = omit,
+        desktop: Optional[template_update_params.Desktop] | Omit = omit,
         env: Optional[Dict[str, str]] | Omit = omit,
         files: Optional[Iterable[HostedEnvironmentFileParam]] | Omit = omit,
         name: Optional[str] | Omit = omit,
@@ -534,15 +553,19 @@ class AsyncTemplates(AsyncAPIResource):
         Args:
           capability_directories: Directories that expose capabilities to the agent.
 
+          desktop: Replacement desktop configuration, or null to disable the desktop.
+
           env: Replacement confidential environment values.
 
           files: Replacement file configuration materialized for each new session.
 
           name: A replacement human-readable display name, or `null` to clear the name.
 
-          network: Network access for an OpenAI-hosted environment.
+          network: Network access available after setup completes. Omit to preserve the current
+              policy, or pass `null` to reset to disabled for GA requests or enabled for beta
+              requests.
 
-          packages: Packages to install in an OpenAI-hosted environment.
+          packages: Packages installed before the runtime network policy applies.
 
           plugins: Replacement plugin configuration installed for each new session.
 
@@ -571,6 +594,7 @@ class AsyncTemplates(AsyncAPIResource):
             body=await async_maybe_transform(
                 {
                     "capability_directories": capability_directories,
+                    "desktop": desktop,
                     "env": env,
                     "files": files,
                     "name": name,

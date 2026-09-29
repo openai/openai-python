@@ -21,6 +21,7 @@ from .agent_session_turn_item_added_event import AgentSessionTurnItemAddedEvent
 from .agent_session_subagent_created_event import AgentSessionSubagentCreatedEvent
 from .agent_session_turn_in_progress_event import AgentSessionTurnInProgressEvent
 from .agent_session_environment_ready_event import AgentSessionEnvironmentReadyEvent
+from .agent_session_environment_reset_event import AgentSessionEnvironmentResetEvent
 from .agent_session_environment_failed_event import AgentSessionEnvironmentFailedEvent
 from .agent_session_environment_pending_event import AgentSessionEnvironmentPendingEvent
 from .agent_session_environment_connected_event import AgentSessionEnvironmentConnectedEvent
@@ -41,6 +42,7 @@ AgentSessionEvent: TypeAlias = Annotated[
     Union[
         AgentSessionErrorEvent,
         AgentSessionEnvironmentReadyEvent,
+        AgentSessionEnvironmentResetEvent,
         AgentOutputCommandExecutionOutputDeltaEvent,
         AgentSessionCreatedEvent,
         AgentSessionTurnCreatedEvent,

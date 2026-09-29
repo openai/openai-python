@@ -11,7 +11,7 @@ from ...hosted_plugin_param import HostedPluginParam
 from ...setup_command_param import SetupCommandParam
 from ...hosted_environment_file_param import HostedEnvironmentFileParam
 
-__all__ = ["TemplateCreateParams", "Network", "Packages"]
+__all__ = ["TemplateCreateParams", "Desktop", "Network", "Packages"]
 
 
 class TemplateCreateParams(TypedDict, total=False):
@@ -19,6 +19,12 @@ class TemplateCreateParams(TypedDict, total=False):
     """Directories that contain capabilities exposed to the agent.
 
     Defaults to an empty list.
+    """
+
+    desktop: Optional[Desktop]
+    """Desktop provisioning.
+
+    Omission or null inherits the template setting, or defaults to disabled.
     """
 
     env: Optional[Dict[str, str]]
@@ -31,10 +37,13 @@ class TemplateCreateParams(TypedDict, total=False):
     """An optional human-readable display name for the template."""
 
     network: Optional[Network]
-    """Network access for an OpenAI-hosted environment."""
+    """Network access policy for the environment.
+
+    Defaults to disabled for GA requests and enabled for beta requests.
+    """
 
     packages: Optional[Packages]
-    """Packages to install in an OpenAI-hosted environment."""
+    """Packages to install in the environment. Defaults to empty package lists."""
 
     plugins: Optional[Iterable[HostedPluginParam]]
     """Plugins provided as inline ZIP archives. Defaults to an empty list."""
@@ -49,24 +58,43 @@ class TemplateCreateParams(TypedDict, total=False):
     """
 
 
+class Desktop(TypedDict, total=False):
+    """Desktop provisioning.
+
+    Omission or null inherits the template setting, or defaults to disabled.
+    """
+
+    enabled: Required[bool]
+    """Whether to provision the desktop and its browser proxy."""
+
+
 class Network(TypedDict, total=False):
-    """Network access for an OpenAI-hosted environment."""
+    """Network access policy for the environment.
+
+    Defaults to disabled for GA requests and enabled for beta requests.
+    """
 
     access: Required[Literal["enabled", "disabled", "restricted"]]
     """The environment's network access mode.
 
-    - `enabled` - Allows unrestricted network access, matching an omitted network
-      policy.
+    - `enabled` - Allows unrestricted network access.
     - `disabled` - Disables network access.
-    - `restricted` - Allows access only to configured domains.
+    - `restricted` - Applies the configured domain restrictions.
     """
 
     allowed_domains: Optional[SequenceNotStr[str]]
     """Domains the environment may access when network access is restricted."""
 
+    blocked_domains: Optional[SequenceNotStr[str]]
+    """Domains blocked for both executor and browser when access is restricted.
+
+    A nonempty list requires `access: restricted` and cannot be combined with
+    nonempty `allowed_domains`. Wildcard domains are not supported.
+    """
+
 
 class Packages(TypedDict, total=False):
-    """Packages to install in an OpenAI-hosted environment."""
+    """Packages to install in the environment. Defaults to empty package lists."""
 
     npm: Optional[SequenceNotStr[str]]
     """npm packages to install globally. Defaults to an empty list."""
