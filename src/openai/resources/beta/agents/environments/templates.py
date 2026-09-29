@@ -50,6 +50,7 @@ class Templates(SyncAPIResource):
         self,
         *,
         capability_directories: Optional[SequenceNotStr[str]] | Omit = omit,
+        desktop: Optional[template_create_params.Desktop] | Omit = omit,
         env: Optional[Dict[str, str]] | Omit = omit,
         files: Optional[Iterable[HostedEnvironmentFileParam]] | Omit = omit,
         name: Optional[str] | Omit = omit,
@@ -73,6 +74,9 @@ class Templates(SyncAPIResource):
         Args:
           capability_directories: Directories that contain capabilities exposed to the agent. Defaults to an empty
               list.
+
+          desktop: Desktop provisioning. Omission or null inherits the template setting, or
+              defaults to disabled.
 
           env: Environment variables made available to the agent.
 
@@ -106,6 +110,7 @@ class Templates(SyncAPIResource):
             body=maybe_transform(
                 {
                     "capability_directories": capability_directories,
+                    "desktop": desktop,
                     "env": env,
                     "files": files,
                     "name": name,
@@ -177,6 +182,7 @@ class Templates(SyncAPIResource):
         environment_template_id: str,
         *,
         capability_directories: Optional[SequenceNotStr[str]] | Omit = omit,
+        desktop: Optional[template_update_params.Desktop] | Omit = omit,
         env: Optional[Dict[str, str]] | Omit = omit,
         files: Optional[Iterable[HostedEnvironmentFileParam]] | Omit = omit,
         name: Optional[str] | Omit = omit,
@@ -199,6 +205,8 @@ class Templates(SyncAPIResource):
 
         Args:
           capability_directories: Directories that expose capabilities to the agent.
+
+          desktop: Replacement desktop configuration, or null to disable the desktop.
 
           env: Replacement confidential environment values.
 
@@ -239,6 +247,7 @@ class Templates(SyncAPIResource):
             body=maybe_transform(
                 {
                     "capability_directories": capability_directories,
+                    "desktop": desktop,
                     "env": env,
                     "files": files,
                     "name": name,
@@ -388,6 +397,7 @@ class AsyncTemplates(AsyncAPIResource):
         self,
         *,
         capability_directories: Optional[SequenceNotStr[str]] | Omit = omit,
+        desktop: Optional[template_create_params.Desktop] | Omit = omit,
         env: Optional[Dict[str, str]] | Omit = omit,
         files: Optional[Iterable[HostedEnvironmentFileParam]] | Omit = omit,
         name: Optional[str] | Omit = omit,
@@ -411,6 +421,9 @@ class AsyncTemplates(AsyncAPIResource):
         Args:
           capability_directories: Directories that contain capabilities exposed to the agent. Defaults to an empty
               list.
+
+          desktop: Desktop provisioning. Omission or null inherits the template setting, or
+              defaults to disabled.
 
           env: Environment variables made available to the agent.
 
@@ -444,6 +457,7 @@ class AsyncTemplates(AsyncAPIResource):
             body=await async_maybe_transform(
                 {
                     "capability_directories": capability_directories,
+                    "desktop": desktop,
                     "env": env,
                     "files": files,
                     "name": name,
@@ -515,6 +529,7 @@ class AsyncTemplates(AsyncAPIResource):
         environment_template_id: str,
         *,
         capability_directories: Optional[SequenceNotStr[str]] | Omit = omit,
+        desktop: Optional[template_update_params.Desktop] | Omit = omit,
         env: Optional[Dict[str, str]] | Omit = omit,
         files: Optional[Iterable[HostedEnvironmentFileParam]] | Omit = omit,
         name: Optional[str] | Omit = omit,
@@ -537,6 +552,8 @@ class AsyncTemplates(AsyncAPIResource):
 
         Args:
           capability_directories: Directories that expose capabilities to the agent.
+
+          desktop: Replacement desktop configuration, or null to disable the desktop.
 
           env: Replacement confidential environment values.
 
@@ -577,6 +594,7 @@ class AsyncTemplates(AsyncAPIResource):
             body=await async_maybe_transform(
                 {
                     "capability_directories": capability_directories,
+                    "desktop": desktop,
                     "env": env,
                     "files": files,
                     "name": name,
