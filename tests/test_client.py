@@ -582,10 +582,7 @@ class TestOpenAI:
             )
             assert admin_only_request.headers.get("Authorization") == f"Bearer {admin_api_key}"
 
-            with pytest.raises(
-                TypeError,
-                match="Could not resolve authentication method",
-            ):
+            with pytest.raises(TypeError) as exc:
                 admin_only._build_request(
                     FinalRequestOptions(
                         method="post",
@@ -593,6 +590,10 @@ class TestOpenAI:
                         security={"bearer_auth": True},
                     )
                 )
+            assert str(exc.value) == (
+                "Could not resolve authentication method. Expected either api_key or admin_api_key to be set. "
+                "Or for the `Authorization` header to be explicitly omitted."
+            )
 
         with update_env(
             **{
@@ -2134,10 +2135,7 @@ class TestAsyncOpenAI:
             )
             assert admin_only_request.headers.get("Authorization") == f"Bearer {admin_api_key}"
 
-            with pytest.raises(
-                TypeError,
-                match="Could not resolve authentication method",
-            ):
+            with pytest.raises(TypeError) as exc:
                 admin_only._build_request(
                     FinalRequestOptions(
                         method="post",
@@ -2145,6 +2143,10 @@ class TestAsyncOpenAI:
                         security={"bearer_auth": True},
                     )
                 )
+            assert str(exc.value) == (
+                "Could not resolve authentication method. Expected either api_key or admin_api_key to be set. "
+                "Or for the `Authorization` header to be explicitly omitted."
+            )
 
         with update_env(
             **{
