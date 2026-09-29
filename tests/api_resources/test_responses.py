@@ -28,10 +28,11 @@ class TestResponses:
     @parametrize
     def test_method_create_with_all_params_overload_1(self, client: OpenAI) -> None:
         response = client.responses.create(
+            access_programs={"cyber": "standard"},
             background=True,
             context_management=[
                 {
-                    "type": "type",
+                    "type": "compaction",
                     "compact_threshold": 1000,
                 }
             ],
@@ -61,6 +62,7 @@ class TestResponses:
             prompt_cache_options={
                 "comparison_response_id": "resp_123",
                 "mode": "implicit",
+                "prewarm": True,
                 "ttl": "30m",
             },
             prompt_cache_retention="in_memory",
@@ -133,10 +135,11 @@ class TestResponses:
     def test_method_create_with_all_params_overload_2(self, client: OpenAI) -> None:
         response_stream = client.responses.create(
             stream=True,
+            access_programs={"cyber": "standard"},
             background=True,
             context_management=[
                 {
-                    "type": "type",
+                    "type": "compaction",
                     "compact_threshold": 1000,
                 }
             ],
@@ -166,6 +169,7 @@ class TestResponses:
             prompt_cache_options={
                 "comparison_response_id": "resp_123",
                 "mode": "implicit",
+                "prewarm": True,
                 "ttl": "30m",
             },
             prompt_cache_retention="in_memory",
@@ -468,10 +472,11 @@ class TestAsyncResponses:
     @parametrize
     async def test_method_create_with_all_params_overload_1(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.responses.create(
+            access_programs={"cyber": "standard"},
             background=True,
             context_management=[
                 {
-                    "type": "type",
+                    "type": "compaction",
                     "compact_threshold": 1000,
                 }
             ],
@@ -501,6 +506,7 @@ class TestAsyncResponses:
             prompt_cache_options={
                 "comparison_response_id": "resp_123",
                 "mode": "implicit",
+                "prewarm": True,
                 "ttl": "30m",
             },
             prompt_cache_retention="in_memory",
@@ -573,10 +579,11 @@ class TestAsyncResponses:
     async def test_method_create_with_all_params_overload_2(self, async_client: AsyncOpenAI) -> None:
         response_stream = await async_client.responses.create(
             stream=True,
+            access_programs={"cyber": "standard"},
             background=True,
             context_management=[
                 {
-                    "type": "type",
+                    "type": "compaction",
                     "compact_threshold": 1000,
                 }
             ],
@@ -606,6 +613,7 @@ class TestAsyncResponses:
             prompt_cache_options={
                 "comparison_response_id": "resp_123",
                 "mode": "implicit",
+                "prewarm": True,
                 "ttl": "30m",
             },
             prompt_cache_retention="in_memory",

@@ -148,6 +148,10 @@ class Mcp(BaseModel):
     about service connectors
     [here](https://developers.openai.com/api/docs/guides/tools-connectors-mcp#connectors).
 
+    This field is deprecated for models released after September 1, 2026. Use
+    `server_url` to connect to a remote MCP server, or `tunnel_id` to connect
+    through a Secure MCP Tunnel.
+
     Currently supported `connector_id` values are:
 
     - Dropbox: `connector_dropbox`
@@ -275,11 +279,10 @@ class ImageGeneration(BaseModel):
     """
 
     input_fidelity: Optional[Literal["high", "low"]] = None
-    """
-    Control how much effort the model will exert to match the style and features,
-    especially facial features, of input images. This parameter is only supported
-    for `gpt-image-1` and `gpt-image-1.5` and later models, unsupported for
-    `gpt-image-1-mini`. Supports `high` and `low`. Defaults to `low`.
+    """Controls fidelity to the original input image(s).
+
+    This parameter is supported for GPT image models that support input fidelity.
+    `gpt-image-2` and `gpt-image-2-2026-04-21` ignore this parameter.
     """
 
     input_image_mask: Optional[ImageGenerationInputImageMask] = None
