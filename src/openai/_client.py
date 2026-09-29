@@ -423,7 +423,7 @@ class OpenAI(SyncAPIClient):
             return
 
         raise TypeError(
-            "Could not resolve authentication method. Expected either api_key or admin_api_key to be set. Or for the `Authorization` header to be explicitly omitted."
+            '"Could not resolve authentication method. Expected either api_key or admin_api_key to be set. Or for one of the `Authorization` or `Authorization` headers to be explicitly omitted"'
         )
 
     def copy(
@@ -853,7 +853,7 @@ class AsyncOpenAI(AsyncAPIClient):
             return
 
         raise TypeError(
-            "Could not resolve authentication method. Expected either api_key or admin_api_key to be set. Or for the `Authorization` header to be explicitly omitted."
+            '"Could not resolve authentication method. Expected either api_key or admin_api_key to be set. Or for one of the `Authorization` or `Authorization` headers to be explicitly omitted"'
         )
 
     def copy(
