@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.21.0](https://github.com/openai/openai-python/compare/v3.20.0...v3.21.0) (2026-09-29)
+
+
+### Features
+
+* **api:** add GPT-6.1 Sol model identifier ([#3986](https://github.com/openai/openai-python/issues/3986)) ([160b2c0](https://github.com/openai/openai-python/commit/160b2c0230b9afac15862dcdf8a764e5bae18eb3))
+
 ## [3.20.0](https://github.com/openai/openai-python/compare/v3.19.2...v3.20.0) (2026-09-28)
 
 
