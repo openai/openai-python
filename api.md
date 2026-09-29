@@ -464,6 +464,9 @@ Types:
 ```python
 from openai.types.beta import (
     Agent,
+    AgentBrowserAuthenticationCancelParam,
+    AgentBrowserAuthenticationSubmitParam,
+    AgentBrowserOriginAccessParam,
     AgentCloseSubagentCallItem,
     AgentCommandExecutionItem,
     AgentContent,

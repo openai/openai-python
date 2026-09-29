@@ -16,6 +16,7 @@ __all__ = [
     "PersistedAgentToolConfigParamMcp",
     "PersistedAgentToolConfigParamWebSearch",
     "PersistedAgentToolConfigParamWebSearchLocation",
+    "PersistedAgentToolConfigParamComputerUse",
 ]
 
 
@@ -136,10 +137,21 @@ class PersistedAgentToolConfigParamWebSearch(TypedDict, total=False):
     """
 
 
+class PersistedAgentToolConfigParamComputerUse(TypedDict, total=False):
+    """Browser use in an OpenAI-hosted session."""
+
+    type: Required[Literal["computer_use"]]
+    """The type of the object. Always `computer_use`."""
+
+    include_screenshots: bool
+    """Whether computer tool outputs include screenshots. Defaults to `false`."""
+
+
 PersistedAgentToolParam: TypeAlias = Union[
     PersistedAgentToolConfigParamFunction,
     PersistedAgentToolConfigParamToolSearch,
     PersistedAgentToolConfigParamProgrammaticToolCalling,
     PersistedAgentToolConfigParamMcp,
     PersistedAgentToolConfigParamWebSearch,
+    PersistedAgentToolConfigParamComputerUse,
 ]

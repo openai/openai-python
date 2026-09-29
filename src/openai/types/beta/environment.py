@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
-from typing import List, Union
+from typing import List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
 
 from ..._utils import PropertyInfo
@@ -15,6 +15,7 @@ __all__ = [
     "EnvironmentResourceOpenAIHosted",
     "EnvironmentResourceOpenAIHostedNetwork",
     "EnvironmentResourceOpenAIHostedPackages",
+    "EnvironmentResourceOpenAIHostedDesktop",
     "EnvironmentResourceSelfHosted",
 ]
 
@@ -36,7 +37,7 @@ class EnvironmentResourceOpenAIHostedNetwork(BaseModel):
 
     - `enabled` - Allows unrestricted network access.
     - `disabled` - Disables network access.
-    - `restricted` - Allows access only to configured domains.
+    - `restricted` - Applies the configured domain restrictions.
     """
 
     allowed_domains: List[str]
@@ -54,6 +55,13 @@ class EnvironmentResourceOpenAIHostedPackages(BaseModel):
 
     system: List[str]
     """System packages installed in the environment."""
+
+
+class EnvironmentResourceOpenAIHostedDesktop(BaseModel):
+    """The effective desktop configuration."""
+
+    enabled: bool
+    """Whether the environment provisions a desktop and browser proxy."""
 
 
 class EnvironmentResourceOpenAIHosted(BaseModel):
@@ -82,6 +90,9 @@ class EnvironmentResourceOpenAIHosted(BaseModel):
 
     type: Literal["openai_hosted"]
     """The type of the object. Always `openai_hosted`."""
+
+    desktop: Optional[EnvironmentResourceOpenAIHostedDesktop] = None
+    """The effective desktop configuration."""
 
 
 class EnvironmentResourceSelfHosted(BaseModel):
