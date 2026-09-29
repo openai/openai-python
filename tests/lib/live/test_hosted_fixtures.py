@@ -35,7 +35,7 @@ pytestmark = pytest.mark.skipif(
 
 
 @pytest.fixture(autouse=True)
-def _no_hosted_payload_logging() -> Iterator[None]:
+def no_hosted_payload_logging() -> Iterator[None]:
     # Debug HTTP/WebSocket logs can contain credentials, session IDs or media.
     previous = logging.root.manager.disable
     logging.disable(logging.CRITICAL)
@@ -57,12 +57,14 @@ async def _until(
             if event.type in {"error", "transport.failed"}:
                 pytest.fail("Hosted Live returned an error (including possible storage failure)", pytrace=False)
             # Every snapshot of the session we will fork must remain eligible.
-            if require_stored and event.type in {"session.started", "session.updated", "session.closed"}:
+            if require_stored and (
+                event.type == "session.started" or event.type == "session.updated" or event.type == "session.closed"
+            ):
                 if event.session.store is not True:
                     pytest.fail("Hosted Live did not retain store=true; no fork is allowed", pytrace=False)
             if event.type == expected or (expected is None and event.type.startswith("session.")):
                 return event
-        pytest.fail("Hosted Live did not send the required event within 128 events", pytrace=False)
+        raise AssertionError("Hosted Live did not send the required event within 128 events")
 
     return await asyncio.wait_for(receive(), timeout=20)
 
