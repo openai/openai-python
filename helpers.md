@@ -169,7 +169,7 @@ async with client.chat.completions.stream(
 ) as stream:
     async for event in stream:
         if event.type == 'content.delta':
-            print(event.content, flush=True, end='')
+            print(event.delta, flush=True, end='')
 ```
 
 When the context manager is entered, a `ChatCompletionStream` / `AsyncChatCompletionStream` instance is returned which, like `.create(stream=True)` is an iterator in the sync client and an async iterator in the async client. The full list of events that are yielded by the iterator are outlined [below](#chat-completions-events).
