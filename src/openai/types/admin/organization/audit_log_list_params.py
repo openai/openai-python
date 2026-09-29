@@ -55,6 +55,8 @@ class AuditLogListParams(TypedDict, total=False):
             "checkpoint.permission.deleted",
             "external_key.registered",
             "external_key.removed",
+            "external_storage.registered",
+            "external_storage.removed",
             "group.created",
             "group.updated",
             "group.deleted",

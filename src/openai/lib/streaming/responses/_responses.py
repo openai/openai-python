@@ -283,7 +283,7 @@ class ResponseStreamState(Generic[TextFormatT]):
 
             events.append(
                 build(
-                    ResponseTextDoneEvent[TextFormatT],
+                    cast("type[ResponseTextDoneEvent[TextFormatT]]", ResponseTextDoneEvent),
                     content_index=event.content_index,
                     item_id=event.item_id,
                     output_index=event.output_index,

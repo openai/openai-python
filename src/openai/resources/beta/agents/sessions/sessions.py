@@ -165,7 +165,10 @@ class Sessions(SyncAPIResource):
           agent_id: The ID of a saved reusable agent. Omit `agent` to use its configuration
               unchanged.
 
-          input: Initial input submitted when creating a session.
+          input: Initial input to submit when the session is created. A string is shorthand for a
+              single user message. Required when `environment.type` is `none`, or when
+              `stream` is `true` for an environment that is not `self_hosted`; optional for
+              self-hosted and non-streaming execution environments.
 
           metadata: Up to 16 string key-value pairs, with keys up to 64 and values up to 512
               characters. Omission or null defaults to an empty map.
@@ -218,7 +221,10 @@ class Sessions(SyncAPIResource):
           agent_id: The ID of a saved reusable agent. Omit `agent` to use its configuration
               unchanged.
 
-          input: Initial input submitted when creating a session.
+          input: Initial input to submit when the session is created. A string is shorthand for a
+              single user message. Required when `environment.type` is `none`, or when
+              `stream` is `true` for an environment that is not `self_hosted`; optional for
+              self-hosted and non-streaming execution environments.
 
           metadata: Up to 16 string key-value pairs, with keys up to 64 and values up to 512
               characters. Omission or null defaults to an empty map.
@@ -269,7 +275,10 @@ class Sessions(SyncAPIResource):
           agent_id: The ID of a saved reusable agent. Omit `agent` to use its configuration
               unchanged.
 
-          input: Initial input submitted when creating a session.
+          input: Initial input to submit when the session is created. A string is shorthand for a
+              single user message. Required when `environment.type` is `none`, or when
+              `stream` is `true` for an environment that is not `self_hosted`; optional for
+              self-hosted and non-streaming execution environments.
 
           metadata: Up to 16 string key-value pairs, with keys up to 64 and values up to 512
               characters. Omission or null defaults to an empty map.
@@ -377,6 +386,7 @@ class Sessions(SyncAPIResource):
         self,
         session_id: str,
         *,
+        agent: session_update_params.Agent | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -385,12 +395,15 @@ class Sessions(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AgentSession:
-        """Updates session metadata.
+        """Updates session metadata, model, reasoning effort, or service tier.
 
-        Omitted fields are unchanged. See
+        Model
+        settings apply to subsequent turns. Omitted fields are unchanged. See
         [managing sessions](https://developers.openai.com/api/docs/guides/agents-api/sessions/manage).
 
         Args:
+          agent: Model settings for subsequent turns. Omitted fields stay unchanged.
+
           metadata: Replaces all metadata. Omit to leave unchanged, or pass null or {} to clear it.
               Up to 16 string key-value pairs, with keys up to 64 and values up to 512
               characters.
@@ -408,7 +421,13 @@ class Sessions(SyncAPIResource):
         extra_headers = {"OpenAI-Beta": "agents=v1", **(extra_headers or {})}
         return self._post(
             path_template("/agents/sessions/{session_id}", session_id=session_id),
-            body=maybe_transform({"metadata": metadata}, session_update_params.SessionUpdateParams),
+            body=maybe_transform(
+                {
+                    "agent": agent,
+                    "metadata": metadata,
+                },
+                session_update_params.SessionUpdateParams,
+            ),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -496,7 +515,9 @@ class Sessions(SyncAPIResource):
     ) -> AgentSessionDeleted:
         """
         Removes a managed agent session from the public API and returns a deletion
-        confirmation. Physical cleanup may continue asynchronously. See
+        confirmation. If backend execution has ended, deletion can cancel a still-open
+        public turn and abandon unpublished outputs. Running execution must be cancelled
+        first. Physical cleanup may continue asynchronously. See
         [managing sessions](https://developers.openai.com/api/docs/guides/agents-api/sessions/manage).
 
         Args:
@@ -622,7 +643,10 @@ class AsyncSessions(AsyncAPIResource):
           agent_id: The ID of a saved reusable agent. Omit `agent` to use its configuration
               unchanged.
 
-          input: Initial input submitted when creating a session.
+          input: Initial input to submit when the session is created. A string is shorthand for a
+              single user message. Required when `environment.type` is `none`, or when
+              `stream` is `true` for an environment that is not `self_hosted`; optional for
+              self-hosted and non-streaming execution environments.
 
           metadata: Up to 16 string key-value pairs, with keys up to 64 and values up to 512
               characters. Omission or null defaults to an empty map.
@@ -675,7 +699,10 @@ class AsyncSessions(AsyncAPIResource):
           agent_id: The ID of a saved reusable agent. Omit `agent` to use its configuration
               unchanged.
 
-          input: Initial input submitted when creating a session.
+          input: Initial input to submit when the session is created. A string is shorthand for a
+              single user message. Required when `environment.type` is `none`, or when
+              `stream` is `true` for an environment that is not `self_hosted`; optional for
+              self-hosted and non-streaming execution environments.
 
           metadata: Up to 16 string key-value pairs, with keys up to 64 and values up to 512
               characters. Omission or null defaults to an empty map.
@@ -726,7 +753,10 @@ class AsyncSessions(AsyncAPIResource):
           agent_id: The ID of a saved reusable agent. Omit `agent` to use its configuration
               unchanged.
 
-          input: Initial input submitted when creating a session.
+          input: Initial input to submit when the session is created. A string is shorthand for a
+              single user message. Required when `environment.type` is `none`, or when
+              `stream` is `true` for an environment that is not `self_hosted`; optional for
+              self-hosted and non-streaming execution environments.
 
           metadata: Up to 16 string key-value pairs, with keys up to 64 and values up to 512
               characters. Omission or null defaults to an empty map.
@@ -834,6 +864,7 @@ class AsyncSessions(AsyncAPIResource):
         self,
         session_id: str,
         *,
+        agent: session_update_params.Agent | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -842,12 +873,15 @@ class AsyncSessions(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AgentSession:
-        """Updates session metadata.
+        """Updates session metadata, model, reasoning effort, or service tier.
 
-        Omitted fields are unchanged. See
+        Model
+        settings apply to subsequent turns. Omitted fields are unchanged. See
         [managing sessions](https://developers.openai.com/api/docs/guides/agents-api/sessions/manage).
 
         Args:
+          agent: Model settings for subsequent turns. Omitted fields stay unchanged.
+
           metadata: Replaces all metadata. Omit to leave unchanged, or pass null or {} to clear it.
               Up to 16 string key-value pairs, with keys up to 64 and values up to 512
               characters.
@@ -865,7 +899,13 @@ class AsyncSessions(AsyncAPIResource):
         extra_headers = {"OpenAI-Beta": "agents=v1", **(extra_headers or {})}
         return await self._post(
             path_template("/agents/sessions/{session_id}", session_id=session_id),
-            body=await async_maybe_transform({"metadata": metadata}, session_update_params.SessionUpdateParams),
+            body=await async_maybe_transform(
+                {
+                    "agent": agent,
+                    "metadata": metadata,
+                },
+                session_update_params.SessionUpdateParams,
+            ),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -953,7 +993,9 @@ class AsyncSessions(AsyncAPIResource):
     ) -> AgentSessionDeleted:
         """
         Removes a managed agent session from the public API and returns a deletion
-        confirmation. Physical cleanup may continue asynchronously. See
+        confirmation. If backend execution has ended, deletion can cancel a still-open
+        public turn and abandon unpublished outputs. Running execution must be cancelled
+        first. Physical cleanup may continue asynchronously. See
         [managing sessions](https://developers.openai.com/api/docs/guides/agents-api/sessions/manage).
 
         Args:

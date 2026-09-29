@@ -30,7 +30,7 @@ class Turn(BaseModel):
     """
 
     error: Optional[SessionTurnError] = None
-    """A customer-safe error describing why a session request failed."""
+    """A customer-safe error. Non-null only for a failed turn."""
 
     object: Literal["agent.session.turn"]
     """The object type. Always `agent.session.turn`."""
@@ -56,7 +56,7 @@ class Turn(BaseModel):
     """The ID of the subagent that ran the turn, if applicable."""
 
     usage: Optional[TokenUsage] = None
-    """Recorded token usage for a session or turn.
+    """Best-effort token usage for the turn, or null if unknown.
 
-    Usage is best effort and may change.
+    Recorded usage may change.
     """

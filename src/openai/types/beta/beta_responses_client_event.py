@@ -26,6 +26,7 @@ from .beta_response_conversation_param import BetaResponseConversationParam
 __all__ = [
     "BetaResponsesClientEvent",
     "ResponseCreate",
+    "ResponseCreateAccessPrograms",
     "ResponseCreateContextManagement",
     "ResponseCreateConversation",
     "ResponseCreateModeration",
@@ -39,6 +40,24 @@ __all__ = [
     "ResponseCreateToolChoice",
     "ResponseCreateToolChoiceBetaSpecificProgrammaticToolCallingParam",
 ]
+
+
+class ResponseCreateAccessPrograms(BaseModel):
+    """Domain-specific access programs to use for this request."""
+
+    cyber: Optional[Literal["standard", "daybreak_blue", "daybreak_red"]] = None
+    """The Cyber access program to use for this request.
+
+    Supported values are `standard`, `daybreak_blue`, and `daybreak_red`. If
+    omitted, the API resolves the program from the model's Cyber tier and your
+    organization and project access, subject to model-specific eligibility
+    restrictions. By default, models without a Cyber tier use Standard. Blue-tier
+    models use Daybreak Blue when authorized; otherwise they fall back to Standard
+    unless the model requires Daybreak access. Red-tier models use Daybreak Red and
+    require authorization. Requests that require unavailable Daybreak access
+    return 403. An implicit Standard fallback is represented by null in the
+    response's access_programs field, rather than an explicit Standard selection.
+    """
 
 
 class ResponseCreateContextManagement(BaseModel):
@@ -125,6 +144,13 @@ class ResponseCreatePromptCacheOptions(BaseModel):
     `explicit`, OpenAI does not create an implicit breakpoint and writes up to the
     latest four explicit breakpoints. If there are no explicit breakpoints, the
     request does not use prompt caching.
+    """
+
+    prewarm: Optional[bool] = None
+    """Prepares the prompt cache without generating output.
+
+    Defaults to `false`. When set to `true`, overrides the `generate` field to
+    `false`.
     """
 
     ttl: Optional[Literal["30m"]] = None
@@ -235,6 +261,9 @@ class ResponseCreate(BaseModel):
     type: Literal["response.create"]
     """The type of the client event. Always `response.create`."""
 
+    access_programs: Optional[ResponseCreateAccessPrograms] = None
+    """Domain-specific access programs to use for this request."""
+
     background: Optional[bool] = None
     """
     Whether to run the model response in the background.
@@ -322,6 +351,9 @@ class ResponseCreate(BaseModel):
     model: Union[
         Literal[
             "gpt-6-astra",
+            "gpt-6.1-sol",
+            "gpt-6-sol",
+            "gpt-6-luna",
             "gpt-5.6-sol",
             "gpt-5.6-terra",
             "gpt-5.6-luna",
@@ -372,6 +404,8 @@ class ResponseCreate(BaseModel):
             "gpt-4o-2024-11-20",
             "gpt-4o-2024-08-06",
             "gpt-4o-2024-05-13",
+            "gpt-audio-mini",
+            "gpt-audio-mini-2025-12-15",
             "gpt-4o-audio-preview",
             "gpt-4o-audio-preview-2024-10-01",
             "gpt-4o-audio-preview-2024-12-17",
@@ -424,6 +458,7 @@ class ResponseCreate(BaseModel):
             "gpt-daybreak-blue-latest",
             "gpt-daybreak-red-latest",
             "gpt-5.6-cyber",
+            "gpt-rosalind-research",
         ],
         str,
         None,
