@@ -48,14 +48,16 @@ def _no_hosted_payload_logging() -> Iterator[None]:
 async def _until(
     connection: AsyncLiveConnection | AsyncForksConnection | AsyncSidebandConnection,
     expected: str | None,
+    *,
+    require_stored: bool = False,
 ) -> ServerEvent | ForkServerEvent:
     async def receive() -> ServerEvent | ForkServerEvent:
         for _ in range(128):
             event = await connection.recv()
             if event.type in {"error", "transport.failed"}:
                 pytest.fail("Hosted Live returned an error (including possible storage failure)", pytrace=False)
-            # Every received snapshot must remain eligible, not just the start request.
-            if expected is not None and event.type in {"session.started", "session.updated", "session.closed"}:
+            # Every snapshot of the session we will fork must remain eligible.
+            if require_stored and event.type in {"session.started", "session.updated", "session.closed"}:
                 if event.session.store is not True:
                     pytest.fail("Hosted Live did not retain store=true; no fork is allowed", pytrace=False)
             if event.type == expected or (expected is None and event.type.startswith("session.")):
@@ -76,19 +78,19 @@ async def test_hosted_stored_primary_and_same_key_fork() -> None:
                         "audio": {"format": {"type": "audio/pcm", "rate": 24000}},
                     }
                 )
-                await _until(primary, "session.started")
+                await _until(primary, "session.started", require_stored=True)
                 # 3 x 20 ms of PCM16 mono silence at 24 kHz; no user media.
                 frame = base64.b64encode(bytes(960)).decode("ascii")
                 for _ in range(3):
                     await primary.session.input_audio.append(audio=frame)
                 await primary.session.close()
-                terminal = await _until(primary, "session.closed")
+                terminal = await _until(primary, "session.closed", require_stored=True)
                 if terminal.type != "session.closed" or terminal.reason != "close_requested":
                     pytest.fail("Stored primary did not finalize after its close request", pytrace=False)
 
             # Only fork our own newly finalized, verified-stored session, with the same client.
             async with client.live.forks.connect(session_id=terminal.session.id, max_retries=0) as fork:
-                await fork.session.start(session={})
+                await fork.session.start(session={"store": False})
                 await _until(fork, "session.started")
                 await fork.session.close()
                 terminal = await _until(fork, "session.closed")
