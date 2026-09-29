@@ -1,12 +1,47 @@
+import io
+import zipfile
 from pathlib import Path
 
 import anyio
+import httpx2
 import pytest
 
+from openai import OpenAI, AsyncOpenAI
+from tests.respx2 import MockRouter
 from openai._files import to_httpx_files, deepcopy_with_paths, async_to_httpx_files
 from openai._utils import extract_files
 
+from .conftest import base_url
+
 readme_path = Path(__file__).parent.parent.joinpath("README.md")
+
+
+@pytest.mark.respx2(base_url=base_url)
+@pytest.mark.asyncio
+@pytest.mark.parametrize("is_async", [False, True])
+@pytest.mark.parametrize("as_list", [False, True])
+async def test_skills_upload_zip(
+    client: OpenAI, async_client: AsyncOpenAI, respx2_mock: MockRouter, is_async: bool, as_list: bool
+) -> None:
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w") as archive:
+        archive.writestr("SKILL.md", "---\nname: example\ndescription: Test skill\n---\n# Example\n")
+    content = buffer.getvalue()
+    file = ("skill.zip", content)
+    files = [file] if as_list else file
+    respx2_mock.post("/skills").mock(return_value=httpx2.Response(200, json={}))
+    response = (
+        await async_client.skills.with_raw_response.create(files=files)
+        if is_async
+        else client.skills.with_raw_response.create(files=files)
+    )
+    request = response.http_request
+    body = await request.aread() if is_async else request.read()
+    assert request.headers["content-type"].startswith("multipart/form-data;")
+    expected_field = b'name="files[]"' if as_list else b'name="files"'
+    assert expected_field in body
+    assert b'filename="skill.zip"' in body
+    assert body.count(content) == 1
 
 
 def test_pathlib_includes_file_name() -> None:
@@ -17,6 +52,21 @@ def test_pathlib_includes_file_name() -> None:
 def test_tuple_input() -> None:
     result = to_httpx_files([("file", readme_path)])
     assert result == [("file", ("README.md", readme_path.read_bytes()))]
+
+
+def test_file_tuple_with_pathlike_content() -> None:
+    result = to_httpx_files({"file": ("custom-name.md", readme_path)})
+    assert result == {"file": ("custom-name.md", readme_path.read_bytes())}
+
+
+def test_file_tuple_with_pathlike_content_and_metadata() -> None:
+    result = to_httpx_files({"file": ("custom-name.md", readme_path, "text/markdown")})
+    assert result == {"file": ("custom-name.md", readme_path.read_bytes(), "text/markdown")}
+
+
+def test_file_tuple_with_pathlike_content_and_headers() -> None:
+    result = to_httpx_files({"file": ("custom-name.md", readme_path, "text/markdown", {"X-Test": "1"})})
+    assert result == {"file": ("custom-name.md", readme_path.read_bytes(), "text/markdown", {"X-Test": "1"})}
 
 
 @pytest.mark.asyncio
@@ -35,6 +85,26 @@ async def test_async_supports_anyio_path() -> None:
 async def test_async_tuple_input() -> None:
     result = await async_to_httpx_files([("file", readme_path)])
     assert result == [("file", ("README.md", readme_path.read_bytes()))]
+
+
+@pytest.mark.asyncio
+async def test_async_file_tuple_with_pathlike_content() -> None:
+    result = await async_to_httpx_files({"file": ("custom-name.md", readme_path)})
+    assert result == {"file": ("custom-name.md", readme_path.read_bytes())}
+
+
+@pytest.mark.asyncio
+async def test_async_file_tuple_with_pathlike_content_and_metadata() -> None:
+    result = await async_to_httpx_files({"file": ("custom-name.md", readme_path, "text/markdown")})
+    assert result == {"file": ("custom-name.md", readme_path.read_bytes(), "text/markdown")}
+
+
+@pytest.mark.asyncio
+async def test_async_file_tuple_with_pathlike_content_and_headers() -> None:
+    result = await async_to_httpx_files(
+        {"file": ("custom-name.md", anyio.Path(readme_path), "text/markdown", {"X-Test": "1"})}
+    )
+    assert result == {"file": ("custom-name.md", readme_path.read_bytes(), "text/markdown", {"X-Test": "1"})}
 
 
 def test_string_not_allowed() -> None:
@@ -110,6 +180,17 @@ class TestDeepcopyWithPaths:
         assert extracted == [("file", file_bytes)]
         assert original == {"file": file_bytes, "other": "value"}
         assert copied == {"other": "value"}
+
+    def test_extract_files_accepts_file_tuple(self) -> None:
+        file_tuple = ("custom-name.jsonl", b"contents", "application/jsonl")
+        original = {"file": file_tuple, "purpose": "batch"}
+
+        copied = deepcopy_with_paths(original, [["file"]])
+        extracted = extract_files(copied, paths=[["file"]])
+
+        assert extracted == [("file", file_tuple)]
+        assert original == {"file": file_tuple, "purpose": "batch"}
+        assert copied == {"purpose": "batch"}
 
     def test_extract_files_does_not_mutate_original_nested_array_path(self) -> None:
         file1 = b"f1"

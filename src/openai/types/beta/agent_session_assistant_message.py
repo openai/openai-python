@@ -20,7 +20,7 @@ class AgentSessionAssistantMessage(BaseModel):
     """The content of the message."""
 
     phase: Optional[Literal["commentary", "final_answer"]] = None
-    """The phase of an assistant message.
+    """The phase of the assistant message.
 
     - `commentary` - Commentary produced while the agent works.
     - `final_answer` - The agent's final answer.

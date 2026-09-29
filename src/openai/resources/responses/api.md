@@ -40,6 +40,7 @@ from openai.types.responses import (
     ResponseCodeInterpreterCallInProgressEvent,
     ResponseCodeInterpreterCallInterpretingEvent,
     ResponseCodeInterpreterToolCall,
+    ResponseCompactionCompactingEvent,
     ResponseCompactionItem,
     ResponseCompactionItemParam,
     ResponseCompletedEvent,

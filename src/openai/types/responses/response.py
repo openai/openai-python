@@ -28,6 +28,7 @@ from .tool_choice_apply_patch import ToolChoiceApplyPatch
 
 __all__ = [
     "Response",
+    "AccessPrograms",
     "IncompleteDetails",
     "ToolChoice",
     "ToolChoiceSpecificProgrammaticToolCallingParam",
@@ -46,6 +47,11 @@ __all__ = [
     "PromptCacheDiagnosticsUnavailable",
     "PromptCacheOptions",
 ]
+
+
+class AccessPrograms(BaseModel):
+    cyber: Literal["standard", "daybreak_blue", "daybreak_red"]
+    """The effective Cyber access program used for this response."""
 
 
 class IncompleteDetails(BaseModel):
@@ -260,6 +266,8 @@ class PromptCacheOptions(BaseModel):
 class Response(BaseModel):
     id: str
     """Unique identifier for this Response."""
+
+    access_programs: Optional[AccessPrograms] = None
 
     created_at: float
     """Unix timestamp (in seconds) of when this Response was created."""
@@ -554,7 +562,8 @@ class Response(BaseModel):
         for output in self.output:
             if output.type == "message":
                 for content in output.content:
-                    if content.type == "output_text":
+                    # Tolerate null text from compatible providers without changing the public string type.
+                    if content.type == "output_text" and content.text is not None:  # pyright: ignore[reportUnnecessaryComparison]
                         texts.append(content.text)
 
         return "".join(texts)

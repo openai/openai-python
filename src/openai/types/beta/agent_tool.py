@@ -14,6 +14,7 @@ __all__ = [
     "AgentToolResourceMcp",
     "AgentToolResourceWebSearch",
     "AgentToolResourceWebSearchLocation",
+    "AgentToolResourceComputerUse",
 ]
 
 
@@ -78,7 +79,7 @@ class AgentToolResourceMcp(BaseModel):
 
 
 class AgentToolResourceWebSearchLocation(BaseModel):
-    """Approximate user location used to localize web search results."""
+    """Approximate location used to localize search results, if provided."""
 
     city: Optional[str] = None
     """The city name."""
@@ -103,7 +104,7 @@ class AgentToolResourceWebSearch(BaseModel):
     """The amount of search context made available to the model. Defaults to `medium`."""
 
     location: Optional[AgentToolResourceWebSearchLocation] = None
-    """Approximate user location used to localize web search results."""
+    """Approximate location used to localize search results, if provided."""
 
     mode: Literal["disabled", "cached", "live"]
     """The source used for web search results."""
@@ -112,12 +113,23 @@ class AgentToolResourceWebSearch(BaseModel):
     """The type of the object. Always `web_search`."""
 
 
+class AgentToolResourceComputerUse(BaseModel):
+    """Browser use in an OpenAI-hosted session."""
+
+    include_screenshots: bool
+    """Whether computer tool outputs include screenshots."""
+
+    type: Literal["computer_use"]
+    """The type of the object. Always `computer_use`."""
+
+
 AgentTool: TypeAlias = Annotated[
     Union[
         AgentToolResourceFunction,
         AgentToolResourceProgrammaticToolCalling,
         AgentToolResourceMcp,
         AgentToolResourceWebSearch,
+        AgentToolResourceComputerUse,
     ],
     PropertyInfo(discriminator="type"),
 ]
