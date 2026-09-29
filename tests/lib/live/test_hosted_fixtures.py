@@ -61,7 +61,7 @@ async def _until(
     client_event_id: str | None = None,
 ) -> ServerEvent | ForkServerEvent:
     async def receive() -> ServerEvent | ForkServerEvent:
-        for _ in range(128):
+        while True:
             event = await connection.recv()
             if event.type in {"error", "transport.failed"}:
                 pytest.fail("Hosted Live returned an error (including possible storage failure)", pytrace=False)
@@ -78,7 +78,6 @@ async def _until(
                     event.type == "session.instructions.appended" and event.client_event_id == client_event_id
                 ):
                     return event
-        raise AssertionError("Hosted Live did not send the required event within 128 events")
 
     return await asyncio.wait_for(receive(), timeout=120 if client_event_id is not None else 20)
 
@@ -114,7 +113,7 @@ async def test_hosted_stored_primary_and_same_key_fork() -> None:
                     pytest.fail("Stored fork did not finalize after its close request", pytrace=False)
     except Exception as exc:
         # Never include remote messages, URLs, IDs, response bodies or tracebacks.
-        pytest.fail(f"Hosted Live primary/fork failed ({type(exc).__name__})", pytrace=False)
+        raise pytest.fail.Exception(f"Hosted Live primary/fork failed ({type(exc).__name__})", pytrace=False) from None
 
 
 async def test_hosted_signaling_sideband_observes_fixture() -> None:
@@ -129,4 +128,4 @@ async def test_hosted_signaling_sideband_observes_fixture() -> None:
                 print(f"Post-attachment synthetic event_id: {nonce}", flush=True)
                 await _until(sideband, "session.instructions.appended", client_event_id=nonce)
     except Exception as exc:
-        pytest.fail(f"Hosted Live sideband failed ({type(exc).__name__})", pytrace=False)
+        raise pytest.fail.Exception(f"Hosted Live sideband failed ({type(exc).__name__})", pytrace=False) from None
