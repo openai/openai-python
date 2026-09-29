@@ -5,11 +5,18 @@ eligible to store Live sessions. The normal OPENAI_BASE_URL and OPENAI_PROJECT_I
 client settings apply. Nothing is stored except the synthetic silence made here.
 
 To also check sideband, supply OPENAI_LIVE_SIGNALING_SESSION_ID for an active
-synthetic WebRTC/SIP session owned by that same project/key. Have the fixture
-produce an event during the check. The check observes; it does not start, change,
-or close that session. Without the supplied fixture it skips, never passes.
+synthetic WebRTC/SIP session owned by that same project/key. Run with -s and
+watch for the new synthetic event ID printed after attachment. Within 120s,
+have the fixture's owner send this command through its controlling connection:
 
-    uv run --locked --all-extras pytest -n 0 -q tests/lib/live/test_hosted_fixtures.py
+    {"type":"session.instructions.append", "event_id":"<printed ID>",
+     "content":"Continue the synthetic fixture.", "delegation_id":null}
+
+The sideband itself only observes; it does not start, change, or close the
+session. Replayed or terminal events never prove a post-attachment command.
+Without the supplied fixture the test skips, never passes.
+
+    uv run --locked --all-extras pytest -n 0 -q -s tests/lib/live/test_hosted_fixtures.py
 """
 
 from __future__ import annotations
@@ -18,6 +25,7 @@ import os
 import base64
 import asyncio
 import logging
+from uuid import uuid4
 from typing import Iterator
 
 import pytest
@@ -47,26 +55,32 @@ def no_hosted_payload_logging() -> Iterator[None]:
 
 async def _until(
     connection: AsyncLiveConnection | AsyncForksConnection | AsyncSidebandConnection,
-    expected: str | None,
+    expected: str,
     *,
     require_stored: bool = False,
+    client_event_id: str | None = None,
 ) -> ServerEvent | ForkServerEvent:
     async def receive() -> ServerEvent | ForkServerEvent:
         for _ in range(128):
             event = await connection.recv()
             if event.type in {"error", "transport.failed"}:
                 pytest.fail("Hosted Live returned an error (including possible storage failure)", pytrace=False)
+            if client_event_id is not None and event.type == "session.closed":
+                pytest.fail("The signaling session closed before the post-attachment command", pytrace=False)
             # Every snapshot of the session we will fork must remain eligible.
             if require_stored and (
                 event.type == "session.started" or event.type == "session.updated" or event.type == "session.closed"
             ):
                 if event.session.store is not True:
                     pytest.fail("Hosted Live did not retain store=true; no fork is allowed", pytrace=False)
-            if event.type == expected or (expected is None and event.type.startswith("session.")):
-                return event
+            if event.type == expected:
+                if client_event_id is None or (
+                    event.type == "session.instructions.appended" and event.client_event_id == client_event_id
+                ):
+                    return event
         raise AssertionError("Hosted Live did not send the required event within 128 events")
 
-    return await asyncio.wait_for(receive(), timeout=20)
+    return await asyncio.wait_for(receive(), timeout=120 if client_event_id is not None else 20)
 
 
 async def test_hosted_stored_primary_and_same_key_fork() -> None:
@@ -110,8 +124,9 @@ async def test_hosted_signaling_sideband_observes_fixture() -> None:
     try:
         async with AsyncOpenAI(max_retries=0) as client:
             async with client.live.sideband.connect(session_id=session_id, max_retries=0) as sideband:
-                # A WebSocket upgrade alone is insufficient: require an actual session event.
-                # Exiting closes this observer socket only, never the signaling session.
-                await _until(sideband, None)
+                # This test-generated ID is public and cannot exist in the attachment replay.
+                nonce = f"live-fixture-{uuid4().hex}"
+                print(f"Post-attachment synthetic event_id: {nonce}", flush=True)
+                await _until(sideband, "session.instructions.appended", client_event_id=nonce)
     except Exception as exc:
         pytest.fail(f"Hosted Live sideband failed ({type(exc).__name__})", pytrace=False)
