@@ -207,6 +207,11 @@ class TestSessions:
     def test_method_update_with_all_params(self, client: OpenAI) -> None:
         session = client.beta.agents.sessions.update(
             session_id="session_id",
+            agent={
+                "model": "model",
+                "reasoning": {"effort": "none"},
+                "service_tier": "auto",
+            },
             metadata={"foo": "string"},
         )
         assert_matches_type(AgentSession, session, path=["response"])
@@ -510,6 +515,11 @@ class TestAsyncSessions:
     async def test_method_update_with_all_params(self, async_client: AsyncOpenAI) -> None:
         session = await async_client.beta.agents.sessions.update(
             session_id="session_id",
+            agent={
+                "model": "model",
+                "reasoning": {"effort": "none"},
+                "service_tier": "auto",
+            },
             metadata={"foo": "string"},
         )
         assert_matches_type(AgentSession, session, path=["response"])

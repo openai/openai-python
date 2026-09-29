@@ -1,12 +1,47 @@
+import io
+import zipfile
 from pathlib import Path
 
 import anyio
+import httpx2
 import pytest
 
+from openai import OpenAI, AsyncOpenAI
+from tests.respx2 import MockRouter
 from openai._files import to_httpx_files, deepcopy_with_paths, async_to_httpx_files
 from openai._utils import extract_files
 
+from .conftest import base_url
+
 readme_path = Path(__file__).parent.parent.joinpath("README.md")
+
+
+@pytest.mark.respx2(base_url=base_url)
+@pytest.mark.asyncio
+@pytest.mark.parametrize("is_async", [False, True])
+@pytest.mark.parametrize("as_list", [False, True])
+async def test_skills_upload_zip(
+    client: OpenAI, async_client: AsyncOpenAI, respx2_mock: MockRouter, is_async: bool, as_list: bool
+) -> None:
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w") as archive:
+        archive.writestr("SKILL.md", "---\nname: example\ndescription: Test skill\n---\n# Example\n")
+    content = buffer.getvalue()
+    file = ("skill.zip", content)
+    files = [file] if as_list else file
+    respx2_mock.post("/skills").mock(return_value=httpx2.Response(200, json={}))
+    response = (
+        await async_client.skills.with_raw_response.create(files=files)
+        if is_async
+        else client.skills.with_raw_response.create(files=files)
+    )
+    request = response.http_request
+    body = await request.aread() if is_async else request.read()
+    assert request.headers["content-type"].startswith("multipart/form-data;")
+    expected_field = b'name="files[]"' if as_list else b'name="files"'
+    assert expected_field in body
+    assert b'filename="skill.zip"' in body
+    assert body.count(content) == 1
 
 
 def test_pathlib_includes_file_name() -> None:

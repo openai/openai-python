@@ -1,5 +1,6 @@
 # File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
+from typing import Dict
 from typing_extensions import Literal
 
 from ....._models import BaseModel
@@ -9,16 +10,19 @@ __all__ = ["Credential"]
 
 
 class Credential(BaseModel):
-    """Metadata for a stored MCP server credential. Secret values are never returned."""
+    """Metadata for a stored credential. Secret values are never returned."""
 
     id: str
     """The ID of the credential."""
 
     auth: CredentialAuth
-    """The authentication method and non-secret configuration for the MCP server."""
+    """The authentication method and non-secret configuration of the credential."""
 
     created_at: int
     """The Unix timestamp, in seconds, when the credential was created."""
+
+    metadata: Dict[str, str]
+    """Application-defined key-value pairs associated with this credential."""
 
     name: str
     """The human-readable name of the credential."""

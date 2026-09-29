@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import inspect
 from typing import Any, Callable
 from unittest.mock import Mock, AsyncMock
 
@@ -15,8 +16,10 @@ from websockets.datastructures import Headers, HeadersLike
 from openai import OpenAI, AsyncOpenAI, AsyncAzureOpenAI
 from openai.lib._websocket import _WebSocketConnect
 from openai.types.websocket_reconnection import ReconnectingEvent
+from tests.api_resources._websocket_resources import WEBSOCKET_RESOURCES
 
-RESOURCES = ["realtime", "beta.realtime", "responses", "beta.responses", "live", "live.sideband", "live.forks"]
+# Beta Realtime is SDK-owned; all generated resources come from the compiler.
+RESOURCES = sorted({*WEBSOCKET_RESOURCES, "beta.realtime"})
 RECONNECTING_RESOURCES = [name for name in RESOURCES if name != "beta.realtime"]
 EXTRA_HEADERS = {"api-key": "fake-key", "Cookie": "fake-cookie", "X-Custom": "fake-private-header"}
 FOLLOWS_REDIRECTS = hasattr(connect, "process_redirect")
@@ -36,11 +39,17 @@ def resource(client: Any, name: str) -> Any:
     return client
 
 
-def options(name: str) -> dict[str, Any]:
+def options(client: Any, name: str) -> dict[str, Any]:
+    # The socket-free harness needs only synthetic values for required URL arguments.
+    parameters = inspect.signature(resource(client, name).connect).parameters
     return {
         "extra_headers": EXTRA_HEADERS,
-        **({"model": "fake-model"} if name.endswith("realtime") else {}),
-        **({"session_id": "live_fake"} if name in {"live.sideband", "live.forks"} else {}),
+        **{
+            key: "fake-value"
+            for key, parameter in parameters.items()
+            if parameter.default is inspect.Parameter.empty
+            and parameter.kind in (inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.KEYWORD_ONLY)
+        },
     }
 
 
@@ -112,7 +121,7 @@ async def test_async_websocket_redirects(
         websocket_base_url=base,
         http_client=async_http_client(),
     ) as client:
-        manager = resource(client, name).connect(**options(name))
+        manager = resource(client, name).connect(**options(client, name))
         if name in RECONNECTING_RESOURCES:
             manager.send({"type": "response.create"})
         if succeeds:
@@ -146,7 +155,7 @@ async def test_later_cross_origin_redirect_is_rejected(monkeypatch: pytest.Monke
         api_key="fake-key", websocket_base_url="wss://origin.test", http_client=async_http_client()
     ) as client:
         with pytest.raises(SecurityError):
-            async with resource(client, name).connect(**options(name)):
+            async with resource(client, name).connect(**options(client, name)):
                 pytest.fail("Unexpected connection")
     assert len(handshakes.attempts) == 2
     assert all(uri.host == "origin.test" for uri, _ in handshakes.attempts)
@@ -164,7 +173,7 @@ async def test_async_websocket_reconnect_redirects(monkeypatch: pytest.MonkeyPat
         api_key="fake-key", websocket_base_url="wss://origin.test", http_client=async_http_client()
     ) as client:
         manager = resource(client, name).connect(
-            **options(name), on_reconnecting=reconnect, initial_delay=0, max_retries=1
+            **options(client, name), on_reconnecting=reconnect, initial_delay=0, max_retries=1
         )
         async with manager as connection:
             connection._send_queue.enqueue("fake-queued-message")
@@ -212,12 +221,12 @@ def test_sync_websocket_connector_is_unchanged(monkeypatch: pytest.MonkeyPatch, 
         websocket_base_url="wss://origin.test",
         http_client=httpx2.Client(transport=httpx2.MockTransport(unexpected_http)),
     ) as client:
-        with resource(client, name).connect(**options(name)):
+        with resource(client, name).connect(**options(client, name)):
             pass
         error = redirect_error("wss://other.test/final")
         connect_mock.side_effect = error
         with pytest.raises(InvalidStatus) as caught:
-            with resource(client, name).connect(**options(name)):
+            with resource(client, name).connect(**options(client, name)):
                 pytest.fail("Unexpected connection")
         assert caught.value is error
     assert connect_mock.call_count == 2

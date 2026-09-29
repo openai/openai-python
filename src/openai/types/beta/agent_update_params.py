@@ -31,15 +31,19 @@ class AgentUpdateParams(TypedDict, total=False):
     """The model to use for the agent. The requested model name is preserved."""
 
     multi_agent: Optional[MultiAgentConfigParam]
-    """Explicit configuration for creating and coordinating subagents."""
+    """Configuration for creating and coordinating subagents."""
 
     name: Optional[str]
     """A replacement name. Omit to leave unchanged, or pass null to clear it."""
 
     reasoning: Optional[AgentReasoningParam]
-    """Reasoning configuration for the agent."""
+    """Configuration for model reasoning.
 
-    service_tier: Optional[Literal["auto", "default", "flex", "priority", "fast"]]
+    Omit to keep the current settings; pass `null` to reset to the model's default
+    effort.
+    """
+
+    service_tier: Optional[Literal["auto", "default", "flex", "priority", "fast", "ultrafast"]]
     """The service tier used for model requests.
 
     - `auto` - Selects the service tier automatically.
@@ -47,6 +51,7 @@ class AgentUpdateParams(TypedDict, total=False):
     - `flex` - Uses the flex service tier.
     - `priority` - Uses the priority service tier.
     - `fast` - Uses the fast service tier.
+    - `ultrafast` - Uses the ultrafast service tier.
     """
 
     text: Optional[AgentTextParam]

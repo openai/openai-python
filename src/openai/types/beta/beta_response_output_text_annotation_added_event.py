@@ -104,7 +104,7 @@ class BetaResponseOutputTextAnnotationAddedEvent(BaseModel):
     """Emitted when an annotation is added to output text content."""
 
     annotation: Optional[Annotation] = None
-    """An annotation that applies to a span of output text."""
+    """The annotation object being added. (See annotation schema for details.)"""
 
     annotation_index: int
     """The index of the annotation within the content part."""
