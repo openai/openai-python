@@ -36,11 +36,14 @@ class FunctionTool(Generic[_OutputT]):
     ) -> None:
         if not name:
             raise ValueError("Tool name must not be empty")
+        parameters = model_json_schema(model)
+        if parameters.get("type") != "object":
+            raise TypeError("Tool argument models must have an object JSON schema")
         self._definition: AgentToolConfigParamFunction = {
             "type": "function",
             "name": name,
             "description": description,
-            "parameters": model_json_schema(model),
+            "parameters": parameters,
         }
 
         def invoke(arguments: dict[str, Any]) -> _OutputT:
@@ -62,10 +65,10 @@ class FunctionTool(Generic[_OutputT]):
 
 
 def _tool_output(output: object) -> ToolOutput:
-    if output is None or isinstance(output, str):
-        return output
     if isinstance(output, pydantic.BaseModel):
         output = json.loads(model_json(output))
+    if output is None or isinstance(output, str):
+        return output
     if isinstance(output, Mapping):
         if not isinstance(output, dict):
             output = dict(cast(Mapping[str, object], output))

@@ -7,9 +7,11 @@ from typing_extensions import Annotated
 
 import httpx2
 import pytest
+import pydantic
 from pydantic import Field, BaseModel, ValidationError
 
 from openai import OpenAI, AsyncOpenAI
+from openai._compat import PYDANTIC_V1, model_parse
 from openai.lib.beta.agents import function_tool, pydantic_function_tool
 from tests.lib.streaming.agents.test_streams import Server, EventBody, call, idle, turn_event
 
@@ -375,3 +377,24 @@ def test_sync_rejection_closes_underlying_coroutine() -> None:
     assert len(coroutines) == 1
     assert cast("CoroutineType[Any, Any, int]", coroutines[0]).cr_frame is None
     assert server.inputs()[1]["success"] is False
+
+
+def test_string_valued_model_output() -> None:
+    model = pydantic.create_model("TextOutput", __root__=(str, ...)) if PYDANTIC_V1 else pydantic.RootModel[str]
+
+    def action() -> BaseModel:
+        return model_parse(model, "paid")
+
+    assert function_tool(action)({}) == "paid"
+
+
+def test_non_object_argument_model_rejected() -> None:
+    model = (
+        pydantic.create_model("ArrayInput", __root__=(list[str], ...)) if PYDANTIC_V1 else pydantic.RootModel[list[str]]
+    )
+
+    def action(arguments: BaseModel) -> str:
+        pytest.fail(f"Invalid argument model should be rejected before invocation: {type(arguments)}")
+
+    with pytest.raises(TypeError, match="object JSON schema"):
+        pydantic_function_tool(model, handler=action)
