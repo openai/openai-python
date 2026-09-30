@@ -535,3 +535,37 @@ client.vector_stores.file_batches.create_and_poll(...)
 client.vector_stores.file_batches.upload_and_poll(...)
 client.videos.create_and_poll(...)
 ```
+
+# Beta Agents turn results
+
+Both streamed session creation and the one-turn session helper can collect the final
+answer. Call `get_final_result()` directly, or enable `with_result_collection()`
+before iterating to display progress. Existing follow-up tool handlers continue to run while it drains.
+
+```python
+with client.beta.agents.sessions.create(
+    agent={"model": MODEL},
+    environment={"type": "none"},
+    input="Explain this policy.",
+    stream=True,
+) as stream:
+    result = stream.get_final_result()
+
+print(result.output_text)
+
+with client.beta.agents.sessions.stream(
+    result.session_id,
+    input="Give me an example.",
+    tool_handlers=handlers,
+).with_result_collection() as stream:
+    for event in stream:
+        show_progress(event)
+    followup = stream.get_final_result()
+
+print(followup.output_text)
+```
+
+With `AsyncOpenAI`, await creation, use `async with` / `async for`, and await
+`get_final_result()`. The result exposes `output_text`, `turn`, final `messages`,
+`session_id`, and `turn_id`. Collection raises `AgentTurnResultError` when a complete
+successful answer cannot be established.
