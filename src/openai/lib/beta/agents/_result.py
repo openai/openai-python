@@ -158,3 +158,30 @@ class AgentTurnResultCollector:
         self._result = AgentTurnResult(turn=deepcopy(self.turn), messages=self.messages())
         self._messages.clear()
         return self._result
+
+
+class AgentTurnResultCollection:
+    """Keep ordinary event iteration incremental until collection is requested."""
+
+    def __init__(self, session_id: str | None = None) -> None:
+        self.collector: AgentTurnResultCollector | None = None
+        self._session_id = session_id
+        self._started = False
+
+    def enable(self) -> AgentTurnResultCollector:
+        if self.collector is None:
+            if self._started:
+                raise RuntimeError(
+                    "Call with_result_collection() before consuming events, or call get_final_result() on a fresh stream"
+                )
+            self.collector = AgentTurnResultCollector(self._session_id)
+        return self.collector
+
+    def accept(self, event: AgentSessionEvent) -> None:
+        self._started = True
+        if self.collector is not None:
+            self.collector.accept(event)
+
+    def record_error(self, error: Exception) -> None:
+        if self.collector is not None and not self.collector.is_done():
+            self.collector.cause = error

@@ -539,8 +539,8 @@ client.videos.create_and_poll(...)
 # Beta Agents turn results
 
 Both streamed session creation and the one-turn session helper can collect the final
-answer. `get_final_result()` consumes any remaining events; iterate first when you
-also want progress. Existing follow-up tool handlers continue to run while it drains.
+answer. Call `get_final_result()` directly, or enable `with_result_collection()`
+before iterating to display progress. Existing follow-up tool handlers continue to run while it drains.
 
 ```python
 with client.beta.agents.sessions.create(
@@ -557,7 +557,7 @@ with client.beta.agents.sessions.stream(
     result.session_id,
     input="Give me an example.",
     tool_handlers=handlers,
-) as stream:
+).with_result_collection() as stream:
     for event in stream:
         show_progress(event)
     followup = stream.get_final_result()

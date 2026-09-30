@@ -69,6 +69,8 @@ async def collect(sdk: OpenAI | AsyncOpenAI, creation: bool, *, mode: str = "get
             else sdk.beta.agents.sessions.stream("session_test", input="Question", **kwargs)
         )
         async with async_stream:
+            if mode != "getter":
+                async_stream.with_result_collection()
             if mode == "iterate":
                 async for _ in async_stream:
                     pass
@@ -90,6 +92,8 @@ async def collect(sdk: OpenAI | AsyncOpenAI, creation: bool, *, mode: str = "get
         else sdk.beta.agents.sessions.stream("session_test", input="Question", **kwargs)
     )
     with stream:
+        if mode != "getter":
+            stream.with_result_collection()
         if mode == "iterate":
             for _ in stream:
                 pass
@@ -300,6 +304,7 @@ async def test_later_stream_error_does_not_poison_completed_result(
         async with await sdk.beta.agents.sessions.create(
             agent={"model": "test-model"}, environment={"type": "none"}, input="Question", stream=True
         ) as async_stream:
+            async_stream.with_result_collection()
             with pytest.raises(APIConnectionError):
                 async for _ in async_stream:
                     pass
@@ -308,6 +313,7 @@ async def test_later_stream_error_does_not_poison_completed_result(
         with sdk.beta.agents.sessions.create(
             agent={"model": "test-model"}, environment={"type": "none"}, input="Question", stream=True
         ) as stream:
+            stream.with_result_collection()
             with pytest.raises(APIConnectionError):
                 for _ in stream:
                     pass
@@ -443,3 +449,75 @@ async def test_resolved_action_is_not_reported_again(
     server.body = EventBody(events)
     result = await collect(sdk, creation, mode="resume")
     assert result.output_text == "answer"
+
+
+async def test_raw_iteration_does_not_collect_output(
+    sdk: OpenAI | AsyncOpenAI, server: ResultServer, creation: bool
+) -> None:
+    events = [message("x" * 8192, item_id=f"message_{index}", index=index) for index in range(1024)]
+    server.body = EventBody([turn_event("created"), *events, turn_event("completed"), idle()])
+    if isinstance(sdk, AsyncOpenAI):
+        async_stream = (
+            await sdk.beta.agents.sessions.create(
+                agent={"model": "test-model"}, environment={"type": "none"}, input="Question", stream=True
+            )
+            if creation
+            else sdk.beta.agents.sessions.stream("session_test", input="Question")
+        )
+        async with async_stream:
+            async for _ in async_stream:
+                assert async_stream._collection.collector is None
+            read_count = server.body.read_count
+            with pytest.raises(RuntimeError, match="with_result_collection"):
+                await async_stream.get_final_result()
+            assert server.body.read_count == read_count
+    else:
+        stream = (
+            sdk.beta.agents.sessions.create(
+                agent={"model": "test-model"}, environment={"type": "none"}, input="Question", stream=True
+            )
+            if creation
+            else sdk.beta.agents.sessions.stream("session_test", input="Question")
+        )
+        with stream:
+            for _ in stream:
+                assert stream._collection.collector is None
+            read_count = server.body.read_count
+            with pytest.raises(RuntimeError, match="with_result_collection"):
+                stream.get_final_result()
+            assert server.body.read_count == read_count
+
+
+async def test_late_collection_opt_in_does_not_consume_events(
+    sdk: OpenAI | AsyncOpenAI, server: ResultServer, creation: bool
+) -> None:
+    if isinstance(sdk, AsyncOpenAI):
+        async_stream = (
+            await sdk.beta.agents.sessions.create(
+                agent={"model": "test-model"}, environment={"type": "none"}, input="Question", stream=True
+            )
+            if creation
+            else sdk.beta.agents.sessions.stream("session_test", input="Question")
+        )
+        async with async_stream:
+            await async_stream.__anext__()
+            with pytest.raises(RuntimeError, match="before consuming events"):
+                async_stream.with_result_collection()
+            with pytest.raises(RuntimeError, match="before consuming events"):
+                await async_stream.get_final_result()
+            assert server.body.read_count == 1
+    else:
+        stream = (
+            sdk.beta.agents.sessions.create(
+                agent={"model": "test-model"}, environment={"type": "none"}, input="Question", stream=True
+            )
+            if creation
+            else sdk.beta.agents.sessions.stream("session_test", input="Question")
+        )
+        with stream:
+            next(stream)
+            with pytest.raises(RuntimeError, match="before consuming events"):
+                stream.with_result_collection()
+            with pytest.raises(RuntimeError, match="before consuming events"):
+                stream.get_final_result()
+            assert server.body.read_count == 1
