@@ -186,3 +186,75 @@ def test_reserved_parameter_names_and_annotated_constraints() -> None:
     assert set(cast(dict[str, Any], tool.definition["parameters"]["properties"])) == {"schema", "dict", "json"}
     with pytest.raises(ValidationError):
         tool({"schema": "transfer", "dict": 2, "json": 0})
+
+
+@pytest.mark.parametrize("asynchronous", [False, True])
+@pytest.mark.parametrize(
+    "output, expected",
+    [
+        (3, "3"),
+        (True, "true"),
+        ([1, 2], "[1,2]"),
+        ([], "[]"),
+        ([{"type": "receipt", "content": "paid"}], '[{"type":"receipt","content":"paid"}]'),
+        ({"type": "input_text", "content": "business"}, '{"type":"input_text","content":"business"}'),
+        ([{"type": "input_text", "text": "receipt"}], [{"type": "input_text", "text": "receipt"}]),
+        (
+            [{"type": "input_image", "image_url": "https://example.com/receipt.png"}],
+            [{"type": "input_image", "image_url": "https://example.com/receipt.png"}],
+        ),
+    ],
+)
+async def test_json_outputs_and_content_parts_through_dispatch(
+    asynchronous: bool, output: object, expected: object
+) -> None:
+    seen: list[bool] = []
+
+    def action() -> object:
+        seen.append(True)
+        return output
+
+    async def async_action() -> object:
+        return action()
+
+    server = Server()
+    server.body = EventBody([turn_event("created"), call({}), turn_event("completed"), idle()])
+    transport = httpx2.MockTransport(server.handle)
+    if asynchronous:
+        async_tool = function_tool(async_action, name="search")
+        async with AsyncOpenAI(api_key="synthetic", http_client=httpx2.AsyncClient(transport=transport)) as client:
+            async with client.beta.agents.sessions.stream(
+                "session_test", input="Run action", tool_handlers={async_tool.name: async_tool}
+            ) as stream:
+                await stream.until_done()
+    else:
+        sync_tool = function_tool(action, name="search")
+        with OpenAI(api_key="synthetic", http_client=httpx2.Client(transport=transport)) as client:
+            with client.beta.agents.sessions.stream(
+                "session_test", input="Run action", tool_handlers={sync_tool.name: sync_tool}
+            ) as stream:
+                stream.until_done()
+    assert seen == [True]
+    assert server.inputs()[1]["success"] is True
+    assert server.inputs()[1]["output"] == expected
+
+
+async def test_sync_function_returning_awaitable() -> None:
+    from typing import Awaitable
+
+    async def result() -> list[int]:
+        return [1, 2]
+
+    def action() -> Awaitable[list[int]]:
+        return result()
+
+    assert await function_tool(action)({}) == "[1,2]"
+
+    class Arguments(BaseModel):
+        pass
+
+    def explicit_action(arguments: Arguments) -> Awaitable[list[int]]:
+        assert isinstance(arguments, Arguments)
+        return result()
+
+    assert await pydantic_function_tool(Arguments, handler=explicit_action)({}) == "[1,2]"

@@ -1,17 +1,21 @@
 from __future__ import annotations
 
+import json
 import inspect
 from copy import deepcopy
 from types import SimpleNamespace
-from typing import Any, Generic, TypeVar, Callable, get_type_hints
+from typing import Any, Generic, Mapping, TypeVar, Callable, Iterable, Awaitable, cast, get_type_hints
+from typing_extensions import overload
 
 import pydantic
 
+from ...._utils import is_dict
 from ...._compat import PYDANTIC_V1, model_parse, model_json_schema
+from ...streaming.agents._types import ToolOutput
 from ....types.beta.agent_tool_param import AgentToolConfigParamFunction
 
 _ModelT = TypeVar("_ModelT", bound=pydantic.BaseModel)
-_OutputT = TypeVar("_OutputT", covariant=True)
+_OutputT = TypeVar("_OutputT", bound=ToolOutput | Awaitable[ToolOutput], covariant=True)
 
 
 class FunctionTool(Generic[_OutputT]):
@@ -57,32 +61,101 @@ class FunctionTool(Generic[_OutputT]):
         return self._invoke(arguments)
 
 
+def _tool_output(output: object) -> ToolOutput:
+    if output is None or isinstance(output, (str, Mapping)):
+        return cast(ToolOutput, output)
+    if isinstance(output, Iterable) and not isinstance(output, (bytes, bytearray)):
+        output = list(cast(Iterable[object], output))
+        if output and all(
+            is_dict(part)
+            and (
+                (part.get("type") == "input_text" and isinstance(part.get("text"), str))
+                or (part.get("type") == "input_image" and isinstance(part.get("image_url"), str))
+            )
+            for part in output
+        ):
+            return cast(ToolOutput, output)
+    return json.dumps(output, separators=(",", ":"), allow_nan=False)
+
+
+@overload
+def pydantic_function_tool(  # type: ignore[overload-overlap]
+    model: type[_ModelT],
+    *,
+    handler: Callable[[_ModelT], Awaitable[object]],
+    name: str | None = None,
+    description: str | None = None,
+) -> FunctionTool[Awaitable[ToolOutput]]: ...
+
+
+@overload
 def pydantic_function_tool(
     model: type[_ModelT],
     *,
-    handler: Callable[[_ModelT], _OutputT],
+    handler: Callable[[_ModelT], object],
     name: str | None = None,
     description: str | None = None,
-) -> FunctionTool[_OutputT]:
+) -> FunctionTool[ToolOutput]: ...
+
+
+def pydantic_function_tool(
+    model: type[_ModelT],
+    *,
+    handler: Callable[[_ModelT], object],
+    name: str | None = None,
+    description: str | None = None,
+) -> FunctionTool[Any]:
     """Bind an explicit Pydantic argument model to a beta Agents callback.
 
     The callback receives a validated model instance and can be synchronous or
     asynchronous. Use asynchronous callbacks with ``AsyncOpenAI``.
     """
+
+    async def invoke_async(arguments: _ModelT) -> ToolOutput:
+        return _tool_output(await cast(Awaitable[object], handler(arguments)))
+
+    def invoke(arguments: _ModelT) -> ToolOutput | Awaitable[ToolOutput]:
+        output = handler(arguments)
+        if inspect.isawaitable(output):
+
+            async def resolve() -> ToolOutput:
+                return _tool_output(await output)
+
+            return resolve()
+        return _tool_output(output)
+
     return FunctionTool(
         model,
-        handler,
+        invoke_async if inspect.iscoroutinefunction(handler) else invoke,
         name=model.__name__ if name is None else name,
         description=(model.__doc__ or "") if description is None else description,
     )
 
 
-def function_tool(
-    function: Callable[..., _OutputT],
+@overload
+def function_tool(  # type: ignore[overload-overlap]
+    function: Callable[..., Awaitable[object]],
     *,
     name: str | None = None,
     description: str | None = None,
-) -> FunctionTool[_OutputT]:
+) -> FunctionTool[Awaitable[ToolOutput]]: ...
+
+
+@overload
+def function_tool(
+    function: Callable[..., object],
+    *,
+    name: str | None = None,
+    description: str | None = None,
+) -> FunctionTool[ToolOutput]: ...
+
+
+def function_tool(
+    function: Callable[..., object],
+    *,
+    name: str | None = None,
+    description: str | None = None,
+) -> FunctionTool[Any]:
     """Adapt an annotated function or bound method into a beta Agents tool.
 
     Every argument must have a Pydantic-compatible annotation. Positional-only
@@ -123,13 +196,16 @@ def function_tool(
         config = pydantic.ConfigDict(extra="forbid", alias_generator=aliases.__getitem__)
     model = pydantic.create_model("ToolArguments", __config__=config, **fields)
 
-    def invoke(arguments: pydantic.BaseModel) -> _OutputT:
+    def invoke(arguments: pydantic.BaseModel) -> object:
         # getattr retains nested model instances; model_dump would turn them into dicts.
         return function(**{name: getattr(arguments, field) for field, name in aliases.items()})
 
+    async def invoke_async(arguments: pydantic.BaseModel) -> object:
+        return await cast(Awaitable[object], invoke(arguments))
+
     return pydantic_function_tool(
         model,
-        handler=invoke,
+        handler=invoke_async if inspect.iscoroutinefunction(function) else invoke,
         name=function.__name__ if name is None else name,
         description=(inspect.getdoc(function) or "") if description is None else description,
     )
