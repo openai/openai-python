@@ -72,6 +72,10 @@ async def collect(sdk: OpenAI | AsyncOpenAI, creation: bool, *, mode: str = "get
             if mode == "iterate":
                 async for _ in async_stream:
                     pass
+            elif mode == "resume":
+                async for event in async_stream:
+                    if event.type in ("agent.session.in_progress", "agent.session.turn.completed"):
+                        break
             elif mode == "drain":
                 assert isinstance(async_stream, AsyncAgentSessionStream)
                 await async_stream.until_done()
@@ -89,6 +93,10 @@ async def collect(sdk: OpenAI | AsyncOpenAI, creation: bool, *, mode: str = "get
         if mode == "iterate":
             for _ in stream:
                 pass
+        elif mode == "resume":
+            for event in stream:
+                if event.type in ("agent.session.in_progress", "agent.session.turn.completed"):
+                    break
         elif mode == "drain":
             assert isinstance(stream, AgentSessionStream)
             stream.until_done()
@@ -454,3 +462,29 @@ def test_error_transfers_partial_payloads_and_is_cached() -> None:
     with pytest.raises(AgentTurnResultError) as repeated:
         collector.result()
     assert repeated.value is error
+
+
+@pytest.mark.parametrize("resumed", [True, False])
+async def test_resolved_action_is_not_reported_again(
+    sdk: OpenAI | AsyncOpenAI, server: ResultServer, creation: bool, resumed: bool
+) -> None:
+    state = session("requires_action")
+    state["required_actions"] = [
+        {
+            "type": "function_call",
+            "turn_id": "turn_root",
+            "name": "search",
+            "call_id": "call_test",
+            "arguments": {"query": "test"},
+        }
+    ]
+    events: list[dict[str, object]] = [
+        turn_event("created"),
+        {"type": "agent.session.requires_action", "session": state},
+    ]
+    if resumed:
+        events.append({"type": "agent.session.in_progress", "session": session("in_progress")})
+    events.extend([message(), turn_event("completed"), idle()])
+    server.body = EventBody(events)
+    result = await collect(sdk, creation, mode="resume")
+    assert result.output_text == "answer"

@@ -95,6 +95,7 @@ class AgentTurnResultCollector:
         ):
             if self.turn is not None and event.turn_id == self.turn.id:
                 self.turn = deepcopy(event.turn)
+                self.required_actions = []
         elif (
             event.type == "agent.session.turn.output_text.delta" or event.type == "agent.session.turn.output_text.done"
         ):
@@ -128,6 +129,8 @@ class AgentTurnResultCollector:
                 self._pending.discard(item.id)
             elif item.id not in self._messages:
                 self._pending.add(item.id)
+        elif event.type == "agent.session.in_progress":
+            self.required_actions = []
         elif event.type == "agent.session.requires_action":
             self.session_id = event.session.id
             self.required_actions = deepcopy(event.session.required_actions)
