@@ -3,22 +3,6 @@
 import typing as _t
 
 if _t.TYPE_CHECKING:
-    from .calls import (
-        Calls as Calls,
-        AsyncCalls as AsyncCalls,
-        CallsWithRawResponse as CallsWithRawResponse,
-        AsyncCallsWithRawResponse as AsyncCallsWithRawResponse,
-        CallsWithStreamingResponse as CallsWithStreamingResponse,
-        AsyncCallsWithStreamingResponse as AsyncCallsWithStreamingResponse,
-    )
-    from .realtime import (
-        Realtime as Realtime,
-        AsyncRealtime as AsyncRealtime,
-        RealtimeWithRawResponse as RealtimeWithRawResponse,
-        AsyncRealtimeWithRawResponse as AsyncRealtimeWithRawResponse,
-        RealtimeWithStreamingResponse as RealtimeWithStreamingResponse,
-        AsyncRealtimeWithStreamingResponse as AsyncRealtimeWithStreamingResponse,
-    )
     from .translations import (
         Translations as Translations,
         AsyncTranslations as AsyncTranslations,
@@ -44,29 +28,15 @@ else:
         "AsyncClientSecretsWithRawResponse": (".client_secrets", "AsyncClientSecretsWithRawResponse"),
         "ClientSecretsWithStreamingResponse": (".client_secrets", "ClientSecretsWithStreamingResponse"),
         "AsyncClientSecretsWithStreamingResponse": (".client_secrets", "AsyncClientSecretsWithStreamingResponse"),
-        "Calls": (".calls", "Calls"),
-        "AsyncCalls": (".calls", "AsyncCalls"),
-        "CallsWithRawResponse": (".calls", "CallsWithRawResponse"),
-        "AsyncCallsWithRawResponse": (".calls", "AsyncCallsWithRawResponse"),
-        "CallsWithStreamingResponse": (".calls", "CallsWithStreamingResponse"),
-        "AsyncCallsWithStreamingResponse": (".calls", "AsyncCallsWithStreamingResponse"),
         "Translations": (".translations", "Translations"),
         "AsyncTranslations": (".translations", "AsyncTranslations"),
         "TranslationsWithRawResponse": (".translations", "TranslationsWithRawResponse"),
         "AsyncTranslationsWithRawResponse": (".translations", "AsyncTranslationsWithRawResponse"),
         "TranslationsWithStreamingResponse": (".translations", "TranslationsWithStreamingResponse"),
         "AsyncTranslationsWithStreamingResponse": (".translations", "AsyncTranslationsWithStreamingResponse"),
-        "Realtime": (".realtime", "Realtime"),
-        "AsyncRealtime": (".realtime", "AsyncRealtime"),
-        "RealtimeWithRawResponse": (".realtime", "RealtimeWithRawResponse"),
-        "AsyncRealtimeWithRawResponse": (".realtime", "AsyncRealtimeWithRawResponse"),
-        "RealtimeWithStreamingResponse": (".realtime", "RealtimeWithStreamingResponse"),
-        "AsyncRealtimeWithStreamingResponse": (".realtime", "AsyncRealtimeWithStreamingResponse"),
     }
     _SUBMODULES = {
-        "calls",
         "client_secrets",
-        "realtime",
         "translations",
     }
 
@@ -94,22 +64,10 @@ __all__ = [
     "AsyncClientSecretsWithRawResponse",
     "ClientSecretsWithStreamingResponse",
     "AsyncClientSecretsWithStreamingResponse",
-    "Calls",
-    "AsyncCalls",
-    "CallsWithRawResponse",
-    "AsyncCallsWithRawResponse",
-    "CallsWithStreamingResponse",
-    "AsyncCallsWithStreamingResponse",
     "Translations",
     "AsyncTranslations",
     "TranslationsWithRawResponse",
     "AsyncTranslationsWithRawResponse",
     "TranslationsWithStreamingResponse",
     "AsyncTranslationsWithStreamingResponse",
-    "Realtime",
-    "AsyncRealtime",
-    "RealtimeWithRawResponse",
-    "AsyncRealtimeWithRawResponse",
-    "RealtimeWithStreamingResponse",
-    "AsyncRealtimeWithStreamingResponse",
 ]
