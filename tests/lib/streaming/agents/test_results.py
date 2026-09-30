@@ -1,0 +1,317 @@
+from __future__ import annotations
+
+from typing import Any, Iterator
+from typing_extensions import override
+
+import httpx2
+import pytest
+
+from openai import OpenAI, AsyncOpenAI
+from openai.lib.beta.agents import AgentTurnResult, AgentTurnResultError
+from tests.lib.streaming.agents.test_streams import Server, EventBody, sdk as sdk, call, idle, session, turn_event
+
+
+class ResultServer(Server):
+    @override
+    def handle(self, request: httpx2.Request) -> httpx2.Response:
+        if request.method == "POST" and request.url.path.endswith("/sessions"):
+            self.requests.append(request)
+            return httpx2.Response(200, headers={"content-type": "text/event-stream"}, stream=self.body)
+        return super().handle(request)
+
+
+@pytest.fixture
+def server() -> ResultServer:
+    return ResultServer()
+
+
+@pytest.fixture(params=[False, True], ids=["followup", "creation"])
+def creation(request: pytest.FixtureRequest) -> bool:
+    return bool(request.param)
+
+
+def message(
+    text: str = "answer",
+    *,
+    item_id: str = "message_a",
+    index: int = 0,
+    turn_id: str = "turn_root",
+    phase: str | None = "final_answer",
+    kind: str = "done",
+) -> dict[str, Any]:
+    return {
+        "type": f"agent.session.turn.item.{kind}",
+        "session_id": "session_test",
+        "turn_id": turn_id,
+        "output_index": index,
+        "item": {
+            "id": item_id,
+            "turn_id": turn_id,
+            "type": "message",
+            "role": "assistant",
+            "phase": phase,
+            "status": "completed" if kind == "done" else "in_progress",
+            "content": [{"type": "output_text", "text": text, "annotations": []}],
+        },
+    }
+
+
+async def collect(sdk: OpenAI | AsyncOpenAI, creation: bool, *, mode: str = "getter", **kwargs: Any) -> AgentTurnResult:
+    if isinstance(sdk, AsyncOpenAI):
+        async_stream = (
+            (
+                await sdk.beta.agents.sessions.create(
+                    agent={"model": "test-model"}, environment={"type": "none"}, input="Question", stream=True
+                )
+            )
+            if creation
+            else sdk.beta.agents.sessions.stream("session_test", input="Question", **kwargs)
+        )
+        async with async_stream:
+            if mode == "iterate":
+                async for _ in async_stream:
+                    pass
+            elif mode == "drain":
+                await async_stream.until_done()
+            result = await async_stream.get_final_result()
+            assert await async_stream.get_final_result() is result
+            return result
+    stream = (
+        sdk.beta.agents.sessions.create(
+            agent={"model": "test-model"}, environment={"type": "none"}, input="Question", stream=True
+        )
+        if creation
+        else sdk.beta.agents.sessions.stream("session_test", input="Question", **kwargs)
+    )
+    with stream:
+        if mode == "iterate":
+            for _ in stream:
+                pass
+        elif mode == "drain":
+            stream.until_done()
+        result = stream.get_final_result()
+        assert stream.get_final_result() is result
+        return result
+
+
+@pytest.mark.parametrize("mode", ["getter", "iterate", "drain"])
+async def test_result_selects_ordered_final_messages(
+    sdk: OpenAI | AsyncOpenAI, server: ResultServer, creation: bool, mode: str
+) -> None:
+    server.body = EventBody(
+        [
+            idle(),
+            turn_event("created"),
+            message("unfinished", kind="added"),
+            message("ignored commentary", item_id="commentary", phase="commentary"),
+            turn_event("created", "child", subagent_id="child_agent"),
+            message("ignored child", item_id="child_answer", turn_id="child"),
+            turn_event("completed", "child", subagent_id="child_agent"),
+            message("second", item_id="message_b", index=2),
+            message("first", index=1),
+            message("first", index=1),
+            turn_event("completed"),
+            idle(),
+        ]
+    )
+    result = await collect(sdk, creation, mode=mode)
+    assert result.session_id == "session_test"
+    assert result.turn_id == "turn_root"
+    assert result.turn.status == "completed"
+    assert result.output_text == "firstsecond"
+    assert [m.id for m in result.messages] == ["message_a", "message_b"]
+    assert result.messages[0].content[0].type == "output_text"
+    assert server.body.closed
+
+
+async def test_empty_success(sdk: OpenAI | AsyncOpenAI, creation: bool) -> None:
+    result = await collect(sdk, creation)
+    assert result.output_text == ""
+    assert result.messages == []
+
+
+@pytest.mark.parametrize("status", ["failed", "cancelled"])
+async def test_unsuccessful_turn(sdk: OpenAI | AsyncOpenAI, server: ResultServer, creation: bool, status: str) -> None:
+    server.body = EventBody([turn_event("created"), message(), turn_event(status), idle()])
+    with pytest.raises(AgentTurnResultError) as exc:
+        await collect(sdk, creation)
+    assert exc.value.reason == status
+    assert exc.value.turn_id == "turn_root"
+    assert exc.value.messages[0].output_text == "answer"
+    assert server.body.closed
+
+
+@pytest.mark.parametrize(
+    "tail", [[], [turn_event("completed")], [message(kind="added"), turn_event("completed"), idle()]]
+)
+async def test_incomplete_answer(
+    sdk: OpenAI | AsyncOpenAI, server: ResultServer, creation: bool, tail: list[dict[str, Any]]
+) -> None:
+    server.body = EventBody([turn_event("created"), *tail])
+    with pytest.raises(AgentTurnResultError) as exc:
+        await collect(sdk, creation)
+    assert exc.value.reason in ("incomplete", "observation_failed")
+    assert exc.value.turn_id == "turn_root"
+
+
+async def test_null_phase_is_not_guessed(sdk: OpenAI | AsyncOpenAI, server: ResultServer, creation: bool) -> None:
+    server.body = EventBody([turn_event("created"), message(phase=None), turn_event("completed"), idle()])
+    with pytest.raises(AgentTurnResultError) as exc:
+        await collect(sdk, creation)
+    assert exc.value.reason == "ambiguous_output"
+
+
+async def test_unhandled_action(sdk: OpenAI | AsyncOpenAI, server: ResultServer, creation: bool) -> None:
+    state = session("requires_action")
+    state["required_actions"] = [
+        {
+            "type": "function_call",
+            "turn_id": "turn_root",
+            "name": "search",
+            "call_id": "call_test",
+            "arguments": {"query": "test"},
+        }
+    ]
+    server.body = EventBody(
+        [turn_event("created"), call(), {"type": "agent.session.requires_action", "session": state}]
+    )
+    with pytest.raises(AgentTurnResultError) as exc:
+        await collect(sdk, creation)
+    assert exc.value.reason == "requires_action"
+    assert exc.value.required_actions[0].type == "function_call"
+    assert server.body.closed
+
+
+async def test_getter_dispatches_existing_handler_once(sdk: OpenAI | AsyncOpenAI, server: ResultServer) -> None:
+    seen: list[object] = []
+
+    def handler(arguments: object) -> str:
+        seen.append(arguments)
+        return "found"
+
+    server.body = EventBody([turn_event("created"), call(), message(), turn_event("completed"), idle()])
+    result = await collect(sdk, False, tool_handlers={"search": handler})
+    assert result.output_text == "answer"
+    assert seen == [{"query": "test"}]
+    assert len(server.inputs()) == 2
+
+
+async def test_explicit_close_is_not_success(sdk: OpenAI | AsyncOpenAI, creation: bool) -> None:
+    if isinstance(sdk, AsyncOpenAI):
+        async_stream = (
+            await sdk.beta.agents.sessions.create(
+                agent={"model": "test-model"}, environment={"type": "none"}, input="Question", stream=True
+            )
+            if creation
+            else sdk.beta.agents.sessions.stream("session_test", input="Question")
+        )
+        async with async_stream:
+            await async_stream.close()
+            with pytest.raises(AgentTurnResultError):
+                await async_stream.get_final_result()
+    else:
+        stream = (
+            sdk.beta.agents.sessions.create(
+                agent={"model": "test-model"}, environment={"type": "none"}, input="Question", stream=True
+            )
+            if creation
+            else sdk.beta.agents.sessions.stream("session_test", input="Question")
+        )
+        with stream:
+            stream.close()
+            with pytest.raises(AgentTurnResultError):
+                stream.get_final_result()
+
+
+class BrokenBody(EventBody):
+    @override
+    def __iter__(self) -> Iterator[bytes]:
+        yield from super().__iter__()
+        raise httpx2.ReadError("synthetic interrupted connection")
+
+
+async def test_transport_error_retains_partial_answer(
+    sdk: OpenAI | AsyncOpenAI, server: ResultServer, creation: bool
+) -> None:
+    server.body = BrokenBody([turn_event("created"), message()])
+    with pytest.raises(AgentTurnResultError) as exc:
+        await collect(sdk, creation)
+    assert exc.value.reason == "observation_failed"
+    assert exc.value.__cause__ is not None
+    assert exc.value.turn is not None and exc.value.turn.status == "in_progress"
+    assert exc.value.messages[0].output_text == "answer"
+
+
+async def test_result_stops_at_first_turn_boundary(
+    sdk: OpenAI | AsyncOpenAI, server: ResultServer, creation: bool
+) -> None:
+    server.body = EventBody(
+        [
+            turn_event("created"),
+            message(),
+            turn_event("completed"),
+            idle(),
+            turn_event("created", "later"),
+            message("later answer", turn_id="later"),
+        ]
+    )
+    result = await collect(sdk, creation)
+    assert result.output_text == "answer"
+    assert server.body.read_count == 4
+
+
+async def test_late_added_snapshot_does_not_reopen_completed_message(
+    sdk: OpenAI | AsyncOpenAI, server: ResultServer, creation: bool
+) -> None:
+    server.body = EventBody(
+        [turn_event("created"), message(), message("stale", kind="added", phase=None), turn_event("completed"), idle()]
+    )
+    result = await collect(sdk, creation)
+    assert result.output_text == "answer"
+
+
+async def test_later_stream_error_does_not_poison_completed_result(
+    sdk: OpenAI | AsyncOpenAI, server: ResultServer
+) -> None:
+    from openai import APIConnectionError
+
+    server.body = BrokenBody(
+        [
+            turn_event("created"),
+            message(),
+            turn_event("completed"),
+            idle(),
+            turn_event("created", "later"),
+            turn_event("failed", "later"),
+        ]
+    )
+    if isinstance(sdk, AsyncOpenAI):
+        async with await sdk.beta.agents.sessions.create(
+            agent={"model": "test-model"}, environment={"type": "none"}, input="Question", stream=True
+        ) as async_stream:
+            with pytest.raises(APIConnectionError):
+                async for _ in async_stream:
+                    pass
+            result = await async_stream.get_final_result()
+    else:
+        with sdk.beta.agents.sessions.create(
+            agent={"model": "test-model"}, environment={"type": "none"}, input="Question", stream=True
+        ) as stream:
+            with pytest.raises(APIConnectionError):
+                for _ in stream:
+                    pass
+            result = stream.get_final_result()
+    assert result.turn_id == "turn_root"
+    assert result.output_text == "answer"
+
+
+async def test_nullable_added_envelope_still_tracks_incomplete_output(
+    sdk: OpenAI | AsyncOpenAI, server: ResultServer, creation: bool
+) -> None:
+    added = message(kind="added")
+    added["turn_id"] = None
+    added["output_index"] = None
+    server.body = EventBody([turn_event("created"), added, turn_event("completed"), idle()])
+    with pytest.raises(AgentTurnResultError) as exc:
+        await collect(sdk, creation)
+    assert exc.value.reason == "incomplete"

@@ -53,9 +53,9 @@ from ....._utils import path_template, required_args, maybe_transform, async_may
 from ....._compat import cached_property
 from ....._resource import SyncAPIResource, AsyncAPIResource
 from ....._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
-from ....._streaming import Stream, AsyncStream
 from .....pagination import SyncCursorPage, AsyncCursorPage
 from ....._base_client import AsyncPaginator, make_request_options
+from .....lib.beta.agents import AgentSessionEventStream, AsyncAgentSessionEventStream
 from .subagents.subagents import (
     Subagents,
     AsyncSubagents,
@@ -68,7 +68,6 @@ from .....types.beta.agents import session_list_params, session_create_params, s
 from .....lib.streaming.agents import ToolHandler, AsyncToolHandler, AgentSessionStream, AsyncAgentSessionStream
 from .....types.beta.agent_session import AgentSession
 from .....types.beta.environment_param import EnvironmentParam
-from .....types.beta.agent_session_event import AgentSessionEvent
 from .....types.beta.agent_session_deleted import AgentSessionDeleted
 from .....types.beta.agent_session_input_message_param import AgentSessionInputMessageParam
 
@@ -216,7 +215,7 @@ class Sessions(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> Stream[AgentSessionEvent]:
+    ) -> AgentSessionEventStream:
         """
         Creates a managed agent session, optionally submits initial input, and returns
         the session or streams its events when stream is true. See
@@ -270,7 +269,7 @@ class Sessions(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> AgentSession | Stream[AgentSessionEvent]:
+    ) -> AgentSession | AgentSessionEventStream:
         """
         Creates a managed agent session, optionally submits initial input, and returns
         the session or streams its events when stream is true. See
@@ -324,7 +323,7 @@ class Sessions(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> AgentSession | Stream[AgentSessionEvent]:
+    ) -> AgentSession | AgentSessionEventStream:
         extra_headers = {"OpenAI-Beta": "agents=v1", **(extra_headers or {})}
         return self._post(
             "/agents/sessions",
@@ -351,7 +350,7 @@ class Sessions(SyncAPIResource):
             ),
             cast_to=AgentSession,
             stream=stream or False,
-            stream_cls=Stream[AgentSessionEvent],
+            stream_cls=AgentSessionEventStream,
         )
 
     def retrieve(
@@ -698,7 +697,7 @@ class AsyncSessions(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> AsyncStream[AgentSessionEvent]:
+    ) -> AsyncAgentSessionEventStream:
         """
         Creates a managed agent session, optionally submits initial input, and returns
         the session or streams its events when stream is true. See
@@ -752,7 +751,7 @@ class AsyncSessions(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> AgentSession | AsyncStream[AgentSessionEvent]:
+    ) -> AgentSession | AsyncAgentSessionEventStream:
         """
         Creates a managed agent session, optionally submits initial input, and returns
         the session or streams its events when stream is true. See
@@ -806,7 +805,7 @@ class AsyncSessions(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> AgentSession | AsyncStream[AgentSessionEvent]:
+    ) -> AgentSession | AsyncAgentSessionEventStream:
         extra_headers = {"OpenAI-Beta": "agents=v1", **(extra_headers or {})}
         return await self._post(
             "/agents/sessions",
@@ -833,7 +832,7 @@ class AsyncSessions(AsyncAPIResource):
             ),
             cast_to=AgentSession,
             stream=stream or False,
-            stream_cls=AsyncStream[AgentSessionEvent],
+            stream_cls=AsyncAgentSessionEventStream,
         )
 
     async def retrieve(

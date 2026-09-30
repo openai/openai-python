@@ -15,6 +15,7 @@ from ._types import ToolHandler, AsyncToolHandler
 from ...._types import Omit, Headers, NotGiven, omit, not_given
 from ...._streaming import Stream, AsyncStream
 from ...._exceptions import BadRequestError
+from ...beta.agents._result import AgentTurnResult, AgentTurnResultError, AgentTurnResultCollector
 from ....types.beta.agent_session_event import AgentSessionEvent
 from ....types.beta.agent_function_call_item import AgentFunctionCallItem
 from ....types.beta.agent_session_input_param import (
@@ -144,6 +145,7 @@ class AgentSessionStream:
         self._idempotency_key = _input_key(idempotency_key, extra_headers)
         self._options = _request_options({"extra_headers": extra_headers, "timeout": timeout})
         self._state = _TurnState()
+        self._collector = AgentTurnResultCollector(session_id)
         self._stream: Stream[AgentSessionEvent] | None = None
         self._iterator: Iterator[AgentSessionEvent] | None = None
         self._entered = False
@@ -189,6 +191,28 @@ class AgentSessionStream:
         for _ in self:
             pass
 
+    def get_final_result(self) -> AgentTurnResult:
+        """Beta: drain this turn, executing handlers, and collect its final answer.
+
+        Raises AgentTurnResultError when a successful complete result cannot be
+        established. Reading the result never submits input or executes tools.
+        """
+        try:
+            self._collector.check_outcome(self._handlers)
+            if not self._collector.is_done():
+                for _ in self:
+                    self._collector.check_outcome(self._handlers)
+                    if self._collector.is_done():
+                        break
+            return self._collector.result()
+        except AgentTurnResultError:
+            raise
+        except Exception as error:
+            self._collector.cause = error
+            raise self._collector.error("observation_failed") from error
+        finally:
+            self.close()
+
     def close(self) -> None:
         """Close the event connection without cancelling the backend turn."""
         self._closed = True
@@ -201,6 +225,7 @@ class AgentSessionStream:
             for event in self._stream:
                 if not self._state.accept(event):
                     continue
+                self._collector.accept(event)
                 terminal = self._state.terminal(event)
                 if terminal:
                     self.close()
@@ -219,6 +244,9 @@ class AgentSessionStream:
                         result = failed_event(call)
                     self._submit_result(result)
             raise RuntimeError("Session event stream ended before the turn reached idle or failed")
+        except Exception as error:
+            self._collector.cause = error
+            raise
         finally:
             self.close()
 
@@ -265,6 +293,7 @@ class AsyncAgentSessionStream:
         self._idempotency_key = _input_key(idempotency_key, extra_headers)
         self._options = _request_options({"extra_headers": extra_headers, "timeout": timeout})
         self._state = _TurnState()
+        self._collector = AgentTurnResultCollector(session_id)
         self._stream: AsyncStream[AgentSessionEvent] | None = None
         self._iterator: AsyncIterator[AgentSessionEvent] | None = None
         self._entered = False
@@ -310,6 +339,28 @@ class AsyncAgentSessionStream:
         async for _ in self:
             pass
 
+    async def get_final_result(self) -> AgentTurnResult:
+        """Beta: drain this turn, executing handlers, and collect its final answer.
+
+        Raises AgentTurnResultError when a successful complete result cannot be
+        established. Reading the result never submits input or executes tools.
+        """
+        try:
+            self._collector.check_outcome(self._handlers)
+            if not self._collector.is_done():
+                async for _ in self:
+                    self._collector.check_outcome(self._handlers)
+                    if self._collector.is_done():
+                        break
+            return self._collector.result()
+        except AgentTurnResultError:
+            raise
+        except Exception as error:
+            self._collector.cause = error
+            raise self._collector.error("observation_failed") from error
+        finally:
+            await self.close()
+
     async def close(self) -> None:
         """Close the event connection without cancelling the backend turn."""
         self._closed = True
@@ -322,6 +373,7 @@ class AsyncAgentSessionStream:
             async for event in self._stream:
                 if not self._state.accept(event):
                     continue
+                self._collector.accept(event)
                 terminal = self._state.terminal(event)
                 if terminal:
                     await self.close()
@@ -343,6 +395,9 @@ class AsyncAgentSessionStream:
                         result = failed_event(call)
                     await self._submit_result(result)
             raise RuntimeError("Session event stream ended before the turn reached idle or failed")
+        except Exception as error:
+            self._collector.cause = error
+            raise
         finally:
             await self.close()
 

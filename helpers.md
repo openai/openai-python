@@ -535,3 +535,52 @@ client.vector_stores.file_batches.create_and_poll(...)
 client.vector_stores.file_batches.upload_and_poll(...)
 client.videos.create_and_poll(...)
 ```
+
+# Beta Agents turn results
+
+Both streamed session creation and the one-turn session helper can collect the final
+answer. `get_final_result()` consumes any remaining events; iterate first when you
+also want progress. Existing follow-up tool handlers continue to run while it drains.
+
+```python
+with client.beta.agents.sessions.create(
+    agent={"model": MODEL},
+    environment={"type": "none"},
+    input="Explain this policy.",
+    stream=True,
+) as stream:
+    result = stream.get_final_result()
+
+print(result.output_text)
+
+with client.beta.agents.sessions.stream(
+    result.session_id,
+    input="Give me an example.",
+    tool_handlers=handlers,
+) as stream:
+    for event in stream:
+        show_progress(event)
+    followup = stream.get_final_result()
+
+print(followup.output_text)
+```
+
+With `AsyncOpenAI`, await creation, use `async with` / `async for`, and await
+`get_final_result()`. A result retains the generated `turn`, final assistant
+`messages` in output order, and convenient `session_id`, `turn_id`, and
+`output_text` properties. It excludes commentary and child-turn answers.
+`output_text` joins message text without adding separators; a completed turn
+without text returns an empty string. Repeated getters return the cached result.
+
+Collection requires the selected root turn to complete and the session to return
+to idle. `AgentTurnResultError`, exported from `openai.lib.beta.agents`, exposes a
+`reason`, optional `turn` and session/turn IDs, partial `messages`, and
+`required_actions`. Failure, cancellation, an unhandled required action, ambiguous
+message phase, or incomplete observation is not returned as a successful result.
+Transport causes are chained; an observation error does not establish that hosted
+execution failed. Closing the stream only closes local observation.
+
+Creation streams retain the ordinary `Stream` / `AsyncStream` interface, including
+response access. They do not run local tool handlers. The existing follow-up
+helper still requires an idle session and a single input writer. These result
+helpers are beta; parsing, reattachment, and artifact lookup are separate features.
