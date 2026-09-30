@@ -38702,6 +38702,7 @@ components:
               - auto
               - low
               - high
+              - original
               default: auto
           required:
           - url
