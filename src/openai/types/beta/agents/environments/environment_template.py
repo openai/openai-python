@@ -9,6 +9,7 @@ from ...hosted_plugin import HostedPlugin
 
 __all__ = [
     "EnvironmentTemplate",
+    "Desktop",
     "File",
     "FileHostedTemplateFileResourceFileID",
     "FileHostedTemplateFileResourceInline",
@@ -17,8 +18,14 @@ __all__ = [
     "Skill",
     "SkillHostedTemplateSkillResourceSkillReference",
     "SkillHostedTemplateSkillResourceInline",
-    "Desktop",
 ]
+
+
+class Desktop(BaseModel):
+    """Desktop configuration for each OpenAI-hosted environment."""
+
+    enabled: bool
+    """Whether the environment provisions a desktop and browser proxy."""
 
 
 class FileHostedTemplateFileResourceFileID(BaseModel):
@@ -113,13 +120,6 @@ Skill: TypeAlias = Annotated[
 ]
 
 
-class Desktop(BaseModel):
-    """Desktop configuration for each OpenAI-hosted environment."""
-
-    enabled: bool
-    """Whether the environment provisions a desktop and browser proxy."""
-
-
 class EnvironmentTemplate(BaseModel):
     """
     Reusable configuration that provisions a fresh OpenAI-hosted environment for each session.
@@ -133,6 +133,9 @@ class EnvironmentTemplate(BaseModel):
 
     created_at: int
     """The Unix timestamp, in seconds, when the template was created."""
+
+    desktop: Desktop
+    """Desktop configuration for each OpenAI-hosted environment."""
 
     files: List[File]
     """Safe file metadata, excluding contents and session-scoped file IDs."""
@@ -157,6 +160,3 @@ class EnvironmentTemplate(BaseModel):
 
     updated_at: int
     """The Unix timestamp, in seconds, when the template was last updated."""
-
-    desktop: Optional[Desktop] = None
-    """Desktop configuration for each OpenAI-hosted environment."""
