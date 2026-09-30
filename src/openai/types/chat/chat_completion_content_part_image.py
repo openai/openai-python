@@ -12,7 +12,7 @@ class ImageURL(BaseModel):
     url: str
     """Either a URL of the image or the base64 encoded image data."""
 
-    detail: Optional[Literal["auto", "low", "high"]] = None
+    detail: Optional[Literal["auto", "low", "high", "original"]] = None
     """Specifies the detail level of the image.
 
     Learn more in the
