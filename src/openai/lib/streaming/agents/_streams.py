@@ -214,7 +214,11 @@ class AgentSessionStream:
                     return
                 if call is not None and handler is not None:
                     try:
-                        result = result_event(call, handler(arguments(call)))
+                        output = handler(arguments(call))
+                        if inspect.iscoroutine(output):
+                            output.close()
+                            raise TypeError("Async tool handlers require AsyncOpenAI")
+                        result = result_event(call, output)
                     except Exception:
                         result = failed_event(call)
                     self._submit_result(result)

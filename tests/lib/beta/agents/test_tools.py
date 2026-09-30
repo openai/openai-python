@@ -1,0 +1,168 @@
+from __future__ import annotations
+
+from typing import Any, cast
+
+import httpx2
+import pytest
+from pydantic import Field, BaseModel, ValidationError
+
+from openai import OpenAI, AsyncOpenAI
+from openai.lib.beta.agents import function_tool, pydantic_function_tool
+from tests.lib.streaming.agents.test_streams import Server, EventBody, call, idle, turn_event
+
+
+class Destination(BaseModel):
+    address: str
+
+
+class Transfer(BaseModel):
+    destination: Destination
+    amount: int = Field(gt=0)
+
+
+class Wallet:
+    """A local stand-in for a Coinbase-style bound domain action."""
+
+    def __init__(self) -> None:
+        self.transfers: list[tuple[str, int]] = []
+
+    def transfer(self, destination: Destination, amount: int, *, asset: str = "USDC") -> dict[str, object]:
+        """Transfer an asset from this wallet."""
+        self.transfers.append((destination.address, amount))
+        return {"receipt": "test-receipt", "asset": asset}
+
+
+def test_bound_action_schema_defaults_and_nested_models() -> None:
+    wallet = Wallet()
+    tool = function_tool(wallet.transfer)
+    assert tool.name == "transfer"
+    assert tool.definition["type"] == "function"
+    assert tool.definition["description"] == "Transfer an asset from this wallet."
+    assert set(tool.definition["parameters"]["properties"]) == {"destination", "amount", "asset"}  # type: ignore
+    assert "self" not in tool.definition["parameters"]["properties"]  # type: ignore
+    assert tool({"destination": {"address": "test-address"}, "amount": 3}) == {
+        "receipt": "test-receipt",
+        "asset": "USDC",
+    }
+    assert wallet.transfers == [("test-address", 3)]
+    definition = tool.definition
+    definition["name"] = "changed"
+    assert tool.name == "transfer"
+
+
+@pytest.mark.parametrize(
+    "arguments", [{}, {"destination": {}, "amount": 1}, {"destination": {"address": "a"}, "amount": 1, "secret": "bad"}]
+)
+def test_invalid_annotations_do_not_execute(arguments: dict[str, Any]) -> None:
+    wallet = Wallet()
+    tool = function_tool(wallet.transfer)
+    with pytest.raises(ValidationError):
+        tool(arguments)
+    assert wallet.transfers == []
+
+
+def test_explicit_model_and_alias() -> None:
+    class Arguments(BaseModel):
+        amount: int = Field(gt=0, alias="amount_units")
+
+    seen: list[Arguments] = []
+
+    def handler(arguments: Arguments) -> str:
+        seen.append(arguments)
+        return str(arguments.amount)
+
+    tool = pydantic_function_tool(Arguments, name="transfer", description="Send units", handler=handler)
+    assert tool({"amount_units": 2}) == "2"
+    assert isinstance(seen[0], Arguments)
+    assert "amount_units" in tool.definition["parameters"]["properties"]  # type: ignore
+    with pytest.raises(ValidationError):
+        tool({"amount_units": 0})
+    assert len(seen) == 1
+
+
+def test_unsupported_signatures() -> None:
+    def unannotated(value: Any) -> Any:
+        return value
+
+    unannotated.__annotations__ = {}
+
+    def variadic(*args: str) -> str:
+        return str(args)
+
+    def keywords(**kwargs: str) -> str:
+        return str(kwargs)
+
+    for function in (unannotated, variadic, keywords):
+        with pytest.raises(TypeError):
+            function_tool(function)
+
+
+def test_positional_only_rejected() -> None:
+    def handler(value: str, /) -> str:
+        return value
+
+    with pytest.raises(TypeError):
+        function_tool(handler)
+
+
+@pytest.mark.parametrize("asynchronous", [False, True])
+@pytest.mark.parametrize("invalid", [False, True])
+async def test_bound_action_through_existing_dispatch(asynchronous: bool, invalid: bool) -> None:
+    wallet = Wallet()
+    tool = function_tool(wallet.transfer, name="search")
+    server = Server()
+    arguments = {"destination": {} if invalid else {"address": "test-address"}, "amount": 3}
+    event = call(arguments)
+    server.body = EventBody([turn_event("created"), event, event, turn_event("completed"), idle()])
+    options = {"input": "Transfer units", "tool_handlers": {tool.name: tool}, "extra_headers": {"X-App": "example"}}
+    transport = httpx2.MockTransport(server.handle)
+    if asynchronous:
+        async with AsyncOpenAI(api_key="synthetic", http_client=httpx2.AsyncClient(transport=transport)) as client:
+            async with client.beta.agents.sessions.stream("session_test", **options) as stream:  # type: ignore
+                await stream.until_done()
+    else:
+        with OpenAI(api_key="synthetic", http_client=httpx2.Client(transport=transport)) as client:
+            with client.beta.agents.sessions.stream("session_test", **options) as stream:  # type: ignore
+                stream.until_done()
+    assert wallet.transfers == ([] if invalid else [("test-address", 3)])
+    results = server.inputs()[1:]
+    assert len(results) == 1
+    assert results[0]["success"] is not invalid
+    assert all(request.headers["X-App"] == "example" for request in server.requests)
+    if not invalid:
+        assert results[0]["output"] == '{"receipt":"test-receipt","asset":"USDC"}'
+
+
+@pytest.mark.parametrize("asynchronous", [False, True])
+async def test_async_action_requires_async_dispatch(asynchronous: bool) -> None:
+    seen: list[Transfer] = []
+
+    async def handler(arguments: Transfer) -> str:
+        seen.append(arguments)
+        return "test-receipt"
+
+    tool = pydantic_function_tool(Transfer, name="search", handler=handler)
+    server = Server()
+    server.body = EventBody(
+        [
+            turn_event("created"),
+            call({"destination": {"address": "test-address"}, "amount": 3}),
+            turn_event("completed"),
+            idle(),
+        ]
+    )
+    transport = httpx2.MockTransport(server.handle)
+    if asynchronous:
+        async with AsyncOpenAI(api_key="synthetic", http_client=httpx2.AsyncClient(transport=transport)) as client:
+            async with client.beta.agents.sessions.stream(
+                "session_test", input="Transfer", tool_handlers={tool.name: tool}
+            ) as stream:
+                await stream.until_done()
+    else:
+        with OpenAI(api_key="synthetic", http_client=httpx2.Client(transport=transport)) as client:
+            with client.beta.agents.sessions.stream(
+                "session_test", input="Transfer", tool_handlers=cast(Any, {tool.name: tool})
+            ) as stream:
+                stream.until_done()
+    assert len(seen) == int(asynchronous)
+    assert server.inputs()[1]["success"] is asynchronous

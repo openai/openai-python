@@ -535,3 +535,36 @@ client.vector_stores.file_batches.create_and_poll(...)
 client.vector_stores.file_batches.upload_and_poll(...)
 client.videos.create_and_poll(...)
 ```
+
+## Typed beta Agents tools
+
+Bind an annotated function or bound method once, then reuse its definition and local handler:
+
+```py
+from openai.lib.beta.agents import function_tool
+
+def lookup_order(order_id: str) -> dict[str, str]:
+    """Look up an order's delivery status."""
+    return {"order_id": order_id, "status": "shipped"}
+
+lookup = function_tool(lookup_order)
+# Include lookup.definition in agent={"model": MODEL, "tools": [...]} when creating a session.
+with client.beta.agents.sessions.stream(
+    SESSION_ID, input="Where is order A123?", tool_handlers={lookup.name: lookup},
+) as stream:
+    stream.until_done()
+```
+
+For an existing Pydantic argument model or a Coinbase-style action, use an explicit binding:
+
+```py
+from openai.lib.beta.agents import pydantic_function_tool
+
+transfer = pydantic_function_tool(
+    TransferArguments, name="transfer_asset", handler=wallet.transfer,
+)
+# wallet.transfer receives a validated TransferArguments instance.
+# Keep wallet credentials and application approval checks in the bound method.
+```
+
+Callbacks can be async when used with `AsyncOpenAI`. Existing dictionary handlers still work.
