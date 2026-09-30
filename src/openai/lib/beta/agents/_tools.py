@@ -4,13 +4,13 @@ import json
 import inspect
 from copy import deepcopy
 from types import SimpleNamespace
-from typing import Any, Generic, Mapping, TypeVar, Callable, Iterable, Awaitable, cast, get_type_hints
+from typing import Any, Generic, Mapping, TypeVar, Callable, Iterable, Awaitable, Generator, cast, get_type_hints
 from typing_extensions import overload
 
 import pydantic
 
 from ...._utils import is_dict
-from ...._compat import PYDANTIC_V1, model_parse, model_json_schema
+from ...._compat import PYDANTIC_V1, model_json, model_parse, model_json_schema
 from ...streaming.agents._types import ToolOutput
 from ....types.beta.agent_tool_param import AgentToolConfigParamFunction
 
@@ -62,20 +62,39 @@ class FunctionTool(Generic[_OutputT]):
 
 
 def _tool_output(output: object) -> ToolOutput:
-    if output is None or isinstance(output, (str, Mapping)):
-        return cast(ToolOutput, output)
-    if isinstance(output, Iterable) and not isinstance(output, (bytes, bytearray)):
-        output = list(cast(Iterable[object], output))
+    if output is None or isinstance(output, str):
+        return output
+    if isinstance(output, pydantic.BaseModel):
+        output = json.loads(model_json(output))
+    if isinstance(output, Mapping):
+        if not isinstance(output, dict):
+            output = dict(cast(Mapping[str, object], output))
+    elif isinstance(output, Iterable) and not isinstance(output, (bytes, bytearray)):
+        if not isinstance(output, (list, tuple)):
+            output = list(cast(Iterable[object], output))
         if output and all(
             is_dict(part)
             and (
                 (part.get("type") == "input_text" and isinstance(part.get("text"), str))
                 or (part.get("type") == "input_image" and isinstance(part.get("image_url"), str))
             )
-            for part in output
+            for part in cast(Iterable[object], output)
         ):
             return cast(ToolOutput, output)
     return json.dumps(output, separators=(",", ":"), allow_nan=False)
+
+
+class _AwaitableToolOutput:
+    def __init__(self, output: Awaitable[object]) -> None:
+        self._output = output
+
+    def __await__(self) -> Generator[Any, None, ToolOutput]:
+        output = yield from self._output.__await__()
+        return _tool_output(output)
+
+    def close(self) -> None:
+        if inspect.iscoroutine(self._output):
+            self._output.close()
 
 
 @overload
@@ -117,11 +136,7 @@ def pydantic_function_tool(
     def invoke(arguments: _ModelT) -> ToolOutput | Awaitable[ToolOutput]:
         output = handler(arguments)
         if inspect.isawaitable(output):
-
-            async def resolve() -> ToolOutput:
-                return _tool_output(await output)
-
-            return resolve()
+            return _AwaitableToolOutput(output)
         return _tool_output(output)
 
     return FunctionTool(
@@ -165,6 +180,11 @@ def function_tool(
     or bound methods so they do not appear in the tool's arguments.
     """
     signature = inspect.signature(function)
+    annotation_source = inspect.unwrap(function)
+    localns: dict[str, Any] = {}
+    if inspect.ismethod(function):
+        owner = function.__self__ if inspect.isclass(function.__self__) else type(function.__self__)
+        localns = {name: value for cls in reversed(owner.__mro__) for name, value in vars(cls).items()}
     # Return annotations may be TYPE_CHECKING-only imports; tools only need inputs.
     annotations = get_type_hints(
         SimpleNamespace(
@@ -174,7 +194,8 @@ def function_tool(
                 if parameter.annotation is not inspect.Parameter.empty
             }
         ),
-        globalns=getattr(function, "__globals__", None),
+        globalns=getattr(annotation_source, "__globals__", None),
+        localns=localns,
         include_extras=True,
     )
     fields: dict[str, Any] = {}

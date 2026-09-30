@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import json
 from typing import Any, cast
+from datetime import date
 from typing_extensions import Annotated
 
 import httpx2
@@ -41,7 +43,7 @@ def test_bound_action_schema_defaults_and_nested_models() -> None:
     assert tool.definition["description"] == "Transfer an asset from this wallet."
     assert set(tool.definition["parameters"]["properties"]) == {"destination", "amount", "asset"}  # type: ignore
     assert "self" not in tool.definition["parameters"]["properties"]  # type: ignore
-    assert tool({"destination": {"address": "test-address"}, "amount": 3}) == {
+    assert json.loads(cast(str, tool({"destination": {"address": "test-address"}, "amount": 3}))) == {
         "receipt": "test-receipt",
         "asset": "USDC",
     }
@@ -258,3 +260,108 @@ async def test_sync_function_returning_awaitable() -> None:
         return result()
 
     assert await pydantic_function_tool(Arguments, handler=explicit_action)({}) == "[1,2]"
+
+
+def test_bound_class_namespaces() -> None:
+    class Wallet:
+        class Asset(BaseModel):
+            symbol: str
+
+        def lookup(self, asset: Asset) -> str:
+            return asset.symbol
+
+        @classmethod
+        def lookup_class(cls, asset: Asset) -> str:
+            return asset.symbol
+
+    class InheritedWallet(Wallet):
+        pass
+
+    for callback in (Wallet().lookup, InheritedWallet().lookup, Wallet.lookup_class):
+        assert function_tool(callback)({"asset": {"symbol": "USDC"}}) == "USDC"
+
+
+def test_cross_module_decorator_annotations() -> None:
+    from types import ModuleType
+    from functools import wraps
+
+    module = ModuleType("typed_action_module")
+    exec(
+        "from __future__ import annotations\n"
+        "from pydantic import BaseModel\n"
+        "class Asset(BaseModel):\n    symbol: str\n"
+        "def action(asset: Asset) -> str:\n    return asset.symbol\n",
+        module.__dict__,
+    )
+
+    @wraps(module.action)
+    def wrapped(*args: Any, **kwargs: Any) -> Any:
+        return module.action(*args, **kwargs)
+
+    assert function_tool(wrapped)({"asset": {"symbol": "USDC"}}) == "USDC"
+
+
+def test_model_output_is_json_object() -> None:
+    class Receipt(BaseModel):
+        receipt: str
+        day: date
+
+    def action() -> Receipt:
+        return Receipt(receipt="test-receipt", day=date(2026, 9, 30))
+
+    assert json.loads(cast(str, function_tool(action)({}))) == {"receipt": "test-receipt", "day": "2026-09-30"}
+
+
+@pytest.mark.parametrize("value", [float("nan"), float("inf"), -float("inf")])
+def test_nonfinite_mapping_results_rejected(value: float) -> None:
+    def action() -> dict[str, object]:
+        return {"nested": {"amount": value}}
+
+    with pytest.raises(ValueError):
+        function_tool(action)({})
+
+
+def test_concrete_results_are_not_copied() -> None:
+    from unittest.mock import patch
+
+    business = [{"receipt": "test-receipt"}]
+
+    def action() -> list[dict[str, str]]:
+        return business
+
+    with patch("openai.lib.beta.agents._tools.json.dumps", wraps=json.dumps) as dumps:
+        assert function_tool(action)({}) == '[{"receipt":"test-receipt"}]'
+        assert dumps.call_args.args[0] is business
+
+    content = [{"type": "input_text", "text": "test-receipt"}]
+    assert function_tool(lambda: content)({}) is content
+
+
+def test_sync_rejection_closes_underlying_coroutine() -> None:
+    from types import CoroutineType
+    from typing import Coroutine
+
+    coroutines: list[Coroutine[Any, Any, int]] = []
+
+    async def result() -> int:
+        pytest.fail("Async callback must not execute through OpenAI")
+        return 1
+
+    def action() -> Coroutine[Any, Any, int]:
+        coroutine = result()
+        coroutines.append(coroutine)
+        return coroutine
+
+    tool = function_tool(action, name="search")
+    server = Server()
+    server.body = EventBody([turn_event("created"), call({}), turn_event("completed"), idle()])
+    with OpenAI(
+        api_key="synthetic", http_client=httpx2.Client(transport=httpx2.MockTransport(server.handle))
+    ) as client:
+        with client.beta.agents.sessions.stream(
+            "session_test", input="Run action", tool_handlers=cast(Any, {tool.name: tool})
+        ) as stream:
+            stream.until_done()
+    assert len(coroutines) == 1
+    assert cast("CoroutineType[Any, Any, int]", coroutines[0]).cr_frame is None
+    assert server.inputs()[1]["success"] is False

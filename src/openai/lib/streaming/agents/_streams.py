@@ -215,8 +215,10 @@ class AgentSessionStream:
                 if call is not None and handler is not None:
                     try:
                         output: Any = handler(arguments(call))
-                        if inspect.iscoroutine(output):
-                            output.close()
+                        if inspect.isawaitable(output):
+                            close = getattr(output, "close", None)
+                            if callable(close):
+                                close()
                             raise TypeError("Async tool handlers require AsyncOpenAI")
                         result = result_event(call, output)
                     except Exception:
