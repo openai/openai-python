@@ -4,7 +4,7 @@ import inspect
 from copy import deepcopy
 from uuid import uuid4
 from types import TracebackType
-from typing import TYPE_CHECKING, Mapping, Iterable, Iterator, AsyncIterator
+from typing import TYPE_CHECKING, Any, Mapping, Iterable, Iterator, AsyncIterator
 from collections import deque
 from typing_extensions import Self, TypedDict
 
@@ -214,7 +214,7 @@ class AgentSessionStream:
                     return
                 if call is not None and handler is not None:
                     try:
-                        output = handler(arguments(call))
+                        output: Any = handler(arguments(call))
                         if inspect.iscoroutine(output):
                             output.close()
                             raise TypeError("Async tool handlers require AsyncOpenAI")

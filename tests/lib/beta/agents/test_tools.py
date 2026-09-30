@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any, cast
+from typing_extensions import Annotated
 
 import httpx2
 import pytest
@@ -166,3 +167,22 @@ async def test_async_action_requires_async_dispatch(asynchronous: bool) -> None:
                 stream.until_done()
     assert len(seen) == int(asynchronous)
     assert server.inputs()[1]["success"] is asynchronous
+
+
+def test_only_input_annotations_are_resolved() -> None:
+    def lookup(order_id: str) -> str:
+        return order_id
+
+    lookup.__annotations__["return"] = "TypeCheckingOnlyOrder"
+    assert function_tool(lookup)({"order_id": "test-order"}) == "test-order"
+
+
+def test_reserved_parameter_names_and_annotated_constraints() -> None:
+    def action(schema: str, dict: int, json: Annotated[int, Field(gt=0)]) -> str:
+        return f"{schema}:{dict}:{json}"
+
+    tool = function_tool(action)
+    assert tool({"schema": "transfer", "dict": 2, "json": 3}) == "transfer:2:3"
+    assert set(cast(dict[str, Any], tool.definition["parameters"]["properties"])) == {"schema", "dict", "json"}
+    with pytest.raises(ValidationError):
+        tool({"schema": "transfer", "dict": 2, "json": 0})

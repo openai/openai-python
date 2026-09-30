@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import inspect
 from copy import deepcopy
+from types import SimpleNamespace
 from typing import Any, Generic, TypeVar, Callable, get_type_hints
 
 import pydantic
@@ -91,26 +92,40 @@ def function_tool(
     or bound methods so they do not appear in the tool's arguments.
     """
     signature = inspect.signature(function)
-    annotations = get_type_hints(function, include_extras=True)
+    # Return annotations may be TYPE_CHECKING-only imports; tools only need inputs.
+    annotations = get_type_hints(
+        SimpleNamespace(
+            __annotations__={
+                name: parameter.annotation
+                for name, parameter in signature.parameters.items()
+                if parameter.annotation is not inspect.Parameter.empty
+            }
+        ),
+        globalns=getattr(function, "__globals__", None),
+        include_extras=True,
+    )
     fields: dict[str, Any] = {}
+    aliases: dict[str, str] = {}
     for parameter in signature.parameters.values():
         if parameter.kind not in (inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.KEYWORD_ONLY):
             raise TypeError(f"Unsupported tool parameter: {parameter.name}")
         if parameter.name.startswith("_") or parameter.name not in annotations:
             raise TypeError(f"Tool parameter needs a public name and type annotation: {parameter.name}")
         default = ... if parameter.default is inspect.Parameter.empty else parameter.default
-        fields[parameter.name] = (annotations[parameter.name], default)
+        field = f"argument_{len(fields)}"
+        aliases[field] = parameter.name
+        fields[field] = (annotations[parameter.name], default)
 
     # Use each supported Pydantic version's native validation and schema handling.
     if PYDANTIC_V1:
-        config: Any = type("Config", (), {"extra": "forbid"})
+        config: Any = type("Config", (), {"extra": "forbid", "alias_generator": staticmethod(aliases.__getitem__)})
     else:
-        config = pydantic.ConfigDict(extra="forbid")
+        config = pydantic.ConfigDict(extra="forbid", alias_generator=aliases.__getitem__)
     model = pydantic.create_model("ToolArguments", __config__=config, **fields)
 
     def invoke(arguments: pydantic.BaseModel) -> _OutputT:
         # getattr retains nested model instances; model_dump would turn them into dicts.
-        return function(**{field: getattr(arguments, field) for field in fields})
+        return function(**{name: getattr(arguments, field) for field, name in aliases.items()})
 
     return pydantic_function_tool(
         model,
