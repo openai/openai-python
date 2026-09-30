@@ -31,11 +31,6 @@ class AgentSessionEventStream(Stream[AgentSessionEvent]):
                 self._collector.cause = error
             raise
 
-    def until_done(self) -> None:
-        """Consume the remaining events."""
-        for _ in self:
-            pass
-
     def get_final_result(self) -> AgentTurnResult:
         """Consume remaining events and return the successful initial turn result.
 
@@ -76,11 +71,6 @@ class AsyncAgentSessionEventStream(AsyncStream[AgentSessionEvent]):
             if not self._collector.is_done():
                 self._collector.cause = error
             raise
-
-    async def until_done(self) -> None:
-        """Consume the remaining events."""
-        async for _ in self:
-            pass
 
     async def get_final_result(self) -> AgentTurnResult:
         """Consume remaining events and return the successful initial turn result."""

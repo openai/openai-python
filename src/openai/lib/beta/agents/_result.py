@@ -96,9 +96,14 @@ class AgentTurnResultCollector:
             item = event.item
             if self.turn is None or item.turn_id != self.turn.id or item.type != "message" or item.role != "assistant":
                 return
-            if item.id is None or item.phase == "commentary":
+            if item.id is None:
                 return
             if event.type == "agent.session.turn.item.added" and item.id in self._messages:
+                return
+            if item.phase == "commentary":
+                self._pending.discard(item.id)
+                self._unclassified.discard(item.id)
+                self._messages.pop(item.id, None)
                 return
             if item.phase is None:
                 self._unclassified.add(item.id)
@@ -159,5 +164,6 @@ class AgentTurnResultCollector:
             raise self.error("incomplete")
         if self._unclassified:
             raise self.error("ambiguous_output")
-        self._result = AgentTurnResult(turn=deepcopy(self.turn), messages=deepcopy(self.messages()))
+        self._result = AgentTurnResult(turn=deepcopy(self.turn), messages=self.messages())
+        self._messages.clear()
         return self._result

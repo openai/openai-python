@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Iterator
+from typing import Any, Iterator, cast
 from typing_extensions import override
 
 import httpx2
@@ -8,6 +8,7 @@ import pytest
 
 from openai import OpenAI, AsyncOpenAI
 from openai.lib.beta.agents import AgentTurnResult, AgentTurnResultError
+from openai.lib.streaming.agents import AgentSessionStream, AsyncAgentSessionStream
 from tests.lib.streaming.agents.test_streams import Server, EventBody, sdk as sdk, call, idle, session, turn_event
 
 
@@ -72,6 +73,7 @@ async def collect(sdk: OpenAI | AsyncOpenAI, creation: bool, *, mode: str = "get
                 async for _ in async_stream:
                     pass
             elif mode == "drain":
+                assert isinstance(async_stream, AsyncAgentSessionStream)
                 await async_stream.until_done()
             result = await async_stream.get_final_result()
             assert await async_stream.get_final_result() is result
@@ -88,6 +90,7 @@ async def collect(sdk: OpenAI | AsyncOpenAI, creation: bool, *, mode: str = "get
             for _ in stream:
                 pass
         elif mode == "drain":
+            assert isinstance(stream, AgentSessionStream)
             stream.until_done()
         result = stream.get_final_result()
         assert stream.get_final_result() is result
@@ -98,6 +101,8 @@ async def collect(sdk: OpenAI | AsyncOpenAI, creation: bool, *, mode: str = "get
 async def test_result_selects_ordered_final_messages(
     sdk: OpenAI | AsyncOpenAI, server: ResultServer, creation: bool, mode: str
 ) -> None:
+    if creation and mode == "drain":
+        pytest.skip("Only the existing follow-up helper exposes until_done")
     server.body = EventBody(
         [
             idle(),
@@ -315,3 +320,39 @@ async def test_nullable_added_envelope_still_tracks_incomplete_output(
     with pytest.raises(AgentTurnResultError) as exc:
         await collect(sdk, creation)
     assert exc.value.reason == "incomplete"
+
+
+@pytest.mark.parametrize("initial_phase", [None, "final_answer"])
+async def test_completed_commentary_resolves_pending_phase(
+    sdk: OpenAI | AsyncOpenAI, server: ResultServer, creation: bool, initial_phase: str | None
+) -> None:
+    server.body = EventBody(
+        [
+            turn_event("created"),
+            message(kind="added", phase=initial_phase),
+            message(phase="commentary"),
+            turn_event("completed"),
+            idle(),
+        ]
+    )
+    result = await collect(sdk, creation)
+    assert result.messages == []
+    assert result.output_text == ""
+
+
+def test_collector_transfers_messages_into_cached_result() -> None:
+    from openai._models import construct_type
+    from openai.lib.beta.agents._result import AgentTurnResultCollector
+    from openai.types.beta.agent_session_event import AgentSessionEvent
+
+    collector = AgentTurnResultCollector()
+    for index, data in enumerate([turn_event("created"), message(), turn_event("completed"), idle()]):
+        collector.accept(
+            cast(AgentSessionEvent, construct_type(type_=AgentSessionEvent, value={"event_id": str(index), **data}))
+        )
+    original_message = collector.messages()[0]
+    result = collector.result()
+    assert result.messages[0] is original_message
+    assert collector.messages() == []  # The stream no longer retains a duplicate message collection.
+    assert collector.result() is result
+    assert result.output_text == "answer"
