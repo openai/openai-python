@@ -14,6 +14,7 @@ class AgentSessionEventStream(Stream[AgentSessionEvent]):
 
     Event iteration and response access behave like ``Stream``. Collection does
     not execute local tools; required actions are available on the result error.
+    Supply initial input when creating a session to collect its turn result.
     """
 
     @cached_property

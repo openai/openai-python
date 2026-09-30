@@ -154,9 +154,7 @@ async def test_unsuccessful_turn(sdk: OpenAI | AsyncOpenAI, server: ResultServer
     assert server.body.closed
 
 
-@pytest.mark.parametrize(
-    "tail", [[], [turn_event("completed")], [message(kind="added"), turn_event("completed"), idle()]]
-)
+@pytest.mark.parametrize("tail", [[], [turn_event("completed")]])
 async def test_incomplete_answer(
     sdk: OpenAI | AsyncOpenAI, server: ResultServer, creation: bool, tail: list[dict[str, Any]]
 ) -> None:
@@ -167,11 +165,11 @@ async def test_incomplete_answer(
     assert exc.value.turn_id == "turn_root"
 
 
-async def test_null_phase_is_not_guessed(sdk: OpenAI | AsyncOpenAI, server: ResultServer, creation: bool) -> None:
+async def test_legacy_null_phase_is_collected(sdk: OpenAI | AsyncOpenAI, server: ResultServer, creation: bool) -> None:
     server.body = EventBody([turn_event("created"), message(phase=None), turn_event("completed"), idle()])
-    with pytest.raises(AgentTurnResultError) as exc:
-        await collect(sdk, creation)
-    assert exc.value.reason == "ambiguous_output"
+    result = await collect(sdk, creation)
+    assert result.output_text == "answer"
+    assert result.messages[0].phase is None
 
 
 async def test_unhandled_action(sdk: OpenAI | AsyncOpenAI, server: ResultServer, creation: bool) -> None:
@@ -318,20 +316,8 @@ async def test_later_stream_error_does_not_poison_completed_result(
     assert result.output_text == "answer"
 
 
-async def test_nullable_added_envelope_still_tracks_incomplete_output(
-    sdk: OpenAI | AsyncOpenAI, server: ResultServer, creation: bool
-) -> None:
-    added = message(kind="added")
-    added["turn_id"] = None
-    added["output_index"] = None
-    server.body = EventBody([turn_event("created"), added, turn_event("completed"), idle()])
-    with pytest.raises(AgentTurnResultError) as exc:
-        await collect(sdk, creation)
-    assert exc.value.reason == "incomplete"
-
-
 @pytest.mark.parametrize("initial_phase", [None, "final_answer"])
-async def test_completed_commentary_resolves_pending_phase(
+async def test_completed_commentary_is_excluded(
     sdk: OpenAI | AsyncOpenAI, server: ResultServer, creation: bool, initial_phase: str | None
 ) -> None:
     server.body = EventBody(
@@ -366,31 +352,11 @@ def test_collector_transfers_messages_into_cached_result() -> None:
     assert result.output_text == "answer"
 
 
-@pytest.mark.parametrize("kind", ["delta", "done"])
-@pytest.mark.parametrize("turn_id", ["turn_root", None])
-async def test_text_without_completed_item_is_incomplete(
-    sdk: OpenAI | AsyncOpenAI, server: ResultServer, creation: bool, kind: str, turn_id: str | None
-) -> None:
-    text_event: dict[str, object] = {
-        "type": f"agent.session.turn.output_text.{kind}",
-        "session_id": "session_test",
-        "turn_id": turn_id,
-        "item_id": "message_a",
-        "output_index": 0,
-        "content_index": 0,
-        "delta" if kind == "delta" else "text": "unfinished answer",
-    }
-    server.body = EventBody([turn_event("created"), text_event, turn_event("completed"), idle()])
-    with pytest.raises(AgentTurnResultError) as exc:
-        await collect(sdk, creation)
-    assert exc.value.reason == "incomplete"
-
-
 @pytest.mark.parametrize(
     "phase,turn_id,expected",
     [("final_answer", "turn_root", "answer"), ("commentary", "turn_root", ""), ("final_answer", "child", "")],
 )
-async def test_item_snapshot_resolves_unattributed_text(
+async def test_only_completed_message_snapshots_supply_text(
     sdk: OpenAI | AsyncOpenAI, server: ResultServer, creation: bool, phase: str, turn_id: str, expected: str
 ) -> None:
     text_event: dict[str, object] = {
@@ -414,17 +380,6 @@ async def test_item_snapshot_resolves_unattributed_text(
     )
     result = await collect(sdk, creation)
     assert result.output_text == expected
-
-
-async def test_missing_assistant_item_id_is_incomplete(
-    sdk: OpenAI | AsyncOpenAI, server: ResultServer, creation: bool
-) -> None:
-    added = message(kind="added")
-    added["item"]["id"] = None
-    server.body = EventBody([turn_event("created"), added, turn_event("completed"), idle()])
-    with pytest.raises(AgentTurnResultError) as exc:
-        await collect(sdk, creation)
-    assert exc.value.reason == "incomplete"
 
 
 def test_error_transfers_partial_payloads_and_is_cached() -> None:
