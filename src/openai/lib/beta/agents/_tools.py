@@ -184,6 +184,13 @@ def function_tool(
     localns: dict[str, Any] = {}
     if inspect.ismethod(function):
         owner = function.__self__ if inspect.isclass(function.__self__) else type(function.__self__)
+        source_function = getattr(annotation_source, "__func__", annotation_source)
+        for cls in owner.__mro__:
+            member = vars(cls).get(function.__name__)
+            member = getattr(member, "__func__", member)
+            if callable(member) and inspect.unwrap(member) is source_function:
+                owner = cls
+                break
         localns = {name: value for cls in reversed(owner.__mro__) for name, value in vars(cls).items()}
     # Return annotations may be TYPE_CHECKING-only imports; tools only need inputs.
     annotations = get_type_hints(

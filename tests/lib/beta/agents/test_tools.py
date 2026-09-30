@@ -277,7 +277,17 @@ def test_bound_class_namespaces() -> None:
     class InheritedWallet(Wallet):
         pass
 
-    for callback in (Wallet().lookup, InheritedWallet().lookup, Wallet.lookup_class):
+    class ShadowedWallet(Wallet):
+        class Asset(BaseModel):  # pyright: ignore[reportIncompatibleVariableOverride]
+            address: int
+
+    for callback in (
+        Wallet().lookup,
+        InheritedWallet().lookup,
+        Wallet.lookup_class,
+        ShadowedWallet().lookup,
+        ShadowedWallet.lookup_class,
+    ):
         assert function_tool(callback)({"asset": {"symbol": "USDC"}}) == "USDC"
 
 
