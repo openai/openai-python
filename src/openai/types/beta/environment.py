@@ -13,9 +13,9 @@ __all__ = [
     "Environment",
     "EnvironmentResourceNone",
     "EnvironmentResourceOpenAIHosted",
+    "EnvironmentResourceOpenAIHostedDesktop",
     "EnvironmentResourceOpenAIHostedNetwork",
     "EnvironmentResourceOpenAIHostedPackages",
-    "EnvironmentResourceOpenAIHostedDesktop",
     "EnvironmentResourceSelfHosted",
 ]
 
@@ -27,6 +27,13 @@ class EnvironmentResourceNone(BaseModel):
 
     type: Literal["none"]
     """The type of the object. Always `none`."""
+
+
+class EnvironmentResourceOpenAIHostedDesktop(BaseModel):
+    """The effective desktop configuration."""
+
+    enabled: bool
+    """Whether the environment provisions a desktop and browser proxy."""
 
 
 class EnvironmentResourceOpenAIHostedNetwork(BaseModel):
@@ -57,13 +64,6 @@ class EnvironmentResourceOpenAIHostedPackages(BaseModel):
     """System packages installed in the environment."""
 
 
-class EnvironmentResourceOpenAIHostedDesktop(BaseModel):
-    """The effective desktop configuration."""
-
-    enabled: bool
-    """Whether the environment provisions a desktop and browser proxy."""
-
-
 class EnvironmentResourceOpenAIHosted(BaseModel):
     """An environment hosted by OpenAI."""
 
@@ -72,6 +72,9 @@ class EnvironmentResourceOpenAIHosted(BaseModel):
 
     capability_directories: List[str]
     """Directories that contain capabilities exposed to the agent."""
+
+    desktop: EnvironmentResourceOpenAIHostedDesktop
+    """The effective desktop configuration."""
 
     files: List[HostedEnvironmentFile]
     """Files available in the environment, excluding their contents."""
@@ -91,8 +94,11 @@ class EnvironmentResourceOpenAIHosted(BaseModel):
     type: Literal["openai_hosted"]
     """The type of the object. Always `openai_hosted`."""
 
-    desktop: Optional[EnvironmentResourceOpenAIHostedDesktop] = None
-    """The effective desktop configuration."""
+    container_size: Optional[Literal["small", "medium", "large"]] = None
+    """
+    The effective CPU and memory tier, or null when unknown or outside the public
+    tiers.
+    """
 
 
 class EnvironmentResourceSelfHosted(BaseModel):
