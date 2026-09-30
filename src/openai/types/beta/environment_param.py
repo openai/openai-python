@@ -91,6 +91,9 @@ class EnvironmentParamOpenAIHosted(TypedDict, total=False):
     Defaults to an empty list.
     """
 
+    container_size: Literal["small", "medium", "large"]
+    """The hosted container size. Omission selects the medium tier."""
+
     desktop: Optional[EnvironmentParamOpenAIHostedDesktop]
     """Desktop provisioning.
 

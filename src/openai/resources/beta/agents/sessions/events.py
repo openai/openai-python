@@ -55,11 +55,12 @@ class Events(SyncAPIResource):
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> None:
         """
-        Submits message, cancellation, or tool-result events to a managed agent session.
-        Cancellation can recover a still-open turn whose backend execution has ended by
-        marking it cancelled and abandoning unpublished outputs. Saved results,
-        published files, and existing terminal outcomes are preserved. HTTP 202 confirms
-        acceptance, not durable completion. See
+        Submits message, cancellation, tool-result, or computer-use approval-response
+        events to a managed agent session. Cancellation can recover a still-open turn
+        whose backend execution has ended by marking it cancelled and abandoning
+        unpublished outputs. Saved results, published files, and existing terminal
+        outcomes are preserved. HTTP 202 confirms acceptance, not durable completion.
+        See
         [session events](https://developers.openai.com/api/docs/guides/agents-api/sessions/events).
 
         Args:
@@ -169,11 +170,12 @@ class AsyncEvents(AsyncAPIResource):
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> None:
         """
-        Submits message, cancellation, or tool-result events to a managed agent session.
-        Cancellation can recover a still-open turn whose backend execution has ended by
-        marking it cancelled and abandoning unpublished outputs. Saved results,
-        published files, and existing terminal outcomes are preserved. HTTP 202 confirms
-        acceptance, not durable completion. See
+        Submits message, cancellation, tool-result, or computer-use approval-response
+        events to a managed agent session. Cancellation can recover a still-open turn
+        whose backend execution has ended by marking it cancelled and abandoning
+        unpublished outputs. Saved results, published files, and existing terminal
+        outcomes are preserved. HTTP 202 confirms acceptance, not durable completion.
+        See
         [session events](https://developers.openai.com/api/docs/guides/agents-api/sessions/events).
 
         Args:

@@ -721,6 +721,18 @@ Methods:
 - <code title="post /agents/sessions/{session_id}/events">client.beta.agents.sessions.events.<a href="./src/openai/resources/beta/agents/sessions/events.py">create</a>(session_id, \*\*<a href="src/openai/types/beta/agents/sessions/event_create_params.py">params</a>) -> None</code>
 - <code title="get /agents/sessions/{session_id}/events">client.beta.agents.sessions.events.<a href="./src/openai/resources/beta/agents/sessions/events.py">stream</a>(session_id) -> <a href="./src/openai/types/beta/agent_session_event.py">AgentSessionEvent</a></code>
 
+#### Traces
+
+Types:
+
+```python
+from openai.types.beta.agents.sessions import SessionTrace
+```
+
+Methods:
+
+- <code title="get /agents/sessions/{session_id}/traces">client.beta.agents.sessions.traces.<a href="./src/openai/resources/beta/agents/sessions/traces.py">list</a>(session_id, \*\*<a href="src/openai/types/beta/agents/sessions/trace_list_params.py">params</a>) -> <a href="./src/openai/types/beta/agents/sessions/session_trace.py">SyncCursorPage[SessionTrace]</a></code>
+
 #### Turns
 
 Types:

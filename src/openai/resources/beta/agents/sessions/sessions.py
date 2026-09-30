@@ -32,6 +32,14 @@ from .events import (
     EventsWithStreamingResponse,
     AsyncEventsWithStreamingResponse,
 )
+from .traces import (
+    Traces,
+    AsyncTraces,
+    TracesWithRawResponse,
+    AsyncTracesWithRawResponse,
+    TracesWithStreamingResponse,
+    AsyncTracesWithStreamingResponse,
+)
 from .artifacts import (
     Artifacts,
     AsyncArtifacts,
@@ -82,6 +90,10 @@ class Sessions(SyncAPIResource):
     @cached_property
     def events(self) -> Events:
         return Events(self._client)
+
+    @cached_property
+    def traces(self) -> Traces:
+        return Traces(self._client)
 
     @cached_property
     def turns(self) -> Turns:
@@ -534,6 +546,10 @@ class AsyncSessions(AsyncAPIResource):
     @cached_property
     def events(self) -> AsyncEvents:
         return AsyncEvents(self._client)
+
+    @cached_property
+    def traces(self) -> AsyncTraces:
+        return AsyncTraces(self._client)
 
     @cached_property
     def turns(self) -> AsyncTurns:
@@ -1007,6 +1023,10 @@ class SessionsWithRawResponse:
         return EventsWithRawResponse(self._sessions.events)
 
     @cached_property
+    def traces(self) -> TracesWithRawResponse:
+        return TracesWithRawResponse(self._sessions.traces)
+
+    @cached_property
     def turns(self) -> TurnsWithRawResponse:
         return TurnsWithRawResponse(self._sessions.turns)
 
@@ -1046,6 +1066,10 @@ class AsyncSessionsWithRawResponse:
     @cached_property
     def events(self) -> AsyncEventsWithRawResponse:
         return AsyncEventsWithRawResponse(self._sessions.events)
+
+    @cached_property
+    def traces(self) -> AsyncTracesWithRawResponse:
+        return AsyncTracesWithRawResponse(self._sessions.traces)
 
     @cached_property
     def turns(self) -> AsyncTurnsWithRawResponse:
@@ -1089,6 +1113,10 @@ class SessionsWithStreamingResponse:
         return EventsWithStreamingResponse(self._sessions.events)
 
     @cached_property
+    def traces(self) -> TracesWithStreamingResponse:
+        return TracesWithStreamingResponse(self._sessions.traces)
+
+    @cached_property
     def turns(self) -> TurnsWithStreamingResponse:
         return TurnsWithStreamingResponse(self._sessions.turns)
 
@@ -1128,6 +1156,10 @@ class AsyncSessionsWithStreamingResponse:
     @cached_property
     def events(self) -> AsyncEventsWithStreamingResponse:
         return AsyncEventsWithStreamingResponse(self._sessions.events)
+
+    @cached_property
+    def traces(self) -> AsyncTracesWithStreamingResponse:
+        return AsyncTracesWithStreamingResponse(self._sessions.traces)
 
     @cached_property
     def turns(self) -> AsyncTurnsWithStreamingResponse:
