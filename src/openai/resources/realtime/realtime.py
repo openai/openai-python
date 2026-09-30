@@ -717,12 +717,19 @@ class AsyncRealtimeConnectionManager:
                 url, auth_headers = await self.__client._configure_realtime(model, extra_query)
             prepared_headers: Headers = extra_headers
         else:
-            url = self._prepare_url().copy_with(
-                params={
-                    **self.__client.base_url.params,
-                    **({"model": self.__model} if self.__model is not omit else {}),
-                    **extra_query,
-                },
+            url = self._prepare_url()
+            url = url.copy_with(
+                params=httpx2.QueryParams(self.__client.qs.stringify(cast(Any, self.__client.default_query)))
+                .merge(url.params)
+                .merge(
+                    cast(
+                        Any,
+                        {
+                            **({"model": self.__model} if self.__model is not omit else {}),
+                            **extra_query,
+                        },
+                    )
+                ),
             )
             url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
             options = await self.__client._prepare_options(
@@ -1223,12 +1230,19 @@ class RealtimeConnectionManager:
                 url, auth_headers = self.__client._configure_realtime(model, extra_query)
             prepared_headers: Headers = extra_headers
         else:
-            url = self._prepare_url().copy_with(
-                params={
-                    **self.__client.base_url.params,
-                    **({"model": self.__model} if self.__model is not omit else {}),
-                    **extra_query,
-                },
+            url = self._prepare_url()
+            url = url.copy_with(
+                params=httpx2.QueryParams(self.__client.qs.stringify(cast(Any, self.__client.default_query)))
+                .merge(url.params)
+                .merge(
+                    cast(
+                        Any,
+                        {
+                            **({"model": self.__model} if self.__model is not omit else {}),
+                            **extra_query,
+                        },
+                    )
+                ),
             )
             url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
             options = self.__client._prepare_options(
