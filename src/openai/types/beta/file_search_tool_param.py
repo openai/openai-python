@@ -12,7 +12,7 @@ class FileSearchRankingOptions(TypedDict, total=False):
 
     If not specified, the file search tool will use the `auto` ranker and a score_threshold of 0.
 
-    See the [file search tool documentation](https://platform.openai.com/docs/assistants/tools/file-search#customizing-file-search-settings) for more information.
+    See the [file search tool documentation](https://developers.openai.com/api/docs/guides/tools-file-search#retrieval-customization) for more information.
     """
 
     score_threshold: Required[float]
@@ -39,7 +39,7 @@ class FileSearch(TypedDict, total=False):
 
     Note that the file search tool may output fewer than `max_num_results` results.
     See the
-    [file search tool documentation](https://platform.openai.com/docs/assistants/tools/file-search#customizing-file-search-settings)
+    [file search tool documentation](https://developers.openai.com/api/docs/guides/tools-file-search#retrieval-customization)
     for more information.
     """
 
@@ -50,7 +50,7 @@ class FileSearch(TypedDict, total=False):
     score_threshold of 0.
 
     See the
-    [file search tool documentation](https://platform.openai.com/docs/assistants/tools/file-search#customizing-file-search-settings)
+    [file search tool documentation](https://developers.openai.com/api/docs/guides/tools-file-search#retrieval-customization)
     for more information.
     """
 

@@ -1,3 +1,22 @@
+# Contributing
+
+## Contribution policy
+
+We welcome bug reports, feature requests, minimal reproductions, and root-cause
+analysis through [GitHub issues](https://github.com/openai/openai-python/issues).
+
+**Pull requests are limited to repository collaborators. We do not accept pull
+requests from non-collaborators**, including documentation or example changes.
+If you are not a collaborator, please open an issue instead of preparing a pull
+request. Include the affected version, expected and actual behavior, and a small,
+sanitized reproduction when applicable.
+
+Report suspected security vulnerabilities privately as described in
+[SECURITY.md](SECURITY.md), rather than in issues or pull requests.
+
+The development and pull request instructions below are for maintainers and
+repository collaborators.
+
 ## Setting up the environment
 
 The minimum supported runtime, contributor toolchain, CI matrix, and release
@@ -172,11 +191,27 @@ $ pip install ./path-to-wheel-file.whl
 
 ## Running tests
 
-Most tests require you to [set up a mock server](https://github.com/dgellow/steady) against the OpenAPI spec to run the tests.
+The mock server uses [the OpenAI Steady fork](https://github.com/openai-oss-forks/steady).
+`scripts/steady/manifest.json` is the single source of dependency pins: the
+Steady Git commit and source digest, plus the Deno version and runtime checksums. `./scripts/steady/install` fetches that source, verifies the runtime,
+and caches dependencies using the fork's frozen Deno lockfile. It requires
+Git, Node.js, curl, unzip, and sha256sum or shasum. The installation supports
+macOS and Linux on x64/ARM64, and Windows x64 through Git Bash.
 
-`./scripts/bootstrap` installs the locked Steady package and its platform
-binary. `./scripts/test` starts it automatically when no mock server is running.
-Neither `./scripts/test` nor `./scripts/mock` downloads Node tools. If the local
+`./scripts/run-steady` verifies the local source and runtime, then runs without
+downloading dependencies. Pass a local OpenAPI specification path. To update
+Steady, review the fork commit and run
+`node scripts/steady/update.cjs <full-commit-sha>`. This updates the manifest
+with the commit and its source digest; no launcher or test edits are needed.
+Then run `./scripts/steady/install`. Review the release checksums when changing Deno.
+Run `node scripts/steady/test.cjs` to check the
+installation, integrity checks, and mock-server lifecycle.
+
+
+Most tests require you to [set up a mock server](https://github.com/openai-oss-forks/steady) against the OpenAPI spec to run the tests.
+
+`./scripts/bootstrap` installs the pinned Steady source and Deno runtime. `./scripts/test` starts it automatically when no mock server is running.
+Neither `./scripts/test` nor `./scripts/mock` downloads mock tooling. If the local
 tool is missing, rerun bootstrap. `TEST_API_BASE_URL` and an already-running
 mock server remain supported. To start the server yourself:
 

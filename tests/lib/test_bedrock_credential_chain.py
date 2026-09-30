@@ -3,7 +3,7 @@ from __future__ import annotations
 import sys
 import json
 import threading
-from typing import Any, Iterator, cast
+from typing import Any, Generator, cast
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from contextlib import contextmanager
@@ -102,7 +102,7 @@ def _assert_signed_with(request: httpx2.Request, name: str, *, region: str) -> N
 
 
 @contextmanager
-def _metadata_server() -> Iterator[tuple[str, list[tuple[str, str, str | None]]]]:
+def _metadata_server() -> Generator[tuple[str, list[tuple[str, str, str | None]]], None, None]:
     calls: list[tuple[str, str, str | None]] = []
 
     class Handler(BaseHTTPRequestHandler):

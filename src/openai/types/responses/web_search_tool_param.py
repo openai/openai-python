@@ -24,7 +24,12 @@ class Filters(TypedDict, total=False):
 
 
 class UserLocation(TypedDict, total=False):
-    """The approximate location of the user."""
+    """The approximate location of the user.
+
+    If omitted or null, defaults to the
+    United States. To avoid this fallback, pass `{"type": "approximate"}` without
+    location fields. To localize results, provide the relevant location fields.
+    """
 
     city: Optional[str]
     """Free text input for the city of the user, e.g. `San Francisco`."""
@@ -52,7 +57,7 @@ class WebSearchToolParam(TypedDict, total=False):
     """Search the Internet for sources related to the prompt.
 
     Learn more about the
-    [web search tool](https://platform.openai.com/docs/guides/tools-web-search).
+    [web search tool](https://developers.openai.com/api/docs/guides/tools-web-search).
     """
 
     type: Required[Literal["web_search", "web_search_2025_08_26"]]
@@ -79,4 +84,9 @@ class WebSearchToolParam(TypedDict, total=False):
     """
 
     user_location: Optional[UserLocation]
-    """The approximate location of the user."""
+    """The approximate location of the user.
+
+    If omitted or null, defaults to the United States. To avoid this fallback, pass
+    `{"type": "approximate"}` without location fields. To localize results, provide
+    the relevant location fields.
+    """

@@ -37,7 +37,7 @@ class ResponseFileSearchToolCallParam(TypedDict, total=False):
     """The results of a file search tool call.
 
     See the
-    [file search guide](https://platform.openai.com/docs/guides/tools-file-search) for more information.
+    [file search guide](https://developers.openai.com/api/docs/guides/tools-file-search) for more information.
     """
 
     id: Required[str]

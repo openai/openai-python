@@ -22,7 +22,7 @@ class PromptCacheBreakpoint(BaseModel):
 class ResponseInputImage(BaseModel):
     """An image input to the model.
 
-    Learn about [image inputs](https://platform.openai.com/docs/guides/vision).
+    Learn about [image inputs](https://developers.openai.com/api/docs/guides/images-vision).
     """
 
     detail: ImageDetail

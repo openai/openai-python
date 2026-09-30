@@ -109,7 +109,7 @@ class DataSourceResponsesSourceResponses(BaseModel):
     `xhigh`, and `max`. Reducing reasoning effort can result in faster responses and
     fewer tokens used on reasoning in a response. Not all reasoning models support
     every value. See the
-    [reasoning guide](https://platform.openai.com/docs/guides/reasoning) for
+    [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
     model-specific support.
     """
 
@@ -238,8 +238,8 @@ class DataSourceResponsesSamplingParamsText(BaseModel):
 
     Can be plain
     text or structured JSON data. Learn more:
-    - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
-    - [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
+    - [Text inputs and outputs](https://developers.openai.com/api/docs/guides/text)
+    - [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs)
     """
 
     format: Optional[ResponseFormatTextConfig] = None
@@ -247,7 +247,7 @@ class DataSourceResponsesSamplingParamsText(BaseModel):
 
     Configuring `{ "type": "json_schema" }` enables Structured Outputs, which
     ensures the model will match your supplied JSON schema. Learn more in the
-    [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+    [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
     The default format is `{ "type": "text" }` with no additional options.
 
@@ -270,7 +270,7 @@ class DataSourceResponsesSamplingParams(BaseModel):
     `xhigh`, and `max`. Reducing reasoning effort can result in faster responses and
     fewer tokens used on reasoning in a response. Not all reasoning models support
     every value. See the
-    [reasoning guide](https://platform.openai.com/docs/guides/reasoning) for
+    [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
     model-specific support.
     """
 
@@ -285,8 +285,8 @@ class DataSourceResponsesSamplingParams(BaseModel):
 
     Can be plain text or structured JSON data. Learn more:
 
-    - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
-    - [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
+    - [Text inputs and outputs](https://developers.openai.com/api/docs/guides/text)
+    - [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs)
     """
 
     tools: Optional[List[Tool]] = None
@@ -298,13 +298,14 @@ class DataSourceResponsesSamplingParams(BaseModel):
 
     - **Built-in tools**: Tools that are provided by OpenAI that extend the model's
       capabilities, like
-      [web search](https://platform.openai.com/docs/guides/tools-web-search) or
-      [file search](https://platform.openai.com/docs/guides/tools-file-search).
+      [web search](https://developers.openai.com/api/docs/guides/tools-web-search)
+      or
+      [file search](https://developers.openai.com/api/docs/guides/tools-file-search).
       Learn more about
-      [built-in tools](https://platform.openai.com/docs/guides/tools).
+      [built-in tools](https://developers.openai.com/api/docs/guides/tools).
     - **Function calls (custom tools)**: Functions that are defined by you, enabling
       the model to call your own code. Learn more about
-      [function calling](https://platform.openai.com/docs/guides/function-calling).
+      [function calling](https://developers.openai.com/api/docs/guides/function-calling).
     """
 
     top_p: Optional[float] = None

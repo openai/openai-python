@@ -109,8 +109,9 @@ class Threads(SyncAPIResource):
         Create a thread.
 
         Args:
-          messages: A list of [messages](https://platform.openai.com/docs/api-reference/messages) to
-              start the thread with.
+          messages: A list of
+              [messages](https://developers.openai.com/api/docs/assistants/migration) to start
+              the thread with.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format, and
@@ -324,8 +325,8 @@ class Threads(SyncAPIResource):
 
         Args:
           assistant_id: The ID of the
-              [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
-              execute this run.
+              [assistant](https://developers.openai.com/api/docs/assistants/migration) to use
+              to execute this run.
 
           instructions: Override the default system message of the assistant. This is useful for
               modifying the behavior on a per-run basis.
@@ -349,24 +350,25 @@ class Threads(SyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
-              be used to execute this run. If a value is provided here, it will override the
-              model associated with the assistant. If not, the model associated with the
-              assistant will be used.
+          model: The ID of the
+              [Model](https://developers.openai.com/api/reference/resources/models) to be used
+              to execute this run. If a value is provided here, it will override the model
+              associated with the assistant. If not, the model associated with the assistant
+              will be used.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
+              [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
               during tool use.
 
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
-              and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+              [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://developers.openai.com/api/docs/models/gpt-4-turbo), and
+              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
               Outputs which ensures the model will match your supplied JSON schema. Learn more
               in the
-              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+              [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
               message the model generates is valid JSON.
@@ -458,8 +460,8 @@ class Threads(SyncAPIResource):
 
         Args:
           assistant_id: The ID of the
-              [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
-              execute this run.
+              [assistant](https://developers.openai.com/api/docs/assistants/migration) to use
+              to execute this run.
 
           stream: If `true`, returns a stream of events that happen during the Run as server-sent
               events, terminating when the Run enters a terminal state with a `data: [DONE]`
@@ -487,24 +489,25 @@ class Threads(SyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
-              be used to execute this run. If a value is provided here, it will override the
-              model associated with the assistant. If not, the model associated with the
-              assistant will be used.
+          model: The ID of the
+              [Model](https://developers.openai.com/api/reference/resources/models) to be used
+              to execute this run. If a value is provided here, it will override the model
+              associated with the assistant. If not, the model associated with the assistant
+              will be used.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
+              [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
               during tool use.
 
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
-              and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+              [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://developers.openai.com/api/docs/models/gpt-4-turbo), and
+              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
               Outputs which ensures the model will match your supplied JSON schema. Learn more
               in the
-              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+              [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
               message the model generates is valid JSON.
@@ -592,8 +595,8 @@ class Threads(SyncAPIResource):
 
         Args:
           assistant_id: The ID of the
-              [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
-              execute this run.
+              [assistant](https://developers.openai.com/api/docs/assistants/migration) to use
+              to execute this run.
 
           stream: If `true`, returns a stream of events that happen during the Run as server-sent
               events, terminating when the Run enters a terminal state with a `data: [DONE]`
@@ -621,24 +624,25 @@ class Threads(SyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
-              be used to execute this run. If a value is provided here, it will override the
-              model associated with the assistant. If not, the model associated with the
-              assistant will be used.
+          model: The ID of the
+              [Model](https://developers.openai.com/api/reference/resources/models) to be used
+              to execute this run. If a value is provided here, it will override the model
+              associated with the assistant. If not, the model associated with the assistant
+              will be used.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
+              [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
               during tool use.
 
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
-              and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+              [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://developers.openai.com/api/docs/models/gpt-4-turbo), and
+              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
               Outputs which ensures the model will match your supplied JSON schema. Learn more
               in the
-              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+              [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
               message the model generates is valid JSON.
@@ -996,8 +1000,9 @@ class AsyncThreads(AsyncAPIResource):
         Create a thread.
 
         Args:
-          messages: A list of [messages](https://platform.openai.com/docs/api-reference/messages) to
-              start the thread with.
+          messages: A list of
+              [messages](https://developers.openai.com/api/docs/assistants/migration) to start
+              the thread with.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format, and
@@ -1211,8 +1216,8 @@ class AsyncThreads(AsyncAPIResource):
 
         Args:
           assistant_id: The ID of the
-              [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
-              execute this run.
+              [assistant](https://developers.openai.com/api/docs/assistants/migration) to use
+              to execute this run.
 
           instructions: Override the default system message of the assistant. This is useful for
               modifying the behavior on a per-run basis.
@@ -1236,24 +1241,25 @@ class AsyncThreads(AsyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
-              be used to execute this run. If a value is provided here, it will override the
-              model associated with the assistant. If not, the model associated with the
-              assistant will be used.
+          model: The ID of the
+              [Model](https://developers.openai.com/api/reference/resources/models) to be used
+              to execute this run. If a value is provided here, it will override the model
+              associated with the assistant. If not, the model associated with the assistant
+              will be used.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
+              [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
               during tool use.
 
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
-              and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+              [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://developers.openai.com/api/docs/models/gpt-4-turbo), and
+              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
               Outputs which ensures the model will match your supplied JSON schema. Learn more
               in the
-              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+              [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
               message the model generates is valid JSON.
@@ -1345,8 +1351,8 @@ class AsyncThreads(AsyncAPIResource):
 
         Args:
           assistant_id: The ID of the
-              [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
-              execute this run.
+              [assistant](https://developers.openai.com/api/docs/assistants/migration) to use
+              to execute this run.
 
           stream: If `true`, returns a stream of events that happen during the Run as server-sent
               events, terminating when the Run enters a terminal state with a `data: [DONE]`
@@ -1374,24 +1380,25 @@ class AsyncThreads(AsyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
-              be used to execute this run. If a value is provided here, it will override the
-              model associated with the assistant. If not, the model associated with the
-              assistant will be used.
+          model: The ID of the
+              [Model](https://developers.openai.com/api/reference/resources/models) to be used
+              to execute this run. If a value is provided here, it will override the model
+              associated with the assistant. If not, the model associated with the assistant
+              will be used.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
+              [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
               during tool use.
 
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
-              and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+              [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://developers.openai.com/api/docs/models/gpt-4-turbo), and
+              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
               Outputs which ensures the model will match your supplied JSON schema. Learn more
               in the
-              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+              [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
               message the model generates is valid JSON.
@@ -1479,8 +1486,8 @@ class AsyncThreads(AsyncAPIResource):
 
         Args:
           assistant_id: The ID of the
-              [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
-              execute this run.
+              [assistant](https://developers.openai.com/api/docs/assistants/migration) to use
+              to execute this run.
 
           stream: If `true`, returns a stream of events that happen during the Run as server-sent
               events, terminating when the Run enters a terminal state with a `data: [DONE]`
@@ -1508,24 +1515,25 @@ class AsyncThreads(AsyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
-              be used to execute this run. If a value is provided here, it will override the
-              model associated with the assistant. If not, the model associated with the
-              assistant will be used.
+          model: The ID of the
+              [Model](https://developers.openai.com/api/reference/resources/models) to be used
+              to execute this run. If a value is provided here, it will override the model
+              associated with the assistant. If not, the model associated with the assistant
+              will be used.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
+              [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
               during tool use.
 
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
-              and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+              [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://developers.openai.com/api/docs/models/gpt-4-turbo), and
+              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
               Outputs which ensures the model will match your supplied JSON schema. Learn more
               in the
-              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+              [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
               message the model generates is valid JSON.

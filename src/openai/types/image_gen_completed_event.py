@@ -1,5 +1,6 @@
 # File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
+from typing import Union
 from typing_extensions import Literal
 
 from .._models import BaseModel
@@ -50,11 +51,11 @@ class ImageGenCompletedEvent(BaseModel):
     output_format: Literal["png", "webp", "jpeg"]
     """The output format for the generated image."""
 
-    quality: Literal["low", "medium", "high", "auto"]
+    quality: Literal["low", "medium", "high", "xhigh", "max", "auto"]
     """The quality setting for the generated image."""
 
-    size: Literal["1024x1024", "1024x1536", "1536x1024", "auto"]
-    """The size of the generated image."""
+    size: Union[str, Literal["1024x1024", "1024x1536", "1536x1024", "auto"]]
+    """The image dimensions as a `WIDTHxHEIGHT` string, for example `1536x864`."""
 
     type: Literal["image_generation.completed"]
     """The type of the event. Always `image_generation.completed`."""

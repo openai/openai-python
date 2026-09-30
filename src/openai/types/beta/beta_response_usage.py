@@ -12,9 +12,9 @@ class InputTokensDetails(BaseModel):
     """The number of input tokens that were written to the cache."""
 
     cached_tokens: int
-    """The number of tokens that were retrieved from the cache.
-
-    [More on prompt caching](https://platform.openai.com/docs/guides/prompt-caching).
+    """
+    The number of tokens that were retrieved from the cache.
+    [More on prompt caching](https://developers.openai.com/api/docs/guides/prompt-caching).
     """
 
 

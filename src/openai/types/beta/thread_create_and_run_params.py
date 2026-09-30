@@ -42,8 +42,8 @@ class ThreadCreateAndRunParamsBase(TypedDict, total=False):
     assistant_id: Required[str]
     """
     The ID of the
-    [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
-    execute this run.
+    [assistant](https://developers.openai.com/api/docs/assistants/migration) to use
+    to execute this run.
     """
 
     instructions: Optional[str]
@@ -82,30 +82,31 @@ class ThreadCreateAndRunParamsBase(TypedDict, total=False):
 
     model: Union[str, ChatModel, None]
     """
-    The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
-    be used to execute this run. If a value is provided here, it will override the
-    model associated with the assistant. If not, the model associated with the
-    assistant will be used.
+    The ID of the
+    [Model](https://developers.openai.com/api/reference/resources/models) to be used
+    to execute this run. If a value is provided here, it will override the model
+    associated with the assistant. If not, the model associated with the assistant
+    will be used.
     """
 
     parallel_tool_calls: bool
     """
     Whether to enable
-    [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
+    [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
     during tool use.
     """
 
     response_format: Optional[AssistantResponseFormatOptionParam]
     """Specifies the format that the model must output.
 
-    Compatible with [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-    [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
-    and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+    Compatible with [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o),
+    [GPT-4 Turbo](https://developers.openai.com/api/docs/models/gpt-4-turbo), and
+    all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
     Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
     Outputs which ensures the model will match your supplied JSON schema. Learn more
     in the
-    [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+    [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
     Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
     message the model generates is valid JSON.
@@ -220,9 +221,9 @@ class ThreadMessage(TypedDict, total=False):
 class ThreadToolResourcesCodeInterpreter(TypedDict, total=False):
     file_ids: SequenceNotStr[str]
     """
-    A list of [file](https://platform.openai.com/docs/api-reference/files) IDs made
-    available to the `code_interpreter` tool. There can be a maximum of 20 files
-    associated with the tool.
+    A list of [file](https://developers.openai.com/api/reference/resources/files)
+    IDs made available to the `code_interpreter` tool. There can be a maximum of 20
+    files associated with the tool.
     """
 
 
@@ -273,10 +274,10 @@ class ThreadToolResourcesFileSearchVectorStore(TypedDict, total=False):
 
     file_ids: SequenceNotStr[str]
     """
-    A list of [file](https://platform.openai.com/docs/api-reference/files) IDs to
-    add to the vector store. For vector stores created before Nov 2025, there can be
-    a maximum of 10,000 files in a vector store. For vector stores created starting
-    in Nov 2025, the limit is 100,000,000 files.
+    A list of [file](https://developers.openai.com/api/reference/resources/files)
+    IDs to add to the vector store. For vector stores created before Nov 2025, there
+    can be a maximum of 10,000 files in a vector store. For vector stores created
+    starting in Nov 2025, the limit is 100,000,000 files.
     """
 
     metadata: Optional[Metadata]
@@ -294,7 +295,7 @@ class ThreadToolResourcesFileSearch(TypedDict, total=False):
     vector_store_ids: SequenceNotStr[str]
     """
     The
-    [vector store](https://platform.openai.com/docs/api-reference/vector-stores/object)
+    [vector store](https://developers.openai.com/api/reference/resources/vector_stores)
     attached to this thread. There can be a maximum of 1 vector store attached to
     the thread.
     """
@@ -302,7 +303,7 @@ class ThreadToolResourcesFileSearch(TypedDict, total=False):
     vector_stores: Iterable[ThreadToolResourcesFileSearchVectorStore]
     """
     A helper to create a
-    [vector store](https://platform.openai.com/docs/api-reference/vector-stores/object)
+    [vector store](https://developers.openai.com/api/reference/resources/vector_stores)
     with file_ids and attach it to this thread. There can be a maximum of 1 vector
     store attached to the thread.
     """
@@ -327,8 +328,9 @@ class Thread(TypedDict, total=False):
 
     messages: Iterable[ThreadMessage]
     """
-    A list of [messages](https://platform.openai.com/docs/api-reference/messages) to
-    start the thread with.
+    A list of
+    [messages](https://developers.openai.com/api/docs/assistants/migration) to start
+    the thread with.
     """
 
     metadata: Optional[Metadata]
@@ -353,9 +355,9 @@ class Thread(TypedDict, total=False):
 class ToolResourcesCodeInterpreter(TypedDict, total=False):
     file_ids: SequenceNotStr[str]
     """
-    A list of [file](https://platform.openai.com/docs/api-reference/files) IDs made
-    available to the `code_interpreter` tool. There can be a maximum of 20 files
-    associated with the tool.
+    A list of [file](https://developers.openai.com/api/reference/resources/files)
+    IDs made available to the `code_interpreter` tool. There can be a maximum of 20
+    files associated with the tool.
     """
 
 
@@ -363,7 +365,7 @@ class ToolResourcesFileSearch(TypedDict, total=False):
     vector_store_ids: SequenceNotStr[str]
     """
     The ID of the
-    [vector store](https://platform.openai.com/docs/api-reference/vector-stores/object)
+    [vector store](https://developers.openai.com/api/reference/resources/vector_stores)
     attached to this assistant. There can be a maximum of 1 vector store attached to
     the assistant.
     """

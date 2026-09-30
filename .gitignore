@@ -21,3 +21,5 @@ Brewfile.lock.json
 .DS_Store
 
 examples/*.mp3
+
+/scripts/steady/.cache/

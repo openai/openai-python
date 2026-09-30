@@ -16,9 +16,12 @@ from .beta_response_text_delta_event import BetaResponseTextDeltaEvent
 from .beta_response_audio_delta_event import BetaResponseAudioDeltaEvent
 from .beta_response_in_progress_event import BetaResponseInProgressEvent
 from .beta_response_refusal_done_event import BetaResponseRefusalDoneEvent
+from .beta_response_steer_failed_event import BetaResponseSteerFailedEvent
 from .beta_response_inject_failed_event import BetaResponseInjectFailedEvent
 from .beta_response_refusal_delta_event import BetaResponseRefusalDeltaEvent
+from .beta_response_steer_pending_event import BetaResponseSteerPendingEvent
 from .beta_response_inject_created_event import BetaResponseInjectCreatedEvent
+from .beta_response_steer_accepted_event import BetaResponseSteerAcceptedEvent
 from .beta_response_mcp_call_failed_event import BetaResponseMcpCallFailedEvent
 from .beta_response_output_item_done_event import BetaResponseOutputItemDoneEvent
 from .beta_response_content_part_done_event import BetaResponseContentPartDoneEvent
@@ -29,6 +32,7 @@ from .beta_response_reasoning_text_done_event import BetaResponseReasoningTextDo
 from .beta_response_mcp_call_in_progress_event import BetaResponseMcpCallInProgressEvent
 from .beta_response_reasoning_text_delta_event import BetaResponseReasoningTextDeltaEvent
 from .beta_response_audio_transcript_done_event import BetaResponseAudioTranscriptDoneEvent
+from .beta_response_compaction_compacting_event import BetaResponseCompactionCompactingEvent
 from .beta_response_mcp_list_tools_failed_event import BetaResponseMcpListToolsFailedEvent
 from .beta_response_audio_transcript_delta_event import BetaResponseAudioTranscriptDeltaEvent
 from .beta_response_mcp_call_arguments_done_event import BetaResponseMcpCallArgumentsDoneEvent
@@ -76,6 +80,7 @@ __all__ = [
     "BetaResponseCodeInterpreterCallWsCompleted",
     "BetaResponseCodeInterpreterCallInWsProgress",
     "BetaResponseCodeInterpreterCallWsInterpreting",
+    "BetaResponseCompactionWsCompacting",
     "BetaResponseWsCompleted",
     "BetaResponseContentPartWsAdded",
     "BetaResponseContentPartWsDone",
@@ -126,6 +131,8 @@ __all__ = [
     "BetaResponseCustomToolCallInputWsDone",
     "BetaResponseWsError",
     "BetaResponseWsErrorError",
+    "BetaResponseWsErrorErrorMisalignment",
+    "BetaResponseWsErrorErrorMisalignmentSteer",
     "BetaResponseWsErrorAgent",
 ]
 
@@ -220,6 +227,20 @@ class BetaResponseCodeInterpreterCallInWsProgress(BetaResponseCodeInterpreterCal
 
 class BetaResponseCodeInterpreterCallWsInterpreting(BetaResponseCodeInterpreterCallInterpretingEvent):
     """Emitted when the code interpreter is actively interpreting the code snippet."""
+
+    stream_id: Optional[str] = None
+    """The WebSocket lane that emitted this event.
+
+    This field is present when the originating `response.create` event supplied a
+    `stream_id`.
+    """
+
+
+class BetaResponseCompactionWsCompacting(BetaResponseCompactionCompactingEvent):
+    """Emitted when new summary content is sampled for a compaction trigger.
+
+    Contains no summary content.
+    """
 
     stream_id: Optional[str] = None
     """The WebSocket lane that emitted this event.
@@ -406,7 +427,12 @@ class BetaResponseWsFailed(BetaResponseFailedEvent):
 
 
 class BetaResponseWsIncomplete(BetaResponseIncompleteEvent):
-    """An event that is emitted when a response finishes as incomplete."""
+    """An event that is emitted when a response finishes as incomplete.
+
+    Over WebSocket, steering can finish a response with
+    `response.incomplete_details.reason` set to `steered`, followed automatically
+    by a successor `response.created` that commits the queued steering input.
+    """
 
     stream_id: Optional[str] = None
     """The WebSocket lane that emitted this event.
@@ -765,6 +791,33 @@ class BetaResponseCustomToolCallInputWsDone(BetaResponseCustomToolCallInputDoneE
     """
 
 
+class BetaResponseWsErrorErrorMisalignmentSteer(BaseModel):
+    """An optional public continuation instruction."""
+
+    message: str
+    """The public continuation instruction."""
+
+
+class BetaResponseWsErrorErrorMisalignment(BaseModel):
+    detailed_explanation: Optional[str] = None
+    """The public explanation for this block."""
+
+    error_type: Union[
+        str,
+        Literal[
+            "potentially_unintended_data_transfer",
+            "potentially_unintended_data_access",
+            "potentially_unintended_destructive_activity",
+            "other",
+        ],
+        None,
+    ] = None
+    """An optional classification; clients must accept additional values."""
+
+    steer: Optional[BetaResponseWsErrorErrorMisalignmentSteer] = None
+    """An optional public continuation instruction."""
+
+
 class BetaResponseWsErrorError(BaseModel):
     """Details about the error."""
 
@@ -782,6 +835,8 @@ class BetaResponseWsErrorError(BaseModel):
 
     headers: Optional[Dict[str, str]] = None
     """The response headers that were emitted with the error, if any."""
+
+    misalignment: Optional[BetaResponseWsErrorErrorMisalignment] = None
 
 
 class BetaResponseWsErrorAgent(BaseModel):
@@ -828,6 +883,7 @@ BetaResponsesServerEvent: TypeAlias = Annotated[
         BetaResponseCodeInterpreterCallWsCompleted,
         BetaResponseCodeInterpreterCallInWsProgress,
         BetaResponseCodeInterpreterCallWsInterpreting,
+        BetaResponseCompactionWsCompacting,
         BetaResponseWsCompleted,
         BetaResponseContentPartWsAdded,
         BetaResponseContentPartWsDone,
@@ -877,6 +933,9 @@ BetaResponsesServerEvent: TypeAlias = Annotated[
         BetaResponseCustomToolCallInputWsDelta,
         BetaResponseCustomToolCallInputWsDone,
         BetaResponseWsError,
+        BetaResponseSteerAcceptedEvent,
+        BetaResponseSteerPendingEvent,
+        BetaResponseSteerFailedEvent,
         BetaResponseInjectCreatedEvent,
         BetaResponseInjectFailedEvent,
     ],

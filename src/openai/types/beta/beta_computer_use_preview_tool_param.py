@@ -10,7 +10,7 @@ __all__ = ["BetaComputerUsePreviewToolParam"]
 class BetaComputerUsePreviewToolParam(TypedDict, total=False):
     """A tool that controls a virtual computer.
 
-    Learn more about the [computer tool](https://platform.openai.com/docs/guides/tools-computer-use).
+    Learn more about the [computer tool](https://developers.openai.com/api/docs/guides/tools-computer-use).
     """
 
     display_height: Required[int]

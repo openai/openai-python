@@ -25,6 +25,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, cast
+from urllib.parse import urlencode
 
 DOMAIN = b"castiron-codegen-v1\0"
 MARKER = "<!-- castiron:custom-code-report:v1 -->"
@@ -766,6 +767,25 @@ def api(method: str, path: str, payload: dict[str, Any] | None = None) -> Any:
     return json.loads(result.stdout)
 
 
+def associated_pulls(repository: str, run: dict[str, Any]) -> list[dict[str, Any]]:
+    root = f"repos/{repository}"
+    associated = run["pull_requests"] or api(
+        "GET", f"{root}/commits/{require_sha(run['head_sha'])}/pulls?per_page=100"
+    )
+    if associated:
+        return cast(list[dict[str, Any]], associated)
+    # Fork runs can be absent from both association endpoints. Discover candidates
+    # by branch; callers still verify the current PR head and target through GitHub.
+    head = f"{run['head_repository']['owner']['login']}:{run['head_branch']}"
+    for page in range(1, 101):
+        query = urlencode({"state": "open", "head": head, "per_page": 100, "page": page})
+        pulls = api("GET", f"{root}/pulls?{query}")
+        associated.extend(pulls)
+        if len(pulls) < 100:
+            return cast(list[dict[str, Any]], associated)
+    raise ReportError("too many pull requests for source branch")
+
+
 def publish_comment(
     report: dict[str, Any],
     repository: str,
@@ -793,10 +813,7 @@ def publish_comment(
         or run["head_sha"] != report["head_sha"]
     ):
         raise ReportError("workflow run does not match report PR/head")
-    associated = run["pull_requests"]
-    if not associated:
-        # GitHub can omit the PR association on workflow runs from forks.
-        associated = api("GET", f"{root}/commits/{require_sha(run['head_sha'])}/pulls?per_page=100")
+    associated = associated_pulls(repository, run)
     if not any(pr["number"] == number for pr in associated):
         raise ReportError("workflow run does not match report PR/head")
     if run["run_attempt"] != run_attempt:
@@ -892,7 +909,7 @@ def trusted_report(
     if run["run_attempt"] != run_attempt:
         return
     head = require_sha(run["head_sha"])
-    associated = run["pull_requests"] or api("GET", f"{root}/commits/{head}/pulls?per_page=100")
+    associated = associated_pulls(repository, run)
     current: list[tuple[int, str]] = []
     for number in sorted({int(pr["number"]) for pr in associated}):
         if number <= 0:

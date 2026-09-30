@@ -17,7 +17,12 @@ class Agent(BaseModel):
 
 
 class BetaResponseIncompleteEvent(BaseModel):
-    """An event that is emitted when a response finishes as incomplete."""
+    """An event that is emitted when a response finishes as incomplete.
+
+    Over WebSocket, steering can finish a response with
+    `response.incomplete_details.reason` set to `steered`, followed automatically
+    by a successor `response.created` that commits the queued steering input.
+    """
 
     response: BetaResponse
     """The response that was incomplete."""

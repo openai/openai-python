@@ -41,6 +41,25 @@ else:
     print(message.refusal)
 ```
 
+## Parsing Responses API output
+
+Use `client.responses.parse(..., text_format=YourModel)` to parse Responses API
+output into a Pydantic model. The same parsing rules apply to
+`client.responses.stream(..., text_format=YourModel)` and their async equivalents.
+
+- Messages with `phase="final_answer"` are parsed. Messages with no phase or a
+  null phase retain the legacy behavior and are also parsed.
+- Commentary and other explicit phases keep their original text and metadata,
+  with `parsed=None`, even when the text happens to match the schema.
+- `output_parsed` returns the first parsed result, or `None` when there is none.
+  A refusal does not cause commentary to be used as a fallback answer.
+- Invalid JSON or schema-invalid text in an eligible message still raises a
+  validation error. Missing phases are not inferred from the text or model name.
+
+`output_text` continues to concatenate all output text, including commentary.
+Use `output_parsed` for the structured result and retain `output` when replaying
+messages so their phases are preserved.
+
 ## Auto-parsing function tool calls
 
 The `.parse()` method will also automatically parse `function` tool calls if:
@@ -150,7 +169,7 @@ async with client.chat.completions.stream(
 ) as stream:
     async for event in stream:
         if event.type == 'content.delta':
-            print(event.content, flush=True, end='')
+            print(event.delta, flush=True, end='')
 ```
 
 When the context manager is entered, a `ChatCompletionStream` / `AsyncChatCompletionStream` instance is returned which, like `.create(stream=True)` is an iterator in the sync client and an async iterator in the async client. The full list of events that are yielded by the iterator are outlined [below](#chat-completions-events).
@@ -510,9 +529,9 @@ The polling methods are:
 client.beta.threads.create_and_run_poll(...)
 client.beta.threads.runs.create_and_poll(...)
 client.beta.threads.runs.submit_tool_outputs_and_poll(...)
-client.beta.vector_stores.files.upload_and_poll(...)
-client.beta.vector_stores.files.create_and_poll(...)
-client.beta.vector_stores.file_batches.create_and_poll(...)
-client.beta.vector_stores.file_batches.upload_and_poll(...)
+client.vector_stores.files.upload_and_poll(...)
+client.vector_stores.files.create_and_poll(...)
+client.vector_stores.file_batches.create_and_poll(...)
+client.vector_stores.file_batches.upload_and_poll(...)
 client.videos.create_and_poll(...)
 ```

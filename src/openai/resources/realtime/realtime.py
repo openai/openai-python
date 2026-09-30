@@ -23,6 +23,7 @@ from .calls import (
 )
 from ..._types import Omit, Query, Headers, omit
 from ..._utils import (
+    is_given,
     is_azure_client,
     maybe_transform,
     strip_not_given,
@@ -31,7 +32,7 @@ from ..._utils import (
 )
 from ..._compat import cached_property
 from ..._httpx2 import normalize_httpx_url
-from ..._models import construct_type_unchecked
+from ..._models import FinalRequestOptions, construct_type_unchecked
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._exceptions import OpenAIError, WebSocketConnectionClosedError
 from ..._send_queue import SendQueue
@@ -286,13 +287,14 @@ class AsyncRealtimeConnection:
         self._make_ws = make_ws
         self._on_reconnecting = on_reconnecting
         self._max_retries = max_retries
+        self._reconnect_attempt = 0
         self._initial_delay = initial_delay
         self._max_delay = max_delay
         self._extra_query = extra_query
         self._extra_headers = extra_headers
         self._intentionally_closed = False
         self._is_reconnecting = False
-        self._send_queue = send_queue or SendQueue()
+        self._send_queue = send_queue if send_queue is not None else SendQueue()
         self._event_handler_registry = EventHandlerRegistry(use_lock=False)
 
         self.session = AsyncRealtimeSessionResource(self)
@@ -329,7 +331,17 @@ class AsyncRealtimeConnection:
 
         Canceling this method is safe. There's no risk of losing data.
         """
-        return self.parse_event(await self.recv_bytes())
+        event = self.parse_event(await self.recv_bytes())
+        event_type = (
+            cast("dict[str, object]", event).get("type")
+            if isinstance(cast(object, event), dict)
+            else getattr(event, "type", None)
+        )
+        # A successful upgrade can still be followed by an admission error.
+        # Reset the budget only after receiving a non-error application event.
+        if isinstance(event_type, str) and event_type and event_type != "error":
+            self._reconnect_attempt = 0
+        return event
 
     async def recv_bytes(self) -> bytes:
         """Receive the next message from the connection as raw bytes.
@@ -341,6 +353,15 @@ class AsyncRealtimeConnection:
         """
         message = await self._connection.recv(decode=False)
         log.debug("Received WebSocket message: %i bytes", len(message))
+        if self._reconnect_attempt:
+            # Account for raw application progress without changing frame delivery.
+            try:
+                event_data: object = json.loads(message)
+            except (ValueError, RecursionError):
+                return message
+            event_type = cast("dict[str, object]", event_data).get("type") if isinstance(event_data, dict) else None
+            if isinstance(event_type, str) and event_type and event_type != "error":
+                self._reconnect_attempt = 0
         return message
 
     async def send(self, event: RealtimeClientEvent | RealtimeClientEventParam) -> None:
@@ -352,11 +373,7 @@ class AsyncRealtimeConnection:
         if self._is_reconnecting:
             self._send_queue.enqueue(data)
             return
-        try:
-            await self._connection.send(data)
-        except Exception:
-            self._send_queue.enqueue(data)
-            raise
+        await self._connection.send(data)
 
     async def send_raw(self, data: bytes | str) -> None:
         if self._is_reconnecting:
@@ -401,7 +418,8 @@ class AsyncRealtimeConnection:
 
         self._is_reconnecting = True
 
-        for attempt in range(1, self._max_retries + 1):
+        for attempt in range(self._reconnect_attempt + 1, self._max_retries + 1):
+            self._reconnect_attempt = attempt
             base_delay = min(self._initial_delay * (2 ** (attempt - 1)), self._max_delay)
             jitter = 0.75 + random.random() * 0.25
             delay = base_delay * jitter
@@ -462,7 +480,7 @@ class AsyncRealtimeConnection:
             await self._connection.send(data)
 
         try:
-            await self._send_queue.flush_async(_send)
+            await self._send_queue.flush_async(_send, requeue_failed=False)
         except Exception:
             log.warning("Failed to flush send queue after reconnect")
 
@@ -605,7 +623,7 @@ class AsyncRealtimeConnectionManager:
         data = (
             event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
             if isinstance(event, BaseModel)
-            else json.dumps(event)
+            else json.dumps(maybe_transform(event, RealtimeClientEventParam))
         )
         self.__send_queue.enqueue(data)
 
@@ -686,11 +704,10 @@ class AsyncRealtimeConnectionManager:
         except ImportError as exc:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
-        await self.__client._refresh_api_key()
-        auth_headers = self.__client.auth_headers
         if self.__call_id is not omit:
             extra_query = {**extra_query, "call_id": self.__call_id}
         if is_async_azure_client(self.__client):
+            await self.__client._refresh_api_key()
             from ...lib._azure_websocket import _AzureWebSocketConnect as connect
 
             model = self.__model
@@ -698,6 +715,7 @@ class AsyncRealtimeConnectionManager:
                 raise OpenAIError("`model` is required for Azure Realtime API")
             else:
                 url, auth_headers = await self.__client._configure_realtime(model, extra_query)
+            prepared_headers: Headers = extra_headers
         else:
             url = self._prepare_url().copy_with(
                 params={
@@ -706,19 +724,39 @@ class AsyncRealtimeConnectionManager:
                     **extra_query,
                 },
             )
+            url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
+            options = await self.__client._prepare_options(
+                FinalRequestOptions.construct(
+                    method="get",
+                    url=str(url),
+                    headers=dict(extra_headers),
+                    security={"bearer_auth": True},
+                )
+            )
+            url = self.__client._prepare_url(options.url).copy_merge_params(
+                self.__client.qs.stringify(cast(Any, options.params))
+            )
+            url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
+            auth_headers = self.__client.auth_headers
+            prepared_headers = options.headers if is_given(options.headers) else {}
+        headers = {
+            key.lower(): (key, value)
+            for header_set in (
+                auth_headers,
+                {},
+                self.__client.default_headers,
+                prepared_headers,
+            )
+            for key, value in header_set.items()
+        }
         log.debug("Connecting to WebSocket API")
         if self.__websocket_connection_options:
             log.debug("Custom WebSocket connection options provided")
 
         return await connect(
             str(url),
-            user_agent_header=self.__client.user_agent,
-            additional_headers=_merge_mappings(
-                {
-                    **auth_headers,
-                },
-                extra_headers,
-            ),
+            user_agent_header=None,
+            additional_headers=_merge_mappings(dict(headers.values()), {}),
             **self.__websocket_connection_options,
         )
 
@@ -730,7 +768,8 @@ class AsyncRealtimeConnectionManager:
             ws_scheme = "ws" if scheme == "http" else "wss"
             base_url = self.__client._base_url.copy_with(scheme=ws_scheme)
 
-        merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/realtime"
+        path, separator, query = base_url.raw_path.partition(b"?")
+        merge_raw_path = path.rstrip(b"/") + b"/realtime" + separator + query
         return base_url.copy_with(raw_path=merge_raw_path)
 
     async def __aexit__(
@@ -768,13 +807,14 @@ class RealtimeConnection:
         self._make_ws = make_ws
         self._on_reconnecting = on_reconnecting
         self._max_retries = max_retries
+        self._reconnect_attempt = 0
         self._initial_delay = initial_delay
         self._max_delay = max_delay
         self._extra_query = extra_query
         self._extra_headers = extra_headers
         self._intentionally_closed = False
         self._is_reconnecting = False
-        self._send_queue = send_queue or SendQueue()
+        self._send_queue = send_queue if send_queue is not None else SendQueue()
         self._event_handler_registry = EventHandlerRegistry(use_lock=True)
 
         self.session = RealtimeSessionResource(self)
@@ -811,7 +851,17 @@ class RealtimeConnection:
 
         Canceling this method is safe. There's no risk of losing data.
         """
-        return self.parse_event(self.recv_bytes())
+        event = self.parse_event(self.recv_bytes())
+        event_type = (
+            cast("dict[str, object]", event).get("type")
+            if isinstance(cast(object, event), dict)
+            else getattr(event, "type", None)
+        )
+        # A successful upgrade can still be followed by an admission error.
+        # Reset the budget only after receiving a non-error application event.
+        if isinstance(event_type, str) and event_type and event_type != "error":
+            self._reconnect_attempt = 0
+        return event
 
     def recv_bytes(self) -> bytes:
         """Receive the next message from the connection as raw bytes.
@@ -823,6 +873,15 @@ class RealtimeConnection:
         """
         message = self._connection.recv(decode=False)
         log.debug("Received WebSocket message: %i bytes", len(message))
+        if self._reconnect_attempt:
+            # Account for raw application progress without changing frame delivery.
+            try:
+                event_data: object = json.loads(message)
+            except (ValueError, RecursionError):
+                return message
+            event_type = cast("dict[str, object]", event_data).get("type") if isinstance(event_data, dict) else None
+            if isinstance(event_type, str) and event_type and event_type != "error":
+                self._reconnect_attempt = 0
         return message
 
     def send(self, event: RealtimeClientEvent | RealtimeClientEventParam) -> None:
@@ -834,11 +893,7 @@ class RealtimeConnection:
         if self._is_reconnecting:
             self._send_queue.enqueue(data)
             return
-        try:
-            self._connection.send(data)
-        except Exception:
-            self._send_queue.enqueue(data)
-            raise
+        self._connection.send(data)
 
     def send_raw(self, data: bytes | str) -> None:
         if self._is_reconnecting:
@@ -881,7 +936,8 @@ class RealtimeConnection:
 
         self._is_reconnecting = True
 
-        for attempt in range(1, self._max_retries + 1):
+        for attempt in range(self._reconnect_attempt + 1, self._max_retries + 1):
+            self._reconnect_attempt = attempt
             base_delay = min(self._initial_delay * (2 ** (attempt - 1)), self._max_delay)
             jitter = 0.75 + random.random() * 0.25
             delay = base_delay * jitter
@@ -938,7 +994,7 @@ class RealtimeConnection:
     def _flush_send_queue(self) -> None:
         """Send all queued messages over the current connection."""
         try:
-            self._send_queue.flush_sync(lambda data: self._connection.send(data))
+            self._send_queue.flush_sync(lambda data: self._connection.send(data), requeue_failed=False)
         except Exception:
             log.warning("Failed to flush send queue after reconnect")
 
@@ -1075,7 +1131,7 @@ class RealtimeConnectionManager:
         data = (
             event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
             if isinstance(event, BaseModel)
-            else json.dumps(event)
+            else json.dumps(maybe_transform(event, RealtimeClientEventParam))
         )
         self.__send_queue.enqueue(data)
 
@@ -1156,16 +1212,16 @@ class RealtimeConnectionManager:
         except ImportError as exc:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
-        self.__client._refresh_api_key()
-        auth_headers = self.__client.auth_headers
         if self.__call_id is not omit:
             extra_query = {**extra_query, "call_id": self.__call_id}
         if is_azure_client(self.__client):
+            self.__client._refresh_api_key()
             model = self.__model
             if not model:
                 raise OpenAIError("`model` is required for Azure Realtime API")
             else:
                 url, auth_headers = self.__client._configure_realtime(model, extra_query)
+            prepared_headers: Headers = extra_headers
         else:
             url = self._prepare_url().copy_with(
                 params={
@@ -1174,19 +1230,39 @@ class RealtimeConnectionManager:
                     **extra_query,
                 },
             )
+            url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
+            options = self.__client._prepare_options(
+                FinalRequestOptions.construct(
+                    method="get",
+                    url=str(url),
+                    headers=dict(extra_headers),
+                    security={"bearer_auth": True},
+                )
+            )
+            url = self.__client._prepare_url(options.url).copy_merge_params(
+                self.__client.qs.stringify(cast(Any, options.params))
+            )
+            url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
+            auth_headers = self.__client.auth_headers
+            prepared_headers = options.headers if is_given(options.headers) else {}
+        headers = {
+            key.lower(): (key, value)
+            for header_set in (
+                auth_headers,
+                {},
+                self.__client.default_headers,
+                prepared_headers,
+            )
+            for key, value in header_set.items()
+        }
         log.debug("Connecting to WebSocket API")
         if self.__websocket_connection_options:
             log.debug("Custom WebSocket connection options provided")
 
         return connect(
             str(url),
-            user_agent_header=self.__client.user_agent,
-            additional_headers=_merge_mappings(
-                {
-                    **auth_headers,
-                },
-                extra_headers,
-            ),
+            user_agent_header=None,
+            additional_headers=_merge_mappings(dict(headers.values()), {}),
             **self.__websocket_connection_options,
         )
 
@@ -1198,7 +1274,8 @@ class RealtimeConnectionManager:
             ws_scheme = "ws" if scheme == "http" else "wss"
             base_url = self.__client._base_url.copy_with(scheme=ws_scheme)
 
-        merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/realtime"
+        path, separator, query = base_url.raw_path.partition(b"?")
+        merge_raw_path = path.rstrip(b"/") + b"/realtime" + separator + query
         return base_url.copy_with(raw_path=merge_raw_path)
 
     def __exit__(
@@ -1364,8 +1441,9 @@ class RealtimeConversationItemResource(BaseRealtimeConnectionResource):
         "history" of the conversation and to add new items mid-stream, but has the
         current limitation that it cannot populate assistant audio messages.
 
-        If successful, the server will respond with a `conversation.item.created`
-        event, otherwise an `error` event will be sent.
+        If successful, the server will emit a `conversation.item.added` event and,
+        when the item is finalized, a `conversation.item.done` event. Otherwise, an
+        `error` event will be sent.
         """
         self._connection.send(
             cast(
@@ -1434,7 +1512,7 @@ class RealtimeOutputAudioBufferResource(BaseRealtimeConnectionResource):
         stop generating audio and emit a `output_audio_buffer.cleared` event. This
         event should be preceded by a `response.cancel` client event to stop the
         generation of the current response.
-        [Learn more](https://platform.openai.com/docs/guides/realtime-conversations#client-and-server-events-for-audio-in-webrtc).
+        [Learn more](https://developers.openai.com/api/docs/guides/realtime-conversations#client-and-server-events-for-audio-in-webrtc).
         """
         self._connection.send(
             cast(RealtimeClientEventParam, strip_not_given({"type": "output_audio_buffer.clear", "event_id": event_id}))
@@ -1599,8 +1677,9 @@ class AsyncRealtimeConversationItemResource(BaseAsyncRealtimeConnectionResource)
         "history" of the conversation and to add new items mid-stream, but has the
         current limitation that it cannot populate assistant audio messages.
 
-        If successful, the server will respond with a `conversation.item.created`
-        event, otherwise an `error` event will be sent.
+        If successful, the server will emit a `conversation.item.added` event and,
+        when the item is finalized, a `conversation.item.done` event. Otherwise, an
+        `error` event will be sent.
         """
         await self._connection.send(
             cast(
@@ -1671,7 +1750,7 @@ class AsyncRealtimeOutputAudioBufferResource(BaseAsyncRealtimeConnectionResource
         stop generating audio and emit a `output_audio_buffer.cleared` event. This
         event should be preceded by a `response.cancel` client event to stop the
         generation of the current response.
-        [Learn more](https://platform.openai.com/docs/guides/realtime-conversations#client-and-server-events-for-audio-in-webrtc).
+        [Learn more](https://developers.openai.com/api/docs/guides/realtime-conversations#client-and-server-events-for-audio-in-webrtc).
         """
         await self._connection.send(
             cast(RealtimeClientEventParam, strip_not_given({"type": "output_audio_buffer.clear", "event_id": event_id}))

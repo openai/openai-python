@@ -9,8 +9,16 @@ from .custom_tool_param import CustomToolParam
 
 __all__ = ["NamespaceToolParam", "Tool", "ToolFunction"]
 
+_ToolFunctionReservedKeywords = TypedDict(
+    "_ToolFunctionReservedKeywords",
+    {
+        "async": bool,
+    },
+    total=False,
+)
 
-class ToolFunction(TypedDict, total=False):
+
+class ToolFunction(_ToolFunctionReservedKeywords, total=False):
     name: Required[str]
 
     type: Required[Literal["function"]]

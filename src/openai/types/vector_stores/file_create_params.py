@@ -13,10 +13,10 @@ __all__ = ["FileCreateParams"]
 class FileCreateParams(TypedDict, total=False):
     file_id: Required[str]
     """
-    A [File](https://platform.openai.com/docs/api-reference/files) ID that the
-    vector store should use. Useful for tools like `file_search` that can access
+    A [File](https://developers.openai.com/api/reference/resources/files) ID that
+    the vector store should use. Useful for tools like `file_search` that can access
     files. For multi-file ingestion, we recommend
-    [`file_batches`](https://platform.openai.com/docs/api-reference/vector-stores-file-batches/createBatch)
+    [`file_batches`](https://developers.openai.com/api/reference/resources/vector_stores/subresources/file_batches/methods/create)
     to minimize per-vector-store write requests.
     """
 

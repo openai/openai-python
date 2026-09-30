@@ -19,9 +19,7 @@ class PromptCacheBreakpoint(BaseModel):
 
 
 class ChatCompletionContentPartText(BaseModel):
-    """
-    Learn about [text inputs](https://platform.openai.com/docs/guides/text-generation).
-    """
+    """Learn about [text inputs](https://developers.openai.com/api/docs/guides/text)."""
 
     text: str
     """The text content."""

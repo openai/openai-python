@@ -23,6 +23,8 @@ __all__ = ["InputItems", "AsyncInputItems"]
 
 
 class InputItems(SyncAPIResource):
+    """Create and manage model responses."""
+
     @cached_property
     def with_raw_response(self) -> InputItemsWithRawResponse:
         """
@@ -108,6 +110,8 @@ class InputItems(SyncAPIResource):
 
 
 class AsyncInputItems(AsyncAPIResource):
+    """Create and manage model responses."""
+
     @cached_property
     def with_raw_response(self) -> AsyncInputItemsWithRawResponse:
         """

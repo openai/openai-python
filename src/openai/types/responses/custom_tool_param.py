@@ -9,11 +9,19 @@ from ..shared_params.custom_tool_input_format import CustomToolInputFormat
 
 __all__ = ["CustomToolParam"]
 
+_CustomToolParamReservedKeywords = TypedDict(
+    "_CustomToolParamReservedKeywords",
+    {
+        "async": bool,
+    },
+    total=False,
+)
 
-class CustomToolParam(TypedDict, total=False):
+
+class CustomToolParam(_CustomToolParamReservedKeywords, total=False):
     """A custom tool that processes input using a specified format.
 
-    Learn more about   [custom tools](https://platform.openai.com/docs/guides/function-calling#custom-tools)
+    Learn more about   [custom tools](https://developers.openai.com/api/docs/guides/function-calling#custom-tools)
     """
 
     name: Required[str]

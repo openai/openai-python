@@ -1,7 +1,7 @@
 # File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
-from typing import List, Optional
-from typing_extensions import Literal
+from typing import List, Union, Optional
+from typing_extensions import Literal, deprecated
 
 from ..._models import BaseModel
 
@@ -22,19 +22,35 @@ class Data(BaseModel):
     """Event data payload."""
 
     session_id: str
-    """The Transceiver `rtc_...` ID of the pending SIP session.
+    """The `live_...` ID of the pending SIP session.
 
-    The same value appears as `call_id` in `realtime.call.incoming`.
+    Pass this value unchanged to Live call controls and sideband connections. The
+    corresponding `realtime.call.incoming` event uses a separate `rtc_...` call ID.
     """
 
     sip_headers: List[DataSipHeader]
-    """Headers from the SIP Invite."""
+    """
+    Headers from the SIP INVITE, excluding SIP authorization headers. Retained
+    names, values, repeated entries, and order are preserved. Treat these values as
+    untrusted call metadata.
+    """
+
+    sip_media_security: Union[Literal["rtp", "srtp"], str, None] = None
+    """Media protection selected on the SIP leg during SDP negotiation.
+
+    `srtp` indicates SRTP; `rtp` indicates unencrypted RTP. Omitted when unknown.
+    This does not describe SIP signaling security or confirm that media has flowed.
+    Clients should handle unrecognized values as unknown.
+    """
 
 
+@deprecated("Use LiveTransportIncomingWebhookEvent (live.transport.incoming) instead.", category=None)
 class LiveCallIncomingWebhookEvent(BaseModel):
-    """Sent when an incoming API SIP session is available for Live acceptance.
+    """Deprecated: use `live.transport.incoming`.
 
-    The
+    Retained for existing subscriptions
+    during migration; new subscriptions to this event are not allowed.
+    Sent when an incoming API SIP session is available for Live acceptance. The
     same pending session can also emit `realtime.call.incoming`; the first
     successful Realtime or Live accept endpoint selects the runtime surface.
     """

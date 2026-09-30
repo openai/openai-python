@@ -10,9 +10,9 @@ __all__ = ["ImageFileParam"]
 class ImageFileParam(TypedDict, total=False):
     file_id: Required[str]
     """
-    The [File](https://platform.openai.com/docs/api-reference/files) ID of the image
-    in the message content. Set `purpose="vision"` when uploading the File if you
-    need to later display the file content.
+    The [File](https://developers.openai.com/api/reference/resources/files) ID of
+    the image in the message content. Set `purpose="vision"` when uploading the File
+    if you need to later display the file content.
     """
 
     detail: Literal["auto", "low", "high"]
