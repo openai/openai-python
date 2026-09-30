@@ -64,7 +64,7 @@ class TransportDtmfReceived(BaseModel):
 
 
 class TransportDtmfSend(BaseModel):
-    """A SIP DTMF keypress successfully sent by the hosted tool.
+    """A SIP DTMF keypress successfully sent to the SIP trunk.
 
     Delivered only to sideband observers; this is not a client command.
     """
@@ -74,6 +74,9 @@ class TransportDtmfSend(BaseModel):
     event_id: str
 
     type: Literal["transport.dtmf.send"]
+
+    client_event_id: Optional[str] = None
+    """The event_id of the client command, when supplied."""
 
 
 class TransportRinging(BaseModel):

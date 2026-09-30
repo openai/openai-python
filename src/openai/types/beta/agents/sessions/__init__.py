@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 from .turn import Turn as Turn
+from .session_trace import SessionTrace as SessionTrace
 from .item_list_params import ItemListParams as ItemListParams
 from .session_artifact import SessionArtifact as SessionArtifact
 from .turn_list_params import TurnListParams as TurnListParams
+from .trace_list_params import TraceListParams as TraceListParams
 from .event_create_params import EventCreateParams as EventCreateParams
 from .artifact_list_params import ArtifactListParams as ArtifactListParams
 from .subagent_list_params import SubagentListParams as SubagentListParams
