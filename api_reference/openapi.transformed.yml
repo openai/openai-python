@@ -7737,39 +7737,6 @@ paths:
               }
 
               main();
-          response: |
-            {
-              "object": "fine_tuning.job",
-              "id": "ftjob-abc123",
-              "model": "gpt-4o-mini-2024-07-18",
-              "created_at": 1721764800,
-              "fine_tuned_model": null,
-              "organization_id": "org-123",
-              "result_files": [],
-              "status": "queued",
-              "validation_file": null,
-              "training_file": "file-abc123",
-              "method": {
-                "type": "supervised",
-                "supervised": {
-                  "hyperparameters": {
-                    "batch_size": "auto",
-                    "learning_rate_multiplier": "auto",
-                    "n_epochs": "auto"
-                  }
-                }
-              },
-              "metadata": null,
-              "error": {},
-              "finished_at": null,
-              "seed": null,
-              "trained_tokens": null,
-              "hyperparameters": {
-                "batch_size": "auto",
-                "learning_rate_multiplier": "auto",
-                "n_epochs": "auto"
-              }
-            }
         - title: Epochs
           request:
             curl: |
@@ -7830,44 +7797,6 @@ paths:
               }
 
               main();
-          response: |
-            {
-              "object": "fine_tuning.job",
-              "id": "ftjob-abc123",
-              "model": "gpt-4o-mini",
-              "created_at": 1721764800,
-              "fine_tuned_model": null,
-              "organization_id": "org-123",
-              "result_files": [],
-              "status": "queued",
-              "validation_file": null,
-              "training_file": "file-abc123",
-              "hyperparameters": {
-                "batch_size": "auto",
-                "learning_rate_multiplier": "auto",
-                "n_epochs": 2
-              },
-              "method": {
-                "type": "supervised",
-                "supervised": {
-                  "hyperparameters": {
-                    "batch_size": "auto",
-                    "learning_rate_multiplier": "auto",
-                    "n_epochs": 2
-                  }
-                }
-              },
-              "metadata": null,
-              "error": {},
-              "finished_at": null,
-              "seed": 683058546,
-              "trained_tokens": null,
-              "estimated_finish": null,
-              "integrations": [],
-              "user_provided_suffix": null,
-              "usage_metrics": null,
-              "shared_with_openai": false
-            }
         - title: DPO
           request:
             curl: |
@@ -7904,40 +7833,6 @@ paths:
                   )
                 }
               )
-          response: |
-            {
-              "object": "fine_tuning.job",
-              "id": "ftjob-abc",
-              "model": "gpt-4o-mini",
-              "created_at": 1746130590,
-              "fine_tuned_model": null,
-              "organization_id": "org-abc",
-              "result_files": [],
-              "status": "queued",
-              "validation_file": "file-123",
-              "training_file": "file-abc",
-              "method": {
-                "type": "dpo",
-                "dpo": {
-                  "hyperparameters": {
-                    "beta": 0.1,
-                    "batch_size": "auto",
-                    "learning_rate_multiplier": "auto",
-                    "n_epochs": "auto"
-                  }
-                }
-              },
-              "metadata": null,
-              "error": {},
-              "finished_at": null,
-              "seed": 1036326793,
-              "estimated_finish": null,
-              "integrations": [],
-              "user_provided_suffix": null,
-              "usage_metrics": null,
-              "shared_with_openai": false,
-              "trained_tokens": null
-            }
         - title: Reinforcement
           request:
             curl: |
@@ -7965,7 +7860,6 @@ paths:
                   }
                 }'
             python: "from openai import OpenAI\nfrom openai.types.fine_tuning import ReinforcementMethod, ReinforcementHyperparameters\nfrom openai.types.graders import StringCheckGrader\n\nclient = OpenAI()\n\nclient.fine_tuning.jobs.create(\n  training_file=\"file-abc\",\n  validation_file=\"file-123\",\n  model=\"o4-mini\",\n  method={\n    \"type\": \"reinforcement\",\n    \"reinforcement\": ReinforcementMethod(\n      grader=StringCheckGrader(\n        name=\"Example string check grader\",\n        type=\"string_check\",\n        input=\"{{item.label}}\",\n        operation=\"eq\",\n        reference=\"{{sample.output_text}}\"\n      ),\n      hyperparameters=ReinforcementHyperparameters(\n          reasoning_effort=\"medium\",\n      )\n    )\n  }, \n  seed=42,\n)\n"
-          response: "{\n  \"object\": \"fine_tuning.job\",\n  \"id\": \"ftjob-abc123\",\n  \"model\": \"o4-mini\",\n  \"created_at\": 1721764800,\n  \"finished_at\": null,\n  \"fine_tuned_model\": null,\n  \"organization_id\": \"org-123\",\n  \"result_files\": [],\n  \"status\": \"validating_files\",\n  \"validation_file\": \"file-123\",\n  \"training_file\": \"file-abc\",\n  \"trained_tokens\": null,\n  \"error\": {},\n  \"user_provided_suffix\": null,\n  \"seed\": 950189191,\n  \"estimated_finish\": null,\n  \"integrations\": [],\n  \"method\": {\n    \"type\": \"reinforcement\",\n    \"reinforcement\": {\n      \"hyperparameters\": {\n        \"batch_size\": \"auto\",\n        \"learning_rate_multiplier\": \"auto\",\n        \"n_epochs\": \"auto\",\n        \"eval_interval\": \"auto\",\n        \"eval_samples\": \"auto\",\n        \"compute_multiplier\": \"auto\",\n        \"reasoning_effort\": \"medium\"\n      },\n      \"grader\": {\n        \"type\": \"string_check\",\n        \"name\": \"Example string check grader\",\n        \"input\": \"{{sample.output_text}}\",\n        \"reference\": \"{{item.label}}\",\n        \"operation\": \"eq\"\n      },\n      \"response_format\": null\n    }\n  },\n  \"metadata\": null,\n  \"usage_metrics\": null,\n  \"shared_with_openai\": false\n}\n      \n"
         - title: Validation file
           request:
             curl: |
@@ -8001,39 +7895,6 @@ paths:
               }
 
               main();
-          response: |
-            {
-              "object": "fine_tuning.job",
-              "id": "ftjob-abc123",
-              "model": "gpt-4o-mini-2024-07-18",
-              "created_at": 1721764800,
-              "fine_tuned_model": null,
-              "organization_id": "org-123",
-              "result_files": [],
-              "status": "queued",
-              "validation_file": "file-abc123",
-              "training_file": "file-abc123",
-              "method": {
-                "type": "supervised",
-                "supervised": {
-                  "hyperparameters": {
-                    "batch_size": "auto",
-                    "learning_rate_multiplier": "auto",
-                    "n_epochs": "auto"
-                  }
-                }
-              },
-              "metadata": null,
-              "error": {},
-              "finished_at": null,
-              "seed": null,
-              "trained_tokens": null,
-              "hyperparameters": {
-                "batch_size": "auto",
-                "learning_rate_multiplier": "auto",
-                "n_epochs": "auto"
-              }
-            }
         - title: W&B Integration
           request:
             curl: |
@@ -8057,49 +7918,6 @@ paths:
                     }
                   ]
                 }'
-          response: |
-            {
-              "object": "fine_tuning.job",
-              "id": "ftjob-abc123",
-              "model": "gpt-4o-mini-2024-07-18",
-              "created_at": 1721764800,
-              "fine_tuned_model": null,
-              "organization_id": "org-123",
-              "result_files": [],
-              "status": "queued",
-              "validation_file": "file-abc123",
-              "training_file": "file-abc123",
-              "integrations": [
-                {
-                  "type": "wandb",
-                  "wandb": {
-                    "project": "my-wandb-project",
-                    "entity": null,
-                    "run_id": "ftjob-abc123"
-                  }
-                }
-              ],
-              "method": {
-                "type": "supervised",
-                "supervised": {
-                  "hyperparameters": {
-                    "batch_size": "auto",
-                    "learning_rate_multiplier": "auto",
-                    "n_epochs": "auto"
-                  }
-                }
-              },
-              "metadata": null,
-              "error": {},
-              "finished_at": null,
-              "seed": null,
-              "trained_tokens": null,
-              "hyperparameters": {
-                "batch_size": "auto",
-                "learning_rate_multiplier": "auto",
-                "n_epochs": "auto"
-              }
-            }
     get:
       operationId: listPaginatedFineTuningJobs
       tags:
@@ -8281,42 +8099,6 @@ paths:
               }
 
               main();
-          response: |
-            {
-              "object": "fine_tuning.job",
-              "id": "ftjob-abc123",
-              "model": "davinci-002",
-              "created_at": 1692661014,
-              "finished_at": 1692661190,
-              "fine_tuned_model": "ft:davinci-002:my-org:custom_suffix:7q8mpxmy",
-              "organization_id": "org-123",
-              "result_files": [
-                "file-abc123"
-              ],
-              "status": "succeeded",
-              "validation_file": null,
-              "training_file": "file-abc123",
-              "hyperparameters": {
-                "n_epochs": 4,
-                "batch_size": 1,
-                "learning_rate_multiplier": 1.0
-              },
-              "trained_tokens": 5768,
-              "integrations": [],
-              "seed": 0,
-              "estimated_finish": 0,
-              "method": {
-                "type": "supervised",
-                "supervised": {
-                  "hyperparameters": {
-                    "n_epochs": 4,
-                    "batch_size": 1,
-                    "learning_rate_multiplier": 1.0
-                  }
-                }
-              },
-              "error": {}
-            }
   /fine_tuning/jobs/{fine_tuning_job_id}/cancel:
     post:
       operationId: cancelFineTuningJob
@@ -8382,24 +8164,6 @@ paths:
                 console.log(fineTune);
               }
               main();
-          response: |
-            {
-              "object": "fine_tuning.job",
-              "id": "ftjob-abc123",
-              "model": "gpt-4o-mini-2024-07-18",
-              "created_at": 1721764800,
-              "fine_tuned_model": null,
-              "organization_id": "org-123",
-              "result_files": [],
-              "status": "cancelled",
-              "validation_file": "file-abc123",
-              "training_file": "file-abc123",
-              "error": {},
-              "finished_at": null,
-              "seed": null,
-              "trained_tokens": null,
-              "hyperparameters": null
-            }
   /fine_tuning/jobs/{fine_tuning_job_id}/checkpoints:
     get:
       operationId: listFineTuningJobCheckpoints
@@ -8669,38 +8433,6 @@ paths:
                 console.log(fineTune);
               }
               main();
-          response: |
-            {
-              "object": "fine_tuning.job",
-              "id": "ftjob-abc123",
-              "model": "o4-mini",
-              "created_at": 1721764800,
-              "fine_tuned_model": null,
-              "organization_id": "org-123",
-              "result_files": [],
-              "status": "pausing",
-              "validation_file": "file-123",
-              "training_file": "file-abc",
-              "error": {},
-              "finished_at": null,
-              "seed": null,
-              "trained_tokens": null,
-              "method": {
-                "type": "reinforcement",
-                "reinforcement": {
-                  "grader": {
-                    "type": "string_check",
-                    "name": "Example string check grader",
-                    "input": "{{sample.output_text}}",
-                    "reference": "{{item.label}}",
-                    "operation": "eq"
-                  },
-                  "hyperparameters": {
-                    "reasoning_effort": "medium"
-                  }
-                }
-              }
-            }
   /fine_tuning/jobs/{fine_tuning_job_id}/resume:
     post:
       operationId: resumeFineTuningJob
@@ -8766,38 +8498,6 @@ paths:
                 console.log(fineTune);
               }
               main();
-          response: |
-            {
-              "object": "fine_tuning.job",
-              "id": "ftjob-abc123",
-              "model": "o4-mini",
-              "created_at": 1721764800,
-              "fine_tuned_model": null,
-              "organization_id": "org-123",
-              "result_files": [],
-              "status": "queued",
-              "validation_file": "file-123",
-              "training_file": "file-abc",
-              "error": {},
-              "finished_at": null,
-              "seed": null,
-              "trained_tokens": null,
-              "method": {
-                "type": "reinforcement",
-                "reinforcement": {
-                  "grader": {
-                    "type": "string_check",
-                    "name": "Example string check grader",
-                    "input": "{{sample.output_text}}",
-                    "reference": "{{item.label}}",
-                    "operation": "eq"
-                  },
-                  "hyperparameters": {
-                    "reasoning_effort": "medium"
-                  }
-                }
-              }
-            }
   /images/edits:
     post:
       operationId: createImageEdit
@@ -9301,17 +9001,20 @@ paths:
               $ref: '#/components/schemas/LiveCreateRequest'
       responses:
         '201':
-          description: Live session created with a WebRTC answer.
+          description: Returns 201 Created with the Live session identifier and WebRTC SDP answer.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/LiveCreateResponse'
-              example:
-                session:
-                  id: live_123
-                transport:
-                  type: webrtc
-                  sdp: <SDP answer>
+              examples:
+                webrtc:
+                  summary: WebRTC session created (201 Created)
+                  value:
+                    session:
+                      id: live_123
+                    transport:
+                      type: webrtc
+                      sdp: <SDP answer>
         '400':
           description: Invalid Live session request.
           content:
@@ -9353,14 +9056,16 @@ paths:
                 type: string
       x-oaiMeta:
         group: live
-        returns: Returns 201 Created with the session identifier in session.id and SDP answer in transport.sdp.
+        returns: Returns a session identifier in session.id and a WebRTC SDP answer in transport.sdp.
         examples:
+        - title: Create a WebRTC session
           request:
             curl: |-
               curl https://api.openai.com/v1/live/sessions \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -H "Content-Type: application/json" \
                 -d '{"session":{"model":"gpt-live-1","instructions":"Be concise. Ask for clarification when needed."},"transport":{"type":"webrtc","sdp":"<SDP offer>"}}'
+          response: '{"session":{"id":"live_123"},"transport":{"type":"webrtc","sdp":"<SDP answer>"}}'
   /live/sessions/{session_id}/accept:
     post:
       operationId: accept-live-session
@@ -46980,45 +46685,6 @@ components:
       - seed
       x-oaiMeta:
         name: The fine-tuning job object
-        example: |
-          {
-            "object": "fine_tuning.job",
-            "id": "ftjob-abc123",
-            "model": "davinci-002",
-            "created_at": 1692661014,
-            "finished_at": 1692661190,
-            "fine_tuned_model": "ft:davinci-002:my-org:custom_suffix:7q8mpxmy",
-            "organization_id": "org-123",
-            "result_files": [
-              "file-abc123"
-            ],
-            "status": "succeeded",
-            "validation_file": null,
-            "training_file": "file-abc123",
-            "hyperparameters": {
-              "n_epochs": 4,
-              "batch_size": 1,
-              "learning_rate_multiplier": 1.0
-            },
-            "trained_tokens": 5768,
-            "integrations": [],
-            "seed": 0,
-            "estimated_finish": 0,
-            "method": {
-              "type": "supervised",
-              "supervised": {
-                "hyperparameters": {
-                  "n_epochs": 4,
-                  "batch_size": 1,
-                  "learning_rate_multiplier": 1.0
-                }
-              }
-            },
-            "metadata": {
-              "key": "value"
-            },
-            "error": {}
-          }
     FineTuningJobCheckpoint:
       type: object
       title: FineTuningJobCheckpoint
@@ -47447,28 +47113,6 @@ components:
       x-oaiMeta:
         name: Multi Grader
         group: graders
-        example: |
-          {
-            "type": "multi",
-            "name": "example multi grader",
-            "graders": {
-              "text_similarity_score": {
-                "type": "text_similarity",
-                "name": "example text similarity grader",
-                "input": "The graded text",
-                "reference": "The reference text",
-                "evaluation_metric": "fuzzy_match"
-              },
-              "string_check_score": {
-                "type": "string_check",
-                "name": "Example string check grader",
-                "input": "{{sample.output_text}}",
-                "reference": "{{item.label}}",
-                "operation": "eq"
-              }
-            },
-            "calculate_output": "0.5 * text_similarity_score + 0.5 * string_check_score"
-          }
     GraderPython:
       type: object
       title: PythonGrader
@@ -49760,12 +49404,103 @@ components:
         client:
           $ref: '#/components/schemas/LiveClientConfigParam'
       additionalProperties: false
+    LiveSIPTransport:
+      type: object
+      description: Place an outbound SIP call using your provider's trunk. Outbound SIP calling must be enabled for your organization. The trunk must support TLS signaling, Opus audio, and SDES-SRTP media. See [Telephony and SIP](https://developers.openai.com/api/docs/guides/voice-sip?api=live#place-an-outbound-call).
+      properties:
+        type:
+          type: string
+          description: The transport used for the Live session. Always `sip`.
+          enum:
+          - sip
+          x-stainless-const: true
+        destination:
+          type: string
+          description: Phone number to call in E.164 format. SIP URI destinations are not supported.
+          pattern: ^\+[1-9][0-9]{1,14}$
+          example: '+14155550123'
+        trunk:
+          $ref: '#/components/schemas/LiveSIPTrunk'
+      required:
+      - type
+      - destination
+      - trunk
+      additionalProperties: false
+    LiveSIPTrunk:
+      type: object
+      description: SIP trunk configuration supplied for this call. Keep trunk credentials on your server. The creation response does not return this configuration.
+      properties:
+        provider_url:
+          type: string
+          description: Provider endpoint in the form `sips:host[:port][;transport=tcp]`. The default port is 5061. IPv6 addresses must be bracketed. TLS signaling is required; plaintext SIP is not supported. Do not include userinfo, a path, URI headers, or other URI parameters. Local hostnames and literal private, loopback, link-local, unspecified, multicast, and broadcast IP addresses are rejected.
+          example: sips:sip.example.com:5061
+        auth:
+          $ref: '#/components/schemas/LiveSIPTrunkAuth'
+        caller_number:
+          type: string
+          description: Caller phone number in E.164 format to use in the SIP From header.
+          pattern: ^\+[1-9][0-9]{1,14}$
+          example: '+14155550100'
+      required:
+      - provider_url
+      - auth
+      - caller_number
+      additionalProperties: false
+    LiveSIPTrunkAuth:
+      type: object
+      description: Credentials for SIP Digest authentication with your trunk provider.
+      properties:
+        type:
+          type: string
+          description: Use `digest` for SIP Digest authentication. Handles 401 and 407 challenges.
+          enum:
+          - digest
+        username:
+          type: string
+          minLength: 1
+          description: Provider username. Must contain a non-whitespace character, be at most 256 bytes, and contain no CR, LF, or NUL.
+        password:
+          type: string
+          minLength: 1
+          writeOnly: true
+          description: Provider password. Must be at most 4096 bytes and contain no CR, LF, or NUL.
+      required:
+      - type
+      - username
+      - password
+      additionalProperties: false
     LiveServerEvent:
       description: Server events for Live. Response lifecycle events are wrapped inside response.event; dispatch the nested event by its full type and tolerate new response event types. Follow the [Live prompting guide](https://developers.openai.com/api/docs/guides/live-prompting) when designing the conversation and delegation policy.
       discriminator:
         propertyName: type
       allOf:
       - $ref: '#/components/schemas/LiveServerEvent-2'
+    LiveSessionCreateResponse:
+      type: object
+      description: The created Live session and its transport. WebRTC creation returns 201 Created with an SDP answer. Outbound SIP creation returns 201 Created after initialization, before the callee necessarily answers, without SDP or trunk credentials.
+      properties:
+        session:
+          $ref: '#/components/schemas/session'
+        transport:
+          description: WebRTC transport with an SDP answer, or SIP transport without SDP or trunk credentials. For SIP, attach a sideband using session.id to receive transport.ringing, transport.answered, and transport.failed notifications.
+          discriminator:
+            propertyName: type
+          anyOf:
+          - $ref: '#/components/schemas/LiveWebRTCTransport'
+          - type: object
+            description: The SIP transport. Trunk credentials and SDP are not returned.
+            properties:
+              type:
+                type: string
+                description: The transport used for the Live session. Always `sip`.
+                enum:
+                - sip
+                x-stainless-const: true
+            required:
+            - type
+      required:
+      - session
+      - transport
     LiveSidebandClientEvent:
       description: Client events accepted by an attached Live sideband WebSocket. The session is already started; send audio over the primary connection.
       discriminator:
@@ -69916,7 +69651,7 @@ components:
         example: |
           {
             "id": "vsfb_123",
-            "object": "vector_store.file_batch",
+            "object": "vector_store.files_batch",
             "created_at": 1698107661,
             "vector_store_id": "vs_abc123",
             "status": "completed",
@@ -76083,6 +75818,15 @@ components:
           $ref: '#/components/schemas/LiveDataChannelConfigParam'
       required:
       - data_channel
+    session:
+      type: object
+      description: The newly created Live session. Use its ID for session controls and sideband connections.
+      properties:
+        id:
+          type: string
+          description: Opaque session identifier. Preserve the returned value unchanged, including its prefix.
+      required:
+      - id
     properties-store:
       description: Whether to store the forked session. Omission inherits the stored session's setting.
       type: boolean
@@ -81189,48 +80933,57 @@ components:
       - The turn was cancelled.
       description: The current status of a turn.
     SessionTurnErrorCodeResource:
-      type: string
-      enum:
-      - context_length_exceeded
-      - session_budget_exceeded
-      - usage_limit_exceeded
-      - credit_balance_exhausted
-      - rate_limit_exceeded
-      - flex_unavailable
-      - server_overloaded
-      - cyber_policy
-      - misalignment_policy_violation
-      - connection_failed
-      - server_error
-      - authentication_error
-      - invalid_request
-      - resource_not_found
-      - sandbox_error
-      - executor_version_incompatible
-      - active_turn_not_steerable
-      - request_timeout
-      - internal_error
-      x-enumDescriptions:
-      - The request exceeds the model's context window.
-      - The session has reached its usage budget.
-      - The organization has reached a usage, plan, or billing limit.
-      - The organization has no API credits remaining.
-      - The request exceeds the available rate limit.
-      - Flex processing is temporarily unavailable.
-      - The model service is temporarily overloaded.
-      - The request was rejected by a safety policy.
-      - The request was blocked by the safety systems.
-      - The request could not connect to the model service.
-      - The model service encountered an unexpected error.
-      - The API credentials are invalid or lack the required access.
-      - The request contains invalid input or configuration.
-      - The requested model or resource is unavailable.
-      - The request could not complete in its execution environment.
-      - The executor must be upgraded before it can run this turn.
-      - The session cannot accept additional input while a request is running.
-      - The request timed out before the model service responded.
-      - An unexpected internal error prevented the session request from completing.
       description: Stable public categories for session request failures.
+      anyOf:
+      - type: string
+        enum:
+        - context_length_exceeded
+        - session_budget_exceeded
+        - usage_limit_exceeded
+        - credit_balance_exhausted
+        - rate_limit_exceeded
+        x-enumDescriptions:
+        - The request exceeds the model's context window.
+        - The session has reached its usage budget.
+        - The organization has reached a usage, plan, or billing limit.
+        - The organization has no API credits remaining.
+        - The request exceeds the available rate limit.
+      - type: string
+        enum:
+        - flex_unavailable
+        x-enumDescriptions:
+        - Flex processing is temporarily unavailable.
+        x-stainless-skip:
+        - cli
+      - type: string
+        enum:
+        - server_overloaded
+        - cyber_policy
+        - misalignment_policy_violation
+        - connection_failed
+        - server_error
+        - authentication_error
+        - invalid_request
+        - resource_not_found
+        - sandbox_error
+        - executor_version_incompatible
+        - active_turn_not_steerable
+        - request_timeout
+        - internal_error
+        x-enumDescriptions:
+        - The model service is temporarily overloaded.
+        - The request was rejected by a safety policy.
+        - The request was blocked by the safety systems.
+        - The request could not connect to the model service.
+        - The model service encountered an unexpected error.
+        - The API credentials are invalid or lack the required access.
+        - The request contains invalid input or configuration.
+        - The requested model or resource is unavailable.
+        - The request could not complete in its execution environment.
+        - The executor must be upgraded before it can run this turn.
+        - The session cannot accept additional input while a request is running.
+        - The request timed out before the model service responded.
+        - An unexpected internal error prevented the session request from completing.
     SessionTurnErrorResource:
       type: object
       properties:
@@ -84031,6 +83784,8 @@ components:
           - $ref: '#/components/schemas/ContainerSizeResource'
           - type: 'null'
           description: The effective CPU and memory tier, or null when unknown or outside the public tiers.
+          x-stainless-skip:
+          - cli
         packages:
           $ref: '#/components/schemas/EnvironmentPackagesResource'
           description: Packages installed in the environment.
@@ -84755,6 +84510,8 @@ components:
         container_size:
           $ref: '#/components/schemas/ContainerSizeParam'
           description: The hosted container size. Omission selects the medium tier.
+          x-stainless-skip:
+          - cli
       required:
       - type
       additionalProperties: false
@@ -89815,6 +89572,8 @@ components:
         client_event_id:
           description: The event_id of the client command, when supplied.
           type: string
+          x-stainless-skip:
+          - cli
       required:
       - type
       - event_id
@@ -104136,6 +103895,15 @@ x-oaiMeta:
     description: Live server events. Responses delegation lifecycle events arrive inside response.event, not as top-level response events. Start with the [Live prompting guide](https://developers.openai.com/api/docs/guides/live-prompting) to design frontend instructions and delegation policy; see [backend prompting](https://developers.openai.com/api/docs/guides/live-delegation#start-with-your-existing-backend-prompt) for tools and business rules.
     navigationGroup: live
     sections:
+    - type: object
+      key: LiveTransportRinging
+      path: <auto>
+    - type: object
+      key: LiveTransportAnswered
+      path: <auto>
+    - type: object
+      key: LiveTransportFailed
+      path: <auto>
     - type: object
       key: LiveSessionStarted
       path: <auto>
