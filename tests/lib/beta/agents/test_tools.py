@@ -293,6 +293,32 @@ def test_bound_class_namespaces() -> None:
         assert function_tool(callback)({"asset": {"symbol": "USDC"}}) == "USDC"
 
 
+def test_static_method_class_namespaces() -> None:
+    from types import ModuleType
+    from functools import wraps
+
+    module = ModuleType("typed_static_action_module")
+    exec(
+        "from __future__ import annotations\n"
+        "from pydantic import BaseModel\n"
+        "class Container:\n"
+        "    class Wallet:\n"
+        "        class Asset(BaseModel):\n            symbol: str\n"
+        "        @staticmethod\n"
+        "        def lookup(asset: Asset) -> str:\n            return asset.symbol\n"
+        "class InheritedWallet(Container.Wallet):\n"
+        "    class Asset(BaseModel):\n        address: int\n",
+        module.__dict__,
+    )
+
+    @wraps(module.Container.Wallet.lookup)
+    def wrapped(*args: Any, **kwargs: Any) -> Any:
+        return module.Container.Wallet.lookup(*args, **kwargs)
+
+    for callback in (module.Container.Wallet.lookup, module.InheritedWallet.lookup, wrapped):
+        assert function_tool(callback)({"asset": {"symbol": "USDC"}}) == "USDC"
+
+
 def test_cross_module_decorator_annotations() -> None:
     from types import ModuleType
     from functools import wraps

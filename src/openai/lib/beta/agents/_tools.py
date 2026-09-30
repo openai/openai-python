@@ -180,14 +180,26 @@ def function_tool(
     arguments, variadic arguments, and names starting with an underscore are
     unsupported; use an explicit Pydantic model for these signatures. Defaults
     and nested models are preserved. Bind application dependencies with closures
-    or bound methods so they do not appear in the tool's arguments.
+    or bound methods so they do not appear in the tool's arguments. Use an explicit
+    Pydantic model when postponed types only exist in an enclosing local scope.
     """
     signature = inspect.signature(function)
     annotation_source = inspect.unwrap(function)
     localns: dict[str, Any] = {}
+    owner = None
+    source_function = getattr(annotation_source, "__func__", annotation_source)
     if inspect.ismethod(function):
         owner = function.__self__ if inspect.isclass(function.__self__) else type(function.__self__)
-        source_function = getattr(annotation_source, "__func__", annotation_source)
+    else:
+        # Static methods retain their defining class path, but no bound owner.
+        namespace = getattr(annotation_source, "__globals__", {})
+        for part in getattr(annotation_source, "__qualname__", "").split(".")[:-1]:
+            owner = namespace.get(part)
+            if not inspect.isclass(owner):
+                owner = None
+                break
+            namespace = vars(owner)
+    if owner is not None:
         for cls in owner.__mro__:
             member = vars(cls).get(function.__name__)
             member = getattr(member, "__func__", member)
