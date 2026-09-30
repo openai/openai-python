@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+import json
 import asyncio
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
+import httpx2
 import pytest
 
+from openai import OpenAI, AsyncOpenAI
 from openai._exceptions import WebSocketQueueFullError
 from openai._send_queue import SendQueue
 from openai.resources.realtime.realtime import RealtimeConnection, AsyncRealtimeConnection
@@ -13,6 +17,87 @@ from openai.resources.beta.responses.responses import (
     ResponsesConnection as BetaResponsesConnection,
     AsyncResponsesConnection as AsyncBetaResponsesConnection,
 )
+
+from .lib.test_websocket_redirects import options, resource, reconnect, unexpected_http, async_http_client
+
+
+@pytest.mark.parametrize("name", ["realtime", "responses", "beta.responses"])
+@pytest.mark.parametrize("prequeue", [False, True], ids=["empty", "prequeued"])
+def test_manager_keeps_queue_limit_during_reconnect(monkeypatch: pytest.MonkeyPatch, name: str, prequeue: bool) -> None:
+    event = {"type": "response.create"}
+    wire_event = json.dumps(event)
+    opened, replacement = MagicMock(), MagicMock()
+    connect = MagicMock(return_value=opened)
+    monkeypatch.setattr("websockets.sync.client.connect", connect)
+    with OpenAI(
+        api_key="fake-key",
+        websocket_base_url="wss://origin.test",
+        http_client=httpx2.Client(transport=httpx2.MockTransport(unexpected_http)),
+    ) as client:
+        manager = resource(client, name).connect(
+            **options(client, name),
+            max_queue_size=len(wire_event.encode("utf-8")),
+            on_reconnecting=reconnect,
+            initial_delay=0,
+        )
+        if prequeue:
+            manager.send(event)
+        with manager as connection:
+            if prequeue:
+                opened.send.assert_called_once_with(wire_event)
+            else:
+                opened.send.assert_not_called()
+
+            def reconnect_socket(*_args: Any, **_kwargs: Any) -> MagicMock:
+                connection.send_raw(wire_event)
+                with pytest.raises(WebSocketQueueFullError):
+                    connection.send_raw("é")
+                return replacement
+
+            connect.side_effect = reconnect_socket
+            assert connection._reconnect(RuntimeError("fake disconnect"))
+            replacement.send.assert_called_once_with(wire_event)
+
+
+@pytest.mark.parametrize("name", ["realtime", "responses", "beta.responses"])
+@pytest.mark.parametrize("prequeue", [False, True], ids=["empty", "prequeued"])
+@pytest.mark.asyncio
+async def test_async_manager_keeps_queue_limit_during_reconnect(
+    monkeypatch: pytest.MonkeyPatch, name: str, prequeue: bool
+) -> None:
+    event = {"type": "response.create"}
+    wire_event = json.dumps(event)
+    opened, replacement = MagicMock(), MagicMock()
+    opened.send, opened.close = AsyncMock(), AsyncMock()
+    replacement.send, replacement.close = AsyncMock(), AsyncMock()
+    connect = AsyncMock(return_value=opened)
+    monkeypatch.setattr("openai.lib._websocket._WebSocketConnect", connect)
+    async with AsyncOpenAI(
+        api_key="fake-key", websocket_base_url="wss://origin.test", http_client=async_http_client()
+    ) as client:
+        manager = resource(client, name).connect(
+            **options(client, name),
+            max_queue_size=len(wire_event.encode("utf-8")),
+            on_reconnecting=reconnect,
+            initial_delay=0,
+        )
+        if prequeue:
+            manager.send(event)
+        async with manager as connection:
+            if prequeue:
+                opened.send.assert_awaited_once_with(wire_event)
+            else:
+                opened.send.assert_not_awaited()
+
+            async def reconnect_socket(*_args: Any, **_kwargs: Any) -> MagicMock:
+                await connection.send_raw(wire_event)
+                with pytest.raises(WebSocketQueueFullError):
+                    await connection.send_raw("é")
+                return replacement
+
+            connect.side_effect = reconnect_socket
+            assert await connection._reconnect(RuntimeError("fake disconnect"))
+            replacement.send.assert_awaited_once_with(wire_event)
 
 
 @pytest.mark.parametrize("connection_type", [RealtimeConnection, ResponsesConnection, BetaResponsesConnection])
