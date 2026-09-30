@@ -356,3 +356,101 @@ def test_collector_transfers_messages_into_cached_result() -> None:
     assert collector.messages() == []  # The stream no longer retains a duplicate message collection.
     assert collector.result() is result
     assert result.output_text == "answer"
+
+
+@pytest.mark.parametrize("kind", ["delta", "done"])
+@pytest.mark.parametrize("turn_id", ["turn_root", None])
+async def test_text_without_completed_item_is_incomplete(
+    sdk: OpenAI | AsyncOpenAI, server: ResultServer, creation: bool, kind: str, turn_id: str | None
+) -> None:
+    text_event: dict[str, object] = {
+        "type": f"agent.session.turn.output_text.{kind}",
+        "session_id": "session_test",
+        "turn_id": turn_id,
+        "item_id": "message_a",
+        "output_index": 0,
+        "content_index": 0,
+        "delta" if kind == "delta" else "text": "unfinished answer",
+    }
+    server.body = EventBody([turn_event("created"), text_event, turn_event("completed"), idle()])
+    with pytest.raises(AgentTurnResultError) as exc:
+        await collect(sdk, creation)
+    assert exc.value.reason == "incomplete"
+
+
+@pytest.mark.parametrize(
+    "phase,turn_id,expected",
+    [("final_answer", "turn_root", "answer"), ("commentary", "turn_root", ""), ("final_answer", "child", "")],
+)
+async def test_item_snapshot_resolves_unattributed_text(
+    sdk: OpenAI | AsyncOpenAI, server: ResultServer, creation: bool, phase: str, turn_id: str, expected: str
+) -> None:
+    text_event: dict[str, object] = {
+        "type": "agent.session.turn.output_text.delta",
+        "session_id": "session_test",
+        "turn_id": None,
+        "item_id": "message_a",
+        "output_index": 0,
+        "content_index": 0,
+        "delta": "answer",
+    }
+    server.body = EventBody(
+        [
+            turn_event("created"),
+            text_event,
+            message(phase=phase, turn_id=turn_id),
+            {**text_event, "event_id": "late-text"},
+            turn_event("completed"),
+            idle(),
+        ]
+    )
+    result = await collect(sdk, creation)
+    assert result.output_text == expected
+
+
+async def test_missing_assistant_item_id_is_incomplete(
+    sdk: OpenAI | AsyncOpenAI, server: ResultServer, creation: bool
+) -> None:
+    added = message(kind="added")
+    added["item"]["id"] = None
+    server.body = EventBody([turn_event("created"), added, turn_event("completed"), idle()])
+    with pytest.raises(AgentTurnResultError) as exc:
+        await collect(sdk, creation)
+    assert exc.value.reason == "incomplete"
+
+
+def test_error_transfers_partial_payloads_and_is_cached() -> None:
+    from openai._models import construct_type
+    from openai.lib.beta.agents._result import AgentTurnResultCollector
+    from openai.types.beta.agent_session_event import AgentSessionEvent
+
+    state = session("requires_action")
+    state["required_actions"] = [
+        {
+            "type": "function_call",
+            "turn_id": "turn_root",
+            "name": "search",
+            "call_id": "call_test",
+            "arguments": {"query": "test"},
+        }
+    ]
+    collector = AgentTurnResultCollector()
+    for index, data in enumerate(
+        [turn_event("created"), message(), {"type": "agent.session.requires_action", "session": state}]
+    ):
+        collector.accept(
+            cast(AgentSessionEvent, construct_type(type_=AgentSessionEvent, value={"event_id": str(index), **data}))
+        )
+    original_message = collector.messages()[0]
+    original_actions = collector.required_actions
+    original_turn = collector.turn
+    with pytest.raises(AgentTurnResultError) as exc:
+        collector.check_outcome()
+    error = exc.value
+    assert error.messages[0] is original_message
+    assert error.required_actions is original_actions
+    assert error.turn is original_turn
+    assert collector.turn is None and collector.messages() == [] and collector.required_actions == []
+    with pytest.raises(AgentTurnResultError) as repeated:
+        collector.result()
+    assert repeated.value is error

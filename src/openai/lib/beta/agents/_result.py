@@ -56,11 +56,11 @@ class AgentTurnResultError(OpenAIError):
     ) -> None:
         super().__init__(f"Could not collect the agent turn result: {reason}")
         self.reason = reason
-        self.turn = deepcopy(turn)
+        self.turn = turn
         self.session_id = session_id
         self.turn_id = turn.id if turn is not None else None
-        self.messages = deepcopy(messages)
-        self.required_actions = deepcopy(required_actions)
+        self.messages = messages
+        self.required_actions = required_actions
 
 
 class AgentTurnResultCollector:
@@ -74,6 +74,9 @@ class AgentTurnResultCollector:
         self._messages: dict[str, tuple[int, AgentSessionMessage]] = {}
         self._pending: set[str] = set()
         self._unclassified: set[str] = set()
+        self._excluded: set[str] = set()
+        self._unidentified_message = False
+        self._error: AgentTurnResultError | None = None
         self._result: AgentTurnResult | None = None
 
     def accept(self, event: AgentSessionEvent) -> None:
@@ -92,19 +95,29 @@ class AgentTurnResultCollector:
         ):
             if self.turn is not None and event.turn_id == self.turn.id:
                 self.turn = deepcopy(event.turn)
+        elif (
+            event.type == "agent.session.turn.output_text.delta" or event.type == "agent.session.turn.output_text.done"
+        ):
+            if self.turn is not None and (event.turn_id is None or event.turn_id == self.turn.id):
+                if event.item_id not in self._messages and event.item_id not in self._excluded:
+                    self._pending.add(event.item_id)
         elif event.type == "agent.session.turn.item.added" or event.type == "agent.session.turn.item.done":
             item = event.item
-            if self.turn is None or item.turn_id != self.turn.id or item.type != "message" or item.role != "assistant":
+            if self.turn is None or item.type != "message" or item.role != "assistant":
                 return
             if item.id is None:
+                if item.turn_id == self.turn.id and item.phase != "commentary":
+                    self._unidentified_message = True
                 return
             if event.type == "agent.session.turn.item.added" and item.id in self._messages:
                 return
-            if item.phase == "commentary":
+            if item.turn_id != self.turn.id or item.phase == "commentary":
+                self._excluded.add(item.id)
                 self._pending.discard(item.id)
                 self._unclassified.discard(item.id)
                 self._messages.pop(item.id, None)
                 return
+            self._excluded.discard(item.id)
             if item.phase is None:
                 self._unclassified.add(item.id)
             else:
@@ -138,15 +151,26 @@ class AgentTurnResultCollector:
         ]
 
     def error(self, reason: ResultErrorReason) -> AgentTurnResultError:
-        return AgentTurnResultError(
-            reason,
-            turn=self.turn,
-            session_id=self.session_id,
-            messages=self.messages(),
-            required_actions=self.required_actions,
-        )
+        if self._error is None:
+            self._error = AgentTurnResultError(
+                reason,
+                turn=self.turn,
+                session_id=self.session_id,
+                messages=self.messages(),
+                required_actions=self.required_actions,
+            )
+            self.turn = None
+            self.required_actions = []
+            self._messages.clear()
+            self._pending.clear()
+            self._unclassified.clear()
+            self._excluded.clear()
+            self.boundary = True
+        return self._error
 
     def check_outcome(self, handled_tools: Iterable[str] = ()) -> None:
+        if self._error is not None:
+            raise self._error
         if self.session_failed or self.turn is not None and self.turn.status == "failed":
             raise self.error("failed")
         if self.turn is not None and self.turn.status == "cancelled":
@@ -160,10 +184,17 @@ class AgentTurnResultCollector:
         if self._result is not None:
             return self._result
         self.check_outcome()
-        if not self.boundary or self.turn is None or self.turn.status != "completed" or self._pending:
+        if (
+            not self.boundary
+            or self.turn is None
+            or self.turn.status != "completed"
+            or self._pending
+            or self._unidentified_message
+        ):
             raise self.error("incomplete")
         if self._unclassified:
             raise self.error("ambiguous_output")
         self._result = AgentTurnResult(turn=deepcopy(self.turn), messages=self.messages())
         self._messages.clear()
+        self._excluded.clear()
         return self._result
