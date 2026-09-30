@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from decimal import Decimal
 from enum import Enum
 
 from pydantic import Field, BaseModel
@@ -406,6 +407,149 @@ def test_nested_inline_ref_expansion() -> None:
                     },
                 },
                 "required": ["name", "galaxy"],
+                "additionalProperties": False,
+            }
+        )
+
+
+class InsuranceQuote(BaseModel):
+    """Test model with Decimal field to verify pattern keyword is stripped"""
+    premium: Decimal = Field(description="The insurance premium amount")
+    coverage_amount: float = Field(description="The coverage amount")
+    customer_name: str = Field(description="The customer's name")
+
+
+def test_decimal_field_strips_pattern() -> None:
+    """
+    Test that Decimal fields do not include unsupported 'pattern' keyword.
+
+    Pydantic generates a regex pattern for Decimal fields by default, but this
+    is not supported by OpenAI's structured outputs in strict mode. This test
+    verifies that the pattern keyword is properly stripped from the schema.
+
+    Fixes issue #2718
+    """
+    if not PYDANTIC_V1:
+        schema = to_strict_json_schema(InsuranceQuote)
+
+        # Verify the schema structure exists
+        assert "properties" in schema
+        assert "premium" in schema["properties"]
+
+        # Get the premium field schema
+        premium_schema = schema["properties"]["premium"]
+
+        # Verify it's an anyOf with number/string/null options
+        assert "anyOf" in premium_schema
+
+        # Check all variants in the anyOf for 'pattern' keyword
+        # Pattern should NOT be present after our fix
+        for variant in premium_schema["anyOf"]:
+            assert "pattern" not in variant, (
+                "Pattern keyword should be stripped from Decimal field schema. "
+                "Found pattern in variant: " + str(variant)
+            )
+
+        # Verify the schema matches expected structure (without pattern)
+        assert schema == snapshot(
+            {
+                "title": "InsuranceQuote",
+                "type": "object",
+                "properties": {
+                    "premium": {
+                        "anyOf": [
+                            {"type": "number"},
+                            {"type": "string"},
+                            {"type": "null"}
+                        ],
+                        "description": "The insurance premium amount",
+                        "title": "Premium",
+                    },
+                    "coverage_amount": {
+                        "description": "The coverage amount",
+                        "title": "Coverage Amount",
+                        "type": "number",
+                    },
+                    "customer_name": {
+                        "description": "The customer's name",
+                        "title": "Customer Name",
+                        "type": "string",
+                    },
+                },
+                "required": ["premium", "coverage_amount", "customer_name"],
+                "additionalProperties": False,
+            }
+        )
+
+
+class ProductPricing(BaseModel):
+    """Test model with Dict[str, Decimal] to verify pattern is stripped from additionalProperties"""
+    prices: dict[str, Decimal] = Field(description="Product prices by region")
+    product_name: str = Field(description="The product name")
+
+
+def test_dict_decimal_strips_pattern_in_additional_properties() -> None:
+    """
+    Test that Dict[str, Decimal] fields strip pattern from additionalProperties.
+
+    When Pydantic generates schemas for typed dictionaries (Dict[str, Decimal]),
+    it uses additionalProperties with a Decimal schema that includes a regex
+    pattern. This test verifies that pattern keywords are stripped from nested
+    schemas within additionalProperties.
+
+    Addresses Codex review feedback on PR #2733
+    """
+    if not PYDANTIC_V1:
+        schema = to_strict_json_schema(ProductPricing)
+
+        # Verify the schema structure exists
+        assert "properties" in schema
+        assert "prices" in schema["properties"]
+
+        # Get the prices field schema
+        prices_schema = schema["properties"]["prices"]
+
+        # Should be an object with additionalProperties
+        assert prices_schema.get("type") == "object"
+        assert "additionalProperties" in prices_schema
+
+        # Get the additionalProperties schema (Decimal schema)
+        add_props = prices_schema["additionalProperties"]
+        assert "anyOf" in add_props
+
+        # Check all variants in anyOf for 'pattern' keyword
+        # Pattern should NOT be present after our fix
+        for variant in add_props["anyOf"]:
+            assert "pattern" not in variant, (
+                "Pattern keyword should be stripped from additionalProperties Decimal schema. "
+                "Found pattern in variant: " + str(variant)
+            )
+
+        # Verify the full schema matches expected structure
+        assert schema == snapshot(
+            {
+                "description": "Test model with Dict[str, Decimal] to verify pattern is stripped from additionalProperties",
+                "properties": {
+                    "prices": {
+                        "additionalProperties": {
+                            "anyOf": [
+                                {"type": "number"},
+                                {"type": "string"},
+                            ]
+                        },
+                        "description": "Product prices by region",
+                        "title": "Prices",
+                        "type": "object",
+                    },
+                    "product_name": {
+                        "description": "The product name",
+                        "title": "Product Name",
+                        "type": "string",
+                    },
+                },
+                "required": ["prices", "product_name"],
+                "title": "ProductPricing",
+                "type": "object",
                 "additionalProperties": False,
             }
         )
