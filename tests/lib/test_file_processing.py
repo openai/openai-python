@@ -56,30 +56,14 @@ async def test_poll_until_processed(files_resource: Files | AsyncFiles) -> None:
         sleep.assert_called_once_with(0.25)
 
 
-async def test_timeout(files_resource: Files | AsyncFiles) -> None:
-    with (
-        mock.patch.object(file_helpers, "time") as clock,
-        mock.patch.object(files_resource, "retrieve", return_value=make_file("uploaded")),
-        mock.patch.object(files_resource, "_sleep"),
-    ):
-        clock.monotonic.side_effect = [0.0, 11.0]
-        with pytest.raises(RuntimeError, match=f"Giving up on waiting for file {FILE_ID}"):
-            await wait(files_resource, max_wait_seconds=10)
-
-
-async def test_timeout_uses_monotonic_clock_after_wall_clock_rollback(
-    files_resource: Files | AsyncFiles,
-) -> None:
-    class PollContinued(RuntimeError):
-        pass
-
+async def test_timeout_after_wall_clock_rollback(files_resource: Files | AsyncFiles) -> None:
     with (
         mock.patch.object(file_helpers, "time") as clock,
         mock.patch.object(files_resource, "retrieve", return_value=make_file("uploaded")),
         mock.patch.object(
             files_resource,
             "_sleep",
-            side_effect=[None, PollContinued("poll continued after the deadline")],
+            side_effect=[None, AssertionError("poll continued after the deadline")],
         ) as sleep,
     ):
         clock.time.side_effect = [100.0, 90.0]
