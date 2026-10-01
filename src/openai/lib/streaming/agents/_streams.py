@@ -22,7 +22,15 @@ from ...beta.agents._result import (
     AgentOutputParseError,
     AgentTurnResultCollection,
 )
-from ...beta.agents._attachment import AgentSessionAttachment, attach, reconcile, async_attach, async_reconcile
+from ...beta.agents._attachment import (
+    AgentSessionAttachment,
+    attach,
+    observe,
+    reconcile,
+    async_attach,
+    async_observe,
+    async_reconcile,
+)
 from ....types.beta.agent_session import RequiredActionSessionRequiredActionResourceFunctionCall
 from ....types.beta.agent_session_event import AgentSessionEvent
 from ....types.beta.agent_function_call_item import AgentFunctionCallItem
@@ -123,10 +131,11 @@ class AgentSessionStream(Generic[OutputT]):
 
     Use as a context manager. Only one caller may submit input to this session while
     the helper runs: the input endpoint does not return a turn ID for correlating
-    concurrent writers. Initial idle events and subagent turn completions do not
-    end iteration. Failed/cancelled turns remain visible as events; an unexpected
-    end of the connection raises RuntimeError. Closing the stream does not cancel
-    the backend turn.
+    concurrent writers. Input submission ignores initial idle events and waits
+    for the resulting root turn to finish. Attachment ends at the identified root
+    turn's terminal event. Failed/cancelled turns remain visible as events; an
+    unexpected end of raw iteration raises RuntimeError. Closing the stream does
+    not cancel the backend turn.
 
     Optional tool handlers run sequentially during iteration, after their call
     event is yielded. Unregistered tools are left for the caller to handle. A
@@ -225,6 +234,12 @@ class AgentSessionStream(Generic[OutputT]):
         if self._attachment is not None:
             self._attachment.seed(collector)
         try:
+            if (
+                self._attachment is not None
+                and self._attachment.observation_interrupted
+                and collector.cause is not None
+            ):
+                raise collector.cause
             collector.check_outcome(self._handlers)
             if not collector.is_done():
                 for _ in self:
@@ -237,6 +252,15 @@ class AgentSessionStream(Generic[OutputT]):
         except (AgentTurnResultError, AgentOutputParseError):
             raise
         except Exception as error:
+            if self._attachment is not None and self._attachment.observation_interrupted:
+                self._attachment.observation_interrupted = False
+                recovered = False
+                try:
+                    recovered = reconcile(self._sessions, self._attachment, collector, self._options)
+                except Exception:
+                    pass  # Preserve the original observation failure.
+                if recovered:
+                    return self._collection.result()
             self._collection.record_error(error)
             raise collector.error("observation_failed") from error
         finally:
@@ -253,7 +277,8 @@ class AgentSessionStream(Generic[OutputT]):
         try:
             if self._attachment is not None and self._attachment.settled:
                 return
-            for event in self._stream:
+            events = observe(self._stream, self._attachment) if self._attachment is not None else self._stream
+            for event in events:
                 if not self._state.accept(event):
                     continue
                 if self._attachment is not None:
@@ -439,6 +464,12 @@ class AsyncAgentSessionStream(Generic[OutputT]):
         if self._attachment is not None:
             self._attachment.seed(collector)
         try:
+            if (
+                self._attachment is not None
+                and self._attachment.observation_interrupted
+                and collector.cause is not None
+            ):
+                raise collector.cause
             collector.check_outcome(self._handlers)
             if not collector.is_done():
                 async for _ in self:
@@ -451,6 +482,15 @@ class AsyncAgentSessionStream(Generic[OutputT]):
         except (AgentTurnResultError, AgentOutputParseError):
             raise
         except Exception as error:
+            if self._attachment is not None and self._attachment.observation_interrupted:
+                self._attachment.observation_interrupted = False
+                recovered = False
+                try:
+                    recovered = await async_reconcile(self._sessions, self._attachment, collector, self._options)
+                except Exception:
+                    pass  # Preserve the original observation failure.
+                if recovered:
+                    return self._collection.result()
             self._collection.record_error(error)
             raise collector.error("observation_failed") from error
         finally:
@@ -467,7 +507,8 @@ class AsyncAgentSessionStream(Generic[OutputT]):
         try:
             if self._attachment is not None and self._attachment.settled:
                 return
-            async for event in self._stream:
+            events = async_observe(self._stream, self._attachment) if self._attachment is not None else self._stream
+            async for event in events:
                 if not self._state.accept(event):
                     continue
                 if self._attachment is not None:

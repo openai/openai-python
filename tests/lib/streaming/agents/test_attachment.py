@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Iterator, AsyncIterator
 from typing_extensions import override
 
 import httpx2
 import pytest
 
-from openai import OpenAI, AsyncOpenAI
+from openai import OpenAI, AsyncOpenAI, APIConnectionError
 from openai.lib.beta.agents import AgentTurnResult, AgentTurnResultError
 from openai.lib.streaming.agents._types import ToolHandler
 from tests.lib.streaming.agents.test_results import message
@@ -25,6 +25,8 @@ class AttachmentServer(Server):
         self.status = "in_progress"
         self.turns: list[dict[str, Any]] = [turn()]
         self.retrieve_status: str | None = None
+        self.fail_recovery_read = False
+        self.complete_on_rejected_submission = False
         self.after_status: str | None = None
         self.after_turns: list[dict[str, Any]] | None = None
         self.reads = 0
@@ -35,6 +37,8 @@ class AttachmentServer(Server):
     @override
     def handle(self, request: httpx2.Request) -> httpx2.Response:
         path = request.url.path
+        if request.method == "POST" and self.complete_on_rejected_submission:
+            self.retrieve_status = "completed"
         if request.method == "GET" and not path.endswith("/events"):
             self.requests.append(request)
             if path.endswith("/turns"):
@@ -47,6 +51,8 @@ class AttachmentServer(Server):
                 )
             if "/turns/" in path:
                 turn_id = path.rsplit("/", 1)[-1]
+                if self.fail_recovery_read and self.body.read_count:
+                    raise httpx2.ConnectError("Synthetic durable read failure", request=request)
                 status = (
                     "completed"
                     if self.after_status == "idle"
@@ -68,9 +74,9 @@ class AttachmentServer(Server):
                     200, json={"data": data, "has_more": offset + 1 < len(self.items), "object": "list"}
                 )
             self.reads += 1
-            if self.reads > 1 and self.after_turns is not None:
+            if self.after_turns is not None:
                 self.turns = self.after_turns
-            value = session(self.after_status if self.reads > 1 and self.after_status else self.status)
+            value = session(self.after_status or self.status)
             if self.stale_required_actions:
                 value["required_actions"] = [
                     {
@@ -158,7 +164,7 @@ async def test_idle_without_selected_turn_settles_and_has_no_result(
             with pytest.raises(AgentTurnResultError, match="incomplete"):
                 stream.get_final_result()
     assert not server.inputs()
-    assert not any(r.url.path.endswith(("/turns", "/items")) for r in server.requests)
+    assert not any(r.url.path.endswith("/items") for r in server.requests)
 
 
 async def test_answered_call_not_executed_from_stale_session_snapshot(
@@ -305,3 +311,97 @@ async def test_unhandled_replay_stops_without_waiting_for_batch_end(
     assert server.body.read_count == 1
     assert not handled
     assert server.body.closed
+
+
+async def test_new_root_finishes_between_idle_baseline_and_refresh(
+    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer
+) -> None:
+    server.status = "idle"
+    server.turns = [turn("completed", "old_turn")]
+    server.after_turns = [turn("completed")]
+    server.after_status = "idle"
+    server.body = EventBody([])
+    result = await attach_result(sdk)
+    assert result.turn_id == "turn_root"
+    assert result.output_text == "earlierlater"
+
+
+class InterruptedBody(EventBody):
+    def __init__(self, server: AttachmentServer, status: str) -> None:
+        super().__init__([message("partial")])
+        self.server = server
+        self.status = status
+
+    @override
+    def __iter__(self) -> Iterator[bytes]:
+        yield from super().__iter__()
+        self.server.retrieve_status = self.status
+        raise httpx2.ReadError("Synthetic observation disconnect")
+
+    @override
+    async def __aiter__(self) -> AsyncIterator[bytes]:
+        for chunk in self:
+            yield chunk
+
+
+@pytest.mark.parametrize("terminal", ["completed", "failed"])
+async def test_interrupted_observation_reconciles_exact_selected_turn(
+    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer, terminal: str
+) -> None:
+    server.body = InterruptedBody(server, terminal)
+    if terminal == "failed":
+        with pytest.raises(AgentTurnResultError) as caught:
+            await attach_result(sdk)
+        assert caught.value.reason == "failed"
+        assert caught.value.messages
+    else:
+        result = await attach_result(sdk)
+        assert result.output_text == "earlierlater"
+    assert len([r for r in server.requests if "/turns/" in r.url.path]) == 2
+    assert server.body.closed
+
+
+@pytest.mark.parametrize("read_fails", [False, True])
+async def test_inconclusive_reconciliation_preserves_observation_cause(
+    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer, read_fails: bool
+) -> None:
+    server.body = InterruptedBody(server, "in_progress")
+    server.fail_recovery_read = read_fails
+    with pytest.raises(AgentTurnResultError) as caught:
+        await attach_result(sdk)
+    assert caught.value.reason == "observation_failed"
+    cause = caught.value.__cause__
+    assert isinstance(cause, APIConnectionError)
+    assert isinstance(cause.__cause__, httpx2.ReadError)
+    assert str(cause.__cause__) == "Synthetic observation disconnect"
+    assert len([r for r in server.requests if "/turns/" in r.url.path]) == 2
+
+
+async def test_submission_failure_is_not_hidden_by_completed_durable_turn(
+    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer
+) -> None:
+    server.reject_input = True
+    server.complete_on_rejected_submission = True
+    with pytest.raises(AgentTurnResultError) as caught:
+        await attach_result(sdk, {"search": lambda _args: "found"})
+    assert caught.value.reason == "observation_failed"
+    assert len([r for r in server.requests if "/turns/" in r.url.path]) == 1
+    assert not any(r.url.path.endswith("/items") for r in server.requests)
+
+
+async def test_collected_progress_can_recover_after_observation_error(
+    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer
+) -> None:
+    server.body = InterruptedBody(server, "completed")
+    if isinstance(sdk, AsyncOpenAI):
+        async with sdk.beta.agents.sessions.stream("session_test").with_result_collection() as stream:
+            with pytest.raises(APIConnectionError):
+                async for _ in stream:
+                    pass
+            result = await stream.get_final_result()
+    else:
+        with sdk.beta.agents.sessions.stream("session_test").with_result_collection() as stream:
+            with pytest.raises(APIConnectionError):
+                list(stream)
+            result = stream.get_final_result()
+    assert result.output_text == "earlierlater"

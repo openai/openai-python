@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import TYPE_CHECKING, Iterable
+from typing import TYPE_CHECKING, Iterable, Iterator, AsyncIterator
 
 from ._result import AgentTurnResultCollector
 from ...._streaming import Stream, AsyncStream
@@ -27,6 +27,7 @@ class AgentSessionAttachment:
         self.failed = False
         self.reconciled = False
         self.last_candidate: str | None = None
+        self.observation_interrupted = False
 
     def select(self, turn: Turn) -> None:
         if self.turn is None and turn.session_id == self.session_id and turn.subagent_id is None:
@@ -75,9 +76,7 @@ def _latest_root(turns: Iterable[Turn]) -> Turn | None:
 def attach(
     sessions: Sessions, session_id: str, options: _RequestOptions
 ) -> tuple[Stream[AgentSessionEvent], AgentSessionAttachment]:
-    session = sessions.retrieve(session_id, **options)
-    observed_active = session.status not in ("idle", "failed")
-    baseline = _latest_root(sessions.turns.list(session_id, order="desc", **options)) if observed_active else None
+    baseline = _latest_root(sessions.turns.list(session_id, order="desc", **options))
     turn = baseline if baseline is not None and baseline.status not in _TERMINAL else None
     state = AgentSessionAttachment(session_id, turn)
     stream = sessions.events.stream(session_id, **options)
@@ -87,9 +86,9 @@ def attach(
         session = sessions.retrieve(session_id, **options)
         if state.turn is not None:
             state.turn = sessions.turns.retrieve(state.turn.id, session_id=session_id, **options)
-        elif observed_active or session.status not in ("idle", "failed"):
+        else:
             latest = _latest_root(sessions.turns.list(session_id, order="desc", **options))
-            _select_refreshed(state, latest, baseline, observed_active)
+            _select_refreshed(state, latest, baseline)
         state.settle(session)
         return stream, state
     except BaseException:
@@ -106,9 +105,7 @@ async def async_attach(
                 return turn
         return None
 
-    session = await sessions.retrieve(session_id, **options)
-    observed_active = session.status not in ("idle", "failed")
-    baseline = await latest_root() if observed_active else None
+    baseline = await latest_root()
     turn = baseline if baseline is not None and baseline.status not in _TERMINAL else None
     state = AgentSessionAttachment(session_id, turn)
     stream = await sessions.events.stream(session_id, **options)
@@ -116,8 +113,8 @@ async def async_attach(
         session = await sessions.retrieve(session_id, **options)
         if state.turn is not None:
             state.turn = await sessions.turns.retrieve(state.turn.id, session_id=session_id, **options)
-        elif observed_active or session.status not in ("idle", "failed"):
-            _select_refreshed(state, await latest_root(), baseline, observed_active)
+        else:
+            _select_refreshed(state, await latest_root(), baseline)
         state.settle(session)
         return stream, state
     except BaseException:
@@ -125,23 +122,24 @@ async def async_attach(
         raise
 
 
-def _select_refreshed(
-    state: AgentSessionAttachment, latest: Turn | None, baseline: Turn | None, observed_active: bool
-) -> None:
+def _select_refreshed(state: AgentSessionAttachment, latest: Turn | None, baseline: Turn | None) -> None:
     # A newly visible root can have finished during subscription. An unchanged
     # completed root is historical and does not identify the observed work.
-    if latest is not None and (
-        latest.status not in _TERMINAL or observed_active and (baseline is None or latest.id != baseline.id)
-    ):
+    if latest is not None and (latest.status not in _TERMINAL or baseline is None or latest.id != baseline.id):
         state.select(latest)
 
 
 def reconcile(
     sessions: Sessions, state: AgentSessionAttachment, collector: AgentTurnResultCollector, options: _RequestOptions
-) -> None:
-    if state.reconciled or collector.turn is None or collector.turn.status != "completed":
-        return
+) -> bool:
+    if state.reconciled:
+        return True
+    if collector.turn is None:
+        return False
     turn = sessions.turns.retrieve(collector.turn.id, session_id=state.session_id, **options)
+    collector.turn = turn
+    if turn.status not in _TERMINAL:
+        return False
     messages = [
         item
         for item in sessions.items.list(state.session_id, order="asc", **options)
@@ -152,6 +150,7 @@ def reconcile(
         and item.phase != "commentary"
     ]
     _reconcile(state, collector, turn, messages)
+    return True
 
 
 async def async_reconcile(
@@ -159,10 +158,15 @@ async def async_reconcile(
     state: AgentSessionAttachment,
     collector: AgentTurnResultCollector,
     options: _RequestOptions,
-) -> None:
-    if state.reconciled or collector.turn is None or collector.turn.status != "completed":
-        return
+) -> bool:
+    if state.reconciled:
+        return True
+    if collector.turn is None:
+        return False
     turn = await sessions.turns.retrieve(collector.turn.id, session_id=state.session_id, **options)
+    collector.turn = turn
+    if turn.status not in _TERMINAL:
+        return False
     messages = [
         item
         async for item in sessions.items.list(state.session_id, order="asc", **options)
@@ -173,11 +177,45 @@ async def async_reconcile(
         and item.phase != "commentary"
     ]
     _reconcile(state, collector, turn, messages)
+    return True
 
 
 def _reconcile(
     state: AgentSessionAttachment, collector: AgentTurnResultCollector, turn: Turn, messages: list[AgentSessionMessage]
 ) -> None:
     collector.turn = turn
+    collector.cause = None
+    collector.required_actions = []
+    collector.boundary = True
     collector.replace_messages(messages)
     state.reconciled = True
+
+
+def observe(stream: Stream[AgentSessionEvent], state: AgentSessionAttachment) -> Iterator[AgentSessionEvent]:
+    iterator = iter(stream)
+    while True:
+        try:
+            event = next(iterator)
+        except StopIteration:
+            state.observation_interrupted = True
+            return
+        except Exception:
+            state.observation_interrupted = True
+            raise
+        yield event
+
+
+async def async_observe(
+    stream: AsyncStream[AgentSessionEvent], state: AgentSessionAttachment
+) -> AsyncIterator[AgentSessionEvent]:
+    iterator = stream.__aiter__()
+    while True:
+        try:
+            event = await iterator.__anext__()
+        except StopAsyncIteration:
+            state.observation_interrupted = True
+            return
+        except Exception:
+            state.observation_interrupted = True
+            raise
+        yield event
