@@ -330,6 +330,9 @@ async function check(stale, exists, priorRun, expected, missing = false) {
         self.assertNotIn("pull-requests: write", producer)
         self.assertNotIn("head.repo.full_name ==", producer)
         self.assertIn("workflow_run:", publisher)
+        concurrency = publisher.split("\nconcurrency:\n", 1)[1].split("\njobs:\n", 1)[0]
+        self.assertIn("queue: max", concurrency)
+        self.assertIn("cancel-in-progress: false", concurrency)
         self.assertIn("ref: ${{ github.workflow_sha }}", publisher)
         self.assertNotIn("ref: ${{ github.event.pull_request.head.sha }}", publisher)
         self.assertIn("persist-credentials: false", publisher)

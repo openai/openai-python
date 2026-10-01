@@ -11,6 +11,7 @@ permissions: {}
 concurrency:
   group: castiron-custom-code-comment-${{ github.event.workflow_run.head_repository.id }}-${{ github.event.workflow_run.head_branch }}
   cancel-in-progress: false
+  queue: max # Preserve newer pending evaluations if older runs arrive out of order.
 
 jobs:
   compute:
