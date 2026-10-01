@@ -8,7 +8,7 @@ from fnmatch import fnmatchcase
 from pathlib import Path, PurePosixPath
 from contextlib import ExitStack, contextmanager
 from dataclasses import field, dataclass
-from typing_extensions import TypedDict
+from typing_extensions import TypedDict, override
 
 import anyio
 import httpx2
@@ -32,6 +32,16 @@ class _RequestOptions(TypedDict):
 
 _MAX_FILES = 50
 _MAX_BYTES = 50 * 1024 * 1024
+
+
+@dataclass(frozen=True)
+class _SelectedFile(PathLike[str]):
+    path: Path
+    identity: tuple[int, int, int]
+
+    @override
+    def __fspath__(self) -> str:
+        return str(self.path)
 
 
 @dataclass
@@ -115,7 +125,7 @@ def _prepare_selection(
             raise ValueError("Selected agent files contain duplicate or conflicting destinations")
         destinations.add(destination)
         local = _local_file(source)
-        handle, length = _open_local(local, stack)
+        handle, length = _open_local(local, stack, source.identity if isinstance(source, _SelectedFile) else None)
         size += length
         selected.append((destination, local, handle, length))
     if size > _MAX_BYTES:
@@ -131,7 +141,11 @@ def _matches(parts: tuple[str, ...], pattern: tuple[str, ...]) -> bool:
     return bool(parts) and fnmatchcase(parts[0], pattern[0]) and _matches(parts[1:], pattern[1:])
 
 
-def directory_files(root: str | PathLike[str], destination: str, include: Sequence[str]) -> dict[str, Path]:
+def _walk_error(error: OSError) -> None:
+    raise error
+
+
+def directory_files(root: str | PathLike[str], destination: str, include: Sequence[str]) -> dict[str, PathLike[str]]:
     directory = Path(root).absolute()
     if isinstance(include, str) or not include:
         raise ValueError("Select directory files with explicit include patterns")
@@ -139,14 +153,16 @@ def directory_files(root: str | PathLike[str], destination: str, include: Sequen
         raise ValueError("The selected directory must be a directory, not a symlink")
     directory = directory.resolve()
     # System aliases such as macOS /tmp are allowed above the chosen root.
-    _destination(destination + "/selected-file")
+    _destination(destination + "/a")  # Validate with the shortest possible filename.
     patterns: list[tuple[str, ...]] = []
     for pattern in include:
         if not pattern or PurePosixPath(pattern).is_absolute() or ".." in PurePosixPath(pattern).parts:
             raise ValueError("Include patterns must stay inside the selected directory")
         patterns.append(PurePosixPath(pattern).parts)
-    selected: dict[str, Path] = {}
-    for current, directories, names in walk(directory, followlinks=False):
+    selected: dict[str, PathLike[str]] = {}
+    for current, directories, names in walk(directory, followlinks=False, onerror=_walk_error):
+        if not Path(current).resolve().is_relative_to(directory):
+            raise ValueError("Selected directory traversal left its root")
         directories.sort()
         for name in sorted([*directories, *names]):
             source = Path(current) / name
@@ -159,20 +175,30 @@ def directory_files(root: str | PathLike[str], destination: str, include: Sequen
                     directories.remove(name)
                 continue
             if chosen and name not in directories:
-                selected[str(PurePosixPath(destination) / relative.as_posix())] = source
+                canonical = source.resolve()
+                if not canonical.is_relative_to(directory):
+                    raise ValueError("Selected agent file is outside the chosen directory")
+                metadata = canonical.lstat()
+                selected[str(PurePosixPath(destination) / relative.as_posix())] = _SelectedFile(
+                    canonical, (metadata.st_dev, metadata.st_ino, metadata.st_size)
+                )
     if not selected:
         raise ValueError("The include patterns did not select any files")
     return selected
 
 
-async def async_directory_files(root: str | PathLike[str], destination: str, include: Sequence[str]) -> dict[str, Path]:
-    return await run_sync(directory_files, root, destination, include)
+async def async_directory_files(
+    root: str | PathLike[str], destination: str, include: Sequence[str]
+) -> dict[str, PathLike[str]]:
+    return await run_sync(directory_files, root, destination, include, abandon_on_cancel=True)
 
 
-def _open_local(path: Path, stack: ExitStack) -> tuple[BinaryIO, int]:
+def _open_local(path: Path, stack: ExitStack, expected: tuple[int, int, int] | None = None) -> tuple[BinaryIO, int]:
     before = path.lstat()
     if not S_ISREG(before.st_mode):
         raise ValueError("Selected agent files must be regular files, not symlinks")
+    if expected is not None and expected != (before.st_dev, before.st_ino, before.st_size):
+        raise ValueError("Selected agent file changed after directory selection")
     handle = stack.enter_context(path.open("rb"))
     opened = fstat(handle.fileno())
     if (before.st_dev, before.st_ino, before.st_size) != (opened.st_dev, opened.st_ino, opened.st_size):
@@ -199,6 +225,9 @@ def prepare(resource: Files, files: Mapping[str, str | PathLike[str]], options: 
                 prepared.files.append({"type": "file_id", "file_id": uploaded.id, "path": destination})
         except Exception as error:
             raise AgentFilePreparationError(prepared) from error
+        except BaseException as error:
+            error.__dict__["prepared"] = prepared
+            raise
         return prepared
 
 
@@ -206,13 +235,13 @@ async def async_prepare(
     resource: AsyncFiles, files: Mapping[str, str | PathLike[str]], options: _RequestOptions
 ) -> PreparedAgentFiles:
     with ExitStack() as stack:
-        selected = _prepare_selection(files, options, resource._client.default_headers, stack)
+        selected = await run_sync(_prepare_selection, files, options, resource._client.default_headers, stack)
         prepared = PreparedAgentFiles()
         try:
             for destination, source, handle, length in selected:
-                _unchanged_size(handle, length)
+                content = await run_sync(_read_local, handle, length)
                 uploaded = await resource._client.files.create(
-                    file=(source.name, handle), purpose="user_data", **options
+                    file=(source.name, content), purpose="user_data", **options
                 )
                 prepared.uploaded_file_ids.append(uploaded.id)
                 prepared.files.append({"type": "file_id", "file_id": uploaded.id, "path": destination})
@@ -222,6 +251,23 @@ async def async_prepare(
         except Exception as error:
             raise AgentFilePreparationError(prepared) from error
         return prepared
+
+
+def _read_local(handle: BinaryIO, length: int) -> bytes:
+    if length > _MAX_BYTES:
+        raise ValueError("An agent file must not exceed 50 MiB")
+    _unchanged_size(handle, length)
+    content = handle.read(length + 1)
+    if len(content) != length:
+        raise ValueError("Selected agent file changed during preparation")
+    return content
+
+
+def _snapshot_upload(file: FileTypes) -> FileTypes:
+    assert isinstance(file, tuple) and isinstance(file[1], IOBase)
+    handle = cast(BinaryIO, file[1])
+    content = _read_local(handle, fstat(handle.fileno()).st_size)
+    return cast(FileTypes, (file[0], content, *file[2:]))
 
 
 @contextmanager
@@ -250,7 +296,8 @@ def _upload_content(file: FileTypes) -> Generator[FileTypes, None, None]:
                     if S_ISREG(metadata.st_mode):
                         size = metadata.st_size
             except (OSError, ValueError):
-                pass
+                # Some streams expose neither a seekable length nor a file descriptor.
+                size = None
         if size is not None and size > _MAX_BYTES:
             raise ValueError("An agent file must not exceed 50 MiB")
         yield file
@@ -268,6 +315,9 @@ def upload(
         staged = resource.create(environment_id, type="file_id", file_id=uploaded.id, path=destination, **options)
     except Exception as error:
         raise AgentFileStagingError(uploaded.id) from error
+    except BaseException as error:
+        error.__dict__["uploaded_file_id"] = uploaded.id
+        raise
     return StagedAgentFile(uploaded_file_id=uploaded.id, file=staged)
 
 
@@ -277,7 +327,10 @@ async def async_upload(
     if not environment_id:
         raise ValueError("Expected a non-empty environment_id")
     destination = _destination(path)
+    original = file[1] if isinstance(file, tuple) else file
     with _upload_content(file) as content:
+        if isinstance(original, PathLike):
+            content = await run_sync(_snapshot_upload, content)
         uploaded = await resource._client.files.create(file=content, purpose="user_data", **options)
     try:
         staged = await resource.create(environment_id, type="file_id", file_id=uploaded.id, path=destination, **options)

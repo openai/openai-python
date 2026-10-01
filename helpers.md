@@ -664,4 +664,6 @@ Files API when ready to delete them. Preparation errors expose partial uploads
 through `error.prepared`. A batch of multiple uploads cannot share one explicit
 `Idempotency-Key`.
 
-With `AsyncOpenAI`, await preparation, staging, and artifact downloads.
+Use application-controlled local paths and stable source directories. These
+convenience helpers are not a filesystem sandbox for untrusted paths or hostile
+local writers. With `AsyncOpenAI`, await preparation, staging, and artifact downloads.

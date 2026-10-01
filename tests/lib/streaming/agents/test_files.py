@@ -413,3 +413,180 @@ async def test_async_directory_selection_runs_off_event_loop(
         tmp_path, destination="/workspace/docs", include=["*.txt"]
     )
     assert prepared.uploaded_file_ids == ["file_1"]
+
+
+async def prepare_directory(sdk: OpenAI | AsyncOpenAI, root: Path, destination: str = "/workspace/docs") -> Any:
+    if isinstance(sdk, AsyncOpenAI):
+        return await sdk.beta.agents.environments.files.prepare_directory(
+            root, destination=destination, include=["**/*.txt"]
+        )
+    return sdk.beta.agents.environments.files.prepare_directory(root, destination=destination, include=["**/*.txt"])
+
+
+async def test_directory_walk_error_is_not_a_partial_success(
+    sdk: OpenAI | AsyncOpenAI, server: FilesServer, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from openai.lib.beta.agents import _files
+
+    (tmp_path / "keep.txt").write_text("abc")
+
+    def failed_walk(root: Any, **options: Any) -> Any:
+        yield str(root), [], ["keep.txt"]
+        options["onerror"](PermissionError("synthetic unreadable subtree"))
+
+    monkeypatch.setattr(_files, "walk", failed_walk)
+    with pytest.raises(PermissionError, match="synthetic"):
+        await prepare_directory(sdk, tmp_path)
+    assert not server.requests
+
+
+async def test_cached_directory_entry_cannot_leave_selected_root(
+    sdk: OpenAI | AsyncOpenAI, server: FilesServer, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from openai.lib.beta.agents import _files
+
+    root = tmp_path / "chosen"
+    child = root / "child"
+    child.mkdir(parents=True)
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "other.txt").write_text("outside")
+
+    def changed_walk(directory: Any, **_options: Any) -> Any:
+        yield str(directory), ["child"], []
+        child.rename(root / "original-child")
+        child.symlink_to(outside, target_is_directory=True)
+        yield str(child), [], ["other.txt"]
+
+    monkeypatch.setattr(_files, "walk", changed_walk)
+    with pytest.raises(ValueError, match="left its root"):
+        await prepare_directory(sdk, root)
+    assert not server.requests
+
+
+async def test_directory_selection_keeps_file_identity_until_open(
+    sdk: OpenAI | AsyncOpenAI, server: FilesServer, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from openai.lib.beta.agents import _files
+    from openai.resources.beta.agents.environments import files as resource_files
+
+    source = tmp_path / "chosen.txt"
+    source.write_text("abc")
+    original = _files.directory_files
+
+    def select_then_replace(root: Any, destination: str, include: Any) -> Any:
+        selected = original(root, destination, include)
+        source.rename(tmp_path / "original.txt")
+        source.write_text("xyz")
+        return selected
+
+    monkeypatch.setattr(_files, "directory_files", select_then_replace)
+    monkeypatch.setattr(resource_files, "directory_files", select_then_replace)
+    with pytest.raises(ValueError, match="changed after directory selection"):
+        await prepare_directory(sdk, tmp_path)
+    assert not server.requests
+
+
+async def test_directory_destination_uses_actual_filename_length(
+    sdk: OpenAI | AsyncOpenAI, server: FilesServer, tmp_path: Path
+) -> None:
+    (tmp_path / "a").write_text("abc")
+    destination = "/workspace/" + "x" * (4094 - len("/workspace/"))
+    if isinstance(sdk, AsyncOpenAI):
+        prepared = await sdk.beta.agents.environments.files.prepare_directory(
+            tmp_path, destination=destination, include=["a"]
+        )
+    else:
+        prepared = sdk.beta.agents.environments.files.prepare_directory(
+            tmp_path, destination=destination, include=["a"]
+        )
+    assert len(prepared.files[0]["path"]) == 4096
+    assert server.uploads == 1
+
+
+async def test_async_path_reads_run_off_event_loop(
+    sdk: OpenAI | AsyncOpenAI, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import threading
+
+    from openai.lib.beta.agents import _files
+
+    if not isinstance(sdk, AsyncOpenAI):
+        pytest.skip("Async disk read contract")
+    source = tmp_path / "source.txt"
+    source.write_text("abc")
+    current_thread = threading.get_ident()
+    original = _files._read_local
+    calls: list[int] = []
+
+    def read(handle: Any, length: int) -> bytes:
+        assert threading.get_ident() != current_thread
+        calls.append(length)
+        return original(handle, length)
+
+    monkeypatch.setattr(_files, "_read_local", read)
+    await sdk.beta.agents.environments.files.prepare({"/workspace/source.txt": source})
+    await sdk.beta.agents.environments.files.upload("env_test", file=source, path="/workspace/source.txt")
+    assert calls == [3, 3]
+
+
+@pytest.mark.parametrize("staging", [False, True])
+async def test_sync_interruption_preserves_observed_uploads(
+    sdk: OpenAI | AsyncOpenAI, server: FilesServer, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, staging: bool
+) -> None:
+    if isinstance(sdk, AsyncOpenAI):
+        pytest.skip("Synchronous interruption contract")
+    source = tmp_path / "source.txt"
+    source.write_text("abc")
+
+    def interrupt(*_args: Any, **_kwargs: Any) -> Any:
+        raise KeyboardInterrupt()
+
+    if staging:
+        monkeypatch.setattr(sdk.beta.agents.environments.files, "create", interrupt)
+        with pytest.raises(KeyboardInterrupt) as caught:
+            sdk.beta.agents.environments.files.upload("env_test", file=source, path="/workspace/source.txt")
+        assert vars(caught.value)["uploaded_file_id"] == "file_1"
+    else:
+
+        def after_upload() -> None:
+            if server.uploads == 2:
+                raise KeyboardInterrupt()
+
+        server.after_upload = after_upload
+        with pytest.raises(KeyboardInterrupt) as caught:
+            sdk.beta.agents.environments.files.prepare({"/workspace/a": source, "/workspace/b": source})
+        assert vars(caught.value)["prepared"].uploaded_file_ids == ["file_1"]
+
+
+async def test_async_selection_cancellation_does_not_wait_for_scan(monkeypatch: pytest.MonkeyPatch) -> None:
+    import threading
+
+    import anyio
+
+    from openai.lib.beta.agents import _files
+
+    started = threading.Event()
+    release = threading.Event()
+    timer = threading.Timer(2, release.set)
+
+    def scan(*_args: Any) -> Any:
+        started.set()
+        release.wait()
+        return {}
+
+    async def select() -> None:
+        await _files.async_directory_files("synthetic", "/workspace/docs", ["*"])
+
+    monkeypatch.setattr(_files, "directory_files", scan)
+    timer.start()
+    try:
+        async with anyio.create_task_group() as tasks:
+            tasks.start_soon(select)
+            while not started.is_set():
+                await anyio.sleep(0)
+            tasks.cancel_scope.cancel()
+        assert not release.is_set()
+    finally:
+        release.set()
+        timer.cancel()
