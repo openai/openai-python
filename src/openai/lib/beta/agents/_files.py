@@ -115,12 +115,17 @@ def _prepare_selection(
     return selected
 
 
-def _matches(parts: tuple[str, ...], pattern: tuple[str, ...]) -> bool:
+def _matches(parts: tuple[str, ...], pattern: tuple[str, ...], *, prefix: bool = False) -> bool:
+    # A directory prefix is useful only if the pattern can select a descendant.
+    if prefix and not parts:
+        return bool(pattern)
     if not pattern:
         return not parts
     if pattern[0] == "**":
-        return _matches(parts, pattern[1:]) or bool(parts) and _matches(parts[1:], pattern)
-    return bool(parts) and fnmatchcase(parts[0], pattern[0]) and _matches(parts[1:], pattern[1:])
+        return (
+            _matches(parts, pattern[1:], prefix=prefix) or bool(parts) and _matches(parts[1:], pattern, prefix=prefix)
+        )
+    return bool(parts) and fnmatchcase(parts[0], pattern[0]) and _matches(parts[1:], pattern[1:], prefix=prefix)
 
 
 def _walk_error(error: OSError) -> None:
@@ -156,7 +161,11 @@ def directory_files(root: str | PathLike[str], destination: str, include: Sequen
                 if name in directories:
                     directories.remove(name)
                 continue
-            if chosen and name not in directories:
+            if name in directories:
+                if not any(_matches(relative.parts, pattern, prefix=True) for pattern in patterns):
+                    directories.remove(name)
+                continue
+            if chosen:
                 canonical = source.resolve()
                 if not canonical.is_relative_to(directory):
                     raise ValueError("Selected agent file is outside the chosen directory")

@@ -463,6 +463,78 @@ async def prepare_directory(sdk: OpenAI | AsyncOpenAI, root: Path, destination: 
     return sdk.beta.agents.environments.files.prepare_directory(root, destination=destination, include=["**/*.txt"])
 
 
+@pytest.mark.parametrize(
+    "include,expected",
+    [
+        (["one.txt"], ["one.txt"]),
+        (["*.txt"], ["one.txt"]),
+        (["docs/*.txt"], ["docs/one.txt"]),
+        (["docs/**/*.txt"], ["docs/one.txt", "docs/nested/one.txt"]),
+        (["docs/*/*.txt"], ["docs/nested/one.txt"]),
+    ],
+)
+async def test_directory_selection_skips_unrelated_unreadable_subtrees(
+    sdk: OpenAI | AsyncOpenAI, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, include: list[str], expected: list[str]
+) -> None:
+    import os
+
+    for name in ["one.txt", "docs/one.txt", "docs/nested/one.txt", "private/one.txt"]:
+        source = tmp_path / name
+        source.parent.mkdir(parents=True, exist_ok=True)
+        source.write_text("abc")
+    scan = os.scandir
+    visited: list[Path] = []
+
+    def scandir(path: Any) -> Any:
+        current = Path(path)
+        visited.append(current)
+        if current == tmp_path / "private":
+            raise PermissionError("Synthetic unreadable unrelated subtree")
+        return scan(path)
+
+    monkeypatch.setattr(os, "scandir", scandir)
+    if isinstance(sdk, AsyncOpenAI):
+        result = await sdk.beta.agents.environments.files.prepare_directory(
+            tmp_path, destination="/workspace/docs", include=include
+        )
+    else:
+        result = sdk.beta.agents.environments.files.prepare_directory(
+            tmp_path, destination="/workspace/docs", include=include
+        )
+    assert [file["path"] for file in result.files] == [f"/workspace/docs/{name}" for name in expected]
+    assert tmp_path / "private" not in visited
+    if include == ["docs/*.txt"]:
+        assert tmp_path / "docs/nested" not in visited
+
+
+@pytest.mark.parametrize("include", [["**/*.txt"], ["private/*.txt"]])
+async def test_directory_selection_propagates_needed_subtree_errors(
+    sdk: OpenAI | AsyncOpenAI, server: FilesServer, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, include: list[str]
+) -> None:
+    import os
+
+    (tmp_path / "one.txt").write_text("abc")
+    (tmp_path / "private").mkdir()
+    scan = os.scandir
+
+    def scandir(path: Any) -> Any:
+        if Path(path) == tmp_path / "private":
+            raise PermissionError("Synthetic unreadable selected subtree")
+        return scan(path)
+
+    monkeypatch.setattr(os, "scandir", scandir)
+    with pytest.raises(PermissionError, match="selected subtree"):
+        if isinstance(sdk, AsyncOpenAI):
+            await sdk.beta.agents.environments.files.prepare_directory(
+                tmp_path, destination="/workspace/docs", include=include
+            )
+        else:
+            sdk.beta.agents.environments.files.prepare_directory(
+                tmp_path, destination="/workspace/docs", include=include
+            )
+    assert not server.requests
+
+
 async def test_directory_walk_error_is_not_a_partial_success(
     sdk: OpenAI | AsyncOpenAI, server: FilesServer, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
