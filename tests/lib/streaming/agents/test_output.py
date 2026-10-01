@@ -5,10 +5,12 @@ import traceback
 from typing import Any, cast
 from typing_extensions import Literal
 
+import httpx2
 import pytest
+import pydantic
 from pydantic import Field, HttpUrl, BaseModel
 
-from openai import OpenAI, AsyncOpenAI
+from openai import OpenAI, AsyncOpenAI, BadRequestError
 from openai._compat import PYDANTIC_V1
 from openai.lib.beta.agents import (
     AgentTurnResultError,
@@ -17,8 +19,17 @@ from openai.lib.beta.agents import (
     agent_text_format,
     pydantic_function_tool,
 )
+from openai.lib._parsing._responses import type_to_text_format_param
 from tests.lib.streaming.agents.test_results import ResultServer, server as server, message
 from tests.lib.streaming.agents.test_streams import EventBody, sdk as sdk, call, idle, turn_event
+
+
+def _assert_matches_responses(model: type[Any]) -> dict[str, Any]:
+    schema = agent_text_format(model)["schema"]
+    responses_format = type_to_text_format_param(model)
+    assert responses_format["type"] == "json_schema"
+    assert schema == responses_format["schema"]
+    return schema
 
 
 class Report(BaseModel):
@@ -42,14 +53,14 @@ def test_agents_format() -> None:
     assert "name" not in format and "strict" not in format
 
 
-def test_schema_rejects_open_objects() -> None:
+def test_mapping_schema_matches_responses_without_mutating_tools() -> None:
     class WithMap(BaseModel):
         value: dict[str, str]
 
     tool = pydantic_function_tool(WithMap, handler=lambda args: args.value)
     parameters = tool.definition["parameters"]
-    with pytest.raises(ValueError, match="additionalProperties"):
-        agent_text_format(WithMap)
+    schema = _assert_matches_responses(WithMap)
+    assert schema["properties"]["value"]["additionalProperties"] == {"type": "string"}
     assert tool.definition["parameters"] == parameters
     assert tool({"value": {"label": "example"}}) == '{"label":"example"}'
 
@@ -62,12 +73,12 @@ def test_schema_normalizes_defaults_without_mutating_model() -> None:
     assert WithDefault().value == "default"
 
 
-def test_schema_rejects_unsupported_unique_items() -> None:
+def test_unique_items_matches_responses() -> None:
     class WithSet(BaseModel):
         value: set[str]
 
-    with pytest.raises(ValueError, match="uniqueItems"):
-        agent_text_format(WithSet)
+    schema = _assert_matches_responses(WithSet)
+    assert schema["properties"]["value"]["uniqueItems"] is True
 
 
 @pytest.mark.parametrize("creation", [False, True])
@@ -197,17 +208,16 @@ class PetReport(BaseModel):
     pet: Cat | Dog = Field(discriminator="kind")
 
 
-def test_discriminated_union_rejected() -> None:
-    with pytest.raises(ValueError, match="oneOf"):
-        agent_text_format(PetReport)
+def test_discriminated_union_matches_responses() -> None:
+    schema = _assert_matches_responses(PetReport)
+    assert "oneOf" in schema["properties"]["pet"]
 
 
-def test_fixed_tuple_rejected() -> None:
+def test_fixed_tuple_matches_responses() -> None:
     class TupleReport(BaseModel):
         coordinates: tuple[int, int]
 
-    with pytest.raises(ValueError, match="items"):
-        agent_text_format(TupleReport)
+    _assert_matches_responses(TupleReport)
 
 
 class RecursiveReport(BaseModel):
@@ -228,9 +238,8 @@ def test_recursive_references_preserved() -> None:
         type("URLReport", (BaseModel,), {"__annotations__": {"url": HttpUrl}}),
     ],
 )
-def test_unsupported_field_types_fail_locally(model: type[BaseModel]) -> None:
-    with pytest.raises(ValueError, match="schema"):
-        agent_text_format(model)
+def test_field_types_match_responses(model: type[BaseModel]) -> None:
+    _assert_matches_responses(model)
 
 
 class NullableChild(BaseModel):
@@ -244,15 +253,8 @@ class NullableReport(BaseModel):
     choice: int | str | None = None
 
 
-def test_nullable_schema_matches_supported_model_values() -> None:
-    schema = agent_text_format(NullableReport)["schema"]
-    properties: Any = schema["properties"]
-    assert {item.get("type") for item in properties["optional"]["anyOf"]} == {"string", "null"}
-    assert any(item.get("type") == "null" for item in properties["child"]["anyOf"])
-    assert {item["type"] for item in properties["values"]["items"]["anyOf"]} == {"string", "null"}
-    assert {item.get("type") for item in properties["choice"]["anyOf"]} == {"integer", "string", "null"}
-    definitions: Any = schema.get("$defs", schema.get("definitions"))
-    assert any(item["type"] == "null" for item in definitions["NullableChild"]["properties"]["value"]["anyOf"])
+def test_nullable_schema_matches_responses() -> None:
+    schema = _assert_matches_responses(NullableReport)
     assert schema["required"] == ["optional", "child", "values", "choice"]
     assert NullableReport(values=[None]).optional is None
 
@@ -284,19 +286,14 @@ class NullableTree(BaseModel):
     children: list[NullableTree | None]
 
 
-def test_nullable_recursive_refs_and_aliases() -> None:
-    schema: Any = agent_text_format(NullableTree)["schema"]
-    definitions: Any = schema.get("$defs", schema.get("definitions"))
-    for properties in (schema["properties"], definitions["NullableTree"]["properties"]):
-        assert len([item for item in properties["parent"]["anyOf"] if item.get("type") == "null"]) == 1
-        assert any(item.get("type") == "null" for item in properties["children"]["items"]["anyOf"])
+def test_nullable_recursive_refs_and_aliases_match_responses() -> None:
+    _assert_matches_responses(NullableTree)
 
     class Aliased(BaseModel):
         count: int | None = Field(None, alias="optionalCount")
 
-    alias_schema: Any = agent_text_format(Aliased)["schema"]
+    alias_schema = _assert_matches_responses(Aliased)
     assert alias_schema["required"] == ["optionalCount"]
-    assert any(item["type"] == "null" for item in alias_schema["properties"]["optionalCount"]["anyOf"])
 
 
 class LocalURLReport(BaseModel):
@@ -318,50 +315,45 @@ async def test_followup_output_type_only_selects_local_parser(sdk: OpenAI | Asyn
     assert result.output_parsed is not None
     assert str(result.output_parsed.url) == "https://example.com/"
     assert "output_type" not in str(server.inputs())
-    with pytest.raises(ValueError, match="format"):
-        agent_text_format(LocalURLReport)
+    _assert_matches_responses(LocalURLReport)
 
 
 @pytest.mark.parametrize("value", ['say "hello"', "two\nlines", (1, 2)])
-def test_unsupported_enum_literals_rejected(value: Any) -> None:
+def test_enum_literals_match_responses(value: Any) -> None:
     from enum import Enum
 
     enum = Enum("Example", {"A": value, "B": "other"})
     model = type("EnumReport", (BaseModel,), {"__annotations__": {"value": enum}})
-    with pytest.raises(ValueError, match="schema"):
-        agent_text_format(model)
+    _assert_matches_responses(model)
 
 
-def test_unsupported_property_literal_rejected() -> None:
+def test_property_literals_match_responses() -> None:
     class Aliased(BaseModel):
         value: str = Field(alias='a"b')
 
-    with pytest.raises(ValueError, match="property names"):
-        agent_text_format(Aliased)
+    _assert_matches_responses(Aliased)
 
 
-def test_pattern_keyed_mapping_rejected() -> None:
+def test_pattern_keyed_mapping_matches_responses() -> None:
     from pydantic import constr
 
     key_type = cast(Any, constr)(**{("regex" if PYDANTIC_V1 else "pattern"): "^item_"})
     model = type("PatternMapping", (BaseModel,), {"__annotations__": {"values": dict[key_type, str]}})
-    with pytest.raises(ValueError, match="patternProperties"):
-        agent_text_format(model)
+    schema = _assert_matches_responses(model)
+    assert schema["properties"]["values"]["patternProperties"] == {"^item_": {"type": "string"}}
 
 
-def test_bare_mapping_rejected_but_empty_fixed_object_supported() -> None:
+def test_bare_mapping_and_empty_fixed_object_match_responses() -> None:
     model = type("BareMapping", (BaseModel,), {"__annotations__": {"value": dict}})
-    with pytest.raises(ValueError, match="schema"):
-        agent_text_format(model)
+    _assert_matches_responses(model)
     empty = type("EmptyReport", (BaseModel,), {})
-    assert agent_text_format(empty)["schema"]["properties"] == {}
+    assert _assert_matches_responses(empty)["properties"] == {}
 
 
 @pytest.mark.parametrize("value", ['say "hello"', "two\nlines"])
-def test_unsupported_single_literal_rejected(value: Any) -> None:
+def test_single_literals_match_responses(value: Any) -> None:
     model = type("LiteralReport", (BaseModel,), {"__annotations__": {"value": Literal[value]}})
-    with pytest.raises(ValueError, match="schema"):
-        agent_text_format(model)
+    _assert_matches_responses(model)
 
 
 @pytest.mark.parametrize("explicit_model", [False, True])
@@ -405,3 +397,103 @@ async def test_typed_tools_and_output_keep_distinct_schema_policies(
     assert seen == ["default"]
     assert server.inputs()[1]["output"] == text
     assert server.inputs()[1]["success"] is True
+
+
+@pytest.mark.parametrize("schema_kind", ["mapping", "root", "format"])
+@pytest.mark.parametrize("asynchronous", [False, True])
+async def test_schema_is_sent_and_api_rejection_is_preserved(schema_kind: str, asynchronous: bool) -> None:
+    if schema_kind == "root":
+        model = (
+            pydantic.create_model("ListOutput", __root__=(list[str], ...))
+            if PYDANTIC_V1
+            else pydantic.RootModel[list[str]]
+        )
+    elif schema_kind == "mapping":
+        model = pydantic.create_model("MappingOutput", value=(dict[str, str], ...))
+    else:
+        model = LocalURLReport
+    expected_schema = _assert_matches_responses(model)
+    requests: list[httpx2.Request] = []
+    error = {"message": "This schema is not supported", "type": "invalid_request_error", "code": "invalid_json_schema"}
+
+    def handle(request: httpx2.Request) -> httpx2.Response:
+        requests.append(request)
+        return httpx2.Response(400, json={"error": error})
+
+    transport = httpx2.MockTransport(handle)
+    with pytest.raises(BadRequestError) as caught:
+        if asynchronous:
+            async with AsyncOpenAI(
+                api_key="synthetic", max_retries=0, http_client=httpx2.AsyncClient(transport=transport)
+            ) as client:
+                await client.beta.agents.sessions.create(
+                    agent={"model": "test-model"},
+                    environment={"type": "none"},
+                    input="Summarize the document.",
+                    stream=True,
+                    output_type=model,
+                )
+        else:
+            with OpenAI(api_key="synthetic", max_retries=0, http_client=httpx2.Client(transport=transport)) as client:
+                client.beta.agents.sessions.create(
+                    agent={"model": "test-model"},
+                    environment={"type": "none"},
+                    input="Summarize the document.",
+                    stream=True,
+                    output_type=model,
+                )
+    assert caught.value.status_code == 400
+    assert caught.value.body == error
+    assert len(requests) == 1
+    body = json.loads(requests[0].content)
+    assert body["agent"]["text"]["format"] == {"type": "json_schema", "schema": expected_schema}
+    assert "output_type" not in body
+
+
+@pytest.mark.parametrize("model", [str, dict, object])
+async def test_invalid_output_model_rejected_before_request(
+    sdk: OpenAI | AsyncOpenAI, server: ResultServer, model: type[Any]
+) -> None:
+    with pytest.raises(TypeError, match="Pydantic"):
+        if isinstance(sdk, AsyncOpenAI):
+            await sdk.beta.agents.sessions.create(
+                agent={"model": "test-model"},
+                environment={"type": "none"},
+                input="Question",
+                stream=True,
+                output_type=model,
+            )
+        else:
+            sdk.beta.agents.sessions.create(
+                agent={"model": "test-model"},
+                environment={"type": "none"},
+                input="Question",
+                stream=True,
+                output_type=model,
+            )
+    assert server.requests == []
+
+
+async def test_root_model_result_uses_native_parser(sdk: OpenAI | AsyncOpenAI, server: ResultServer) -> None:
+    model = (
+        pydantic.create_model("ListOutput", __root__=(list[str], ...)) if PYDANTIC_V1 else pydantic.RootModel[list[str]]
+    )
+    server.body = EventBody([turn_event("created"), message('["one"]'), turn_event("completed"), idle()])
+    if isinstance(sdk, AsyncOpenAI):
+        async with sdk.beta.agents.sessions.stream("session_test", input="Question", output_type=model) as stream:
+            result = await stream.get_final_result()
+    else:
+        with sdk.beta.agents.sessions.stream("session_test", input="Question", output_type=model) as stream:
+            result = stream.get_final_result()
+    assert getattr(result.output_parsed, "__root__" if PYDANTIC_V1 else "root") == ["one"]
+
+
+def test_inherited_schema_conversion_errors_are_preserved() -> None:
+    extra: dict[str, Any] = {"$ref": "https://example.com/schema.json"}
+    config = (
+        type("Config", (), {"schema_extra": extra}) if PYDANTIC_V1 else pydantic.ConfigDict(json_schema_extra=extra)
+    )
+    model = pydantic.create_model("ExternalReference", __config__=cast(Any, config), value=(str, ...))
+    for convert in (agent_text_format, type_to_text_format_param):
+        with pytest.raises(ValueError, match="Unexpected.*ref format"):
+            convert(model)
