@@ -837,3 +837,45 @@ async def test_error_hydration_preserves_observed_completed_tail(
     with pytest.raises(AgentTurnResultError, match="requires_action") as caught:
         await attach_result(sdk)
     assert "".join(item.output_text for item in caught.value.messages) == "earlierlater"
+
+
+@pytest.mark.parametrize("backend", ["asyncio", "trio"])
+def test_cancelled_attachment_entry_closes_open_sse(backend: str) -> None:
+    import anyio
+
+    class CheckpointCloseBody(EventBody):
+        @override
+        async def aclose(self) -> None:
+            await anyio.sleep(0)
+            self.closed = True
+
+    server = AttachmentServer()
+    server.body = CheckpointCloseBody([])
+    server.turns = []
+    cancelled: list[BaseException] = []
+
+    async def run() -> None:
+        with anyio.CancelScope() as scope:
+
+            async def handle(request: httpx2.Request) -> httpx2.Response:
+                if request.url.path.endswith("/sessions/session_test"):
+                    scope.cancel()
+                    await anyio.sleep(0)
+                return server.handle(request)
+
+            async with AsyncOpenAI(
+                api_key="synthetic",
+                base_url="https://sdk-test.example/v1",
+                max_retries=0,
+                http_client=httpx2.AsyncClient(transport=httpx2.MockTransport(handle), trust_env=False),
+            ) as client:
+                try:
+                    async with client.beta.agents.sessions.stream("session_test"):
+                        pytest.fail("Cancelled attachment must not return a stream")
+                except anyio.get_cancelled_exc_class() as error:
+                    cancelled.append(error)
+                    raise
+
+    anyio.run(run, backend=backend)
+    assert len(cancelled) == 1
+    assert server.body.closed

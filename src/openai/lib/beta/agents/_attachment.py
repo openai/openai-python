@@ -3,6 +3,8 @@ from __future__ import annotations
 from copy import deepcopy
 from typing import TYPE_CHECKING, Iterable, Iterator, AsyncIterator
 
+import anyio
+
 from ._result import AgentTurnResultError, AgentTurnResultCollector
 from ...._types import omit
 from ...._streaming import Stream, AsyncStream
@@ -186,7 +188,9 @@ async def async_attach(
         state.manual_diagnostics = _needs_manual_diagnostics(state, session)
         return stream, state
     except BaseException:
-        await stream.close()
+        # Failed entry leaves the caller without a stream to close.
+        with anyio.CancelScope(shield=True):
+            await stream.close()
         raise
 
 
