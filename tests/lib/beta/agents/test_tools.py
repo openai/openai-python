@@ -540,3 +540,25 @@ async def test_sync_rejection_cancels_scheduled_awaitable(task: bool) -> None:
     assert len(awaitables) == 1 and awaitables[0].cancelled()
     assert seen == []
     assert server.inputs()[1]["success"] is False
+
+
+def test_root_schema_compositions_have_explicit_supported_boundary() -> None:
+    model = (
+        pydantic.create_model("RootUnion", __root__=(Transfer | Destination, ...))
+        if PYDANTIC_V1
+        else pydantic.RootModel[Transfer | Destination]
+    )
+
+    def action(_arguments: BaseModel) -> str:
+        pytest.fail("Unsupported root compositions must not invoke the handler")
+
+    with pytest.raises(TypeError, match="root-level compositions are unsupported"):
+        pydantic_function_tool(model, handler=action)
+    if PYDANTIC_V1:
+        composed = pydantic.create_model("ComposedRoot", __root__=(Transfer, Field(..., description="Transfer")))
+        with pytest.raises(TypeError, match="root-level compositions are unsupported"):
+            pydantic_function_tool(composed, handler=action)
+
+    wrapped = pydantic.create_model("WrappedUnion", value=(Transfer | Destination, ...))
+    tool = pydantic_function_tool(wrapped, handler=lambda _: "accepted")
+    assert tool({"value": {"address": "test-address"}}) == "accepted"

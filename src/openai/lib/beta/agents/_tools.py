@@ -49,7 +49,9 @@ class FunctionTool(Generic[_OutputT]):
                 break
             root = cast(dict[str, Any], resolved)
         if root.get("type") != "object":
-            raise TypeError("Tool argument models must have an object JSON schema")
+            raise TypeError(
+                "Tool argument models must have an object JSON schema; root-level compositions are unsupported"
+            )
         self._definition: AgentToolConfigParamFunction = {
             "type": "function",
             "name": name,
@@ -143,7 +145,9 @@ def pydantic_function_tool(
     """Bind an explicit Pydantic argument model to a beta Agents callback.
 
     The callback receives a validated model instance and can be synchronous or
-    asynchronous. Use asynchronous callbacks with ``AsyncOpenAI``.
+    asynchronous. Use asynchronous callbacks with ``AsyncOpenAI``. Argument schemas
+    must be objects or local references to objects. Root-level schema compositions
+    (such as union models) are unsupported; wrap a union in an ordinary model field.
     """
 
     async def invoke_async(arguments: _ModelT) -> ToolOutput:
