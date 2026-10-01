@@ -345,3 +345,10 @@ def test_bare_mapping_rejected_but_empty_fixed_object_supported() -> None:
         agent_text_format(model)
     empty = type("EmptyReport", (BaseModel,), {})
     assert agent_text_format(empty)["schema"]["properties"] == {}
+
+
+@pytest.mark.parametrize("value", ['say "hello"', "two\nlines"])
+def test_unsupported_single_literal_rejected(value: Any) -> None:
+    model = type("LiteralReport", (BaseModel,), {"__annotations__": {"value": Literal[value]}})
+    with pytest.raises(ValueError, match="schema"):
+        agent_text_format(model)

@@ -58,7 +58,10 @@ def _validate_schema(schema: dict[str, Any]) -> None:
         "else",
         "x-guidance",
     }
-    for value in [*schema.get("properties", {}), *schema.get("enum", [])]:
+    literals = [*schema.get("properties", {}), *schema.get("enum", [])]
+    if "const" in schema:
+        literals.append(schema["const"])
+    for value in literals:
         if isinstance(value, (dict, list, tuple)):
             raise ValueError("Agents output schema enums require scalar values")
         if isinstance(value, str) and ('"' in value or "\n" in value):
