@@ -38,7 +38,8 @@ The custom-code workflow pair separates candidate execution from trusted checks:
 - `castiron-custom-code.yml` runs proposed offline tests and the advisory report
   on `pull_request` with read-only permissions.
 - `castiron-custom-code-comment.yml` handles `workflow_run` from **main**. Its
-  read-only compute job runs main's reporter against candidate Git objects in a
+  read-only compute job captures the main checkout SHA and the source run's PR
+  head as one immutable evaluation pair. It runs that main reporter against Git objects in a
   new bare repository, then reuses that verified report to check main's budget.
   It never checks out, imports, installs, or executes candidate code.
 - An unprivileged `merge_group` job in the first workflow only signals that a candidate
@@ -50,16 +51,19 @@ The custom-code workflow pair separates candidate execution from trusted checks:
   grant the SDK PR a higher limit.
 
 A separate publisher with no checkout attaches these statuses to the exact PR
-head or merge-group SHA, after rechecking head/base freshness:
+head or merge-group SHA, after rechecking the PR head/target or queue base freshness:
 
 - `Castiron / budget-only change`
 - `Castiron / custom-code budget`
 
-The policy is read from the current base commit, not the PR or its merge base.
+The policy is read from the captured main commit, not the PR or its merge base.
 Reporter changes in a PR cannot change the checker executing on that PR. Missing
 snapshots, invalid hashes, unavailable queue membership, and policy errors fail
-closed. If main moves during evaluation, rerun the workflow; reruns check out the
-new main. PR-head statuses are feedback at a point in time: a main update alone
+closed. PR base metadata may lag main; it does not select the evaluation base.
+If main moves during a PR evaluation, the result still publishes for the captured
+pair, with the evaluated base recorded in the report and status. Merge-group checks
+still require current main and independently evaluate the combined candidate.
+PR-head statuses are feedback at a point in time: a main update alone
 does not rerun them. The checker therefore fails unless main has an effective
 **require merge queue** rule. The queue must recheck combined usage against current
 main before merging; do not replace that protection with PR-head statuses alone.

@@ -282,9 +282,9 @@ def github_evaluate(
     if event["repository"]["full_name"] != repository:
         raise ValueError("event repository mismatch")
     branch = metadata["default_branch"]
-    main = report.require_sha(report.api("GET", f"{root}/git/ref/heads/{branch}")["object"]["sha"])
-    if report.require_sha(trusted_sha) != main:
-        raise ValueError("trusted checkout is stale; rerun against current main")
+    if branch != "main":
+        raise ValueError("budget gate requires main as the default branch")
+    main = report.require_sha(trusted_sha)
     signal = event["workflow_run"]
     run_id = signal["id"]
     if type(run_id) is not int or run_id <= 0:
@@ -311,12 +311,18 @@ def github_evaluate(
                 and pull["head"]["sha"] == head
                 and pull["base"]["repo"]["full_name"] == repository
                 and pull["base"]["ref"] == branch
-                and pull["base"]["sha"] == main
             ):
                 current.append(number)
         if len(current) != 1:
             raise ValueError("source run must identify exactly one current PR targeting main")
     elif run["event"] == "merge_group":
+        # Queue candidates independently validate actual current main. A PR's
+        # captured snapshot must never authorize a different merged candidate.
+        current_main = report.require_sha(
+            report.api("GET", f"{root}/git/ref/heads/{branch}")["object"]["sha"]
+        )
+        if main != current_main:
+            raise ValueError("trusted checkout is stale; rerun against current main")
         if not run["head_branch"].startswith(f"gh-readonly-queue/{branch}/"):
             raise ValueError("queue signal does not target main")
     else:
@@ -335,7 +341,7 @@ def github_evaluate(
             raise ValueError("only PR runs can reuse the trusted report")
         measured = json.loads((trusted_report_dir / "report.json").read_text())
         if measured["target_base_sha"] != main or measured["head_sha"] != head:
-            raise ValueError("trusted report is stale; rerun against current main")
+            raise ValueError("trusted report does not match the captured base/head")
         if report.git(repo, "rev-parse", "--is-bare-repository").strip() != b"true":
             raise ValueError("trusted report must use a bare object store")
         measurement = (measured, (trusted_report_dir / "custom-code.patch").read_bytes())
