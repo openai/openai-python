@@ -663,6 +663,7 @@ artifact = artifacts.download(
 Use `prepare_directory("docs", destination="/workspace/docs", include=["**/*.md"])`
 for a selected directory snapshot, or `files.upload(environment_id, file=Path(...),
 path="/workspace/source.pdf")` to stage a file in an existing environment.
+Directory selection follows `Path.glob` semantics, including skipping unreadable directories.
 Uploads remain caller-owned: use `prepared.uploaded_file_ids` with the ordinary
 Files API when ready to delete them. Preparation errors expose partial uploads
 through `error.prepared`. A batch of multiple uploads cannot share one explicit

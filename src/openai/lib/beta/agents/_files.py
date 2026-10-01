@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-import os
 from io import IOBase
 from os import PathLike, fstat
-from stat import S_ISDIR, S_ISREG
+from stat import S_ISREG
 from typing import TYPE_CHECKING, Mapping, BinaryIO, Sequence, Generator, cast
-from fnmatch import fnmatchcase
 from pathlib import Path, PurePosixPath
 from contextlib import ExitStack, contextmanager
 from dataclasses import field, dataclass
@@ -116,33 +114,6 @@ def _prepare_selection(
     return selected
 
 
-def _glob_files(current: Path, pattern: tuple[str, ...], root: Path) -> Generator[Path, None, None]:
-    try:
-        metadata = current.lstat()
-    except (FileNotFoundError, NotADirectoryError):
-        return
-    if not pattern:
-        yield current
-        return
-    if not S_ISDIR(metadata.st_mode):  # Do not follow directory symlinks.
-        return
-    if not current.resolve().is_relative_to(root):
-        raise ValueError("Selected directory traversal left its root")
-    segment, rest = pattern[0], pattern[1:]
-    if segment == "**":
-        yield from _glob_files(current, rest, root)
-    elif not any(character in segment for character in "*?["):
-        yield from _glob_files(current / segment, rest, root)
-        return
-    # Unlike glob/pathlib.glob, propagate errors for directories we need to read.
-    with os.scandir(current) as entries:
-        children = sorted(Path(entry.path) for entry in entries if segment == "**" or fnmatchcase(entry.name, segment))
-    for child in children:
-        if segment == "**" and not rest:
-            yield child
-        yield from _glob_files(child, pattern if segment == "**" else rest, root)
-
-
 def directory_files(root: str | PathLike[str], destination: str, include: Sequence[str]) -> dict[str, PathLike[str]]:
     directory = Path(root).absolute()
     if isinstance(include, str) or not include:
@@ -152,16 +123,17 @@ def directory_files(root: str | PathLike[str], destination: str, include: Sequen
     directory = directory.resolve()
     # System aliases such as macOS /tmp are allowed above the chosen root.
     _destination(destination + "/a")  # Validate with the shortest possible filename.
-    patterns: list[tuple[str, ...]] = []
     for pattern in include:
         if not pattern or PurePosixPath(pattern).is_absolute() or ".." in PurePosixPath(pattern).parts:
             raise ValueError("Include patterns must stay inside the selected directory")
-        patterns.append(PurePosixPath(pattern).parts)
     selected: dict[str, PathLike[str]] = {}
-    for pattern in patterns:
-        for source in _glob_files(directory, pattern, directory):
-            if source.is_symlink():
-                raise ValueError("Selected agent files must not be symlinks")
+    for pattern in include:
+        for source in sorted(directory.glob(pattern)):
+            selected_path = source
+            while selected_path != directory:
+                if selected_path.is_symlink():
+                    raise ValueError("Selected agent files must not be symlinks")
+                selected_path = selected_path.parent
             if source.is_dir():
                 continue
             canonical = source.resolve()

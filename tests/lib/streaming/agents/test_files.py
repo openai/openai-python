@@ -469,7 +469,7 @@ async def prepare_directory(sdk: OpenAI | AsyncOpenAI, root: Path, destination: 
         (["one.txt"], ["one.txt"]),
         (["*.txt"], ["one.txt"]),
         (["docs/*.txt"], ["docs/one.txt"]),
-        (["docs/**/*.txt"], ["docs/one.txt", "docs/nested/one.txt"]),
+        (["docs/**/*.txt"], ["docs/nested/one.txt", "docs/one.txt"]),
         (["docs/*/*.txt"], ["docs/nested/one.txt"]),
     ],
 )
@@ -537,11 +537,12 @@ async def test_directory_selection_expands_only_wildcard_segments(
             tmp_path, destination="/workspace/docs", include=["docs/team-*/reports/*.txt"]
         )
     assert [item["path"] for item in result.files] == ["/workspace/docs/docs/team-a/reports/one.txt"]
-    assert visited == [tmp_path / "docs", reports]
+    assert tmp_path / "docs/private" not in visited
+    assert tmp_path / "docs/team-a/unrelated" not in visited
 
 
-@pytest.mark.parametrize("include", [["**/*.txt"], ["private/*.txt"]])
-async def test_directory_selection_propagates_needed_subtree_errors(
+@pytest.mark.parametrize("include", [["**/*.txt"], ["private/*.txt", "one.txt"]])
+async def test_directory_selection_follows_glob_unreadable_subtree_semantics(
     sdk: OpenAI | AsyncOpenAI, server: FilesServer, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, include: list[str]
 ) -> None:
     import os
@@ -556,39 +557,38 @@ async def test_directory_selection_propagates_needed_subtree_errors(
         return scan(path)
 
     monkeypatch.setattr(os, "scandir", scandir)
-    with pytest.raises(PermissionError, match="selected subtree"):
-        if isinstance(sdk, AsyncOpenAI):
-            await sdk.beta.agents.environments.files.prepare_directory(
-                tmp_path, destination="/workspace/docs", include=include
-            )
-        else:
-            sdk.beta.agents.environments.files.prepare_directory(
-                tmp_path, destination="/workspace/docs", include=include
-            )
-    assert not server.requests
+    if isinstance(sdk, AsyncOpenAI):
+        result = await sdk.beta.agents.environments.files.prepare_directory(
+            tmp_path, destination="/workspace/docs", include=include
+        )
+    else:
+        result = sdk.beta.agents.environments.files.prepare_directory(
+            tmp_path, destination="/workspace/docs", include=include
+        )
+    assert [item["path"] for item in result.files] == ["/workspace/docs/one.txt"]
+    assert server.uploads == 1
 
 
-async def test_cached_directory_entry_cannot_leave_selected_root(
+async def test_selected_directory_cannot_be_replaced_by_symlink(
     sdk: OpenAI | AsyncOpenAI, server: FilesServer, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    import os
-
     root = tmp_path / "chosen"
     child = root / "child"
     child.mkdir(parents=True)
+    (child / "other.txt").write_text("inside")
     outside = tmp_path / "outside"
     outside.mkdir()
     (outside / "other.txt").write_text("outside")
-    scan = os.scandir
+    glob = Path.glob
 
-    def changed_scan(path: Any) -> Any:
-        if Path(path) == child:
-            child.rename(root / "original-child")
-            child.symlink_to(outside, target_is_directory=True)
-        return scan(path)
+    def replaced_glob(path: Path, pattern: str) -> Any:
+        selected = list(glob(path, pattern))
+        child.rename(root / "original-child")
+        child.symlink_to(outside, target_is_directory=True)
+        yield from selected
 
-    monkeypatch.setattr(os, "scandir", changed_scan)
-    with pytest.raises(ValueError, match="outside the chosen directory"):
+    monkeypatch.setattr(Path, "glob", replaced_glob)
+    with pytest.raises(ValueError, match="symlink"):
         await prepare_directory(sdk, root)
     assert not server.requests
 
