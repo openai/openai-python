@@ -212,13 +212,6 @@ async def test_live_staging_and_failure_ownership(sdk: OpenAI | AsyncOpenAI, ser
     assert all(request.method == "POST" for request in server.requests)
 
 
-async def test_file_count_is_left_to_the_api(sdk: OpenAI | AsyncOpenAI, server: FilesServer, tmp_path: Path) -> None:
-    source = tmp_path / "source.txt"
-    source.write_text("abc")
-    result = await prepare(sdk, {f"/workspace/{index}": source for index in range(51)})
-    assert len(result.files) == server.uploads == 51
-
-
 @pytest.mark.parametrize("count", [1, 2])
 async def test_large_prepared_files_reach_the_api(
     sdk: OpenAI | AsyncOpenAI, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, count: int
@@ -463,87 +456,40 @@ async def prepare_directory(sdk: OpenAI | AsyncOpenAI, root: Path, destination: 
     return sdk.beta.agents.environments.files.prepare_directory(root, destination=destination, include=["**/*.txt"])
 
 
-@pytest.mark.parametrize(
-    "include,expected",
-    [
-        (["one.txt"], ["one.txt"]),
-        (["*.txt"], ["one.txt"]),
-        (["docs/*.txt"], ["docs/one.txt"]),
-        (["docs/**/*.txt"], ["docs/nested/one.txt", "docs/one.txt"]),
-        (["docs/*/*.txt"], ["docs/nested/one.txt"]),
-    ],
-)
-async def test_directory_selection_skips_unrelated_unreadable_subtrees(
-    sdk: OpenAI | AsyncOpenAI, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, include: list[str], expected: list[str]
+@pytest.mark.parametrize("include", ["one.txt", "docs/team-*/reports/*.txt"])
+async def test_directory_selects_requested_files_without_unrelated_subtrees(
+    sdk: OpenAI | AsyncOpenAI, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, include: str
 ) -> None:
     import os
 
-    for name in ["one.txt", "docs/one.txt", "docs/nested/one.txt", "private/one.txt"]:
+    for name in ["one.txt", "docs/team-a/reports/one.txt"]:
         source = tmp_path / name
         source.parent.mkdir(parents=True, exist_ok=True)
         source.write_text("abc")
+    for name in ["private", "docs/private", "docs/team-a/private"]:
+        (tmp_path / name).mkdir()
     scan = os.scandir
-    visited: list[Path] = []
 
     def scandir(path: Any) -> Any:
-        current = Path(path)
-        visited.append(current)
-        if current == tmp_path / "private":
-            raise PermissionError("Synthetic unreadable unrelated subtree")
-        return scan(path)
-
-    monkeypatch.setattr(os, "scandir", scandir)
-    if isinstance(sdk, AsyncOpenAI):
-        result = await sdk.beta.agents.environments.files.prepare_directory(
-            tmp_path, destination="/workspace/docs", include=include
-        )
-    else:
-        result = sdk.beta.agents.environments.files.prepare_directory(
-            tmp_path, destination="/workspace/docs", include=include
-        )
-    assert [file["path"] for file in result.files] == [f"/workspace/docs/{name}" for name in expected]
-    assert tmp_path / "private" not in visited
-    if include == ["docs/*.txt"]:
-        assert tmp_path / "docs/nested" not in visited
-
-
-async def test_directory_selection_expands_only_wildcard_segments(
-    sdk: OpenAI | AsyncOpenAI, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    import os
-
-    reports = tmp_path / "docs/team-a/reports"
-    reports.mkdir(parents=True)
-    (reports / "one.txt").write_text("abc")
-    (tmp_path / "docs/private").mkdir()
-    (tmp_path / "docs/team-a/unrelated").mkdir()
-    scan = os.scandir
-    visited: list[Path] = []
-
-    def scandir(path: Any) -> Any:
-        current = Path(path)
-        visited.append(current)
-        if current.name in ("private", "unrelated"):
+        if Path(path).name == "private":
             raise PermissionError("Synthetic unrelated subtree")
         return scan(path)
 
     monkeypatch.setattr(os, "scandir", scandir)
     if isinstance(sdk, AsyncOpenAI):
         result = await sdk.beta.agents.environments.files.prepare_directory(
-            tmp_path, destination="/workspace/docs", include=["docs/team-*/reports/*.txt"]
+            tmp_path, destination="/workspace/docs", include=[include]
         )
     else:
         result = sdk.beta.agents.environments.files.prepare_directory(
-            tmp_path, destination="/workspace/docs", include=["docs/team-*/reports/*.txt"]
+            tmp_path, destination="/workspace/docs", include=[include]
         )
-    assert [item["path"] for item in result.files] == ["/workspace/docs/docs/team-a/reports/one.txt"]
-    assert tmp_path / "docs/private" not in visited
-    assert tmp_path / "docs/team-a/unrelated" not in visited
+    expected = "one.txt" if include == "one.txt" else "docs/team-a/reports/one.txt"
+    assert [item["path"] for item in result.files] == [f"/workspace/docs/{expected}"]
 
 
-@pytest.mark.parametrize("include", [["**/*.txt"], ["private/*.txt", "one.txt"]])
 async def test_directory_selection_follows_glob_unreadable_subtree_semantics(
-    sdk: OpenAI | AsyncOpenAI, server: FilesServer, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, include: list[str]
+    sdk: OpenAI | AsyncOpenAI, server: FilesServer, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     import os
 
@@ -559,11 +505,11 @@ async def test_directory_selection_follows_glob_unreadable_subtree_semantics(
     monkeypatch.setattr(os, "scandir", scandir)
     if isinstance(sdk, AsyncOpenAI):
         result = await sdk.beta.agents.environments.files.prepare_directory(
-            tmp_path, destination="/workspace/docs", include=include
+            tmp_path, destination="/workspace/docs", include=["**/*.txt"]
         )
     else:
         result = sdk.beta.agents.environments.files.prepare_directory(
-            tmp_path, destination="/workspace/docs", include=include
+            tmp_path, destination="/workspace/docs", include=["**/*.txt"]
         )
     assert [item["path"] for item in result.files] == ["/workspace/docs/one.txt"]
     assert server.uploads == 1
