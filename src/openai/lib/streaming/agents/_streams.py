@@ -4,7 +4,7 @@ import inspect
 from copy import deepcopy
 from uuid import uuid4
 from types import TracebackType
-from typing import TYPE_CHECKING, Mapping, Iterable, Iterator, AsyncIterator
+from typing import TYPE_CHECKING, Any, Mapping, Iterable, Iterator, AsyncIterator
 from collections import deque
 from typing_extensions import Self, TypedDict
 
@@ -247,7 +247,13 @@ class AgentSessionStream:
                     return
                 if call is not None and handler is not None:
                     try:
-                        result = result_event(call, handler(arguments(call)))
+                        output: Any = handler(arguments(call))
+                        if inspect.isawaitable(output):
+                            close = getattr(output, "close", None)
+                            if callable(close):
+                                close()
+                            raise TypeError("Async tool handlers require AsyncOpenAI")
+                        result = result_event(call, output)
                     except Exception:
                         result = failed_event(call)
                     self._submit_result(result)

@@ -569,3 +569,38 @@ With `AsyncOpenAI`, await creation, use `async with` / `async for`, and await
 `get_final_result()`. The result exposes `output_text`, `turn`, final `messages`,
 `session_id`, and `turn_id`. Collection raises `AgentTurnResultError` when a complete
 successful answer cannot be established.
+
+## Typed beta Agents tools
+
+Bind an annotated function or bound method once, then reuse its definition and local handler:
+
+```py
+from openai.lib.beta.agents import function_tool
+
+@function_tool(name="lookup_item", description="Look up a catalog item.")
+def lookup(item_id: str) -> dict[str, str]:
+    return {"item_id": item_id, "name": "Notebook"}
+
+# Include lookup.definition in agent={"model": MODEL, "tools": [...]} when creating a session.
+with client.beta.agents.sessions.stream(
+    SESSION_ID, input="Find catalog item A123.", tool_handlers={lookup.name: lookup},
+) as stream:
+    stream.until_done()
+```
+
+For an existing Pydantic argument model, use an explicit binding:
+
+```py
+from pydantic import BaseModel
+from openai.lib.beta.agents import pydantic_function_tool
+
+class LookupArguments(BaseModel):
+    item_id: str
+
+lookup = pydantic_function_tool(
+    LookupArguments, name="lookup_item", handler=catalog.lookup,
+)
+# catalog.lookup receives a validated LookupArguments instance.
+```
+
+Callbacks can be async when used with `AsyncOpenAI`. Existing dictionary handlers still work.
