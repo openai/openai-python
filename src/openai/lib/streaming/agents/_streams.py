@@ -276,8 +276,13 @@ class AgentSessionStream(Generic[OutputT]):
                 if recovered:
                     return self._collection.result()
             self._collection.record_error(error)
-            collector.check_outcome(self._handlers)
-            raise collector.error("observation_failed") from error
+            try:
+                collector.check_outcome(self._handlers)
+                raise collector.error("observation_failed") from error
+            except AgentTurnResultError as failure:
+                if self._attachment is not None:
+                    hydrate_error(self._sessions, self._attachment, failure, self._options)
+                raise
         finally:
             self.close()
 
@@ -523,8 +528,13 @@ class AsyncAgentSessionStream(Generic[OutputT]):
                 if recovered:
                     return self._collection.result()
             self._collection.record_error(error)
-            collector.check_outcome(self._handlers)
-            raise collector.error("observation_failed") from error
+            try:
+                collector.check_outcome(self._handlers)
+                raise collector.error("observation_failed") from error
+            except AgentTurnResultError as failure:
+                if self._attachment is not None:
+                    await async_hydrate_error(self._sessions, self._attachment, failure, self._options)
+                raise
         finally:
             await self.close()
 

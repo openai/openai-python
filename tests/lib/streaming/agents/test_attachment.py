@@ -37,6 +37,7 @@ class AttachmentServer(Server):
         self.null_item_cursor = False
         self.item_cursor_metadata = False
         self.fail_items = False
+        self.fail_diagnostic = False
         self.fail_later_items = False
         self.live_turns: list[dict[str, Any]] | None = None
         self.live_after_reads = 1
@@ -92,6 +93,8 @@ class AttachmentServer(Server):
                     payload["data"] = [{**data[0], "id": None}]
                 return httpx2.Response(200, json=payload)
             self.reads += 1
+            if self.fail_diagnostic and self.reads > 1:
+                raise httpx2.ConnectError("Synthetic diagnostic failure", request=request)
             if self.after_turns is not None:
                 self.turns = self.after_turns
             value = session(self.after_status or self.status)
@@ -409,7 +412,8 @@ async def test_submission_failure_is_not_hidden_by_completed_durable_turn(
         await attach_result(sdk, {"search": lambda _args: "found"})
     assert caught.value.reason == "observation_failed"
     assert len([r for r in server.requests if "/turns/" in r.url.path]) == 1
-    assert not any(r.url.path.endswith("/items") for r in server.requests)
+    assert "".join(item.output_text for item in caught.value.messages) == "earlierlater"
+    assert caught.value.__cause__ is not None
 
 
 async def test_collected_progress_can_recover_after_observation_error(
@@ -633,10 +637,11 @@ async def test_buffered_idle_does_not_settle_current_active_attachment(
     assert len(calls) == 1
 
 
-async def test_environment_connection_before_first_turn_is_reported(
-    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer
+@pytest.mark.parametrize("historical", [False, True])
+async def test_environment_connection_without_active_turn_is_reported(
+    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer, historical: bool
 ) -> None:
-    server.turns = []
+    server.turns = [turn("completed", "old_turn")] if historical else []
     server.status = "requires_action"
     server.manual_actions = [manual_action("environment_connection")]
     server.body = EventBody([])
@@ -671,3 +676,19 @@ async def test_first_waiting_root_discovered_from_browser_item_checks_manual_act
     assert caught.value.turn_id == "turn_root"
     assert caught.value.required_actions[0].type == "computer_use_approval_request"
     assert server.body.read_count == 1
+
+
+async def test_diagnostic_read_failure_retains_durable_partial_messages(
+    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer
+) -> None:
+    server.turns = [turn("waiting")]
+    server.retrieve_status = "waiting"
+    server.status = "requires_action"
+    server.manual_actions = [manual_action("browser_authentication")]
+    server.fail_diagnostic = True
+    with pytest.raises(AgentTurnResultError, match="observation_failed") as caught:
+        await attach_result(sdk)
+    assert caught.value.turn_id == "turn_root"
+    assert "".join(item.output_text for item in caught.value.messages) == "earlierlater"
+    assert isinstance(caught.value.__cause__, APIConnectionError)
+    assert server.body.read_count == 0

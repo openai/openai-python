@@ -218,7 +218,11 @@ async def async_diagnose_manual(
 def _manual_diagnostics(
     state: AgentSessionAttachment, session: AgentSession, latest: Turn | None, collector: AgentTurnResultCollector
 ) -> None:
-    if _needs_manual_diagnostics(state, session) and state.turn is None and latest is None:
+    if (
+        _needs_manual_diagnostics(state, session)
+        and state.turn is None
+        and (latest is None or latest.status in _TERMINAL)
+    ):
         collector.required_actions = deepcopy(
             [action for action in session.required_actions if action.type == "environment_connection"]
         )
