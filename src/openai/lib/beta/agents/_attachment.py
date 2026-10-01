@@ -22,9 +22,10 @@ _TERMINAL = ("completed", "failed", "cancelled")
 class AgentSessionAttachment:
     """Turn identity and bounded observation state for a single attachment."""
 
-    def __init__(self, session_id: str, turn: Turn | None = None) -> None:
+    def __init__(self, session_id: str, turn: Turn | None = None, baseline_id: str | None = None) -> None:
         self.session_id = session_id
         self.turn = turn
+        self.baseline_id = baseline_id
         self.settled = False
         self.failed = False
         self.reconciled = False
@@ -34,7 +35,12 @@ class AgentSessionAttachment:
         self.manual_diagnostics = False
 
     def select(self, turn: Turn) -> None:
-        if self.turn is None and turn.session_id == self.session_id and turn.subagent_id is None:
+        if (
+            self.turn is None
+            and turn.session_id == self.session_id
+            and turn.subagent_id is None
+            and not (turn.id == self.baseline_id and turn.status in _TERMINAL)
+        ):
             self.turn = deepcopy(turn)
 
     def settle(self, session: AgentSession) -> None:
@@ -77,12 +83,30 @@ def _latest_root(turns: Iterable[Turn]) -> Turn | None:
     return None
 
 
+def select_candidate(
+    sessions: Sessions, state: AgentSessionAttachment, candidate: str, options: _RequestOptions
+) -> None:
+    latest = _latest_root(sessions.turns.list(state.session_id, order="desc", **options))
+    if latest is not None and latest.id == candidate:
+        state.select(latest)
+
+
+async def async_select_candidate(
+    sessions: AsyncSessions, state: AgentSessionAttachment, candidate: str, options: _RequestOptions
+) -> None:
+    async for turn in sessions.turns.list(state.session_id, order="desc", **options):
+        if turn.subagent_id is None:
+            if turn.id == candidate:
+                state.select(turn)
+            return
+
+
 def attach(
     sessions: Sessions, session_id: str, options: _RequestOptions
 ) -> tuple[Stream[AgentSessionEvent], AgentSessionAttachment]:
     baseline = _latest_root(sessions.turns.list(session_id, order="desc", **options))
     turn = baseline if baseline is not None and baseline.status not in _TERMINAL else None
-    state = AgentSessionAttachment(session_id, turn)
+    state = AgentSessionAttachment(session_id, turn, baseline.id if baseline is not None else None)
     stream = sessions.events.stream(session_id, **options)
     try:
         # Subscribe before refreshing state so completion during attachment cannot
@@ -112,7 +136,7 @@ async def async_attach(
 
     baseline = await latest_root()
     turn = baseline if baseline is not None and baseline.status not in _TERMINAL else None
-    state = AgentSessionAttachment(session_id, turn)
+    state = AgentSessionAttachment(session_id, turn, baseline.id if baseline is not None else None)
     stream = await sessions.events.stream(session_id, **options)
     try:
         session = await sessions.retrieve(session_id, **options)

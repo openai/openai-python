@@ -37,6 +37,7 @@ class AttachmentServer(Server):
         self.null_item_cursor = False
         self.item_cursor_metadata = False
         self.fail_items = False
+        self.live_turns: list[dict[str, Any]] | None = None
 
     @override
     def handle(self, request: httpx2.Request) -> httpx2.Response:
@@ -46,6 +47,8 @@ class AttachmentServer(Server):
         if request.method == "GET" and not path.endswith("/events"):
             self.requests.append(request)
             if path.endswith("/turns"):
+                if self.body.read_count and self.live_turns is not None:
+                    self.turns = self.live_turns
                 after = request.url.params.get("after")
                 # One item per page exercises existing automatic pagination.
                 offset = next((i + 1 for i, item in enumerate(self.turns) if item["id"] == after), 0)
@@ -68,7 +71,11 @@ class AttachmentServer(Server):
                 )
                 return httpx2.Response(
                     200,
-                    json=turn(self.retrieve_status or status, turn_id, "child" if turn_id == "child_turn" else None),
+                    json=turn(
+                        "completed" if turn_id == "old_turn" else self.retrieve_status or status,
+                        turn_id,
+                        "child" if turn_id == "child_turn" else None,
+                    ),
                 )
             if path.endswith("/items"):
                 if self.fail_items:
@@ -140,6 +147,7 @@ async def test_pending_call_can_identify_root_without_turn_created(
     sdk: OpenAI | AsyncOpenAI, server: AttachmentServer
 ) -> None:
     server.turns = []
+    server.live_turns = [turn()]
     seen: list[object] = []
     result = await attach_result(sdk, {"search": lambda args: seen.append(args) or "found"})
     assert result.turn_id == "turn_root"
@@ -544,3 +552,27 @@ async def test_raw_attachment_does_not_retain_manual_request_payload(
     assert not any(isinstance(value, (dict, list)) for value in vars(state).values())
     assert server.reads == 1  # No diagnostic refetch for raw iteration.
     assert not any(r.url.path.endswith("/items") for r in server.requests)
+
+
+@pytest.mark.parametrize("baseline", ["old_turn", "newer_old_turn"])
+async def test_historical_browser_request_cannot_select_prior_completed_root(
+    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer, baseline: str
+) -> None:
+    server.turns = [turn("completed", baseline)]
+    server.live_turns = [turn()]
+    old_request: Any = call()
+    old_request["turn_id"] = "old_turn"
+    old_request["event_id"] = "old_request"
+    old_request["item"] = {
+        "type": "computer_use_approval_request",
+        "id": "old_request",
+        "turn_id": "old_turn",
+        "request_id": "old_request",
+        "request": manual_action("browser_authentication", "old_turn")["request"],
+    }
+    server.body = EventBody([old_request, call(), turn_event("completed")])
+    handled: list[object] = []
+    result = await attach_result(sdk, {"search": lambda args: handled.append(args) or "found"})
+    assert result.turn_id == "turn_root"
+    assert result.output_text == "earlierlater"
+    assert len(handled) == 1

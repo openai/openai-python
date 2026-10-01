@@ -32,8 +32,10 @@ from ...beta.agents._attachment import (
     hydrate_error,
     async_reconcile,
     diagnose_manual,
+    select_candidate,
     async_hydrate_error,
     async_diagnose_manual,
+    async_select_candidate,
 )
 from ....types.beta.agent_session import RequiredActionSessionRequiredActionResourceFunctionCall
 from ....types.beta.agent_session_event import AgentSessionEvent
@@ -298,8 +300,7 @@ class AgentSessionStream(Generic[OutputT]):
                 if self._attachment is not None:
                     candidate = self._attachment.candidate(event)
                     if candidate is not None:
-                        turn = self._sessions.turns.retrieve(candidate, session_id=self._session_id, **self._options)
-                        self._attachment.select(turn)
+                        select_candidate(self._sessions, self._attachment, candidate, self._options)
                     if self._attachment.turn is not None and self._state.turn_id is None:
                         self._state.turn_id = self._attachment.turn.id
                         self._state.turn_ended = self._attachment.turn.status in ("completed", "failed", "cancelled")
@@ -538,10 +539,7 @@ class AsyncAgentSessionStream(Generic[OutputT]):
                 if self._attachment is not None:
                     candidate = self._attachment.candidate(event)
                     if candidate is not None:
-                        turn = await self._sessions.turns.retrieve(
-                            candidate, session_id=self._session_id, **self._options
-                        )
-                        self._attachment.select(turn)
+                        await async_select_candidate(self._sessions, self._attachment, candidate, self._options)
                     if self._attachment.turn is not None and self._state.turn_id is None:
                         self._state.turn_id = self._attachment.turn.id
                         self._state.turn_ended = self._attachment.turn.status in ("completed", "failed", "cancelled")
