@@ -364,12 +364,19 @@ class AsyncRealtimeConnectionManager:
 
             url, auth_headers = await self.__client._configure_realtime(self.__model, extra_query)
         else:
-            url = self._prepare_url().copy_with(
-                params={
-                    **self.__client.base_url.params,
-                    "model": self.__model,
-                    **extra_query,
-                },
+            url = self._prepare_url()
+            url = url.copy_with(
+                params=httpx2.QueryParams(self.__client.qs.stringify(cast(Any, self.__client.default_query)))
+                .merge(url.params)
+                .merge(
+                    cast(
+                        Any,
+                        {
+                            "model": self.__model,
+                            **extra_query,
+                        },
+                    )
+                ),
             )
         log.debug("Connecting to WebSocket API")
         if self.__websocket_connection_options:
@@ -400,7 +407,8 @@ class AsyncRealtimeConnectionManager:
         else:
             base_url = self.__client._base_url.copy_with(scheme="wss")
 
-        merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/realtime"
+        path, separator, query = base_url.raw_path.partition(b"?")
+        merge_raw_path = path.rstrip(b"/") + b"/realtime" + separator + query
         return base_url.copy_with(raw_path=merge_raw_path)
 
     async def __aexit__(
@@ -547,12 +555,19 @@ class RealtimeConnectionManager:
         if is_azure_client(self.__client):
             url, auth_headers = self.__client._configure_realtime(self.__model, extra_query)
         else:
-            url = self._prepare_url().copy_with(
-                params={
-                    **self.__client.base_url.params,
-                    "model": self.__model,
-                    **extra_query,
-                },
+            url = self._prepare_url()
+            url = url.copy_with(
+                params=httpx2.QueryParams(self.__client.qs.stringify(cast(Any, self.__client.default_query)))
+                .merge(url.params)
+                .merge(
+                    cast(
+                        Any,
+                        {
+                            "model": self.__model,
+                            **extra_query,
+                        },
+                    )
+                ),
             )
         log.debug("Connecting to WebSocket API")
         if self.__websocket_connection_options:
@@ -583,7 +598,8 @@ class RealtimeConnectionManager:
         else:
             base_url = self.__client._base_url.copy_with(scheme="wss")
 
-        merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/realtime"
+        path, separator, query = base_url.raw_path.partition(b"?")
+        merge_raw_path = path.rstrip(b"/") + b"/realtime" + separator + query
         return base_url.copy_with(raw_path=merge_raw_path)
 
     def __exit__(

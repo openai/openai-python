@@ -16,6 +16,7 @@ class SessionTurnError(BaseModel):
         "usage_limit_exceeded",
         "credit_balance_exhausted",
         "rate_limit_exceeded",
+        "flex_unavailable",
         "server_overloaded",
         "cyber_policy",
         "misalignment_policy_violation",
@@ -38,6 +39,7 @@ class SessionTurnError(BaseModel):
       billing limit.
     - `credit_balance_exhausted` - The organization has no API credits remaining.
     - `rate_limit_exceeded` - The request exceeds the available rate limit.
+    - `flex_unavailable` - Flex processing is temporarily unavailable.
     - `server_overloaded` - The model service is temporarily overloaded.
     - `cyber_policy` - The request was rejected by a safety policy.
     - `misalignment_policy_violation` - The request was blocked by the safety

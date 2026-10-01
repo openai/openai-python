@@ -3,6 +3,7 @@ from __future__ import annotations
 import gc
 import io
 import os
+import ssl
 import sys
 import json
 import math
@@ -14,6 +15,7 @@ from typing import Any, Union, TypeVar, Callable, Iterable, Iterator, Optional, 
 from unittest import mock
 from typing_extensions import Literal, AsyncIterator, override
 
+import anyio
 import httpx2
 import pytest
 from pydantic import ValidationError
@@ -580,10 +582,7 @@ class TestOpenAI:
             )
             assert admin_only_request.headers.get("Authorization") == f"Bearer {admin_api_key}"
 
-            with pytest.raises(
-                TypeError,
-                match="Could not resolve authentication method",
-            ):
+            with pytest.raises(TypeError) as exc:
                 admin_only._build_request(
                     FinalRequestOptions(
                         method="post",
@@ -591,6 +590,10 @@ class TestOpenAI:
                         security={"bearer_auth": True},
                     )
                 )
+            assert str(exc.value) == (
+                "Could not resolve authentication method. Expected either api_key or admin_api_key to be set. "
+                "Or for the `Authorization` header to be explicitly omitted."
+            )
 
         with update_env(
             **{
@@ -2132,10 +2135,7 @@ class TestAsyncOpenAI:
             )
             assert admin_only_request.headers.get("Authorization") == f"Bearer {admin_api_key}"
 
-            with pytest.raises(
-                TypeError,
-                match="Could not resolve authentication method",
-            ):
+            with pytest.raises(TypeError) as exc:
                 admin_only._build_request(
                     FinalRequestOptions(
                         method="post",
@@ -2143,6 +2143,10 @@ class TestAsyncOpenAI:
                         security={"bearer_auth": True},
                     )
                 )
+            assert str(exc.value) == (
+                "Could not resolve authentication method. Expected either api_key or admin_api_key to be set. "
+                "Or for the `Authorization` header to be explicitly omitted."
+            )
 
         with update_env(
             **{
@@ -3642,6 +3646,49 @@ async def test_invalid_request_retry_limit(is_async: bool, value: Any) -> None:
                 await client.get("/test", cast_to=object, options={"max_retries": cast(Any, value)})
             else:
                 client.get("/test", cast_to=object, options={"max_retries": cast(Any, value)})
+    finally:
+        if isinstance(client, AsyncOpenAI):
+            await client.close()
+        else:
+            client.close()
+
+
+@pytest.mark.parametrize("is_async", [False, True])
+@pytest.mark.parametrize("error_type", [ssl.SSLError, anyio.EndOfStream])
+@pytest.mark.parametrize("max_retries,failures", [(0, 1), (2, 3), (2, 1)])
+async def test_unmapped_transport_errors(
+    is_async: bool, error_type: type[Exception], max_retries: int, failures: int
+) -> None:
+    requests: list[httpx2.Request] = []
+    error = error_type("synthetic transport failure")
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        requests.append(request)
+        if len(requests) <= failures:
+            raise error
+        return httpx2.Response(200, json={"recovered": True})
+
+    transport = httpx2.MockTransport(handler)
+    client = (
+        AsyncOpenAI(api_key="fake-key", max_retries=max_retries, http_client=httpx2.AsyncClient(transport=transport))
+        if is_async
+        else OpenAI(api_key="fake-key", max_retries=max_retries, http_client=httpx2.Client(transport=transport))
+    )
+    try:
+        with mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", return_value=0):
+            try:
+                if isinstance(client, AsyncOpenAI):
+                    result = await client.get("/test", cast_to=object)
+                else:
+                    result = client.get("/test", cast_to=object)
+            except APIConnectionError as exc:
+                assert failures > max_retries
+                assert exc.__cause__ is error
+                assert exc.request is requests[-1]
+            else:
+                assert failures <= max_retries
+                assert result == {"recovered": True}
+        assert len(requests) == min(failures + 1, max_retries + 1)
     finally:
         if isinstance(client, AsyncOpenAI):
             await client.close()

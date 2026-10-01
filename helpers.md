@@ -169,7 +169,7 @@ async with client.chat.completions.stream(
 ) as stream:
     async for event in stream:
         if event.type == 'content.delta':
-            print(event.content, flush=True, end='')
+            print(event.delta, flush=True, end='')
 ```
 
 When the context manager is entered, a `ChatCompletionStream` / `AsyncChatCompletionStream` instance is returned which, like `.create(stream=True)` is an iterator in the sync client and an async iterator in the async client. The full list of events that are yielded by the iterator are outlined [below](#chat-completions-events).
@@ -535,3 +535,101 @@ client.vector_stores.file_batches.create_and_poll(...)
 client.vector_stores.file_batches.upload_and_poll(...)
 client.videos.create_and_poll(...)
 ```
+
+# Beta Agents turn results
+
+Both streamed session creation and the one-turn session helper can collect the final
+answer. Call `get_final_result()` directly, or enable `with_result_collection()`
+before iterating to display progress. Existing follow-up tool handlers continue to run while it drains.
+
+```python
+with client.beta.agents.sessions.create(
+    agent={"model": MODEL},
+    environment={"type": "none"},
+    input="Explain this policy.",
+    stream=True,
+) as stream:
+    result = stream.get_final_result()
+
+print(result.output_text)
+
+with client.beta.agents.sessions.stream(
+    result.session_id,
+    input="Give me an example.",
+    tool_handlers=handlers,
+).with_result_collection() as stream:
+    for event in stream:
+        show_progress(event)
+    followup = stream.get_final_result()
+
+print(followup.output_text)
+```
+
+With `AsyncOpenAI`, await creation, use `async with` / `async for`, and await
+`get_final_result()`. The result exposes `output_text`, `turn`, final `messages`,
+`session_id`, and `turn_id`. Collection raises `AgentTurnResultError` when a complete
+successful answer cannot be established.
+
+## Typed beta Agents tools
+
+Bind an annotated function or bound method once, then reuse its definition and local handler:
+
+```py
+from openai.lib.beta.agents import function_tool
+
+@function_tool(name="lookup_item", description="Look up a catalog item.")
+def lookup(item_id: str) -> dict[str, str]:
+    return {"item_id": item_id, "name": "Notebook"}
+
+# Include lookup.definition in agent={"model": MODEL, "tools": [...]} when creating a session.
+with client.beta.agents.sessions.stream(
+    SESSION_ID, input="Find catalog item A123.", tool_handlers={lookup.name: lookup},
+) as stream:
+    stream.until_done()
+```
+
+For an existing Pydantic argument model, use an explicit binding:
+
+```py
+from pydantic import BaseModel
+from openai.lib.beta.agents import pydantic_function_tool
+
+class LookupArguments(BaseModel):
+    item_id: str
+
+lookup = pydantic_function_tool(
+    LookupArguments, name="lookup_item", handler=catalog.lookup,
+)
+# catalog.lookup receives a validated LookupArguments instance.
+```
+
+Callbacks can be async when used with `AsyncOpenAI`. Existing dictionary handlers still work.
+
+### Typed Agents output (beta)
+
+Pass a Pydantic model (or a Pydantic v2 dataclass) to generate the Agents output
+schema and parse the completed answer. Schemas use the same normalization as
+Responses; the API validates which schema features it supports.
+
+```python
+from pydantic import BaseModel
+
+class Report(BaseModel):
+    summary: str
+    findings: list[str]
+
+with client.beta.agents.sessions.create(
+    agent={"model": MODEL}, environment={"type": "none"},
+    input="Summarize the findings.", stream=True, output_type=Report,
+) as stream:
+    result = stream.get_final_result()
+print(result.output_parsed)
+```
+
+For a session already configured with that schema, use
+`sessions.stream(session_id, input="Update the report.", output_type=Report)`.
+This only selects the local parser; it does not change the session's schema.
+`output_parsed` exposes the first parsed final text part; every final text part is validated.
+`result.parse(Report)` parses an existing raw result. `AgentOutputParseError.result`
+retains the completed raw answer if validation fails. With `AsyncOpenAI`, await
+creation and the result getter, and use `async with`.
