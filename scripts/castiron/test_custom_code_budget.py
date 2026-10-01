@@ -313,6 +313,7 @@ class StatusPublisherTests(unittest.TestCase):
         failed_budget: bool = False,
         fallback_pulls: list[dict[str, int]] | None = None,
         run_overrides: dict[str, Any] | None = None,
+        previous_statuses: list[dict[str, Any]] | None = None,
     ) -> list[dict[str, Any]]:
         path = (
             Path(__file__).resolve().parents[2]
@@ -325,6 +326,7 @@ class StatusPublisherTests(unittest.TestCase):
         payload = {
             "script": script,
             "fallback_pulls": fallback_pulls,
+            "previous_statuses": previous_statuses or [],
             "context": {
                 "eventName": "workflow_run",
                 "repo": {"owner": "openai", "repo": "example"},
@@ -349,6 +351,7 @@ class StatusPublisherTests(unittest.TestCase):
                 "HEAD_SHA": "" if no_result else head,
                 "ISOLATION_RESULT": "success",
                 "BUDGET_RESULT": "failure" if failed_budget else "success",
+                "PUBLISH_ATTEMPT": "1",
             },
         }
         harness = """
@@ -360,8 +363,10 @@ class StatusPublisherTests(unittest.TestCase):
             actions: {getWorkflowRun: async () => ({data: data.run})},
             git: {getRef: async () => ({data: {object: {sha: data.current.base.sha}}})},
             repos: {createCommitStatus: async value => published.push(value),
+              listCommitStatusesForRef: 'statuses',
               listPullRequestsAssociatedWithCommit: 'commits.pulls'},
           }, paginate: async (method, params) => {
+            if (method === 'statuses') return data.previous_statuses;
             if (method === 'commits.pulls') return [];
             if (method !== 'pulls.list' || params.head !== 'contributor:sdk' || params.state !== 'open')
               throw new Error('Unexpected fallback lookup');
@@ -446,6 +451,42 @@ class StatusPublisherTests(unittest.TestCase):
     def test_independent_check_failures_are_preserved(self) -> None:
         results = self.publish(failed_budget=True)
         self.assertEqual([r["state"] for r in results], ["success", "failure"])
+
+    def test_older_evaluation_cannot_overwrite_newer_failure(self) -> None:
+        for order in ("124:1:125:1", "123:2:125:1", "123:1:125:1", "123:1:123:2"):
+            with self.subTest(order=order):
+                previous = {
+                    "context": "Castiron / custom-code budget",
+                    "creator": {"login": "github-actions[bot]"},
+                    "state": "failure",
+                    "description": f"Failed against newer main. [evaluation {order}]",
+                    "target_url": f"https://github.com/openai/example/actions/runs/{order.split(':')[2]}",
+                }
+                self.assertEqual(self.publish(previous_statuses=[previous]), [])
+
+    def test_publication_guard_allows_current_retry_and_ignores_unrelated_statuses(self) -> None:
+        previous = {
+            "context": "Castiron / custom-code budget",
+            "creator": {"login": "github-actions[bot]"},
+            "description": "Failed. [evaluation 123:1:123:1]",
+            "target_url": "https://github.com/openai/example/actions/runs/123",
+        }
+        for overrides in (
+            {},  # A partial publication can retry the same evaluation.
+            {
+                "description": "Failed. [evaluation 122:9:999:9]",
+                "target_url": "https://github.com/openai/example/actions/runs/999",
+            },
+            {"description": "Legacy status without evaluation marker"},
+            {"context": "Other check", "description": "[evaluation 999:9:999:9]"},
+            {"creator": {"login": "someone"}, "description": "[evaluation 999:9:999:9]"},
+            {"description": "[evaluation 999:9:999:9]", "target_url": "https://example.com/999"},
+        ):
+            with self.subTest(overrides=overrides):
+                results = self.publish(previous_statuses=[{**previous, **overrides}])
+                self.assertEqual(len(results), 2)
+                self.assertTrue(all(r["state"] == "success" for r in results))
+                self.assertTrue(all(len(r["description"]) <= 140 for r in results))
 
 
 class GitHubBudgetTests(unittest.TestCase):

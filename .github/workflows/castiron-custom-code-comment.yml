@@ -136,6 +136,7 @@ jobs:
           HEAD_SHA: ${{ needs.compute.outputs.head-sha }}
           ISOLATION_RESULT: ${{ needs.compute.outputs.isolation }}
           BUDGET_RESULT: ${{ needs.compute.outputs.budget }}
+          PUBLISH_ATTEMPT: ${{ github.run_attempt }}
         with:
           script: |
             const event = context.payload.workflow_run;
@@ -167,6 +168,20 @@ jobs:
               fresh = fresh && base === main.object.sha;
             }
             const url = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            // Concurrency serializes writes, but does not order runs or retries.
+            // Keep an older evaluation from overwriting a newer result for this head.
+            const order = [run.id, run.run_attempt, Number(context.runId), Number(process.env.PUBLISH_ATTEMPT)];
+            const marker = `[evaluation ${order.join(':')}]`;
+            const statuses = await github.paginate(github.rest.repos.listCommitStatusesForRef, {...context.repo, ref: head});
+            const names = ['Castiron / budget-only change', 'Castiron / custom-code budget'];
+            for (const status of statuses) {
+              if (!names.includes(status.context) || status.creator?.login !== 'github-actions[bot]') continue;
+              const prior = status.description?.match(/\[evaluation (\d+):(\d+):(\d+):(\d+)\]$/);
+              if (!prior || status.target_url !== `${url.slice(0, url.lastIndexOf('/') + 1)}${prior[3]}`) continue;
+              const previous = prior.slice(1).map(Number);
+              const different = previous.findIndex((value, index) => value !== order[index]);
+              if (different !== -1 && previous[different] > order[different]) return;
+            }
             for (const [name, result] of [
               ['Castiron / budget-only change', process.env.ISOLATION_RESULT],
               ['Castiron / custom-code budget', process.env.BUDGET_RESULT],
@@ -175,7 +190,7 @@ jobs:
               const description = !fresh ? 'Evaluation unavailable or queue base changed; inspect the trusted run and rerun.'
                 : `${state === 'success' ? 'Passed' : 'Failed'} against main ${base.slice(0, 12)}. See the trusted run summary.`;
               await github.rest.repos.createCommitStatus({...context.repo, sha: head, context: name,
-                state, description, target_url: url});
+                state, description: `${description} ${marker}`, target_url: url});
             }
 
   comment:
