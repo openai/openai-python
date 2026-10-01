@@ -337,3 +337,11 @@ def test_pattern_keyed_mapping_rejected() -> None:
     model = type("PatternMapping", (BaseModel,), {"__annotations__": {"values": dict[key_type, str]}})
     with pytest.raises(ValueError, match="patternProperties"):
         agent_text_format(model)
+
+
+def test_bare_mapping_rejected_but_empty_fixed_object_supported() -> None:
+    model = type("BareMapping", (BaseModel,), {"__annotations__": {"value": dict}})
+    with pytest.raises(ValueError, match="schema"):
+        agent_text_format(model)
+    empty = type("EmptyReport", (BaseModel,), {})
+    assert agent_text_format(empty)["schema"]["properties"] == {}

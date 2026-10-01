@@ -83,6 +83,8 @@ def _validate_schema(schema: dict[str, Any]) -> None:
         raise ValueError("Unsupported Agents output schema string format")
     if schema.get("type") == "object" and schema.get("additionalProperties") is not False:
         raise ValueError("Agents output schemas require additionalProperties=false")
+    if schema.get("type") == "object" and not isinstance(schema.get("properties"), dict):
+        raise ValueError("Agents output object schemas require explicit properties; free-form mappings are unsupported")
     if schema.get("type") == "array" and not isinstance(schema.get("items"), dict):
         raise ValueError("Agents output array schemas require an object items schema")
     for key in ("properties", "$defs", "definitions"):
