@@ -31,13 +31,15 @@ jobs:
       isolation: ${{ steps.budget.outputs.isolation }}
       budget: ${{ steps.budget.outputs.budget }}
     steps:
+      # Selecting main here pins both the executable checker and PR policy base.
+      # Subsequent steps use this checkout's SHA even if main advances.
       - name: Check out the trusted reporter
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: main
           persist-credentials: false
 
-      - name: Compute from the current pull request Git objects
+      - name: Compute from the selected main and pull request Git objects
         id: report
         if: github.event.workflow_run.event == 'pull_request'
         env:
@@ -53,6 +55,7 @@ jobs:
         run: |
           python3 -I scripts/castiron/custom_code_report.py trusted-report \
             --repo "$RUNNER_TEMP/castiron-objects.git" \
+            --base "$(git rev-parse HEAD)" \
             --repository "$REPOSITORY" --run-id "$RUN_ID" --run-attempt "$RUN_ATTEMPT" \
             --out "$RUNNER_TEMP/castiron-custom-code"
           if test -f "$RUNNER_TEMP/castiron-custom-code/context.json"; then
@@ -137,13 +140,13 @@ jobs:
           script: |
             const event = context.payload.workflow_run;
             const {data: run} = await github.rest.actions.getWorkflowRun({...context.repo, run_id: event.id});
-            if (run.head_sha !== event.head_sha || run.run_attempt !== event.run_attempt ||
+            if (run.event !== event.event || run.head_sha !== event.head_sha || run.run_attempt !== event.run_attempt ||
                 run.status !== 'completed' || run.path.split('@', 1)[0] !== '.github/workflows/castiron-custom-code.yml' ||
                 run.repository.full_name !== `${context.repo.owner}/${context.repo.repo}`) return;
             const head = run.head_sha;
             if (!/^[0-9a-f]{40}$/.test(head)) throw new Error('Invalid candidate SHA');
-            const {data: main} = await github.rest.git.getRef({...context.repo, ref: 'heads/main'});
-            const base = main.object.sha;
+            const base = process.env.BASE_SHA;
+            let fresh = /^[0-9a-f]{40}$/.test(base) && head === process.env.HEAD_SHA;
             if (run.event === 'pull_request') {
               let pulls = run.pull_requests.length ? run.pull_requests : await github.paginate(
                 github.rest.repos.listPullRequestsAssociatedWithCommit, {...context.repo, commit_sha: head});
@@ -153,23 +156,24 @@ jobs:
               const current = [];
               for (const pull of pulls) {
                 const {data: pr} = await github.rest.pulls.get({...context.repo, pull_number: pull.number});
-                if (pr.state === 'open' && pr.head.sha === head && pr.base.sha === base &&
+                if (pr.state === 'open' && pr.head.sha === head &&
                     pr.base.ref === 'main' && pr.base.repo.full_name === `${context.repo.owner}/${context.repo.repo}`) current.push(pr);
               }
               if (current.length !== 1) return;
             } else if (run.event !== 'merge_group' || !run.head_branch.startsWith('gh-readonly-queue/main/')) {
               return;
+            } else {
+              const {data: main} = await github.rest.git.getRef({...context.repo, ref: 'heads/main'});
+              fresh = fresh && base === main.object.sha;
             }
-            const fresh = base === process.env.BASE_SHA && head === process.env.HEAD_SHA;
             const url = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
             for (const [name, result] of [
               ['Castiron / budget-only change', process.env.ISOLATION_RESULT],
               ['Castiron / custom-code budget', process.env.BUDGET_RESULT],
             ]) {
               const state = fresh && result === 'success' ? 'success' : 'failure';
-              const description = !fresh ? 'Evaluation unavailable or base changed; rerun against current main.'
-                : state === 'success' ? 'Passed against main policy. See the trusted run summary.'
-                : 'Budget check failed. See the trusted run summary.';
+              const description = !fresh ? 'Evaluation unavailable or queue base changed; inspect the trusted run and rerun.'
+                : `${state === 'success' ? 'Passed' : 'Failed'} against main ${base.slice(0, 12)}. See the trusted run summary.`;
               await github.rest.repos.createCommitStatus({...context.repo, sha: head, context: name,
                 state, description, target_url: url});
             }
