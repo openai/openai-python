@@ -245,7 +245,9 @@ def function_tool(
             member = getattr(member, "__func__", member)
             if callable(member) and inspect.unwrap(member) is source_function:
                 owner = cls
-                break
+                # Overrides can wrap a base implementation without owning its annotations.
+                if member is source_function:
+                    break
         localns = {name: value for cls in reversed(owner.__mro__) for name, value in vars(cls).items()}
     # Return annotations may be TYPE_CHECKING-only imports; tools only need inputs.
     annotations = get_type_hints(

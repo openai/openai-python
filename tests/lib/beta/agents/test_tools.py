@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Awaitable, cast
+from typing import Any, Callable, Awaitable, cast
 from datetime import date
 from typing_extensions import Annotated, assert_type
 
@@ -562,3 +562,33 @@ def test_root_schema_compositions_have_explicit_supported_boundary() -> None:
     wrapped = pydantic.create_model("WrappedUnion", value=(Transfer | Destination, ...))
     tool = pydantic_function_tool(wrapped, handler=lambda _: "accepted")
     assert tool({"value": {"address": "test-address"}}) == "accepted"
+
+
+@pytest.mark.parametrize("wrap_base", [False, True])
+def test_wrapped_override_uses_defining_namespace(wrap_base: bool) -> None:
+    from functools import wraps
+
+    def maybe_wrap(function: Callable[..., Any]) -> Callable[..., Any]:
+        @wraps(function)
+        def wrapped(*args: Any, **kwargs: Any) -> Any:
+            return function(*args, **kwargs)
+
+        return wrapped if wrap_base else function
+
+    class Wallet:
+        class Asset(BaseModel):
+            symbol: str
+
+        @maybe_wrap
+        def lookup(self, asset: Asset) -> str:
+            return asset.symbol
+
+    class Child(Wallet):
+        class Asset(BaseModel):  # pyright: ignore[reportIncompatibleVariableOverride]
+            address: int
+
+        @wraps(Wallet.lookup)
+        def lookup(self, asset: Any) -> str:  # pyright: ignore[reportIncompatibleMethodOverride]
+            return super().lookup(asset)
+
+    assert function_tool(Child().lookup)({"asset": {"symbol": "USDC"}}) == "USDC"
