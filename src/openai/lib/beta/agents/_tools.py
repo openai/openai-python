@@ -11,8 +11,9 @@ from typing_extensions import Protocol, overload
 
 import pydantic
 
+from ._schema import model_schema
 from ...._utils import is_dict
-from ...._compat import PYDANTIC_V1, model_dump, model_json, model_parse, model_json_schema
+from ...._compat import PYDANTIC_V1, model_dump, model_json, model_parse
 from ..._pydantic import resolve_ref
 from ...streaming.agents._types import ToolOutput
 from ....types.beta.agent_tool_param import AgentToolConfigParamFunction
@@ -39,7 +40,7 @@ class FunctionTool(Generic[_OutputT]):
     ) -> None:
         if not name:
             raise ValueError("Tool name must not be empty")
-        parameters = model_json_schema(model)
+        parameters = model_schema(model)
         root = parameters
         seen: set[str] = set()
         while isinstance(ref := root.get("$ref"), str) and ref not in seen:

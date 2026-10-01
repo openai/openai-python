@@ -1,15 +1,15 @@
 from __future__ import annotations
 
-from typing import Iterator, AsyncIterator
+from typing import Generic, Iterator, AsyncIterator
 from typing_extensions import Self, override
 
-from ._result import AgentTurnResult, AgentTurnResultError, AgentTurnResultCollection
+from ._result import OutputT, AgentTurnResult, AgentTurnResultError, AgentOutputParseError, AgentTurnResultCollection
 from ...._compat import cached_property
 from ...._streaming import Stream, AsyncStream
 from ....types.beta.agent_session_event import AgentSessionEvent
 
 
-class AgentSessionEventStream(Stream[AgentSessionEvent]):
+class AgentSessionEventStream(Stream[AgentSessionEvent], Generic[OutputT]):
     """Beta: a creation event stream that can collect its initial turn's result.
 
     Event iteration and response access behave like ``Stream``. Collection does
@@ -18,7 +18,7 @@ class AgentSessionEventStream(Stream[AgentSessionEvent]):
     """
 
     @cached_property
-    def _collection(self) -> AgentTurnResultCollection:
+    def _collection(self) -> AgentTurnResultCollection[OutputT]:
         return AgentTurnResultCollection()
 
     @override
@@ -36,7 +36,7 @@ class AgentSessionEventStream(Stream[AgentSessionEvent]):
         self._collection.enable()
         return self
 
-    def get_final_result(self) -> AgentTurnResult:
+    def get_final_result(self) -> AgentTurnResult[OutputT]:
         """Consume remaining events and return the successful initial turn result.
 
         Raises AgentTurnResultError for an unsuccessful or unobserved outcome.
@@ -52,8 +52,8 @@ class AgentSessionEventStream(Stream[AgentSessionEvent]):
                     collector.check_outcome()
                     if collector.is_done():
                         break
-            return collector.result()
-        except AgentTurnResultError:
+            return self._collection.result()
+        except (AgentTurnResultError, AgentOutputParseError):
             raise
         except Exception as error:
             collector.cause = error
@@ -62,11 +62,11 @@ class AgentSessionEventStream(Stream[AgentSessionEvent]):
             self.close()
 
 
-class AsyncAgentSessionEventStream(AsyncStream[AgentSessionEvent]):
+class AsyncAgentSessionEventStream(AsyncStream[AgentSessionEvent], Generic[OutputT]):
     """Beta: asynchronous counterpart of AgentSessionEventStream."""
 
     @cached_property
-    def _collection(self) -> AgentTurnResultCollection:
+    def _collection(self) -> AgentTurnResultCollection[OutputT]:
         return AgentTurnResultCollection()
 
     @override
@@ -84,7 +84,7 @@ class AsyncAgentSessionEventStream(AsyncStream[AgentSessionEvent]):
         self._collection.enable()
         return self
 
-    async def get_final_result(self) -> AgentTurnResult:
+    async def get_final_result(self) -> AgentTurnResult[OutputT]:
         """Consume remaining events and return the successful initial turn result.
 
         Enables collection on a fresh stream. To iterate first, call
@@ -98,8 +98,8 @@ class AsyncAgentSessionEventStream(AsyncStream[AgentSessionEvent]):
                     collector.check_outcome()
                     if collector.is_done():
                         break
-            return collector.result()
-        except AgentTurnResultError:
+            return self._collection.result()
+        except (AgentTurnResultError, AgentOutputParseError):
             raise
         except Exception as error:
             collector.cause = error
