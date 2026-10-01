@@ -1,22 +1,28 @@
 from __future__ import annotations
 
-from typing import Any, cast
+from typing import Any, cast, get_origin
 from typing_extensions import TypeVar
 
-from pydantic import BaseModel
+import pydantic
 
 from ...._types import Omit
-from ..._pydantic import is_basemodel_type, to_strict_json_schema
+from ...._compat import PYDANTIC_V1
+from ..._pydantic import resolve_ref, is_basemodel_type, to_strict_json_schema, is_dataclass_like_type
 from ....types.beta.agent_text_param import AgentTextParam
 from ....types.beta.text_format_param import TextFormatParamJSONSchema
 from ....types.beta.agents.session_create_params import Agent
 
 
-def agent_text_format(output_type: type[BaseModel]) -> TextFormatParamJSONSchema:
+def agent_text_format(output_type: type[Any]) -> TextFormatParamJSONSchema:
     """Beta: build the Agents JSON-schema format for an object-root Pydantic model."""
-    if not is_basemodel_type(output_type):
-        raise TypeError("Agents output_type must be a Pydantic BaseModel type")
-    schema = to_strict_json_schema(output_type)
+    if is_basemodel_type(output_type):
+        schema = to_strict_json_schema(output_type)
+        if PYDANTIC_V1:
+            _restore_v1_nullability(output_type, schema)
+    elif is_dataclass_like_type(output_type) and not PYDANTIC_V1:
+        schema = to_strict_json_schema(pydantic.TypeAdapter(output_type))
+    else:
+        raise TypeError("Agents output_type must be a Pydantic model or a Pydantic v2 dataclass")
     if schema.get("type") != "object" or any(key in schema for key in ("oneOf", "anyOf", "allOf", "enum", "not")):
         raise ValueError("Agents output_type must describe an object root without schema composition")
     _validate_schema(schema)
@@ -80,7 +86,7 @@ def _validate_schema(schema: dict[str, Any]) -> None:
             _validate_schema(child)
 
 
-def with_output_schema(agent: Agent | Omit, output_type: type[BaseModel] | None) -> Agent | Omit:
+def with_output_schema(agent: Agent | Omit, output_type: type[Any] | None) -> Agent | Omit:
     if output_type is None:
         return agent
     config = cast(Agent, {} if isinstance(agent, Omit) else dict(agent))
@@ -95,10 +101,52 @@ def with_output_schema(agent: Agent | Omit, output_type: type[BaseModel] | None)
 ResponseT = TypeVar("ResponseT")
 
 
-def bind_output_type(response: ResponseT, output_type: type[BaseModel] | None) -> ResponseT:
+def bind_output_type(response: ResponseT, output_type: type[Any] | None) -> ResponseT:
     from ._stream import AgentSessionEventStream, AsyncAgentSessionEventStream
 
     if isinstance(response, (AgentSessionEventStream, AsyncAgentSessionEventStream)):
         stream = cast("AgentSessionEventStream[Any] | AsyncAgentSessionEventStream[Any]", response)
         stream._collection.output_type = output_type
     return cast(ResponseT, response)
+
+
+def _restore_v1_nullability(model: type[Any], schema: dict[str, Any]) -> None:
+    # Pydantic v1 omits null from Optional field schemas. Restore it before
+    # publishing a required-field strict schema, without changing model defaults.
+    visited: set[tuple[type[Any], int]] = set()
+
+    def model_fields(model_type: type[Any], node: dict[str, Any]) -> None:
+        if "$ref" in node:
+            node = cast(dict[str, Any], resolve_ref(root=schema, ref=node["$ref"]))
+        key = (model_type, id(node))
+        if key in visited:
+            return
+        visited.add(key)
+        fields = cast(Any, model_type).__fields__
+        if "__root__" in fields:
+            field_schema(fields["__root__"], node)
+        else:
+            for field in fields.values():
+                child = node.get("properties", {}).get(field.alias)
+                if child is not None:
+                    field_schema(field, child)
+
+    def field_schema(field: Any, node: dict[str, Any]) -> None:
+        if field.allow_none and field.type_ is not type(None):
+            if "anyOf" in node:
+                if not any(child.get("type") == "null" for child in node["anyOf"]):
+                    node["anyOf"].append({"type": "null"})
+            else:
+                original = dict(node)
+                node.clear()
+                node["anyOf"] = [original, {"type": "null"}]
+                node = original
+        if node.get("type") == "array" and field.sub_fields and isinstance(node.get("items"), dict):
+            field_schema(field.sub_fields[0], node["items"])
+        elif "anyOf" in node and field.sub_fields:
+            for child_field, child_schema in zip(field.sub_fields, node["anyOf"], strict=False):
+                field_schema(child_field, child_schema)
+        elif get_origin(field.type_) is None and isinstance(field.type_, type) and is_basemodel_type(field.type_):
+            model_fields(field.type_, node)
+
+    model_fields(model, schema)

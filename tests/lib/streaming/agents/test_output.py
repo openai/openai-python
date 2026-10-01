@@ -9,6 +9,7 @@ import pytest
 from pydantic import Field, HttpUrl, BaseModel
 
 from openai import OpenAI, AsyncOpenAI
+from openai._compat import PYDANTIC_V1
 from openai.lib.beta.agents import AgentTurnResultError, AgentOutputParseError, agent_text_format
 from tests.lib.streaming.agents.test_results import ResultServer, server as server, message
 from tests.lib.streaming.agents.test_streams import EventBody, sdk as sdk, idle, turn_event
@@ -220,3 +221,69 @@ def test_recursive_references_preserved() -> None:
 def test_unsupported_field_types_fail_locally(model: type[BaseModel]) -> None:
     with pytest.raises(ValueError, match="schema"):
         agent_text_format(model)
+
+
+class NullableChild(BaseModel):
+    value: str | None = None
+
+
+class NullableReport(BaseModel):
+    optional: str | None = None
+    child: NullableChild | None = None
+    values: list[str | None]
+    choice: int | str | None = None
+
+
+def test_nullable_schema_matches_supported_model_values() -> None:
+    schema = agent_text_format(NullableReport)["schema"]
+    properties: Any = schema["properties"]
+    assert {item.get("type") for item in properties["optional"]["anyOf"]} == {"string", "null"}
+    assert any(item.get("type") == "null" for item in properties["child"]["anyOf"])
+    assert {item["type"] for item in properties["values"]["items"]["anyOf"]} == {"string", "null"}
+    assert {item.get("type") for item in properties["choice"]["anyOf"]} == {"integer", "string", "null"}
+    definitions: Any = schema.get("$defs", schema.get("definitions"))
+    assert any(item["type"] == "null" for item in definitions["NullableChild"]["properties"]["value"]["anyOf"])
+    assert schema["required"] == ["optional", "child", "values", "choice"]
+    assert NullableReport(values=[None]).optional is None
+
+
+@pytest.mark.skipif(PYDANTIC_V1, reason="Pydantic dataclass output requires v2, matching Responses")
+async def test_pydantic_dataclass_output(sdk: OpenAI | AsyncOpenAI, server: ResultServer) -> None:
+    from pydantic.dataclasses import dataclass
+
+    @dataclass
+    class DataclassReport:
+        summary: str
+
+    server.body = EventBody([turn_event("created"), message('{"summary":"done"}'), turn_event("completed"), idle()])
+    assert agent_text_format(DataclassReport)["schema"]["type"] == "object"
+    if isinstance(sdk, AsyncOpenAI):
+        async with sdk.beta.agents.sessions.stream(
+            "session_test", input="Question", output_type=DataclassReport
+        ) as stream:
+            result = await stream.get_final_result()
+    else:
+        with sdk.beta.agents.sessions.stream("session_test", input="Question", output_type=DataclassReport) as stream:
+            result = stream.get_final_result()
+    assert result.output_parsed == DataclassReport(summary="done")
+
+
+class NullableTree(BaseModel):
+    label: str
+    parent: NullableTree | None = None
+    children: list[NullableTree | None]
+
+
+def test_nullable_recursive_refs_and_aliases() -> None:
+    schema: Any = agent_text_format(NullableTree)["schema"]
+    definitions: Any = schema.get("$defs", schema.get("definitions"))
+    for properties in (schema["properties"], definitions["NullableTree"]["properties"]):
+        assert len([item for item in properties["parent"]["anyOf"] if item.get("type") == "null"]) == 1
+        assert any(item.get("type") == "null" for item in properties["children"]["items"]["anyOf"])
+
+    class Aliased(BaseModel):
+        count: int | None = Field(None, alias="optionalCount")
+
+    alias_schema: Any = agent_text_format(Aliased)["schema"]
+    assert alias_schema["required"] == ["optionalCount"]
+    assert any(item["type"] == "null" for item in alias_schema["properties"]["optionalCount"]["anyOf"])

@@ -607,7 +607,8 @@ Callbacks can be async when used with `AsyncOpenAI`. Existing dictionary handler
 
 ### Typed Agents output (beta)
 
-Pass a Pydantic model to generate the Agents output schema and parse the completed answer:
+Pass a Pydantic model (or a Pydantic v2 dataclass) to generate the Agents output
+schema and parse the completed answer:
 
 ```python
 from pydantic import BaseModel

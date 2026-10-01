@@ -5,18 +5,16 @@ from typing import Any, Generic, Iterable
 from dataclasses import dataclass
 from typing_extensions import Literal, TypeVar
 
-from pydantic import BaseModel
-
 from ._output import agent_text_format
-from ...._compat import model_parse_json
 from ...._exceptions import OpenAIError
+from ..._parsing._completions import _parse_content
 from ....types.beta.agent_session import RequiredAction
 from ....types.beta.agent_session_event import AgentSessionEvent
 from ....types.beta.agents.sessions.turn import Turn
 from ....types.beta.agent_session_message import AgentSessionMessage
 
-OutputT = TypeVar("OutputT", bound=BaseModel, default=Any)
-ParseT = TypeVar("ParseT", bound=BaseModel)
+OutputT = TypeVar("OutputT", default=Any)
+ParseT = TypeVar("ParseT")
 
 
 @dataclass(frozen=True)
@@ -30,7 +28,7 @@ class AgentTurnResult(Generic[OutputT]):
     def parse(self, output_type: type[ParseT]) -> AgentTurnResult[ParseT]:
         """Beta: parse a completed answer without changing its session configuration."""
         try:
-            parsed = model_parse_json(output_type, self.output_text)
+            parsed = _parse_content(output_type, self.output_text)
         except Exception:
             # Pydantic errors may include response text in their rendered message.
             raise AgentOutputParseError(self) from None
