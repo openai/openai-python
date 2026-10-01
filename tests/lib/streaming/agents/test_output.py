@@ -46,8 +46,12 @@ def test_schema_rejects_open_objects() -> None:
     class WithMap(BaseModel):
         value: dict[str, str]
 
+    tool = pydantic_function_tool(WithMap, handler=lambda args: args.value)
+    parameters = tool.definition["parameters"]
     with pytest.raises(ValueError, match="additionalProperties"):
         agent_text_format(WithMap)
+    assert tool.definition["parameters"] == parameters
+    assert tool({"value": {"label": "example"}}) == '{"label":"example"}'
 
 
 def test_schema_normalizes_defaults_without_mutating_model() -> None:
@@ -379,12 +383,12 @@ async def test_typed_tools_and_output_keep_distinct_schema_policies(
         else function_tool(summarize, name="search")
     )
     parameters = tool.definition["parameters"]
-    assert "summary" not in parameters.get("required", [])
+    assert "summary" not in cast(list[str], parameters.get("required", []))
     output_format = agent_text_format(Summary)
     assert output_format["schema"]["required"] == ["summary"]
     assert tool.definition["parameters"] == parameters
     later_tool = pydantic_function_tool(Summary, handler=lambda args: args)
-    assert "summary" not in later_tool.definition["parameters"].get("required", [])
+    assert "summary" not in cast(list[str], later_tool.definition["parameters"].get("required", []))
     text = '{"summary":"default"}'
     server.body = EventBody([turn_event("created"), call({}), message(text), turn_event("completed"), idle()])
     if isinstance(sdk, AsyncOpenAI):
