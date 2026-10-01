@@ -193,13 +193,15 @@ def prepare(resource: Files, files: Mapping[str, str | PathLike[str]], options: 
 
 def _snapshot_selection(
     files: Mapping[str, str | PathLike[str]], options: _RequestOptions, defaults: Headers
-) -> list[tuple[str, str, bytes]]:
+) -> list[tuple[str, _SelectedFile]]:
     # The worker owns every handle it opens, even if its caller is cancelled.
     with ExitStack() as stack:
         selected = _prepare_selection(files, options, defaults, stack)
-        return [
-            (destination, source.name, _read_local(handle, length)) for destination, source, handle, length in selected
-        ]
+        paths: list[tuple[str, _SelectedFile]] = []
+        for destination, source, handle, length in selected:
+            metadata = fstat(handle.fileno())
+            paths.append((destination, _SelectedFile(source, (metadata.st_dev, metadata.st_ino, length))))
+        return paths
 
 
 async def async_prepare(
@@ -210,8 +212,10 @@ async def async_prepare(
     )
     prepared = PreparedAgentFiles()
     try:
-        for destination, filename, content in selected:
-            uploaded = await resource._client.files.create(file=(filename, content), purpose="user_data", **options)
+        for destination, source in selected:
+            content = await run_sync(_snapshot_upload, source, abandon_on_cancel=True)
+            uploaded = await resource._client.files.create(file=content, purpose="user_data", **options)
+            del content
             prepared.uploaded_file_ids.append(uploaded.id)
             prepared.files.append({"type": "file_id", "file_id": uploaded.id, "path": destination})
     except Exception as error:
@@ -244,7 +248,7 @@ def _upload_content(file: FileTypes) -> Generator[FileTypes, None, None]:
     with ExitStack() as stack:
         if isinstance(content, PathLike):
             path = _local_file(content)
-            handle, length = _open_local(path, stack)
+            handle, length = _open_local(path, stack, content.identity if isinstance(content, _SelectedFile) else None)
             _unchanged_size(handle, length)
             yield cast(FileTypes, (file[0], handle, *file[2:])) if isinstance(file, tuple) else (path.name, handle)
             return

@@ -320,7 +320,7 @@ async def test_system_alias_ancestor_is_allowed_but_directory_entries_are_not_fo
     assert server.uploads == 1
 
 
-async def test_prepared_files_keep_opened_sources_during_batch_upload(
+async def test_batch_replacement_never_uploads_changed_sources(
     sdk: OpenAI | AsyncOpenAI, server: FilesServer, tmp_path: Path
 ) -> None:
     first = tmp_path / "first.txt"
@@ -334,9 +334,38 @@ async def test_prepared_files_keep_opened_sources_during_batch_upload(
             second.write_text("replacement")
 
     server.after_upload = replace_later_source
-    await prepare(sdk, {"/workspace/first": first, "/workspace/second": second})
-    assert b"second-original" in server.requests[1].content
-    assert b"replacement" not in server.requests[1].content
+    if isinstance(sdk, AsyncOpenAI):
+        with pytest.raises(AgentFilePreparationError) as caught:
+            await prepare(sdk, {"/workspace/first": first, "/workspace/second": second})
+        assert caught.value.prepared.uploaded_file_ids == ["file_1"]
+        assert isinstance(caught.value.__cause__, ValueError)
+        assert server.uploads == 1
+    else:
+        await prepare(sdk, {"/workspace/first": first, "/workspace/second": second})
+        assert b"second-original" in server.requests[1].content
+        assert b"replacement" not in server.requests[1].content
+
+
+async def test_async_prepare_reads_each_file_only_when_ready_to_upload(
+    sdk: OpenAI | AsyncOpenAI, server: FilesServer, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from openai.lib.beta.agents import _files
+
+    if not isinstance(sdk, AsyncOpenAI):
+        pytest.skip("Async buffering contract")
+    source = tmp_path / "source.txt"
+    source.write_text("abc")
+    read = _files._read_local
+    uploads_at_read: list[int] = []
+
+    def read_one(handle: Any, length: int) -> bytes:
+        uploads_at_read.append(server.uploads)
+        return read(handle, length)
+
+    monkeypatch.setattr(_files, "_read_local", read_one)
+    result = await sdk.beta.agents.environments.files.prepare({f"/workspace/{index}.txt": source for index in range(3)})
+    assert uploads_at_read == [0, 1, 2]
+    assert result.uploaded_file_ids == ["file_1", "file_2", "file_3"]
 
 
 @pytest.mark.parametrize("file_backed", [False, True])
