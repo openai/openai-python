@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import json
-from typing import Any
+from io import BytesIO
+from typing import Any, Callable
 from asyncio import CancelledError
 from pathlib import Path
 from typing_extensions import override
@@ -22,12 +23,15 @@ class FilesServer(Server):
         self.fail_stage = False
         self.cancel_upload = 0
         self.cancel_stage = False
+        self.after_upload: Callable[[], None] | None = None
 
     @override
     def handle(self, request: httpx2.Request) -> httpx2.Response:
         self.requests.append(request)
         if request.url.path == "/v1/files":
             self.uploads += 1
+            if self.after_upload is not None:
+                self.after_upload()
             if self.uploads == self.cancel_upload:
                 raise CancelledError()
             if self.uploads == self.fail_upload:
@@ -79,11 +83,20 @@ async def test_prepare_uploads_selected_files_and_preserves_options(
 ) -> None:
     source = tmp_path / "source.txt"
     source.write_text("abc")
-    result = await prepare(sdk, {"/workspace/source.txt": source}, extra_headers={"X-Synthetic": "test"}, timeout=7)
+    result = await prepare(
+        sdk,
+        {"/workspace/source.txt": source},
+        extra_headers={"X-Synthetic": "test"},
+        extra_query={"synthetic": "query"},
+        extra_body={"synthetic": "body"},
+        timeout=7,
+    )
     assert result.files == [{"type": "file_id", "file_id": "file_1", "path": "/workspace/source.txt"}]
     assert result.uploaded_file_ids == ["file_1"]
     assert all(request.headers["X-Synthetic"] == "test" for request in server.requests)
     assert b"abc" in server.requests[0].content
+    assert server.requests[0].url.params["synthetic"] == "query"
+    assert b"body" in server.requests[0].content
 
 
 async def test_preflight_all_files_before_upload(
@@ -149,15 +162,25 @@ async def test_live_staging_and_failure_ownership(sdk: OpenAI | AsyncOpenAI, ser
     async def stage() -> Any:
         if isinstance(sdk, AsyncOpenAI):
             return await sdk.beta.agents.environments.files.upload(
-                "env_test", file=("source.txt", b"abc"), path="/workspace/source.txt"
+                "env_test",
+                file=("source.txt", b"abc"),
+                path="/workspace/source.txt",
+                extra_query={"synthetic": "query"},
+                extra_body={"synthetic": "body"},
             )
         return sdk.beta.agents.environments.files.upload(
-            "env_test", file=("source.txt", b"abc"), path="/workspace/source.txt"
+            "env_test",
+            file=("source.txt", b"abc"),
+            path="/workspace/source.txt",
+            extra_query={"synthetic": "query"},
+            extra_body={"synthetic": "body"},
         )
 
     result = await stage()
     assert result.uploaded_file_id == "file_1"
     assert result.file.path == "/workspace/source.txt"
+    assert all(request.url.params["synthetic"] == "query" for request in server.requests)
+    assert all(b"body" in request.content for request in server.requests)
     server.fail_stage = True
     with pytest.raises(AgentFileStagingError) as caught:
         await stage()
@@ -221,6 +244,7 @@ async def test_client_default_idempotency_key_is_rejected_for_batch(
         "/workspace/.managed-agents/source",
         "/workspace/.managed-agents-internal/source",
         "/workspace/outputs",
+        "/workspace/" + "x" * 4096,
     ],
 )
 async def test_invalid_hosted_destination_fails_before_upload(
@@ -268,3 +292,42 @@ async def test_system_alias_ancestor_is_allowed_but_directory_entries_are_not_fo
         )
     assert [item["path"] for item in prepared.files] == ["/workspace/docs/keep.md"]
     assert server.uploads == 1
+
+
+async def test_prepared_files_keep_opened_sources_during_batch_upload(
+    sdk: OpenAI | AsyncOpenAI, server: FilesServer, tmp_path: Path
+) -> None:
+    first = tmp_path / "first.txt"
+    second = tmp_path / "second.txt"
+    first.write_text("first-original")
+    second.write_text("second-original")
+
+    def replace_later_source() -> None:
+        if server.uploads == 1:
+            second.unlink()
+            second.write_text("replacement")
+
+    server.after_upload = replace_later_source
+    await prepare(sdk, {"/workspace/first": first, "/workspace/second": second})
+    assert b"second-original" in server.requests[1].content
+    assert b"replacement" not in server.requests[1].content
+
+
+@pytest.mark.parametrize("file_backed", [False, True])
+async def test_known_stream_sizes_fail_before_upload_without_moving_position(
+    sdk: OpenAI | AsyncOpenAI, server: FilesServer, tmp_path: Path, file_backed: bool
+) -> None:
+    content = (tmp_path / "large").open("w+b") if file_backed else BytesIO()
+    with content:
+        content.seek(50 * 1024 * 1024)
+        content.write(b"x")
+        content.seek(3)
+        with pytest.raises(ValueError, match="50 MiB"):
+            if isinstance(sdk, AsyncOpenAI):
+                await sdk.beta.agents.environments.files.upload(
+                    "env_test", file=("large", content), path="/workspace/large"
+                )
+            else:
+                sdk.beta.agents.environments.files.upload("env_test", file=("large", content), path="/workspace/large")
+        assert content.tell() == 3
+    assert not server.requests

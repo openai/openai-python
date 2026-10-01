@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 import httpx2
 
 from ._result import AgentTurnResult
-from ...._types import Headers, NotGiven, not_given
+from ...._types import Body, Query, Headers, NotGiven, not_given
 from ....types.beta.agents.sessions.session_artifact import SessionArtifact
 
 if TYPE_CHECKING:
@@ -27,11 +27,19 @@ class AgentResultArtifacts:
         *,
         to: str | PathLike[str],
         extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SessionArtifact:
         """Download one exact turn/path to an explicit local destination."""
         selected: SessionArtifact | None = None
-        for artifact in self._resource.list(self._session_id, extra_headers=extra_headers, timeout=timeout):
+        for artifact in self._resource.list(
+            self._session_id,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        ):
             if artifact.session_id == self._session_id and artifact.turn_id == self._turn_id and artifact.path == path:
                 if selected is not None:
                     raise ValueError("More than one artifact matches this turn and path")
@@ -39,7 +47,12 @@ class AgentResultArtifacts:
         if selected is None:
             raise ValueError("No artifact matches this turn and path")
         with self._resource.with_streaming_response.content(
-            selected.id, session_id=self._session_id, extra_headers=extra_headers, timeout=timeout
+            selected.id,
+            session_id=self._session_id,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
         ) as content:
             content.stream_to_file(to)
         return selected
@@ -59,11 +72,19 @@ class AsyncAgentResultArtifacts:
         *,
         to: str | PathLike[str],
         extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SessionArtifact:
         """Download one exact turn/path to an explicit local destination."""
         selected: SessionArtifact | None = None
-        async for artifact in self._resource.list(self._session_id, extra_headers=extra_headers, timeout=timeout):
+        async for artifact in self._resource.list(
+            self._session_id,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        ):
             if artifact.session_id == self._session_id and artifact.turn_id == self._turn_id and artifact.path == path:
                 if selected is not None:
                     raise ValueError("More than one artifact matches this turn and path")
@@ -71,7 +92,12 @@ class AsyncAgentResultArtifacts:
         if selected is None:
             raise ValueError("No artifact matches this turn and path")
         async with self._resource.with_streaming_response.content(
-            selected.id, session_id=self._session_id, extra_headers=extra_headers, timeout=timeout
+            selected.id,
+            session_id=self._session_id,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
         ) as content:
             await content.stream_to_file(to)
         return selected

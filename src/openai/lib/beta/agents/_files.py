@@ -1,20 +1,33 @@
 from __future__ import annotations
 
-from os import PathLike, walk
-from typing import TYPE_CHECKING, Mapping, Sequence
+from io import IOBase
+from os import PathLike, walk, fstat
+from stat import S_ISREG
+from typing import TYPE_CHECKING, Mapping, BinaryIO, Sequence, Generator, cast
 from asyncio import CancelledError
 from fnmatch import fnmatchcase
 from pathlib import Path, PurePosixPath
+from contextlib import ExitStack, contextmanager
 from dataclasses import field, dataclass
+from typing_extensions import TypedDict
 
-from ...._types import Omit, Headers, FileTypes
+import httpx2
+
+from ...._types import Body, Omit, Query, Headers, NotGiven, FileTypes
 from ...._exceptions import OpenAIError
 from ....types.beta.hosted_environment_file_param import HostedEnvironmentFileParam
 from ....types.beta.agents.environments.environment_file import EnvironmentFile
 
 if TYPE_CHECKING:
-    from ...streaming.agents._streams import _RequestOptions
     from ....resources.beta.agents.environments.files import Files, AsyncFiles
+
+
+class _RequestOptions(TypedDict):
+    extra_headers: Headers | None
+    extra_query: Query | None
+    extra_body: Body | None
+    timeout: float | httpx2.Timeout | None | NotGiven
+
 
 _MAX_FILES = 50
 _MAX_BYTES = 50 * 1024 * 1024
@@ -64,6 +77,8 @@ def _destination(value: str) -> str:
         or value == "/workspace/outputs"
     ):
         raise ValueError("Agent file destination uses a reserved environment path")
+    if len(value) > 4096:
+        raise ValueError("Agent file destinations must not exceed 4096 characters")
     return value
 
 
@@ -75,19 +90,19 @@ def _local_file(value: str | PathLike[str]) -> Path:
         raise ValueError("Selected agent files must be regular files")
     if path.stat().st_size > _MAX_BYTES:
         raise ValueError("An agent file must not exceed 50 MiB")
-    return path.resolve()
+    return path
 
 
 def _prepare_selection(
-    files: Mapping[str, str | PathLike[str]], options: _RequestOptions, defaults: Headers
-) -> list[tuple[str, Path]]:
+    files: Mapping[str, str | PathLike[str]], options: _RequestOptions, defaults: Headers, stack: ExitStack
+) -> list[tuple[str, Path, BinaryIO, int]]:
     if len(files) > _MAX_FILES:
         raise ValueError("Initial agent files must not exceed 50 files")
     headers = {key.lower(): value for key, value in defaults.items()}
     headers.update({key.lower(): value for key, value in (options["extra_headers"] or {}).items()})
     if len(files) > 1 and "idempotency-key" in headers and not isinstance(headers["idempotency-key"], Omit):
         raise ValueError("One Idempotency-Key cannot be reused for multiple file uploads")
-    selected: list[tuple[str, Path]] = []
+    selected: list[tuple[str, Path, BinaryIO, int]] = []
     destinations: set[str] = set()
     size = 0
     for destination, source in files.items():
@@ -99,8 +114,9 @@ def _prepare_selection(
             raise ValueError("Selected agent files contain duplicate or conflicting destinations")
         destinations.add(destination)
         local = _local_file(source)
-        size += local.stat().st_size
-        selected.append((destination, local))
+        handle, length = _open_local(local, stack)
+        size += length
+        selected.append((destination, local, handle, length))
     if size > _MAX_BYTES:
         raise ValueError("Initial agent files must not exceed 50 MiB in total")
     return selected
@@ -148,52 +164,99 @@ def directory_files(root: str | PathLike[str], destination: str, include: Sequen
     return selected
 
 
+def _open_local(path: Path, stack: ExitStack) -> tuple[BinaryIO, int]:
+    before = path.lstat()
+    if not S_ISREG(before.st_mode):
+        raise ValueError("Selected agent files must be regular files, not symlinks")
+    handle = stack.enter_context(path.open("rb"))
+    opened = fstat(handle.fileno())
+    if (before.st_dev, before.st_ino, before.st_size) != (opened.st_dev, opened.st_ino, opened.st_size):
+        raise ValueError("Selected agent file changed during preparation")
+    if opened.st_size > _MAX_BYTES:
+        raise ValueError("An agent file must not exceed 50 MiB")
+    return handle, opened.st_size
+
+
+def _unchanged_size(handle: BinaryIO, length: int) -> None:
+    if fstat(handle.fileno()).st_size != length:
+        raise ValueError("Selected agent file changed during preparation")
+
+
 def prepare(resource: Files, files: Mapping[str, str | PathLike[str]], options: _RequestOptions) -> PreparedAgentFiles:
-    selected = _prepare_selection(files, options, resource._client.default_headers)
-    prepared = PreparedAgentFiles()
-    try:
-        for destination, source in selected:
-            uploaded = resource._client.files.create(file=source, purpose="user_data", **options)
-            prepared.uploaded_file_ids.append(uploaded.id)
-            prepared.files.append({"type": "file_id", "file_id": uploaded.id, "path": destination})
-    except Exception as error:
-        raise AgentFilePreparationError(prepared) from error
-    return prepared
+    with ExitStack() as stack:
+        selected = _prepare_selection(files, options, resource._client.default_headers, stack)
+        prepared = PreparedAgentFiles()
+        try:
+            for destination, source, handle, length in selected:
+                _unchanged_size(handle, length)
+                uploaded = resource._client.files.create(file=(source.name, handle), purpose="user_data", **options)
+                prepared.uploaded_file_ids.append(uploaded.id)
+                prepared.files.append({"type": "file_id", "file_id": uploaded.id, "path": destination})
+        except Exception as error:
+            raise AgentFilePreparationError(prepared) from error
+        return prepared
 
 
 async def async_prepare(
     resource: AsyncFiles, files: Mapping[str, str | PathLike[str]], options: _RequestOptions
 ) -> PreparedAgentFiles:
-    selected = _prepare_selection(files, options, resource._client.default_headers)
-    prepared = PreparedAgentFiles()
-    try:
-        for destination, source in selected:
-            uploaded = await resource._client.files.create(file=source, purpose="user_data", **options)
-            prepared.uploaded_file_ids.append(uploaded.id)
-            prepared.files.append({"type": "file_id", "file_id": uploaded.id, "path": destination})
-    except CancelledError as error:
-        error.__dict__["prepared"] = prepared
-        raise
-    except Exception as error:
-        raise AgentFilePreparationError(prepared) from error
-    return prepared
+    with ExitStack() as stack:
+        selected = _prepare_selection(files, options, resource._client.default_headers, stack)
+        prepared = PreparedAgentFiles()
+        try:
+            for destination, source, handle, length in selected:
+                _unchanged_size(handle, length)
+                uploaded = await resource._client.files.create(
+                    file=(source.name, handle), purpose="user_data", **options
+                )
+                prepared.uploaded_file_ids.append(uploaded.id)
+                prepared.files.append({"type": "file_id", "file_id": uploaded.id, "path": destination})
+        except CancelledError as error:
+            error.__dict__["prepared"] = prepared
+            raise
+        except Exception as error:
+            raise AgentFilePreparationError(prepared) from error
+        return prepared
 
 
-def _upload_file(file: FileTypes, path: str) -> str:
-    destination = _destination(path)
+@contextmanager
+def _upload_content(file: FileTypes) -> Generator[FileTypes, None, None]:
     content = file[1] if isinstance(file, tuple) else file
-    if isinstance(content, PathLike):
-        _local_file(content)
-    elif isinstance(content, bytes) and len(content) > _MAX_BYTES:
-        raise ValueError("An agent file must not exceed 50 MiB")
-    return destination
+    with ExitStack() as stack:
+        if isinstance(content, PathLike):
+            path = _local_file(content)
+            handle, length = _open_local(path, stack)
+            _unchanged_size(handle, length)
+            yield cast(FileTypes, (file[0], handle, *file[2:])) if isinstance(file, tuple) else (path.name, handle)
+            return
+        size = None
+        if isinstance(content, (bytes, str)):
+            size = len(content.encode("utf-8") if isinstance(content, str) else content)
+        elif isinstance(content, IOBase):
+            try:
+                if content.seekable():
+                    position = content.tell()
+                    try:
+                        size = content.seek(0, 2)
+                    finally:
+                        content.seek(position)
+                else:
+                    metadata = fstat(content.fileno())
+                    if S_ISREG(metadata.st_mode):
+                        size = metadata.st_size
+            except (OSError, ValueError):
+                pass
+        if size is not None and size > _MAX_BYTES:
+            raise ValueError("An agent file must not exceed 50 MiB")
+        yield file
 
 
 def upload(
     resource: Files, environment_id: str, file: FileTypes, path: str, options: _RequestOptions
 ) -> StagedAgentFile:
-    destination = _upload_file(file, path)
-    uploaded = resource._client.files.create(file=file, purpose="user_data", **options)
+    destination = _destination(path)
+    with _upload_content(file) as content:
+        uploaded = resource._client.files.create(file=content, purpose="user_data", **options)
     try:
         staged = resource.create(environment_id, type="file_id", file_id=uploaded.id, path=destination, **options)
     except Exception as error:
@@ -204,8 +267,9 @@ def upload(
 async def async_upload(
     resource: AsyncFiles, environment_id: str, file: FileTypes, path: str, options: _RequestOptions
 ) -> StagedAgentFile:
-    destination = _upload_file(file, path)
-    uploaded = await resource._client.files.create(file=file, purpose="user_data", **options)
+    destination = _destination(path)
+    with _upload_content(file) as content:
+        uploaded = await resource._client.files.create(file=content, purpose="user_data", **options)
     try:
         staged = await resource.create(environment_id, type="file_id", file_id=uploaded.id, path=destination, **options)
     except CancelledError as error:

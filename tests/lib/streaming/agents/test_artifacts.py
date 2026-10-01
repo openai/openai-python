@@ -88,10 +88,20 @@ def result() -> AgentTurnResult:
 async def download(sdk: OpenAI | AsyncOpenAI, path: Path) -> Any:
     if isinstance(sdk, AsyncOpenAI):
         return await sdk.beta.agents.sessions.artifacts.for_result(result()).download(
-            "/workspace/outputs/report.md", to=path, extra_headers={"X-Synthetic": "test"}, timeout=7
+            "/workspace/outputs/report.md",
+            to=path,
+            extra_headers={"X-Synthetic": "test"},
+            extra_query={"synthetic": "query"},
+            extra_body={"synthetic": "body"},
+            timeout=7,
         )
     return sdk.beta.agents.sessions.artifacts.for_result(result()).download(
-        "/workspace/outputs/report.md", to=path, extra_headers={"X-Synthetic": "test"}, timeout=7
+        "/workspace/outputs/report.md",
+        to=path,
+        extra_headers={"X-Synthetic": "test"},
+        extra_query={"synthetic": "query"},
+        extra_body={"synthetic": "body"},
+        timeout=7,
     )
 
 
@@ -106,6 +116,7 @@ async def test_exact_turn_artifact_pagination_streaming_and_options(
     assert server.content.chunks == 3
     assert server.content.closed
     assert all(request.headers["X-Synthetic"] == "test" for request in server.requests)
+    assert all(request.url.params["synthetic"] == "query" for request in server.requests)
     assert all(request.extensions["timeout"]["read"] == 7 for request in server.requests)
 
 
