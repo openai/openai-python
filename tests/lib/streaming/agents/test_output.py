@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import traceback
-from typing import Any
+from typing import Any, cast
 from typing_extensions import Literal
 
 import pytest
@@ -328,3 +328,12 @@ def test_unsupported_property_literal_rejected() -> None:
 
     with pytest.raises(ValueError, match="property names"):
         agent_text_format(Aliased)
+
+
+def test_pattern_keyed_mapping_rejected() -> None:
+    from pydantic import constr
+
+    key_type = cast(Any, constr)(**{("regex" if PYDANTIC_V1 else "pattern"): "^item_"})
+    model = type("PatternMapping", (BaseModel,), {"__annotations__": {"values": dict[key_type, str]}})
+    with pytest.raises(ValueError, match="patternProperties"):
+        agent_text_format(model)

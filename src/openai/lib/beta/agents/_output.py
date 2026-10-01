@@ -38,6 +38,7 @@ def _validate_schema(schema: dict[str, Any]) -> None:
     # The strict-output adapter handles required fields, closed objects and refs.
     # Reject unsupported constructs rather than silently weakening their meaning.
     unsupported = {
+        "patternProperties",
         "unevaluatedProperties",
         "propertyNames",
         "minProperties",
