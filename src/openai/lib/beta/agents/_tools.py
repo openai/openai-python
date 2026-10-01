@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import asyncio
 import inspect
 from copy import deepcopy
 from types import SimpleNamespace
@@ -11,7 +12,8 @@ from typing_extensions import Protocol, overload
 import pydantic
 
 from ...._utils import is_dict
-from ...._compat import PYDANTIC_V1, model_json, model_parse, model_json_schema
+from ...._compat import PYDANTIC_V1, model_dump, model_json, model_parse, model_json_schema
+from ..._pydantic import resolve_ref
 from ...streaming.agents._types import ToolOutput
 from ....types.beta.agent_tool_param import AgentToolConfigParamFunction
 
@@ -38,7 +40,15 @@ class FunctionTool(Generic[_OutputT]):
         if not name:
             raise ValueError("Tool name must not be empty")
         parameters = model_json_schema(model)
-        if parameters.get("type") != "object":
+        root = parameters
+        seen: set[str] = set()
+        while isinstance(ref := root.get("$ref"), str) and ref not in seen:
+            seen.add(ref)
+            resolved = resolve_ref(root=parameters, ref=ref)
+            if not is_dict(resolved):
+                break
+            root = cast(dict[str, Any], resolved)
+        if root.get("type") != "object":
             raise TypeError("Tool argument models must have an object JSON schema")
         self._definition: AgentToolConfigParamFunction = {
             "type": "function",
@@ -67,7 +77,7 @@ class FunctionTool(Generic[_OutputT]):
 
 def _tool_output(output: object) -> ToolOutput:
     if isinstance(output, pydantic.BaseModel):
-        output = json.loads(model_json(output))
+        output = json.loads(model_json(output)) if PYDANTIC_V1 else model_dump(output, mode="json")
     if output is None or isinstance(output, str):
         return output
     if isinstance(output, Mapping):
@@ -99,6 +109,8 @@ class _AwaitableToolOutput:
     def close(self) -> None:
         if inspect.iscoroutine(self._output):
             self._output.close()
+        elif isinstance(self._output, asyncio.Future):
+            self._output.cancel()
 
 
 @overload

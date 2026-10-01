@@ -473,3 +473,70 @@ async def test_function_tool_decorator_forms() -> None:
     assert_type(bare_async_lookup, FunctionTool[Awaitable[ToolOutput]])
     for tool in (async_lookup, default_async_lookup, bare_async_lookup):
         assert await tool({"order_id": "A123"}) == "A123"
+
+
+@pytest.mark.parametrize("value", [float("nan"), float("inf"), -float("inf")])
+def test_nonfinite_model_results_rejected(value: float) -> None:
+    class Receipt(BaseModel):
+        amount: float
+
+    def action() -> Receipt:
+        return Receipt(amount=value)
+
+    with pytest.raises(ValueError):
+        function_tool(action)({})
+
+
+def test_object_root_argument_model() -> None:
+    from openai._compat import model_json_schema
+
+    model = (
+        pydantic.create_model("ObjectInput", __root__=(Transfer, ...)) if PYDANTIC_V1 else pydantic.RootModel[Transfer]
+    )
+    seen: list[BaseModel] = []
+
+    def action(arguments: BaseModel) -> str:
+        seen.append(arguments)
+        transfer = getattr(arguments, "__root__" if PYDANTIC_V1 else "root")
+        assert isinstance(transfer, Transfer)
+        assert transfer.destination.address == "test-address"
+        return "paid"
+
+    tool = pydantic_function_tool(model, handler=action)
+    assert tool.definition["parameters"] == model_json_schema(model)
+    assert tool({"destination": {"address": "test-address"}, "amount": 3}) == "paid"
+    with pytest.raises(ValidationError):
+        tool({"destination": {"address": "test-address"}, "amount": -1})
+    assert len(seen) == 1
+
+
+@pytest.mark.parametrize("task", [False, True])
+async def test_sync_rejection_cancels_scheduled_awaitable(task: bool) -> None:
+    import asyncio
+
+    seen: list[bool] = []
+    awaitables: list[asyncio.Future[int]] = []
+
+    async def result() -> int:
+        seen.append(True)
+        return 1
+
+    def action() -> asyncio.Future[int]:
+        future = asyncio.create_task(result()) if task else asyncio.get_running_loop().create_future()
+        awaitables.append(future)
+        return future
+
+    tool = function_tool(action, name="search")
+    server = Server()
+    server.body = EventBody([turn_event("created"), call({}), turn_event("completed"), idle()])
+    with OpenAI(
+        api_key="synthetic", http_client=httpx2.Client(transport=httpx2.MockTransport(server.handle))
+    ) as client:
+        with client.beta.agents.sessions.stream(
+            "session_test", input="Run action", tool_handlers=cast(Any, {tool.name: tool})
+        ) as stream:
+            stream.until_done()
+    await asyncio.sleep(0)
+    assert len(awaitables) == 1 and awaitables[0].cancelled()
+    assert seen == []
+    assert server.inputs()[1]["success"] is False
