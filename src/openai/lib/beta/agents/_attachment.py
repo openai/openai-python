@@ -101,6 +101,23 @@ async def async_select_candidate(
             return
 
 
+def refresh_idle(sessions: Sessions, state: AgentSessionAttachment, options: _RequestOptions) -> None:
+    session = sessions.retrieve(state.session_id, **options)
+    latest = _latest_root(sessions.turns.list(state.session_id, order="desc", **options))
+    if latest is not None:
+        state.select(latest)
+    state.settle(session)
+
+
+async def async_refresh_idle(sessions: AsyncSessions, state: AgentSessionAttachment, options: _RequestOptions) -> None:
+    session = await sessions.retrieve(state.session_id, **options)
+    async for turn in sessions.turns.list(state.session_id, order="desc", **options):
+        if turn.subagent_id is None:
+            state.select(turn)
+            break
+    state.settle(session)
+
+
 def attach(
     sessions: Sessions, session_id: str, options: _RequestOptions
 ) -> tuple[Stream[AgentSessionEvent], AgentSessionAttachment]:

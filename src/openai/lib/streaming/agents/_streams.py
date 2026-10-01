@@ -28,11 +28,13 @@ from ...beta.agents._attachment import (
     observe,
     reconcile,
     async_attach,
+    refresh_idle,
     async_observe,
     hydrate_error,
     async_reconcile,
     diagnose_manual,
     select_candidate,
+    async_refresh_idle,
     async_hydrate_error,
     async_diagnose_manual,
     async_select_candidate,
@@ -315,8 +317,10 @@ class AgentSessionStream(Generic[OutputT]):
                     if self._collection.collector is not None:
                         self._collection.collector.boundary = True
                 if self._attachment is not None and event.type == "agent.session.idle" and self._state.turn_id is None:
-                    terminal = True
-                    self._attachment.settled = True
+                    refresh_idle(self._sessions, self._attachment, self._options)
+                    terminal = self._attachment.settled
+                    if self._attachment.turn is not None:
+                        self._state.turn_id = self._attachment.turn.id
                     if self._collection.collector is not None:
                         self._attachment.seed(self._collection.collector)
                 if terminal:
@@ -555,8 +559,10 @@ class AsyncAgentSessionStream(Generic[OutputT]):
                     if self._collection.collector is not None:
                         self._collection.collector.boundary = True
                 if self._attachment is not None and event.type == "agent.session.idle" and self._state.turn_id is None:
-                    terminal = True
-                    self._attachment.settled = True
+                    await async_refresh_idle(self._sessions, self._attachment, self._options)
+                    terminal = self._attachment.settled
+                    if self._attachment.turn is not None:
+                        self._state.turn_id = self._attachment.turn.id
                     if self._collection.collector is not None:
                         self._attachment.seed(self._collection.collector)
                 if terminal:

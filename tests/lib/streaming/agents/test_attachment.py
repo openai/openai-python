@@ -39,6 +39,7 @@ class AttachmentServer(Server):
         self.fail_items = False
         self.fail_later_items = False
         self.live_turns: list[dict[str, Any]] | None = None
+        self.live_after_reads = 1
 
     @override
     def handle(self, request: httpx2.Request) -> httpx2.Response:
@@ -48,7 +49,7 @@ class AttachmentServer(Server):
         if request.method == "GET" and not path.endswith("/events"):
             self.requests.append(request)
             if path.endswith("/turns"):
-                if self.body.read_count and self.live_turns is not None:
+                if self.body.read_count >= self.live_after_reads and self.live_turns is not None:
                     self.turns = self.live_turns
                 after = request.url.params.get("after")
                 # One item per page exercises existing automatic pagination.
@@ -617,3 +618,16 @@ async def test_later_page_failure_preserves_already_recovered_messages(
     assert any(item.output_text == "earlier" for item in caught.value.messages)
     if status == "in_progress":
         assert any(item.output_text == "partial" for item in caught.value.messages)
+
+
+async def test_buffered_idle_does_not_settle_current_active_attachment(
+    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer
+) -> None:
+    server.turns = [turn("completed", "old_turn")]
+    server.live_turns = [turn()]
+    server.live_after_reads = 2  # The active root is not yet visible at the stale idle frame.
+    server.body = EventBody([idle(), call(), turn_event("completed")])
+    calls: list[object] = []
+    result = await attach_result(sdk, {"search": lambda args: calls.append(args) or "found"})
+    assert result.turn_id == "turn_root"
+    assert len(calls) == 1
