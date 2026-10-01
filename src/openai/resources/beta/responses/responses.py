@@ -4339,14 +4339,7 @@ class AsyncResponsesConnection:
             if isinstance(event, BaseModel)
             else json.dumps(await async_maybe_transform(event, BetaResponsesClientEventParam))
         )
-        if self._is_reconnecting:
-            self._send_queue.enqueue(data)
-            return
-        try:
-            await self._connection.send(data)
-        except Exception:
-            self._send_queue.enqueue(data)
-            raise
+        await self.send_raw(data)
 
     async def send_raw(self, data: bytes | str) -> None:
         if self._is_reconnecting:
@@ -4454,7 +4447,7 @@ class AsyncResponsesConnection:
             await self._connection.send(data)
 
         try:
-            await self._send_queue.flush_async(_send)
+            await self._send_queue.flush_async(_send, requeue_failed=False)
         except Exception:
             log.warning("Failed to flush send queue after reconnect")
 
@@ -4838,14 +4831,7 @@ class ResponsesConnection:
             if isinstance(event, BaseModel)
             else json.dumps(maybe_transform(event, BetaResponsesClientEventParam))
         )
-        if self._is_reconnecting:
-            self._send_queue.enqueue(data)
-            return
-        try:
-            self._connection.send(data)
-        except Exception:
-            self._send_queue.enqueue(data)
-            raise
+        self.send_raw(data)
 
     def send_raw(self, data: bytes | str) -> None:
         if self._is_reconnecting:
@@ -4947,7 +4933,7 @@ class ResponsesConnection:
     def _flush_send_queue(self) -> None:
         """Send all queued messages over the current connection."""
         try:
-            self._send_queue.flush_sync(lambda data: self._connection.send(data))
+            self._send_queue.flush_sync(lambda data: self._connection.send(data), requeue_failed=False)
         except Exception:
             log.warning("Failed to flush send queue after reconnect")
 
