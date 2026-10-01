@@ -4339,7 +4339,10 @@ class AsyncResponsesConnection:
             if isinstance(event, BaseModel)
             else json.dumps(await async_maybe_transform(event, BetaResponsesClientEventParam))
         )
-        await self.send_raw(data)
+        if self._is_reconnecting:
+            self._send_queue.enqueue(data)
+            return
+        await self._connection.send(data)
 
     async def send_raw(self, data: bytes | str) -> None:
         if self._is_reconnecting:
@@ -4831,7 +4834,10 @@ class ResponsesConnection:
             if isinstance(event, BaseModel)
             else json.dumps(maybe_transform(event, BetaResponsesClientEventParam))
         )
-        self.send_raw(data)
+        if self._is_reconnecting:
+            self._send_queue.enqueue(data)
+            return
+        self._connection.send(data)
 
     def send_raw(self, data: bytes | str) -> None:
         if self._is_reconnecting:

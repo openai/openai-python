@@ -807,6 +807,9 @@ async def test_connection_does_not_replay_an_uncertain_create(
 ) -> None:
     requests: list[dict[str, Any]] = []
 
+    def reject_raw(_data: bytes | str) -> None:
+        raise ValueError("Synthetic application policy: raw sends are disabled")
+
     def reconnect(_event: ReconnectingEvent) -> ReconnectingOverrides:
         return {"extra_headers": {"X-Recovery": "fresh"}}
 
@@ -830,6 +833,8 @@ async def test_connection_does_not_replay_an_uncertain_create(
             with OpenAI(api_key="fake-key", base_url=url, http_client=httpx2.Client(trust_env=False)) as client:
                 resource = client.beta.responses if beta else client.responses
                 with resource.connect(on_reconnecting=reconnect, initial_delay=0, max_retries=1) as connection:
+                    if not raw:
+                        monkeypatch.setattr(connection, "send_raw", reject_raw)
                     original_send = connection._connection.send
 
                     def uncertain_send(data: Any) -> None:
@@ -855,6 +860,8 @@ async def test_connection_does_not_replay_an_uncertain_create(
                 async with async_resource.connect(
                     on_reconnecting=reconnect, initial_delay=0, max_retries=1
                 ) as async_connection:
+                    if not raw:
+                        monkeypatch.setattr(async_connection, "send_raw", reject_raw)
                     original_async_send = async_connection._connection.send
 
                     async def uncertain_async_send(data: Any) -> None:
