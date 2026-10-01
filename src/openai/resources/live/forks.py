@@ -542,11 +542,11 @@ class AsyncForksConnectionManager:
         except ImportError as exc:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
-        url = self._prepare_url().copy_with(
-            params={
-                **self.__client.base_url.params,
-                **extra_query,
-            },
+        url = self._prepare_url()
+        url = url.copy_with(
+            params=httpx2.QueryParams(self.__client.qs.stringify(cast(Any, self.__client.default_query)))
+            .merge(url.params)
+            .merge(cast(Any, extra_query)),
         )
         url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
         options = await self.__client._prepare_options(
@@ -1025,11 +1025,11 @@ class ForksConnectionManager:
         except ImportError as exc:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
-        url = self._prepare_url().copy_with(
-            params={
-                **self.__client.base_url.params,
-                **extra_query,
-            },
+        url = self._prepare_url()
+        url = url.copy_with(
+            params=httpx2.QueryParams(self.__client.qs.stringify(cast(Any, self.__client.default_query)))
+            .merge(url.params)
+            .merge(cast(Any, extra_query)),
         )
         url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
         options = self.__client._prepare_options(

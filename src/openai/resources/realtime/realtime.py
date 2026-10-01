@@ -47,6 +47,14 @@ from .client_secrets import (
 )
 from ..._event_handler import EventHandlerRegistry
 from ...types.realtime import session_update_event_param
+from .translations.translations import (
+    Translations,
+    AsyncTranslations,
+    TranslationsWithRawResponse,
+    AsyncTranslationsWithRawResponse,
+    TranslationsWithStreamingResponse,
+    AsyncTranslationsWithStreamingResponse,
+)
 from ...types.websocket_reconnection import ReconnectingEvent, ReconnectingOverrides, is_recoverable_close
 from ...types.websocket_connection_options import WebSocketConnectionOptions
 from ...types.realtime.realtime_error_event import RealtimeErrorEvent
@@ -77,6 +85,10 @@ class Realtime(SyncAPIResource):
         from ...lib._realtime import _Calls
 
         return _Calls(self._client)
+
+    @cached_property
+    def translations(self) -> Translations:
+        return Translations(self._client)
 
     @cached_property
     def with_raw_response(self) -> RealtimeWithRawResponse:
@@ -149,6 +161,10 @@ class AsyncRealtime(AsyncAPIResource):
         return _AsyncCalls(self._client)
 
     @cached_property
+    def translations(self) -> AsyncTranslations:
+        return AsyncTranslations(self._client)
+
+    @cached_property
     def with_raw_response(self) -> AsyncRealtimeWithRawResponse:
         """
         This property can be used as a prefix for any HTTP method call to return
@@ -219,6 +235,10 @@ class RealtimeWithRawResponse:
     def calls(self) -> CallsWithRawResponse:
         return CallsWithRawResponse(self._realtime.calls)
 
+    @cached_property
+    def translations(self) -> TranslationsWithRawResponse:
+        return TranslationsWithRawResponse(self._realtime.translations)
+
 
 class AsyncRealtimeWithRawResponse:
     def __init__(self, realtime: AsyncRealtime) -> None:
@@ -231,6 +251,10 @@ class AsyncRealtimeWithRawResponse:
     @cached_property
     def calls(self) -> AsyncCallsWithRawResponse:
         return AsyncCallsWithRawResponse(self._realtime.calls)
+
+    @cached_property
+    def translations(self) -> AsyncTranslationsWithRawResponse:
+        return AsyncTranslationsWithRawResponse(self._realtime.translations)
 
 
 class RealtimeWithStreamingResponse:
@@ -245,6 +269,10 @@ class RealtimeWithStreamingResponse:
     def calls(self) -> CallsWithStreamingResponse:
         return CallsWithStreamingResponse(self._realtime.calls)
 
+    @cached_property
+    def translations(self) -> TranslationsWithStreamingResponse:
+        return TranslationsWithStreamingResponse(self._realtime.translations)
+
 
 class AsyncRealtimeWithStreamingResponse:
     def __init__(self, realtime: AsyncRealtime) -> None:
@@ -257,6 +285,10 @@ class AsyncRealtimeWithStreamingResponse:
     @cached_property
     def calls(self) -> AsyncCallsWithStreamingResponse:
         return AsyncCallsWithStreamingResponse(self._realtime.calls)
+
+    @cached_property
+    def translations(self) -> AsyncTranslationsWithStreamingResponse:
+        return AsyncTranslationsWithStreamingResponse(self._realtime.translations)
 
 
 class AsyncRealtimeConnection:
@@ -717,12 +749,19 @@ class AsyncRealtimeConnectionManager:
                 url, auth_headers = await self.__client._configure_realtime(model, extra_query)
             prepared_headers: Headers = extra_headers
         else:
-            url = self._prepare_url().copy_with(
-                params={
-                    **self.__client.base_url.params,
-                    **({"model": self.__model} if self.__model is not omit else {}),
-                    **extra_query,
-                },
+            url = self._prepare_url()
+            url = url.copy_with(
+                params=httpx2.QueryParams(self.__client.qs.stringify(cast(Any, self.__client.default_query)))
+                .merge(url.params)
+                .merge(
+                    cast(
+                        Any,
+                        {
+                            **({"model": self.__model} if self.__model is not omit else {}),
+                            **extra_query,
+                        },
+                    )
+                ),
             )
             url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
             options = await self.__client._prepare_options(
@@ -1223,12 +1262,19 @@ class RealtimeConnectionManager:
                 url, auth_headers = self.__client._configure_realtime(model, extra_query)
             prepared_headers: Headers = extra_headers
         else:
-            url = self._prepare_url().copy_with(
-                params={
-                    **self.__client.base_url.params,
-                    **({"model": self.__model} if self.__model is not omit else {}),
-                    **extra_query,
-                },
+            url = self._prepare_url()
+            url = url.copy_with(
+                params=httpx2.QueryParams(self.__client.qs.stringify(cast(Any, self.__client.default_query)))
+                .merge(url.params)
+                .merge(
+                    cast(
+                        Any,
+                        {
+                            **({"model": self.__model} if self.__model is not omit else {}),
+                            **extra_query,
+                        },
+                    )
+                ),
             )
             url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
             options = self.__client._prepare_options(

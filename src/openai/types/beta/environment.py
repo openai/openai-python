@@ -91,6 +91,12 @@ class EnvironmentResourceOpenAIHosted(BaseModel):
     type: Literal["openai_hosted"]
     """The type of the object. Always `openai_hosted`."""
 
+    container_size: Optional[Literal["small", "medium", "large"]] = None
+    """
+    The effective CPU and memory tier, or null when unknown or outside the public
+    tiers.
+    """
+
     desktop: Optional[EnvironmentResourceOpenAIHostedDesktop] = None
     """The effective desktop configuration."""
 
