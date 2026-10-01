@@ -5,7 +5,7 @@ from typing import Any, Generic, Iterable
 from dataclasses import dataclass
 from typing_extensions import Literal, TypeVar
 
-from ._output import agent_text_format
+from ._output import validate_output_type
 from ...._exceptions import OpenAIError
 from ..._parsing._completions import _parse_content
 from ....types.beta.agent_session import RequiredAction
@@ -188,7 +188,7 @@ class AgentTurnResultCollection(Generic[OutputT]):
 
     def __init__(self, session_id: str | None = None, output_type: type[OutputT] | None = None) -> None:
         if output_type is not None:
-            agent_text_format(output_type)
+            validate_output_type(output_type)
         self.output_type = output_type
         self._parsed_result: AgentTurnResult[OutputT] | None = None
         self.collector: AgentTurnResultCollector | None = None

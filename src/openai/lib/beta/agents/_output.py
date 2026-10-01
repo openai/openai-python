@@ -13,6 +13,11 @@ from ....types.beta.text_format_param import TextFormatParamJSONSchema
 from ....types.beta.agents.session_create_params import Agent
 
 
+def validate_output_type(output_type: type[Any]) -> None:
+    if not is_basemodel_type(output_type) and not (is_dataclass_like_type(output_type) and not PYDANTIC_V1):
+        raise TypeError("Agents output_type must be a Pydantic model or a Pydantic v2 dataclass")
+
+
 def agent_text_format(output_type: type[Any]) -> TextFormatParamJSONSchema:
     """Beta: build the Agents JSON-schema format for an object-root Pydantic model."""
     if is_basemodel_type(output_type):
@@ -52,6 +57,11 @@ def _validate_schema(schema: dict[str, Any]) -> None:
         "else",
         "x-guidance",
     }
+    for value in [*schema.get("properties", {}), *schema.get("enum", [])]:
+        if isinstance(value, (dict, list, tuple)):
+            raise ValueError("Agents output schema enums require scalar values")
+        if isinstance(value, str) and ('"' in value or "\n" in value):
+            raise ValueError("Agents output schema enum strings and property names cannot contain quotes or newlines")
     invalid = unsupported.intersection(schema)
     if invalid:
         raise ValueError(f"Unsupported Agents output schema keyword: {sorted(invalid)[0]}")

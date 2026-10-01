@@ -287,3 +287,44 @@ def test_nullable_recursive_refs_and_aliases() -> None:
     alias_schema: Any = agent_text_format(Aliased)["schema"]
     assert alias_schema["required"] == ["optionalCount"]
     assert any(item["type"] == "null" for item in alias_schema["properties"]["optionalCount"]["anyOf"])
+
+
+class LocalURLReport(BaseModel):
+    url: HttpUrl
+
+
+async def test_followup_output_type_only_selects_local_parser(sdk: OpenAI | AsyncOpenAI, server: ResultServer) -> None:
+    server.body = EventBody(
+        [turn_event("created"), message('{"url":"https://example.com/"}'), turn_event("completed"), idle()]
+    )
+    if isinstance(sdk, AsyncOpenAI):
+        async with sdk.beta.agents.sessions.stream(
+            "session_test", input="Question", output_type=LocalURLReport
+        ) as stream:
+            result = await stream.get_final_result()
+    else:
+        with sdk.beta.agents.sessions.stream("session_test", input="Question", output_type=LocalURLReport) as stream:
+            result = stream.get_final_result()
+    assert result.output_parsed is not None
+    assert str(result.output_parsed.url) == "https://example.com/"
+    assert "output_type" not in str(server.inputs())
+    with pytest.raises(ValueError, match="format"):
+        agent_text_format(LocalURLReport)
+
+
+@pytest.mark.parametrize("value", ['say "hello"', "two\nlines", (1, 2)])
+def test_unsupported_enum_literals_rejected(value: Any) -> None:
+    from enum import Enum
+
+    enum = Enum("Example", {"A": value, "B": "other"})
+    model = type("EnumReport", (BaseModel,), {"__annotations__": {"value": enum}})
+    with pytest.raises(ValueError, match="schema"):
+        agent_text_format(model)
+
+
+def test_unsupported_property_literal_rejected() -> None:
+    class Aliased(BaseModel):
+        value: str = Field(alias='a"b')
+
+    with pytest.raises(ValueError, match="property names"):
+        agent_text_format(Aliased)
