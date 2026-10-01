@@ -289,6 +289,7 @@ class AgentSessionStream(Generic[OutputT]):
         assert self._stream is not None
         try:
             if self._attachment is not None and self._collection.collector is not None:
+                self._attachment.seed(self._collection.collector)
                 diagnose_manual(self._sessions, self._attachment, self._collection.collector, self._options)
                 self._collection.collector.check_outcome(self._handlers)
             if self._attachment is not None and self._attachment.settled:
@@ -528,6 +529,7 @@ class AsyncAgentSessionStream(Generic[OutputT]):
         assert self._stream is not None
         try:
             if self._attachment is not None and self._collection.collector is not None:
+                self._attachment.seed(self._collection.collector)
                 await async_diagnose_manual(self._sessions, self._attachment, self._collection.collector, self._options)
                 self._collection.collector.check_outcome(self._handlers)
             if self._attachment is not None and self._attachment.settled:

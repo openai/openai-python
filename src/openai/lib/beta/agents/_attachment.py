@@ -246,28 +246,38 @@ def _messages(items: list[AgentSessionItem], turn_id: str) -> list[AgentSessionM
 
 def read_messages(
     sessions: Sessions, session_id: str, turn_id: str, options: _RequestOptions
-) -> list[AgentSessionMessage]:
-    messages: list[AgentSessionMessage] = []
+) -> Iterator[AgentSessionMessage]:
     after: str | None = None
     while True:
         page = sessions.items.list(session_id, order="asc", after=after if after is not None else omit, **options)
-        messages.extend(_messages(page.data, turn_id))
+        yield from _messages(page.data, turn_id)
         after = _next_cursor(page, page.data, after)
         if after is None:
-            return messages
+            return
 
 
 async def async_read_messages(
     sessions: AsyncSessions, session_id: str, turn_id: str, options: _RequestOptions
-) -> list[AgentSessionMessage]:
-    messages: list[AgentSessionMessage] = []
+) -> AsyncIterator[AgentSessionMessage]:
     after: str | None = None
     while True:
         page = await sessions.items.list(session_id, order="asc", after=after if after is not None else omit, **options)
-        messages.extend(_messages(page.data, turn_id))
+        for message in _messages(page.data, turn_id):
+            yield message
         after = _next_cursor(page, page.data, after)
         if after is None:
-            return messages
+            return
+
+
+def _partial_messages(
+    recovered: list[AgentSessionMessage], observed: list[AgentSessionMessage]
+) -> list[AgentSessionMessage]:
+    ids = {message.id for message in recovered if message.id is not None}
+    return recovered + [
+        message
+        for message in observed
+        if (message.id not in ids if message.id is not None else message not in recovered)
+    ]
 
 
 def hydrate_error(
@@ -276,10 +286,13 @@ def hydrate_error(
     if error.turn_id is None or state.messages_read:
         return
     state.messages_read = True
+    recovered: list[AgentSessionMessage] = []
     try:
-        error.messages = read_messages(sessions, state.session_id, error.turn_id, options)
+        recovered.extend(read_messages(sessions, state.session_id, error.turn_id, options))
     except Exception:
-        pass  # Partial-output reads must not replace the established error reason.
+        error.messages = _partial_messages(recovered, error.messages)
+    else:
+        error.messages = recovered
 
 
 async def async_hydrate_error(
@@ -288,10 +301,14 @@ async def async_hydrate_error(
     if error.turn_id is None or state.messages_read:
         return
     state.messages_read = True
+    recovered: list[AgentSessionMessage] = []
     try:
-        error.messages = await async_read_messages(sessions, state.session_id, error.turn_id, options)
+        async for message in async_read_messages(sessions, state.session_id, error.turn_id, options):
+            recovered.append(message)
     except Exception:
-        pass
+        error.messages = _partial_messages(recovered, error.messages)
+    else:
+        error.messages = recovered
 
 
 def reconcile(
@@ -304,7 +321,12 @@ def reconcile(
     turn = sessions.turns.retrieve(collector.turn.id, session_id=state.session_id, **options)
     collector.turn = turn
     state.messages_read = True
-    messages = read_messages(sessions, state.session_id, turn.id, options)
+    messages: list[AgentSessionMessage] = []
+    try:
+        messages.extend(read_messages(sessions, state.session_id, turn.id, options))
+    except Exception:
+        collector.replace_messages(_partial_messages(messages, collector.messages()))
+        raise
     collector.replace_messages(messages)
     if turn.status not in _TERMINAL:
         return False
@@ -325,7 +347,13 @@ async def async_reconcile(
     turn = await sessions.turns.retrieve(collector.turn.id, session_id=state.session_id, **options)
     collector.turn = turn
     state.messages_read = True
-    messages = await async_read_messages(sessions, state.session_id, turn.id, options)
+    messages: list[AgentSessionMessage] = []
+    try:
+        async for message in async_read_messages(sessions, state.session_id, turn.id, options):
+            messages.append(message)
+    except Exception:
+        collector.replace_messages(_partial_messages(messages, collector.messages()))
+        raise
     collector.replace_messages(messages)
     if turn.status not in _TERMINAL:
         return False

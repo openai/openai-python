@@ -37,6 +37,7 @@ class AttachmentServer(Server):
         self.null_item_cursor = False
         self.item_cursor_metadata = False
         self.fail_items = False
+        self.fail_later_items = False
         self.live_turns: list[dict[str, Any]] | None = None
 
     @override
@@ -78,7 +79,7 @@ class AttachmentServer(Server):
                     ),
                 )
             if path.endswith("/items"):
-                if self.fail_items:
+                if self.fail_items or self.fail_later_items and request.url.params.get("after"):
                     return httpx2.Response(500, json={"error": {"message": "Synthetic read failure"}})
                 after = request.url.params.get("after")
                 offset = next((i + 1 for i, item in enumerate(self.items) if item["id"] == after), 0)
@@ -347,7 +348,7 @@ async def test_new_root_finishes_between_idle_baseline_and_refresh(
 
 class InterruptedBody(EventBody):
     def __init__(self, server: AttachmentServer, status: str) -> None:
-        super().__init__([message("partial")])
+        super().__init__([message("partial", item_id="observed_partial")])
         self.server = server
         self.status = status
 
@@ -576,3 +577,43 @@ async def test_historical_browser_request_cannot_select_prior_completed_root(
     assert result.turn_id == "turn_root"
     assert result.output_text == "earlierlater"
     assert len(handled) == 1
+
+
+async def test_preentered_collection_seeds_manual_error_identity(
+    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer
+) -> None:
+    server.turns = [turn("waiting")]
+    server.retrieve_status = "waiting"
+    server.status = "requires_action"
+    server.manual_actions = [manual_action("browser_authentication")]
+    if isinstance(sdk, AsyncOpenAI):
+        async with sdk.beta.agents.sessions.stream("session_test").with_result_collection() as stream:
+            with pytest.raises(AgentTurnResultError) as raw:
+                await stream.until_done()
+            with pytest.raises(AgentTurnResultError) as final:
+                await stream.get_final_result()
+    else:
+        with sdk.beta.agents.sessions.stream("session_test").with_result_collection() as stream:
+            with pytest.raises(AgentTurnResultError) as raw:
+                stream.until_done()
+            with pytest.raises(AgentTurnResultError) as final:
+                stream.get_final_result()
+    assert raw.value is final.value
+    assert final.value.turn_id == "turn_root"
+    assert "".join(item.output_text for item in final.value.messages) == "earlierlater"
+
+
+@pytest.mark.parametrize("status", ["failed", "cancelled", "in_progress"])
+async def test_later_page_failure_preserves_already_recovered_messages(
+    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer, status: str
+) -> None:
+    server.fail_later_items = True
+    server.retrieve_status = status
+    if status == "in_progress":
+        server.body = InterruptedBody(server, "in_progress")
+    with pytest.raises(AgentTurnResultError) as caught:
+        await attach_result(sdk)
+    assert caught.value.reason == ("observation_failed" if status == "in_progress" else status)
+    assert any(item.output_text == "earlier" for item in caught.value.messages)
+    if status == "in_progress":
+        assert any(item.output_text == "partial" for item in caught.value.messages)
