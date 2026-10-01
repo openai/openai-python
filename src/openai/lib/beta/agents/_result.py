@@ -31,8 +31,9 @@ class AgentTurnResult(Generic[OutputT]):
         """Beta: parse a completed answer without changing its session configuration."""
         try:
             parsed = model_parse_json(output_type, self.output_text)
-        except Exception as error:
-            raise AgentOutputParseError(self) from error
+        except Exception:
+            # Pydantic errors may include response text in their rendered message.
+            raise AgentOutputParseError(self) from None
         return AgentTurnResult(turn=self.turn, messages=self.messages, output_parsed=parsed)
 
     @property

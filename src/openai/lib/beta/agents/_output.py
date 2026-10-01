@@ -49,6 +49,21 @@ def _validate_schema(schema: dict[str, Any]) -> None:
     invalid = unsupported.intersection(schema)
     if invalid:
         raise ValueError(f"Unsupported Agents output schema keyword: {sorted(invalid)[0]}")
+    if not any(key in schema for key in ("type", "$ref", "anyOf", "enum", "const")):
+        raise ValueError("Agents output schema nodes require a concrete type, reference, enum or union")
+    if "format" in schema and schema["format"] not in (
+        "",
+        "date-time",
+        "time",
+        "date",
+        "duration",
+        "email",
+        "hostname",
+        "ipv4",
+        "ipv6",
+        "uuid",
+    ):
+        raise ValueError("Unsupported Agents output schema string format")
     if schema.get("type") == "object" and schema.get("additionalProperties") is not False:
         raise ValueError("Agents output schemas require additionalProperties=false")
     if schema.get("type") == "array" and not isinstance(schema.get("items"), dict):

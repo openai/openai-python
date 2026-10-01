@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import json
+import traceback
 from typing import Any
 from typing_extensions import Literal
 
 import pytest
-from pydantic import Field, BaseModel
+from pydantic import Field, HttpUrl, BaseModel
 
 from openai import OpenAI, AsyncOpenAI
 from openai.lib.beta.agents import AgentTurnResultError, AgentOutputParseError, agent_text_format
@@ -117,7 +118,9 @@ async def test_typed_result(sdk: OpenAI | AsyncOpenAI, server: ResultServer, cre
         assert all("agent" not in body for body in bodies)
 
 
-@pytest.mark.parametrize("text", ["not json", '{"summary": "missing findings"}'])
+@pytest.mark.parametrize(
+    "text", ["SYNTHETIC_RESPONSE_CANARY not json", '{"summary": "SYNTHETIC_RESPONSE_CANARY missing findings"}']
+)
 async def test_parse_error_preserves_successful_raw_result(
     sdk: OpenAI | AsyncOpenAI, server: ResultServer, text: str
 ) -> None:
@@ -132,7 +135,8 @@ async def test_parse_error_preserves_successful_raw_result(
     assert caught.value.result.output_text == text
     assert caught.value.result.turn.status == "completed"
     assert caught.value.result.output_parsed is None
-    assert caught.value.__cause__ is not None
+    assert caught.value.__cause__ is None
+    assert text not in "".join(traceback.format_exception(caught.value))
     assert server.body.closed
 
 
@@ -204,3 +208,15 @@ def test_recursive_references_preserved() -> None:
     schema = agent_text_format(RecursiveReport)["schema"]
     assert schema["type"] == "object"
     assert "$defs" in schema or "definitions" in schema
+
+
+@pytest.mark.parametrize(
+    "model",
+    [
+        type("AnyReport", (BaseModel,), {"__annotations__": {"value": Any}}),
+        type("URLReport", (BaseModel,), {"__annotations__": {"url": HttpUrl}}),
+    ],
+)
+def test_unsupported_field_types_fail_locally(model: type[BaseModel]) -> None:
+    with pytest.raises(ValueError, match="schema"):
+        agent_text_format(model)
