@@ -12,7 +12,7 @@ dependencies = [
   "httpx2>=2.12.0, <3",
   "pydantic>=1.10.13, <3, !=2.0.*, !=2.1.*, !=2.2.*, !=2.3.*",
   "typing-extensions>=4.14, <5",
-  "anyio>=4.10.0, <5",
+  "anyio>=4.14.2, <5",
   "sniffio",
   "jiter>=0.16.0, <1",
 ]
@@ -93,7 +93,7 @@ constraint-dependencies = [
     "cryptography>=50.0.0",
     "msal>=1.37.0",
     "pygments>=2.20.0",
-    "pyjwt>=2.13.0",
+    "pyjwt>=2.14.0",
     "requests>=2.33.0",
 ]
 # Also constrain editable/source builds performed by uv sync.
