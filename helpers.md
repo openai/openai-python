@@ -664,6 +664,6 @@ Files API when ready to delete them. Preparation errors expose partial uploads
 through `error.prepared`. A batch of multiple uploads cannot share one explicit
 `Idempotency-Key`.
 
-Use application-controlled local paths and stable source directories. These
-convenience helpers are not a filesystem sandbox for untrusted paths or hostile
-local writers. With `AsyncOpenAI`, await preparation, staging, and artifact downloads.
+Local path/directory uploads are intended for static application-owned files and
+stable directories. They do not sandbox untrusted path selection or hostile local
+filesystem writers. With `AsyncOpenAI`, await preparation, staging, and artifact downloads.
