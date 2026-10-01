@@ -3,9 +3,11 @@ from __future__ import annotations
 from copy import deepcopy
 from typing import TYPE_CHECKING, Iterable, Iterator, AsyncIterator
 
-from ._result import AgentTurnResultCollector
+from ._result import AgentTurnResultError, AgentTurnResultCollector
+from ...._types import omit
 from ...._streaming import Stream, AsyncStream
-from ....types.beta.agent_session import AgentSession
+from ....types.beta.agent_session import AgentSession, RequiredAction
+from ....types.beta.agent_session_item import AgentSessionItem
 from ....types.beta.agent_session_event import AgentSessionEvent
 from ....types.beta.agents.sessions.turn import Turn
 from ....types.beta.agent_session_message import AgentSessionMessage
@@ -28,6 +30,8 @@ class AgentSessionAttachment:
         self.reconciled = False
         self.last_candidate: str | None = None
         self.observation_interrupted = False
+        self.messages_read = False
+        self.manual_actions: list[RequiredAction] = []
 
     def select(self, turn: Turn) -> None:
         if self.turn is None and turn.session_id == self.session_id and turn.subagent_id is None:
@@ -43,6 +47,9 @@ class AgentSessionAttachment:
     def seed(self, collector: AgentTurnResultCollector) -> None:
         if collector.turn is None and self.turn is not None:
             collector.turn = deepcopy(self.turn)
+        if self.manual_actions:
+            collector.required_actions = self.manual_actions
+            self.manual_actions = []
         if self.settled:
             collector.boundary = True
         if self.failed:
@@ -90,6 +97,9 @@ def attach(
             latest = _latest_root(sessions.turns.list(session_id, order="desc", **options))
             _select_refreshed(state, latest, baseline)
         state.settle(session)
+        if _needs_manual_diagnostics(state, session):
+            latest = _latest_root(sessions.turns.list(session_id, order="desc", **options))
+            _manual_diagnostics(state, session, latest)
         return stream, state
     except BaseException:
         stream.close()
@@ -116,6 +126,8 @@ async def async_attach(
         else:
             _select_refreshed(state, await latest_root(), baseline)
         state.settle(session)
+        if _needs_manual_diagnostics(state, session):
+            _manual_diagnostics(state, session, await latest_root())
         return stream, state
     except BaseException:
         await stream.close()
@@ -129,6 +141,104 @@ def _select_refreshed(state: AgentSessionAttachment, latest: Turn | None, baseli
         state.select(latest)
 
 
+def _needs_manual_diagnostics(state: AgentSessionAttachment, session: AgentSession) -> bool:
+    return (
+        state.turn is not None
+        and state.turn.status == "waiting"
+        and session.status == "requires_action"
+        and any(action.type != "function_call" for action in session.required_actions)
+    )
+
+
+def _manual_diagnostics(state: AgentSessionAttachment, session: AgentSession, latest: Turn | None) -> None:
+    if state.turn is None or latest is None or latest.id != state.turn.id or latest.status != "waiting":
+        return
+    # Browser authentication replay includes resolved history. Current manual
+    # required actions are diagnostics only; function dispatch always uses SSE.
+    state.manual_actions = deepcopy(
+        [
+            action
+            for action in session.required_actions
+            if action.type == "environment_connection"
+            or action.type == "computer_use_approval_request"
+            and action.turn_id == state.turn.id
+        ]
+    )
+
+
+def _next_cursor(page: object, data: list[AgentSessionItem], previous: str | None) -> str | None:
+    if getattr(page, "has_more", None) is False:
+        return None
+    if not data and getattr(page, "has_more", None) is not True:
+        return None
+    cursor = getattr(page, "last_id", None) or (data[-1].id if data else None)
+    if not isinstance(cursor, str) or not cursor or cursor == previous:
+        raise RuntimeError("Cannot recover complete agent output: items page has no advancing cursor")
+    return cursor
+
+
+def _messages(items: list[AgentSessionItem], turn_id: str) -> list[AgentSessionMessage]:
+    return [
+        item
+        for item in items
+        if item.type == "message"
+        and item.turn_id == turn_id
+        and item.role == "assistant"
+        and item.status == "completed"
+        and item.phase != "commentary"
+    ]
+
+
+def read_messages(
+    sessions: Sessions, session_id: str, turn_id: str, options: _RequestOptions
+) -> list[AgentSessionMessage]:
+    messages: list[AgentSessionMessage] = []
+    after: str | None = None
+    while True:
+        page = sessions.items.list(session_id, order="asc", after=after if after is not None else omit, **options)
+        messages.extend(_messages(page.data, turn_id))
+        after = _next_cursor(page, page.data, after)
+        if after is None:
+            return messages
+
+
+async def async_read_messages(
+    sessions: AsyncSessions, session_id: str, turn_id: str, options: _RequestOptions
+) -> list[AgentSessionMessage]:
+    messages: list[AgentSessionMessage] = []
+    after: str | None = None
+    while True:
+        page = await sessions.items.list(session_id, order="asc", after=after if after is not None else omit, **options)
+        messages.extend(_messages(page.data, turn_id))
+        after = _next_cursor(page, page.data, after)
+        if after is None:
+            return messages
+
+
+def hydrate_error(
+    sessions: Sessions, state: AgentSessionAttachment, error: AgentTurnResultError, options: _RequestOptions
+) -> None:
+    if error.turn_id is None or state.messages_read:
+        return
+    state.messages_read = True
+    try:
+        error.messages = read_messages(sessions, state.session_id, error.turn_id, options)
+    except Exception:
+        pass  # Partial-output reads must not replace the established error reason.
+
+
+async def async_hydrate_error(
+    sessions: AsyncSessions, state: AgentSessionAttachment, error: AgentTurnResultError, options: _RequestOptions
+) -> None:
+    if error.turn_id is None or state.messages_read:
+        return
+    state.messages_read = True
+    try:
+        error.messages = await async_read_messages(sessions, state.session_id, error.turn_id, options)
+    except Exception:
+        pass
+
+
 def reconcile(
     sessions: Sessions, state: AgentSessionAttachment, collector: AgentTurnResultCollector, options: _RequestOptions
 ) -> bool:
@@ -138,17 +248,11 @@ def reconcile(
         return False
     turn = sessions.turns.retrieve(collector.turn.id, session_id=state.session_id, **options)
     collector.turn = turn
+    state.messages_read = True
+    messages = read_messages(sessions, state.session_id, turn.id, options)
+    collector.replace_messages(messages)
     if turn.status not in _TERMINAL:
         return False
-    messages = [
-        item
-        for item in sessions.items.list(state.session_id, order="asc", **options)
-        if item.type == "message"
-        and item.turn_id == turn.id
-        and item.role == "assistant"
-        and item.status == "completed"
-        and item.phase != "commentary"
-    ]
     _reconcile(state, collector, turn, messages)
     return True
 
@@ -165,17 +269,11 @@ async def async_reconcile(
         return False
     turn = await sessions.turns.retrieve(collector.turn.id, session_id=state.session_id, **options)
     collector.turn = turn
+    state.messages_read = True
+    messages = await async_read_messages(sessions, state.session_id, turn.id, options)
+    collector.replace_messages(messages)
     if turn.status not in _TERMINAL:
         return False
-    messages = [
-        item
-        async for item in sessions.items.list(state.session_id, order="asc", **options)
-        if item.type == "message"
-        and item.turn_id == turn.id
-        and item.role == "assistant"
-        and item.status == "completed"
-        and item.phase != "commentary"
-    ]
     _reconcile(state, collector, turn, messages)
     return True
 

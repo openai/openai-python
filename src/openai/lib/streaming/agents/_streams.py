@@ -29,7 +29,9 @@ from ...beta.agents._attachment import (
     reconcile,
     async_attach,
     async_observe,
+    hydrate_error,
     async_reconcile,
+    async_hydrate_error,
 )
 from ....types.beta.agent_session import RequiredActionSessionRequiredActionResourceFunctionCall
 from ....types.beta.agent_session_event import AgentSessionEvent
@@ -249,7 +251,11 @@ class AgentSessionStream(Generic[OutputT]):
             if self._attachment is not None:
                 reconcile(self._sessions, self._attachment, collector, self._options)
             return self._collection.result()
-        except (AgentTurnResultError, AgentOutputParseError):
+        except AgentTurnResultError as error:
+            if self._attachment is not None:
+                hydrate_error(self._sessions, self._attachment, error, self._options)
+            raise
+        except AgentOutputParseError:
             raise
         except Exception as error:
             if self._attachment is not None and self._attachment.observation_interrupted:
@@ -262,6 +268,7 @@ class AgentSessionStream(Generic[OutputT]):
                 if recovered:
                     return self._collection.result()
             self._collection.record_error(error)
+            collector.check_outcome(self._handlers)
             raise collector.error("observation_failed") from error
         finally:
             self.close()
@@ -479,7 +486,11 @@ class AsyncAgentSessionStream(Generic[OutputT]):
             if self._attachment is not None:
                 await async_reconcile(self._sessions, self._attachment, collector, self._options)
             return self._collection.result()
-        except (AgentTurnResultError, AgentOutputParseError):
+        except AgentTurnResultError as error:
+            if self._attachment is not None:
+                await async_hydrate_error(self._sessions, self._attachment, error, self._options)
+            raise
+        except AgentOutputParseError:
             raise
         except Exception as error:
             if self._attachment is not None and self._attachment.observation_interrupted:
@@ -492,6 +503,7 @@ class AsyncAgentSessionStream(Generic[OutputT]):
                 if recovered:
                     return self._collection.result()
             self._collection.record_error(error)
+            collector.check_outcome(self._handlers)
             raise collector.error("observation_failed") from error
         finally:
             await self.close()

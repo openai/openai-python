@@ -33,6 +33,10 @@ class AttachmentServer(Server):
         self.items: list[dict[str, Any]] = [message("earlier")["item"], message("later", item_id="later")["item"]]
         self.body = EventBody([call(), turn_event("completed"), idle()])
         self.stale_required_actions = False
+        self.manual_actions: list[dict[str, Any]] = []
+        self.null_item_cursor = False
+        self.item_cursor_metadata = False
+        self.fail_items = False
 
     @override
     def handle(self, request: httpx2.Request) -> httpx2.Response:
@@ -67,16 +71,22 @@ class AttachmentServer(Server):
                     json=turn(self.retrieve_status or status, turn_id, "child" if turn_id == "child_turn" else None),
                 )
             if path.endswith("/items"):
+                if self.fail_items:
+                    return httpx2.Response(500, json={"error": {"message": "Synthetic read failure"}})
                 after = request.url.params.get("after")
                 offset = next((i + 1 for i, item in enumerate(self.items) if item["id"] == after), 0)
                 data = self.items[offset : offset + 1]
-                return httpx2.Response(
-                    200, json={"data": data, "has_more": offset + 1 < len(self.items), "object": "list"}
-                )
+                payload: dict[str, Any] = {"data": data, "has_more": offset + 1 < len(self.items), "object": "list"}
+                if self.item_cursor_metadata and data:
+                    payload["last_id"] = data[-1]["id"]
+                if self.null_item_cursor and data:
+                    payload["data"] = [{**data[0], "id": None}]
+                return httpx2.Response(200, json=payload)
             self.reads += 1
             if self.after_turns is not None:
                 self.turns = self.after_turns
             value = session(self.after_status or self.status)
+            value["required_actions"] = self.manual_actions
             if self.stale_required_actions:
                 value["required_actions"] = [
                     {
@@ -181,6 +191,7 @@ async def test_unhandled_recovered_call_is_reported(sdk: OpenAI | AsyncOpenAI, s
     with pytest.raises(AgentTurnResultError) as caught:
         await attach_result(sdk)
     assert caught.value.reason == "requires_action"
+    assert "".join(item.output_text for item in caught.value.messages) == "earlierlater"
     action = caught.value.required_actions[0]
     assert action.type == "function_call"
     assert action.call_id == "call_test"
@@ -374,6 +385,8 @@ async def test_inconclusive_reconciliation_preserves_observation_cause(
     assert isinstance(cause, APIConnectionError)
     assert isinstance(cause.__cause__, httpx2.ReadError)
     assert str(cause.__cause__) == "Synthetic observation disconnect"
+    if not read_fails:
+        assert "".join(item.output_text for item in caught.value.messages) == "earlierlater"
     assert len([r for r in server.requests if "/turns/" in r.url.path]) == 2
 
 
@@ -405,3 +418,105 @@ async def test_collected_progress_can_recover_after_observation_error(
                 list(stream)
             result = stream.get_final_result()
     assert result.output_text == "earlierlater"
+
+
+@pytest.mark.parametrize("metadata", [False, True])
+async def test_legacy_null_item_ids_do_not_truncate_recovered_output(
+    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer, metadata: bool
+) -> None:
+    server.body = EventBody([turn_event("completed")])
+    server.null_item_cursor = True
+    server.item_cursor_metadata = metadata
+    if metadata:
+        result = await attach_result(sdk)
+        assert result.output_text == "earlierlater"
+    else:
+        with pytest.raises(AgentTurnResultError, match="observation_failed") as caught:
+            await attach_result(sdk)
+        assert "advancing cursor" in str(caught.value.__cause__)
+
+
+@pytest.mark.parametrize("status", ["failed", "cancelled"])
+@pytest.mark.parametrize("read_fails", [False, True])
+async def test_bootstrap_terminal_error_recovers_available_partial_output(
+    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer, status: str, read_fails: bool
+) -> None:
+    server.retrieve_status = status
+    server.fail_items = read_fails
+    with pytest.raises(AgentTurnResultError) as caught:
+        await attach_result(sdk)
+    assert caught.value.reason == status
+    if not read_fails:
+        assert "".join(item.output_text for item in caught.value.messages) == "earlierlater"
+    assert server.body.read_count == 0
+
+
+def manual_action(kind: str, turn_id: str = "turn_root") -> dict[str, Any]:
+    if kind == "environment_connection":
+        return {"type": kind, "environment_id": "env_test"}
+    request: dict[str, Any] = {"type": kind, "reason": "Synthetic approval"}
+    if kind == "browser_authentication":
+        request.update(fields=[], options=[], credential_origin="https://example.com")
+    else:
+        request["origin"] = "https://example.com"
+    return {
+        "type": "computer_use_approval_request",
+        "request_id": "request_test",
+        "turn_id": turn_id,
+        "request": request,
+    }
+
+
+@pytest.mark.parametrize("kind", ["environment_connection", "browser_authentication", "browser_origin_access"])
+async def test_current_manual_action_is_diagnostic_without_waiting_for_replay(
+    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer, kind: str
+) -> None:
+    server.turns = [turn("waiting")]
+    server.retrieve_status = "waiting"
+    server.status = "requires_action"
+    server.manual_actions = [manual_action(kind)]
+    server.body = EventBody([])
+    with pytest.raises(AgentTurnResultError, match="requires_action") as caught:
+        await attach_result(sdk)
+    assert caught.value.required_actions[0].type == server.manual_actions[0]["type"]
+    assert server.body.read_count == 0
+    assert not server.inputs()
+
+
+@pytest.mark.parametrize("kind", ["environment_connection", "browser_authentication", "browser_origin_access"])
+async def test_stale_manual_action_does_not_override_selected_completion(
+    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer, kind: str
+) -> None:
+    server.status = "requires_action"
+    server.retrieve_status = "completed"
+    server.manual_actions = [manual_action(kind, "successor")]
+    result = await attach_result(sdk)
+    assert result.turn_id == "turn_root"
+    assert server.body.read_count == 0
+
+
+async def test_manual_action_from_successor_is_not_selected(
+    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer
+) -> None:
+    server.turns = [turn("waiting")]
+    server.after_turns = [turn("waiting", "successor")]
+    server.retrieve_status = "waiting"
+    server.status = "requires_action"
+    server.manual_actions = [manual_action("environment_connection")]
+    server.body = EventBody([turn_event("completed")])
+    # The selected terminal SSE event remains authoritative even if a subsequent
+    # GET fixture still returns the older waiting state.
+    with pytest.raises(AgentTurnResultError) as caught:
+        await attach_result(sdk)
+    assert caught.value.reason != "requires_action"
+
+
+async def test_terminal_failure_wins_over_partial_recovery_read_failure(
+    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer
+) -> None:
+    server.body = InterruptedBody(server, "failed")
+    server.fail_items = True
+    with pytest.raises(AgentTurnResultError) as caught:
+        await attach_result(sdk)
+    assert caught.value.reason == "failed"
+    assert caught.value.messages[0].output_text == "partial"
