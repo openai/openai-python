@@ -10,7 +10,7 @@ from typing_extensions import override
 import httpx2
 import pytest
 
-from openai import OpenAI, AsyncOpenAI
+from openai import OpenAI, AsyncOpenAI, BadRequestError
 from openai.lib.beta.agents import AgentFileStagingError, AgentFilePreparationError
 from tests.lib.streaming.agents.test_streams import Server, sdk as sdk
 
@@ -188,21 +188,31 @@ async def test_live_staging_and_failure_ownership(sdk: OpenAI | AsyncOpenAI, ser
     assert all(request.method == "POST" for request in server.requests)
 
 
-async def test_count_and_aggregate_size_limits_precede_upload(
-    sdk: OpenAI | AsyncOpenAI, server: FilesServer, tmp_path: Path
+async def test_file_count_is_left_to_the_api(sdk: OpenAI | AsyncOpenAI, server: FilesServer, tmp_path: Path) -> None:
+    source = tmp_path / "source.txt"
+    source.write_text("abc")
+    result = await prepare(sdk, {f"/workspace/{index}": source for index in range(51)})
+    assert len(result.files) == server.uploads == 51
+
+
+@pytest.mark.parametrize("count", [1, 2])
+async def test_large_prepared_files_reach_the_api(
+    sdk: OpenAI | AsyncOpenAI, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, count: int
 ) -> None:
     source = tmp_path / "large"
     with source.open("wb") as content:
-        content.truncate(26 * 1024 * 1024)
-    with pytest.raises(ValueError, match="in total"):
-        await prepare(sdk, {"/workspace/a": source, "/workspace/b": source})
-    with pytest.raises(ValueError, match="50 files"):
-        await prepare(sdk, {f"/workspace/{index}": source for index in range(51)})
-    with source.open("wb") as content:
-        content.truncate(50 * 1024 * 1024 + 1)
-    with pytest.raises(ValueError, match="50 MiB"):
-        await prepare(sdk, {"/workspace/a": source})
-    assert server.uploads == 0
+        content.truncate(51 * 1024 * 1024 // count)
+    response = httpx2.Response(400, request=httpx2.Request("POST", "https://sdk-test.example/v1/files"))
+    rejection = BadRequestError("Synthetic server-owned limit", response=response, body=None)
+
+    def reject(**_kwargs: Any) -> Any:
+        raise rejection
+
+    monkeypatch.setattr(sdk.files, "create", reject)
+    with pytest.raises(AgentFilePreparationError) as caught:
+        await prepare(sdk, {f"/workspace/{index}": source for index in range(count)})
+    assert caught.value.__cause__ is rejection
+    assert caught.value.prepared.uploaded_file_ids == []
 
 
 async def test_async_cancellation_retains_only_observed_uploads(
@@ -244,7 +254,6 @@ async def test_client_default_idempotency_key_is_rejected_for_batch(
         "/workspace/.managed-agents/source",
         "/workspace/.managed-agents-internal/source",
         "/workspace/outputs",
-        "/workspace/" + "x" * 4096,
     ],
 )
 async def test_invalid_hosted_destination_fails_before_upload(
@@ -314,23 +323,30 @@ async def test_prepared_files_keep_opened_sources_during_batch_upload(
 
 
 @pytest.mark.parametrize("file_backed", [False, True])
-async def test_known_stream_sizes_fail_before_upload_without_moving_position(
-    sdk: OpenAI | AsyncOpenAI, server: FilesServer, tmp_path: Path, file_backed: bool
+async def test_large_uploads_preserve_api_errors(
+    sdk: OpenAI | AsyncOpenAI, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, file_backed: bool
 ) -> None:
     content = (tmp_path / "large").open("w+b") if file_backed else BytesIO()
+    response = httpx2.Response(400, request=httpx2.Request("POST", "https://sdk-test.example/v1/files"))
+    rejection = BadRequestError("Synthetic server-owned limit", response=response, body=None)
+
+    def reject(**_kwargs: Any) -> Any:
+        raise rejection
+
+    monkeypatch.setattr(sdk.files, "create", reject)
     with content:
         content.seek(50 * 1024 * 1024)
         content.write(b"x")
         content.seek(3)
-        with pytest.raises(ValueError, match="50 MiB"):
+        with pytest.raises(BadRequestError) as caught:
             if isinstance(sdk, AsyncOpenAI):
                 await sdk.beta.agents.environments.files.upload(
                     "env_test", file=("large", content), path="/workspace/large"
                 )
             else:
                 sdk.beta.agents.environments.files.upload("env_test", file=("large", content), path="/workspace/large")
+        assert caught.value is rejection
         assert content.tell() == 3
-    assert not server.requests
 
 
 async def test_empty_environment_id_fails_before_upload(sdk: OpenAI | AsyncOpenAI, server: FilesServer) -> None:
@@ -487,11 +503,11 @@ async def test_directory_selection_keeps_file_identity_until_open(
     assert not server.requests
 
 
-async def test_directory_destination_uses_actual_filename_length(
+async def test_directory_preserves_long_destination_for_api_validation(
     sdk: OpenAI | AsyncOpenAI, server: FilesServer, tmp_path: Path
 ) -> None:
     (tmp_path / "a").write_text("abc")
-    destination = "/workspace/" + "x" * (4094 - len("/workspace/"))
+    destination = "/workspace/" + "x" * 4096
     if isinstance(sdk, AsyncOpenAI):
         prepared = await sdk.beta.agents.environments.files.prepare_directory(
             tmp_path, destination=destination, include=["a"]
@@ -500,7 +516,7 @@ async def test_directory_destination_uses_actual_filename_length(
         prepared = sdk.beta.agents.environments.files.prepare_directory(
             tmp_path, destination=destination, include=["a"]
         )
-    assert len(prepared.files[0]["path"]) == 4096
+    assert prepared.files[0]["path"] == destination + "/a"
     assert server.uploads == 1
 
 
@@ -531,11 +547,9 @@ async def test_async_path_reads_run_off_event_loop(
 
 
 @pytest.mark.parametrize("staging", [False, True])
-async def test_sync_interruption_preserves_observed_uploads(
+async def test_interruption_preserves_observed_uploads(
     sdk: OpenAI | AsyncOpenAI, server: FilesServer, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, staging: bool
 ) -> None:
-    if isinstance(sdk, AsyncOpenAI):
-        pytest.skip("Synchronous interruption contract")
     source = tmp_path / "source.txt"
     source.write_text("abc")
 
@@ -545,7 +559,10 @@ async def test_sync_interruption_preserves_observed_uploads(
     if staging:
         monkeypatch.setattr(sdk.beta.agents.environments.files, "create", interrupt)
         with pytest.raises(KeyboardInterrupt) as caught:
-            sdk.beta.agents.environments.files.upload("env_test", file=source, path="/workspace/source.txt")
+            if isinstance(sdk, AsyncOpenAI):
+                await sdk.beta.agents.environments.files.upload("env_test", file=source, path="/workspace/source.txt")
+            else:
+                sdk.beta.agents.environments.files.upload("env_test", file=source, path="/workspace/source.txt")
         assert vars(caught.value)["uploaded_file_id"] == "file_1"
     else:
 
@@ -555,7 +572,7 @@ async def test_sync_interruption_preserves_observed_uploads(
 
         server.after_upload = after_upload
         with pytest.raises(KeyboardInterrupt) as caught:
-            sdk.beta.agents.environments.files.prepare({"/workspace/a": source, "/workspace/b": source})
+            await prepare(sdk, {"/workspace/a": source, "/workspace/b": source})
         assert vars(caught.value)["prepared"].uploaded_file_ids == ["file_1"]
 
 
