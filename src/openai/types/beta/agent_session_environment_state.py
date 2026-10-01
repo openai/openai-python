@@ -9,7 +9,7 @@ __all__ = ["AgentSessionEnvironmentState", "Error"]
 
 
 class Error(BaseModel):
-    """An error reported while preparing a session environment."""
+    """The error reported while preparing the environment, if any."""
 
     code: str
     """A machine-readable error code."""
@@ -28,7 +28,7 @@ class AgentSessionEnvironmentState(BaseModel):
     """The public ID of the environment."""
 
     error: Optional[Error] = None
-    """An error reported while preparing a session environment."""
+    """The error reported while preparing the environment, if any."""
 
     status: Literal["pending", "ready", "connected", "disconnected", "failed"]
     """The environment's connection status.

@@ -68,6 +68,101 @@ the next response. It does not wait for a hypothetical future successor. Use
 `recv()` to observe that boundary when coordinating steering; accepted steering
 alone does not prove that a successor has started.
 
+For incremental text and tool-input snapshots, opt in with a separate helper
+fed by the events you already receive:
+
+```python
+from openai.lib.responses_websocket import ResponsesWebSocketAccumulator
+
+accumulator = ResponsesWebSocketAccumulator()
+expected_stream_id = "conversation"  # Same ID passed to session.lane(); None for session.default.
+while True:
+    event = await lane.recv()  # Use lane.recv(timeout=...) in a sync session.
+    # Original event fields, including unknown variants/fields, remain available.
+    # Inspect events in memory before filtering. Never log raw events: they can
+    # contain customer data, tool arguments, credentials, or error details.
+    if getattr(event, "stream_id", None) != expected_stream_id:
+        continue
+    accumulator.add_event(event)
+    event_type = event.type
+    if event.type == "response.output_text.delta":
+        pass  # Update the application's UI with event.delta (provisional).
+    elif event.type == "response.output_item.done":
+        pass  # Replace the provisional item at event.output_index with event.item.
+    elif isinstance(event_type, str) and event_type in {"response.completed", "response.failed", "response.incomplete"}:
+        snapshot = accumulator.snapshot()  # One full projection of all items.
+        response = accumulator.get_final_response()
+        break
+accumulator.reset()  # Does not close the lane or connection.
+```
+
+Use one helper per lane and reset it before the next turn. The default lane
+also receives raw events for unregistered or detached lanes. Observe those
+events before filtering, then feed only the response you are collecting.
+The same check applies when consuming directly from a connection.
+
+Snapshots are immutable and contain selected text, function arguments, and custom tool input,
+grouped by output/content index and item ID. They never execute tools. Done
+events replace provisional fields. Full item replacements discard old fields;
+a changed nonempty item ID starts fresh at its index. A supplied response
+output list overrides the projected items, including an explicit empty list;
+omitted or null output retains only the helper's earlier projections.
+
+`detailed_snapshot()` returns a separate mutable view when you need the fields
+beyond selected text and tool inputs. It contains `stream_id`, `response_id`,
+`terminal_type`, `response` and `output`. `response` is the last observed
+lifecycle response metadata (excluding `output`), or `None` if none arrived.
+`output` is a list of `{"output_index": index, "item": metadata, "content": rows}`.
+Each content row is `{"content_index": index, "part": observed_fields}`. The
+part's `annotations`, when present as a list, use
+`{"annotation_index": index, "annotation": observed_fields}` rows. Indices may
+be sparse; list position is not the API index.
+For a message that has no projected content, the row's `content` is omitted,
+null or empty according to what was actually received.
+
+For example, after collecting an item or terminal as above:
+
+```python
+details = accumulator.detailed_snapshot()
+for output in details["output"]:
+    for content in output.get("content") or []:
+        part = content["part"]
+        # Fields exist only if received: a WS delta may have no part/item type.
+        text = part.get("text")
+        citations = part.get("annotations")
+        token_scores = part.get("logprobs")
+```
+
+Logprobs accumulate with text deltas and a supplied `output_text.done.logprobs`
+replaces them, including empty or null values. Content/item/lifecycle replacements
+also replace their corresponding annotations and other metadata; text-only done
+events do not erase citations. Refusal, tool/MCP and unknown item/part fields are
+retained as observed, with unset and null distinct. Unknown standalone events still
+pass through unchanged and are not accumulated. Annotation events enrich matching
+known items on the accumulator's lane; annotations received before any matching
+item/text remain available in the original event and do not start or replace a turn.
+A partial field or unknown type
+is provisional, not a fabricated validated response or a successful tool result.
+You may mutate this returned view without changing the accumulator, events, or
+earlier snapshots. The original `snapshot()` remains immutable and hashable.
+
+`snapshot()` materializes the entire current projection and joins retained
+fragments. `detailed_snapshot()` also materializes and copies its whole projection.
+Both are proportional to the accumulated output, so requesting either after
+every delta or completed item repeatedly rebuilds growing prefixes. Use the
+original event for progress, including the final item itself on
+`response.output_item.done`. Read the full snapshot at a terminal or on explicit
+user demand. A per-delta progress display is provisional; done events can shorten or
+correct earlier text. A UI can use the received item to replace the item at
+`event.output_index`, and use the terminal snapshot for the whole projection.
+
+The helper's `get_final_response()` returns a copy of the exact received server
+response, including its original missing/null/empty output, on completed,
+failed or incomplete. It never substitutes the projection for that response.
+Before a valid terminal it raises; protocol errors retain their original event.
+This caller-fed helper owns no socket, reader or timers and can also observe
+events from a connection when there is no session.
+
 Cancel an async `recv` or `get_final_response` wait with normal asyncio
 cancellation. It leaves queued events and accumulated state available for a later
 wait, and does not close the lane or connection. Synchronous waits accept

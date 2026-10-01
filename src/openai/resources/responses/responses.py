@@ -103,12 +103,16 @@ log: logging.Logger = logging.getLogger(__name__)
 
 
 class Responses(SyncAPIResource):
+    """Create and manage model responses."""
+
     @cached_property
     def input_items(self) -> InputItems:
+        """Create and manage model responses."""
         return InputItems(self._client)
 
     @cached_property
     def input_tokens(self) -> InputTokens:
+        """Create and manage model responses."""
         return InputTokens(self._client)
 
     @cached_property
@@ -134,6 +138,7 @@ class Responses(SyncAPIResource):
     def create(
         self,
         *,
+        access_programs: response_create_params.AccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
         context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
@@ -187,6 +192,8 @@ class Responses(SyncAPIResource):
         to use your own data as input for the model's response.
 
         Args:
+          access_programs: Domain-specific access programs to use for this request.
+
           background: Whether to run the model response in the background.
               [Learn more](https://developers.openai.com/api/docs/guides/background).
 
@@ -424,6 +431,7 @@ class Responses(SyncAPIResource):
         self,
         *,
         stream: Literal[True],
+        access_programs: response_create_params.AccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
         context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
@@ -482,6 +490,8 @@ class Responses(SyncAPIResource):
               See the
               [Streaming section below](https://developers.openai.com/api/reference/resources/responses/streaming-events)
               for more information.
+
+          access_programs: Domain-specific access programs to use for this request.
 
           background: Whether to run the model response in the background.
               [Learn more](https://developers.openai.com/api/docs/guides/background).
@@ -713,6 +723,7 @@ class Responses(SyncAPIResource):
         self,
         *,
         stream: bool,
+        access_programs: response_create_params.AccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
         context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
@@ -771,6 +782,8 @@ class Responses(SyncAPIResource):
               See the
               [Streaming section below](https://developers.openai.com/api/reference/resources/responses/streaming-events)
               for more information.
+
+          access_programs: Domain-specific access programs to use for this request.
 
           background: Whether to run the model response in the background.
               [Learn more](https://developers.openai.com/api/docs/guides/background).
@@ -1000,6 +1013,7 @@ class Responses(SyncAPIResource):
     def create(
         self,
         *,
+        access_programs: response_create_params.AccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
         context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
@@ -1042,6 +1056,7 @@ class Responses(SyncAPIResource):
             "/responses",
             body=maybe_transform(
                 {
+                    "access_programs": access_programs,
                     "background": background,
                     "context_management": context_management,
                     "conversation": conversation,
@@ -1111,6 +1126,7 @@ class Responses(SyncAPIResource):
         *,
         input: Union[str, ResponseInputParam],
         model: ResponsesModel,
+        access_programs: response_create_params.AccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
         context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         text_format: type[TextFormatT] | Omit = omit,
@@ -1154,6 +1170,7 @@ class Responses(SyncAPIResource):
         response_id: str | Omit = omit,
         input: Union[str, ResponseInputParam] | Omit = omit,
         model: ResponsesModel | Omit = omit,
+        access_programs: response_create_params.AccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
         context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         text_format: type[TextFormatT] | Omit = omit,
@@ -1192,6 +1209,7 @@ class Responses(SyncAPIResource):
         timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ResponseStreamManager[TextFormatT]:
         new_response_args = {
+            "access_programs": access_programs,
             "input": input,
             "model": model,
             "context_management": context_management,
@@ -1249,6 +1267,7 @@ class Responses(SyncAPIResource):
 
             api_request: partial[Stream[ResponseStreamEvent]] = partial(
                 self.create,
+                access_programs=access_programs,
                 input=input,
                 model=model,
                 tools=tools,
@@ -1316,6 +1335,7 @@ class Responses(SyncAPIResource):
         self,
         *,
         text_format: type[TextFormatT] | Omit = omit,
+        access_programs: response_create_params.AccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
         context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
@@ -1377,6 +1397,7 @@ class Responses(SyncAPIResource):
             "/responses",
             body=maybe_transform(
                 {
+                    "access_programs": access_programs,
                     "background": background,
                     "context_management": context_management,
                     "conversation": conversation,
@@ -1422,7 +1443,7 @@ class Responses(SyncAPIResource):
             ),
             # we turn the `Response` instance into a `ParsedResponse`
             # in the `parser` function above
-            cast_to=cast(Type[ParsedResponse[TextFormatT]], Response),
+            cast_to=cast("Type[ParsedResponse[TextFormatT]]", Response),
         )
 
     @overload
@@ -1744,6 +1765,9 @@ class Responses(SyncAPIResource):
         model: Union[
             Literal[
                 "gpt-6-astra",
+                "gpt-6.1-sol",
+                "gpt-6-sol",
+                "gpt-6-luna",
                 "gpt-5.6-sol",
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
@@ -1763,6 +1787,7 @@ class Responses(SyncAPIResource):
                 "gpt-5.1",
                 "gpt-5.1-2025-11-13",
                 "gpt-5.1-codex",
+                "gpt-5.1-mini",
                 "gpt-5.1-chat-latest",
                 "gpt-5",
                 "gpt-5-mini",
@@ -1828,7 +1853,6 @@ class Responses(SyncAPIResource):
                 "gpt-3.5-turbo-1106",
                 "gpt-3.5-turbo-0125",
                 "gpt-3.5-turbo-16k-0613",
-                "gpt-5.1-mini",
                 "o1-pro",
                 "o1-pro-2025-03-19",
                 "o3-pro",
@@ -1848,6 +1872,7 @@ class Responses(SyncAPIResource):
                 "gpt-daybreak-blue-latest",
                 "gpt-daybreak-red-latest",
                 "gpt-5.6-cyber",
+                "gpt-rosalind-research",
             ],
             str,
             None,
@@ -1987,12 +2012,16 @@ class Responses(SyncAPIResource):
 
 
 class AsyncResponses(AsyncAPIResource):
+    """Create and manage model responses."""
+
     @cached_property
     def input_items(self) -> AsyncInputItems:
+        """Create and manage model responses."""
         return AsyncInputItems(self._client)
 
     @cached_property
     def input_tokens(self) -> AsyncInputTokens:
+        """Create and manage model responses."""
         return AsyncInputTokens(self._client)
 
     @cached_property
@@ -2018,6 +2047,7 @@ class AsyncResponses(AsyncAPIResource):
     async def create(
         self,
         *,
+        access_programs: response_create_params.AccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
         context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
@@ -2071,6 +2101,8 @@ class AsyncResponses(AsyncAPIResource):
         to use your own data as input for the model's response.
 
         Args:
+          access_programs: Domain-specific access programs to use for this request.
+
           background: Whether to run the model response in the background.
               [Learn more](https://developers.openai.com/api/docs/guides/background).
 
@@ -2308,6 +2340,7 @@ class AsyncResponses(AsyncAPIResource):
         self,
         *,
         stream: Literal[True],
+        access_programs: response_create_params.AccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
         context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
@@ -2366,6 +2399,8 @@ class AsyncResponses(AsyncAPIResource):
               See the
               [Streaming section below](https://developers.openai.com/api/reference/resources/responses/streaming-events)
               for more information.
+
+          access_programs: Domain-specific access programs to use for this request.
 
           background: Whether to run the model response in the background.
               [Learn more](https://developers.openai.com/api/docs/guides/background).
@@ -2597,6 +2632,7 @@ class AsyncResponses(AsyncAPIResource):
         self,
         *,
         stream: bool,
+        access_programs: response_create_params.AccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
         context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
@@ -2655,6 +2691,8 @@ class AsyncResponses(AsyncAPIResource):
               See the
               [Streaming section below](https://developers.openai.com/api/reference/resources/responses/streaming-events)
               for more information.
+
+          access_programs: Domain-specific access programs to use for this request.
 
           background: Whether to run the model response in the background.
               [Learn more](https://developers.openai.com/api/docs/guides/background).
@@ -2884,6 +2922,7 @@ class AsyncResponses(AsyncAPIResource):
     async def create(
         self,
         *,
+        access_programs: response_create_params.AccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
         context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
@@ -2926,6 +2965,7 @@ class AsyncResponses(AsyncAPIResource):
             "/responses",
             body=await async_maybe_transform(
                 {
+                    "access_programs": access_programs,
                     "background": background,
                     "context_management": context_management,
                     "conversation": conversation,
@@ -2995,6 +3035,7 @@ class AsyncResponses(AsyncAPIResource):
         *,
         input: Union[str, ResponseInputParam],
         model: ResponsesModel,
+        access_programs: response_create_params.AccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
         context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         text_format: type[TextFormatT] | Omit = omit,
@@ -3038,6 +3079,7 @@ class AsyncResponses(AsyncAPIResource):
         response_id: str | Omit = omit,
         input: Union[str, ResponseInputParam] | Omit = omit,
         model: ResponsesModel | Omit = omit,
+        access_programs: response_create_params.AccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
         context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         text_format: type[TextFormatT] | Omit = omit,
@@ -3076,6 +3118,7 @@ class AsyncResponses(AsyncAPIResource):
         timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AsyncResponseStreamManager[TextFormatT]:
         new_response_args = {
+            "access_programs": access_programs,
             "input": input,
             "model": model,
             "context_management": context_management,
@@ -3132,6 +3175,7 @@ class AsyncResponses(AsyncAPIResource):
                 text["format"] = _type_to_text_format_param(text_format)
 
             api_request = self.create(
+                access_programs=access_programs,
                 input=input,
                 model=model,
                 stream=True,
@@ -3199,6 +3243,7 @@ class AsyncResponses(AsyncAPIResource):
         self,
         *,
         text_format: type[TextFormatT] | Omit = omit,
+        access_programs: response_create_params.AccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
         context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
@@ -3260,6 +3305,7 @@ class AsyncResponses(AsyncAPIResource):
             "/responses",
             body=maybe_transform(
                 {
+                    "access_programs": access_programs,
                     "background": background,
                     "context_management": context_management,
                     "conversation": conversation,
@@ -3305,7 +3351,7 @@ class AsyncResponses(AsyncAPIResource):
             ),
             # we turn the `Response` instance into a `ParsedResponse`
             # in the `parser` function above
-            cast_to=cast(Type[ParsedResponse[TextFormatT]], Response),
+            cast_to=cast("Type[ParsedResponse[TextFormatT]]", Response),
         )
 
     @overload
@@ -3627,6 +3673,9 @@ class AsyncResponses(AsyncAPIResource):
         model: Union[
             Literal[
                 "gpt-6-astra",
+                "gpt-6.1-sol",
+                "gpt-6-sol",
+                "gpt-6-luna",
                 "gpt-5.6-sol",
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
@@ -3646,6 +3695,7 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-5.1",
                 "gpt-5.1-2025-11-13",
                 "gpt-5.1-codex",
+                "gpt-5.1-mini",
                 "gpt-5.1-chat-latest",
                 "gpt-5",
                 "gpt-5-mini",
@@ -3711,7 +3761,6 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-3.5-turbo-1106",
                 "gpt-3.5-turbo-0125",
                 "gpt-3.5-turbo-16k-0613",
-                "gpt-5.1-mini",
                 "o1-pro",
                 "o1-pro-2025-03-19",
                 "o3-pro",
@@ -3731,6 +3780,7 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-daybreak-blue-latest",
                 "gpt-daybreak-red-latest",
                 "gpt-5.6-cyber",
+                "gpt-rosalind-research",
             ],
             str,
             None,
@@ -3894,10 +3944,12 @@ class ResponsesWithRawResponse:
 
     @cached_property
     def input_items(self) -> InputItemsWithRawResponse:
+        """Create and manage model responses."""
         return InputItemsWithRawResponse(self._responses.input_items)
 
     @cached_property
     def input_tokens(self) -> InputTokensWithRawResponse:
+        """Create and manage model responses."""
         return InputTokensWithRawResponse(self._responses.input_tokens)
 
 
@@ -3926,10 +3978,12 @@ class AsyncResponsesWithRawResponse:
 
     @cached_property
     def input_items(self) -> AsyncInputItemsWithRawResponse:
+        """Create and manage model responses."""
         return AsyncInputItemsWithRawResponse(self._responses.input_items)
 
     @cached_property
     def input_tokens(self) -> AsyncInputTokensWithRawResponse:
+        """Create and manage model responses."""
         return AsyncInputTokensWithRawResponse(self._responses.input_tokens)
 
 
@@ -3955,10 +4009,12 @@ class ResponsesWithStreamingResponse:
 
     @cached_property
     def input_items(self) -> InputItemsWithStreamingResponse:
+        """Create and manage model responses."""
         return InputItemsWithStreamingResponse(self._responses.input_items)
 
     @cached_property
     def input_tokens(self) -> InputTokensWithStreamingResponse:
+        """Create and manage model responses."""
         return InputTokensWithStreamingResponse(self._responses.input_tokens)
 
 
@@ -3984,10 +4040,12 @@ class AsyncResponsesWithStreamingResponse:
 
     @cached_property
     def input_items(self) -> AsyncInputItemsWithStreamingResponse:
+        """Create and manage model responses."""
         return AsyncInputItemsWithStreamingResponse(self._responses.input_items)
 
     @cached_property
     def input_tokens(self) -> AsyncInputTokensWithStreamingResponse:
+        """Create and manage model responses."""
         return AsyncInputTokensWithStreamingResponse(self._responses.input_tokens)
 
 
@@ -4060,7 +4118,7 @@ class AsyncResponsesConnection:
         self._extra_headers = extra_headers
         self._intentionally_closed = False
         self._is_reconnecting = False
-        self._send_queue = send_queue or SendQueue()
+        self._send_queue = send_queue if send_queue is not None else SendQueue()
         self._event_handler_registry = EventHandlerRegistry(use_lock=False)
 
         self.response = AsyncResponsesResponseResource(self)
@@ -4386,7 +4444,7 @@ class AsyncResponsesConnectionManager:
         data = (
             event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
             if isinstance(event, BaseModel)
-            else json.dumps(event)
+            else json.dumps(maybe_transform(event, ResponsesClientEventParam))
         )
         self.__send_queue.enqueue(data)
 
@@ -4467,11 +4525,11 @@ class AsyncResponsesConnectionManager:
         except ImportError as exc:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
-        url = self._prepare_url().copy_with(
-            params={
-                **self.__client.base_url.params,
-                **extra_query,
-            },
+        url = self._prepare_url()
+        url = url.copy_with(
+            params=httpx2.QueryParams(self.__client.qs.stringify(cast(Any, self.__client.default_query)))
+            .merge(url.params)
+            .merge(cast(Any, extra_query)),
         )
         url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
         options = await self.__client._prepare_options(
@@ -4515,7 +4573,8 @@ class AsyncResponsesConnectionManager:
             ws_scheme = "ws" if scheme == "http" else "wss"
             base_url = self.__client._base_url.copy_with(scheme=ws_scheme)
 
-        merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/responses"
+        path, separator, query = base_url.raw_path.partition(b"?")
+        merge_raw_path = path.rstrip(b"/") + b"/responses" + separator + query
         return base_url.copy_with(raw_path=merge_raw_path)
 
     async def __aexit__(
@@ -4558,7 +4617,7 @@ class ResponsesConnection:
         self._close_event = threading.Event()
         self._connection_lock = threading.Lock()
         self._is_reconnecting = False
-        self._send_queue = send_queue or SendQueue()
+        self._send_queue = send_queue if send_queue is not None else SendQueue()
         self._event_handler_registry = EventHandlerRegistry(use_lock=True)
 
         self.response = ResponsesResponseResource(self)
@@ -4884,7 +4943,7 @@ class ResponsesConnectionManager:
         data = (
             event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
             if isinstance(event, BaseModel)
-            else json.dumps(event)
+            else json.dumps(maybe_transform(event, ResponsesClientEventParam))
         )
         self.__send_queue.enqueue(data)
 
@@ -4965,11 +5024,11 @@ class ResponsesConnectionManager:
         except ImportError as exc:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
-        url = self._prepare_url().copy_with(
-            params={
-                **self.__client.base_url.params,
-                **extra_query,
-            },
+        url = self._prepare_url()
+        url = url.copy_with(
+            params=httpx2.QueryParams(self.__client.qs.stringify(cast(Any, self.__client.default_query)))
+            .merge(url.params)
+            .merge(cast(Any, extra_query)),
         )
         url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
         options = self.__client._prepare_options(
@@ -5013,7 +5072,8 @@ class ResponsesConnectionManager:
             ws_scheme = "ws" if scheme == "http" else "wss"
             base_url = self.__client._base_url.copy_with(scheme=ws_scheme)
 
-        merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/responses"
+        path, separator, query = base_url.raw_path.partition(b"?")
+        merge_raw_path = path.rstrip(b"/") + b"/responses" + separator + query
         return base_url.copy_with(raw_path=merge_raw_path)
 
     def __exit__(
@@ -5032,6 +5092,7 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
     def create(
         self,
         *,
+        access_programs: responses_client_event_param.ResponseCreateAccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
         context_management: Optional[Iterable[responses_client_event_param.ResponseCreateContextManagement]]
         | Omit = omit,
@@ -5082,6 +5143,7 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
                 strip_not_given(
                     {
                         "type": "response.create",
+                        "access_programs": access_programs,
                         "background": background,
                         "context_management": context_management,
                         "conversation": conversation,
@@ -5163,6 +5225,7 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
     async def create(
         self,
         *,
+        access_programs: responses_client_event_param.ResponseCreateAccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
         context_management: Optional[Iterable[responses_client_event_param.ResponseCreateContextManagement]]
         | Omit = omit,
@@ -5213,6 +5276,7 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
                 strip_not_given(
                     {
                         "type": "response.create",
+                        "access_programs": access_programs,
                         "background": background,
                         "context_management": context_management,
                         "conversation": conversation,

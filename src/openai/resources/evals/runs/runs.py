@@ -292,7 +292,7 @@ class Runs(SyncAPIResource):
         if not run_id:
             raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
         return self._post(
-            path_template("/evals/{eval_id}/runs/{run_id}", eval_id=eval_id, run_id=run_id),
+            path_template("/evals/{eval_id}/runs/{run_id}/cancel", eval_id=eval_id, run_id=run_id),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -562,7 +562,7 @@ class AsyncRuns(AsyncAPIResource):
         if not run_id:
             raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
         return await self._post(
-            path_template("/evals/{eval_id}/runs/{run_id}", eval_id=eval_id, run_id=run_id),
+            path_template("/evals/{eval_id}/runs/{run_id}/cancel", eval_id=eval_id, run_id=run_id),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
