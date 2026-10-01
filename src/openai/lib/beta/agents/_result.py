@@ -28,7 +28,19 @@ class AgentTurnResult(Generic[OutputT]):
     def parse(self, output_type: type[ParseT]) -> AgentTurnResult[ParseT]:
         """Beta: parse a completed answer without changing its session configuration."""
         try:
-            parsed = _parse_content(output_type, self.output_text)
+            validate_output_type(output_type)
+            parsed: ParseT | None = None
+            found = False
+            for message in self.messages:
+                for content in message.content:
+                    if content.type != "output_text":
+                        continue
+                    value = _parse_content(output_type, content.text)
+                    if not found:
+                        parsed = value
+                        found = True
+            if not found:
+                raise ValueError("No final output text to parse")
         except Exception:
             # Pydantic errors may include response text in their rendered message.
             raise AgentOutputParseError(self) from None

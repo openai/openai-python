@@ -497,3 +497,56 @@ def test_inherited_schema_conversion_errors_are_preserved() -> None:
     for convert in (agent_text_format, type_to_text_format_param):
         with pytest.raises(ValueError, match="Unexpected.*ref format"):
             convert(model)
+
+
+@pytest.mark.parametrize("typed", [False, True], ids=["parse", "getter"])
+@pytest.mark.parametrize("case", ["messages", "parts", "invalid_later", "invalid_first", "empty", "split_json"])
+async def test_final_text_parts_are_parsed_independently(
+    sdk: OpenAI | AsyncOpenAI, server: ResultServer, typed: bool, case: str
+) -> None:
+    first = '{"summary":"first","findings":["one"]}'
+    second = '{"summary":"second","findings":["two"]}'
+    if case == "messages":
+        parts = [[first], [second]]
+    elif case == "parts":
+        parts = [[first, second]]
+    elif case == "invalid_later":
+        parts = [[first], ["invalid JSON"]]
+    elif case == "invalid_first":
+        parts = [["invalid JSON"], [second]]
+    elif case == "split_json":
+        parts = [[first[:10], first[10:]]]
+    else:
+        parts = []
+    messages: list[dict[str, Any]] = []
+    for index, texts in enumerate(parts):
+        event = message(item_id=f"message_{index}", index=index)
+        event["item"]["content"] = [{"type": "output_text", "text": text, "annotations": []} for text in texts]
+        messages.append(event)
+    server.body = EventBody([turn_event("created"), *messages, turn_event("completed"), idle()])
+    should_fail = case not in ("messages", "parts")
+    try:
+        if isinstance(sdk, AsyncOpenAI):
+            async with sdk.beta.agents.sessions.stream(
+                "session_test", input="Question", output_type=Report if typed else None
+            ) as stream:
+                result = await stream.get_final_result()
+        else:
+            with sdk.beta.agents.sessions.stream(
+                "session_test", input="Question", output_type=Report if typed else None
+            ) as stream:
+                result = stream.get_final_result()
+        if not typed:
+            result = result.parse(Report)
+    except AgentOutputParseError as exc:
+        assert should_fail
+        raw = exc.result
+        assert raw.output_parsed is None
+    else:
+        assert not should_fail
+        assert result.output_parsed == Report(summary="first", findings=["one"])
+        raw = result
+    assert raw.output_text == "".join(text for texts in parts for text in texts)
+    assert [
+        [content.text for content in item.content if content.type == "output_text"] for item in raw.messages
+    ] == parts

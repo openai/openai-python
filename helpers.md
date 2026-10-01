@@ -629,6 +629,7 @@ print(result.output_parsed)
 For a session already configured with that schema, use
 `sessions.stream(session_id, input="Update the report.", output_type=Report)`.
 This only selects the local parser; it does not change the session's schema.
+`output_parsed` exposes the first parsed final text part; every final text part is validated.
 `result.parse(Report)` parses an existing raw result. `AgentOutputParseError.result`
 retains the completed raw answer if validation fails. With `AsyncOpenAI`, await
 creation and the result getter, and use `async with`.
