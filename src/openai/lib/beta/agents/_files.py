@@ -102,16 +102,13 @@ def _prepare_selection(
     headers.update({key.lower(): value for key, value in (options["extra_headers"] or {}).items()})
     if len(files) > 1 and "idempotency-key" in headers and not isinstance(headers["idempotency-key"], Omit):
         raise ValueError("One Idempotency-Key cannot be reused for multiple file uploads")
-    selected: list[tuple[str, Path, BinaryIO, int]] = []
-    destinations: set[str] = set()
-    for destination, source in files.items():
-        destination = _destination(destination)
-        if any(
-            destination == prior or destination.startswith(prior + "/") or prior.startswith(destination + "/")
-            for prior in destinations
-        ):
+    entries = list(files.items())
+    destinations = {_destination(destination) for destination, _ in entries}
+    for destination in destinations:
+        if any(str(parent) in destinations for parent in PurePosixPath(destination).parents):
             raise ValueError("Selected agent files contain duplicate or conflicting destinations")
-        destinations.add(destination)
+    selected: list[tuple[str, Path, BinaryIO, int]] = []
+    for destination, source in entries:
         local = _local_file(source)
         handle, length = _open_local(local, stack, source.identity if isinstance(source, _SelectedFile) else None)
         selected.append((destination, local, handle, length))

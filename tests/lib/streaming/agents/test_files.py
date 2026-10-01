@@ -117,6 +117,30 @@ async def test_preflight_all_files_before_upload(
     assert server.uploads == 0
 
 
+@pytest.mark.parametrize("reverse", [False, True])
+async def test_destination_conflicts_are_checked_before_opening_sources(
+    sdk: OpenAI | AsyncOpenAI, server: FilesServer, tmp_path: Path, reverse: bool
+) -> None:
+    destinations = ["/workspace/docs", "/workspace/docs/nested/source.txt"]
+    if reverse:
+        destinations.reverse()
+    with pytest.raises(ValueError, match="conflicting"):
+        await prepare(sdk, {destination: tmp_path / "missing" for destination in destinations})
+    assert not server.requests
+
+
+async def test_large_selection_keeps_input_order(
+    sdk: OpenAI | AsyncOpenAI, server: FilesServer, tmp_path: Path
+) -> None:
+    source = tmp_path / "source.txt"
+    source.write_text("abc")
+    destinations = [f"/workspace/group-{index % 17}/file-{index}.txt" for index in reversed(range(257))]
+    result = await prepare(sdk, dict.fromkeys(destinations, source))
+    assert [item["path"] for item in result.files] == destinations
+    assert [item["file_id"] for item in result.files] == [f"file_{index}" for index in range(1, 258)]
+    assert server.uploads == 257
+
+
 async def test_partial_upload_ownership_is_available(
     sdk: OpenAI | AsyncOpenAI, server: FilesServer, tmp_path: Path
 ) -> None:
