@@ -29,7 +29,6 @@ class AgentSessionAttachment:
         self.settled = False
         self.failed = False
         self.reconciled = False
-        self.last_candidate: str | None = None
         self.observation_interrupted = False
         self.messages_read = False
         self.manual_diagnostics = False
@@ -72,8 +71,7 @@ class AgentSessionAttachment:
         turn_id = getattr(event, "turn_id", None)
         if not isinstance(turn_id, str):
             turn_id = getattr(getattr(event, "item", None), "turn_id", None)
-        if isinstance(turn_id, str) and turn_id != self.last_candidate:
-            self.last_candidate = turn_id
+        if isinstance(turn_id, str):
             return turn_id
         return None
 
@@ -346,6 +344,9 @@ def reconcile(
     if collector.turn is None:
         return False
     turn = sessions.turns.retrieve(collector.turn.id, session_id=state.session_id, **options)
+    # A durable read can lag the terminal event already observed on SSE.
+    if collector.turn.status in _TERMINAL and turn.status not in _TERMINAL:
+        turn = collector.turn
     collector.turn = turn
     state.messages_read = True
     messages: list[AgentSessionMessage] = []
@@ -372,6 +373,9 @@ async def async_reconcile(
     if collector.turn is None:
         return False
     turn = await sessions.turns.retrieve(collector.turn.id, session_id=state.session_id, **options)
+    # A durable read can lag the terminal event already observed on SSE.
+    if collector.turn.status in _TERMINAL and turn.status not in _TERMINAL:
+        turn = collector.turn
     collector.turn = turn
     state.messages_read = True
     messages: list[AgentSessionMessage] = []

@@ -650,4 +650,5 @@ Pending function calls use the same handlers as a new turn. Result collection
 recovers the selected turn's completed output, including messages missed while
 disconnected. An already-idle session with no selected turn drains successfully
 with `until_done()` but has no final result. Reconnecting does not make local tool
-side effects exactly-once. With `AsyncOpenAI`, use `async with` and await the getter.
+side effects exactly-once; use retry-safe handlers. With `AsyncOpenAI`, use
+`async with` and await the getter.

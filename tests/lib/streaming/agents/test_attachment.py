@@ -520,9 +520,9 @@ async def test_manual_action_from_successor_is_not_selected(
     server.body = EventBody([turn_event("completed")])
     # The selected terminal SSE event remains authoritative even if a subsequent
     # GET fixture still returns the older waiting state.
-    with pytest.raises(AgentTurnResultError) as caught:
-        await attach_result(sdk)
-    assert caught.value.reason != "requires_action"
+    result = await attach_result(sdk)
+    assert result.turn_id == "turn_root"
+    assert result.output_text == "earlierlater"
 
 
 async def test_terminal_failure_wins_over_partial_recovery_read_failure(
@@ -654,8 +654,9 @@ async def test_environment_connection_without_active_turn_is_reported(
     assert not any(r.url.path.endswith("/items") for r in server.requests)
 
 
+@pytest.mark.parametrize("stale_first_lookup", [False, True])
 async def test_first_waiting_root_discovered_from_browser_item_checks_manual_action(
-    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer
+    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer, stale_first_lookup: bool
 ) -> None:
     server.turns = []
     server.live_turns = [turn("waiting")]
@@ -670,12 +671,14 @@ async def test_first_waiting_root_discovered_from_browser_item_checks_manual_act
         "request_id": "request_test",
         "request": server.manual_actions[0]["request"],
     }
-    server.body = EventBody([request])
+    server.live_after_reads = 2 if stale_first_lookup else 1
+    repeated: dict[str, object] = {**request, "event_id": "second_request_observation"}
+    server.body = EventBody([request, repeated] if stale_first_lookup else [request])
     with pytest.raises(AgentTurnResultError, match="requires_action") as caught:
         await attach_result(sdk)
     assert caught.value.turn_id == "turn_root"
     assert caught.value.required_actions[0].type == "computer_use_approval_request"
-    assert server.body.read_count == 1
+    assert server.body.read_count == (2 if stale_first_lookup else 1)
 
 
 async def test_diagnostic_read_failure_retains_durable_partial_messages(
@@ -692,3 +695,21 @@ async def test_diagnostic_read_failure_retains_durable_partial_messages(
     assert "".join(item.output_text for item in caught.value.messages) == "earlierlater"
     assert isinstance(caught.value.__cause__, APIConnectionError)
     assert server.body.read_count == 0
+
+
+@pytest.mark.parametrize("status", ["completed", "failed", "cancelled"])
+async def test_terminal_event_survives_stale_reconciliation(
+    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer, status: str
+) -> None:
+    server.retrieve_status = "in_progress"
+    server.body = EventBody([turn_event(status)])
+    if status == "completed":
+        result = await attach_result(sdk)
+        assert result.turn.status == "completed"
+        assert result.output_text == "earlierlater"
+    else:
+        with pytest.raises(AgentTurnResultError) as caught:
+            await attach_result(sdk)
+        assert caught.value.reason == status
+        assert caught.value.turn is not None
+        assert caught.value.turn.status == status
