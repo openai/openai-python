@@ -592,3 +592,47 @@ def test_wrapped_override_uses_defining_namespace(wrap_base: bool) -> None:
             return super().lookup(asset)
 
     assert function_tool(Child().lookup)({"asset": {"symbol": "USDC"}}) == "USDC"
+
+
+@pytest.mark.parametrize("delete_original", [False, True])
+def test_bound_alias_keeps_lexical_annotation_owner(delete_original: bool) -> None:
+    class Wallet:
+        class Asset(BaseModel):
+            symbol: str
+
+        def lookup(self, asset: Asset) -> str:
+            return asset.symbol
+
+        transfer = lookup
+
+    class Child(Wallet):
+        class Asset(BaseModel):  # pyright: ignore[reportIncompatibleVariableOverride]
+            address: int
+
+        alias = Wallet.lookup
+
+    if delete_original:
+        delattr(Wallet, "lookup")
+    for callback in (Child().transfer, Child().alias):
+        assert function_tool(callback)({"asset": {"symbol": "USDC"}}) == "USDC"
+
+
+def test_module_function_attached_as_method_uses_globals() -> None:
+    from types import ModuleType
+
+    module = ModuleType("attached_action_module")
+    exec(
+        "from __future__ import annotations\n"
+        "from pydantic import BaseModel\n"
+        "class Asset(BaseModel):\n    symbol: str\n"
+        "def lookup(self, asset: Asset) -> str:\n    return asset.symbol\n",
+        module.__dict__,
+    )
+
+    class Wallet:
+        class Asset(BaseModel):
+            address: int
+
+        lookup = module.lookup
+
+    assert function_tool(Wallet().lookup)({"asset": {"symbol": "USDC"}}) == "USDC"

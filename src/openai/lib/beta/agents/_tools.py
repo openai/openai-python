@@ -229,7 +229,16 @@ def function_tool(
     owner = None
     source_function = getattr(annotation_source, "__func__", annotation_source)
     if inspect.ismethod(function):
-        owner = function.__self__ if inspect.isclass(function.__self__) else type(function.__self__)
+        bound_owner = function.__self__ if inspect.isclass(function.__self__) else type(function.__self__)
+        owner = next(
+            (
+                cls
+                for cls in bound_owner.__mro__
+                if cls.__module__ == source_function.__module__
+                and cls.__qualname__ == source_function.__qualname__.rpartition(".")[0]
+            ),
+            None,
+        )
     else:
         # Static methods retain their defining class path, but no bound owner.
         namespace = getattr(annotation_source, "__globals__", {})
@@ -240,14 +249,6 @@ def function_tool(
                 break
             namespace = vars(owner)
     if owner is not None:
-        for cls in owner.__mro__:
-            member = vars(cls).get(function.__name__)
-            member = getattr(member, "__func__", member)
-            if callable(member) and inspect.unwrap(member) is source_function:
-                owner = cls
-                # Overrides can wrap a base implementation without owning its annotations.
-                if member is source_function:
-                    break
         localns = {name: value for cls in reversed(owner.__mro__) for name, value in vars(cls).items()}
     # Return annotations may be TYPE_CHECKING-only imports; tools only need inputs.
     annotations = get_type_hints(
