@@ -22,6 +22,8 @@ from ....._response import (
 )
 from .....pagination import SyncCursorPage, AsyncCursorPage
 from ....._base_client import AsyncPaginator, make_request_options
+from .....lib.beta.agents._result import AgentTurnResult
+from .....lib.beta.agents._artifacts import AgentResultArtifacts, AsyncAgentResultArtifacts
 from .....types.beta.agents.sessions import artifact_list_params
 from .....types.beta.agents.sessions.session_artifact import SessionArtifact
 from .....types.beta.agents.sessions.session_artifact_deleted import SessionArtifactDeleted
@@ -30,6 +32,10 @@ __all__ = ["Artifacts", "AsyncArtifacts"]
 
 
 class Artifacts(SyncAPIResource):
+    def for_result(self, result: AgentTurnResult) -> AgentResultArtifacts:
+        """Beta: download artifacts scoped to the exact completed result turn."""
+        return AgentResultArtifacts(self, result)
+
     @cached_property
     def with_raw_response(self) -> ArtifactsWithRawResponse:
         """
@@ -254,6 +260,10 @@ class Artifacts(SyncAPIResource):
 
 
 class AsyncArtifacts(AsyncAPIResource):
+    def for_result(self, result: AgentTurnResult) -> AsyncAgentResultArtifacts:
+        """Beta: download artifacts scoped to the exact completed result turn."""
+        return AsyncAgentResultArtifacts(self, result)
+
     @cached_property
     def with_raw_response(self) -> AsyncArtifactsWithRawResponse:
         """
