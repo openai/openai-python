@@ -212,6 +212,8 @@ async def async_prepare(
     )
     prepared = PreparedAgentFiles()
     try:
+        # Upload sequentially for now. TODO: use batch/archive uploads (e.g. ZIP)
+        # when the API supports them.
         for destination, source in selected:
             content = await run_sync(_snapshot_upload, source, abandon_on_cancel=True)
             uploaded = await resource._client.files.create(file=content, purpose="user_data", **options)
