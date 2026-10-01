@@ -24,6 +24,7 @@ from .....lib.beta.agents._files import (
     async_upload,
     async_prepare,
     directory_files,
+    async_directory_files,
 )
 from .....types.beta.agents.environments import file_list_params, file_create_params
 from .....types.beta.agents.environments.environment_file import EnvironmentFile
@@ -317,7 +318,7 @@ class AsyncFiles(AsyncAPIResource):
     ) -> PreparedAgentFiles:
         """Beta: prepare an explicitly selected directory snapshot."""
         return await self.prepare(
-            directory_files(root, destination, include),
+            await async_directory_files(root, destination, include),
             extra_headers=extra_headers,
             extra_query=extra_query,
             extra_body=extra_body,

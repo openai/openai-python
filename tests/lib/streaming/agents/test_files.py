@@ -331,3 +331,85 @@ async def test_known_stream_sizes_fail_before_upload_without_moving_position(
                 sdk.beta.agents.environments.files.upload("env_test", file=("large", content), path="/workspace/large")
         assert content.tell() == 3
     assert not server.requests
+
+
+async def test_empty_environment_id_fails_before_upload(sdk: OpenAI | AsyncOpenAI, server: FilesServer) -> None:
+    with pytest.raises(ValueError, match="environment_id"):
+        if isinstance(sdk, AsyncOpenAI):
+            await sdk.beta.agents.environments.files.upload(
+                "", file=("source.txt", b"abc"), path="/workspace/source.txt"
+            )
+        else:
+            sdk.beta.agents.environments.files.upload("", file=("source.txt", b"abc"), path="/workspace/source.txt")
+    assert not server.requests
+
+
+@pytest.mark.parametrize("staging", [False, True])
+def test_trio_cancellation_preserves_observed_uploads(tmp_path: Path, staging: bool) -> None:
+    import trio
+    import anyio
+
+    source = tmp_path / "source.txt"
+    source.write_text("abc")
+    server = FilesServer()
+    captured: list[BaseException] = []
+
+    async def run() -> None:
+        with trio.CancelScope() as scope:
+
+            async def handle(request: httpx2.Request) -> httpx2.Response:
+                should_cancel = request.url.path.endswith("env_test/files") if staging else server.uploads == 1
+                if should_cancel:
+                    scope.cancel()
+                    await trio.lowlevel.checkpoint()
+                return server.handle(request)
+
+            async with AsyncOpenAI(
+                api_key="synthetic",
+                base_url="https://sdk-test.example/v1",
+                max_retries=0,
+                http_client=httpx2.AsyncClient(transport=httpx2.MockTransport(handle), trust_env=False),
+            ) as client:
+                try:
+                    if staging:
+                        await client.beta.agents.environments.files.upload(
+                            "env_test", file=source, path="/workspace/source.txt"
+                        )
+                    else:
+                        await client.beta.agents.environments.files.prepare(
+                            {"/workspace/a": source, "/workspace/b": source}
+                        )
+                except trio.Cancelled as error:
+                    captured.append(error)
+                    raise
+
+    anyio.run(run, backend="trio")
+    assert len(captured) == 1
+    if staging:
+        assert vars(captured[0])["uploaded_file_id"] == "file_1"
+    else:
+        assert vars(captured[0])["prepared"].uploaded_file_ids == ["file_1"]
+
+
+async def test_async_directory_selection_runs_off_event_loop(
+    sdk: OpenAI | AsyncOpenAI, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import threading
+
+    from openai.lib.beta.agents import _files
+
+    if not isinstance(sdk, AsyncOpenAI):
+        pytest.skip("Async traversal contract")
+    (tmp_path / "source.txt").write_text("abc")
+    current_thread = threading.get_ident()
+    original = _files.directory_files
+
+    def select(root: Any, destination: str, include: Any) -> Any:
+        assert threading.get_ident() != current_thread
+        return original(root, destination, include)
+
+    monkeypatch.setattr(_files, "directory_files", select)
+    prepared = await sdk.beta.agents.environments.files.prepare_directory(
+        tmp_path, destination="/workspace/docs", include=["*.txt"]
+    )
+    assert prepared.uploaded_file_ids == ["file_1"]

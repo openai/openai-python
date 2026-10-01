@@ -4,14 +4,15 @@ from io import IOBase
 from os import PathLike, walk, fstat
 from stat import S_ISREG
 from typing import TYPE_CHECKING, Mapping, BinaryIO, Sequence, Generator, cast
-from asyncio import CancelledError
 from fnmatch import fnmatchcase
 from pathlib import Path, PurePosixPath
 from contextlib import ExitStack, contextmanager
 from dataclasses import field, dataclass
 from typing_extensions import TypedDict
 
+import anyio
 import httpx2
+from anyio.to_thread import run_sync
 
 from ...._types import Body, Omit, Query, Headers, NotGiven, FileTypes
 from ...._exceptions import OpenAIError
@@ -164,6 +165,10 @@ def directory_files(root: str | PathLike[str], destination: str, include: Sequen
     return selected
 
 
+async def async_directory_files(root: str | PathLike[str], destination: str, include: Sequence[str]) -> dict[str, Path]:
+    return await run_sync(directory_files, root, destination, include)
+
+
 def _open_local(path: Path, stack: ExitStack) -> tuple[BinaryIO, int]:
     before = path.lstat()
     if not S_ISREG(before.st_mode):
@@ -211,7 +216,7 @@ async def async_prepare(
                 )
                 prepared.uploaded_file_ids.append(uploaded.id)
                 prepared.files.append({"type": "file_id", "file_id": uploaded.id, "path": destination})
-        except CancelledError as error:
+        except anyio.get_cancelled_exc_class() as error:
             error.__dict__["prepared"] = prepared
             raise
         except Exception as error:
@@ -230,8 +235,8 @@ def _upload_content(file: FileTypes) -> Generator[FileTypes, None, None]:
             yield cast(FileTypes, (file[0], handle, *file[2:])) if isinstance(file, tuple) else (path.name, handle)
             return
         size = None
-        if isinstance(content, (bytes, str)):
-            size = len(content.encode("utf-8") if isinstance(content, str) else content)
+        if isinstance(content, bytes):
+            size = len(content)
         elif isinstance(content, IOBase):
             try:
                 if content.seekable():
@@ -254,6 +259,8 @@ def _upload_content(file: FileTypes) -> Generator[FileTypes, None, None]:
 def upload(
     resource: Files, environment_id: str, file: FileTypes, path: str, options: _RequestOptions
 ) -> StagedAgentFile:
+    if not environment_id:
+        raise ValueError("Expected a non-empty environment_id")
     destination = _destination(path)
     with _upload_content(file) as content:
         uploaded = resource._client.files.create(file=content, purpose="user_data", **options)
@@ -267,12 +274,14 @@ def upload(
 async def async_upload(
     resource: AsyncFiles, environment_id: str, file: FileTypes, path: str, options: _RequestOptions
 ) -> StagedAgentFile:
+    if not environment_id:
+        raise ValueError("Expected a non-empty environment_id")
     destination = _destination(path)
     with _upload_content(file) as content:
         uploaded = await resource._client.files.create(file=content, purpose="user_data", **options)
     try:
         staged = await resource.create(environment_id, type="file_id", file_id=uploaded.id, path=destination, **options)
-    except CancelledError as error:
+    except anyio.get_cancelled_exc_class() as error:
         error.__dict__["uploaded_file_id"] = uploaded.id
         raise
     except Exception as error:
