@@ -631,3 +631,19 @@ async def test_buffered_idle_does_not_settle_current_active_attachment(
     result = await attach_result(sdk, {"search": lambda args: calls.append(args) or "found"})
     assert result.turn_id == "turn_root"
     assert len(calls) == 1
+
+
+async def test_environment_connection_before_first_turn_is_reported(
+    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer
+) -> None:
+    server.turns = []
+    server.status = "requires_action"
+    server.manual_actions = [manual_action("environment_connection")]
+    server.body = EventBody([])
+    with pytest.raises(AgentTurnResultError, match="requires_action") as caught:
+        await attach_result(sdk)
+    assert caught.value.session_id == "session_test"
+    assert caught.value.turn_id is None
+    assert caught.value.required_actions[0].type == "environment_connection"
+    assert server.body.read_count == 0
+    assert not any(r.url.path.endswith("/items") for r in server.requests)

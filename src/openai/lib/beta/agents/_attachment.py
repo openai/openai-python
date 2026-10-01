@@ -178,8 +178,7 @@ def _select_refreshed(state: AgentSessionAttachment, latest: Turn | None, baseli
 
 def _needs_manual_diagnostics(state: AgentSessionAttachment, session: AgentSession) -> bool:
     return (
-        state.turn is not None
-        and state.turn.status == "waiting"
+        (state.turn is None or state.turn.status == "waiting")
         and session.status == "requires_action"
         and any(action.type != "function_call" for action in session.required_actions)
     )
@@ -217,6 +216,11 @@ async def async_diagnose_manual(
 def _manual_diagnostics(
     state: AgentSessionAttachment, session: AgentSession, latest: Turn | None, collector: AgentTurnResultCollector
 ) -> None:
+    if _needs_manual_diagnostics(state, session) and state.turn is None and latest is None:
+        collector.required_actions = deepcopy(
+            [action for action in session.required_actions if action.type == "environment_connection"]
+        )
+        return
     if (
         not _needs_manual_diagnostics(state, session)
         or state.turn is None
