@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any, Generic, Mapping, Iterable, Iterator, Asy
 from collections import deque
 from typing_extensions import Self, TypedDict
 
+import anyio
 import httpx2
 
 from ._tools import arguments, failed_event, result_event, is_pending_call_race
@@ -551,7 +552,8 @@ class AsyncAgentSessionStream(Generic[OutputT]):
         """Close the event connection without cancelling the backend turn."""
         self._closed = True
         if self._stream is not None:
-            await self._stream.close()
+            with anyio.CancelScope(shield=True):
+                await self._stream.close()
 
     async def _iterate(self) -> AsyncIterator[AgentSessionEvent]:
         assert self._stream is not None

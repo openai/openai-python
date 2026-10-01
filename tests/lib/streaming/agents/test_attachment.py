@@ -840,7 +840,8 @@ async def test_error_hydration_preserves_observed_completed_tail(
 
 
 @pytest.mark.parametrize("backend", ["asyncio", "trio"])
-def test_cancelled_attachment_entry_closes_open_sse(backend: str) -> None:
+@pytest.mark.parametrize("during_refresh", [False, True])
+def test_cancelled_attachment_closes_open_sse(backend: str, during_refresh: bool) -> None:
     import anyio
 
     class CheckpointCloseBody(EventBody):
@@ -850,17 +851,21 @@ def test_cancelled_attachment_entry_closes_open_sse(backend: str) -> None:
             self.closed = True
 
     server = AttachmentServer()
-    server.body = CheckpointCloseBody([])
+    server.body = CheckpointCloseBody([idle()])
     server.turns = []
     cancelled: list[BaseException] = []
 
     async def run() -> None:
         with anyio.CancelScope() as scope:
+            session_reads = 0
 
             async def handle(request: httpx2.Request) -> httpx2.Response:
+                nonlocal session_reads
                 if request.url.path.endswith("/sessions/session_test"):
-                    scope.cancel()
-                    await anyio.sleep(0)
+                    session_reads += 1
+                    if session_reads == (2 if during_refresh else 1):
+                        scope.cancel()
+                        await anyio.sleep(0)
                 return server.handle(request)
 
             async with AsyncOpenAI(
@@ -870,8 +875,10 @@ def test_cancelled_attachment_entry_closes_open_sse(backend: str) -> None:
                 http_client=httpx2.AsyncClient(transport=httpx2.MockTransport(handle), trust_env=False),
             ) as client:
                 try:
-                    async with client.beta.agents.sessions.stream("session_test"):
-                        pytest.fail("Cancelled attachment must not return a stream")
+                    async with client.beta.agents.sessions.stream("session_test") as stream:
+                        assert during_refresh
+                        await stream.until_done()
+                        pytest.fail("Cancelled attachment must not finish successfully")
                 except anyio.get_cancelled_exc_class() as error:
                     cancelled.append(error)
                     raise
