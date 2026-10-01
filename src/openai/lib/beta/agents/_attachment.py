@@ -70,6 +70,8 @@ class AgentSessionAttachment:
             self.select(event.turn)
             return None
         turn_id = getattr(event, "turn_id", None)
+        if not isinstance(turn_id, str):
+            turn_id = getattr(getattr(event, "item", None), "turn_id", None)
         if isinstance(turn_id, str) and turn_id != self.last_candidate:
             self.last_candidate = turn_id
             return turn_id

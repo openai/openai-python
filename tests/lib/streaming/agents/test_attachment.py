@@ -647,3 +647,27 @@ async def test_environment_connection_before_first_turn_is_reported(
     assert caught.value.required_actions[0].type == "environment_connection"
     assert server.body.read_count == 0
     assert not any(r.url.path.endswith("/items") for r in server.requests)
+
+
+async def test_first_waiting_root_discovered_from_browser_item_checks_manual_action(
+    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer
+) -> None:
+    server.turns = []
+    server.live_turns = [turn("waiting")]
+    server.status = "requires_action"
+    server.manual_actions = [manual_action("browser_authentication")]
+    request: Any = call()
+    request["turn_id"] = None
+    request["item"] = {
+        "type": "computer_use_approval_request",
+        "id": "request_test",
+        "turn_id": "turn_root",
+        "request_id": "request_test",
+        "request": server.manual_actions[0]["request"],
+    }
+    server.body = EventBody([request])
+    with pytest.raises(AgentTurnResultError, match="requires_action") as caught:
+        await attach_result(sdk)
+    assert caught.value.turn_id == "turn_root"
+    assert caught.value.required_actions[0].type == "computer_use_approval_request"
+    assert server.body.read_count == 1

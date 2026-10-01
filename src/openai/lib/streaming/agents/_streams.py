@@ -301,6 +301,7 @@ class AgentSessionStream(Generic[OutputT]):
                 if not self._state.accept(event):
                     continue
                 if self._attachment is not None:
+                    discovering = self._attachment.turn is None
                     candidate = self._attachment.candidate(event)
                     if candidate is not None:
                         select_candidate(self._sessions, self._attachment, candidate, self._options)
@@ -309,6 +310,10 @@ class AgentSessionStream(Generic[OutputT]):
                         self._state.turn_ended = self._attachment.turn.status in ("completed", "failed", "cancelled")
                     if self._collection.collector is not None:
                         self._attachment.seed(self._collection.collector)
+                        if discovering and self._attachment.turn is not None:
+                            self._attachment.manual_diagnostics = self._attachment.turn.status == "waiting"
+                            diagnose_manual(self._sessions, self._attachment, self._collection.collector, self._options)
+                            self._collection.collector.check_outcome(self._handlers)
                 self._collection.accept(event)
                 terminal = self._state.terminal(event)
                 if self._attachment is not None and self._state.turn_ended:
@@ -543,6 +548,7 @@ class AsyncAgentSessionStream(Generic[OutputT]):
                 if not self._state.accept(event):
                     continue
                 if self._attachment is not None:
+                    discovering = self._attachment.turn is None
                     candidate = self._attachment.candidate(event)
                     if candidate is not None:
                         await async_select_candidate(self._sessions, self._attachment, candidate, self._options)
@@ -551,6 +557,12 @@ class AsyncAgentSessionStream(Generic[OutputT]):
                         self._state.turn_ended = self._attachment.turn.status in ("completed", "failed", "cancelled")
                     if self._collection.collector is not None:
                         self._attachment.seed(self._collection.collector)
+                        if discovering and self._attachment.turn is not None:
+                            self._attachment.manual_diagnostics = self._attachment.turn.status == "waiting"
+                            await async_diagnose_manual(
+                                self._sessions, self._attachment, self._collection.collector, self._options
+                            )
+                            self._collection.collector.check_outcome(self._handlers)
                 self._collection.accept(event)
                 terminal = self._state.terminal(event)
                 if self._attachment is not None and self._state.turn_ended:
