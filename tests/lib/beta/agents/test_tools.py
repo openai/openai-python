@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import json
-from typing import Any, cast
+from typing import Any, Awaitable, cast
 from datetime import date
-from typing_extensions import Annotated
+from typing_extensions import Annotated, assert_type
 
 import httpx2
 import pytest
@@ -12,7 +12,8 @@ from pydantic import Field, BaseModel, ValidationError
 
 from openai import OpenAI, AsyncOpenAI
 from openai._compat import PYDANTIC_V1, model_parse
-from openai.lib.beta.agents import function_tool, pydantic_function_tool
+from openai.lib.beta.agents import FunctionTool, function_tool, pydantic_function_tool
+from openai.lib.streaming.agents._types import ToolOutput
 from tests.lib.streaming.agents.test_streams import Server, EventBody, call, idle, turn_event
 
 
@@ -244,8 +245,6 @@ async def test_json_outputs_and_content_parts_through_dispatch(
 
 
 async def test_sync_function_returning_awaitable() -> None:
-    from typing import Awaitable
-
     async def result() -> list[int]:
         return [1, 2]
 
@@ -424,3 +423,53 @@ def test_non_object_argument_model_rejected() -> None:
 
     with pytest.raises(TypeError, match="object JSON schema"):
         pydantic_function_tool(model, handler=action)
+
+
+async def test_function_tool_decorator_forms() -> None:
+    seen: list[str] = []
+
+    @function_tool(name="lookup_order", description="Find delivery status")
+    def lookup(order_id: str) -> dict[str, str]:
+        seen.append(order_id)
+        return {"order_id": order_id}
+
+    @function_tool()
+    def default_lookup(order_id: str) -> str:
+        """Look up an order."""
+        return order_id
+
+    @function_tool
+    def bare_lookup(order_id: str) -> str:
+        return order_id
+
+    assert_type(lookup, FunctionTool[ToolOutput])
+    assert_type(default_lookup, FunctionTool[ToolOutput])
+    assert_type(bare_lookup, FunctionTool[ToolOutput])
+    assert lookup.name == "lookup_order"
+    assert lookup.definition["description"] == "Find delivery status"
+    assert default_lookup.name == "default_lookup"
+    assert default_lookup.definition["description"] == "Look up an order."
+    assert json.loads(cast(str, lookup({"order_id": "A123"}))) == {"order_id": "A123"}
+    assert default_lookup({"order_id": "A123"}) == "A123"
+    assert bare_lookup({"order_id": "A123"}) == "A123"
+    with pytest.raises(ValidationError):
+        lookup({})
+    assert seen == ["A123"]
+
+    @function_tool(name="async_lookup", description="Async delivery status")
+    async def async_lookup(order_id: str) -> str:
+        return order_id
+
+    @function_tool()
+    async def default_async_lookup(order_id: str) -> str:
+        return order_id
+
+    @function_tool
+    async def bare_async_lookup(order_id: str) -> str:
+        return order_id
+
+    assert_type(async_lookup, FunctionTool[Awaitable[ToolOutput]])
+    assert_type(default_async_lookup, FunctionTool[Awaitable[ToolOutput]])
+    assert_type(bare_async_lookup, FunctionTool[Awaitable[ToolOutput]])
+    for tool in (async_lookup, default_async_lookup, bare_async_lookup):
+        assert await tool({"order_id": "A123"}) == "A123"

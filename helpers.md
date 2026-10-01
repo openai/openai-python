@@ -543,11 +543,10 @@ Bind an annotated function or bound method once, then reuse its definition and l
 ```py
 from openai.lib.beta.agents import function_tool
 
-def lookup_order(order_id: str) -> dict[str, str]:
-    """Look up an order's delivery status."""
+@function_tool(name="lookup_order", description="Look up an order's delivery status.")
+def lookup(order_id: str) -> dict[str, str]:
     return {"order_id": order_id, "status": "shipped"}
 
-lookup = function_tool(lookup_order)
 # Include lookup.definition in agent={"model": MODEL, "tools": [...]} when creating a session.
 with client.beta.agents.sessions.stream(
     SESSION_ID, input="Where is order A123?", tool_handlers={lookup.name: lookup},

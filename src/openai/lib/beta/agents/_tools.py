@@ -5,7 +5,8 @@ import inspect
 from copy import deepcopy
 from types import SimpleNamespace
 from typing import Any, Generic, Mapping, TypeVar, Callable, Iterable, Awaitable, Generator, cast, get_type_hints
-from typing_extensions import overload
+from functools import partial
+from typing_extensions import Protocol, overload
 
 import pydantic
 
@@ -150,6 +151,16 @@ def pydantic_function_tool(
     )
 
 
+class _FunctionToolDecorator(Protocol):
+    @overload
+    def __call__(  # type: ignore[overload-overlap]
+        self, function: Callable[..., Awaitable[object]]
+    ) -> FunctionTool[Awaitable[ToolOutput]]: ...
+
+    @overload
+    def __call__(self, function: Callable[..., object]) -> FunctionTool[ToolOutput]: ...
+
+
 @overload
 def function_tool(  # type: ignore[overload-overlap]
     function: Callable[..., Awaitable[object]],
@@ -168,14 +179,24 @@ def function_tool(
 ) -> FunctionTool[ToolOutput]: ...
 
 
+@overload
 def function_tool(
-    function: Callable[..., object],
+    function: None = None,
     *,
     name: str | None = None,
     description: str | None = None,
-) -> FunctionTool[Any]:
+) -> _FunctionToolDecorator: ...
+
+
+def function_tool(
+    function: Callable[..., object] | None = None,
+    *,
+    name: str | None = None,
+    description: str | None = None,
+) -> FunctionTool[Any] | _FunctionToolDecorator:
     """Adapt an annotated function or bound method into a beta Agents tool.
 
+    Use directly or as ``@function_tool`` / ``@function_tool(name="lookup")``.
     Every argument must have a Pydantic-compatible annotation. Positional-only
     arguments, variadic arguments, and names starting with an underscore are
     unsupported; use an explicit Pydantic model for these signatures. Defaults
@@ -183,6 +204,9 @@ def function_tool(
     or bound methods so they do not appear in the tool's arguments. Use an explicit
     Pydantic model when postponed types only exist in an enclosing local scope.
     """
+    if function is None:
+        return cast(_FunctionToolDecorator, partial(function_tool, name=name, description=description))
+
     signature = inspect.signature(function)
     annotation_source = inspect.unwrap(function)
     localns: dict[str, Any] = {}
