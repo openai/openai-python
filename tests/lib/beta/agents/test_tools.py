@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 import json
 from typing import Any, Callable, Awaitable, cast
 from datetime import date
@@ -636,3 +637,55 @@ def test_module_function_attached_as_method_uses_globals() -> None:
         lookup = module.lookup
 
     assert function_tool(Wallet().lookup)({"asset": {"symbol": "USDC"}}) == "USDC"
+
+
+@pytest.mark.skipif(sys.version_info < (3, 12), reason="PEP 695 requires Python 3.12")
+def test_function_and_class_type_parameter_annotations() -> None:
+    from types import ModuleType
+
+    module = ModuleType("generic_action_module")
+    exec(
+        "from __future__ import annotations\n"
+        "def choose[T: str](value: T) -> T:\n    return value\n"
+        "class Wallet[T: int]:\n"
+        "    def count(self, value: T) -> T:\n        return value\n"
+        "    def choose[T: str](self, value: T) -> T:\n        return value\n",
+        module.__dict__,
+    )
+    assert function_tool(module.choose)({"value": "USDC"}) == "USDC"
+    assert function_tool(module.Wallet().count)({"value": 3}) == "3"
+    assert function_tool(module.Wallet().choose)({"value": "USDC"}) == "USDC"
+
+
+def test_transplanted_method_keeps_module_visible_lexical_owner() -> None:
+    from types import ModuleType
+
+    module = ModuleType("transplanted_action_module")
+    exec(
+        "from __future__ import annotations\n"
+        "from pydantic import BaseModel\n"
+        "class Wallet:\n"
+        "    class Asset(BaseModel):\n        symbol: str\n"
+        "    def lookup(self, asset: Asset) -> str:\n        return asset.symbol\n",
+        module.__dict__,
+    )
+
+    class Target:
+        class Asset(BaseModel):
+            address: int
+
+        lookup = module.Wallet.lookup
+
+    assert function_tool(Target().lookup)({"asset": {"symbol": "USDC"}}) == "USDC"
+
+
+@pytest.mark.parametrize(
+    "record",
+    [
+        {"type": "input_text", "text": "paid", "receipt_id": "r1"},
+        {"type": "input_image", "image_url": "https://example.com/receipt.png", "receipt_id": "r1"},
+    ],
+)
+def test_content_shaped_business_records_preserve_extra_fields(record: dict[str, str]) -> None:
+    tool = function_tool(lambda: [record])
+    assert json.loads(cast(str, tool({}))) == [record]

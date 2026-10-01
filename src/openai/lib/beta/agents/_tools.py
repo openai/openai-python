@@ -90,6 +90,7 @@ def _tool_output(output: object) -> ToolOutput:
             output = list(cast(Iterable[object], output))
         if output and all(
             is_dict(part)
+            and len(part) == 2
             and (
                 (part.get("type") == "input_text" and isinstance(part.get("text"), str))
                 or (part.get("type") == "input_image" and isinstance(part.get("image_url"), str))
@@ -239,8 +240,8 @@ def function_tool(
             ),
             None,
         )
-    else:
-        # Static methods retain their defining class path, but no bound owner.
+    if owner is None:
+        # Static and transplanted methods can retain a module-visible lexical owner.
         namespace = getattr(annotation_source, "__globals__", {})
         for part in getattr(annotation_source, "__qualname__", "").split(".")[:-1]:
             owner = namespace.get(part)
@@ -253,11 +254,12 @@ def function_tool(
     # Return annotations may be TYPE_CHECKING-only imports; tools only need inputs.
     annotations = get_type_hints(
         SimpleNamespace(
+            __type_params__=getattr(owner, "__type_params__", ()) + getattr(source_function, "__type_params__", ()),
             __annotations__={
                 name: parameter.annotation
                 for name, parameter in signature.parameters.items()
                 if parameter.annotation is not inspect.Parameter.empty
-            }
+            },
         ),
         globalns=getattr(annotation_source, "__globals__", None),
         localns=localns,
