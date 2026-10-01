@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import os
 from io import IOBase
-from os import PathLike, walk, fstat
-from stat import S_ISREG
+from os import PathLike, fstat
+from stat import S_ISDIR, S_ISREG
 from typing import TYPE_CHECKING, Mapping, BinaryIO, Sequence, Generator, cast
 from fnmatch import fnmatchcase
 from pathlib import Path, PurePosixPath
@@ -115,21 +116,31 @@ def _prepare_selection(
     return selected
 
 
-def _matches(parts: tuple[str, ...], pattern: tuple[str, ...], *, prefix: bool = False) -> bool:
-    # A directory prefix is useful only if the pattern can select a descendant.
-    if prefix and not parts:
-        return bool(pattern)
+def _glob_files(current: Path, pattern: tuple[str, ...], root: Path) -> Generator[Path, None, None]:
+    try:
+        metadata = current.lstat()
+    except (FileNotFoundError, NotADirectoryError):
+        return
     if not pattern:
-        return not parts
-    if pattern[0] == "**":
-        return (
-            _matches(parts, pattern[1:], prefix=prefix) or bool(parts) and _matches(parts[1:], pattern, prefix=prefix)
-        )
-    return bool(parts) and fnmatchcase(parts[0], pattern[0]) and _matches(parts[1:], pattern[1:], prefix=prefix)
-
-
-def _walk_error(error: OSError) -> None:
-    raise error
+        yield current
+        return
+    if not S_ISDIR(metadata.st_mode):  # Do not follow directory symlinks.
+        return
+    if not current.resolve().is_relative_to(root):
+        raise ValueError("Selected directory traversal left its root")
+    segment, rest = pattern[0], pattern[1:]
+    if segment == "**":
+        yield from _glob_files(current, rest, root)
+    elif not any(character in segment for character in "*?["):
+        yield from _glob_files(current / segment, rest, root)
+        return
+    # Unlike glob/pathlib.glob, propagate errors for directories we need to read.
+    with os.scandir(current) as entries:
+        children = sorted(Path(entry.path) for entry in entries if segment == "**" or fnmatchcase(entry.name, segment))
+    for child in children:
+        if segment == "**" and not rest:
+            yield child
+        yield from _glob_files(child, pattern if segment == "**" else rest, root)
 
 
 def directory_files(root: str | PathLike[str], destination: str, include: Sequence[str]) -> dict[str, PathLike[str]]:
@@ -147,32 +158,20 @@ def directory_files(root: str | PathLike[str], destination: str, include: Sequen
             raise ValueError("Include patterns must stay inside the selected directory")
         patterns.append(PurePosixPath(pattern).parts)
     selected: dict[str, PathLike[str]] = {}
-    for current, directories, names in walk(directory, followlinks=False, onerror=_walk_error):
-        if not Path(current).resolve().is_relative_to(directory):
-            raise ValueError("Selected directory traversal left its root")
-        directories.sort()
-        for name in sorted([*directories, *names]):
-            source = Path(current) / name
-            relative = source.relative_to(directory)
-            chosen = any(_matches(relative.parts, pattern) for pattern in patterns)
+    for pattern in patterns:
+        for source in _glob_files(directory, pattern, directory):
             if source.is_symlink():
-                if chosen:
-                    raise ValueError("Selected agent files must not be symlinks")
-                if name in directories:
-                    directories.remove(name)
+                raise ValueError("Selected agent files must not be symlinks")
+            if source.is_dir():
                 continue
-            if name in directories:
-                if not any(_matches(relative.parts, pattern, prefix=True) for pattern in patterns):
-                    directories.remove(name)
-                continue
-            if chosen:
-                canonical = source.resolve()
-                if not canonical.is_relative_to(directory):
-                    raise ValueError("Selected agent file is outside the chosen directory")
-                metadata = canonical.lstat()
-                selected[str(PurePosixPath(destination) / relative.as_posix())] = _SelectedFile(
-                    canonical, (metadata.st_dev, metadata.st_ino, metadata.st_size)
-                )
+            canonical = source.resolve()
+            if not canonical.is_relative_to(directory):
+                raise ValueError("Selected agent file is outside the chosen directory")
+            metadata = canonical.lstat()
+            relative = source.relative_to(directory)
+            selected[str(PurePosixPath(destination) / relative.as_posix())] = _SelectedFile(
+                canonical, (metadata.st_dev, metadata.st_ino, metadata.st_size)
+            )
     if not selected:
         raise ValueError("The include patterns did not select any files")
     return selected
