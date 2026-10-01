@@ -577,27 +577,30 @@ Bind an annotated function or bound method once, then reuse its definition and l
 ```py
 from openai.lib.beta.agents import function_tool
 
-@function_tool(name="lookup_order", description="Look up an order's delivery status.")
-def lookup(order_id: str) -> dict[str, str]:
-    return {"order_id": order_id, "status": "shipped"}
+@function_tool(name="lookup_item", description="Look up a catalog item.")
+def lookup(item_id: str) -> dict[str, str]:
+    return {"item_id": item_id, "name": "Notebook"}
 
 # Include lookup.definition in agent={"model": MODEL, "tools": [...]} when creating a session.
 with client.beta.agents.sessions.stream(
-    SESSION_ID, input="Where is order A123?", tool_handlers={lookup.name: lookup},
+    SESSION_ID, input="Find catalog item A123.", tool_handlers={lookup.name: lookup},
 ) as stream:
     stream.until_done()
 ```
 
-For an existing Pydantic argument model or a Coinbase-style action, use an explicit binding:
+For an existing Pydantic argument model, use an explicit binding:
 
 ```py
+from pydantic import BaseModel
 from openai.lib.beta.agents import pydantic_function_tool
 
-transfer = pydantic_function_tool(
-    TransferArguments, name="transfer_asset", handler=wallet.transfer,
+class LookupArguments(BaseModel):
+    item_id: str
+
+lookup = pydantic_function_tool(
+    LookupArguments, name="lookup_item", handler=catalog.lookup,
 )
-# wallet.transfer receives a validated TransferArguments instance.
-# Keep wallet credentials and application approval checks in the bound method.
+# catalog.lookup receives a validated LookupArguments instance.
 ```
 
 Callbacks can be async when used with `AsyncOpenAI`. Existing dictionary handlers still work.

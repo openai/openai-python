@@ -18,72 +18,72 @@ from openai.lib.streaming.agents._types import ToolOutput
 from tests.lib.streaming.agents.test_streams import Server, EventBody, call, idle, turn_event
 
 
-class Destination(BaseModel):
-    address: str
+class Item(BaseModel):
+    sku: str
 
 
-class Transfer(BaseModel):
-    destination: Destination
-    amount: int = Field(gt=0)
+class Reservation(BaseModel):
+    item: Item
+    quantity: int = Field(gt=0)
 
 
-class Wallet:
-    """A local stand-in for a Coinbase-style bound domain action."""
+class Catalog:
+    """A local stand-in for a bound application method."""
 
     def __init__(self) -> None:
-        self.transfers: list[tuple[str, int]] = []
+        self.reservations: list[tuple[str, int]] = []
 
-    def transfer(self, destination: Destination, amount: int, *, asset: str = "USDC") -> dict[str, object]:
-        """Transfer an asset from this wallet."""
-        self.transfers.append((destination.address, amount))
-        return {"receipt": "test-receipt", "asset": asset}
+    def reserve(self, item: Item, quantity: int, *, product: str = "notebook") -> dict[str, object]:
+        """Reserve an item from this catalog."""
+        self.reservations.append((item.sku, quantity))
+        return {"receipt": "test-receipt", "product": product}
 
 
 def test_bound_action_schema_defaults_and_nested_models() -> None:
-    wallet = Wallet()
-    tool = function_tool(wallet.transfer)
-    assert tool.name == "transfer"
+    catalog = Catalog()
+    tool = function_tool(catalog.reserve)
+    assert tool.name == "reserve"
     assert tool.definition["type"] == "function"
-    assert tool.definition["description"] == "Transfer an asset from this wallet."
-    assert set(tool.definition["parameters"]["properties"]) == {"destination", "amount", "asset"}  # type: ignore
+    assert tool.definition["description"] == "Reserve an item from this catalog."
+    assert set(tool.definition["parameters"]["properties"]) == {"item", "quantity", "product"}  # type: ignore
     assert "self" not in tool.definition["parameters"]["properties"]  # type: ignore
-    assert json.loads(cast(str, tool({"destination": {"address": "test-address"}, "amount": 3}))) == {
+    assert json.loads(cast(str, tool({"item": {"sku": "test-sku"}, "quantity": 3}))) == {
         "receipt": "test-receipt",
-        "asset": "USDC",
+        "product": "notebook",
     }
-    assert wallet.transfers == [("test-address", 3)]
+    assert catalog.reservations == [("test-sku", 3)]
     definition = tool.definition
     definition["name"] = "changed"
-    assert tool.name == "transfer"
+    assert tool.name == "reserve"
 
 
 @pytest.mark.parametrize(
-    "arguments", [{}, {"destination": {}, "amount": 1}, {"destination": {"address": "a"}, "amount": 1, "secret": "bad"}]
+    "arguments", [{}, {"item": {}, "quantity": 1}, {"item": {"sku": "a"}, "quantity": 1, "secret": "bad"}]
 )
 def test_invalid_annotations_do_not_execute(arguments: dict[str, Any]) -> None:
-    wallet = Wallet()
-    tool = function_tool(wallet.transfer)
+    catalog = Catalog()
+    tool = function_tool(catalog.reserve)
     with pytest.raises(ValidationError):
         tool(arguments)
-    assert wallet.transfers == []
+    assert catalog.reservations == []
 
 
 def test_explicit_model_and_alias() -> None:
     class Arguments(BaseModel):
-        amount: int = Field(gt=0, alias="amount_units")
+        quantity: int = Field(gt=0, alias="quantity_units")
 
     seen: list[Arguments] = []
 
     def handler(arguments: Arguments) -> str:
         seen.append(arguments)
-        return str(arguments.amount)
+        return str(arguments.quantity)
 
-    tool = pydantic_function_tool(Arguments, name="transfer", description="Send units", handler=handler)
-    assert tool({"amount_units": 2}) == "2"
+    tool = pydantic_function_tool(Arguments, name="reserve", description="Reserve items", handler=handler)
+    assert tool({"quantity_units": 2}) == "2"
     assert isinstance(seen[0], Arguments)
-    assert "amount_units" in tool.definition["parameters"]["properties"]  # type: ignore
+    assert "quantity_units" in tool.definition["parameters"]["properties"]  # type: ignore
     with pytest.raises(ValidationError):
-        tool({"amount_units": 0})
+        tool({"quantity_units": 0})
     assert len(seen) == 1
 
 
@@ -115,13 +115,13 @@ def test_positional_only_rejected() -> None:
 @pytest.mark.parametrize("asynchronous", [False, True])
 @pytest.mark.parametrize("invalid", [False, True])
 async def test_bound_action_through_existing_dispatch(asynchronous: bool, invalid: bool) -> None:
-    wallet = Wallet()
-    tool = function_tool(wallet.transfer, name="search")
+    catalog = Catalog()
+    tool = function_tool(catalog.reserve, name="search")
     server = Server()
-    arguments = {"destination": {} if invalid else {"address": "test-address"}, "amount": 3}
+    arguments = {"item": {} if invalid else {"sku": "test-sku"}, "quantity": 3}
     event = call(arguments)
     server.body = EventBody([turn_event("created"), event, event, turn_event("completed"), idle()])
-    options = {"input": "Transfer units", "tool_handlers": {tool.name: tool}, "extra_headers": {"X-App": "example"}}
+    options = {"input": "Reserve items", "tool_handlers": {tool.name: tool}, "extra_headers": {"X-App": "example"}}
     transport = httpx2.MockTransport(server.handle)
     if asynchronous:
         async with AsyncOpenAI(api_key="synthetic", http_client=httpx2.AsyncClient(transport=transport)) as client:
@@ -131,29 +131,29 @@ async def test_bound_action_through_existing_dispatch(asynchronous: bool, invali
         with OpenAI(api_key="synthetic", http_client=httpx2.Client(transport=transport)) as client:
             with client.beta.agents.sessions.stream("session_test", **options) as stream:  # type: ignore
                 stream.until_done()
-    assert wallet.transfers == ([] if invalid else [("test-address", 3)])
+    assert catalog.reservations == ([] if invalid else [("test-sku", 3)])
     results = server.inputs()[1:]
     assert len(results) == 1
     assert results[0]["success"] is not invalid
     assert all(request.headers["X-App"] == "example" for request in server.requests)
     if not invalid:
-        assert results[0]["output"] == '{"receipt":"test-receipt","asset":"USDC"}'
+        assert results[0]["output"] == '{"receipt":"test-receipt","product":"notebook"}'
 
 
 @pytest.mark.parametrize("asynchronous", [False, True])
 async def test_async_action_requires_async_dispatch(asynchronous: bool) -> None:
-    seen: list[Transfer] = []
+    seen: list[Reservation] = []
 
-    async def handler(arguments: Transfer) -> str:
+    async def handler(arguments: Reservation) -> str:
         seen.append(arguments)
         return "test-receipt"
 
-    tool = pydantic_function_tool(Transfer, name="search", handler=handler)
+    tool = pydantic_function_tool(Reservation, name="search", handler=handler)
     server = Server()
     server.body = EventBody(
         [
             turn_event("created"),
-            call({"destination": {"address": "test-address"}, "amount": 3}),
+            call({"item": {"sku": "test-sku"}, "quantity": 3}),
             turn_event("completed"),
             idle(),
         ]
@@ -162,13 +162,13 @@ async def test_async_action_requires_async_dispatch(asynchronous: bool) -> None:
     if asynchronous:
         async with AsyncOpenAI(api_key="synthetic", http_client=httpx2.AsyncClient(transport=transport)) as client:
             async with client.beta.agents.sessions.stream(
-                "session_test", input="Transfer", tool_handlers={tool.name: tool}
+                "session_test", input="Reserve an item", tool_handlers={tool.name: tool}
             ) as stream:
                 await stream.until_done()
     else:
         with OpenAI(api_key="synthetic", http_client=httpx2.Client(transport=transport)) as client:
             with client.beta.agents.sessions.stream(
-                "session_test", input="Transfer", tool_handlers=cast(Any, {tool.name: tool})
+                "session_test", input="Reserve an item", tool_handlers=cast(Any, {tool.name: tool})
             ) as stream:
                 stream.until_done()
     assert len(seen) == int(asynchronous)
@@ -188,10 +188,10 @@ def test_reserved_parameter_names_and_annotated_constraints() -> None:
         return f"{schema}:{dict}:{json}"
 
     tool = function_tool(action)
-    assert tool({"schema": "transfer", "dict": 2, "json": 3}) == "transfer:2:3"
+    assert tool({"schema": "reserve", "dict": 2, "json": 3}) == "reserve:2:3"
     assert set(cast(dict[str, Any], tool.definition["parameters"]["properties"])) == {"schema", "dict", "json"}
     with pytest.raises(ValidationError):
-        tool({"schema": "transfer", "dict": 2, "json": 0})
+        tool({"schema": "reserve", "dict": 2, "json": 0})
 
 
 @pytest.mark.parametrize("asynchronous", [False, True])
@@ -265,32 +265,32 @@ async def test_sync_function_returning_awaitable() -> None:
 
 
 def test_bound_class_namespaces() -> None:
-    class Wallet:
-        class Asset(BaseModel):
-            symbol: str
+    class Catalog:
+        class Product(BaseModel):
+            name: str
 
-        def lookup(self, asset: Asset) -> str:
-            return asset.symbol
+        def lookup(self, product: Product) -> str:
+            return product.name
 
         @classmethod
-        def lookup_class(cls, asset: Asset) -> str:
-            return asset.symbol
+        def lookup_class(cls, product: Product) -> str:
+            return product.name
 
-    class InheritedWallet(Wallet):
+    class InheritedCatalog(Catalog):
         pass
 
-    class ShadowedWallet(Wallet):
-        class Asset(BaseModel):  # pyright: ignore[reportIncompatibleVariableOverride]
-            address: int
+    class ShadowedCatalog(Catalog):
+        class Product(BaseModel):  # pyright: ignore[reportIncompatibleVariableOverride]
+            sku: int
 
     for callback in (
-        Wallet().lookup,
-        InheritedWallet().lookup,
-        Wallet.lookup_class,
-        ShadowedWallet().lookup,
-        ShadowedWallet.lookup_class,
+        Catalog().lookup,
+        InheritedCatalog().lookup,
+        Catalog.lookup_class,
+        ShadowedCatalog().lookup,
+        ShadowedCatalog.lookup_class,
     ):
-        assert function_tool(callback)({"asset": {"symbol": "USDC"}}) == "USDC"
+        assert function_tool(callback)({"product": {"name": "notebook"}}) == "notebook"
 
 
 def test_static_method_class_namespaces() -> None:
@@ -302,21 +302,21 @@ def test_static_method_class_namespaces() -> None:
         "from __future__ import annotations\n"
         "from pydantic import BaseModel\n"
         "class Container:\n"
-        "    class Wallet:\n"
-        "        class Asset(BaseModel):\n            symbol: str\n"
+        "    class Catalog:\n"
+        "        class Product(BaseModel):\n            name: str\n"
         "        @staticmethod\n"
-        "        def lookup(asset: Asset) -> str:\n            return asset.symbol\n"
-        "class InheritedWallet(Container.Wallet):\n"
-        "    class Asset(BaseModel):\n        address: int\n",
+        "        def lookup(product: Product) -> str:\n            return product.name\n"
+        "class InheritedCatalog(Container.Catalog):\n"
+        "    class Product(BaseModel):\n        sku: int\n",
         module.__dict__,
     )
 
-    @wraps(module.Container.Wallet.lookup)
+    @wraps(module.Container.Catalog.lookup)
     def wrapped(*args: Any, **kwargs: Any) -> Any:
-        return module.Container.Wallet.lookup(*args, **kwargs)
+        return module.Container.Catalog.lookup(*args, **kwargs)
 
-    for callback in (module.Container.Wallet.lookup, module.InheritedWallet.lookup, wrapped):
-        assert function_tool(callback)({"asset": {"symbol": "USDC"}}) == "USDC"
+    for callback in (module.Container.Catalog.lookup, module.InheritedCatalog.lookup, wrapped):
+        assert function_tool(callback)({"product": {"name": "notebook"}}) == "notebook"
 
 
 def test_cross_module_decorator_annotations() -> None:
@@ -327,8 +327,8 @@ def test_cross_module_decorator_annotations() -> None:
     exec(
         "from __future__ import annotations\n"
         "from pydantic import BaseModel\n"
-        "class Asset(BaseModel):\n    symbol: str\n"
-        "def action(asset: Asset) -> str:\n    return asset.symbol\n",
+        "class Product(BaseModel):\n    name: str\n"
+        "def action(product: Product) -> str:\n    return product.name\n",
         module.__dict__,
     )
 
@@ -336,7 +336,7 @@ def test_cross_module_decorator_annotations() -> None:
     def wrapped(*args: Any, **kwargs: Any) -> Any:
         return module.action(*args, **kwargs)
 
-    assert function_tool(wrapped)({"asset": {"symbol": "USDC"}}) == "USDC"
+    assert function_tool(wrapped)({"product": {"name": "notebook"}}) == "notebook"
 
 
 def test_model_output_is_json_object() -> None:
@@ -353,7 +353,7 @@ def test_model_output_is_json_object() -> None:
 @pytest.mark.parametrize("value", [float("nan"), float("inf"), -float("inf")])
 def test_nonfinite_mapping_results_rejected(value: float) -> None:
     def action() -> dict[str, object]:
-        return {"nested": {"amount": value}}
+        return {"nested": {"quantity": value}}
 
     with pytest.raises(ValueError):
         function_tool(action)({})
@@ -479,10 +479,10 @@ async def test_function_tool_decorator_forms() -> None:
 @pytest.mark.parametrize("value", [float("nan"), float("inf"), -float("inf")])
 def test_nonfinite_model_results_rejected(value: float) -> None:
     class Receipt(BaseModel):
-        amount: float
+        quantity: float
 
     def action() -> Receipt:
-        return Receipt(amount=value)
+        return Receipt(quantity=value)
 
     with pytest.raises(ValueError):
         function_tool(action)({})
@@ -492,22 +492,24 @@ def test_object_root_argument_model() -> None:
     from openai._compat import model_json_schema
 
     model = (
-        pydantic.create_model("ObjectInput", __root__=(Transfer, ...)) if PYDANTIC_V1 else pydantic.RootModel[Transfer]
+        pydantic.create_model("ObjectInput", __root__=(Reservation, ...))
+        if PYDANTIC_V1
+        else pydantic.RootModel[Reservation]
     )
     seen: list[BaseModel] = []
 
     def action(arguments: BaseModel) -> str:
         seen.append(arguments)
-        transfer = getattr(arguments, "__root__" if PYDANTIC_V1 else "root")
-        assert isinstance(transfer, Transfer)
-        assert transfer.destination.address == "test-address"
+        reserve = getattr(arguments, "__root__" if PYDANTIC_V1 else "root")
+        assert isinstance(reserve, Reservation)
+        assert reserve.item.sku == "test-sku"
         return "paid"
 
     tool = pydantic_function_tool(model, handler=action)
     assert tool.definition["parameters"] == model_json_schema(model)
-    assert tool({"destination": {"address": "test-address"}, "amount": 3}) == "paid"
+    assert tool({"item": {"sku": "test-sku"}, "quantity": 3}) == "paid"
     with pytest.raises(ValidationError):
-        tool({"destination": {"address": "test-address"}, "amount": -1})
+        tool({"item": {"sku": "test-sku"}, "quantity": -1})
     assert len(seen) == 1
 
 
@@ -545,9 +547,9 @@ async def test_sync_rejection_cancels_scheduled_awaitable(task: bool) -> None:
 
 def test_root_schema_compositions_have_explicit_supported_boundary() -> None:
     model = (
-        pydantic.create_model("RootUnion", __root__=(Transfer | Destination, ...))
+        pydantic.create_model("RootUnion", __root__=(Reservation | Item, ...))
         if PYDANTIC_V1
-        else pydantic.RootModel[Transfer | Destination]
+        else pydantic.RootModel[Reservation | Item]
     )
 
     def action(_arguments: BaseModel) -> str:
@@ -556,13 +558,13 @@ def test_root_schema_compositions_have_explicit_supported_boundary() -> None:
     with pytest.raises(TypeError, match="root-level compositions are unsupported"):
         pydantic_function_tool(model, handler=action)
     if PYDANTIC_V1:
-        composed = pydantic.create_model("ComposedRoot", __root__=(Transfer, Field(..., description="Transfer")))
+        composed = pydantic.create_model("ComposedRoot", __root__=(Reservation, Field(..., description="Reservation")))
         with pytest.raises(TypeError, match="root-level compositions are unsupported"):
             pydantic_function_tool(composed, handler=action)
 
-    wrapped = pydantic.create_model("WrappedUnion", value=(Transfer | Destination, ...))
+    wrapped = pydantic.create_model("WrappedUnion", value=(Reservation | Item, ...))
     tool = pydantic_function_tool(wrapped, handler=lambda _: "accepted")
-    assert tool({"value": {"address": "test-address"}}) == "accepted"
+    assert tool({"value": {"sku": "test-sku"}}) == "accepted"
 
 
 @pytest.mark.parametrize("wrap_base", [False, True])
@@ -576,46 +578,46 @@ def test_wrapped_override_uses_defining_namespace(wrap_base: bool) -> None:
 
         return wrapped if wrap_base else function
 
-    class Wallet:
-        class Asset(BaseModel):
-            symbol: str
+    class Catalog:
+        class Product(BaseModel):
+            name: str
 
         @maybe_wrap
-        def lookup(self, asset: Asset) -> str:
-            return asset.symbol
+        def lookup(self, product: Product) -> str:
+            return product.name
 
-    class Child(Wallet):
-        class Asset(BaseModel):  # pyright: ignore[reportIncompatibleVariableOverride]
-            address: int
+    class Child(Catalog):
+        class Product(BaseModel):  # pyright: ignore[reportIncompatibleVariableOverride]
+            sku: int
 
-        @wraps(Wallet.lookup)
-        def lookup(self, asset: Any) -> str:  # pyright: ignore[reportIncompatibleMethodOverride]
-            return super().lookup(asset)
+        @wraps(Catalog.lookup)
+        def lookup(self, product: Any) -> str:  # pyright: ignore[reportIncompatibleMethodOverride]
+            return super().lookup(product)
 
-    assert function_tool(Child().lookup)({"asset": {"symbol": "USDC"}}) == "USDC"
+    assert function_tool(Child().lookup)({"product": {"name": "notebook"}}) == "notebook"
 
 
 @pytest.mark.parametrize("delete_original", [False, True])
 def test_bound_alias_keeps_lexical_annotation_owner(delete_original: bool) -> None:
-    class Wallet:
-        class Asset(BaseModel):
-            symbol: str
+    class Catalog:
+        class Product(BaseModel):
+            name: str
 
-        def lookup(self, asset: Asset) -> str:
-            return asset.symbol
+        def lookup(self, product: Product) -> str:
+            return product.name
 
-        transfer = lookup
+        reserve = lookup
 
-    class Child(Wallet):
-        class Asset(BaseModel):  # pyright: ignore[reportIncompatibleVariableOverride]
-            address: int
+    class Child(Catalog):
+        class Product(BaseModel):  # pyright: ignore[reportIncompatibleVariableOverride]
+            sku: int
 
-        alias = Wallet.lookup
+        alias = Catalog.lookup
 
     if delete_original:
-        delattr(Wallet, "lookup")
-    for callback in (Child().transfer, Child().alias):
-        assert function_tool(callback)({"asset": {"symbol": "USDC"}}) == "USDC"
+        delattr(Catalog, "lookup")
+    for callback in (Child().reserve, Child().alias):
+        assert function_tool(callback)({"product": {"name": "notebook"}}) == "notebook"
 
 
 def test_module_function_attached_as_method_uses_globals() -> None:
@@ -625,18 +627,18 @@ def test_module_function_attached_as_method_uses_globals() -> None:
     exec(
         "from __future__ import annotations\n"
         "from pydantic import BaseModel\n"
-        "class Asset(BaseModel):\n    symbol: str\n"
-        "def lookup(self, asset: Asset) -> str:\n    return asset.symbol\n",
+        "class Product(BaseModel):\n    name: str\n"
+        "def lookup(self, product: Product) -> str:\n    return product.name\n",
         module.__dict__,
     )
 
-    class Wallet:
-        class Asset(BaseModel):
-            address: int
+    class Catalog:
+        class Product(BaseModel):
+            sku: int
 
         lookup = module.lookup
 
-    assert function_tool(Wallet().lookup)({"asset": {"symbol": "USDC"}}) == "USDC"
+    assert function_tool(Catalog().lookup)({"product": {"name": "notebook"}}) == "notebook"
 
 
 @pytest.mark.skipif(sys.version_info < (3, 12), reason="PEP 695 requires Python 3.12")
@@ -647,14 +649,14 @@ def test_function_and_class_type_parameter_annotations() -> None:
     exec(
         "from __future__ import annotations\n"
         "def choose[T: str](value: T) -> T:\n    return value\n"
-        "class Wallet[T: int]:\n"
+        "class Catalog[T: int]:\n"
         "    def count(self, value: T) -> T:\n        return value\n"
         "    def choose[T: str](self, value: T) -> T:\n        return value\n",
         module.__dict__,
     )
-    assert function_tool(module.choose)({"value": "USDC"}) == "USDC"
-    assert function_tool(module.Wallet().count)({"value": 3}) == "3"
-    assert function_tool(module.Wallet().choose)({"value": "USDC"}) == "USDC"
+    assert function_tool(module.choose)({"value": "notebook"}) == "notebook"
+    assert function_tool(module.Catalog().count)({"value": 3}) == "3"
+    assert function_tool(module.Catalog().choose)({"value": "notebook"}) == "notebook"
 
 
 def test_transplanted_method_keeps_module_visible_lexical_owner() -> None:
@@ -664,19 +666,19 @@ def test_transplanted_method_keeps_module_visible_lexical_owner() -> None:
     exec(
         "from __future__ import annotations\n"
         "from pydantic import BaseModel\n"
-        "class Wallet:\n"
-        "    class Asset(BaseModel):\n        symbol: str\n"
-        "    def lookup(self, asset: Asset) -> str:\n        return asset.symbol\n",
+        "class Catalog:\n"
+        "    class Product(BaseModel):\n        name: str\n"
+        "    def lookup(self, product: Product) -> str:\n        return product.name\n",
         module.__dict__,
     )
 
     class Target:
-        class Asset(BaseModel):
-            address: int
+        class Product(BaseModel):
+            sku: int
 
-        lookup = module.Wallet.lookup
+        lookup = module.Catalog.lookup
 
-    assert function_tool(Target().lookup)({"asset": {"symbol": "USDC"}}) == "USDC"
+    assert function_tool(Target().lookup)({"product": {"name": "notebook"}}) == "notebook"
 
 
 @pytest.mark.parametrize(
