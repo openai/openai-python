@@ -22,6 +22,8 @@ from ...beta.agents._result import (
     AgentOutputParseError,
     AgentTurnResultCollection,
 )
+from ...beta.agents._attachment import AgentSessionAttachment, attach, reconcile, async_attach, async_reconcile
+from ....types.beta.agent_session import RequiredActionSessionRequiredActionResourceFunctionCall
 from ....types.beta.agent_session_event import AgentSessionEvent
 from ....types.beta.agent_function_call_item import AgentFunctionCallItem
 from ....types.beta.agent_session_input_param import (
@@ -117,7 +119,7 @@ class _TurnState:
 
 
 class AgentSessionStream(Generic[OutputT]):
-    """Submit input to an idle session and stream through the resulting turn's terminal session event.
+    """Submit input to an idle session, or omit input to attach with the same handlers.
 
     Use as a context manager. Only one caller may submit input to this session while
     the helper runs: the input endpoint does not return a turn ID for correlating
@@ -138,7 +140,7 @@ class AgentSessionStream(Generic[OutputT]):
         sessions: Sessions,
         session_id: str,
         *,
-        input: str | Iterable[AgentSessionInputMessageParam],
+        input: str | Iterable[AgentSessionInputMessageParam] | Omit = omit,
         output_type: type[OutputT] | None = None,
         tool_handlers: Mapping[str, ToolHandler] | None = None,
         idempotency_key: str | Omit = omit,
@@ -147,7 +149,8 @@ class AgentSessionStream(Generic[OutputT]):
     ) -> None:
         self._sessions = sessions
         self._session_id = session_id
-        self._input = _input_event(input)
+        self._input = None if isinstance(input, Omit) else _input_event(input)
+        self._attachment: AgentSessionAttachment | None = None
         self._handlers = dict(tool_handlers or {})
         self._idempotency_key = _input_key(idempotency_key, extra_headers)
         self._options = _request_options({"extra_headers": extra_headers, "timeout": timeout})
@@ -162,11 +165,16 @@ class AgentSessionStream(Generic[OutputT]):
         if self._entered or self._closed:
             raise RuntimeError("An AgentSessionStream can only be entered once")
         self._entered = True
+        if self._input is None:
+            self._stream, self._attachment = attach(self._sessions, self._session_id, self._options)
+            if self._attachment.turn is not None:
+                self._state.turn_id = self._attachment.turn.id
+                self._state.turn_ended = self._attachment.turn.status in ("completed", "failed", "cancelled")
+            self._iterator = self._iterate()
+            return self
         session = self._sessions.retrieve(self._session_id, **self._options)
         if session.status != "idle":
-            raise ValueError(
-                "sessions.stream requires an idle session; use sessions.events.stream to follow an active session"
-            )
+            raise ValueError("Submitting input requires an idle session; omit input to attach to existing work")
         self._stream = self._sessions.events.stream(self._session_id, **self._options)
         try:
             self._sessions.events.create(
@@ -200,7 +208,9 @@ class AgentSessionStream(Generic[OutputT]):
 
     def with_result_collection(self) -> Self:
         """Beta: retain final messages for a result; call before consuming events."""
-        self._collection.enable()
+        collector = self._collection.enable()
+        if self._attachment is not None:
+            self._attachment.seed(collector)
         return self
 
     def get_final_result(self) -> AgentTurnResult[OutputT]:
@@ -212,6 +222,8 @@ class AgentSessionStream(Generic[OutputT]):
         To iterate first, call with_result_collection() before consuming events.
         """
         collector = self._collection.enable()
+        if self._attachment is not None:
+            self._attachment.seed(collector)
         try:
             collector.check_outcome(self._handlers)
             if not collector.is_done():
@@ -219,6 +231,8 @@ class AgentSessionStream(Generic[OutputT]):
                     collector.check_outcome(self._handlers)
                     if collector.is_done():
                         break
+            if self._attachment is not None:
+                reconcile(self._sessions, self._attachment, collector, self._options)
             return self._collection.result()
         except (AgentTurnResultError, AgentOutputParseError):
             raise
@@ -237,16 +251,50 @@ class AgentSessionStream(Generic[OutputT]):
     def _iterate(self) -> Iterator[AgentSessionEvent]:
         assert self._stream is not None
         try:
+            if self._attachment is not None and self._attachment.settled:
+                return
             for event in self._stream:
                 if not self._state.accept(event):
                     continue
+                if self._attachment is not None:
+                    candidate = self._attachment.candidate(event)
+                    if candidate is not None:
+                        turn = self._sessions.turns.retrieve(candidate, session_id=self._session_id, **self._options)
+                        self._attachment.select(turn)
+                    if self._attachment.turn is not None and self._state.turn_id is None:
+                        self._state.turn_id = self._attachment.turn.id
+                        self._state.turn_ended = self._attachment.turn.status in ("completed", "failed", "cancelled")
+                    if self._collection.collector is not None:
+                        self._attachment.seed(self._collection.collector)
                 self._collection.accept(event)
                 terminal = self._state.terminal(event)
+                if self._attachment is not None and event.type == "agent.session.idle" and self._state.turn_id is None:
+                    terminal = True
+                    self._attachment.settled = True
+                    if self._collection.collector is not None:
+                        self._attachment.seed(self._collection.collector)
                 if terminal:
                     self.close()
                 # Capture routing and arguments before exposing the mutable event.
                 call = self._state.call(event)
                 handler = self._handlers.get(call.name) if call is not None else None
+                if (
+                    self._attachment is not None
+                    and call is not None
+                    and handler is None
+                    and self._collection.collector is not None
+                ):
+                    # On attach, recovered SSE calls are the authoritative pending
+                    # work. A possibly stale session snapshot is not a second queue.
+                    self._collection.collector.required_actions = [
+                        RequiredActionSessionRequiredActionResourceFunctionCall(
+                            type="function_call",
+                            turn_id=call.turn_id,
+                            call_id=call.call_id,
+                            name=call.name,
+                            arguments=call.arguments,
+                        )
+                    ]
                 if handler is not None:
                     call = deepcopy(call)
                 yield event
@@ -290,7 +338,7 @@ class AgentSessionStream(Generic[OutputT]):
 class AsyncAgentSessionStream(Generic[OutputT]):
     """Async counterpart of AgentSessionStream; use with ``async with``.
 
-    Requires an idle session with a single input writer. Handlers may return a
+    Submitting input requires an idle session with a single input writer. Handlers may return a
     value or an awaitable; synchronous handlers run inline, without a thread
     pool. Cancellation propagates and closes the event connection. It does not
     cancel the backend turn.
@@ -301,7 +349,7 @@ class AsyncAgentSessionStream(Generic[OutputT]):
         sessions: AsyncSessions,
         session_id: str,
         *,
-        input: str | Iterable[AgentSessionInputMessageParam],
+        input: str | Iterable[AgentSessionInputMessageParam] | Omit = omit,
         output_type: type[OutputT] | None = None,
         tool_handlers: Mapping[str, AsyncToolHandler] | None = None,
         idempotency_key: str | Omit = omit,
@@ -310,7 +358,8 @@ class AsyncAgentSessionStream(Generic[OutputT]):
     ) -> None:
         self._sessions = sessions
         self._session_id = session_id
-        self._input = _input_event(input)
+        self._input = None if isinstance(input, Omit) else _input_event(input)
+        self._attachment: AgentSessionAttachment | None = None
         self._handlers = dict(tool_handlers or {})
         self._idempotency_key = _input_key(idempotency_key, extra_headers)
         self._options = _request_options({"extra_headers": extra_headers, "timeout": timeout})
@@ -325,11 +374,16 @@ class AsyncAgentSessionStream(Generic[OutputT]):
         if self._entered or self._closed:
             raise RuntimeError("An AsyncAgentSessionStream can only be entered once")
         self._entered = True
+        if self._input is None:
+            self._stream, self._attachment = await async_attach(self._sessions, self._session_id, self._options)
+            if self._attachment.turn is not None:
+                self._state.turn_id = self._attachment.turn.id
+                self._state.turn_ended = self._attachment.turn.status in ("completed", "failed", "cancelled")
+            self._iterator = self._iterate()
+            return self
         session = await self._sessions.retrieve(self._session_id, **self._options)
         if session.status != "idle":
-            raise ValueError(
-                "sessions.stream requires an idle session; use sessions.events.stream to follow an active session"
-            )
+            raise ValueError("Submitting input requires an idle session; omit input to attach to existing work")
         self._stream = await self._sessions.events.stream(self._session_id, **self._options)
         try:
             await self._sessions.events.create(
@@ -363,7 +417,9 @@ class AsyncAgentSessionStream(Generic[OutputT]):
 
     def with_result_collection(self) -> Self:
         """Beta: retain final messages for a result; call before consuming events."""
-        self._collection.enable()
+        collector = self._collection.enable()
+        if self._attachment is not None:
+            self._attachment.seed(collector)
         return self
 
     async def get_final_result(self) -> AgentTurnResult[OutputT]:
@@ -375,6 +431,8 @@ class AsyncAgentSessionStream(Generic[OutputT]):
         To iterate first, call with_result_collection() before consuming events.
         """
         collector = self._collection.enable()
+        if self._attachment is not None:
+            self._attachment.seed(collector)
         try:
             collector.check_outcome(self._handlers)
             if not collector.is_done():
@@ -382,6 +440,8 @@ class AsyncAgentSessionStream(Generic[OutputT]):
                     collector.check_outcome(self._handlers)
                     if collector.is_done():
                         break
+            if self._attachment is not None:
+                await async_reconcile(self._sessions, self._attachment, collector, self._options)
             return self._collection.result()
         except (AgentTurnResultError, AgentOutputParseError):
             raise
@@ -400,16 +460,52 @@ class AsyncAgentSessionStream(Generic[OutputT]):
     async def _iterate(self) -> AsyncIterator[AgentSessionEvent]:
         assert self._stream is not None
         try:
+            if self._attachment is not None and self._attachment.settled:
+                return
             async for event in self._stream:
                 if not self._state.accept(event):
                     continue
+                if self._attachment is not None:
+                    candidate = self._attachment.candidate(event)
+                    if candidate is not None:
+                        turn = await self._sessions.turns.retrieve(
+                            candidate, session_id=self._session_id, **self._options
+                        )
+                        self._attachment.select(turn)
+                    if self._attachment.turn is not None and self._state.turn_id is None:
+                        self._state.turn_id = self._attachment.turn.id
+                        self._state.turn_ended = self._attachment.turn.status in ("completed", "failed", "cancelled")
+                    if self._collection.collector is not None:
+                        self._attachment.seed(self._collection.collector)
                 self._collection.accept(event)
                 terminal = self._state.terminal(event)
+                if self._attachment is not None and event.type == "agent.session.idle" and self._state.turn_id is None:
+                    terminal = True
+                    self._attachment.settled = True
+                    if self._collection.collector is not None:
+                        self._attachment.seed(self._collection.collector)
                 if terminal:
                     await self.close()
                 # Capture routing and arguments before exposing the mutable event.
                 call = self._state.call(event)
                 handler = self._handlers.get(call.name) if call is not None else None
+                if (
+                    self._attachment is not None
+                    and call is not None
+                    and handler is None
+                    and self._collection.collector is not None
+                ):
+                    # On attach, recovered SSE calls are the authoritative pending
+                    # work. A possibly stale session snapshot is not a second queue.
+                    self._collection.collector.required_actions = [
+                        RequiredActionSessionRequiredActionResourceFunctionCall(
+                            type="function_call",
+                            turn_id=call.turn_id,
+                            call_id=call.call_id,
+                            name=call.name,
+                            arguments=call.arguments,
+                        )
+                    ]
                 if handler is not None:
                     call = deepcopy(call)
                 yield event

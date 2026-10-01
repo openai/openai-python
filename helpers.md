@@ -633,3 +633,21 @@ This only selects the local parser; it does not change the session's schema.
 `result.parse(Report)` parses an existing raw result. `AgentOutputParseError.result`
 retains the completed raw answer if validation fails. With `AsyncOpenAI`, await
 creation and the result getter, and use `async with`.
+
+### Reattach tool handlers
+
+Omit `input` to reconnect to an existing session without submitting another prompt.
+
+```python
+with client.beta.agents.sessions.stream(
+    saved_session_id, tool_handlers={"lookup_order": lookup_order},
+) as stream:
+    result = stream.get_final_result()
+print(result.output_text)
+```
+
+Pending function calls use the same handlers as a new turn. Result collection
+recovers the selected turn's completed output, including messages missed while
+disconnected. An already-idle session with no selected turn drains successfully
+with `until_done()` but has no final result. Reconnecting does not make local tool
+side effects exactly-once. With `AsyncOpenAI`, use `async with` and await the getter.

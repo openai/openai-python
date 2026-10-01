@@ -81,14 +81,14 @@ class Sessions(SyncAPIResource):
         self,
         session_id: str,
         *,
-        input: str | Iterable[AgentSessionInputMessageParam],
+        input: str | Iterable[AgentSessionInputMessageParam] | Omit = omit,
         output_type: type[OutputT] | None = None,
         tool_handlers: Mapping[str, ToolHandler] | None = None,
         idempotency_key: str | Omit = omit,
         extra_headers: Headers | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AgentSessionStream[OutputT]:
-        """Stream one turn of an idle session, subscribing before submitting input.
+        """Stream a new turn, or omit input to attach to existing session work.
 
         Use as a context manager. Only one caller may submit input to the session
         while this helper runs. Optional tool handlers receive an arguments dict;
@@ -571,14 +571,14 @@ class AsyncSessions(AsyncAPIResource):
         self,
         session_id: str,
         *,
-        input: str | Iterable[AgentSessionInputMessageParam],
+        input: str | Iterable[AgentSessionInputMessageParam] | Omit = omit,
         output_type: type[OutputT] | None = None,
         tool_handlers: Mapping[str, AsyncToolHandler] | None = None,
         idempotency_key: str | Omit = omit,
         extra_headers: Headers | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncAgentSessionStream[OutputT]:
-        """Stream one turn of an idle session, subscribing before submitting input.
+        """Stream a new turn, or omit input to attach to existing session work.
 
         Use as an async context manager. Only one caller may submit input to the session
         while this helper runs. Optional tool handlers receive an arguments dict;

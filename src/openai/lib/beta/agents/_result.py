@@ -157,6 +157,9 @@ class AgentTurnResultCollector:
     def messages(self) -> list[AgentSessionMessage]:
         return [message for _, message in sorted(self._messages.values(), key=lambda pair: pair[0])]
 
+    def replace_messages(self, messages: list[AgentSessionMessage]) -> None:
+        self._messages = {str(index): (index, deepcopy(message)) for index, message in enumerate(messages)}
+
     def error(self, reason: ResultErrorReason) -> AgentTurnResultError:
         if self._error is None:
             self._error = AgentTurnResultError(
