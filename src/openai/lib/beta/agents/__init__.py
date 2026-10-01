@@ -1,5 +1,11 @@
 """Beta helpers for hosted Agents API tools and turn results."""
 
+from ._files import (
+    StagedAgentFile as StagedAgentFile,
+    PreparedAgentFiles as PreparedAgentFiles,
+    AgentFileStagingError as AgentFileStagingError,
+    AgentFilePreparationError as AgentFilePreparationError,
+)
 from ._tools import (
     FunctionTool as FunctionTool,
     function_tool as function_tool,
@@ -14,4 +20,8 @@ from ._result import (
 from ._stream import (
     AgentSessionEventStream as AgentSessionEventStream,
     AsyncAgentSessionEventStream as AsyncAgentSessionEventStream,
+)
+from ._artifacts import (
+    AgentResultArtifacts as AgentResultArtifacts,
+    AsyncAgentResultArtifacts as AsyncAgentResultArtifacts,
 )
