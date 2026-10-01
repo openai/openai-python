@@ -1,1 +1,1 @@
-"""Helpers for beta APIs."""
+"""Beta SDK runtime helpers."""
