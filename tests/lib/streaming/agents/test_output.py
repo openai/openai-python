@@ -10,9 +10,15 @@ from pydantic import Field, HttpUrl, BaseModel
 
 from openai import OpenAI, AsyncOpenAI
 from openai._compat import PYDANTIC_V1
-from openai.lib.beta.agents import AgentTurnResultError, AgentOutputParseError, agent_text_format
+from openai.lib.beta.agents import (
+    AgentTurnResultError,
+    AgentOutputParseError,
+    function_tool,
+    agent_text_format,
+    pydantic_function_tool,
+)
 from tests.lib.streaming.agents.test_results import ResultServer, server as server, message
-from tests.lib.streaming.agents.test_streams import EventBody, sdk as sdk, idle, turn_event
+from tests.lib.streaming.agents.test_streams import EventBody, sdk as sdk, call, idle, turn_event
 
 
 class Report(BaseModel):
@@ -352,3 +358,46 @@ def test_unsupported_single_literal_rejected(value: Any) -> None:
     model = type("LiteralReport", (BaseModel,), {"__annotations__": {"value": Literal[value]}})
     with pytest.raises(ValueError, match="schema"):
         agent_text_format(model)
+
+
+@pytest.mark.parametrize("explicit_model", [False, True])
+async def test_typed_tools_and_output_keep_distinct_schema_policies(
+    sdk: OpenAI | AsyncOpenAI, server: ResultServer, explicit_model: bool
+) -> None:
+    class Summary(BaseModel):
+        summary: str = "default"
+
+    seen: list[str] = []
+
+    def summarize(summary: str = "default") -> Summary:
+        seen.append(summary)
+        return Summary(summary=summary)
+
+    tool = (
+        pydantic_function_tool(Summary, name="search", handler=lambda args: summarize(args.summary))
+        if explicit_model
+        else function_tool(summarize, name="search")
+    )
+    parameters = tool.definition["parameters"]
+    assert "summary" not in parameters.get("required", [])
+    output_format = agent_text_format(Summary)
+    assert output_format["schema"]["required"] == ["summary"]
+    assert tool.definition["parameters"] == parameters
+    later_tool = pydantic_function_tool(Summary, handler=lambda args: args)
+    assert "summary" not in later_tool.definition["parameters"].get("required", [])
+    text = '{"summary":"default"}'
+    server.body = EventBody([turn_event("created"), call({}), message(text), turn_event("completed"), idle()])
+    if isinstance(sdk, AsyncOpenAI):
+        async with sdk.beta.agents.sessions.stream(
+            "session_test", input="Summarize the document.", tool_handlers={tool.name: tool}, output_type=Summary
+        ) as stream:
+            result = await stream.get_final_result()
+    else:
+        with sdk.beta.agents.sessions.stream(
+            "session_test", input="Summarize the document.", tool_handlers={tool.name: tool}, output_type=Summary
+        ) as stream:
+            result = stream.get_final_result()
+    assert result.output_parsed == Summary(summary="default")
+    assert seen == ["default"]
+    assert server.inputs()[1]["output"] == text
+    assert server.inputs()[1]["success"] is True

@@ -5,9 +5,10 @@ from typing_extensions import TypeVar
 
 import pydantic
 
+from ._schema import model_schema
 from ...._types import Omit
 from ...._compat import PYDANTIC_V1
-from ..._pydantic import resolve_ref, is_basemodel_type, to_strict_json_schema, is_dataclass_like_type
+from ..._pydantic import resolve_ref, is_basemodel_type, is_dataclass_like_type
 from ....types.beta.agent_text_param import AgentTextParam
 from ....types.beta.text_format_param import TextFormatParamJSONSchema
 from ....types.beta.agents.session_create_params import Agent
@@ -20,14 +21,13 @@ def validate_output_type(output_type: type[Any]) -> None:
 
 def agent_text_format(output_type: type[Any]) -> TextFormatParamJSONSchema:
     """Beta: build the Agents JSON-schema format for an object-root Pydantic model."""
+    validate_output_type(output_type)
     if is_basemodel_type(output_type):
-        schema = to_strict_json_schema(output_type)
+        schema = model_schema(output_type, strict=True)
         if PYDANTIC_V1:
             _restore_v1_nullability(output_type, schema)
-    elif is_dataclass_like_type(output_type) and not PYDANTIC_V1:
-        schema = to_strict_json_schema(pydantic.TypeAdapter(output_type))
     else:
-        raise TypeError("Agents output_type must be a Pydantic model or a Pydantic v2 dataclass")
+        schema = model_schema(pydantic.TypeAdapter(output_type), strict=True)
     if schema.get("type") != "object" or any(key in schema for key in ("oneOf", "anyOf", "allOf", "enum", "not")):
         raise ValueError("Agents output_type must describe an object root without schema composition")
     _validate_schema(schema)
