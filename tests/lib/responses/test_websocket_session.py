@@ -805,7 +805,7 @@ async def test_uncertain_send_is_not_replayed_after_existing_recovery(
 async def test_connection_does_not_replay_an_uncertain_create(
     mode: str, beta: bool, raw: bool, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    requests = []
+    requests: list[dict[str, Any]] = []
 
     def reconnect(_event: ReconnectingEvent) -> ReconnectingOverrides:
         return {"extra_headers": {"X-Recovery": "fresh"}}
@@ -842,7 +842,7 @@ async def test_connection_does_not_replay_an_uncertain_create(
                             connection.send_raw(json.dumps(request))
                         else:
                             connection.send({"type": "response.create", "input": "synthetic uncertain request"})
-                    assert next(iter(connection)).restored is True
+                    assert next(iter(connection)).to_dict()["restored"] is True
                     if raw:
                         connection.send_raw(json.dumps(fresh_request))
                     else:
@@ -870,7 +870,7 @@ async def test_connection_does_not_replay_an_uncertain_create(
                                 {"type": "response.create", "input": "synthetic uncertain request"}
                             )
                     event = await asyncio.wait_for(anext(aiter(async_connection)), timeout=5)
-                    assert event.restored is True
+                    assert event.to_dict()["restored"] is True
                     if raw:
                         await async_connection.send_raw(json.dumps(fresh_request))
                     else:
