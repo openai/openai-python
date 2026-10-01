@@ -355,7 +355,7 @@ class AgentSessionStream(Generic[OutputT]):
                 ):
                     # On attach, recovered SSE calls are the authoritative pending
                     # work. A possibly stale session snapshot is not a second queue.
-                    self._collection.collector.required_actions = [
+                    self._collection.collector.required_actions.append(
                         RequiredActionSessionRequiredActionResourceFunctionCall(
                             type="function_call",
                             turn_id=call.turn_id,
@@ -363,7 +363,7 @@ class AgentSessionStream(Generic[OutputT]):
                             name=call.name,
                             arguments=deepcopy(call.arguments),
                         )
-                    ]
+                    )
                 if handler is not None:
                     call = deepcopy(call)
                 yield event
@@ -618,7 +618,7 @@ class AsyncAgentSessionStream(Generic[OutputT]):
                 ):
                     # On attach, recovered SSE calls are the authoritative pending
                     # work. A possibly stale session snapshot is not a second queue.
-                    self._collection.collector.required_actions = [
+                    self._collection.collector.required_actions.append(
                         RequiredActionSessionRequiredActionResourceFunctionCall(
                             type="function_call",
                             turn_id=call.turn_id,
@@ -626,7 +626,7 @@ class AsyncAgentSessionStream(Generic[OutputT]):
                             name=call.name,
                             arguments=deepcopy(call.arguments),
                         )
-                    ]
+                    )
                 if handler is not None:
                     call = deepcopy(call)
                 yield event

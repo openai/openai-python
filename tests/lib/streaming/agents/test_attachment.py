@@ -785,3 +785,25 @@ async def test_unhandled_call_diagnostic_does_not_alias_yielded_arguments(
     action = caught.value.required_actions[0]
     assert action.type == "function_call"
     assert action.arguments == {"nested": {"value": "original"}}
+
+
+async def test_progress_collection_retains_distinct_unhandled_calls(
+    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer
+) -> None:
+    server.body = EventBody([call(call_id="first"), call(call_id="second")])
+    if isinstance(sdk, AsyncOpenAI):
+        async with sdk.beta.agents.sessions.stream("session_test").with_result_collection() as stream:
+            await stream.__anext__()
+            await stream.__anext__()
+            with pytest.raises(AgentTurnResultError) as caught:
+                await stream.get_final_result()
+    else:
+        with sdk.beta.agents.sessions.stream("session_test").with_result_collection() as stream:
+            next(stream)
+            next(stream)
+            with pytest.raises(AgentTurnResultError) as caught:
+                stream.get_final_result()
+    assert [action.call_id for action in caught.value.required_actions if action.type == "function_call"] == [
+        "first",
+        "second",
+    ]
