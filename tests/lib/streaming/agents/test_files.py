@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import json
+import asyncio
 from io import BytesIO
 from typing import Any, Callable
-from asyncio import CancelledError
 from pathlib import Path
 from typing_extensions import override
 
@@ -33,7 +33,7 @@ class FilesServer(Server):
             if self.after_upload is not None:
                 self.after_upload()
             if self.uploads == self.cancel_upload:
-                raise CancelledError()
+                raise asyncio.CancelledError()
             if self.uploads == self.fail_upload:
                 return httpx2.Response(500, json={"error": {"message": "Synthetic upload failure"}})
             return httpx2.Response(
@@ -50,7 +50,7 @@ class FilesServer(Server):
             )
         assert request.url.path == "/v1/agents/environments/env_test/files"
         if self.cancel_stage:
-            raise CancelledError()
+            raise asyncio.CancelledError()
         if self.fail_stage:
             return httpx2.Response(500, json={"error": {"message": "Synthetic staging failure"}})
         body = json.loads(request.content)
@@ -213,7 +213,7 @@ async def test_async_cancellation_retains_only_observed_uploads(
     source = tmp_path / "source.txt"
     source.write_text("abc")
     server.cancel_upload = 2
-    with pytest.raises(CancelledError) as caught:
+    with pytest.raises(asyncio.CancelledError) as caught:
         await sdk.beta.agents.environments.files.prepare({"/workspace/a": source, "/workspace/b": source})
     assert vars(caught.value)["prepared"].uploaded_file_ids == ["file_1"]
     assert all(request.method == "POST" for request in server.requests)
@@ -261,7 +261,7 @@ async def test_cancelled_staging_preserves_observed_upload_id(sdk: OpenAI | Asyn
     if not isinstance(sdk, AsyncOpenAI):
         pytest.skip("Async cancellation contract")
     server.cancel_stage = True
-    with pytest.raises(CancelledError) as caught:
+    with pytest.raises(asyncio.CancelledError) as caught:
         await sdk.beta.agents.environments.files.upload(
             "env_test", file=("source.txt", b"abc"), path="/workspace/source.txt"
         )
@@ -596,7 +596,6 @@ async def test_async_selection_cancellation_does_not_wait_for_scan(monkeypatch: 
 async def test_native_cancellation_keeps_opened_handles_owned_by_worker(
     sdk: OpenAI | AsyncOpenAI, server: FilesServer, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mode: str
 ) -> None:
-    import asyncio
     import threading
 
     from openai.lib.beta.agents import _files
@@ -640,7 +639,7 @@ async def test_native_cancellation_keeps_opened_handles_owned_by_worker(
     try:
         await asyncio.wait_for(asyncio.to_thread(entered.wait), 2)
         task.cancel()
-        with pytest.raises(CancelledError):
+        with pytest.raises(asyncio.CancelledError):
             await task
     finally:
         release.set()
