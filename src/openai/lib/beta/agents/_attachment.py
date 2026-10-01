@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Iterable, Iterator, AsyncIterator
 from ._result import AgentTurnResultError, AgentTurnResultCollector
 from ...._types import omit
 from ...._streaming import Stream, AsyncStream
-from ....types.beta.agent_session import AgentSession, RequiredAction
+from ....types.beta.agent_session import AgentSession
 from ....types.beta.agent_session_item import AgentSessionItem
 from ....types.beta.agent_session_event import AgentSessionEvent
 from ....types.beta.agents.sessions.turn import Turn
@@ -31,7 +31,7 @@ class AgentSessionAttachment:
         self.last_candidate: str | None = None
         self.observation_interrupted = False
         self.messages_read = False
-        self.manual_actions: list[RequiredAction] = []
+        self.manual_diagnostics = False
 
     def select(self, turn: Turn) -> None:
         if self.turn is None and turn.session_id == self.session_id and turn.subagent_id is None:
@@ -47,9 +47,6 @@ class AgentSessionAttachment:
     def seed(self, collector: AgentTurnResultCollector) -> None:
         if collector.turn is None and self.turn is not None:
             collector.turn = deepcopy(self.turn)
-        if self.manual_actions:
-            collector.required_actions = self.manual_actions
-            self.manual_actions = []
         if self.settled:
             collector.boundary = True
         if self.failed:
@@ -97,9 +94,7 @@ def attach(
             latest = _latest_root(sessions.turns.list(session_id, order="desc", **options))
             _select_refreshed(state, latest, baseline)
         state.settle(session)
-        if _needs_manual_diagnostics(state, session):
-            latest = _latest_root(sessions.turns.list(session_id, order="desc", **options))
-            _manual_diagnostics(state, session, latest)
+        state.manual_diagnostics = _needs_manual_diagnostics(state, session)
         return stream, state
     except BaseException:
         stream.close()
@@ -126,8 +121,7 @@ async def async_attach(
         else:
             _select_refreshed(state, await latest_root(), baseline)
         state.settle(session)
-        if _needs_manual_diagnostics(state, session):
-            _manual_diagnostics(state, session, await latest_root())
+        state.manual_diagnostics = _needs_manual_diagnostics(state, session)
         return stream, state
     except BaseException:
         await stream.close()
@@ -150,12 +144,49 @@ def _needs_manual_diagnostics(state: AgentSessionAttachment, session: AgentSessi
     )
 
 
-def _manual_diagnostics(state: AgentSessionAttachment, session: AgentSession, latest: Turn | None) -> None:
-    if state.turn is None or latest is None or latest.id != state.turn.id or latest.status != "waiting":
+def diagnose_manual(
+    sessions: Sessions, state: AgentSessionAttachment, collector: AgentTurnResultCollector, options: _RequestOptions
+) -> None:
+    if not state.manual_diagnostics:
+        return
+    state.manual_diagnostics = False
+    session = sessions.retrieve(state.session_id, **options)
+    latest = _latest_root(sessions.turns.list(state.session_id, order="desc", **options))
+    _manual_diagnostics(state, session, latest, collector)
+
+
+async def async_diagnose_manual(
+    sessions: AsyncSessions,
+    state: AgentSessionAttachment,
+    collector: AgentTurnResultCollector,
+    options: _RequestOptions,
+) -> None:
+    if not state.manual_diagnostics:
+        return
+    state.manual_diagnostics = False
+    session = await sessions.retrieve(state.session_id, **options)
+    latest = None
+    async for turn in sessions.turns.list(state.session_id, order="desc", **options):
+        if turn.subagent_id is None:
+            latest = turn
+            break
+    _manual_diagnostics(state, session, latest, collector)
+
+
+def _manual_diagnostics(
+    state: AgentSessionAttachment, session: AgentSession, latest: Turn | None, collector: AgentTurnResultCollector
+) -> None:
+    if (
+        not _needs_manual_diagnostics(state, session)
+        or state.turn is None
+        or latest is None
+        or latest.id != state.turn.id
+        or latest.status != "waiting"
+    ):
         return
     # Browser authentication replay includes resolved history. Current manual
     # required actions are diagnostics only; function dispatch always uses SSE.
-    state.manual_actions = deepcopy(
+    collector.required_actions = deepcopy(
         [
             action
             for action in session.required_actions

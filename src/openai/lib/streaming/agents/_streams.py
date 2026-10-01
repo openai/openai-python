@@ -31,7 +31,9 @@ from ...beta.agents._attachment import (
     async_observe,
     hydrate_error,
     async_reconcile,
+    diagnose_manual,
     async_hydrate_error,
+    async_diagnose_manual,
 )
 from ....types.beta.agent_session import RequiredActionSessionRequiredActionResourceFunctionCall
 from ....types.beta.agent_session_event import AgentSessionEvent
@@ -236,6 +238,8 @@ class AgentSessionStream(Generic[OutputT]):
         if self._attachment is not None:
             self._attachment.seed(collector)
         try:
+            if self._attachment is not None:
+                diagnose_manual(self._sessions, self._attachment, collector, self._options)
             if (
                 self._attachment is not None
                 and self._attachment.observation_interrupted
@@ -282,6 +286,9 @@ class AgentSessionStream(Generic[OutputT]):
     def _iterate(self) -> Iterator[AgentSessionEvent]:
         assert self._stream is not None
         try:
+            if self._attachment is not None and self._collection.collector is not None:
+                diagnose_manual(self._sessions, self._attachment, self._collection.collector, self._options)
+                self._collection.collector.check_outcome(self._handlers)
             if self._attachment is not None and self._attachment.settled:
                 return
             events = observe(self._stream, self._attachment) if self._attachment is not None else self._stream
@@ -471,6 +478,8 @@ class AsyncAgentSessionStream(Generic[OutputT]):
         if self._attachment is not None:
             self._attachment.seed(collector)
         try:
+            if self._attachment is not None:
+                await async_diagnose_manual(self._sessions, self._attachment, collector, self._options)
             if (
                 self._attachment is not None
                 and self._attachment.observation_interrupted
@@ -517,6 +526,9 @@ class AsyncAgentSessionStream(Generic[OutputT]):
     async def _iterate(self) -> AsyncIterator[AgentSessionEvent]:
         assert self._stream is not None
         try:
+            if self._attachment is not None and self._collection.collector is not None:
+                await async_diagnose_manual(self._sessions, self._attachment, self._collection.collector, self._options)
+                self._collection.collector.check_outcome(self._handlers)
             if self._attachment is not None and self._attachment.settled:
                 return
             events = async_observe(self._stream, self._attachment) if self._attachment is not None else self._stream

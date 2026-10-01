@@ -520,3 +520,27 @@ async def test_terminal_failure_wins_over_partial_recovery_read_failure(
         await attach_result(sdk)
     assert caught.value.reason == "failed"
     assert caught.value.messages[0].output_text == "partial"
+
+
+async def test_raw_attachment_does_not_retain_manual_request_payload(
+    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer
+) -> None:
+    server.turns = [turn("waiting")]
+    server.retrieve_status = "waiting"
+    server.status = "requires_action"
+    server.manual_actions = [manual_action("browser_authentication")]
+    server.body = EventBody([turn_event("completed")])
+    if isinstance(sdk, AsyncOpenAI):
+        async with sdk.beta.agents.sessions.stream("session_test") as stream:
+            await stream.until_done()
+            state = stream._attachment
+            assert stream._collection.collector is None
+    else:
+        with sdk.beta.agents.sessions.stream("session_test") as stream:
+            stream.until_done()
+            state = stream._attachment
+            assert stream._collection.collector is None
+    assert state is not None
+    assert not any(isinstance(value, (dict, list)) for value in vars(state).values())
+    assert server.reads == 1  # No diagnostic refetch for raw iteration.
+    assert not any(r.url.path.endswith("/items") for r in server.requests)
