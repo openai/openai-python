@@ -27,6 +27,14 @@ if _t.TYPE_CHECKING:
         EventsWithStreamingResponse as EventsWithStreamingResponse,
         AsyncEventsWithStreamingResponse as AsyncEventsWithStreamingResponse,
     )
+    from .traces import (
+        Traces as Traces,
+        AsyncTraces as AsyncTraces,
+        TracesWithRawResponse as TracesWithRawResponse,
+        AsyncTracesWithRawResponse as AsyncTracesWithRawResponse,
+        TracesWithStreamingResponse as TracesWithStreamingResponse,
+        AsyncTracesWithStreamingResponse as AsyncTracesWithStreamingResponse,
+    )
     from .sessions import (
         Sessions as Sessions,
         AsyncSessions as AsyncSessions,
@@ -78,6 +86,12 @@ else:
         "AsyncEventsWithRawResponse": (".events", "AsyncEventsWithRawResponse"),
         "EventsWithStreamingResponse": (".events", "EventsWithStreamingResponse"),
         "AsyncEventsWithStreamingResponse": (".events", "AsyncEventsWithStreamingResponse"),
+        "Traces": (".traces", "Traces"),
+        "AsyncTraces": (".traces", "AsyncTraces"),
+        "TracesWithRawResponse": (".traces", "TracesWithRawResponse"),
+        "AsyncTracesWithRawResponse": (".traces", "AsyncTracesWithRawResponse"),
+        "TracesWithStreamingResponse": (".traces", "TracesWithStreamingResponse"),
+        "AsyncTracesWithStreamingResponse": (".traces", "AsyncTracesWithStreamingResponse"),
         "Turns": (".turns", "Turns"),
         "AsyncTurns": (".turns", "AsyncTurns"),
         "TurnsWithRawResponse": (".turns", "TurnsWithRawResponse"),
@@ -97,6 +111,7 @@ else:
         "items",
         "sessions",
         "subagents",
+        "traces",
         "turns",
     }
 
@@ -142,6 +157,12 @@ __all__ = [
     "AsyncEventsWithRawResponse",
     "EventsWithStreamingResponse",
     "AsyncEventsWithStreamingResponse",
+    "Traces",
+    "AsyncTraces",
+    "TracesWithRawResponse",
+    "AsyncTracesWithRawResponse",
+    "TracesWithStreamingResponse",
+    "AsyncTracesWithStreamingResponse",
     "Turns",
     "AsyncTurns",
     "TurnsWithRawResponse",

@@ -15,6 +15,7 @@ __all__ = [
     "PersistedAgentToolResourceMcp",
     "PersistedAgentToolResourceWebSearch",
     "PersistedAgentToolResourceWebSearchLocation",
+    "PersistedAgentToolResourceComputerUse",
 ]
 
 
@@ -117,6 +118,16 @@ class PersistedAgentToolResourceWebSearch(BaseModel):
     """The type of the object. Always `web_search`."""
 
 
+class PersistedAgentToolResourceComputerUse(BaseModel):
+    """Browser use in an OpenAI-hosted session."""
+
+    include_screenshots: bool
+    """Whether computer tool outputs include screenshots."""
+
+    type: Literal["computer_use"]
+    """The type of the object. Always `computer_use`."""
+
+
 PersistedAgentTool: TypeAlias = Annotated[
     Union[
         PersistedAgentToolResourceFunction,
@@ -124,6 +135,7 @@ PersistedAgentTool: TypeAlias = Annotated[
         PersistedAgentToolResourceProgrammaticToolCalling,
         PersistedAgentToolResourceMcp,
         PersistedAgentToolResourceWebSearch,
+        PersistedAgentToolResourceComputerUse,
     ],
     PropertyInfo(discriminator="type"),
 ]

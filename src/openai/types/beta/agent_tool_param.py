@@ -16,6 +16,7 @@ __all__ = [
     "AgentToolConfigParamMcp",
     "AgentToolConfigParamWebSearch",
     "AgentToolConfigParamWebSearchLocation",
+    "AgentToolConfigParamComputerUse",
 ]
 
 
@@ -139,10 +140,21 @@ class AgentToolConfigParamWebSearch(TypedDict, total=False):
     """
 
 
+class AgentToolConfigParamComputerUse(TypedDict, total=False):
+    """Browser use in an OpenAI-hosted session."""
+
+    type: Required[Literal["computer_use"]]
+    """The type of the object. Always `computer_use`."""
+
+    include_screenshots: bool
+    """Whether computer tool outputs include screenshots. Defaults to `false`."""
+
+
 AgentToolParam: TypeAlias = Union[
     AgentToolConfigParamFunction,
     AgentToolConfigParamToolSearch,
     AgentToolConfigParamProgrammaticToolCalling,
     AgentToolConfigParamMcp,
     AgentToolConfigParamWebSearch,
+    AgentToolConfigParamComputerUse,
 ]

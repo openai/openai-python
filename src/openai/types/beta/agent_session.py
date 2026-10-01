@@ -16,6 +16,12 @@ __all__ = [
     "AgentSession",
     "Agent",
     "RequiredAction",
+    "RequiredActionSessionRequiredActionResourceComputerUseApprovalRequest",
+    "RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequest",
+    "RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequestComputerUseApprovalRequestKindResourceBrowserAuthentication",
+    "RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequestComputerUseApprovalRequestKindResourceBrowserAuthenticationField",
+    "RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequestComputerUseApprovalRequestKindResourceBrowserAuthenticationOption",
+    "RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequestComputerUseApprovalRequestKindResourceBrowserOriginAccess",
     "RequiredActionSessionRequiredActionResourceFunctionCall",
     "RequiredActionSessionRequiredActionResourceEnvironmentConnection",
 ]
@@ -55,6 +61,104 @@ class Agent(BaseModel):
     """Tools available to the agent."""
 
 
+class RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequestComputerUseApprovalRequestKindResourceBrowserAuthenticationField(
+    BaseModel
+):
+    """A control in a registered browser-login form."""
+
+    id: str
+    """The field ID to submit as field_id in a fields entry."""
+
+    label: str
+    """The label to display beside the control."""
+
+    required: bool
+    """Whether this control requires a nonempty value."""
+
+    type: str
+    """The rendering type, such as email, password, or text."""
+
+
+class RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequestComputerUseApprovalRequestKindResourceBrowserAuthenticationOption(
+    BaseModel
+):
+    """A sign-in method and the fields that belong to it."""
+
+    id: str
+    """The option ID to submit as selected_option."""
+
+    field_ids: List[str]
+    """IDs from the registered fields that this method accepts."""
+
+    label: str
+    """The method label to display."""
+
+
+class RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequestComputerUseApprovalRequestKindResourceBrowserAuthentication(
+    BaseModel
+):
+    """A registered form awaiting the application's response."""
+
+    credential_origin: Optional[str] = None
+    """The registered form or frame origin where values will be entered."""
+
+    fields: List[
+        RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequestComputerUseApprovalRequestKindResourceBrowserAuthenticationField
+    ]
+    """Controls to render. All submitted values are sensitive."""
+
+    options: List[
+        RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequestComputerUseApprovalRequestKindResourceBrowserAuthenticationOption
+    ]
+    """Sign-in methods. Empty for a plain form."""
+
+    reason: Optional[str] = None
+    """Why the agent needs the user to sign in."""
+
+    type: Literal["browser_authentication"]
+    """The type of the object. Always `browser_authentication`."""
+
+
+class RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequestComputerUseApprovalRequestKindResourceBrowserOriginAccess(
+    BaseModel
+):
+    """A browser origin awaiting the application's approval decision."""
+
+    origin: str
+    """The origin the browser needs permission to access."""
+
+    reason: Optional[str] = None
+    """The browser's explanation for this request, or null when unavailable."""
+
+    type: Literal["browser_origin_access"]
+    """The type of the object. Always `browser_origin_access`."""
+
+
+RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequest: TypeAlias = Annotated[
+    Union[
+        RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequestComputerUseApprovalRequestKindResourceBrowserAuthentication,
+        RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequestComputerUseApprovalRequestKindResourceBrowserOriginAccess,
+    ],
+    PropertyInfo(discriminator="type"),
+]
+
+
+class RequiredActionSessionRequiredActionResourceComputerUseApprovalRequest(BaseModel):
+    """Respond to a computer-use request."""
+
+    request: RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequest
+    """The information needed to render the request."""
+
+    request_id: str
+    """The registered request ID to echo when responding."""
+
+    turn_id: str
+    """The turn that requested approval."""
+
+    type: Literal["computer_use_approval_request"]
+    """The type of the object. Always `computer_use_approval_request`."""
+
+
 class RequiredActionSessionRequiredActionResourceFunctionCall(BaseModel):
     """Run a function tool and submit its result."""
 
@@ -86,6 +190,7 @@ class RequiredActionSessionRequiredActionResourceEnvironmentConnection(BaseModel
 
 RequiredAction: TypeAlias = Annotated[
     Union[
+        RequiredActionSessionRequiredActionResourceComputerUseApprovalRequest,
         RequiredActionSessionRequiredActionResourceFunctionCall,
         RequiredActionSessionRequiredActionResourceEnvironmentConnection,
     ],

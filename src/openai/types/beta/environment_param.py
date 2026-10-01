@@ -15,6 +15,7 @@ __all__ = [
     "EnvironmentParam",
     "EnvironmentParamNone",
     "EnvironmentParamOpenAIHosted",
+    "EnvironmentParamOpenAIHostedDesktop",
     "EnvironmentParamOpenAIHostedNetwork",
     "EnvironmentParamOpenAIHostedPackages",
     "EnvironmentParamSelfHosted",
@@ -28,6 +29,16 @@ class EnvironmentParamNone(TypedDict, total=False):
     """The type of the object. Always `none`."""
 
 
+class EnvironmentParamOpenAIHostedDesktop(TypedDict, total=False):
+    """Desktop provisioning.
+
+    Omission or null inherits the template setting, or defaults to disabled.
+    """
+
+    enabled: Required[bool]
+    """Whether to provision the desktop and its browser proxy."""
+
+
 class EnvironmentParamOpenAIHostedNetwork(TypedDict, total=False):
     """Network access policy for the environment.
 
@@ -39,11 +50,18 @@ class EnvironmentParamOpenAIHostedNetwork(TypedDict, total=False):
 
     - `enabled` - Allows unrestricted network access.
     - `disabled` - Disables network access.
-    - `restricted` - Allows access only to configured domains.
+    - `restricted` - Applies the configured domain restrictions.
     """
 
     allowed_domains: Optional[SequenceNotStr[str]]
     """Domains the environment may access when network access is restricted."""
+
+    blocked_domains: Optional[SequenceNotStr[str]]
+    """Domains blocked for both executor and browser when access is restricted.
+
+    A nonempty list requires `access: restricted` and cannot be combined with
+    nonempty `allowed_domains`. Wildcard domains are not supported.
+    """
 
 
 class EnvironmentParamOpenAIHostedPackages(TypedDict, total=False):
@@ -71,6 +89,15 @@ class EnvironmentParamOpenAIHosted(TypedDict, total=False):
     """Directories that contain capabilities exposed to the agent.
 
     Defaults to an empty list.
+    """
+
+    container_size: Literal["small", "medium", "large"]
+    """The hosted container size. Omission selects the medium tier."""
+
+    desktop: Optional[EnvironmentParamOpenAIHostedDesktop]
+    """Desktop provisioning.
+
+    Omission or null inherits the template setting, or defaults to disabled.
     """
 
     env: Optional[Dict[str, str]]
