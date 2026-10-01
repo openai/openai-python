@@ -33,10 +33,11 @@ class AgentSessionAttachment:
             self.turn = deepcopy(turn)
 
     def settle(self, session: AgentSession) -> None:
-        self.failed = session.status == "failed"
-        self.settled = self.failed or (
-            session.status == "idle" and (self.turn is None or self.turn.status in _TERMINAL)
-        )
+        terminal = self.turn is not None and self.turn.status in _TERMINAL
+        # Session status can already describe a successor turn. Exact selected
+        # turn state is authoritative for this attachment's completion boundary.
+        self.failed = session.status == "failed" and not terminal
+        self.settled = terminal or self.failed or session.status == "idle" and self.turn is None
 
     def seed(self, collector: AgentTurnResultCollector) -> None:
         if collector.turn is None and self.turn is not None:
@@ -64,10 +65,10 @@ class AgentSessionAttachment:
         return None
 
 
-def _active_root(turns: Iterable[Turn]) -> Turn | None:
+def _latest_root(turns: Iterable[Turn]) -> Turn | None:
     for turn in turns:
         if turn.subagent_id is None:
-            return turn if turn.status not in _TERMINAL else None
+            return turn
     return None
 
 
@@ -75,11 +76,9 @@ def attach(
     sessions: Sessions, session_id: str, options: _RequestOptions
 ) -> tuple[Stream[AgentSessionEvent], AgentSessionAttachment]:
     session = sessions.retrieve(session_id, **options)
-    turn = (
-        _active_root(sessions.turns.list(session_id, order="desc", **options))
-        if session.status not in ("idle", "failed")
-        else None
-    )
+    observed_active = session.status not in ("idle", "failed")
+    baseline = _latest_root(sessions.turns.list(session_id, order="desc", **options)) if observed_active else None
+    turn = baseline if baseline is not None and baseline.status not in _TERMINAL else None
     state = AgentSessionAttachment(session_id, turn)
     stream = sessions.events.stream(session_id, **options)
     try:
@@ -88,8 +87,9 @@ def attach(
         session = sessions.retrieve(session_id, **options)
         if state.turn is not None:
             state.turn = sessions.turns.retrieve(state.turn.id, session_id=session_id, **options)
-        elif session.status not in ("idle", "failed"):
-            state.turn = _active_root(sessions.turns.list(session_id, order="desc", **options))
+        elif observed_active or session.status not in ("idle", "failed"):
+            latest = _latest_root(sessions.turns.list(session_id, order="desc", **options))
+            _select_refreshed(state, latest, baseline, observed_active)
         state.settle(session)
         return stream, state
     except BaseException:
@@ -100,27 +100,40 @@ def attach(
 async def async_attach(
     sessions: AsyncSessions, session_id: str, options: _RequestOptions
 ) -> tuple[AsyncStream[AgentSessionEvent], AgentSessionAttachment]:
-    async def active_root() -> Turn | None:
+    async def latest_root() -> Turn | None:
         async for turn in sessions.turns.list(session_id, order="desc", **options):
             if turn.subagent_id is None:
-                return turn if turn.status not in _TERMINAL else None
+                return turn
         return None
 
     session = await sessions.retrieve(session_id, **options)
-    turn = await active_root() if session.status not in ("idle", "failed") else None
+    observed_active = session.status not in ("idle", "failed")
+    baseline = await latest_root() if observed_active else None
+    turn = baseline if baseline is not None and baseline.status not in _TERMINAL else None
     state = AgentSessionAttachment(session_id, turn)
     stream = await sessions.events.stream(session_id, **options)
     try:
         session = await sessions.retrieve(session_id, **options)
         if state.turn is not None:
             state.turn = await sessions.turns.retrieve(state.turn.id, session_id=session_id, **options)
-        elif session.status not in ("idle", "failed"):
-            state.turn = await active_root()
+        elif observed_active or session.status not in ("idle", "failed"):
+            _select_refreshed(state, await latest_root(), baseline, observed_active)
         state.settle(session)
         return stream, state
     except BaseException:
         await stream.close()
         raise
+
+
+def _select_refreshed(
+    state: AgentSessionAttachment, latest: Turn | None, baseline: Turn | None, observed_active: bool
+) -> None:
+    # A newly visible root can have finished during subscription. An unchanged
+    # completed root is historical and does not identify the observed work.
+    if latest is not None and (
+        latest.status not in _TERMINAL or observed_active and (baseline is None or latest.id != baseline.id)
+    ):
+        state.select(latest)
 
 
 def reconcile(

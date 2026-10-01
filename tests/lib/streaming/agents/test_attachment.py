@@ -24,7 +24,9 @@ class AttachmentServer(Server):
         super().__init__()
         self.status = "in_progress"
         self.turns: list[dict[str, Any]] = [turn()]
+        self.retrieve_status: str | None = None
         self.after_status: str | None = None
+        self.after_turns: list[dict[str, Any]] | None = None
         self.reads = 0
         self.items: list[dict[str, Any]] = [message("earlier")["item"], message("later", item_id="later")["item"]]
         self.body = EventBody([call(), turn_event("completed"), idle()])
@@ -47,10 +49,17 @@ class AttachmentServer(Server):
                 turn_id = path.rsplit("/", 1)[-1]
                 status = (
                     "completed"
-                    if self.after_status == "idle" or self.body.read_count >= len(self.body.events)
+                    if self.after_status == "idle"
+                    or any(
+                        event.get("type") == "agent.session.turn.completed" and event.get("turn_id") == turn_id
+                        for event in self.body.events[: self.body.read_count]
+                    )
                     else "in_progress"
                 )
-                return httpx2.Response(200, json=turn(status, turn_id, "child" if turn_id == "child_turn" else None))
+                return httpx2.Response(
+                    200,
+                    json=turn(self.retrieve_status or status, turn_id, "child" if turn_id == "child_turn" else None),
+                )
             if path.endswith("/items"):
                 after = request.url.params.get("after")
                 offset = next((i + 1 for i, item in enumerate(self.items) if item["id"] == after), 0)
@@ -59,6 +68,8 @@ class AttachmentServer(Server):
                     200, json={"data": data, "has_more": offset + 1 < len(self.items), "object": "list"}
                 )
             self.reads += 1
+            if self.reads > 1 and self.after_turns is not None:
+                self.turns = self.after_turns
             value = session(self.after_status if self.reads > 1 and self.after_status else self.status)
             if self.stale_required_actions:
                 value["required_actions"] = [
@@ -229,3 +240,68 @@ async def test_reattach_again_after_losing_observation(sdk: OpenAI | AsyncOpenAI
     assert result.output_text == "earlierlater"
     assert len(seen) == 1
     assert len(server.inputs()) == 1
+
+
+@pytest.mark.parametrize("old_root", [False, True])
+async def test_new_root_completes_before_attachment_refresh(
+    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer, old_root: bool
+) -> None:
+    server.turns = [turn("completed", "old_turn")] if old_root else []
+    server.after_status = "idle"
+    server.after_turns = [turn("completed")]
+    server.body = EventBody([turn_event("completed"), idle()])
+    result = await attach_result(sdk)
+    assert result.turn_id == "turn_root"
+    assert result.output_text == "earlierlater"
+    assert server.body.read_count == 0
+
+
+async def test_unchanged_old_completed_root_is_not_selected(
+    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer
+) -> None:
+    server.turns = [turn("completed", "old_turn")]
+    server.after_status = "idle"
+    server.body = EventBody([])
+    with pytest.raises(AgentTurnResultError, match="incomplete"):
+        await attach_result(sdk)
+    assert not any(request.url.path.endswith("/items") for request in server.requests)
+
+
+async def test_terminal_selected_turn_settles_while_successor_is_active(
+    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer
+) -> None:
+    server.retrieve_status = "completed"
+    server.body = EventBody([call(call_id="successor_call")])
+    result = await attach_result(sdk)
+    assert result.turn_id == "turn_root"
+    assert result.output_text == "earlierlater"
+    assert server.body.read_count == 0
+    assert not server.inputs()
+
+
+async def test_selected_terminal_event_stops_before_successor_calls(
+    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer
+) -> None:
+    server.body = EventBody([turn_event("completed"), call(call_id="successor_call"), idle()])
+    result = await attach_result(sdk)
+    assert result.turn_id == "turn_root"
+    assert server.body.read_count == 1
+    assert not server.inputs()
+
+
+async def test_unhandled_replay_stops_without_waiting_for_batch_end(
+    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer
+) -> None:
+    missing: Any = call(call_id="missing")
+    missing["item"]["name"] = "unregistered"
+    server.body = EventBody([missing, call(), turn_event("completed"), idle()])
+    handled: list[object] = []
+    with pytest.raises(AgentTurnResultError) as caught:
+        await attach_result(sdk, {"search": lambda args: handled.append(args) or "found"})
+    assert caught.value.reason == "requires_action"
+    action = caught.value.required_actions[0]
+    assert action.type == "function_call"
+    assert action.call_id == "missing"
+    assert server.body.read_count == 1
+    assert not handled
+    assert server.body.closed

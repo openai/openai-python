@@ -268,6 +268,11 @@ class AgentSessionStream(Generic[OutputT]):
                         self._attachment.seed(self._collection.collector)
                 self._collection.accept(event)
                 terminal = self._state.terminal(event)
+                if self._attachment is not None and self._state.turn_ended:
+                    terminal = True
+                    self._attachment.settled = True
+                    if self._collection.collector is not None:
+                        self._collection.collector.boundary = True
                 if self._attachment is not None and event.type == "agent.session.idle" and self._state.turn_id is None:
                     terminal = True
                     self._attachment.settled = True
@@ -479,6 +484,11 @@ class AsyncAgentSessionStream(Generic[OutputT]):
                         self._attachment.seed(self._collection.collector)
                 self._collection.accept(event)
                 terminal = self._state.terminal(event)
+                if self._attachment is not None and self._state.turn_ended:
+                    terminal = True
+                    self._attachment.settled = True
+                    if self._collection.collector is not None:
+                        self._collection.collector.boundary = True
                 if self._attachment is not None and event.type == "agent.session.idle" and self._state.turn_id is None:
                     terminal = True
                     self._attachment.settled = True
