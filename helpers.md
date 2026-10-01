@@ -650,6 +650,7 @@ Pending function calls use the same handlers as a new turn. Result collection
 recovers the selected turn's completed output, including messages missed while
 disconnected. An already-idle session with no selected turn drains successfully
 with `until_done()` but has no final result. Reattachment uses at-least-once
-tool-call delivery: an unacknowledged call may be delivered again after reconnecting.
-Applications are responsible for idempotency when handlers perform mutations.
+tool-call delivery with application-owned recovery: after process death, restart
+the worker, recover its saved session ID, and reattach handlers. An unacknowledged
+call may be delivered again; applications own idempotency for handler mutations.
 With `AsyncOpenAI`, use `async with` and await the getter.
