@@ -391,7 +391,7 @@ async def test_interrupted_observation_reconciles_exact_selected_turn(
         assert caught.value.messages
     else:
         result = await attach_result(sdk)
-        assert result.output_text == "earlierlater"
+        assert result.output_text == "earlierlaterpartial"
     assert len([r for r in server.requests if "/turns/" in r.url.path]) == 2
     assert server.body.closed
 
@@ -410,7 +410,7 @@ async def test_inconclusive_reconciliation_preserves_observation_cause(
     assert isinstance(cause.__cause__, httpx2.ReadError)
     assert str(cause.__cause__) == "Synthetic observation disconnect"
     if not read_fails:
-        assert "".join(item.output_text for item in caught.value.messages) == "earlierlater"
+        assert "".join(item.output_text for item in caught.value.messages) == "earlierlaterpartial"
     assert len([r for r in server.requests if "/turns/" in r.url.path]) == 2
 
 
@@ -442,7 +442,7 @@ async def test_collected_progress_can_recover_after_observation_error(
             with pytest.raises(APIConnectionError):
                 list(stream)
             result = stream.get_final_result()
-    assert result.output_text == "earlierlater"
+    assert result.output_text == "earlierlaterpartial"
 
 
 @pytest.mark.parametrize("metadata", [False, True])
@@ -750,3 +750,38 @@ async def test_idle_event_refreshes_exact_selected_turn(sdk: OpenAI | AsyncOpenA
     assert result.turn_id == "turn_root"
     assert result.output_text == "earlierlater"
     assert server.body.read_count == 1
+
+
+async def test_reconciliation_preserves_completed_sse_tail_when_items_read_lags(
+    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer
+) -> None:
+    server.items = [message("earlier")["item"]]
+    server.body = EventBody([message("later", item_id="later"), turn_event("completed")])
+    result = await attach_result(sdk)
+    assert result.output_text == "earlierlater"
+    assert len(result.messages) == 2
+
+
+async def test_unhandled_call_diagnostic_does_not_alias_yielded_arguments(
+    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer
+) -> None:
+    event: Any = call()
+    event["item"]["arguments"] = {"nested": {"value": "original"}}
+    server.body = EventBody([event])
+    if isinstance(sdk, AsyncOpenAI):
+        async with sdk.beta.agents.sessions.stream("session_test").with_result_collection() as stream:
+            observed = await stream.__anext__()
+            assert observed.type == "agent.session.turn.item.added" and observed.item.type == "function_call"
+            observed.item.arguments["nested"]["value"] = "changed"  # type: ignore[index]
+            with pytest.raises(AgentTurnResultError) as caught:
+                await stream.get_final_result()
+    else:
+        with sdk.beta.agents.sessions.stream("session_test").with_result_collection() as stream:
+            observed = next(stream)
+            assert observed.type == "agent.session.turn.item.added" and observed.item.type == "function_call"
+            observed.item.arguments["nested"]["value"] = "changed"  # type: ignore[index]
+            with pytest.raises(AgentTurnResultError) as caught:
+                stream.get_final_result()
+    action = caught.value.required_actions[0]
+    assert action.type == "function_call"
+    assert action.arguments == {"nested": {"value": "original"}}

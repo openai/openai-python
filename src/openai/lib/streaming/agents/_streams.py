@@ -361,7 +361,7 @@ class AgentSessionStream(Generic[OutputT]):
                             turn_id=call.turn_id,
                             call_id=call.call_id,
                             name=call.name,
-                            arguments=call.arguments,
+                            arguments=deepcopy(call.arguments),
                         )
                     ]
                 if handler is not None:
@@ -624,7 +624,7 @@ class AsyncAgentSessionStream(Generic[OutputT]):
                             turn_id=call.turn_id,
                             call_id=call.call_id,
                             name=call.name,
-                            arguments=call.arguments,
+                            arguments=deepcopy(call.arguments),
                         )
                     ]
                 if handler is not None:

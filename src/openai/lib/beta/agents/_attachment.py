@@ -379,6 +379,7 @@ def reconcile(
     except Exception:
         collector.replace_messages(_partial_messages(messages, collector.messages()))
         raise
+    messages = _partial_messages(messages, collector.messages())
     collector.replace_messages(messages)
     if turn.status not in _TERMINAL:
         return False
@@ -409,6 +410,7 @@ async def async_reconcile(
     except Exception:
         collector.replace_messages(_partial_messages(messages, collector.messages()))
         raise
+    messages = _partial_messages(messages, collector.messages())
     collector.replace_messages(messages)
     if turn.status not in _TERMINAL:
         return False
