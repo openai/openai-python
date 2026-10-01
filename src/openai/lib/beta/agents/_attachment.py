@@ -34,6 +34,7 @@ class AgentSessionAttachment:
         self.observation_interrupted = False
         self.messages_read = False
         self.manual_diagnostics = False
+        self.pending_messages: list[AgentSessionEvent] | None = None
 
     def select(self, turn: Turn) -> None:
         if (
@@ -65,21 +66,38 @@ class AgentSessionAttachment:
             and self.turn.status in _TERMINAL
         ):
             collector.turn = deepcopy(self.turn)
+            if self.turn.status in _TERMINAL:
+                collector.required_actions = []
+        if self.turn is not None and self.pending_messages is not None:
+            for event in self.pending_messages:
+                collector.accept(event)
+            self.pending_messages = None
         if self.settled:
             collector.boundary = True
         if self.failed:
             collector.session_failed = True
 
     def candidate(self, event: AgentSessionEvent) -> str | None:
-        if self.turn is not None:
-            return None
         if (
             event.type == "agent.session.turn.created"
             or event.type == "agent.session.turn.completed"
             or event.type == "agent.session.turn.failed"
             or event.type == "agent.session.turn.cancelled"
         ):
-            self.select(event.turn)
+            if self.turn is not None and event.turn.subagent_id is None and event.turn.id != self.turn.id:
+                self.settled = True
+            else:
+                self.select(event.turn)
+            return None
+        if self.turn is not None:
+            # Application function calls belong to root turns. A new root's
+            # replay is a boundary, even if the previous turn's GET still lags.
+            if (
+                event.type == "agent.session.turn.item.added"
+                and event.item.type == "function_call"
+                and event.item.turn_id != self.turn.id
+            ):
+                self.settled = True
             return None
         turn_id = getattr(event, "turn_id", None)
         if not isinstance(turn_id, str):
@@ -87,6 +105,17 @@ class AgentSessionAttachment:
         if isinstance(turn_id, str):
             return turn_id
         return None
+
+    def collect(self, event: AgentSessionEvent, collector: AgentTurnResultCollector) -> None:
+        # Only opted-in final output is retained while the turn index catches up.
+        # Pending function calls are never reconstructed from this buffer.
+        if self.turn is None and event.type == "agent.session.turn.item.done" and event.item.type == "message":
+            if event.item.status == "completed" and event.item.phase != "commentary":
+                if self.pending_messages is None:
+                    self.pending_messages = []
+                self.pending_messages.append(deepcopy(event))
+        else:
+            collector.accept(event)
 
 
 def _latest_root(turns: Iterable[Turn]) -> Turn | None:
@@ -246,14 +275,16 @@ def _manual_diagnostics(
         state.seed(collector)
     if state.turn is not None and latest is not None and latest.id == state.turn.id:
         state.refresh(latest)
+        state.settle(session)
         state.seed(collector)
     if (
         _needs_manual_diagnostics(state, session)
         and state.turn is None
         and (latest is None or latest.status in _TERMINAL)
     ):
-        collector.required_actions = deepcopy(
-            [action for action in session.required_actions if action.type == "environment_connection"]
+        collector.required_actions = [action for action in collector.required_actions if action.type == "function_call"]
+        collector.required_actions.extend(
+            deepcopy([action for action in session.required_actions if action.type == "environment_connection"])
         )
         return
     if (
@@ -266,7 +297,9 @@ def _manual_diagnostics(
         return
     # Browser authentication replay includes resolved history. Current manual
     # required actions are diagnostics only; function dispatch always uses SSE.
-    collector.required_actions = deepcopy(
+    collector.required_actions = [
+        action for action in collector.required_actions if action.type == "function_call"
+    ] + deepcopy(
         [
             action
             for action in session.required_actions
@@ -305,7 +338,9 @@ def read_messages(
 ) -> Iterator[AgentSessionMessage]:
     after: str | None = None
     while True:
-        page = sessions.items.list(session_id, order="asc", after=after if after is not None else omit, **options)
+        page = sessions.items.list(
+            session_id, order="asc", limit=100, after=after if after is not None else omit, **options
+        )
         yield from _messages(page.data, turn_id)
         after = _next_cursor(page, page.data, after)
         if after is None:
@@ -317,7 +352,9 @@ async def async_read_messages(
 ) -> AsyncIterator[AgentSessionMessage]:
     after: str | None = None
     while True:
-        page = await sessions.items.list(session_id, order="asc", after=after if after is not None else omit, **options)
+        page = await sessions.items.list(
+            session_id, order="asc", limit=100, after=after if after is not None else omit, **options
+        )
         for message in _messages(page.data, turn_id):
             yield message
         after = _next_cursor(page, page.data, after)

@@ -311,6 +311,10 @@ class AgentSessionStream(Generic[OutputT]):
                     candidate = self._attachment.candidate(event)
                     if candidate is not None:
                         select_candidate(self._sessions, self._attachment, candidate, self._options)
+                    if self._attachment.settled:
+                        if self._collection.collector is not None:
+                            self._attachment.seed(self._collection.collector)
+                        return
                     if self._attachment.turn is not None and self._state.turn_id is None:
                         self._state.turn_id = self._attachment.turn.id
                         self._state.turn_ended = self._attachment.turn.status in ("completed", "failed", "cancelled")
@@ -329,7 +333,10 @@ class AgentSessionStream(Generic[OutputT]):
                             )
                             diagnose_manual(self._sessions, self._attachment, self._collection.collector, self._options)
                             self._collection.collector.check_outcome(self._handlers)
-                self._collection.accept(event)
+                if self._attachment is not None and self._collection.collector is not None:
+                    self._attachment.collect(event, self._collection.collector)
+                else:
+                    self._collection.accept(event)
                 terminal = self._state.terminal(event)
                 if self._attachment is not None and self._state.turn_ended:
                     terminal = True
@@ -573,6 +580,10 @@ class AsyncAgentSessionStream(Generic[OutputT]):
                     candidate = self._attachment.candidate(event)
                     if candidate is not None:
                         await async_select_candidate(self._sessions, self._attachment, candidate, self._options)
+                    if self._attachment.settled:
+                        if self._collection.collector is not None:
+                            self._attachment.seed(self._collection.collector)
+                        return
                     if self._attachment.turn is not None and self._state.turn_id is None:
                         self._state.turn_id = self._attachment.turn.id
                         self._state.turn_ended = self._attachment.turn.status in ("completed", "failed", "cancelled")
@@ -593,7 +604,10 @@ class AsyncAgentSessionStream(Generic[OutputT]):
                                 self._sessions, self._attachment, self._collection.collector, self._options
                             )
                             self._collection.collector.check_outcome(self._handlers)
-                self._collection.accept(event)
+                if self._attachment is not None and self._collection.collector is not None:
+                    self._attachment.collect(event, self._collection.collector)
+                else:
+                    self._collection.accept(event)
                 terminal = self._state.terminal(event)
                 if self._attachment is not None and self._state.turn_ended:
                     terminal = True

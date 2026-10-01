@@ -886,3 +886,150 @@ def test_cancelled_attachment_closes_open_sse(backend: str, during_refresh: bool
     anyio.run(run, backend=backend)
     assert len(cancelled) == 1
     assert server.body.closed
+
+
+async def test_manual_refresh_preserves_observed_function_diagnostics(
+    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer
+) -> None:
+    server.turns = [turn("waiting")]
+    server.retrieve_status = "waiting"
+    server.status = "requires_action"
+    server.manual_after_reads = 2
+    server.manual_actions = [manual_action("browser_authentication")]
+    approval: Any = call(call_id="approval")
+    approval["item"] = {
+        "type": "computer_use_approval_request",
+        "id": "request_test",
+        "turn_id": "turn_root",
+        "request_id": "request_test",
+        "request": server.manual_actions[0]["request"],
+    }
+    server.body = EventBody([call(), approval])
+    if isinstance(sdk, AsyncOpenAI):
+        async with sdk.beta.agents.sessions.stream("session_test").with_result_collection() as stream:
+            await stream.__anext__()
+            with pytest.raises(AgentTurnResultError) as caught:
+                await stream.__anext__()
+    else:
+        with sdk.beta.agents.sessions.stream("session_test").with_result_collection() as stream:
+            next(stream)
+            with pytest.raises(AgentTurnResultError) as caught:
+                next(stream)
+    assert [action.type for action in caught.value.required_actions] == [
+        "function_call",
+        "computer_use_approval_request",
+    ]
+    assert not server.inputs()
+
+
+@pytest.mark.parametrize("event_kind", ["created", "function_call"])
+@pytest.mark.parametrize("collect", [False, True])
+async def test_successor_root_stops_attachment_before_dispatch_even_when_selected_read_lags(
+    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer, event_kind: str, collect: bool
+) -> None:
+    server.retrieve_status = "in_progress"
+    # Both the selected turn GET and latest-turn index still describe the old root.
+    successor_call: Any = call(call_id="successor_call")
+    successor_call["turn_id"] = "successor"
+    successor_call["item"]["turn_id"] = "successor"
+    server.body = EventBody(
+        [turn_event("created", "successor"), successor_call] if event_kind == "created" else [successor_call]
+    )
+    handled: list[object] = []
+    handlers: dict[str, ToolHandler] = {"search": lambda args: handled.append(args) or "found"}
+    if collect:
+        with pytest.raises(AgentTurnResultError, match="incomplete"):
+            await attach_result(sdk, handlers)
+    elif isinstance(sdk, AsyncOpenAI):
+        async with sdk.beta.agents.sessions.stream("session_test", tool_handlers=handlers) as stream:
+            await stream.until_done()
+    else:
+        with sdk.beta.agents.sessions.stream("session_test", tool_handlers=handlers) as stream:
+            stream.until_done()
+    assert server.body.read_count == 1
+    assert not handled
+    assert not server.inputs()
+    assert server.body.closed
+
+
+@pytest.mark.parametrize("status", ["completed", "failed", "cancelled"])
+async def test_output_before_root_discovery_survives_lagging_history(
+    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer, status: str
+) -> None:
+    server.turns = []
+    server.items = []
+    server.body = EventBody([message("observed"), turn_event("created"), turn_event(status)])
+    if status == "completed":
+        result = await attach_result(sdk)
+        assert result.output_text == "observed"
+    else:
+        with pytest.raises(AgentTurnResultError, match=status) as caught:
+            await attach_result(sdk)
+        assert "".join(item.output_text for item in caught.value.messages) == "observed"
+
+
+async def test_manual_refresh_terminal_turn_finishes_without_reading_sse(
+    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer
+) -> None:
+    server.turns = [turn("waiting")]
+    server.retrieve_status = "waiting"
+    server.status = "requires_action"
+    server.manual_actions = [manual_action("browser_authentication")]
+    if isinstance(sdk, AsyncOpenAI):
+        async with sdk.beta.agents.sessions.stream("session_test") as stream:
+            server.turns = [turn("completed")]
+            result = await stream.get_final_result()
+    else:
+        with sdk.beta.agents.sessions.stream("session_test") as stream:
+            server.turns = [turn("completed")]
+            result = stream.get_final_result()
+    assert result.output_text == "earlierlater"
+    assert server.body.read_count == 0
+    assert not server.inputs()
+
+
+async def test_recovery_scans_interleaved_turns_with_maximum_page_size(
+    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer
+) -> None:
+    server.retrieve_status = "completed"
+    server.items = [
+        message("first", item_id="first")["item"],
+        message("other", item_id="other", turn_id="other_turn")["item"],
+        message("last", item_id="last")["item"],
+    ]
+    result = await attach_result(sdk)
+    assert result.output_text == "firstlast"
+    requests = [request for request in server.requests if request.url.path.endswith("/items")]
+    assert len(requests) == 3
+    assert all(request.url.params["limit"] == "100" for request in requests)
+
+
+@pytest.mark.parametrize("collect", [False, True])
+async def test_pre_discovery_output_retention_requires_opt_in_and_copies_events(
+    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer, collect: bool
+) -> None:
+    server.turns = []
+    server.items = []
+    server.body = EventBody([message("original"), turn_event("created"), turn_event("completed")])
+    if isinstance(sdk, AsyncOpenAI):
+        async with sdk.beta.agents.sessions.stream("session_test") as stream:
+            if collect:
+                stream.with_result_collection()
+            observed = await stream.__anext__()
+            assert observed.type == "agent.session.turn.item.done" and observed.item.type == "message"
+            observed.item.content.clear()
+            if collect:
+                assert (await stream.get_final_result()).output_text == "original"
+            else:
+                assert stream._attachment is not None and stream._attachment.pending_messages is None
+    else:
+        with sdk.beta.agents.sessions.stream("session_test") as stream:
+            if collect:
+                stream.with_result_collection()
+            observed = next(stream)
+            assert observed.type == "agent.session.turn.item.done" and observed.item.type == "message"
+            observed.item.content.clear()
+            if collect:
+                assert stream.get_final_result().output_text == "original"
+            else:
+                assert stream._attachment is not None and stream._attachment.pending_messages is None
