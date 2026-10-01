@@ -44,6 +44,8 @@ class AttachmentServer(Server):
         self.turn_reads = 0
         self.first_turn_status: str | None = None
         self.manual_after_reads = 0
+        self.turn_list_reads = 0
+        self.turns_after_list: int | None = None
 
     @override
     def handle(self, request: httpx2.Request) -> httpx2.Response:
@@ -53,6 +55,9 @@ class AttachmentServer(Server):
         if request.method == "GET" and not path.endswith("/events"):
             self.requests.append(request)
             if path.endswith("/turns"):
+                self.turn_list_reads += 1
+                if self.turns_after_list is not None and self.turn_list_reads >= self.turns_after_list:
+                    self.turns = [turn("waiting")]
                 if self.body.read_count >= self.live_after_reads and self.live_turns is not None:
                     self.turns = self.live_turns
                 after = request.url.params.get("after")
@@ -807,3 +812,28 @@ async def test_progress_collection_retains_distinct_unhandled_calls(
         "first",
         "second",
     ]
+
+
+async def test_manual_diagnostics_selects_newly_visible_waiting_root(
+    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer
+) -> None:
+    server.turns = []
+    server.turns_after_list = 3
+    server.status = "requires_action"
+    server.manual_actions = [manual_action("environment_connection")]
+    server.body = EventBody([])
+    with pytest.raises(AgentTurnResultError, match="requires_action") as caught:
+        await attach_result(sdk)
+    assert caught.value.turn_id == "turn_root"
+    assert caught.value.required_actions[0].type == "environment_connection"
+    assert server.body.read_count == 0
+
+
+async def test_error_hydration_preserves_observed_completed_tail(
+    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer
+) -> None:
+    server.items = [message("earlier")["item"]]
+    server.body = EventBody([message("later", item_id="later"), call()])
+    with pytest.raises(AgentTurnResultError, match="requires_action") as caught:
+        await attach_result(sdk)
+    assert "".join(item.output_text for item in caught.value.messages) == "earlierlater"

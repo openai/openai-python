@@ -237,6 +237,9 @@ async def async_diagnose_manual(
 def _manual_diagnostics(
     state: AgentSessionAttachment, session: AgentSession, latest: Turn | None, collector: AgentTurnResultCollector
 ) -> None:
+    if state.turn is None and latest is not None and latest.status not in _TERMINAL:
+        state.select(latest)
+        state.seed(collector)
     if state.turn is not None and latest is not None and latest.id == state.turn.id:
         state.refresh(latest)
         state.seed(collector)
@@ -341,7 +344,7 @@ def hydrate_error(
     except Exception:
         error.messages = _partial_messages(recovered, error.messages)
     else:
-        error.messages = recovered
+        error.messages = _partial_messages(recovered, error.messages)
 
 
 async def async_hydrate_error(
@@ -357,7 +360,7 @@ async def async_hydrate_error(
     except Exception:
         error.messages = _partial_messages(recovered, error.messages)
     else:
-        error.messages = recovered
+        error.messages = _partial_messages(recovered, error.messages)
 
 
 def reconcile(
