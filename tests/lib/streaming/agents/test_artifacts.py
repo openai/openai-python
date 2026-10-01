@@ -131,3 +131,36 @@ async def test_missing_or_ambiguous_artifact_does_not_open_destination(
         await download(sdk, path)
     assert path.read_text() == "keep"
     assert server.content.chunks == 0
+
+
+async def test_native_binary_content_matches_exact_turn_and_preserves_options(
+    sdk: OpenAI | AsyncOpenAI, server: ArtifactServer
+) -> None:
+    from openai._legacy_response import HttpxBinaryResponseContent
+
+    options: Any = {"extra_headers": {"X-Synthetic": "test"}, "extra_query": {"synthetic": "query"}, "timeout": 7}
+    content = (
+        await sdk.beta.agents.sessions.artifacts.for_result(result()).content("/workspace/outputs/report.md", **options)
+        if isinstance(sdk, AsyncOpenAI)
+        else sdk.beta.agents.sessions.artifacts.for_result(result()).content("/workspace/outputs/report.md", **options)
+    )
+    assert isinstance(content, HttpxBinaryResponseContent)
+    assert content.content == b"report-done"
+    assert len(server.requests) == 3
+    assert all(request.url.params["synthetic"] == "query" for request in server.requests)
+    assert all(request.headers["X-Synthetic"] == "test" for request in server.requests)
+    assert all(request.extensions["timeout"]["read"] == 7 for request in server.requests)
+    assert server.content.closed
+
+
+@pytest.mark.parametrize("ambiguous", [False, True])
+async def test_native_content_rejects_missing_or_ambiguous_artifact(
+    sdk: OpenAI | AsyncOpenAI, server: ArtifactServer, ambiguous: bool
+) -> None:
+    server.artifacts = [artifact("selected"), artifact("duplicate")] if ambiguous else [artifact("old", "old_turn")]
+    with pytest.raises(ValueError, match="More than one" if ambiguous else "No artifact"):
+        if isinstance(sdk, AsyncOpenAI):
+            await sdk.beta.agents.sessions.artifacts.for_result(result()).content("/workspace/outputs/report.md")
+        else:
+            sdk.beta.agents.sessions.artifacts.for_result(result()).content("/workspace/outputs/report.md")
+    assert server.content.chunks == 0

@@ -651,7 +651,11 @@ with client.beta.agents.sessions.stream(
 ) as stream:
     result = stream.get_final_result()
 
-artifact = client.beta.agents.sessions.artifacts.for_result(result).download(
+artifacts = client.beta.agents.sessions.artifacts.for_result(result)
+
+# Read in memory, or stream to an application-owned local path.
+report_bytes = artifacts.content("/workspace/outputs/report.md").content
+artifact = artifacts.download(
     "/workspace/outputs/report.md", to=Path("downloaded-report.md")
 )
 ```

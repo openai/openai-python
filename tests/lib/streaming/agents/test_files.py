@@ -590,3 +590,61 @@ async def test_async_selection_cancellation_does_not_wait_for_scan(monkeypatch: 
     finally:
         release.set()
         timer.cancel()
+
+
+@pytest.mark.parametrize("mode", ["prepare", "directory", "upload"])
+async def test_native_cancellation_keeps_opened_handles_owned_by_worker(
+    sdk: OpenAI | AsyncOpenAI, server: FilesServer, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mode: str
+) -> None:
+    import asyncio
+    import threading
+
+    from openai.lib.beta.agents import _files
+
+    if not isinstance(sdk, AsyncOpenAI):
+        pytest.skip("Native async cancellation contract")
+    source = tmp_path / "source.txt"
+    source.write_text("abc")
+    entered = threading.Event()
+    release = threading.Event()
+    finished = threading.Event()
+    handles: list[Any] = []
+    original_open = _files._open_local
+    snapshot_name = "_snapshot_upload" if mode == "upload" else "_snapshot_selection"
+    original_snapshot = getattr(_files, snapshot_name)
+
+    def delayed_open(*args: Any, **kwargs: Any) -> Any:
+        entered.set()
+        release.wait()
+        handle, size = original_open(*args, **kwargs)
+        handles.append(handle)
+        return handle, size
+
+    def snapshot(*args: Any, **kwargs: Any) -> Any:
+        try:
+            return original_snapshot(*args, **kwargs)
+        finally:
+            finished.set()
+
+    monkeypatch.setattr(_files, "_open_local", delayed_open)
+    monkeypatch.setattr(_files, snapshot_name, snapshot)
+    if mode == "upload":
+        operation = sdk.beta.agents.environments.files.upload("env_test", file=source, path="/workspace/source.txt")
+    elif mode == "directory":
+        operation = sdk.beta.agents.environments.files.prepare_directory(
+            tmp_path, destination="/workspace/docs", include=["*.txt"]
+        )
+    else:
+        operation = sdk.beta.agents.environments.files.prepare({"/workspace/source.txt": source})
+    task = asyncio.create_task(operation)
+    try:
+        await asyncio.wait_for(asyncio.to_thread(entered.wait), 2)
+        task.cancel()
+        with pytest.raises(CancelledError):
+            await task
+    finally:
+        release.set()
+        await asyncio.wait_for(asyncio.to_thread(finished.wait), 2)
+    assert len(handles) == 1
+    assert handles[0].closed
+    assert not server.requests

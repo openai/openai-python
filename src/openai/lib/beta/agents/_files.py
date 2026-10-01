@@ -231,26 +231,35 @@ def prepare(resource: Files, files: Mapping[str, str | PathLike[str]], options: 
         return prepared
 
 
+def _snapshot_selection(
+    files: Mapping[str, str | PathLike[str]], options: _RequestOptions, defaults: Headers
+) -> list[tuple[str, str, bytes]]:
+    # The worker owns every handle it opens, even if its caller is cancelled.
+    with ExitStack() as stack:
+        selected = _prepare_selection(files, options, defaults, stack)
+        return [
+            (destination, source.name, _read_local(handle, length)) for destination, source, handle, length in selected
+        ]
+
+
 async def async_prepare(
     resource: AsyncFiles, files: Mapping[str, str | PathLike[str]], options: _RequestOptions
 ) -> PreparedAgentFiles:
-    with ExitStack() as stack:
-        selected = await run_sync(_prepare_selection, files, options, resource._client.default_headers, stack)
-        prepared = PreparedAgentFiles()
-        try:
-            for destination, source, handle, length in selected:
-                content = await run_sync(_read_local, handle, length)
-                uploaded = await resource._client.files.create(
-                    file=(source.name, content), purpose="user_data", **options
-                )
-                prepared.uploaded_file_ids.append(uploaded.id)
-                prepared.files.append({"type": "file_id", "file_id": uploaded.id, "path": destination})
-        except anyio.get_cancelled_exc_class() as error:
-            error.__dict__["prepared"] = prepared
-            raise
-        except Exception as error:
-            raise AgentFilePreparationError(prepared) from error
-        return prepared
+    selected = await run_sync(
+        _snapshot_selection, files, options, resource._client.default_headers, abandon_on_cancel=True
+    )
+    prepared = PreparedAgentFiles()
+    try:
+        for destination, filename, content in selected:
+            uploaded = await resource._client.files.create(file=(filename, content), purpose="user_data", **options)
+            prepared.uploaded_file_ids.append(uploaded.id)
+            prepared.files.append({"type": "file_id", "file_id": uploaded.id, "path": destination})
+    except anyio.get_cancelled_exc_class() as error:
+        error.__dict__["prepared"] = prepared
+        raise
+    except Exception as error:
+        raise AgentFilePreparationError(prepared) from error
+    return prepared
 
 
 def _read_local(handle: BinaryIO, length: int) -> bytes:
@@ -264,10 +273,11 @@ def _read_local(handle: BinaryIO, length: int) -> bytes:
 
 
 def _snapshot_upload(file: FileTypes) -> FileTypes:
-    assert isinstance(file, tuple) and isinstance(file[1], IOBase)
-    handle = cast(BinaryIO, file[1])
-    content = _read_local(handle, fstat(handle.fileno()).st_size)
-    return cast(FileTypes, (file[0], content, *file[2:]))
+    with _upload_content(file) as opened:
+        assert isinstance(opened, tuple) and isinstance(opened[1], IOBase)
+        handle = cast(BinaryIO, opened[1])
+        content = _read_local(handle, fstat(handle.fileno()).st_size)
+        return cast(FileTypes, (opened[0], content, *opened[2:]))
 
 
 @contextmanager
@@ -328,9 +338,9 @@ async def async_upload(
         raise ValueError("Expected a non-empty environment_id")
     destination = _destination(path)
     original = file[1] if isinstance(file, tuple) else file
+    if isinstance(original, PathLike):
+        file = await run_sync(_snapshot_upload, file, abandon_on_cancel=True)
     with _upload_content(file) as content:
-        if isinstance(original, PathLike):
-            content = await run_sync(_snapshot_upload, content)
         uploaded = await resource._client.files.create(file=content, purpose="user_data", **options)
     try:
         staged = await resource.create(environment_id, type="file_id", file_id=uploaded.id, path=destination, **options)
