@@ -41,6 +41,9 @@ class AttachmentServer(Server):
         self.fail_later_items = False
         self.live_turns: list[dict[str, Any]] | None = None
         self.live_after_reads = 1
+        self.turn_reads = 0
+        self.first_turn_status: str | None = None
+        self.manual_after_reads = 0
 
     @override
     def handle(self, request: httpx2.Request) -> httpx2.Response:
@@ -60,6 +63,7 @@ class AttachmentServer(Server):
                     200, json={"data": data, "has_more": offset + 1 < len(self.turns), "object": "list"}
                 )
             if "/turns/" in path:
+                self.turn_reads += 1
                 turn_id = path.rsplit("/", 1)[-1]
                 if self.fail_recovery_read and self.body.read_count:
                     raise httpx2.ConnectError("Synthetic durable read failure", request=request)
@@ -75,7 +79,13 @@ class AttachmentServer(Server):
                 return httpx2.Response(
                     200,
                     json=turn(
-                        "completed" if turn_id == "old_turn" else self.retrieve_status or status,
+                        "completed"
+                        if turn_id == "old_turn"
+                        else (
+                            self.first_turn_status
+                            if self.turn_reads == 1 and self.first_turn_status
+                            else self.retrieve_status or status
+                        ),
                         turn_id,
                         "child" if turn_id == "child_turn" else None,
                     ),
@@ -97,8 +107,9 @@ class AttachmentServer(Server):
                 raise httpx2.ConnectError("Synthetic diagnostic failure", request=request)
             if self.after_turns is not None:
                 self.turns = self.after_turns
-            value = session(self.after_status or self.status)
-            value["required_actions"] = self.manual_actions
+            pending = self.body.read_count >= self.manual_after_reads
+            value = session((self.after_status or self.status) if pending else "in_progress")
+            value["required_actions"] = self.manual_actions if pending else []
             if self.stale_required_actions:
                 value["required_actions"] = [
                     {
@@ -655,11 +666,14 @@ async def test_environment_connection_without_active_turn_is_reported(
 
 
 @pytest.mark.parametrize("stale_first_lookup", [False, True])
+@pytest.mark.parametrize("already_selected", [False, True])
 async def test_first_waiting_root_discovered_from_browser_item_checks_manual_action(
-    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer, stale_first_lookup: bool
+    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer, stale_first_lookup: bool, already_selected: bool
 ) -> None:
-    server.turns = []
+    server.turns = [turn("waiting")] if already_selected else []
+    server.retrieve_status = "waiting"
     server.live_turns = [turn("waiting")]
+    server.manual_after_reads = 1 if already_selected else 0
     server.status = "requires_action"
     server.manual_actions = [manual_action("browser_authentication")]
     request: Any = call()
@@ -671,14 +685,14 @@ async def test_first_waiting_root_discovered_from_browser_item_checks_manual_act
         "request_id": "request_test",
         "request": server.manual_actions[0]["request"],
     }
-    server.live_after_reads = 2 if stale_first_lookup else 1
+    server.live_after_reads = 2 if stale_first_lookup and not already_selected else 1
     repeated: dict[str, object] = {**request, "event_id": "second_request_observation"}
     server.body = EventBody([request, repeated] if stale_first_lookup else [request])
     with pytest.raises(AgentTurnResultError, match="requires_action") as caught:
         await attach_result(sdk)
     assert caught.value.turn_id == "turn_root"
     assert caught.value.required_actions[0].type == "computer_use_approval_request"
-    assert server.body.read_count == (2 if stale_first_lookup else 1)
+    assert server.body.read_count == (2 if stale_first_lookup and not already_selected else 1)
 
 
 async def test_diagnostic_read_failure_retains_durable_partial_messages(
@@ -713,3 +727,26 @@ async def test_terminal_event_survives_stale_reconciliation(
         assert caught.value.reason == status
         assert caught.value.turn is not None
         assert caught.value.turn.status == status
+
+
+async def test_idle_handshake_rechecks_selected_turn_after_stale_read(
+    sdk: OpenAI | AsyncOpenAI, server: AttachmentServer
+) -> None:
+    server.after_status = "idle"
+    server.first_turn_status = "in_progress"
+    server.retrieve_status = "completed"
+    server.body = EventBody([])
+    result = await attach_result(sdk)
+    assert result.turn_id == "turn_root"
+    assert result.output_text == "earlierlater"
+    assert server.body.read_count == 0
+
+
+async def test_idle_event_refreshes_exact_selected_turn(sdk: OpenAI | AsyncOpenAI, server: AttachmentServer) -> None:
+    server.first_turn_status = "in_progress"
+    server.retrieve_status = "completed"
+    server.body = EventBody([idle()])
+    result = await attach_result(sdk)
+    assert result.turn_id == "turn_root"
+    assert result.output_text == "earlierlater"
+    assert server.body.read_count == 1

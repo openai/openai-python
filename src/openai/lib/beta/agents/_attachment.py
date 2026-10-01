@@ -42,6 +42,12 @@ class AgentSessionAttachment:
         ):
             self.turn = deepcopy(turn)
 
+    def refresh(self, turn: Turn) -> None:
+        if self.turn is None:
+            self.select(turn)
+        elif turn.id == self.turn.id and self.turn.status not in _TERMINAL:
+            self.turn = deepcopy(turn)
+
     def settle(self, session: AgentSession) -> None:
         terminal = self.turn is not None and self.turn.status in _TERMINAL
         # Session status can already describe a successor turn. Exact selected
@@ -50,7 +56,12 @@ class AgentSessionAttachment:
         self.settled = terminal or self.failed or session.status == "idle" and self.turn is None
 
     def seed(self, collector: AgentTurnResultCollector) -> None:
-        if collector.turn is None and self.turn is not None:
+        if self.turn is not None and (
+            collector.turn is None
+            or collector.turn.id == self.turn.id
+            and collector.turn.status not in _TERMINAL
+            and self.turn.status in _TERMINAL
+        ):
             collector.turn = deepcopy(self.turn)
         if self.settled:
             collector.boundary = True
@@ -103,18 +114,24 @@ async def async_select_candidate(
 
 def refresh_idle(sessions: Sessions, state: AgentSessionAttachment, options: _RequestOptions) -> None:
     session = sessions.retrieve(state.session_id, **options)
-    latest = _latest_root(sessions.turns.list(state.session_id, order="desc", **options))
-    if latest is not None:
-        state.select(latest)
+    if state.turn is not None:
+        state.refresh(sessions.turns.retrieve(state.turn.id, session_id=state.session_id, **options))
+    else:
+        latest = _latest_root(sessions.turns.list(state.session_id, order="desc", **options))
+        if latest is not None:
+            state.select(latest)
     state.settle(session)
 
 
 async def async_refresh_idle(sessions: AsyncSessions, state: AgentSessionAttachment, options: _RequestOptions) -> None:
     session = await sessions.retrieve(state.session_id, **options)
-    async for turn in sessions.turns.list(state.session_id, order="desc", **options):
-        if turn.subagent_id is None:
-            state.select(turn)
-            break
+    if state.turn is not None:
+        state.refresh(await sessions.turns.retrieve(state.turn.id, session_id=state.session_id, **options))
+    else:
+        async for turn in sessions.turns.list(state.session_id, order="desc", **options):
+            if turn.subagent_id is None:
+                state.select(turn)
+                break
     state.settle(session)
 
 
@@ -134,6 +151,8 @@ def attach(
         else:
             latest = _latest_root(sessions.turns.list(session_id, order="desc", **options))
             _select_refreshed(state, latest, baseline)
+        if session.status == "idle" and state.turn is not None and state.turn.status not in _TERMINAL:
+            state.refresh(sessions.turns.retrieve(state.turn.id, session_id=session_id, **options))
         state.settle(session)
         state.manual_diagnostics = _needs_manual_diagnostics(state, session)
         return stream, state
@@ -161,6 +180,8 @@ async def async_attach(
             state.turn = await sessions.turns.retrieve(state.turn.id, session_id=session_id, **options)
         else:
             _select_refreshed(state, await latest_root(), baseline)
+        if session.status == "idle" and state.turn is not None and state.turn.status not in _TERMINAL:
+            state.refresh(await sessions.turns.retrieve(state.turn.id, session_id=session_id, **options))
         state.settle(session)
         state.manual_diagnostics = _needs_manual_diagnostics(state, session)
         return stream, state
@@ -216,6 +237,9 @@ async def async_diagnose_manual(
 def _manual_diagnostics(
     state: AgentSessionAttachment, session: AgentSession, latest: Turn | None, collector: AgentTurnResultCollector
 ) -> None:
+    if state.turn is not None and latest is not None and latest.id == state.turn.id:
+        state.refresh(latest)
+        state.seed(collector)
     if (
         _needs_manual_diagnostics(state, session)
         and state.turn is None

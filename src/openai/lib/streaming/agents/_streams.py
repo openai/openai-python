@@ -315,8 +315,17 @@ class AgentSessionStream(Generic[OutputT]):
                         self._state.turn_ended = self._attachment.turn.status in ("completed", "failed", "cancelled")
                     if self._collection.collector is not None:
                         self._attachment.seed(self._collection.collector)
-                        if discovering and self._attachment.turn is not None:
-                            self._attachment.manual_diagnostics = self._attachment.turn.status == "waiting"
+                        if self._attachment.turn is not None and (
+                            discovering
+                            or event.type == "agent.session.turn.item.added"
+                            and event.item.type == "computer_use_approval_request"
+                            and event.item.turn_id == self._attachment.turn.id
+                        ):
+                            self._attachment.manual_diagnostics = self._attachment.turn.status not in (
+                                "completed",
+                                "failed",
+                                "cancelled",
+                            )
                             diagnose_manual(self._sessions, self._attachment, self._collection.collector, self._options)
                             self._collection.collector.check_outcome(self._handlers)
                 self._collection.accept(event)
@@ -326,7 +335,7 @@ class AgentSessionStream(Generic[OutputT]):
                     self._attachment.settled = True
                     if self._collection.collector is not None:
                         self._collection.collector.boundary = True
-                if self._attachment is not None and event.type == "agent.session.idle" and self._state.turn_id is None:
+                if self._attachment is not None and event.type == "agent.session.idle" and not terminal:
                     refresh_idle(self._sessions, self._attachment, self._options)
                     terminal = self._attachment.settled
                     if self._attachment.turn is not None:
@@ -567,8 +576,17 @@ class AsyncAgentSessionStream(Generic[OutputT]):
                         self._state.turn_ended = self._attachment.turn.status in ("completed", "failed", "cancelled")
                     if self._collection.collector is not None:
                         self._attachment.seed(self._collection.collector)
-                        if discovering and self._attachment.turn is not None:
-                            self._attachment.manual_diagnostics = self._attachment.turn.status == "waiting"
+                        if self._attachment.turn is not None and (
+                            discovering
+                            or event.type == "agent.session.turn.item.added"
+                            and event.item.type == "computer_use_approval_request"
+                            and event.item.turn_id == self._attachment.turn.id
+                        ):
+                            self._attachment.manual_diagnostics = self._attachment.turn.status not in (
+                                "completed",
+                                "failed",
+                                "cancelled",
+                            )
                             await async_diagnose_manual(
                                 self._sessions, self._attachment, self._collection.collector, self._options
                             )
@@ -580,7 +598,7 @@ class AsyncAgentSessionStream(Generic[OutputT]):
                     self._attachment.settled = True
                     if self._collection.collector is not None:
                         self._collection.collector.boundary = True
-                if self._attachment is not None and event.type == "agent.session.idle" and self._state.turn_id is None:
+                if self._attachment is not None and event.type == "agent.session.idle" and not terminal:
                     await async_refresh_idle(self._sessions, self._attachment, self._options)
                     terminal = self._attachment.settled
                     if self._attachment.turn is not None:
