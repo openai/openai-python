@@ -2,19 +2,29 @@
 
 from __future__ import annotations
 
-from typing import Optional
+from os import PathLike
+from typing import Mapping, Optional, Sequence
 from typing_extensions import Literal, overload
 
 import httpx2
 
 from ..... import _legacy_response
-from ....._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
+from ....._types import Body, Omit, Query, Headers, NotGiven, FileTypes, omit, not_given
 from ....._utils import path_template, required_args, maybe_transform, async_maybe_transform
 from ....._compat import cached_property
 from ....._resource import SyncAPIResource, AsyncAPIResource
 from ....._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from .....pagination import SyncTokenPage, AsyncTokenPage
 from ....._base_client import AsyncPaginator, make_request_options
+from .....lib.beta.agents._files import (
+    StagedAgentFile,
+    PreparedAgentFiles,
+    upload,
+    prepare,
+    async_upload,
+    async_prepare,
+    directory_files,
+)
 from .....types.beta.agents.environments import file_list_params, file_create_params
 from .....types.beta.agents.environments.environment_file import EnvironmentFile
 
@@ -22,6 +32,40 @@ __all__ = ["Files", "AsyncFiles"]
 
 
 class Files(SyncAPIResource):
+    def prepare(
+        self,
+        files: Mapping[str, str | PathLike[str]],
+        *,
+        extra_headers: Headers | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> PreparedAgentFiles:
+        """Beta: upload selected files for a new hosted environment."""
+        return prepare(self, files, {"extra_headers": extra_headers, "timeout": timeout})
+
+    def prepare_directory(
+        self,
+        root: str | PathLike[str],
+        *,
+        destination: str,
+        include: Sequence[str],
+        extra_headers: Headers | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> PreparedAgentFiles:
+        """Beta: prepare an explicitly selected directory snapshot."""
+        return self.prepare(directory_files(root, destination, include), extra_headers=extra_headers, timeout=timeout)
+
+    def upload(
+        self,
+        environment_id: str,
+        *,
+        file: FileTypes,
+        path: str,
+        extra_headers: Headers | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> StagedAgentFile:
+        """Beta: upload and stage one file in an existing environment."""
+        return upload(self, environment_id, file, path, {"extra_headers": extra_headers, "timeout": timeout})
+
     @cached_property
     def with_raw_response(self) -> FilesWithRawResponse:
         """
@@ -222,6 +266,44 @@ class Files(SyncAPIResource):
 
 
 class AsyncFiles(AsyncAPIResource):
+    async def prepare(
+        self,
+        files: Mapping[str, str | PathLike[str]],
+        *,
+        extra_headers: Headers | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> PreparedAgentFiles:
+        """Beta: upload selected files for a new hosted environment."""
+        return await async_prepare(self, files, {"extra_headers": extra_headers, "timeout": timeout})
+
+    async def prepare_directory(
+        self,
+        root: str | PathLike[str],
+        *,
+        destination: str,
+        include: Sequence[str],
+        extra_headers: Headers | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> PreparedAgentFiles:
+        """Beta: prepare an explicitly selected directory snapshot."""
+        return await self.prepare(
+            directory_files(root, destination, include), extra_headers=extra_headers, timeout=timeout
+        )
+
+    async def upload(
+        self,
+        environment_id: str,
+        *,
+        file: FileTypes,
+        path: str,
+        extra_headers: Headers | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> StagedAgentFile:
+        """Beta: upload and stage one file in an existing environment."""
+        return await async_upload(
+            self, environment_id, file, path, {"extra_headers": extra_headers, "timeout": timeout}
+        )
+
     @cached_property
     def with_raw_response(self) -> AsyncFilesWithRawResponse:
         """

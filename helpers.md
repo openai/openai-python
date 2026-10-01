@@ -633,3 +633,35 @@ This only selects the local parser; it does not change the session's schema.
 `result.parse(Report)` parses an existing raw result. `AgentOutputParseError.result`
 retains the completed raw answer if validation fails. With `AsyncOpenAI`, await
 creation and the result getter, and use `async with`.
+
+### Stage files and download a turn artifact
+
+```python
+from pathlib import Path
+
+prepared = client.beta.agents.environments.files.prepare({
+    "/workspace/source.pdf": Path("source.pdf"),
+})
+session = client.beta.agents.sessions.create(
+    agent={"model": MODEL},
+    environment={"type": "openai_hosted", "files": prepared.files},
+)
+with client.beta.agents.sessions.stream(
+    session.id, input="Read source.pdf and write /workspace/outputs/report.md."
+) as stream:
+    result = stream.get_final_result()
+
+artifact = client.beta.agents.sessions.artifacts.for_result(result).download(
+    "/workspace/outputs/report.md", to=Path("downloaded-report.md")
+)
+```
+
+Use `prepare_directory("docs", destination="/workspace/docs", include=["**/*.md"])`
+for a selected directory snapshot, or `files.upload(environment_id, file=Path(...),
+path="/workspace/source.pdf")` to stage a file in an existing environment.
+Uploads remain caller-owned: use `prepared.uploaded_file_ids` with the ordinary
+Files API when ready to delete them. Preparation errors expose partial uploads
+through `error.prepared`. A batch of multiple uploads cannot share one explicit
+`Idempotency-Key`.
+
+With `AsyncOpenAI`, await preparation, staging, and artifact downloads.

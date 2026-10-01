@@ -5,6 +5,12 @@ from ._tools import (
     function_tool as function_tool,
     pydantic_function_tool as pydantic_function_tool,
 )
+from ._files import (
+    StagedAgentFile as StagedAgentFile,
+    PreparedAgentFiles as PreparedAgentFiles,
+    AgentFileStagingError as AgentFileStagingError,
+    AgentFilePreparationError as AgentFilePreparationError,
+)
 from ._output import agent_text_format as agent_text_format
 from ._result import (
     AgentTurnResult as AgentTurnResult,
@@ -14,4 +20,8 @@ from ._result import (
 from ._stream import (
     AgentSessionEventStream as AgentSessionEventStream,
     AsyncAgentSessionEventStream as AsyncAgentSessionEventStream,
+)
+from ._artifacts import (
+    AgentResultArtifacts as AgentResultArtifacts,
+    AsyncAgentResultArtifacts as AsyncAgentResultArtifacts,
 )
