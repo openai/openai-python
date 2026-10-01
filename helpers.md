@@ -604,3 +604,29 @@ lookup = pydantic_function_tool(
 ```
 
 Callbacks can be async when used with `AsyncOpenAI`. Existing dictionary handlers still work.
+
+### Typed Agents output (beta)
+
+Pass a Pydantic model to generate the Agents output schema and parse the completed answer:
+
+```python
+from pydantic import BaseModel
+
+class Report(BaseModel):
+    summary: str
+    findings: list[str]
+
+with client.beta.agents.sessions.create(
+    agent={"model": MODEL}, environment={"type": "none"},
+    input="Summarize the findings.", stream=True, output_type=Report,
+) as stream:
+    result = stream.get_final_result()
+print(result.output_parsed)
+```
+
+For a session already configured with that schema, use
+`sessions.stream(session_id, input="Update the report.", output_type=Report)`.
+This only selects the local parser; it does not change the session's schema.
+`result.parse(Report)` parses an existing raw result. `AgentOutputParseError.result`
+retains the completed raw answer if validation fails. With `AsyncOpenAI`, await
+creation and the result getter, and use `async with`.

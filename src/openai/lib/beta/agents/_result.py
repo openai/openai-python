@@ -1,23 +1,39 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import Iterable
+from typing import Any, Generic, Iterable
 from dataclasses import dataclass
-from typing_extensions import Literal
+from typing_extensions import Literal, TypeVar
 
+from pydantic import BaseModel
+
+from ._output import agent_text_format
+from ...._compat import model_parse_json
 from ...._exceptions import OpenAIError
 from ....types.beta.agent_session import RequiredAction
 from ....types.beta.agent_session_event import AgentSessionEvent
 from ....types.beta.agents.sessions.turn import Turn
 from ....types.beta.agent_session_message import AgentSessionMessage
 
+OutputT = TypeVar("OutputT", bound=BaseModel, default=Any)
+ParseT = TypeVar("ParseT", bound=BaseModel)
+
 
 @dataclass(frozen=True)
-class AgentTurnResult:
+class AgentTurnResult(Generic[OutputT]):
     """Beta: the completed final assistant messages from one successful root turn."""
 
     turn: Turn
     messages: list[AgentSessionMessage]
+    output_parsed: OutputT | None = None
+
+    def parse(self, output_type: type[ParseT]) -> AgentTurnResult[ParseT]:
+        """Beta: parse a completed answer without changing its session configuration."""
+        try:
+            parsed = model_parse_json(output_type, self.output_text)
+        except Exception as error:
+            raise AgentOutputParseError(self) from error
+        return AgentTurnResult(turn=self.turn, messages=self.messages, output_parsed=parsed)
 
     @property
     def session_id(self) -> str:
@@ -31,6 +47,14 @@ class AgentTurnResult:
     def output_text(self) -> str:
         """Join final output text without adding separators or performing I/O."""
         return "".join(message.output_text for message in self.messages)
+
+
+class AgentOutputParseError(OpenAIError):
+    """Beta: output parsing failed after a successful hosted turn."""
+
+    def __init__(self, result: AgentTurnResult) -> None:
+        super().__init__("Could not parse the completed agent output")
+        self.result = result
 
 
 ResultErrorReason = Literal["failed", "cancelled", "requires_action", "incomplete", "observation_failed"]
@@ -160,10 +184,14 @@ class AgentTurnResultCollector:
         return self._result
 
 
-class AgentTurnResultCollection:
+class AgentTurnResultCollection(Generic[OutputT]):
     """Keep ordinary event iteration incremental until collection is requested."""
 
-    def __init__(self, session_id: str | None = None) -> None:
+    def __init__(self, session_id: str | None = None, output_type: type[OutputT] | None = None) -> None:
+        if output_type is not None:
+            agent_text_format(output_type)
+        self.output_type = output_type
+        self._parsed_result: AgentTurnResult[OutputT] | None = None
         self.collector: AgentTurnResultCollector | None = None
         self._session_id = session_id
         self._started = False
@@ -185,3 +213,11 @@ class AgentTurnResultCollection:
     def record_error(self, error: Exception) -> None:
         if self.collector is not None and not self.collector.is_done():
             self.collector.cause = error
+
+    def result(self) -> AgentTurnResult[OutputT]:
+        result = self.enable().result()
+        if self.output_type is None:
+            return result
+        if self._parsed_result is None:
+            self._parsed_result = result.parse(self.output_type)
+        return self._parsed_result
