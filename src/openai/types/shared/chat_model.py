@@ -95,3 +95,66 @@ ChatModel: TypeAlias = Literal[
     "gpt-3.5-turbo-0125",
     "gpt-3.5-turbo-16k-0613",
 ]
+"""Deprecated values:
+
+- "gpt-5.3-chat-latest", "gpt-5.2-chat-latest": Announced shutdown date:
+  2026-08-10. See https://developers.openai.com/api/docs/deprecations for
+  details and recommended replacements.
+- "gpt-5.1-codex", "gpt-5.1-chat-latest", "gpt-5-chat-latest",
+  "gpt-4o-search-preview", "gpt-4o-mini-search-preview",
+  "gpt-4o-search-preview-2025-03-11", "gpt-4o-mini-search-preview-2025-03-11":
+  Announced shutdown date: 2026-07-23. See
+  https://developers.openai.com/api/docs/deprecations for details and
+  recommended replacements.
+- "gpt-5.1-mini": Not a supported model ID. Retained for SDK compatibility.
+- "gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-5-2025-08-07",
+  "gpt-5-mini-2025-08-07", "gpt-5-nano-2025-08-07", "o3", "o3-2025-04-16":
+  Announced shutdown date: 2026-12-11. See
+  https://developers.openai.com/api/docs/deprecations for details and
+  recommended replacements.
+- "gpt-4.1-nano", "gpt-4.1-nano-2025-04-14", "o4-mini", "o4-mini-2025-04-16",
+  "o3-mini", "o3-mini-2025-01-31", "o1", "o1-2024-12-17", "gpt-4o-2024-05-13",
+  "gpt-4-turbo", "gpt-4-turbo-2024-04-09", "gpt-4-1106-preview", "gpt-4",
+  "gpt-4-0613", "gpt-3.5-turbo", "gpt-3.5-turbo-0125": Announced shutdown date:
+  2026-10-23. See https://developers.openai.com/api/docs/deprecations for
+  details and recommended replacements.
+- "o1-preview", "o1-preview-2024-09-12": Announced shutdown date: 2025-07-28.
+  See https://developers.openai.com/api/docs/deprecations for details and
+  recommended replacements.
+- "o1-mini", "o1-mini-2024-09-12": Announced shutdown date: 2025-10-27. See
+  https://developers.openai.com/api/docs/deprecations for details and
+  recommended replacements.
+- "gpt-audio-mini", "gpt-audio-mini-2025-12-15": Announced shutdown date:
+  2027-01-20. See https://developers.openai.com/api/docs/deprecations for
+  details and recommended replacements.
+- "gpt-4o-audio-preview", "gpt-4o-audio-preview-2024-12-17",
+  "gpt-4o-audio-preview-2025-06-03", "gpt-4o-mini-audio-preview",
+  "gpt-4o-mini-audio-preview-2024-12-17": Announced shutdown date: 2026-05-07.
+  See https://developers.openai.com/api/docs/deprecations for details and
+  recommended replacements.
+- "gpt-4o-audio-preview-2024-10-01": Announced shutdown date: 2025-10-10. See
+  https://developers.openai.com/api/docs/deprecations for details and
+  recommended replacements.
+- "chatgpt-4o-latest": Announced shutdown date: 2026-02-17. See
+  https://developers.openai.com/api/docs/deprecations for details and
+  recommended replacements.
+- "codex-mini-latest": Announced shutdown date: 2026-02-12. See
+  https://developers.openai.com/api/docs/deprecations for details and
+  recommended replacements.
+- "gpt-4-0125-preview", "gpt-4-turbo-preview", "gpt-4-0314": Announced shutdown
+  date: 2026-03-26. See https://developers.openai.com/api/docs/deprecations for
+  details and recommended replacements.
+- "gpt-4-vision-preview": Announced shutdown date: 2024-12-06. See
+  https://developers.openai.com/api/docs/deprecations for details and
+  recommended replacements.
+- "gpt-4-32k", "gpt-4-32k-0314", "gpt-4-32k-0613": Announced shutdown date:
+  2025-06-06. See https://developers.openai.com/api/docs/deprecations for
+  details and recommended replacements.
+- "gpt-3.5-turbo-16k", "gpt-3.5-turbo-0301", "gpt-3.5-turbo-0613",
+  "gpt-3.5-turbo-16k-0613": Announced shutdown date: 2024-09-13. See
+  https://developers.openai.com/api/docs/deprecations for details and
+  recommended replacements.
+- "gpt-3.5-turbo-1106": Announced shutdown date: 2026-09-28. See
+  https://developers.openai.com/api/docs/deprecations for details and
+  recommended replacements.
+"""

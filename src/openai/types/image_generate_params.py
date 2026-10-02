@@ -14,8 +14,7 @@ class ImageGenerateParamsBase(TypedDict, total=False):
     prompt: Required[str]
     """A text description of the desired image(s).
 
-    The maximum length is 32000 characters for the GPT image models, 1000 characters
-    for `dall-e-2` and 4000 characters for `dall-e-3`.
+    The maximum length is 32000 characters.
     """
 
     background: Optional[Literal["transparent", "opaque", "auto"]]
@@ -33,13 +32,13 @@ class ImageGenerateParamsBase(TypedDict, total=False):
     """
 
     model: Union[str, ImageModel, None]
-    """The model to use for image generation.
+    """The GPT image model to use for image generation.
 
-    One of `dall-e-2`, `dall-e-3`, or a GPT image model (`gpt-image-1`,
+    Specify a model explicitly. Supported models include `gpt-image-1`,
     `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`, `gpt-image-2-2026-04-21`,
     `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`,
-    `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`). Defaults to `dall-e-2`
-    unless a parameter specific to the GPT image models is used.
+    `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`, and
+    `chatgpt-image-latest`.
     """
 
     moderation: Optional[Literal["low", "auto"]]
@@ -50,10 +49,7 @@ class ImageGenerateParamsBase(TypedDict, total=False):
     """
 
     n: Optional[int]
-    """The number of images to generate.
-
-    Must be between 1 and 10. For `dall-e-3`, only `n=1` is supported.
-    """
+    """The number of images to generate. Must be between 1 and 10."""
 
     output_compression: Optional[int]
     """The compression level (0-100%) for the generated images.
@@ -80,7 +76,7 @@ class ImageGenerateParamsBase(TypedDict, total=False):
     are generated if the full image is generated more quickly.
     """
 
-    quality: Optional[Literal["standard", "hd", "low", "medium", "high", "xhigh", "max", "auto"]]
+    quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard", "hd"]]
     """The quality of the image that will be generated.
 
     - `auto` (default value) will automatically select the best quality for the
@@ -88,17 +84,12 @@ class ImageGenerateParamsBase(TypedDict, total=False):
     - `high`, `medium` and `low` are supported for the GPT image models.
     - `gpt-image-2.5-sunburst` and `gpt-image-2.5-flare`, including their
       `2026-09-08` snapshots, also support `xhigh` and `max`.
-    - `hd` and `standard` are supported for `dall-e-3`.
-    - `standard` is the only option for `dall-e-2`.
     """
 
     response_format: Optional[Literal["url", "b64_json"]]
-    """The format in which generated images with `dall-e-2` and `dall-e-3` are
-    returned.
+    """Legacy response format parameter for retired image models.
 
-    Must be one of `url` or `b64_json`. URLs are only valid for 60 minutes after the
-    image has been generated. This parameter isn't supported for the GPT image
-    models, which always return base64-encoded images.
+    Unsupported for GPT image models, which always return base64-encoded images.
     """
 
     size: Union[
@@ -117,18 +108,14 @@ class ImageGenerateParamsBase(TypedDict, total=False):
     resolution is `3840x2160`. The requested size must also satisfy the model's
     current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and
     `1024x1536` are supported by the GPT image models; `auto` is supported for
-    models that allow automatic sizing. For `dall-e-2`, use one of `256x256`,
-    `512x512`, or `1024x1024`. For `dall-e-3`, use one of `1024x1024`, `1792x1024`,
-    or `1024x1792`.
+    models that allow automatic sizing.
     """
 
     style: Optional[Literal["vivid", "natural"]]
-    """The style of the generated images.
+    """Legacy style parameter for retired image models.
 
-    This parameter is only supported for `dall-e-3`. Must be one of `vivid` or
-    `natural`. Vivid causes the model to lean towards generating hyper-real and
-    dramatic images. Natural causes the model to produce more natural, less
-    hyper-real looking images.
+    Unsupported for GPT image models; describe the desired style in the prompt
+    instead.
     """
 
     user: str
