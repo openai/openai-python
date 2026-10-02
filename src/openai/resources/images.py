@@ -1010,9 +1010,10 @@ class Images(SyncAPIResource):
             "/images/generations",
             body=maybe_transform(
                 {
+                    "model": model,
+                    "stream": stream,
                     "prompt": prompt,
                     "background": background,
-                    "model": model,
                     "moderation": moderation,
                     "n": n,
                     "output_compression": output_compression,
@@ -1021,7 +1022,6 @@ class Images(SyncAPIResource):
                     "quality": quality,
                     "response_format": response_format,
                     "size": size,
-                    "stream": stream,
                     "style": style,
                     "user": user,
                 },
@@ -2027,9 +2027,10 @@ class AsyncImages(AsyncAPIResource):
             "/images/generations",
             body=await async_maybe_transform(
                 {
+                    "model": model,
+                    "stream": stream,
                     "prompt": prompt,
                     "background": background,
-                    "model": model,
                     "moderation": moderation,
                     "n": n,
                     "output_compression": output_compression,
@@ -2038,7 +2039,6 @@ class AsyncImages(AsyncAPIResource):
                     "quality": quality,
                     "response_format": response_format,
                     "size": size,
-                    "stream": stream,
                     "style": style,
                     "user": user,
                 },
