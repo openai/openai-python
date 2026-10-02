@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import Union
 from typing_extensions import Annotated, TypeAlias
@@ -27,12 +27,16 @@ from .beta_response_reasoning_text_done_event import BetaResponseReasoningTextDo
 from .beta_response_mcp_call_in_progress_event import BetaResponseMcpCallInProgressEvent
 from .beta_response_reasoning_text_delta_event import BetaResponseReasoningTextDeltaEvent
 from .beta_response_audio_transcript_done_event import BetaResponseAudioTranscriptDoneEvent
+from .beta_response_compaction_compacting_event import BetaResponseCompactionCompactingEvent
 from .beta_response_mcp_list_tools_failed_event import BetaResponseMcpListToolsFailedEvent
 from .beta_response_audio_transcript_delta_event import BetaResponseAudioTranscriptDeltaEvent
 from .beta_response_mcp_call_arguments_done_event import BetaResponseMcpCallArgumentsDoneEvent
+from .beta_response_shell_call_command_done_event import BetaResponseShellCallCommandDoneEvent
 from .beta_response_image_gen_call_completed_event import BetaResponseImageGenCallCompletedEvent
 from .beta_response_mcp_call_arguments_delta_event import BetaResponseMcpCallArgumentsDeltaEvent
 from .beta_response_mcp_list_tools_completed_event import BetaResponseMcpListToolsCompletedEvent
+from .beta_response_shell_call_command_added_event import BetaResponseShellCallCommandAddedEvent
+from .beta_response_shell_call_command_delta_event import BetaResponseShellCallCommandDeltaEvent
 from .beta_response_image_gen_call_generating_event import BetaResponseImageGenCallGeneratingEvent
 from .beta_response_web_search_call_completed_event import BetaResponseWebSearchCallCompletedEvent
 from .beta_response_web_search_call_searching_event import BetaResponseWebSearchCallSearchingEvent
@@ -52,8 +56,10 @@ from .beta_response_output_text_annotation_added_event import BetaResponseOutput
 from .beta_response_reasoning_summary_part_added_event import BetaResponseReasoningSummaryPartAddedEvent
 from .beta_response_reasoning_summary_text_delta_event import BetaResponseReasoningSummaryTextDeltaEvent
 from .beta_response_function_call_arguments_delta_event import BetaResponseFunctionCallArgumentsDeltaEvent
+from .beta_response_shell_call_output_content_done_event import BetaResponseShellCallOutputContentDoneEvent
 from .beta_response_code_interpreter_call_code_done_event import BetaResponseCodeInterpreterCallCodeDoneEvent
 from .beta_response_code_interpreter_call_completed_event import BetaResponseCodeInterpreterCallCompletedEvent
+from .beta_response_shell_call_output_content_delta_event import BetaResponseShellCallOutputContentDeltaEvent
 from .beta_response_code_interpreter_call_code_delta_event import BetaResponseCodeInterpreterCallCodeDeltaEvent
 from .beta_response_code_interpreter_call_in_progress_event import BetaResponseCodeInterpreterCallInProgressEvent
 from .beta_response_code_interpreter_call_interpreting_event import BetaResponseCodeInterpreterCallInterpretingEvent
@@ -71,6 +77,7 @@ BetaResponseStreamEvent: TypeAlias = Annotated[
         BetaResponseCodeInterpreterCallCompletedEvent,
         BetaResponseCodeInterpreterCallInProgressEvent,
         BetaResponseCodeInterpreterCallInterpretingEvent,
+        BetaResponseCompactionCompactingEvent,
         BetaResponseCompletedEvent,
         BetaResponseContentPartAddedEvent,
         BetaResponseContentPartDoneEvent,
@@ -81,6 +88,11 @@ BetaResponseStreamEvent: TypeAlias = Annotated[
         BetaResponseFileSearchCallSearchingEvent,
         BetaResponseFunctionCallArgumentsDeltaEvent,
         BetaResponseFunctionCallArgumentsDoneEvent,
+        BetaResponseShellCallCommandAddedEvent,
+        BetaResponseShellCallCommandDeltaEvent,
+        BetaResponseShellCallCommandDoneEvent,
+        BetaResponseShellCallOutputContentDeltaEvent,
+        BetaResponseShellCallOutputContentDoneEvent,
         BetaResponseInProgressEvent,
         BetaResponseFailedEvent,
         BetaResponseIncompleteEvent,

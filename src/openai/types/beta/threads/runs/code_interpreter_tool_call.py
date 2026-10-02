@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import List, Union
 from typing_extensions import Literal, Annotated, TypeAlias
@@ -29,8 +29,8 @@ class CodeInterpreterOutputLogs(BaseModel):
 class CodeInterpreterOutputImageImage(BaseModel):
     file_id: str
     """
-    The [file](https://platform.openai.com/docs/api-reference/files) ID of the
-    image.
+    The [file](https://developers.openai.com/api/reference/resources/files) ID of
+    the image.
     """
 
 

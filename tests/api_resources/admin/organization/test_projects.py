@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -31,6 +31,7 @@ class TestProjects:
             name="name",
             external_key_id="external_key_id",
             geography="geography",
+            residency="GLOBAL",
         )
         assert_matches_type(Project, project, path=["response"])
 
@@ -235,6 +236,7 @@ class TestAsyncProjects:
             name="name",
             external_key_id="external_key_id",
             geography="geography",
+            residency="GLOBAL",
         )
         assert_matches_type(Project, project, path=["response"])
 

@@ -114,7 +114,7 @@ def _extract_items(
         try:
             # Remove the field if there are no more dict keys in the path,
             # only "<array>" traversal markers or end.
-            if all(p == "<array>" for p in path[index:]):
+            if all(p == "<array>" for p in path[index:]) and (index == len(path) or is_list(obj[key])):
                 item = obj.pop(key)
             else:
                 item = obj[key]
@@ -393,7 +393,7 @@ def get_required_header(headers: HeadersLike, header: str) -> str:
             if k.lower() == lower_header and isinstance(v, str):
                 return v
 
-    # to deal with the case where the header looks like Stainless-Event-Id
+    # to deal with the case where the header looks like X-Request-Id
     intercaps_header = re.sub(r"([^\w])(\w)", lambda pat: pat.group(1) + pat.group(2).upper(), header.capitalize())
 
     for normalized_header in [header, lower_header, header.upper(), intercaps_header]:

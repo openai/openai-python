@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ from . import types
 from ._types import NOT_GIVEN, Omit, NoneType, NotGiven, Transport, ProxiesTypes, omit, not_given
 from ._utils import file_from_path
 from ._client import Client, OpenAI, Stream, Timeout, Transport, AsyncClient, AsyncOpenAI, AsyncStream, RequestOptions
+from ._httpx2 import DefaultHttpx2Client, DefaultAsyncHttpx2Client, normalize_httpx_url as _normalize_httpx_url
 from ._models import BaseModel
 from ._version import __title__, __version__
 from ._response import APIResponse as APIResponse, AsyncAPIResponse as AsyncAPIResponse
@@ -38,6 +39,7 @@ from ._exceptions import (
 )
 from ._base_client import DefaultHttpxClient, DefaultAioHttpClient, DefaultAsyncHttpxClient
 from ._utils._logs import setup_logging as _setup_logging
+from ._data_residency import DataResidency
 from ._legacy_response import HttpxBinaryResponseContent as HttpxBinaryResponseContent
 from .types.websocket_reconnection import ReconnectingEvent, ReconnectingOverrides
 
@@ -73,6 +75,7 @@ __all__ = [
     "InvalidWebhookSignatureError",
     "Timeout",
     "RequestOptions",
+    "DataResidency",
     "Client",
     "AsyncClient",
     "Stream",
@@ -89,6 +92,8 @@ __all__ = [
     "DefaultHttpxClient",
     "DefaultAsyncHttpxClient",
     "DefaultAioHttpClient",
+    "DefaultHttpx2Client",
+    "DefaultAsyncHttpx2Client",
     "ReconnectingEvent",
     "ReconnectingOverrides",
     "WebSocketQueueFullError",
@@ -103,10 +108,27 @@ from .version import VERSION as VERSION
 from .lib.azure import AzureOpenAI as AzureOpenAI, AsyncAzureOpenAI as AsyncAzureOpenAI
 from .lib.bedrock import BedrockOpenAI as BedrockOpenAI, AsyncBedrockOpenAI as AsyncBedrockOpenAI
 from .lib._old_api import *
-from .lib.streaming import (
-    AssistantEventHandler as AssistantEventHandler,
-    AsyncAssistantEventHandler as AsyncAssistantEventHandler,
-)
+
+if _t.TYPE_CHECKING:
+    from .lib.streaming import (
+        AssistantEventHandler as AssistantEventHandler,
+        AsyncAssistantEventHandler as AsyncAssistantEventHandler,
+    )
+else:
+    _STREAMING_EXPORTS = ("AssistantEventHandler", "AsyncAssistantEventHandler")
+
+    def __getattr__(name: str) -> _t.Any:
+        if name in _STREAMING_EXPORTS:
+            from importlib import import_module
+
+            value = getattr(import_module(".lib.streaming", __name__), name)
+            globals()[name] = value
+            return value
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+    def __dir__() -> list[str]:
+        return sorted(set(globals()) | set(_STREAMING_EXPORTS))
+
 
 _setup_logging()
 
@@ -127,7 +149,7 @@ for __name in __all__:
 import typing as _t
 import typing_extensions as _te
 
-import httpx as _httpx
+import httpx2 as _httpx
 
 from ._base_client import DEFAULT_TIMEOUT, DEFAULT_MAX_RETRIES
 
@@ -161,7 +183,8 @@ api_version: str | None = _os.environ.get("OPENAI_API_VERSION")
 
 azure_endpoint: str | None = _os.environ.get("AZURE_OPENAI_ENDPOINT")
 
-azure_ad_token: str | None = _os.environ.get("AZURE_OPENAI_AD_TOKEN")
+# Keep explicit module configuration separate from Azure's environment fallback.
+azure_ad_token: str | None = None
 
 azure_ad_token_provider: _azure.AzureADTokenProvider | None = None
 
@@ -233,7 +256,7 @@ class _ModuleClient(OpenAI):
     @override
     def base_url(self) -> _httpx.URL:
         if base_url is not None:
-            return _httpx.URL(base_url)
+            return _normalize_httpx_url(base_url)
 
         return super().base_url
 
@@ -357,13 +380,10 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
     global _client
 
     if _client is None:
-        global api_type, azure_endpoint, azure_ad_token, api_version
+        global api_type, azure_endpoint, api_version
 
         if azure_endpoint is None:
             azure_endpoint = _os.environ.get("AZURE_OPENAI_ENDPOINT")
-
-        if azure_ad_token is None:
-            azure_ad_token = _os.environ.get("AZURE_OPENAI_AD_TOKEN")
 
         if api_version is None:
             api_version = _os.environ.get("OPENAI_API_VERSION")
@@ -374,11 +394,6 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
             has_azure_ad = _has_azure_ad_credentials()
 
             if has_openai and (has_azure or has_azure_ad):
-                raise _AmbiguousModuleClientUsageError()
-
-            if (azure_ad_token is not None or azure_ad_token_provider is not None) and _os.environ.get(
-                "AZURE_OPENAI_API_KEY"
-            ) is not None:
                 raise _AmbiguousModuleClientUsageError()
 
             if has_azure or has_azure_ad:
@@ -447,12 +462,14 @@ def _reset_client() -> None:  # type: ignore[reportUnusedFunction]
 from ._module_client import (
     beta as beta,
     chat as chat,
+    live as live,
     admin as admin,
     audio as audio,
     evals as evals,
     files as files,
     images as images,
     models as models,
+    safety as safety,
     skills as skills,
     videos as videos,
     batches as batches,
@@ -467,4 +484,5 @@ from ._module_client import (
     moderations as moderations,
     conversations as conversations,
     vector_stores as vector_stores,
+    content_provenance_checks as content_provenance_checks,
 )

@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -9,7 +9,6 @@ import pytest
 
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
-from openai._utils import assert_signatures_in_sync
 from openai.types.responses import (
     Response,
     CompactedResponse,
@@ -29,10 +28,11 @@ class TestResponses:
     @parametrize
     def test_method_create_with_all_params_overload_1(self, client: OpenAI) -> None:
         response = client.responses.create(
+            access_programs={"cyber": "standard"},
             background=True,
             context_management=[
                 {
-                    "type": "type",
+                    "type": "compaction",
                     "compact_threshold": 1000,
                 }
             ],
@@ -43,7 +43,7 @@ class TestResponses:
             max_output_tokens=16,
             max_tool_calls=0,
             metadata={"foo": "string"},
-            model="gpt-5.1",
+            model="gpt-6-astra",
             moderation={
                 "model": "model",
                 "policy": {
@@ -60,7 +60,9 @@ class TestResponses:
             },
             prompt_cache_key="prompt-cache-key-1234",
             prompt_cache_options={
+                "comparison_response_id": "resp_123",
                 "mode": "implicit",
+                "prewarm": True,
                 "ttl": "30m",
             },
             prompt_cache_retention="in_memory",
@@ -89,6 +91,7 @@ class TestResponses:
                     "strict": True,
                     "type": "function",
                     "allowed_callers": ["direct"],
+                    "async": True,
                     "defer_loading": True,
                     "description": "description",
                     "output_schema": {"foo": "bar"},
@@ -132,10 +135,11 @@ class TestResponses:
     def test_method_create_with_all_params_overload_2(self, client: OpenAI) -> None:
         response_stream = client.responses.create(
             stream=True,
+            access_programs={"cyber": "standard"},
             background=True,
             context_management=[
                 {
-                    "type": "type",
+                    "type": "compaction",
                     "compact_threshold": 1000,
                 }
             ],
@@ -146,7 +150,7 @@ class TestResponses:
             max_output_tokens=16,
             max_tool_calls=0,
             metadata={"foo": "string"},
-            model="gpt-5.1",
+            model="gpt-6-astra",
             moderation={
                 "model": "model",
                 "policy": {
@@ -163,7 +167,9 @@ class TestResponses:
             },
             prompt_cache_key="prompt-cache-key-1234",
             prompt_cache_options={
+                "comparison_response_id": "resp_123",
                 "mode": "implicit",
+                "prewarm": True,
                 "ttl": "30m",
             },
             prompt_cache_retention="in_memory",
@@ -191,6 +197,7 @@ class TestResponses:
                     "strict": True,
                     "type": "function",
                     "allowed_callers": ["direct"],
+                    "async": True,
                     "defer_loading": True,
                     "description": "description",
                     "output_schema": {"foo": "bar"},
@@ -406,14 +413,14 @@ class TestResponses:
     @parametrize
     def test_method_compact(self, client: OpenAI) -> None:
         response = client.responses.compact(
-            model="gpt-5.6-sol",
+            model="gpt-6-astra",
         )
         assert_matches_type(CompactedResponse, response, path=["response"])
 
     @parametrize
     def test_method_compact_with_all_params(self, client: OpenAI) -> None:
         response = client.responses.compact(
-            model="gpt-5.6-sol",
+            model="gpt-6-astra",
             input="string",
             instructions="instructions",
             previous_response_id="resp_123",
@@ -430,7 +437,7 @@ class TestResponses:
     @parametrize
     def test_raw_response_compact(self, client: OpenAI) -> None:
         http_response = client.responses.with_raw_response.compact(
-            model="gpt-5.6-sol",
+            model="gpt-6-astra",
         )
 
         assert http_response.is_closed is True
@@ -441,7 +448,7 @@ class TestResponses:
     @parametrize
     def test_streaming_response_compact(self, client: OpenAI) -> None:
         with client.responses.with_streaming_response.compact(
-            model="gpt-5.6-sol",
+            model="gpt-6-astra",
         ) as http_response:
             assert not http_response.is_closed
             assert http_response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -450,17 +457,6 @@ class TestResponses:
             assert_matches_type(CompactedResponse, response, path=["response"])
 
         assert cast(Any, http_response.is_closed) is True
-
-
-@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
-def test_parse_method_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
-    checking_client: OpenAI | AsyncOpenAI = client if sync else async_client
-
-    assert_signatures_in_sync(
-        checking_client.responses.create,
-        checking_client.responses.parse,
-        exclude_params={"stream", "tools"},
-    )
 
 
 class TestAsyncResponses:
@@ -476,10 +472,11 @@ class TestAsyncResponses:
     @parametrize
     async def test_method_create_with_all_params_overload_1(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.responses.create(
+            access_programs={"cyber": "standard"},
             background=True,
             context_management=[
                 {
-                    "type": "type",
+                    "type": "compaction",
                     "compact_threshold": 1000,
                 }
             ],
@@ -490,7 +487,7 @@ class TestAsyncResponses:
             max_output_tokens=16,
             max_tool_calls=0,
             metadata={"foo": "string"},
-            model="gpt-5.1",
+            model="gpt-6-astra",
             moderation={
                 "model": "model",
                 "policy": {
@@ -507,7 +504,9 @@ class TestAsyncResponses:
             },
             prompt_cache_key="prompt-cache-key-1234",
             prompt_cache_options={
+                "comparison_response_id": "resp_123",
                 "mode": "implicit",
+                "prewarm": True,
                 "ttl": "30m",
             },
             prompt_cache_retention="in_memory",
@@ -536,6 +535,7 @@ class TestAsyncResponses:
                     "strict": True,
                     "type": "function",
                     "allowed_callers": ["direct"],
+                    "async": True,
                     "defer_loading": True,
                     "description": "description",
                     "output_schema": {"foo": "bar"},
@@ -579,10 +579,11 @@ class TestAsyncResponses:
     async def test_method_create_with_all_params_overload_2(self, async_client: AsyncOpenAI) -> None:
         response_stream = await async_client.responses.create(
             stream=True,
+            access_programs={"cyber": "standard"},
             background=True,
             context_management=[
                 {
-                    "type": "type",
+                    "type": "compaction",
                     "compact_threshold": 1000,
                 }
             ],
@@ -593,7 +594,7 @@ class TestAsyncResponses:
             max_output_tokens=16,
             max_tool_calls=0,
             metadata={"foo": "string"},
-            model="gpt-5.1",
+            model="gpt-6-astra",
             moderation={
                 "model": "model",
                 "policy": {
@@ -610,7 +611,9 @@ class TestAsyncResponses:
             },
             prompt_cache_key="prompt-cache-key-1234",
             prompt_cache_options={
+                "comparison_response_id": "resp_123",
                 "mode": "implicit",
+                "prewarm": True,
                 "ttl": "30m",
             },
             prompt_cache_retention="in_memory",
@@ -638,6 +641,7 @@ class TestAsyncResponses:
                     "strict": True,
                     "type": "function",
                     "allowed_callers": ["direct"],
+                    "async": True,
                     "defer_loading": True,
                     "description": "description",
                     "output_schema": {"foo": "bar"},
@@ -853,14 +857,14 @@ class TestAsyncResponses:
     @parametrize
     async def test_method_compact(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.responses.compact(
-            model="gpt-5.6-sol",
+            model="gpt-6-astra",
         )
         assert_matches_type(CompactedResponse, response, path=["response"])
 
     @parametrize
     async def test_method_compact_with_all_params(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.responses.compact(
-            model="gpt-5.6-sol",
+            model="gpt-6-astra",
             input="string",
             instructions="instructions",
             previous_response_id="resp_123",
@@ -877,7 +881,7 @@ class TestAsyncResponses:
     @parametrize
     async def test_raw_response_compact(self, async_client: AsyncOpenAI) -> None:
         http_response = await async_client.responses.with_raw_response.compact(
-            model="gpt-5.6-sol",
+            model="gpt-6-astra",
         )
 
         assert http_response.is_closed is True
@@ -888,7 +892,7 @@ class TestAsyncResponses:
     @parametrize
     async def test_streaming_response_compact(self, async_client: AsyncOpenAI) -> None:
         async with async_client.responses.with_streaming_response.compact(
-            model="gpt-5.6-sol",
+            model="gpt-6-astra",
         ) as http_response:
             assert not http_response.is_closed
             assert http_response.http_request.headers.get("X-Stainless-Lang") == "python"

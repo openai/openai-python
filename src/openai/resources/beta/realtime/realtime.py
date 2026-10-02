@@ -1,5 +1,3 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
-
 from __future__ import annotations
 
 import json
@@ -8,7 +6,7 @@ from types import TracebackType
 from typing import TYPE_CHECKING, Any, Iterator, cast
 from typing_extensions import AsyncIterator
 
-import httpx
+import httpx2
 from pydantic import BaseModel
 
 from .sessions import (
@@ -28,6 +26,7 @@ from ...._utils import (
     is_async_azure_client,
 )
 from ...._compat import cached_property
+from ...._httpx2 import normalize_httpx_url
 from ...._models import construct_type_unchecked
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._exceptions import OpenAIError
@@ -278,7 +277,7 @@ class AsyncRealtimeConnection:
         then you can call `.parse_event(data)`.
         """
         message = await self._connection.recv(decode=False)
-        log.debug(f"Received websocket message: %s", message)
+        log.debug("Received WebSocket message: %i bytes", len(message))
         return message
 
     async def send(self, event: RealtimeClientEvent | RealtimeClientEventParam) -> None:
@@ -353,7 +352,7 @@ class AsyncRealtimeConnectionManager:
         ```
         """
         try:
-            from websockets.asyncio.client import connect
+            from ....lib._websocket import _WebSocketConnect as connect
         except ImportError as exc:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
@@ -361,18 +360,27 @@ class AsyncRealtimeConnectionManager:
         await self.__client._refresh_api_key()
         auth_headers = self.__client.auth_headers
         if is_async_azure_client(self.__client):
+            from ....lib._azure_websocket import _AzureWebSocketConnect as connect
+
             url, auth_headers = await self.__client._configure_realtime(self.__model, extra_query)
         else:
-            url = self._prepare_url().copy_with(
-                params={
-                    **self.__client.base_url.params,
-                    "model": self.__model,
-                    **extra_query,
-                },
+            url = self._prepare_url()
+            url = url.copy_with(
+                params=httpx2.QueryParams(self.__client.qs.stringify(cast(Any, self.__client.default_query)))
+                .merge(url.params)
+                .merge(
+                    cast(
+                        Any,
+                        {
+                            "model": self.__model,
+                            **extra_query,
+                        },
+                    )
+                ),
             )
-        log.debug("Connecting to %s", url)
+        log.debug("Connecting to WebSocket API")
         if self.__websocket_connection_options:
-            log.debug("Connection options: %s", self.__websocket_connection_options)
+            log.debug("Custom WebSocket connection options provided")
 
         self.__connection = AsyncRealtimeConnection(
             await connect(
@@ -393,13 +401,14 @@ class AsyncRealtimeConnectionManager:
 
     enter = __aenter__
 
-    def _prepare_url(self) -> httpx.URL:
+    def _prepare_url(self) -> httpx2.URL:
         if self.__client.websocket_base_url is not None:
-            base_url = httpx.URL(self.__client.websocket_base_url)
+            base_url = normalize_httpx_url(self.__client.websocket_base_url)
         else:
             base_url = self.__client._base_url.copy_with(scheme="wss")
 
-        merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/realtime"
+        path, separator, query = base_url.raw_path.partition(b"?")
+        merge_raw_path = path.rstrip(b"/") + b"/realtime" + separator + query
         return base_url.copy_with(raw_path=merge_raw_path)
 
     async def __aexit__(
@@ -461,7 +470,7 @@ class RealtimeConnection:
         then you can call `.parse_event(data)`.
         """
         message = self._connection.recv(decode=False)
-        log.debug(f"Received websocket message: %s", message)
+        log.debug("Received WebSocket message: %i bytes", len(message))
         return message
 
     def send(self, event: RealtimeClientEvent | RealtimeClientEventParam) -> None:
@@ -546,16 +555,23 @@ class RealtimeConnectionManager:
         if is_azure_client(self.__client):
             url, auth_headers = self.__client._configure_realtime(self.__model, extra_query)
         else:
-            url = self._prepare_url().copy_with(
-                params={
-                    **self.__client.base_url.params,
-                    "model": self.__model,
-                    **extra_query,
-                },
+            url = self._prepare_url()
+            url = url.copy_with(
+                params=httpx2.QueryParams(self.__client.qs.stringify(cast(Any, self.__client.default_query)))
+                .merge(url.params)
+                .merge(
+                    cast(
+                        Any,
+                        {
+                            "model": self.__model,
+                            **extra_query,
+                        },
+                    )
+                ),
             )
-        log.debug("Connecting to %s", url)
+        log.debug("Connecting to WebSocket API")
         if self.__websocket_connection_options:
-            log.debug("Connection options: %s", self.__websocket_connection_options)
+            log.debug("Custom WebSocket connection options provided")
 
         self.__connection = RealtimeConnection(
             connect(
@@ -576,13 +592,14 @@ class RealtimeConnectionManager:
 
     enter = __enter__
 
-    def _prepare_url(self) -> httpx.URL:
+    def _prepare_url(self) -> httpx2.URL:
         if self.__client.websocket_base_url is not None:
-            base_url = httpx.URL(self.__client.websocket_base_url)
+            base_url = normalize_httpx_url(self.__client.websocket_base_url)
         else:
             base_url = self.__client._base_url.copy_with(scheme="wss")
 
-        merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/realtime"
+        path, separator, query = base_url.raw_path.partition(b"?")
+        merge_raw_path = path.rstrip(b"/") + b"/realtime" + separator + query
         return base_url.copy_with(raw_path=merge_raw_path)
 
     def __exit__(

@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -22,7 +22,16 @@ class CallerProgram(TypedDict, total=False):
 Caller: TypeAlias = Union[CallerDirect, CallerProgram]
 
 
-class ResponseCustomToolCallParam(TypedDict, total=False):
+_ResponseCustomToolCallParamReservedKeywords = TypedDict(
+    "_ResponseCustomToolCallParamReservedKeywords",
+    {
+        "async": bool,
+    },
+    total=False,
+)
+
+
+class ResponseCustomToolCallParam(_ResponseCustomToolCallParamReservedKeywords, total=False):
     """A call to a custom tool created by the model."""
 
     call_id: Required[str]

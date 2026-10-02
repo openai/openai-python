@@ -41,6 +41,25 @@ else:
     print(message.refusal)
 ```
 
+## Parsing Responses API output
+
+Use `client.responses.parse(..., text_format=YourModel)` to parse Responses API
+output into a Pydantic model. The same parsing rules apply to
+`client.responses.stream(..., text_format=YourModel)` and their async equivalents.
+
+- Messages with `phase="final_answer"` are parsed. Messages with no phase or a
+  null phase retain the legacy behavior and are also parsed.
+- Commentary and other explicit phases keep their original text and metadata,
+  with `parsed=None`, even when the text happens to match the schema.
+- `output_parsed` returns the first parsed result, or `None` when there is none.
+  A refusal does not cause commentary to be used as a fallback answer.
+- Invalid JSON or schema-invalid text in an eligible message still raises a
+  validation error. Missing phases are not inferred from the text or model name.
+
+`output_text` continues to concatenate all output text, including commentary.
+Use `output_parsed` for the structured result and retain `output` when replaying
+messages so their phases are preserved.
+
 ## Auto-parsing function tool calls
 
 The `.parse()` method will also automatically parse `function` tool calls if:
@@ -150,7 +169,7 @@ async with client.chat.completions.stream(
 ) as stream:
     async for event in stream:
         if event.type == 'content.delta':
-            print(event.content, flush=True, end='')
+            print(event.delta, flush=True, end='')
 ```
 
 When the context manager is entered, a `ChatCompletionStream` / `AsyncChatCompletionStream` instance is returned which, like `.create(stream=True)` is an iterator in the sync client and an async iterator in the async client. The full list of events that are yielded by the iterator are outlined [below](#chat-completions-events).
@@ -510,9 +529,146 @@ The polling methods are:
 client.beta.threads.create_and_run_poll(...)
 client.beta.threads.runs.create_and_poll(...)
 client.beta.threads.runs.submit_tool_outputs_and_poll(...)
-client.beta.vector_stores.files.upload_and_poll(...)
-client.beta.vector_stores.files.create_and_poll(...)
-client.beta.vector_stores.file_batches.create_and_poll(...)
-client.beta.vector_stores.file_batches.upload_and_poll(...)
+client.vector_stores.files.upload_and_poll(...)
+client.vector_stores.files.create_and_poll(...)
+client.vector_stores.file_batches.create_and_poll(...)
+client.vector_stores.file_batches.upload_and_poll(...)
 client.videos.create_and_poll(...)
 ```
+
+# Beta Agents turn results
+
+Both streamed session creation and the one-turn session helper can collect the final
+answer. Call `get_final_result()` directly, or enable `with_result_collection()`
+before iterating to display progress. Existing follow-up tool handlers continue to run while it drains.
+
+```python
+with client.beta.agents.sessions.create(
+    agent={"model": MODEL},
+    environment={"type": "none"},
+    input="Explain this policy.",
+    stream=True,
+) as stream:
+    result = stream.get_final_result()
+
+print(result.output_text)
+
+with client.beta.agents.sessions.stream(
+    result.session_id,
+    input="Give me an example.",
+    tool_handlers=handlers,
+).with_result_collection() as stream:
+    for event in stream:
+        show_progress(event)
+    followup = stream.get_final_result()
+
+print(followup.output_text)
+```
+
+With `AsyncOpenAI`, await creation, use `async with` / `async for`, and await
+`get_final_result()`. The result exposes `output_text`, `turn`, final `messages`,
+`session_id`, and `turn_id`. Collection raises `AgentTurnResultError` when a complete
+successful answer cannot be established.
+
+## Typed beta Agents tools
+
+Bind an annotated function or bound method once, then reuse its definition and local handler:
+
+```py
+from openai.lib.beta.agents import function_tool
+
+@function_tool(name="lookup_item", description="Look up a catalog item.")
+def lookup(item_id: str) -> dict[str, str]:
+    return {"item_id": item_id, "name": "Notebook"}
+
+# Include lookup.definition in agent={"model": MODEL, "tools": [...]} when creating a session.
+with client.beta.agents.sessions.stream(
+    SESSION_ID, input="Find catalog item A123.", tool_handlers={lookup.name: lookup},
+) as stream:
+    stream.until_done()
+```
+
+For an existing Pydantic argument model, use an explicit binding:
+
+```py
+from pydantic import BaseModel
+from openai.lib.beta.agents import pydantic_function_tool
+
+class LookupArguments(BaseModel):
+    item_id: str
+
+lookup = pydantic_function_tool(
+    LookupArguments, name="lookup_item", handler=catalog.lookup,
+)
+# catalog.lookup receives a validated LookupArguments instance.
+```
+
+Callbacks can be async when used with `AsyncOpenAI`. Existing dictionary handlers still work.
+
+### Typed Agents output (beta)
+
+Pass a Pydantic model (or a Pydantic v2 dataclass) to generate the Agents output
+schema and parse the completed answer. Schemas use the same normalization as
+Responses; the API validates which schema features it supports.
+
+```python
+from pydantic import BaseModel
+
+class Report(BaseModel):
+    summary: str
+    findings: list[str]
+
+with client.beta.agents.sessions.create(
+    agent={"model": MODEL}, environment={"type": "none"},
+    input="Summarize the findings.", stream=True, output_type=Report,
+) as stream:
+    result = stream.get_final_result()
+print(result.output_parsed)
+```
+
+For a session already configured with that schema, use
+`sessions.stream(session_id, input="Update the report.", output_type=Report)`.
+This only selects the local parser; it does not change the session's schema.
+`output_parsed` exposes the first parsed final text part; every final text part is validated.
+`result.parse(Report)` parses an existing raw result. `AgentOutputParseError.result`
+retains the completed raw answer if validation fails. With `AsyncOpenAI`, await
+creation and the result getter, and use `async with`.
+
+### Stage files and download a turn artifact
+
+```python
+from pathlib import Path
+
+prepared = client.beta.agents.environments.files.prepare({
+    "/workspace/source.pdf": Path("source.pdf"),
+})
+session = client.beta.agents.sessions.create(
+    agent={"model": MODEL},
+    environment={"type": "openai_hosted", "files": prepared.files},
+)
+with client.beta.agents.sessions.stream(
+    session.id, input="Read source.pdf and write /workspace/outputs/report.md."
+) as stream:
+    result = stream.get_final_result()
+
+artifacts = client.beta.agents.sessions.artifacts.for_result(result)
+
+# Read in memory, or stream to an application-owned local path.
+report_bytes = artifacts.content("/workspace/outputs/report.md").content
+artifact = artifacts.download(
+    "/workspace/outputs/report.md", to=Path("downloaded-report.md")
+)
+```
+
+Use `prepare_directory("docs", destination="/workspace/docs", include=["**/*.md"])`
+for a selected directory snapshot, or `files.upload(environment_id, file=Path(...),
+path="/workspace/source.pdf")` to stage a file in an existing environment.
+Directory selection follows `Path.glob` semantics, including skipping unreadable directories.
+Uploads remain caller-owned: use `prepared.uploaded_file_ids` with the ordinary
+Files API when ready to delete them. Preparation errors expose partial uploads
+through `error.prepared`. A batch of multiple uploads cannot share one explicit
+`Idempotency-Key`.
+
+Local path/directory uploads are intended for static application-owned files and
+stable directories. They do not sandbox untrusted path selection or hostile local
+filesystem writers. With `AsyncOpenAI`, await preparation, staging, and artifact downloads.

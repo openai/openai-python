@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -49,7 +49,7 @@ class RankingOptions(TypedDict, total=False):
 class FileSearchToolParam(TypedDict, total=False):
     """A tool that searches for relevant content from uploaded files.
 
-    Learn more about the [file search tool](https://platform.openai.com/docs/guides/tools-file-search).
+    Learn more about the [file search tool](https://developers.openai.com/api/docs/guides/tools-file-search).
     """
 
     type: Required[Literal["file_search"]]

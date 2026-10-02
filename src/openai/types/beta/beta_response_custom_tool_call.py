@@ -1,7 +1,9 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
+
+from pydantic import Field as FieldInfo
 
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
@@ -50,6 +52,9 @@ class BetaResponseCustomToolCall(BaseModel):
 
     agent: Optional[Agent] = None
     """The agent that produced this item."""
+
+    async_: Optional[bool] = FieldInfo(alias="async", default=None)
+    """Whether the custom tool call runs asynchronously."""
 
     caller: Optional[Caller] = None
     """The execution context that produced this tool call."""

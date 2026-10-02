@@ -1,6 +1,6 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
-from typing import List, Optional
+from typing import List, Union, Optional
 from typing_extensions import Literal
 
 from ..._models import BaseModel
@@ -22,14 +22,35 @@ class Data(BaseModel):
     """Event data payload."""
 
     call_id: str
-    """The unique ID of this call."""
+    """The ID of the pending SIP call.
+
+    Pass this value unchanged when accepting or rejecting the call through the
+    Realtime API. For the Live API, use the `session_id` from
+    `live.transport.incoming` instead.
+    """
 
     sip_headers: List[DataSipHeader]
-    """Headers from the SIP Invite."""
+    """
+    Headers from the SIP INVITE, excluding SIP authorization headers. Retained
+    names, values, repeated entries, and order are preserved. Treat these values as
+    untrusted call metadata.
+    """
+
+    sip_media_security: Union[Literal["rtp", "srtp"], str, None] = None
+    """Media protection selected on the SIP leg during SDP negotiation.
+
+    `srtp` indicates SRTP; `rtp` indicates unencrypted RTP. Omitted when unknown.
+    This does not describe SIP signaling security or confirm that media has flowed.
+    Clients should handle unrecognized values as unknown.
+    """
 
 
 class RealtimeCallIncomingWebhookEvent(BaseModel):
-    """Sent when Realtime API Receives a incoming SIP call."""
+    """
+    Sent when an incoming API SIP session is available for Realtime acceptance.
+    The same pending session can also emit `live.transport.incoming`; the first
+    successful Realtime or Live accept endpoint selects the runtime surface.
+    """
 
     id: str
     """The unique ID of the event."""

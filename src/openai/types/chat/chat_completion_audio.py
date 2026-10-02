@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from ..._models import BaseModel
 
@@ -8,7 +8,7 @@ __all__ = ["ChatCompletionAudio"]
 class ChatCompletionAudio(BaseModel):
     """
     If the audio output modality is requested, this object contains data
-    about the audio response from the model. [Learn more](https://platform.openai.com/docs/guides/audio).
+    about the audio response from the model. [Learn more](https://developers.openai.com/api/docs/guides/audio).
     """
 
     id: str

@@ -1,13 +1,12 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 import os
 from typing import Any, cast
 
-import httpx
+import httpx2
 import pytest
-from respx import MockRouter
 
 import openai._legacy_response as _legacy_response
 from openai import OpenAI, AsyncOpenAI
@@ -18,6 +17,7 @@ from openai.types import (
     VideoGetCharacterResponse,
     VideoCreateCharacterResponse,
 )
+from tests.respx2 import MockRouter
 from openai._utils import assert_signatures_in_sync
 from openai.pagination import SyncConversationCursorPage, AsyncConversationCursorPage
 
@@ -31,27 +31,32 @@ class TestVideos:
 
     @parametrize
     def test_method_create(self, client: OpenAI) -> None:
-        video = client.videos.create(
-            prompt="x",
-        )
+        with pytest.warns(DeprecationWarning):
+            video = client.videos.create(
+                prompt="x",
+            )
+
         assert_matches_type(Video, video, path=["response"])
 
     @parametrize
     def test_method_create_with_all_params(self, client: OpenAI) -> None:
-        video = client.videos.create(
-            prompt="x",
-            input_reference=b"Example data",
-            model="sora-2",
-            seconds="4",
-            size="720x1280",
-        )
+        with pytest.warns(DeprecationWarning):
+            video = client.videos.create(
+                prompt="x",
+                input_reference=b"Example data",
+                model="sora-2",
+                seconds="4",
+                size="720x1280",
+            )
+
         assert_matches_type(Video, video, path=["response"])
 
     @parametrize
     def test_raw_response_create(self, client: OpenAI) -> None:
-        response = client.videos.with_raw_response.create(
-            prompt="x",
-        )
+        with pytest.warns(DeprecationWarning):
+            response = client.videos.with_raw_response.create(
+                prompt="x",
+            )
 
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -60,29 +65,33 @@ class TestVideos:
 
     @parametrize
     def test_streaming_response_create(self, client: OpenAI) -> None:
-        with client.videos.with_streaming_response.create(
-            prompt="x",
-        ) as response:
-            assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        with pytest.warns(DeprecationWarning):
+            with client.videos.with_streaming_response.create(
+                prompt="x",
+            ) as response:
+                assert not response.is_closed
+                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
-            video = response.parse()
-            assert_matches_type(Video, video, path=["response"])
+                video = response.parse()
+                assert_matches_type(Video, video, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 
     @parametrize
     def test_method_retrieve(self, client: OpenAI) -> None:
-        video = client.videos.retrieve(
-            "video_123",
-        )
+        with pytest.warns(DeprecationWarning):
+            video = client.videos.retrieve(
+                "video_123",
+            )
+
         assert_matches_type(Video, video, path=["response"])
 
     @parametrize
     def test_raw_response_retrieve(self, client: OpenAI) -> None:
-        response = client.videos.with_raw_response.retrieve(
-            "video_123",
-        )
+        with pytest.warns(DeprecationWarning):
+            response = client.videos.with_raw_response.retrieve(
+                "video_123",
+            )
 
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -91,41 +100,48 @@ class TestVideos:
 
     @parametrize
     def test_streaming_response_retrieve(self, client: OpenAI) -> None:
-        with client.videos.with_streaming_response.retrieve(
-            "video_123",
-        ) as response:
-            assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        with pytest.warns(DeprecationWarning):
+            with client.videos.with_streaming_response.retrieve(
+                "video_123",
+            ) as response:
+                assert not response.is_closed
+                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
-            video = response.parse()
-            assert_matches_type(Video, video, path=["response"])
+                video = response.parse()
+                assert_matches_type(Video, video, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 
     @parametrize
     def test_path_params_retrieve(self, client: OpenAI) -> None:
-        with pytest.raises(ValueError, match=r"Expected a non-empty value for `video_id` but received ''"):
-            client.videos.with_raw_response.retrieve(
-                "",
-            )
+        with pytest.warns(DeprecationWarning):
+            with pytest.raises(ValueError, match=r"Expected a non-empty value for `video_id` but received ''"):
+                client.videos.with_raw_response.retrieve(
+                    "",
+                )
 
     @parametrize
     def test_method_list(self, client: OpenAI) -> None:
-        video = client.videos.list()
+        with pytest.warns(DeprecationWarning):
+            video = client.videos.list()
+
         assert_matches_type(SyncConversationCursorPage[Video], video, path=["response"])
 
     @parametrize
     def test_method_list_with_all_params(self, client: OpenAI) -> None:
-        video = client.videos.list(
-            after="after",
-            limit=0,
-            order="asc",
-        )
+        with pytest.warns(DeprecationWarning):
+            video = client.videos.list(
+                after="after",
+                limit=0,
+                order="asc",
+            )
+
         assert_matches_type(SyncConversationCursorPage[Video], video, path=["response"])
 
     @parametrize
     def test_raw_response_list(self, client: OpenAI) -> None:
-        response = client.videos.with_raw_response.list()
+        with pytest.warns(DeprecationWarning):
+            response = client.videos.with_raw_response.list()
 
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -134,27 +150,31 @@ class TestVideos:
 
     @parametrize
     def test_streaming_response_list(self, client: OpenAI) -> None:
-        with client.videos.with_streaming_response.list() as response:
-            assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        with pytest.warns(DeprecationWarning):
+            with client.videos.with_streaming_response.list() as response:
+                assert not response.is_closed
+                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
-            video = response.parse()
-            assert_matches_type(SyncConversationCursorPage[Video], video, path=["response"])
+                video = response.parse()
+                assert_matches_type(SyncConversationCursorPage[Video], video, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 
     @parametrize
     def test_method_delete(self, client: OpenAI) -> None:
-        video = client.videos.delete(
-            "video_123",
-        )
+        with pytest.warns(DeprecationWarning):
+            video = client.videos.delete(
+                "video_123",
+            )
+
         assert_matches_type(VideoDeleteResponse, video, path=["response"])
 
     @parametrize
     def test_raw_response_delete(self, client: OpenAI) -> None:
-        response = client.videos.with_raw_response.delete(
-            "video_123",
-        )
+        with pytest.warns(DeprecationWarning):
+            response = client.videos.with_raw_response.delete(
+                "video_123",
+            )
 
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -163,38 +183,43 @@ class TestVideos:
 
     @parametrize
     def test_streaming_response_delete(self, client: OpenAI) -> None:
-        with client.videos.with_streaming_response.delete(
-            "video_123",
-        ) as response:
-            assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        with pytest.warns(DeprecationWarning):
+            with client.videos.with_streaming_response.delete(
+                "video_123",
+            ) as response:
+                assert not response.is_closed
+                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
-            video = response.parse()
-            assert_matches_type(VideoDeleteResponse, video, path=["response"])
+                video = response.parse()
+                assert_matches_type(VideoDeleteResponse, video, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 
     @parametrize
     def test_path_params_delete(self, client: OpenAI) -> None:
-        with pytest.raises(ValueError, match=r"Expected a non-empty value for `video_id` but received ''"):
-            client.videos.with_raw_response.delete(
-                "",
-            )
+        with pytest.warns(DeprecationWarning):
+            with pytest.raises(ValueError, match=r"Expected a non-empty value for `video_id` but received ''"):
+                client.videos.with_raw_response.delete(
+                    "",
+                )
 
     @parametrize
     def test_method_create_character(self, client: OpenAI) -> None:
-        video = client.videos.create_character(
-            name="x",
-            video=b"Example data",
-        )
+        with pytest.warns(DeprecationWarning):
+            video = client.videos.create_character(
+                name="x",
+                video=b"Example data",
+            )
+
         assert_matches_type(VideoCreateCharacterResponse, video, path=["response"])
 
     @parametrize
     def test_raw_response_create_character(self, client: OpenAI) -> None:
-        response = client.videos.with_raw_response.create_character(
-            name="x",
-            video=b"Example data",
-        )
+        with pytest.warns(DeprecationWarning):
+            response = client.videos.with_raw_response.create_character(
+                name="x",
+                video=b"Example data",
+            )
 
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -203,47 +228,51 @@ class TestVideos:
 
     @parametrize
     def test_streaming_response_create_character(self, client: OpenAI) -> None:
-        with client.videos.with_streaming_response.create_character(
-            name="x",
-            video=b"Example data",
-        ) as response:
-            assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        with pytest.warns(DeprecationWarning):
+            with client.videos.with_streaming_response.create_character(
+                name="x",
+                video=b"Example data",
+            ) as response:
+                assert not response.is_closed
+                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
-            video = response.parse()
-            assert_matches_type(VideoCreateCharacterResponse, video, path=["response"])
+                video = response.parse()
+                assert_matches_type(VideoCreateCharacterResponse, video, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 
     @parametrize
-    @pytest.mark.respx(base_url=base_url)
-    def test_method_download_content(self, client: OpenAI, respx_mock: MockRouter) -> None:
-        respx_mock.get("/videos/video_123/content").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
-        video = client.videos.download_content(
-            video_id="video_123",
-        )
+    @pytest.mark.respx2(base_url=base_url)
+    def test_method_download_content(self, client: OpenAI, respx2_mock: MockRouter) -> None:
+        respx2_mock.get("/videos/video_123/content").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
+        with pytest.warns(DeprecationWarning):
+            video = client.videos.download_content(
+                video_id="video_123",
+            )
         assert isinstance(video, _legacy_response.HttpxBinaryResponseContent)
         assert video.json() == {"foo": "bar"}
 
     @parametrize
-    @pytest.mark.respx(base_url=base_url)
-    def test_method_download_content_with_all_params(self, client: OpenAI, respx_mock: MockRouter) -> None:
-        respx_mock.get("/videos/video_123/content").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
-        video = client.videos.download_content(
-            video_id="video_123",
-            variant="video",
-        )
+    @pytest.mark.respx2(base_url=base_url)
+    def test_method_download_content_with_all_params(self, client: OpenAI, respx2_mock: MockRouter) -> None:
+        respx2_mock.get("/videos/video_123/content").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
+        with pytest.warns(DeprecationWarning):
+            video = client.videos.download_content(
+                video_id="video_123",
+                variant="video",
+            )
         assert isinstance(video, _legacy_response.HttpxBinaryResponseContent)
         assert video.json() == {"foo": "bar"}
 
     @parametrize
-    @pytest.mark.respx(base_url=base_url)
-    def test_raw_response_download_content(self, client: OpenAI, respx_mock: MockRouter) -> None:
-        respx_mock.get("/videos/video_123/content").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+    @pytest.mark.respx2(base_url=base_url)
+    def test_raw_response_download_content(self, client: OpenAI, respx2_mock: MockRouter) -> None:
+        respx2_mock.get("/videos/video_123/content").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
 
-        response = client.videos.with_raw_response.download_content(
-            video_id="video_123",
-        )
+        with pytest.warns(DeprecationWarning):
+            response = client.videos.with_raw_response.download_content(
+                video_id="video_123",
+            )
 
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -251,42 +280,47 @@ class TestVideos:
         assert_matches_type(_legacy_response.HttpxBinaryResponseContent, video, path=["response"])
 
     @parametrize
-    @pytest.mark.respx(base_url=base_url)
-    def test_streaming_response_download_content(self, client: OpenAI, respx_mock: MockRouter) -> None:
-        respx_mock.get("/videos/video_123/content").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
-        with client.videos.with_streaming_response.download_content(
-            video_id="video_123",
-        ) as response:
-            assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+    @pytest.mark.respx2(base_url=base_url)
+    def test_streaming_response_download_content(self, client: OpenAI, respx2_mock: MockRouter) -> None:
+        respx2_mock.get("/videos/video_123/content").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
+        with pytest.warns(DeprecationWarning):
+            with client.videos.with_streaming_response.download_content(
+                video_id="video_123",
+            ) as response:
+                assert not response.is_closed
+                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
-            video = response.parse()
-            assert_matches_type(bytes, video, path=["response"])
+                video = response.parse()
+                assert_matches_type(bytes, video, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 
     @parametrize
-    @pytest.mark.respx(base_url=base_url)
+    @pytest.mark.respx2(base_url=base_url)
     def test_path_params_download_content(self, client: OpenAI) -> None:
-        with pytest.raises(ValueError, match=r"Expected a non-empty value for `video_id` but received ''"):
-            client.videos.with_raw_response.download_content(
-                video_id="",
-            )
+        with pytest.warns(DeprecationWarning):
+            with pytest.raises(ValueError, match=r"Expected a non-empty value for `video_id` but received ''"):
+                client.videos.with_raw_response.download_content(
+                    video_id="",
+                )
 
     @parametrize
     def test_method_edit(self, client: OpenAI) -> None:
-        video = client.videos.edit(
-            prompt="x",
-            video=b"Example data",
-        )
+        with pytest.warns(DeprecationWarning):
+            video = client.videos.edit(
+                prompt="x",
+                video=b"Example data",
+            )
+
         assert_matches_type(Video, video, path=["response"])
 
     @parametrize
     def test_raw_response_edit(self, client: OpenAI) -> None:
-        response = client.videos.with_raw_response.edit(
-            prompt="x",
-            video=b"Example data",
-        )
+        with pytest.warns(DeprecationWarning):
+            response = client.videos.with_raw_response.edit(
+                prompt="x",
+                video=b"Example data",
+            )
 
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -295,34 +329,38 @@ class TestVideos:
 
     @parametrize
     def test_streaming_response_edit(self, client: OpenAI) -> None:
-        with client.videos.with_streaming_response.edit(
-            prompt="x",
-            video=b"Example data",
-        ) as response:
-            assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        with pytest.warns(DeprecationWarning):
+            with client.videos.with_streaming_response.edit(
+                prompt="x",
+                video=b"Example data",
+            ) as response:
+                assert not response.is_closed
+                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
-            video = response.parse()
-            assert_matches_type(Video, video, path=["response"])
+                video = response.parse()
+                assert_matches_type(Video, video, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 
     @parametrize
     def test_method_extend(self, client: OpenAI) -> None:
-        video = client.videos.extend(
-            prompt="x",
-            seconds="4",
-            video=b"Example data",
-        )
+        with pytest.warns(DeprecationWarning):
+            video = client.videos.extend(
+                prompt="x",
+                seconds="4",
+                video=b"Example data",
+            )
+
         assert_matches_type(Video, video, path=["response"])
 
     @parametrize
     def test_raw_response_extend(self, client: OpenAI) -> None:
-        response = client.videos.with_raw_response.extend(
-            prompt="x",
-            seconds="4",
-            video=b"Example data",
-        )
+        with pytest.warns(DeprecationWarning):
+            response = client.videos.with_raw_response.extend(
+                prompt="x",
+                seconds="4",
+                video=b"Example data",
+            )
 
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -331,31 +369,35 @@ class TestVideos:
 
     @parametrize
     def test_streaming_response_extend(self, client: OpenAI) -> None:
-        with client.videos.with_streaming_response.extend(
-            prompt="x",
-            seconds="4",
-            video=b"Example data",
-        ) as response:
-            assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        with pytest.warns(DeprecationWarning):
+            with client.videos.with_streaming_response.extend(
+                prompt="x",
+                seconds="4",
+                video=b"Example data",
+            ) as response:
+                assert not response.is_closed
+                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
-            video = response.parse()
-            assert_matches_type(Video, video, path=["response"])
+                video = response.parse()
+                assert_matches_type(Video, video, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 
     @parametrize
     def test_method_get_character(self, client: OpenAI) -> None:
-        video = client.videos.get_character(
-            "char_123",
-        )
+        with pytest.warns(DeprecationWarning):
+            video = client.videos.get_character(
+                "char_123",
+            )
+
         assert_matches_type(VideoGetCharacterResponse, video, path=["response"])
 
     @parametrize
     def test_raw_response_get_character(self, client: OpenAI) -> None:
-        response = client.videos.with_raw_response.get_character(
-            "char_123",
-        )
+        with pytest.warns(DeprecationWarning):
+            response = client.videos.with_raw_response.get_character(
+                "char_123",
+            )
 
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -364,38 +406,43 @@ class TestVideos:
 
     @parametrize
     def test_streaming_response_get_character(self, client: OpenAI) -> None:
-        with client.videos.with_streaming_response.get_character(
-            "char_123",
-        ) as response:
-            assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        with pytest.warns(DeprecationWarning):
+            with client.videos.with_streaming_response.get_character(
+                "char_123",
+            ) as response:
+                assert not response.is_closed
+                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
-            video = response.parse()
-            assert_matches_type(VideoGetCharacterResponse, video, path=["response"])
+                video = response.parse()
+                assert_matches_type(VideoGetCharacterResponse, video, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 
     @parametrize
     def test_path_params_get_character(self, client: OpenAI) -> None:
-        with pytest.raises(ValueError, match=r"Expected a non-empty value for `character_id` but received ''"):
-            client.videos.with_raw_response.get_character(
-                "",
-            )
+        with pytest.warns(DeprecationWarning):
+            with pytest.raises(ValueError, match=r"Expected a non-empty value for `character_id` but received ''"):
+                client.videos.with_raw_response.get_character(
+                    "",
+                )
 
     @parametrize
     def test_method_remix(self, client: OpenAI) -> None:
-        video = client.videos.remix(
-            video_id="video_123",
-            prompt="x",
-        )
+        with pytest.warns(DeprecationWarning):
+            video = client.videos.remix(
+                video_id="video_123",
+                prompt="x",
+            )
+
         assert_matches_type(Video, video, path=["response"])
 
     @parametrize
     def test_raw_response_remix(self, client: OpenAI) -> None:
-        response = client.videos.with_raw_response.remix(
-            video_id="video_123",
-            prompt="x",
-        )
+        with pytest.warns(DeprecationWarning):
+            response = client.videos.with_raw_response.remix(
+                video_id="video_123",
+                prompt="x",
+            )
 
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -404,25 +451,27 @@ class TestVideos:
 
     @parametrize
     def test_streaming_response_remix(self, client: OpenAI) -> None:
-        with client.videos.with_streaming_response.remix(
-            video_id="video_123",
-            prompt="x",
-        ) as response:
-            assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        with pytest.warns(DeprecationWarning):
+            with client.videos.with_streaming_response.remix(
+                video_id="video_123",
+                prompt="x",
+            ) as response:
+                assert not response.is_closed
+                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
-            video = response.parse()
-            assert_matches_type(Video, video, path=["response"])
+                video = response.parse()
+                assert_matches_type(Video, video, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 
     @parametrize
     def test_path_params_remix(self, client: OpenAI) -> None:
-        with pytest.raises(ValueError, match=r"Expected a non-empty value for `video_id` but received ''"):
-            client.videos.with_raw_response.remix(
-                video_id="",
-                prompt="x",
-            )
+        with pytest.warns(DeprecationWarning):
+            with pytest.raises(ValueError, match=r"Expected a non-empty value for `video_id` but received ''"):
+                client.videos.with_raw_response.remix(
+                    video_id="",
+                    prompt="x",
+                )
 
 
 class TestAsyncVideos:
@@ -432,27 +481,32 @@ class TestAsyncVideos:
 
     @parametrize
     async def test_method_create(self, async_client: AsyncOpenAI) -> None:
-        video = await async_client.videos.create(
-            prompt="x",
-        )
+        with pytest.warns(DeprecationWarning):
+            video = await async_client.videos.create(
+                prompt="x",
+            )
+
         assert_matches_type(Video, video, path=["response"])
 
     @parametrize
     async def test_method_create_with_all_params(self, async_client: AsyncOpenAI) -> None:
-        video = await async_client.videos.create(
-            prompt="x",
-            input_reference=b"Example data",
-            model="sora-2",
-            seconds="4",
-            size="720x1280",
-        )
+        with pytest.warns(DeprecationWarning):
+            video = await async_client.videos.create(
+                prompt="x",
+                input_reference=b"Example data",
+                model="sora-2",
+                seconds="4",
+                size="720x1280",
+            )
+
         assert_matches_type(Video, video, path=["response"])
 
     @parametrize
     async def test_raw_response_create(self, async_client: AsyncOpenAI) -> None:
-        response = await async_client.videos.with_raw_response.create(
-            prompt="x",
-        )
+        with pytest.warns(DeprecationWarning):
+            response = await async_client.videos.with_raw_response.create(
+                prompt="x",
+            )
 
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -461,29 +515,33 @@ class TestAsyncVideos:
 
     @parametrize
     async def test_streaming_response_create(self, async_client: AsyncOpenAI) -> None:
-        async with async_client.videos.with_streaming_response.create(
-            prompt="x",
-        ) as response:
-            assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        with pytest.warns(DeprecationWarning):
+            async with async_client.videos.with_streaming_response.create(
+                prompt="x",
+            ) as response:
+                assert not response.is_closed
+                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
-            video = await response.parse()
-            assert_matches_type(Video, video, path=["response"])
+                video = await response.parse()
+                assert_matches_type(Video, video, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 
     @parametrize
     async def test_method_retrieve(self, async_client: AsyncOpenAI) -> None:
-        video = await async_client.videos.retrieve(
-            "video_123",
-        )
+        with pytest.warns(DeprecationWarning):
+            video = await async_client.videos.retrieve(
+                "video_123",
+            )
+
         assert_matches_type(Video, video, path=["response"])
 
     @parametrize
     async def test_raw_response_retrieve(self, async_client: AsyncOpenAI) -> None:
-        response = await async_client.videos.with_raw_response.retrieve(
-            "video_123",
-        )
+        with pytest.warns(DeprecationWarning):
+            response = await async_client.videos.with_raw_response.retrieve(
+                "video_123",
+            )
 
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -492,41 +550,48 @@ class TestAsyncVideos:
 
     @parametrize
     async def test_streaming_response_retrieve(self, async_client: AsyncOpenAI) -> None:
-        async with async_client.videos.with_streaming_response.retrieve(
-            "video_123",
-        ) as response:
-            assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        with pytest.warns(DeprecationWarning):
+            async with async_client.videos.with_streaming_response.retrieve(
+                "video_123",
+            ) as response:
+                assert not response.is_closed
+                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
-            video = await response.parse()
-            assert_matches_type(Video, video, path=["response"])
+                video = await response.parse()
+                assert_matches_type(Video, video, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 
     @parametrize
     async def test_path_params_retrieve(self, async_client: AsyncOpenAI) -> None:
-        with pytest.raises(ValueError, match=r"Expected a non-empty value for `video_id` but received ''"):
-            await async_client.videos.with_raw_response.retrieve(
-                "",
-            )
+        with pytest.warns(DeprecationWarning):
+            with pytest.raises(ValueError, match=r"Expected a non-empty value for `video_id` but received ''"):
+                await async_client.videos.with_raw_response.retrieve(
+                    "",
+                )
 
     @parametrize
     async def test_method_list(self, async_client: AsyncOpenAI) -> None:
-        video = await async_client.videos.list()
+        with pytest.warns(DeprecationWarning):
+            video = await async_client.videos.list()
+
         assert_matches_type(AsyncConversationCursorPage[Video], video, path=["response"])
 
     @parametrize
     async def test_method_list_with_all_params(self, async_client: AsyncOpenAI) -> None:
-        video = await async_client.videos.list(
-            after="after",
-            limit=0,
-            order="asc",
-        )
+        with pytest.warns(DeprecationWarning):
+            video = await async_client.videos.list(
+                after="after",
+                limit=0,
+                order="asc",
+            )
+
         assert_matches_type(AsyncConversationCursorPage[Video], video, path=["response"])
 
     @parametrize
     async def test_raw_response_list(self, async_client: AsyncOpenAI) -> None:
-        response = await async_client.videos.with_raw_response.list()
+        with pytest.warns(DeprecationWarning):
+            response = await async_client.videos.with_raw_response.list()
 
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -535,27 +600,31 @@ class TestAsyncVideos:
 
     @parametrize
     async def test_streaming_response_list(self, async_client: AsyncOpenAI) -> None:
-        async with async_client.videos.with_streaming_response.list() as response:
-            assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        with pytest.warns(DeprecationWarning):
+            async with async_client.videos.with_streaming_response.list() as response:
+                assert not response.is_closed
+                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
-            video = await response.parse()
-            assert_matches_type(AsyncConversationCursorPage[Video], video, path=["response"])
+                video = await response.parse()
+                assert_matches_type(AsyncConversationCursorPage[Video], video, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 
     @parametrize
     async def test_method_delete(self, async_client: AsyncOpenAI) -> None:
-        video = await async_client.videos.delete(
-            "video_123",
-        )
+        with pytest.warns(DeprecationWarning):
+            video = await async_client.videos.delete(
+                "video_123",
+            )
+
         assert_matches_type(VideoDeleteResponse, video, path=["response"])
 
     @parametrize
     async def test_raw_response_delete(self, async_client: AsyncOpenAI) -> None:
-        response = await async_client.videos.with_raw_response.delete(
-            "video_123",
-        )
+        with pytest.warns(DeprecationWarning):
+            response = await async_client.videos.with_raw_response.delete(
+                "video_123",
+            )
 
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -564,38 +633,43 @@ class TestAsyncVideos:
 
     @parametrize
     async def test_streaming_response_delete(self, async_client: AsyncOpenAI) -> None:
-        async with async_client.videos.with_streaming_response.delete(
-            "video_123",
-        ) as response:
-            assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        with pytest.warns(DeprecationWarning):
+            async with async_client.videos.with_streaming_response.delete(
+                "video_123",
+            ) as response:
+                assert not response.is_closed
+                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
-            video = await response.parse()
-            assert_matches_type(VideoDeleteResponse, video, path=["response"])
+                video = await response.parse()
+                assert_matches_type(VideoDeleteResponse, video, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 
     @parametrize
     async def test_path_params_delete(self, async_client: AsyncOpenAI) -> None:
-        with pytest.raises(ValueError, match=r"Expected a non-empty value for `video_id` but received ''"):
-            await async_client.videos.with_raw_response.delete(
-                "",
-            )
+        with pytest.warns(DeprecationWarning):
+            with pytest.raises(ValueError, match=r"Expected a non-empty value for `video_id` but received ''"):
+                await async_client.videos.with_raw_response.delete(
+                    "",
+                )
 
     @parametrize
     async def test_method_create_character(self, async_client: AsyncOpenAI) -> None:
-        video = await async_client.videos.create_character(
-            name="x",
-            video=b"Example data",
-        )
+        with pytest.warns(DeprecationWarning):
+            video = await async_client.videos.create_character(
+                name="x",
+                video=b"Example data",
+            )
+
         assert_matches_type(VideoCreateCharacterResponse, video, path=["response"])
 
     @parametrize
     async def test_raw_response_create_character(self, async_client: AsyncOpenAI) -> None:
-        response = await async_client.videos.with_raw_response.create_character(
-            name="x",
-            video=b"Example data",
-        )
+        with pytest.warns(DeprecationWarning):
+            response = await async_client.videos.with_raw_response.create_character(
+                name="x",
+                video=b"Example data",
+            )
 
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -604,49 +678,53 @@ class TestAsyncVideos:
 
     @parametrize
     async def test_streaming_response_create_character(self, async_client: AsyncOpenAI) -> None:
-        async with async_client.videos.with_streaming_response.create_character(
-            name="x",
-            video=b"Example data",
-        ) as response:
-            assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        with pytest.warns(DeprecationWarning):
+            async with async_client.videos.with_streaming_response.create_character(
+                name="x",
+                video=b"Example data",
+            ) as response:
+                assert not response.is_closed
+                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
-            video = await response.parse()
-            assert_matches_type(VideoCreateCharacterResponse, video, path=["response"])
+                video = await response.parse()
+                assert_matches_type(VideoCreateCharacterResponse, video, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 
     @parametrize
-    @pytest.mark.respx(base_url=base_url)
-    async def test_method_download_content(self, async_client: AsyncOpenAI, respx_mock: MockRouter) -> None:
-        respx_mock.get("/videos/video_123/content").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
-        video = await async_client.videos.download_content(
-            video_id="video_123",
-        )
+    @pytest.mark.respx2(base_url=base_url)
+    async def test_method_download_content(self, async_client: AsyncOpenAI, respx2_mock: MockRouter) -> None:
+        respx2_mock.get("/videos/video_123/content").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
+        with pytest.warns(DeprecationWarning):
+            video = await async_client.videos.download_content(
+                video_id="video_123",
+            )
         assert isinstance(video, _legacy_response.HttpxBinaryResponseContent)
         assert video.json() == {"foo": "bar"}
 
     @parametrize
-    @pytest.mark.respx(base_url=base_url)
+    @pytest.mark.respx2(base_url=base_url)
     async def test_method_download_content_with_all_params(
-        self, async_client: AsyncOpenAI, respx_mock: MockRouter
+        self, async_client: AsyncOpenAI, respx2_mock: MockRouter
     ) -> None:
-        respx_mock.get("/videos/video_123/content").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
-        video = await async_client.videos.download_content(
-            video_id="video_123",
-            variant="video",
-        )
+        respx2_mock.get("/videos/video_123/content").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
+        with pytest.warns(DeprecationWarning):
+            video = await async_client.videos.download_content(
+                video_id="video_123",
+                variant="video",
+            )
         assert isinstance(video, _legacy_response.HttpxBinaryResponseContent)
         assert video.json() == {"foo": "bar"}
 
     @parametrize
-    @pytest.mark.respx(base_url=base_url)
-    async def test_raw_response_download_content(self, async_client: AsyncOpenAI, respx_mock: MockRouter) -> None:
-        respx_mock.get("/videos/video_123/content").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+    @pytest.mark.respx2(base_url=base_url)
+    async def test_raw_response_download_content(self, async_client: AsyncOpenAI, respx2_mock: MockRouter) -> None:
+        respx2_mock.get("/videos/video_123/content").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
 
-        response = await async_client.videos.with_raw_response.download_content(
-            video_id="video_123",
-        )
+        with pytest.warns(DeprecationWarning):
+            response = await async_client.videos.with_raw_response.download_content(
+                video_id="video_123",
+            )
 
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -654,42 +732,49 @@ class TestAsyncVideos:
         assert_matches_type(_legacy_response.HttpxBinaryResponseContent, video, path=["response"])
 
     @parametrize
-    @pytest.mark.respx(base_url=base_url)
-    async def test_streaming_response_download_content(self, async_client: AsyncOpenAI, respx_mock: MockRouter) -> None:
-        respx_mock.get("/videos/video_123/content").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
-        async with async_client.videos.with_streaming_response.download_content(
-            video_id="video_123",
-        ) as response:
-            assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+    @pytest.mark.respx2(base_url=base_url)
+    async def test_streaming_response_download_content(
+        self, async_client: AsyncOpenAI, respx2_mock: MockRouter
+    ) -> None:
+        respx2_mock.get("/videos/video_123/content").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
+        with pytest.warns(DeprecationWarning):
+            async with async_client.videos.with_streaming_response.download_content(
+                video_id="video_123",
+            ) as response:
+                assert not response.is_closed
+                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
-            video = await response.parse()
-            assert_matches_type(bytes, video, path=["response"])
+                video = await response.parse()
+                assert_matches_type(bytes, video, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 
     @parametrize
-    @pytest.mark.respx(base_url=base_url)
+    @pytest.mark.respx2(base_url=base_url)
     async def test_path_params_download_content(self, async_client: AsyncOpenAI) -> None:
-        with pytest.raises(ValueError, match=r"Expected a non-empty value for `video_id` but received ''"):
-            await async_client.videos.with_raw_response.download_content(
-                video_id="",
-            )
+        with pytest.warns(DeprecationWarning):
+            with pytest.raises(ValueError, match=r"Expected a non-empty value for `video_id` but received ''"):
+                await async_client.videos.with_raw_response.download_content(
+                    video_id="",
+                )
 
     @parametrize
     async def test_method_edit(self, async_client: AsyncOpenAI) -> None:
-        video = await async_client.videos.edit(
-            prompt="x",
-            video=b"Example data",
-        )
+        with pytest.warns(DeprecationWarning):
+            video = await async_client.videos.edit(
+                prompt="x",
+                video=b"Example data",
+            )
+
         assert_matches_type(Video, video, path=["response"])
 
     @parametrize
     async def test_raw_response_edit(self, async_client: AsyncOpenAI) -> None:
-        response = await async_client.videos.with_raw_response.edit(
-            prompt="x",
-            video=b"Example data",
-        )
+        with pytest.warns(DeprecationWarning):
+            response = await async_client.videos.with_raw_response.edit(
+                prompt="x",
+                video=b"Example data",
+            )
 
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -698,34 +783,38 @@ class TestAsyncVideos:
 
     @parametrize
     async def test_streaming_response_edit(self, async_client: AsyncOpenAI) -> None:
-        async with async_client.videos.with_streaming_response.edit(
-            prompt="x",
-            video=b"Example data",
-        ) as response:
-            assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        with pytest.warns(DeprecationWarning):
+            async with async_client.videos.with_streaming_response.edit(
+                prompt="x",
+                video=b"Example data",
+            ) as response:
+                assert not response.is_closed
+                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
-            video = await response.parse()
-            assert_matches_type(Video, video, path=["response"])
+                video = await response.parse()
+                assert_matches_type(Video, video, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 
     @parametrize
     async def test_method_extend(self, async_client: AsyncOpenAI) -> None:
-        video = await async_client.videos.extend(
-            prompt="x",
-            seconds="4",
-            video=b"Example data",
-        )
+        with pytest.warns(DeprecationWarning):
+            video = await async_client.videos.extend(
+                prompt="x",
+                seconds="4",
+                video=b"Example data",
+            )
+
         assert_matches_type(Video, video, path=["response"])
 
     @parametrize
     async def test_raw_response_extend(self, async_client: AsyncOpenAI) -> None:
-        response = await async_client.videos.with_raw_response.extend(
-            prompt="x",
-            seconds="4",
-            video=b"Example data",
-        )
+        with pytest.warns(DeprecationWarning):
+            response = await async_client.videos.with_raw_response.extend(
+                prompt="x",
+                seconds="4",
+                video=b"Example data",
+            )
 
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -734,31 +823,35 @@ class TestAsyncVideos:
 
     @parametrize
     async def test_streaming_response_extend(self, async_client: AsyncOpenAI) -> None:
-        async with async_client.videos.with_streaming_response.extend(
-            prompt="x",
-            seconds="4",
-            video=b"Example data",
-        ) as response:
-            assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        with pytest.warns(DeprecationWarning):
+            async with async_client.videos.with_streaming_response.extend(
+                prompt="x",
+                seconds="4",
+                video=b"Example data",
+            ) as response:
+                assert not response.is_closed
+                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
-            video = await response.parse()
-            assert_matches_type(Video, video, path=["response"])
+                video = await response.parse()
+                assert_matches_type(Video, video, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 
     @parametrize
     async def test_method_get_character(self, async_client: AsyncOpenAI) -> None:
-        video = await async_client.videos.get_character(
-            "char_123",
-        )
+        with pytest.warns(DeprecationWarning):
+            video = await async_client.videos.get_character(
+                "char_123",
+            )
+
         assert_matches_type(VideoGetCharacterResponse, video, path=["response"])
 
     @parametrize
     async def test_raw_response_get_character(self, async_client: AsyncOpenAI) -> None:
-        response = await async_client.videos.with_raw_response.get_character(
-            "char_123",
-        )
+        with pytest.warns(DeprecationWarning):
+            response = await async_client.videos.with_raw_response.get_character(
+                "char_123",
+            )
 
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -767,38 +860,43 @@ class TestAsyncVideos:
 
     @parametrize
     async def test_streaming_response_get_character(self, async_client: AsyncOpenAI) -> None:
-        async with async_client.videos.with_streaming_response.get_character(
-            "char_123",
-        ) as response:
-            assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        with pytest.warns(DeprecationWarning):
+            async with async_client.videos.with_streaming_response.get_character(
+                "char_123",
+            ) as response:
+                assert not response.is_closed
+                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
-            video = await response.parse()
-            assert_matches_type(VideoGetCharacterResponse, video, path=["response"])
+                video = await response.parse()
+                assert_matches_type(VideoGetCharacterResponse, video, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 
     @parametrize
     async def test_path_params_get_character(self, async_client: AsyncOpenAI) -> None:
-        with pytest.raises(ValueError, match=r"Expected a non-empty value for `character_id` but received ''"):
-            await async_client.videos.with_raw_response.get_character(
-                "",
-            )
+        with pytest.warns(DeprecationWarning):
+            with pytest.raises(ValueError, match=r"Expected a non-empty value for `character_id` but received ''"):
+                await async_client.videos.with_raw_response.get_character(
+                    "",
+                )
 
     @parametrize
     async def test_method_remix(self, async_client: AsyncOpenAI) -> None:
-        video = await async_client.videos.remix(
-            video_id="video_123",
-            prompt="x",
-        )
+        with pytest.warns(DeprecationWarning):
+            video = await async_client.videos.remix(
+                video_id="video_123",
+                prompt="x",
+            )
+
         assert_matches_type(Video, video, path=["response"])
 
     @parametrize
     async def test_raw_response_remix(self, async_client: AsyncOpenAI) -> None:
-        response = await async_client.videos.with_raw_response.remix(
-            video_id="video_123",
-            prompt="x",
-        )
+        with pytest.warns(DeprecationWarning):
+            response = await async_client.videos.with_raw_response.remix(
+                video_id="video_123",
+                prompt="x",
+            )
 
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -807,25 +905,27 @@ class TestAsyncVideos:
 
     @parametrize
     async def test_streaming_response_remix(self, async_client: AsyncOpenAI) -> None:
-        async with async_client.videos.with_streaming_response.remix(
-            video_id="video_123",
-            prompt="x",
-        ) as response:
-            assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        with pytest.warns(DeprecationWarning):
+            async with async_client.videos.with_streaming_response.remix(
+                video_id="video_123",
+                prompt="x",
+            ) as response:
+                assert not response.is_closed
+                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
-            video = await response.parse()
-            assert_matches_type(Video, video, path=["response"])
+                video = await response.parse()
+                assert_matches_type(Video, video, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 
     @parametrize
     async def test_path_params_remix(self, async_client: AsyncOpenAI) -> None:
-        with pytest.raises(ValueError, match=r"Expected a non-empty value for `video_id` but received ''"):
-            await async_client.videos.with_raw_response.remix(
-                video_id="",
-                prompt="x",
-            )
+        with pytest.warns(DeprecationWarning):
+            with pytest.raises(ValueError, match=r"Expected a non-empty value for `video_id` but received ''"):
+                await async_client.videos.with_raw_response.remix(
+                    video_id="",
+                    prompt="x",
+                )
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
@@ -833,7 +933,7 @@ def test_create_and_poll_method_in_sync(sync: bool, client: OpenAI, async_client
     checking_client: OpenAI | AsyncOpenAI = client if sync else async_client
 
     assert_signatures_in_sync(
-        checking_client.videos.create,
-        checking_client.videos.create_and_poll,
+        checking_client.videos.create,  # pyright: ignore[reportDeprecated]
+        checking_client.videos.create_and_poll,  # pyright: ignore[reportDeprecated]
         exclude_params={"extra_headers", "extra_query", "extra_body", "timeout"},
     )
