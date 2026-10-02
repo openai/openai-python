@@ -1,3 +1,4 @@
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 """Small Git/checkpoint fixture shared by the offline Castiron tests."""
 
 from __future__ import annotations
