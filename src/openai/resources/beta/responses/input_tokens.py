@@ -139,10 +139,10 @@ class InputTokens(SyncAPIResource):
             "/responses/input_tokens?beta=true",
             body=maybe_transform(
                 {
+                    "model": model,
                     "conversation": conversation,
                     "input": input,
                     "instructions": instructions,
-                    "model": model,
                     "parallel_tool_calls": parallel_tool_calls,
                     "personality": personality,
                     "previous_response_id": previous_response_id,
@@ -282,10 +282,10 @@ class AsyncInputTokens(AsyncAPIResource):
             "/responses/input_tokens?beta=true",
             body=await async_maybe_transform(
                 {
+                    "model": model,
                     "conversation": conversation,
                     "input": input,
                     "instructions": instructions,
-                    "model": model,
                     "parallel_tool_calls": parallel_tool_calls,
                     "personality": personality,
                     "previous_response_id": previous_response_id,
