@@ -84,8 +84,8 @@ class Moderations(SyncAPIResource):
             "/moderations",
             body=maybe_transform(
                 {
-                    "model": model,
                     "input": input,
+                    "model": model,
                 },
                 moderation_create_params.ModerationCreateParams,
             ),
@@ -163,8 +163,8 @@ class AsyncModerations(AsyncAPIResource):
             "/moderations",
             body=await async_maybe_transform(
                 {
-                    "model": model,
                     "input": input,
+                    "model": model,
                 },
                 moderation_create_params.ModerationCreateParams,
             ),

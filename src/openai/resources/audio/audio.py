@@ -10,6 +10,14 @@ from .speech import (
     SpeechWithStreamingResponse,
     AsyncSpeechWithStreamingResponse,
 )
+from .voices import (
+    Voices,
+    AsyncVoices,
+    VoicesWithRawResponse,
+    AsyncVoicesWithRawResponse,
+    VoicesWithStreamingResponse,
+    AsyncVoicesWithStreamingResponse,
+)
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from .translations import (
@@ -49,6 +57,11 @@ class Audio(SyncAPIResource):
         return Speech(self._client)
 
     @cached_property
+    def voices(self) -> Voices:
+        """Turn audio into text or text into audio."""
+        return Voices(self._client)
+
+    @cached_property
     def with_raw_response(self) -> AudioWithRawResponse:
         """
         This property can be used as a prefix for any HTTP method call to return
@@ -83,6 +96,11 @@ class AsyncAudio(AsyncAPIResource):
     def speech(self) -> AsyncSpeech:
         """Turn audio into text or text into audio."""
         return AsyncSpeech(self._client)
+
+    @cached_property
+    def voices(self) -> AsyncVoices:
+        """Turn audio into text or text into audio."""
+        return AsyncVoices(self._client)
 
     @cached_property
     def with_raw_response(self) -> AsyncAudioWithRawResponse:
@@ -123,6 +141,11 @@ class AudioWithRawResponse:
         """Turn audio into text or text into audio."""
         return SpeechWithRawResponse(self._audio.speech)
 
+    @cached_property
+    def voices(self) -> VoicesWithRawResponse:
+        """Turn audio into text or text into audio."""
+        return VoicesWithRawResponse(self._audio.voices)
+
 
 class AsyncAudioWithRawResponse:
     def __init__(self, audio: AsyncAudio) -> None:
@@ -142,6 +165,11 @@ class AsyncAudioWithRawResponse:
     def speech(self) -> AsyncSpeechWithRawResponse:
         """Turn audio into text or text into audio."""
         return AsyncSpeechWithRawResponse(self._audio.speech)
+
+    @cached_property
+    def voices(self) -> AsyncVoicesWithRawResponse:
+        """Turn audio into text or text into audio."""
+        return AsyncVoicesWithRawResponse(self._audio.voices)
 
 
 class AudioWithStreamingResponse:
@@ -163,6 +191,11 @@ class AudioWithStreamingResponse:
         """Turn audio into text or text into audio."""
         return SpeechWithStreamingResponse(self._audio.speech)
 
+    @cached_property
+    def voices(self) -> VoicesWithStreamingResponse:
+        """Turn audio into text or text into audio."""
+        return VoicesWithStreamingResponse(self._audio.voices)
+
 
 class AsyncAudioWithStreamingResponse:
     def __init__(self, audio: AsyncAudio) -> None:
@@ -182,3 +215,8 @@ class AsyncAudioWithStreamingResponse:
     def speech(self) -> AsyncSpeechWithStreamingResponse:
         """Turn audio into text or text into audio."""
         return AsyncSpeechWithStreamingResponse(self._audio.speech)
+
+    @cached_property
+    def voices(self) -> AsyncVoicesWithStreamingResponse:
+        """Turn audio into text or text into audio."""
+        return AsyncVoicesWithStreamingResponse(self._audio.voices)

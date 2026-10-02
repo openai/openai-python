@@ -29,6 +29,8 @@ class SpeechCreateParams(TypedDict, total=False):
     may also provide a custom voice object with an `id`, for example
     `{ "id": "voice_1234" }`. Previews of the voices are available in the
     [Text to speech guide](https://developers.openai.com/api/docs/guides/text-to-speech#voice-options).
+    Custom voices must be created from audio samples. Voices created from text
+    prompts are supported only in Live.
     """
 
     instructions: str

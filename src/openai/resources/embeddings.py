@@ -102,8 +102,8 @@ class Embeddings(SyncAPIResource):
             "/embeddings",
             body=maybe_transform(
                 {
-                    "model": model,
                     "input": input,
+                    "model": model,
                     "dimensions": dimensions,
                     "encoding_format": encoding_format,
                     "user": user,
@@ -202,8 +202,8 @@ class AsyncEmbeddings(AsyncAPIResource):
             "/embeddings",
             body=await async_maybe_transform(
                 {
-                    "model": model,
                     "input": input,
+                    "model": model,
                     "dimensions": dimensions,
                     "encoding_format": encoding_format,
                     "user": user,

@@ -32,7 +32,9 @@ class Output(BaseModel):
     `shimmer`, `verse`, `marin`, and `cedar`. You may also provide a custom voice
     object with an `id`, for example `{ "id": "voice_1234" }`. Voice cannot be
     changed during the session once the model has responded with audio at least
-    once. We recommend `marin` and `cedar` for best quality.
+    once. Custom voices must be created from audio samples. Voices created from text
+    prompts are supported only in Live. We recommend `marin` and `cedar` for best
+    quality.
     """
 
 

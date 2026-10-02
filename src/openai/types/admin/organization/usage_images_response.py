@@ -63,8 +63,17 @@ class DataResultOrganizationUsageCompletionsResult(BaseModel):
     input_audio_tokens: Optional[int] = None
     """The aggregated number of uncached audio input tokens used."""
 
+    input_cache_write_12h_tokens: Optional[int] = None
+    """
+    The aggregated number of input tokens written to the cache with a 12-hour
+    retention period.
+    """
+
     input_cache_write_tokens: Optional[int] = None
-    """The aggregated number of input tokens written to the cache."""
+    """
+    The aggregated number of input tokens written to the cache with a 30-minute
+    retention period.
+    """
 
     input_cached_audio_tokens: Optional[int] = None
     """The aggregated number of cached audio input tokens used."""

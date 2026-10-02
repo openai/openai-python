@@ -87,6 +87,11 @@ class Webhooks(SyncAPIResource):
                 "realtime.call.incoming",
                 "video.completed",
                 "video.failed",
+                "agent.session.created",
+                "agent.session.action_required",
+                "agent.session.in_progress",
+                "agent.session.idle",
+                "agent.session.failed",
                 "safety.alert.created",
             ]
         ],
@@ -199,6 +204,11 @@ class Webhooks(SyncAPIResource):
                 "realtime.call.incoming",
                 "video.completed",
                 "video.failed",
+                "agent.session.created",
+                "agent.session.action_required",
+                "agent.session.in_progress",
+                "agent.session.idle",
+                "agent.session.failed",
                 "safety.alert.created",
             ]
         ]
@@ -412,6 +422,11 @@ class Webhooks(SyncAPIResource):
             "realtime.call.incoming",
             "video.completed",
             "video.failed",
+            "agent.session.created",
+            "agent.session.action_required",
+            "agent.session.in_progress",
+            "agent.session.idle",
+            "agent.session.failed",
             "safety.alert.created",
         ],
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -508,6 +523,11 @@ class AsyncWebhooks(AsyncAPIResource):
                 "realtime.call.incoming",
                 "video.completed",
                 "video.failed",
+                "agent.session.created",
+                "agent.session.action_required",
+                "agent.session.in_progress",
+                "agent.session.idle",
+                "agent.session.failed",
                 "safety.alert.created",
             ]
         ],
@@ -620,6 +640,11 @@ class AsyncWebhooks(AsyncAPIResource):
                 "realtime.call.incoming",
                 "video.completed",
                 "video.failed",
+                "agent.session.created",
+                "agent.session.action_required",
+                "agent.session.in_progress",
+                "agent.session.idle",
+                "agent.session.failed",
                 "safety.alert.created",
             ]
         ]
@@ -833,6 +858,11 @@ class AsyncWebhooks(AsyncAPIResource):
             "realtime.call.incoming",
             "video.completed",
             "video.failed",
+            "agent.session.created",
+            "agent.session.action_required",
+            "agent.session.in_progress",
+            "agent.session.idle",
+            "agent.session.failed",
             "safety.alert.created",
         ],
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
