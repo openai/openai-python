@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.25.0](https://github.com/openai/openai-python/compare/v3.24.0...v3.25.0) (2026-10-02)
+
+
+### Features
+
+* **lib:** export type_to_response_format_param publicly ([#2993](https://github.com/openai/openai-python/issues/2993)) ([becc1d2](https://github.com/openai/openai-python/commit/becc1d20eed83c1b8d85e15dc131a372d9dc7813))
+
 ## [3.24.0](https://github.com/openai/openai-python/compare/v3.23.0...v3.24.0) (2026-10-02)
 
 
