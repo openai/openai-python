@@ -52,6 +52,10 @@ def test_array_comma(method: str) -> None:
     assert unquote(serialise({"in": ["foo", "bar"]})) == "in=foo,bar"
     assert unquote(serialise({"a": {"b": [True, False]}})) == "a[b]=true,false"
     assert unquote(serialise({"a": {"b": [True, False, None, True]}})) == "a[b]=true,false,true"
+    assert unquote(serialise({"filter": []})) == ""
+    assert unquote(serialise({"filter": [None]})) == ""
+    assert unquote(serialise({"filter": [""]})) == "filter="
+    assert unquote(serialise({"filter": [None, "active"]})) == "filter=active"
 
 
 def test_array_repeat() -> None:
