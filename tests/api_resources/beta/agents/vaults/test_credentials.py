@@ -159,7 +159,6 @@ class TestCredentials:
         credential = client.beta.agents.vaults.credentials.update(
             credential_id="credential_id",
             vault_id="vault_id",
-            metadata={},
         )
         assert_matches_type(Credential, credential, path=["response"])
 
@@ -190,7 +189,6 @@ class TestCredentials:
         response = client.beta.agents.vaults.credentials.with_raw_response.update(
             credential_id="credential_id",
             vault_id="vault_id",
-            metadata={},
         )
 
         assert response.is_closed is True
@@ -203,7 +201,6 @@ class TestCredentials:
         with client.beta.agents.vaults.credentials.with_streaming_response.update(
             credential_id="credential_id",
             vault_id="vault_id",
-            metadata={},
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -468,7 +465,6 @@ class TestAsyncCredentials:
         credential = await async_client.beta.agents.vaults.credentials.update(
             credential_id="credential_id",
             vault_id="vault_id",
-            metadata={},
         )
         assert_matches_type(Credential, credential, path=["response"])
 
@@ -499,7 +495,6 @@ class TestAsyncCredentials:
         response = await async_client.beta.agents.vaults.credentials.with_raw_response.update(
             credential_id="credential_id",
             vault_id="vault_id",
-            metadata={},
         )
 
         assert response.is_closed is True
@@ -512,7 +507,6 @@ class TestAsyncCredentials:
         async with async_client.beta.agents.vaults.credentials.with_streaming_response.update(
             credential_id="credential_id",
             vault_id="vault_id",
-            metadata={},
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"

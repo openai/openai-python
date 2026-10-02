@@ -338,12 +338,12 @@ class Sessions(SyncAPIResource):
             "/agents/sessions",
             body=maybe_transform(
                 {
+                    "stream": stream,
                     "environment": environment,
                     "agent": agent,
                     "agent_id": agent_id,
                     "input": input,
                     "metadata": metadata,
-                    "stream": stream,
                     "vault_ids": vault_ids,
                 },
                 session_create_params.SessionCreateParamsStreaming
@@ -828,12 +828,12 @@ class AsyncSessions(AsyncAPIResource):
             "/agents/sessions",
             body=await async_maybe_transform(
                 {
+                    "stream": stream,
                     "environment": environment,
                     "agent": agent,
                     "agent_id": agent_id,
                     "input": input,
                     "metadata": metadata,
-                    "stream": stream,
                     "vault_ids": vault_ids,
                 },
                 session_create_params.SessionCreateParamsStreaming

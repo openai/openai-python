@@ -557,6 +557,7 @@ class Completions(SyncAPIResource):
             body=maybe_transform(
                 {
                     "model": model,
+                    "stream": stream,
                     "prompt": prompt,
                     "best_of": best_of,
                     "echo": echo,
@@ -568,7 +569,6 @@ class Completions(SyncAPIResource):
                     "presence_penalty": presence_penalty,
                     "seed": seed,
                     "stop": stop,
-                    "stream": stream,
                     "stream_options": stream_options,
                     "suffix": suffix,
                     "temperature": temperature,
@@ -1127,6 +1127,7 @@ class AsyncCompletions(AsyncAPIResource):
             body=await async_maybe_transform(
                 {
                     "model": model,
+                    "stream": stream,
                     "prompt": prompt,
                     "best_of": best_of,
                     "echo": echo,
@@ -1138,7 +1139,6 @@ class AsyncCompletions(AsyncAPIResource):
                     "presence_penalty": presence_penalty,
                     "seed": seed,
                     "stop": stop,
-                    "stream": stream,
                     "stream_options": stream_options,
                     "suffix": suffix,
                     "temperature": temperature,
