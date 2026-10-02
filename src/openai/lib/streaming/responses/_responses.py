@@ -394,6 +394,8 @@ class ResponseStreamState(Generic[TextFormatT]):
             raise RuntimeError(f"Expected to have received `response.created` before `{event.type}`")
 
         snapshot = construct_type_unchecked(type_=ParsedResponseSnapshot, value=event.response.to_dict())
+        if getattr(snapshot, "output", None) is None:
+            snapshot.output = []
         # Stream indexes can have gaps when a provider emits an empty added event.
-        self._output_items = dict(enumerate(snapshot.output or []))
+        self._output_items = dict(enumerate(snapshot.output))
         return snapshot
