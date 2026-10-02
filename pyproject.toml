@@ -93,7 +93,7 @@ constraint-dependencies = [
     "cryptography>=50.0.0",
     "msal>=1.37.0",
     "pygments>=2.20.0",
-    "pyjwt>=2.13.0",
+    "pyjwt>=2.14.0",
     "requests>=2.33.0",
 ]
 # Also constrain editable/source builds performed by uv sync.
