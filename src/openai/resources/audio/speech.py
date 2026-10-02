@@ -111,8 +111,8 @@ class Speech(SyncAPIResource):
             "/audio/speech",
             body=maybe_transform(
                 {
-                    "input": input,
                     "model": model,
+                    "input": input,
                     "voice": voice,
                     "instructions": instructions,
                     "response_format": response_format,
@@ -218,8 +218,8 @@ class AsyncSpeech(AsyncAPIResource):
             "/audio/speech",
             body=await async_maybe_transform(
                 {
-                    "input": input,
                     "model": model,
+                    "input": input,
                     "voice": voice,
                     "instructions": instructions,
                     "response_format": response_format,

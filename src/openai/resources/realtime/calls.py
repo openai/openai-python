@@ -268,12 +268,12 @@ class Calls(SyncAPIResource):
             path_template("/realtime/calls/{call_id}/accept", call_id=call_id),
             body=maybe_transform(
                 {
+                    "model": model,
                     "type": type,
                     "audio": audio,
                     "include": include,
                     "instructions": instructions,
                     "max_output_tokens": max_output_tokens,
-                    "model": model,
                     "output_modalities": output_modalities,
                     "parallel_tool_calls": parallel_tool_calls,
                     "prompt": prompt,
@@ -648,12 +648,12 @@ class AsyncCalls(AsyncAPIResource):
             path_template("/realtime/calls/{call_id}/accept", call_id=call_id),
             body=await async_maybe_transform(
                 {
+                    "model": model,
                     "type": type,
                     "audio": audio,
                     "include": include,
                     "instructions": instructions,
                     "max_output_tokens": max_output_tokens,
-                    "model": model,
                     "output_modalities": output_modalities,
                     "parallel_tool_calls": parallel_tool_calls,
                     "prompt": prompt,

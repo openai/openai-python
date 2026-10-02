@@ -5,62 +5,17 @@ import base64
 import hashlib
 import json
 import os
-import shutil
 import struct
 import subprocess
-import tempfile
-import textwrap
 import unittest
 import unittest.mock as mock
-from pathlib import Path
 
 import custom_code_report as report
 
-GENERATION = "550e8400-e29b-41d4-a716-446655440000"
+from custom_code_test_support import GENERATION, GitTestCase
 
 
-class CustomCodeTests(unittest.TestCase):
-    # Keep the vendored test stdlib-only on Python 3.10 (no typing.override yet).
-    def setUp(self) -> None:  # pyright: ignore[reportImplicitOverride]
-        self.temporary = tempfile.TemporaryDirectory()
-        self.addCleanup(self.temporary.cleanup)
-        self.repo = Path(self.temporary.name)
-        self.git("init", "-q", "-b", "main")
-        self.git("config", "user.name", "Castiron test")
-        self.git("config", "user.email", "castiron@example.test")
-
-    def git(self, *args: str) -> str:
-        return subprocess.run(
-            ["git", "-C", str(self.repo), *args], check=True, capture_output=True, text=True
-        ).stdout.strip()
-
-    def write(self, path: str, body: str) -> None:
-        target = self.repo / path
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(body)
-
-    def commit(self, message: str = "fixture") -> str:
-        self.git("add", "-A")
-        self.git("commit", "-q", "--allow-empty", "-m", message)
-        return self.git("rev-parse", "HEAD")
-
-    def baseline(self) -> tuple[str, str]:
-        self.write("generated.py", "generated\n")
-        metadata = {
-            "generation_id": GENERATION,
-            "source_branch": "test",
-            "target": "openai-python",
-            "language": "python",
-        }
-        encoded = base64.b64encode(json.dumps(metadata).encode()).decode()
-        generated = self.commit(f"codegen\n\nGeneration metadata: {encoded}")
-        self.git("update-ref", "refs/remotes/origin/codegen/test", generated)
-        self.write(
-            ".castiron.stats.yml",
-            f"schema_version: 1\ngeneration_id: {GENERATION}\ncodegen_sha: {generated}\ncodegen_hash: {report.hash_codegen_commit(self.repo, generated)}\n",
-        )
-        return generated, self.commit("integrated")
-
+class CustomCodeTests(GitTestCase):
     def test_git_preserves_authentication_without_inherited_repository_routing(self) -> None:
         environment = {
             "GIT_CONFIG_GLOBAL": "/ordinary/gitconfig",
@@ -270,74 +225,6 @@ class CustomCodeTests(unittest.TestCase):
             body = report.render_report(result)
             self.assertNotIn("No new custom-code files", body)
             self.assertIn("1 newly customized", body)
-
-    @unittest.skipUnless(shutil.which("node"), "GitHub Actions JavaScript runtime")
-    def test_trusted_failure_publisher_updates_one_current_comment(self) -> None:
-        workflow = (
-            Path(__file__).resolve().parents[2] / ".github/workflows/castiron-custom-code.yml"
-        )
-        section = workflow.read_text().split("- name: Publish a trusted failure status\n", 1)[1]
-        script = textwrap.dedent(section.split("script: |\n", 1)[1])
-        harness = r"""
-const assert = require('node:assert/strict');
-const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
-async function check(stale, exists, priorRun, expected) {
-  const writes = [];
-  const event = {number: 1, head: {sha: 'a'.repeat(40)}, base: {sha: 'b'.repeat(40)}};
-  const current = {...event, state: 'open', head: {sha: (stale ? 'c' : 'a').repeat(40)}};
-  const previous = {id: 42, user: {type: 'Bot', login: 'github-actions[bot]'},
-    body: `<!-- castiron:custom-code-report:v1 -->\n<!-- castiron:run:v1:${priorRun}:1 -->`};
-  const github = {paginate: async () => exists ? [previous] : [], rest: {
-    pulls: {get: async () => ({data: current})},
-    issues: {listComments() {}, updateComment: async x => writes.push(['update', x]),
-      createComment: async x => writes.push(['create', x])}}};
-  const context = {payload: {pull_request: event}, repo: {owner: 'openai', repo: 'example'},
-    runId: 20, serverUrl: 'https://github.com'};
-  await new AsyncFunction('github', 'context', SCRIPT)(github, context);
-  assert.equal(writes.length, expected ? 1 : 0);
-  if (expected) {
-    assert.equal(writes[0][0], expected);
-    assert.match(writes[0][1].body, /Report unavailable/);
-    assert.match(writes[0][1].body, /castiron:run:v1:20:1/);
-  }
-}
-(async () => {
-  await check(false, true, 10, 'update');
-  await check(false, false, 10, 'create');
-  await check(true, true, 10, null);
-  await check(false, true, 21, null);
-})().catch(error => { console.error(error); process.exitCode = 1; });
-"""
-        subprocess.run(
-            ["node", "-e", "const SCRIPT = " + json.dumps(script) + ";\n" + harness],
-            check=True,
-            env={**os.environ, "GITHUB_RUN_ATTEMPT": "1"},
-        )
-
-    @unittest.skipUnless(shutil.which("jq"), "GitHub Actions jq runtime")
-    def test_workflow_branch_allowlist_is_case_sensitive(self) -> None:
-        workflow = (
-            Path(__file__).resolve().parents[2] / ".github/workflows/castiron-custom-code.yml"
-        )
-        body = workflow.read_text()
-        section = body.split("- name: Check the exact protected branch name\n", 1)[1]
-        script = textwrap.dedent(section.split("run: |\n", 1)[1].split("\n      - name:", 1)[0])
-        self.assertIn("needs.report.outputs.trusted == 'true'", body)
-        for branch, expected in (("castiron/demo", True), ("Castiron/demo", False)):
-            output = self.repo / "github-output"
-            output.write_text("")
-            result = subprocess.run(
-                ["bash", "-e", "-c", script],
-                env={
-                    **os.environ,
-                    "ALLOWED_BRANCHES": '["castiron/demo"]',
-                    "PR_BRANCH": branch,
-                    "GITHUB_OUTPUT": str(output),
-                },
-                capture_output=True,
-            )
-            self.assertEqual(result.returncode == 0, expected)
-            self.assertEqual("trusted=true" in output.read_text(), expected)
 
     def test_removals_include_changed_baselines_but_not_handwritten_only_files(self) -> None:
         _, base = self.baseline()
@@ -566,80 +453,6 @@ async function check(stale, exists, priorRun, expected) {
         )
         self.assertEqual(merged_report["after"]["commit"], advanced["commit"])
         self.assertEqual(merged_report["counts"]["newly_customized"], 1)
-
-    def test_comment_updates_existing_bot_comment_and_skips_stale(self) -> None:
-        _, base = self.baseline()
-        result, _ = report.build_report(self.repo, base, base)
-        calls: list[tuple[str, str, object]] = []
-
-        def fake_api(method: str, path: str, payload: object = None) -> object:
-            calls.append((method, path, payload))
-            if "/pulls/" in path:
-                return {"state": "open", "head": {"sha": base}, "base": {"sha": base}}
-            if "/actions/runs/" in path:
-                return {
-                    "event": "pull_request",
-                    "head_sha": base,
-                    "run_attempt": 1,
-                    "pull_requests": [{"number": 1}],
-                }
-            if "/comments?" in path:
-                return [
-                    {"id": 7, "user": {"login": "someone"}, "body": report.MARKER},
-                    {
-                        "id": 8,
-                        "user": {"login": "github-actions[bot]"},
-                        "body": report.MARKER,
-                        "html_url": "existing",
-                    },
-                ]
-            return {"html_url": "updated"}
-
-        with mock.patch.object(report, "api", side_effect=fake_api):
-            self.assertEqual(report.publish_comment(result, "openai/example", 1, 2, 1), "updated")
-            self.assertEqual(calls[-1][:2], ("PATCH", "repos/openai/example/issues/comments/8"))
-            calls.clear()
-            result["head_sha"] = "f" * 40
-            self.assertEqual(
-                report.publish_comment(result, "openai/example", 1, 2, 1), "Skipped stale report"
-            )
-            self.assertEqual(len(calls), 1)
-
-    def test_comment_rejects_older_runs_attempts_and_wrong_pr(self) -> None:
-        _, base = self.baseline()
-        result, _ = report.build_report(self.repo, base, base)
-        pull = {"state": "open", "head": {"sha": base}, "base": {"sha": base}}
-        run = {
-            "event": "pull_request",
-            "head_sha": base,
-            "run_attempt": 2,
-            "pull_requests": [{"number": 1}],
-        }
-        comment = {
-            "id": 8,
-            "user": {"login": "github-actions[bot]"},
-            "body": report.MARKER + "\n<!-- castiron:run:v1:3:1 -->",
-            "html_url": "existing",
-        }
-        with mock.patch.object(report, "api", side_effect=[pull, run]) as api:
-            self.assertEqual(
-                report.publish_comment(result, "openai/example", 1, 2, 1), "Skipped stale report"
-            )
-            self.assertEqual(api.call_count, 2)
-        with mock.patch.object(report, "api", side_effect=[pull, run, [comment]]) as api:
-            self.assertEqual(
-                report.publish_comment(result, "openai/example", 1, 2, 2), "Skipped stale report"
-            )
-            self.assertEqual(api.call_count, 3)
-        with mock.patch.object(report, "api", side_effect=[pull, {**run, "pull_requests": []}]):
-            with self.assertRaisesRegex(report.ReportError, "does not match report PR"):
-                report.publish_comment(result, "openai/example", 1, 2, 2)
-        changed = {**pull, "head": {"sha": "f" * 40}}
-        with mock.patch.object(report, "api", side_effect=[pull, run, [], changed]) as api:
-            self.assertEqual(
-                report.publish_comment(result, "openai/example", 1, 2, 2), "Skipped stale report"
-            )
-            self.assertEqual(api.call_count, 4)
 
 
 if __name__ == "__main__":
