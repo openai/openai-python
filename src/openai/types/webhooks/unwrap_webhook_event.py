@@ -11,25 +11,35 @@ from .batch_completed_webhook_event import BatchCompletedWebhookEvent
 from .eval_run_failed_webhook_event import EvalRunFailedWebhookEvent
 from .response_failed_webhook_event import ResponseFailedWebhookEvent
 from .eval_run_canceled_webhook_event import EvalRunCanceledWebhookEvent
+from .agent_session_idle_webhook_event import AgentSessionIdleWebhookEvent
 from .eval_run_succeeded_webhook_event import EvalRunSucceededWebhookEvent
 from .live_call_incoming_webhook_event import LiveCallIncomingWebhookEvent  # pyright: ignore[reportDeprecated]
 from .response_cancelled_webhook_event import ResponseCancelledWebhookEvent
 from .response_completed_webhook_event import ResponseCompletedWebhookEvent
 from .response_incomplete_webhook_event import ResponseIncompleteWebhookEvent
+from .agent_session_failed_webhook_event import AgentSessionFailedWebhookEvent
 from .safety_alert_created_webhook_event import SafetyAlertCreatedWebhookEvent
+from .agent_session_created_webhook_event import AgentSessionCreatedWebhookEvent
 from .safety_warning_issued_webhook_event import SafetyWarningIssuedWebhookEvent
 from .fine_tuning_job_failed_webhook_event import FineTuningJobFailedWebhookEvent
 from .realtime_call_incoming_webhook_event import RealtimeCallIncomingWebhookEvent
 from .live_transport_incoming_webhook_event import LiveTransportIncomingWebhookEvent
 from .safety_org_alert_created_webhook_event import SafetyOrgAlertCreatedWebhookEvent
+from .agent_session_in_progress_webhook_event import AgentSessionInProgressWebhookEvent
 from .fine_tuning_job_cancelled_webhook_event import FineTuningJobCancelledWebhookEvent
 from .fine_tuning_job_succeeded_webhook_event import FineTuningJobSucceededWebhookEvent
 from .safety_deactivation_issued_webhook_event import SafetyDeactivationIssuedWebhookEvent
+from .agent_session_action_required_webhook_event import AgentSessionActionRequiredWebhookEvent
 
 __all__ = ["UnwrapWebhookEvent"]
 
 UnwrapWebhookEvent: TypeAlias = Annotated[
     Union[
+        AgentSessionActionRequiredWebhookEvent,
+        AgentSessionCreatedWebhookEvent,
+        AgentSessionFailedWebhookEvent,
+        AgentSessionIdleWebhookEvent,
+        AgentSessionInProgressWebhookEvent,
         BatchCancelledWebhookEvent,
         BatchCompletedWebhookEvent,
         BatchExpiredWebhookEvent,

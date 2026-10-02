@@ -227,6 +227,18 @@ Methods:
 
 - <code title="post /audio/speech">client.audio.speech.<a href="./src/openai/resources/audio/speech.py">create</a>(\*\*<a href="src/openai/types/audio/speech_create_params.py">params</a>) -> HttpxBinaryResponseContent</code>
 
+## Voices
+
+Types:
+
+```python
+from openai.types.audio import Voice
+```
+
+Methods:
+
+- <code title="post /audio/voices">client.audio.voices.<a href="./src/openai/resources/audio/voices.py">create</a>(\*\*<a href="src/openai/types/audio/voice_create_params.py">params</a>) -> <a href="./src/openai/types/audio/voice.py">Voice</a></code>
+
 # Moderations
 
 Types:

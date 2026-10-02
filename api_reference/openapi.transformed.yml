@@ -1690,7 +1690,12 @@ paths:
       tags:
       - Audio
       summary: Create voice
-      description: Creates a custom voice.
+      description: |
+        Creates a voice from a text prompt or from a consent recording and an audio sample.
+
+        For prompt-based creation, send `type: "prompt"` with a `name` and `prompt` as JSON or multipart form data. For creation from an audio sample, send `type: "audio_sample"` with a `name`, `audio_sample`, and `consent` recording ID as multipart form data. The type defaults to `audio_sample` when omitted.
+
+        Returns the saved voice's metadata. Voices created from text prompts are supported only in Live, not in Realtime or the speech endpoint. The response does not include preview audio.
       requestBody:
         required: true
         content:
@@ -1705,7 +1710,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/VoiceResource'
         '400':
-          description: Invalid voice request, consent recording, or audio sample.
+          description: Invalid voice request, prompt, script hint, model, consent recording, or audio sample.
           content:
             application/json:
               schema:
@@ -1730,9 +1735,13 @@ paths:
               curl https://api.openai.com/v1/audio/voices \
                 -X POST \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
-                -F "name=My new voice" \
-                -F "consent=cons_1234" \
-                -F "audio_sample=@$HOME/audio_sample.wav;type=audio/x-wav"
+                -H "Content-Type: application/json" \
+                -d '{
+                  "type": "prompt",
+                  "name": "Warm narrator",
+                  "prompt": "A warm, calm narrator with a clear, measured delivery.",
+                  "model": "auto"
+                }'
   /batches:
     post:
       summary: Create batch
@@ -2924,7 +2933,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "gpt-6-astra",
+                  "model": "gpt-6-sol",
                   "messages": [
                     {
                       "role": "user",
@@ -2940,7 +2949,7 @@ paths:
               client = OpenAI()
 
               completion = client.chat.completions.create(
-                model="gpt-6-astra",
+                model="gpt-6-sol",
                 messages=[
                   {"role": "user", "content": "Hello!"}
                 ],
@@ -2959,7 +2968,7 @@ paths:
               async function main() {
                 const completion = await openai.chat.completions.create({
                   messages: [{ role: "user", content: "Hello!" }],
-                  model: "gpt-6-astra",
+                  model: "gpt-6-sol",
                   reasoning_effort: "none",
                   logprobs: true,
                   top_logprobs: 2,
@@ -2976,7 +2985,7 @@ paths:
               using OpenAI.Chat;
 
               ChatClient client = new(
-                  model: "gpt-6-astra",
+                  model: "gpt-6-sol",
                   apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
               );
 
@@ -3000,7 +3009,7 @@ paths:
               "id": "chatcmpl-123",
               "object": "chat.completion",
               "created": 1702685778,
-              "model": "gpt-6-astra",
+              "model": "gpt-6-sol",
               "choices": [
                 {
                   "index": 0,
@@ -6175,6 +6184,209 @@ paths:
               "deleted": true,
               "run_id": "evalrun_abc456"
             }
+  /evals/{eval_id}/runs/{run_id}/cancel:
+    post:
+      operationId: cancelEvalRun
+      tags:
+      - Evals
+      summary: Cancel eval run
+      description: |
+        Cancel an ongoing evaluation run.
+      parameters:
+      - name: eval_id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: The ID of the evaluation whose run you want to cancel.
+      - name: run_id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: The ID of the run to cancel.
+      responses:
+        '200':
+          description: The canceled eval run object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvalRun'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      x-oaiMeta:
+        group: evals
+        path: post
+        examples:
+          request:
+            curl: |
+              curl https://api.openai.com/v1/evals/eval_67abd54d9b0081909a86353f6fb9317a/runs/evalrun_67abd54d60ec8190832b46859da808f7/cancel \
+                -X POST \
+                -H "Authorization: Bearer $OPENAI_API_KEY" \
+                -H "Content-Type: application/json"
+            python: |
+              from openai import OpenAI
+              client = OpenAI()
+
+              canceled_run = client.evals.runs.cancel(
+                "evalrun_67abd54d60ec8190832b46859da808f7",
+                eval_id="eval_67abd54d9b0081909a86353f6fb9317a"
+              )
+              print(canceled_run)
+            javascript: |
+              import OpenAI from "openai";
+
+              const openai = new OpenAI();
+
+              const canceledRun = await openai.evals.runs.cancel(
+                "evalrun_67abd54d60ec8190832b46859da808f7",
+                { eval_id: "eval_67abd54d9b0081909a86353f6fb9317a" }
+              );
+              console.log(canceledRun);
+          response: |
+            {
+              "object": "eval.run",
+              "id": "evalrun_67abd54d60ec8190832b46859da808f7",
+              "eval_id": "eval_67abd54d9b0081909a86353f6fb9317a",
+              "report_url": "https://platform.openai.com/evaluations/eval_67abd54d9b0081909a86353f6fb9317a?run_id=evalrun_67abd54d60ec8190832b46859da808f7",
+              "status": "canceled",
+              "model": "gpt-6-astra",
+              "name": "gpt-6-astra",
+              "created_at": 1743092069,
+              "result_counts": {
+                "total": 0,
+                "errored": 0,
+                "failed": 0,
+                "passed": 0
+              },
+              "per_model_usage": null,
+              "per_testing_criteria_results": null,
+              "data_source": {
+                "type": "completions",
+                "source": {
+                  "type": "file_content",
+                  "content": [
+                    {
+                      "item": {
+                        "input": "Tech Company Launches Advanced Artificial Intelligence Platform",
+                        "ground_truth": "Technology"
+                      }
+                    },
+                    {
+                      "item": {
+                        "input": "Central Bank Increases Interest Rates Amid Inflation Concerns",
+                        "ground_truth": "Markets"
+                      }
+                    },
+                    {
+                      "item": {
+                        "input": "International Summit Addresses Climate Change Strategies",
+                        "ground_truth": "World"
+                      }
+                    },
+                    {
+                      "item": {
+                        "input": "Major Retailer Reports Record-Breaking Holiday Sales",
+                        "ground_truth": "Business"
+                      }
+                    },
+                    {
+                      "item": {
+                        "input": "National Team Qualifies for World Championship Finals",
+                        "ground_truth": "Sports"
+                      }
+                    },
+                    {
+                      "item": {
+                        "input": "Stock Markets Rally After Positive Economic Data Released",
+                        "ground_truth": "Markets"
+                      }
+                    },
+                    {
+                      "item": {
+                        "input": "Global Manufacturer Announces Merger with Competitor",
+                        "ground_truth": "Business"
+                      }
+                    },
+                    {
+                      "item": {
+                        "input": "Breakthrough in Renewable Energy Technology Unveiled",
+                        "ground_truth": "Technology"
+                      }
+                    },
+                    {
+                      "item": {
+                        "input": "World Leaders Sign Historic Climate Agreement",
+                        "ground_truth": "World"
+                      }
+                    },
+                    {
+                      "item": {
+                        "input": "Professional Athlete Sets New Record in Championship Event",
+                        "ground_truth": "Sports"
+                      }
+                    },
+                    {
+                      "item": {
+                        "input": "Financial Institutions Adapt to New Regulatory Requirements",
+                        "ground_truth": "Business"
+                      }
+                    },
+                    {
+                      "item": {
+                        "input": "Tech Conference Showcases Advances in Artificial Intelligence",
+                        "ground_truth": "Technology"
+                      }
+                    },
+                    {
+                      "item": {
+                        "input": "Global Markets Respond to Oil Price Fluctuations",
+                        "ground_truth": "Markets"
+                      }
+                    },
+                    {
+                      "item": {
+                        "input": "International Cooperation Strengthened Through New Treaty",
+                        "ground_truth": "World"
+                      }
+                    },
+                    {
+                      "item": {
+                        "input": "Sports League Announces Revised Schedule for Upcoming Season",
+                        "ground_truth": "Sports"
+                      }
+                    }
+                  ]
+                },
+                "input_messages": {
+                  "type": "template",
+                  "template": [
+                    {
+                      "type": "message",
+                      "role": "developer",
+                      "content": {
+                        "type": "input_text",
+                        "text": "Categorize a given news headline into one of the following topics: Technology, Markets, World, Business, or Sports.\n\n# Steps\n\n1. Analyze the content of the news headline to understand its primary focus.\n2. Extract the subject matter, identifying any key indicators or keywords.\n3. Use the identified indicators to determine the most suitable category out of the five options: Technology, Markets, World, Business, or Sports.\n4. Ensure only one category is selected per headline.\n\n# Output Format\n\nRespond with the chosen category as a single word. For instance: \"Technology\", \"Markets\", \"World\", \"Business\", or \"Sports\".\n\n# Examples\n\n**Input**: \"Apple Unveils New iPhone Model, Featuring Advanced AI Features\"  \n**Output**: \"Technology\"\n\n**Input**: \"Global Stocks Mixed as Investors Await Central Bank Decisions\"  \n**Output**: \"Markets\"\n\n**Input**: \"War in Ukraine: Latest Updates on Negotiation Status\"  \n**Output**: \"World\"\n\n**Input**: \"Microsoft in Talks to Acquire Gaming Company for $2 Billion\"  \n**Output**: \"Business\"\n\n**Input**: \"Manchester United Secures Win in Premier League Football Match\"  \n**Output**: \"Sports\" \n\n# Notes\n\n- If the headline appears to fit into more than one category, choose the most dominant theme.\n- Keywords or phrases such as \"stocks\", \"company acquisition\", \"match\", or technological brands can be good indicators for classification.\n"
+                      }
+                    },
+                    {
+                      "type": "message",
+                      "role": "user",
+                      "content": {
+                        "type": "input_text",
+                        "text": "{{item.input}}"
+                      }
+                    }
+                  ]
+                },
+                "model": "gpt-6-astra",
+                "sampling_params": {
+                  "max_completions_tokens": 2048
+                }
+              },
+              "error": null,
+              "metadata": {}
+            }
   /evals/{eval_id}/runs/{run_id}/output_items:
     get:
       operationId: getEvalRunOutputItems
@@ -8302,7 +8514,7 @@ paths:
       tags:
       - Images
       summary: Create image edit
-      description: Creates an edited or extended image given one or more source images and a prompt. This endpoint supports GPT Image models and `dall-e-2`.
+      description: Creates an edited or extended image given one or more source images and a prompt. This endpoint supports GPT Image models.
       requestBody:
         required: true
         content:
@@ -8320,7 +8532,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ImageEditStreamEvent'
         '400':
-          description: Invalid image request, including invalid DALL-E parameters or input.
+          description: Invalid image request, including invalid parameters or input.
           content:
             application/json:
               schema:
@@ -8503,7 +8715,7 @@ paths:
       - Images
       summary: Create image
       description: |
-        Creates an image given a prompt. [Learn more](https://developers.openai.com/api/docs/guides/images-vision).
+        Creates an image given a prompt using a GPT Image model. [Learn more](https://developers.openai.com/api/docs/guides/images-vision).
       requestBody:
         required: true
         content:
@@ -8521,7 +8733,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ImageGenStreamEvent'
         '400':
-          description: Invalid image request, including invalid DALL-E parameters or input.
+          description: Invalid image request, including invalid parameters or input.
           content:
             application/json:
               schema:
@@ -8668,7 +8880,8 @@ paths:
       tags:
       - Images
       summary: Create image variation
-      description: Creates a variation of a given image. This endpoint only supports `dall-e-2`.
+      deprecated: true
+      description: This endpoint is retired and no longer available. Use the image edits endpoint with a GPT Image model and a prompt to create a variation of an image. The request and response schemas below describe the legacy contract.
       requestBody:
         required: true
         content:
@@ -16444,7 +16657,8 @@ paths:
                                 "object": "organization.usage.completions.result",
                                 "input_tokens": 1000,
                                 "input_cached_tokens": 400,
-                                "input_cache_write_tokens": 100,
+                                "input_cache_write_tokens": 75,
+                                "input_cache_write_12h_tokens": 25,
                                 "input_uncached_tokens": 500,
                                 "output_tokens": 500,
                                 "input_text_tokens": 400,
@@ -19538,7 +19752,10 @@ paths:
                 "language": null,
                 "prompt": ""
               },
-              "client_secret": null
+              "client_secret": {
+                "value": "ek_abc123",
+                "expires_at": 1742188264
+              }
             }
   /realtime/translations/client_secrets:
     post:
@@ -27948,6 +28165,7 @@ paths:
               schema:
                 type: string
                 format: binary
+              example: <binary MP4 video content>
             image/webp:
               schema:
                 type: string
@@ -27978,7 +28196,6 @@ paths:
         group: videos
         path: content
         examples:
-          response: ''
           request:
             javascript: |
               import OpenAI from 'openai';
@@ -28961,6 +29178,35 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ChatSessionResource'
+              examples:
+                Example:
+                  value:
+                    id: cksess_123
+                    object: chatkit.session
+                    client_secret: ''
+                    expires_at: 1712349876
+                    workflow:
+                      id: workflow_alpha
+                      version: 2024-10-01
+                      state_variables:
+                        message: hello
+                      tracing:
+                        enabled: true
+                    user: user_789
+                    rate_limits:
+                      max_requests_per_1_minute: 60
+                    max_requests_per_1_minute: 60
+                    status: cancelled
+                    chatkit_configuration:
+                      automatic_thread_titling:
+                        enabled: true
+                      file_upload:
+                        enabled: true
+                        max_file_size: 16
+                        max_files: 20
+                      history:
+                        enabled: true
+                        recent_threads: 10
         '400':
           description: The request is invalid or the required ChatKit beta header is missing or invalid.
           content:
@@ -29054,17 +29300,36 @@ paths:
             {
               "id": "cksess_123",
               "object": "chatkit.session",
+              "client_secret": "",
+              "expires_at": 1735689600,
               "workflow": {
                 "id": "workflow_alpha",
-                "version": "1"
+                "version": null,
+                "state_variables": null,
+                "tracing": {
+                  "enabled": true
+                }
               },
-              "scope": {
-                "customer_id": "cust_456"
+              "user": "user_123",
+              "rate_limits": {
+                "max_requests_per_1_minute": 10
               },
-              "max_requests_per_1_minute": 30,
-              "ttl_seconds": 900,
+              "max_requests_per_1_minute": 10,
               "status": "cancelled",
-              "cancelled_at": 1712345678
+              "chatkit_configuration": {
+                "automatic_thread_titling": {
+                  "enabled": true
+                },
+                "file_upload": {
+                  "enabled": false,
+                  "max_file_size": 512,
+                  "max_files": 10
+                },
+                "history": {
+                  "enabled": true,
+                  "recent_threads": null
+                }
+              }
             }
   /chatkit/sessions:
     post:
@@ -29114,24 +29379,15 @@ paths:
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -H "OpenAI-Beta: chatkit_beta=v1" \
                 -d '{
-                  "workflow": {
-                    "id": "workflow_alpha",
-                    "version": "2024-10-01"
-                  },
-                  "scope": {
-                    "project": "alpha",
-                    "environment": "staging"
-                  },
-                  "expires_after": 1800,
-                  "max_requests_per_1_minute": 60,
-                  "max_requests_per_session": 500
+                  "user": "user_123",
+                  "workflow": {"id": "workflow_alpha"}
                 }'
             javascript: |
               import OpenAI from 'openai';
 
               const client = new OpenAI();
 
-              const chatSession = await client.beta.chatkit.sessions.create({ user: 'user', workflow: { id: 'id' } });
+              const chatSession = await client.beta.chatkit.sessions.create({ user: 'user_123', workflow: { id: 'workflow_alpha' } });
 
               console.log(chatSession.id);
             python: |
@@ -29139,9 +29395,9 @@ paths:
 
               client = OpenAI()
               chat_session = client.beta.chatkit.sessions.create(
-                  user="user",
+                  user="user_123",
                   workflow={
-                      "id": "id"
+                      "id": "workflow_alpha"
                   },
               )
               print(chat_session.id)
@@ -29159,9 +29415,9 @@ paths:
               func main() {
                 client := openai.NewClient()
                 chatSession, err := client.Beta.ChatKit.Sessions.New(context.TODO(), openai.BetaChatKitSessionNewParams{
-                  User: "user",
+                  User: "user_123",
                   Workflow: openai.ChatSessionWorkflowParam{
-                    ID: "id",
+                    ID: "workflow_alpha",
                   },
                 })
                 if err != nil {
@@ -29174,7 +29430,7 @@ paths:
 
               openai = OpenAI::Client.new
 
-              chat_session = openai.beta.chatkit.sessions.create(user: "user", workflow: {id: "id"})
+              chat_session = openai.beta.chatkit.sessions.create(user: "user_123", workflow: {id: "workflow_alpha"})
 
               puts(chat_session)
             java: |
@@ -29193,9 +29449,9 @@ paths:
                       OpenAIClient client = OpenAIOkHttpClient.fromEnv();
 
                       SessionCreateParams params = SessionCreateParams.builder()
-                          .user("user")
+                          .user("user_123")
                           .workflow(ChatSessionWorkflowParam.builder()
-                              .id("id")
+                              .id("workflow_alpha")
                               .build())
                           .build();
                       ChatSession chatSession = client.beta().chatkit().sessions().create(params);
@@ -29203,19 +29459,38 @@ paths:
               }
           response: |
             {
-              "client_secret": "chatkit_token_123",
+              "id": "cksess_123",
+              "object": "chatkit.session",
+              "client_secret": "ek_example_00eyJleHBpcmVzX2F0IjogMTczNTY4OTYwMH0=",
               "expires_at": 1735689600,
               "workflow": {
                 "id": "workflow_alpha",
-                "version": "2024-10-01"
+                "version": null,
+                "state_variables": null,
+                "tracing": {
+                  "enabled": true
+                }
               },
-              "scope": {
-                "project": "alpha",
-                "environment": "staging"
+              "user": "user_123",
+              "rate_limits": {
+                "max_requests_per_1_minute": 10
               },
-              "max_requests_per_1_minute": 60,
-              "max_requests_per_session": 500,
-              "status": "active"
+              "max_requests_per_1_minute": 10,
+              "status": "active",
+              "chatkit_configuration": {
+                "automatic_thread_titling": {
+                  "enabled": true
+                },
+                "file_upload": {
+                  "enabled": false,
+                  "max_file_size": 512,
+                  "max_files": 10
+                },
+                "history": {
+                  "enabled": true,
+                  "recent_threads": null
+                }
+              }
             }
   /chatkit/threads/{thread_id}/items:
     get:
@@ -30889,6 +31164,151 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse-2'
+      x-oaiMeta:
+        examples:
+          request:
+            curl: |
+              # 1. Omit reasoning: keep its current settings while renaming the agent.
+              curl "https://api.openai.com/v1/agents/$AGENT_ID" \
+                -H "Authorization: Bearer $OPENAI_API_KEY" \
+                -H "Content-Type: application/json" \
+                -H "OpenAI-Beta: agents=v1" \
+                -d '{"name": "Renamed"}'
+
+              # 2. Send null: reset reasoning to the model's defaults.
+              curl "https://api.openai.com/v1/agents/$AGENT_ID" \
+                -H "Authorization: Bearer $OPENAI_API_KEY" \
+                -H "Content-Type: application/json" \
+                -H "OpenAI-Beta: agents=v1" \
+                -d '{"reasoning": null}'
+
+              # 3. Send an object: replace the entire reasoning configuration, without merging.
+              # The agent's model must support the "low" reasoning effort.
+              curl "https://api.openai.com/v1/agents/$AGENT_ID" \
+                -H "Authorization: Bearer $OPENAI_API_KEY" \
+                -H "Content-Type: application/json" \
+                -H "OpenAI-Beta: agents=v1" \
+                -d '{"reasoning": {"effort": "low"}}'
+            python: |
+              from openai import OpenAI
+
+              client = OpenAI()
+              agent_id = "your-agent-id"
+
+              # 1. Omit reasoning: keep its current settings while renaming the agent.
+              client.beta.agents.update(agent_id, name="Renamed")
+
+              # 2. Python's None sends JSON null: reset reasoning to the model's defaults.
+              client.beta.agents.update(agent_id, reasoning=None)
+
+              # 3. Send an object: replace the entire reasoning configuration, without merging.
+              # The agent's model must support the "low" reasoning effort.
+              client.beta.agents.update(agent_id, reasoning={"effort": "low"})
+            javascript: |
+              import OpenAI from "openai";
+
+              const client = new OpenAI();
+              const agentId = "your-agent-id";
+
+              // 1. Omit reasoning: keep its current settings while renaming the agent.
+              await client.beta.agents.update(agentId, { name: "Renamed" });
+
+              // 2. Send null: reset reasoning to the model's defaults.
+              await client.beta.agents.update(agentId, { reasoning: null });
+
+              // 3. Send an object: replace the entire reasoning configuration, without merging.
+              // The agent's model must support the "low" reasoning effort.
+              await client.beta.agents.update(agentId, { reasoning: { effort: "low" } });
+            go: |
+              package main
+
+              import (
+                  "context"
+                  "log"
+
+                  "github.com/openai/openai-go/v3"
+                  "github.com/openai/openai-go/v3/packages/param"
+              )
+
+              func main() {
+                  client := openai.NewClient()
+                  ctx := context.Background()
+                  agentID := "your-agent-id"
+
+                  // 1. Omit reasoning: keep its current settings while renaming the agent.
+                  _, err := client.Beta.Agents.Update(ctx, agentID, openai.BetaAgentUpdateParams{
+                      Name: openai.String("Renamed"),
+                  })
+                  if err != nil {
+                      log.Fatal(err)
+                  }
+
+                  // 2. Send null: reset reasoning to the model's defaults.
+                  _, err = client.Beta.Agents.Update(ctx, agentID, openai.BetaAgentUpdateParams{
+                      Reasoning: param.NullStruct[openai.AgentReasoningParam](),
+                  })
+                  if err != nil {
+                      log.Fatal(err)
+                  }
+
+                  // 3. Send an object: replace the entire reasoning configuration, without merging.
+                  // The agent's model must support the "low" reasoning effort.
+                  _, err = client.Beta.Agents.Update(ctx, agentID, openai.BetaAgentUpdateParams{
+                      Reasoning: openai.AgentReasoningParam{Effort: openai.AgentReasoningParamEffortLow},
+                  })
+                  if err != nil {
+                      log.Fatal(err)
+                  }
+              }
+            java: |
+              import com.openai.client.OpenAIClient;
+              import com.openai.client.okhttp.OpenAIOkHttpClient;
+              import com.openai.core.JsonValue;
+              import com.openai.models.beta.agents.AgentReasoningParam;
+              import com.openai.models.beta.agents.AgentUpdateParams;
+
+              public class AgentUpdateExample {
+                  public static void main(String[] args) {
+                      OpenAIClient client = OpenAIOkHttpClient.fromEnv();
+                      String agentId = "your-agent-id";
+
+                      // 1. Omit reasoning: keep its current settings while renaming the agent.
+                      client.beta().agents().update(AgentUpdateParams.builder()
+                          .agentId(agentId)
+                          .name("Renamed")
+                          .build());
+
+                      // 2. Send null: reset reasoning to the model's defaults.
+                      client.beta().agents().update(AgentUpdateParams.builder()
+                          .agentId(agentId)
+                          .reasoning(JsonValue.from(null))
+                          .build());
+
+                      // 3. Send an object: replace the entire reasoning configuration, without merging.
+                      // The agent's model must support the "low" reasoning effort.
+                      client.beta().agents().update(AgentUpdateParams.builder()
+                          .agentId(agentId)
+                          .reasoning(AgentReasoningParam.builder()
+                              .effort(AgentReasoningParam.Effort.LOW)
+                              .build())
+                          .build());
+                  }
+              }
+            ruby: |
+              require "openai"
+
+              client = OpenAI::Client.new
+              agent_id = "your-agent-id"
+
+              # 1. Omit reasoning: keep its current settings while renaming the agent.
+              client.beta.agents.update(agent_id, name: "Renamed")
+
+              # 2. Ruby's nil sends JSON null: reset reasoning to the model's defaults.
+              client.beta.agents.update(agent_id, reasoning: nil)
+
+              # 3. Send an object: replace the entire reasoning configuration, without merging.
+              # The agent's model must support the "low" reasoning effort.
+              client.beta.agents.update(agent_id, reasoning: {effort: :low})
     delete:
       operationId: deleteAgent
       summary: Delete an agent
@@ -35419,210 +35839,82 @@ paths:
               "object": "response.input_tokens",
               "input_tokens": 11
             }
-  /evals/{eval_id}/runs/{run_id}/cancel:
+webhooks:
+  agent_session_action_required:
     post:
-      operationId: cancelEvalRun
-      tags:
-      - Evals
-      summary: Cancel eval run
       description: |
-        Cancel an ongoing evaluation run.
-      parameters:
-      - name: eval_id
-        in: path
-        required: true
-        schema:
-          type: string
-        description: The ID of the evaluation whose run you want to cancel.
-      - name: run_id
-        in: path
-        required: true
-        schema:
-          type: string
-        description: The ID of the run to cancel.
+        Sent when an agent session requires an action. Retrieve the session for action details.
+      requestBody:
+        description: The event payload sent by the API.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookAgentSessionActionRequired'
       responses:
         '200':
-          description: The canceled eval run object
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EvalRun'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-      x-oaiMeta:
-        group: evals
-        path: post
-        examples:
-          request:
-            curl: |
-              curl https://api.openai.com/v1/evals/eval_67abd54d9b0081909a86353f6fb9317a/runs/evalrun_67abd54d60ec8190832b46859da808f7/cancel \
-                -X POST \
-                -H "Authorization: Bearer $OPENAI_API_KEY" \
-                -H "Content-Type: application/json"
-            python: |
-              from openai import OpenAI
-              client = OpenAI()
-
-              canceled_run = client.evals.runs.cancel(
-                "evalrun_67abd54d60ec8190832b46859da808f7",
-                eval_id="eval_67abd54d9b0081909a86353f6fb9317a"
-              )
-              print(canceled_run)
-            javascript: |
-              import OpenAI from "openai";
-
-              const openai = new OpenAI();
-
-              const canceledRun = await openai.evals.runs.cancel(
-                "evalrun_67abd54d60ec8190832b46859da808f7",
-                { eval_id: "eval_67abd54d9b0081909a86353f6fb9317a" }
-              );
-              console.log(canceledRun);
-          response: |
-            {
-              "object": "eval.run",
-              "id": "evalrun_67abd54d60ec8190832b46859da808f7",
-              "eval_id": "eval_67abd54d9b0081909a86353f6fb9317a",
-              "report_url": "https://platform.openai.com/evaluations/eval_67abd54d9b0081909a86353f6fb9317a?run_id=evalrun_67abd54d60ec8190832b46859da808f7",
-              "status": "canceled",
-              "model": "gpt-6-astra",
-              "name": "gpt-6-astra",
-              "created_at": 1743092069,
-              "result_counts": {
-                "total": 0,
-                "errored": 0,
-                "failed": 0,
-                "passed": 0
-              },
-              "per_model_usage": null,
-              "per_testing_criteria_results": null,
-              "data_source": {
-                "type": "completions",
-                "source": {
-                  "type": "file_content",
-                  "content": [
-                    {
-                      "item": {
-                        "input": "Tech Company Launches Advanced Artificial Intelligence Platform",
-                        "ground_truth": "Technology"
-                      }
-                    },
-                    {
-                      "item": {
-                        "input": "Central Bank Increases Interest Rates Amid Inflation Concerns",
-                        "ground_truth": "Markets"
-                      }
-                    },
-                    {
-                      "item": {
-                        "input": "International Summit Addresses Climate Change Strategies",
-                        "ground_truth": "World"
-                      }
-                    },
-                    {
-                      "item": {
-                        "input": "Major Retailer Reports Record-Breaking Holiday Sales",
-                        "ground_truth": "Business"
-                      }
-                    },
-                    {
-                      "item": {
-                        "input": "National Team Qualifies for World Championship Finals",
-                        "ground_truth": "Sports"
-                      }
-                    },
-                    {
-                      "item": {
-                        "input": "Stock Markets Rally After Positive Economic Data Released",
-                        "ground_truth": "Markets"
-                      }
-                    },
-                    {
-                      "item": {
-                        "input": "Global Manufacturer Announces Merger with Competitor",
-                        "ground_truth": "Business"
-                      }
-                    },
-                    {
-                      "item": {
-                        "input": "Breakthrough in Renewable Energy Technology Unveiled",
-                        "ground_truth": "Technology"
-                      }
-                    },
-                    {
-                      "item": {
-                        "input": "World Leaders Sign Historic Climate Agreement",
-                        "ground_truth": "World"
-                      }
-                    },
-                    {
-                      "item": {
-                        "input": "Professional Athlete Sets New Record in Championship Event",
-                        "ground_truth": "Sports"
-                      }
-                    },
-                    {
-                      "item": {
-                        "input": "Financial Institutions Adapt to New Regulatory Requirements",
-                        "ground_truth": "Business"
-                      }
-                    },
-                    {
-                      "item": {
-                        "input": "Tech Conference Showcases Advances in Artificial Intelligence",
-                        "ground_truth": "Technology"
-                      }
-                    },
-                    {
-                      "item": {
-                        "input": "Global Markets Respond to Oil Price Fluctuations",
-                        "ground_truth": "Markets"
-                      }
-                    },
-                    {
-                      "item": {
-                        "input": "International Cooperation Strengthened Through New Treaty",
-                        "ground_truth": "World"
-                      }
-                    },
-                    {
-                      "item": {
-                        "input": "Sports League Announces Revised Schedule for Upcoming Season",
-                        "ground_truth": "Sports"
-                      }
-                    }
-                  ]
-                },
-                "input_messages": {
-                  "type": "template",
-                  "template": [
-                    {
-                      "type": "message",
-                      "role": "developer",
-                      "content": {
-                        "type": "input_text",
-                        "text": "Categorize a given news headline into one of the following topics: Technology, Markets, World, Business, or Sports.\n\n# Steps\n\n1. Analyze the content of the news headline to understand its primary focus.\n2. Extract the subject matter, identifying any key indicators or keywords.\n3. Use the identified indicators to determine the most suitable category out of the five options: Technology, Markets, World, Business, or Sports.\n4. Ensure only one category is selected per headline.\n\n# Output Format\n\nRespond with the chosen category as a single word. For instance: \"Technology\", \"Markets\", \"World\", \"Business\", or \"Sports\".\n\n# Examples\n\n**Input**: \"Apple Unveils New iPhone Model, Featuring Advanced AI Features\"  \n**Output**: \"Technology\"\n\n**Input**: \"Global Stocks Mixed as Investors Await Central Bank Decisions\"  \n**Output**: \"Markets\"\n\n**Input**: \"War in Ukraine: Latest Updates on Negotiation Status\"  \n**Output**: \"World\"\n\n**Input**: \"Microsoft in Talks to Acquire Gaming Company for $2 Billion\"  \n**Output**: \"Business\"\n\n**Input**: \"Manchester United Secures Win in Premier League Football Match\"  \n**Output**: \"Sports\" \n\n# Notes\n\n- If the headline appears to fit into more than one category, choose the most dominant theme.\n- Keywords or phrases such as \"stocks\", \"company acquisition\", \"match\", or technological brands can be good indicators for classification.\n"
-                      }
-                    },
-                    {
-                      "type": "message",
-                      "role": "user",
-                      "content": {
-                        "type": "input_text",
-                        "text": "{{item.input}}"
-                      }
-                    }
-                  ]
-                },
-                "model": "gpt-6-astra",
-                "sampling_params": {
-                  "max_completions_tokens": 2048
-                }
-              },
-              "error": null,
-              "metadata": {}
-            }
-webhooks:
+          description: |
+            Return a 200 status code to acknowledge receipt of the event. Non-200
+            status codes will be retried.
+  agent_session_created:
+    post:
+      description: |
+        Sent when an agent session is created.
+      requestBody:
+        description: The event payload sent by the API.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookAgentSessionCreated'
+      responses:
+        '200':
+          description: |
+            Return a 200 status code to acknowledge receipt of the event. Non-200
+            status codes will be retried.
+  agent_session_failed:
+    post:
+      description: |
+        Sent when an agent session fails.
+      requestBody:
+        description: The event payload sent by the API.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookAgentSessionFailed'
+      responses:
+        '200':
+          description: |
+            Return a 200 status code to acknowledge receipt of the event. Non-200
+            status codes will be retried.
+  agent_session_idle:
+    post:
+      description: |
+        Sent when an agent session becomes idle.
+      requestBody:
+        description: The event payload sent by the API.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookAgentSessionIdle'
+      responses:
+        '200':
+          description: |
+            Return a 200 status code to acknowledge receipt of the event. Non-200
+            status codes will be retried.
+  agent_session_in_progress:
+    post:
+      description: |
+        Sent when an agent session enters the in-progress state.
+      requestBody:
+        description: The event payload sent by the API.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookAgentSessionInProgress'
+      responses:
+        '200':
+          description: |
+            Return a 200 status code to acknowledge receipt of the event. Non-200
+            status codes will be retried.
   batch_cancelled:
     post:
       description: |
@@ -40285,6 +40577,8 @@ components:
                   `alloy`, `ash`, `ballad`, `coral`, `echo`, `fable`, `nova`, `onyx`,
                   `sage`, `shimmer`, `marin`, and `cedar`. You may also provide a
                   custom voice object with an `id`, for example `{ "id": "voice_1234" }`.
+                  Custom voices must be created from audio samples. Voices created from text
+                  prompts are supported only in Live.
               format:
                 type: string
                 enum:
@@ -41973,13 +42267,10 @@ components:
             `gpt-image-2.5-flare-2026-09-08`, and `chatgpt-image-latest`), each image
             should be a `png`, `webp`, or `jpg` file less than 50MB. You can provide up to
             16 images.
-
-            For `dall-e-2`, you can only provide one image, and it should be a square
-            `png` file less than 4MB.
           x-oaiMeta:
             exampleFilePath: otter.png
         prompt:
-          description: A text description of the desired image(s). The maximum length is 1000 characters for `dall-e-2`, and 32000 characters for the GPT image models.
+          description: A text description of the desired image(s). The maximum length is 32000 characters for the GPT image models.
           type: string
           example: A cute baby sea otter wearing a beret
         mask:
@@ -42013,22 +42304,25 @@ components:
           - type: string
           - type: string
             enum:
-            - gpt-image-1
-            - gpt-image-1-mini
+            - gpt-image-1.5
             - gpt-image-2
             - gpt-image-2-2026-04-21
             - gpt-image-2.5-sunburst
             - gpt-image-2.5-sunburst-2026-09-08
             - gpt-image-2.5-flare
             - gpt-image-2.5-flare-2026-09-08
-            - gpt-image-1.5
+            - gpt-image-1
+            - gpt-image-1-mini
             - chatgpt-image-latest
             - dall-e-2
+            x-openai-enum-deprecations:
+              dall-e-2:
+                message: This model was retired on May 12, 2026. Use a GPT image model instead.
             x-stainless-const: true
           x-oaiTypeLabel: string
-          description: The model to use for image generation. One of `dall-e-2` or a GPT image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`, or `chatgpt-image-latest`). Defaults to `gpt-image-1.5`.
+          example: gpt-image-1.5
+          description: The GPT image model to use for image editing (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`, or `chatgpt-image-latest`).
           nullable: true
-          example: gpt-image-2
         n:
           type: integer
           minimum: 1
@@ -42042,22 +42336,27 @@ components:
           - type: string
           - type: string
             enum:
-            - 256x256
-            - 512x512
             - 1024x1024
             - 1536x1024
             - 1024x1536
             - auto
-          description: The size of the generated images. For `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and `gpt-image-2.5-flare-2026-09-08`, arbitrary resolutions are supported as `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height must both be divisible by 16 and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above `2560x1440` are experimental, and the maximum supported resolution is `3840x2160`. The requested size must also satisfy the model's current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and `1024x1536` are supported by the GPT image models; `auto` is supported for models that allow automatic sizing. For `dall-e-2`, use one of `256x256`, `512x512`, or `1024x1024`. For `dall-e-3`, use one of `1024x1024`, `1792x1024`, or `1024x1792`.
+            - 256x256
+            - 512x512
+            x-openai-enum-deprecations:
+              256x256:
+                message: This legacy size suggestion is retained for SDK compatibility. Check the selected GPT image model's supported sizes.
+              512x512:
+                message: This legacy size suggestion is retained for SDK compatibility. Check the selected GPT image model's supported sizes.
+          description: The size of the generated images. Defaults to `auto`. For `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and `gpt-image-2.5-flare-2026-09-08`, arbitrary resolutions are supported as `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height must both be divisible by 16 and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above `2560x1440` are experimental, and the maximum supported resolution is `3840x2160`. The requested size must also satisfy the model's current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and `1024x1536` are supported by the GPT image models; `auto` is supported for models that allow automatic sizing.
           nullable: true
         response_format:
           type: string
           enum:
           - url
           - b64_json
-          example: url
           nullable: true
-          description: The format in which the generated images are returned. Must be one of `url` or `b64_json`. URLs are only valid for 60 minutes after the image has been generated. This parameter is only supported for `dall-e-2` (default is `url` for `dall-e-2`), as GPT image models always return base64-encoded images.
+          deprecated: true
+          description: Legacy response format parameter for retired image models. Unsupported for GPT image models, which always return base64-encoded images.
         output_format:
           type: string
           enum:
@@ -42103,13 +42402,16 @@ components:
         quality:
           type: string
           enum:
-          - standard
           - low
           - medium
           - high
           - xhigh
           - max
           - auto
+          - standard
+          x-openai-enum-deprecations:
+            standard:
+              message: This quality was only supported by retired DALL·E models. Use a GPT image quality instead.
           default: auto
           example: high
           nullable: true
@@ -42122,7 +42424,7 @@ components:
       type: object
       properties:
         prompt:
-          description: A text description of the desired image(s). The maximum length is 32000 characters for the GPT image models, 1000 characters for `dall-e-2` and 4000 characters for `dall-e-3`.
+          description: A text description of the desired image(s). The maximum length is 32000 characters.
           type: string
           example: A cute baby sea otter
         model:
@@ -42130,23 +42432,28 @@ components:
           - type: string
           - type: string
             enum:
-            - gpt-image-1
-            - gpt-image-1-mini
+            - gpt-image-1.5
             - gpt-image-2
             - gpt-image-2-2026-04-21
             - gpt-image-2.5-sunburst
             - gpt-image-2.5-sunburst-2026-09-08
             - gpt-image-2.5-flare
             - gpt-image-2.5-flare-2026-09-08
-            - gpt-image-1.5
+            - gpt-image-1
+            - gpt-image-1-mini
             - chatgpt-image-latest
             - dall-e-2
             - dall-e-3
+            x-openai-enum-deprecations:
+              dall-e-2:
+                message: This model was retired on May 12, 2026. Use a GPT image model instead.
+              dall-e-3:
+                message: This model was retired on May 12, 2026. Use a GPT image model instead.
             x-stainless-nominal: false
           x-oaiTypeLabel: string
-          description: The model to use for image generation. One of `dall-e-2`, `dall-e-3`, or a GPT image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`). Defaults to `dall-e-2` unless a parameter specific to the GPT image models is used.
+          example: gpt-image-2.5-flare
+          description: The GPT image model to use for image generation. Specify a model explicitly. Supported models include `gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`, and `chatgpt-image-latest`.
           nullable: true
-          example: gpt-image-2
         n:
           type: integer
           minimum: 1
@@ -42154,18 +42461,23 @@ components:
           default: 1
           example: 1
           nullable: true
-          description: The number of images to generate. Must be between 1 and 10. For `dall-e-3`, only `n=1` is supported.
+          description: The number of images to generate. Must be between 1 and 10.
         quality:
           type: string
           enum:
-          - standard
-          - hd
           - low
           - medium
           - high
           - xhigh
           - max
           - auto
+          - standard
+          - hd
+          x-openai-enum-deprecations:
+            standard:
+              message: This quality was only supported by retired DALL·E models. Use a GPT image quality instead.
+            hd:
+              message: This quality was only supported by retired DALL·E models. Use a GPT image quality instead.
           default: auto
           example: medium
           nullable: true
@@ -42177,17 +42489,14 @@ components:
             - `high`, `medium` and `low` are supported for the GPT image models.
             - `gpt-image-2.5-sunburst` and `gpt-image-2.5-flare`, including their `2026-09-08`
               snapshots, also support `xhigh` and `max`.
-            - `hd` and `standard` are supported for `dall-e-3`.
-            - `standard` is the only option for `dall-e-2`.
         response_format:
           type: string
           enum:
           - url
           - b64_json
-          default: url
-          example: url
           nullable: true
-          description: The format in which generated images with `dall-e-2` and `dall-e-3` are returned. Must be one of `url` or `b64_json`. URLs are only valid for 60 minutes after the image has been generated. This parameter isn't supported for the GPT image models, which always return base64-encoded images.
+          deprecated: true
+          description: Legacy response format parameter for retired image models. Unsupported for GPT image models, which always return base64-encoded images.
         output_format:
           type: string
           enum:
@@ -42228,7 +42537,16 @@ components:
             - 512x512
             - 1792x1024
             - 1024x1792
-          description: The size of the generated images. For `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and `gpt-image-2.5-flare-2026-09-08`, arbitrary resolutions are supported as `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height must both be divisible by 16 and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above `2560x1440` are experimental, and the maximum supported resolution is `3840x2160`. The requested size must also satisfy the model's current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and `1024x1536` are supported by the GPT image models; `auto` is supported for models that allow automatic sizing. For `dall-e-2`, use one of `256x256`, `512x512`, or `1024x1024`. For `dall-e-3`, use one of `1024x1024`, `1792x1024`, or `1024x1792`.
+            x-openai-enum-deprecations:
+              256x256:
+                message: This legacy size suggestion is retained for SDK compatibility. Check the selected GPT image model's supported sizes.
+              512x512:
+                message: This legacy size suggestion is retained for SDK compatibility. Check the selected GPT image model's supported sizes.
+              1792x1024:
+                message: This legacy size suggestion is retained for SDK compatibility. Check the selected GPT image model's supported sizes.
+              1024x1792:
+                message: This legacy size suggestion is retained for SDK compatibility. Check the selected GPT image model's supported sizes.
+          description: The size of the generated images. For `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and `gpt-image-2.5-flare-2026-09-08`, arbitrary resolutions are supported as `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height must both be divisible by 16 and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above `2560x1440` are experimental, and the maximum supported resolution is `3840x2160`. The requested size must also satisfy the model's current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and `1024x1536` are supported by the GPT image models; `auto` is supported for models that allow automatic sizing.
           nullable: true
         moderation:
           type: string
@@ -42267,7 +42585,8 @@ components:
           default: vivid
           example: vivid
           nullable: true
-          description: The style of the generated images. This parameter is only supported for `dall-e-3`. Must be one of `vivid` or `natural`. Vivid causes the model to lean towards generating hyper-real and dramatic images. Natural causes the model to produce more natural, less hyper-real looking images.
+          deprecated: true
+          description: Legacy style parameter for retired image models. Unsupported for GPT image models; describe the desired style in the prompt instead.
         user:
           type: string
           example: user-1234
@@ -42277,6 +42596,8 @@ components:
       - prompt
     CreateImageVariationRequest:
       type: object
+      deprecated: true
+      description: Legacy request for the retired image variations endpoint.
       properties:
         image:
           description: The image to use as the basis for the variation(s). Must be a valid PNG file, less than 4MB, and square.
@@ -42292,7 +42613,7 @@ components:
             - dall-e-2
             x-stainless-const: true
           x-oaiTypeLabel: string
-          description: The model to use for image generation. Only `dall-e-2` is supported at this time.
+          description: The legacy model used by the retired image variations endpoint. This endpoint no longer accepts requests.
           nullable: true
         n:
           type: integer
@@ -43039,7 +43360,7 @@ components:
           description: Control the voice of your generated audio with additional instructions. Does not work with `tts-1` or `tts-1-hd`.
           maxLength: 4096
         voice:
-          description: 'The voice to use when generating the audio. Supported built-in voices are `alloy`, `ash`, `ballad`, `coral`, `echo`, `fable`, `onyx`, `nova`, `sage`, `shimmer`, `verse`, `marin`, and `cedar`. You may also provide a custom voice object with an `id`, for example `{ "id": "voice_1234" }`. Previews of the voices are available in the [Text to speech guide](https://developers.openai.com/api/docs/guides/text-to-speech#voice-options).'
+          description: 'The voice to use when generating the audio. Supported built-in voices are `alloy`, `ash`, `ballad`, `coral`, `echo`, `fable`, `onyx`, `nova`, `sage`, `shimmer`, `verse`, `marin`, and `cedar`. You may also provide a custom voice object with an `id`, for example `{ "id": "voice_1234" }`. Previews of the voices are available in the [Text to speech guide](https://developers.openai.com/api/docs/guides/text-to-speech#voice-options). Custom voices must be created from audio samples. Voices created from text prompts are supported only in Live.'
           title: Voice
           anyOf:
           - anyOf:
@@ -43882,12 +44203,22 @@ components:
       - name
       - recording
       - language
-    CreateVoiceRequest:
+    CreateVoiceFromConsentRequest:
       type: object
+      title: Consent
+      description: Creates a voice from a consent recording and an audio sample. Requires multipart/form-data.
       additionalProperties: false
       properties:
+        type:
+          type: string
+          enum:
+          - audio_sample
+          default: audio_sample
+          description: The voice creation method. Defaults to `audio_sample` when omitted.
         name:
           type: string
+          minLength: 1
+          maxLength: 256
           description: The name of the new voice.
         audio_sample:
           type: string
@@ -43905,6 +44236,55 @@ components:
       - name
       - audio_sample
       - consent
+    CreateVoicePromptRequest:
+      type: object
+      title: Prompt
+      description: Creates a synthetic voice from a text description. Supports application/json or multipart/form-data.
+      additionalProperties: false
+      properties:
+        type:
+          type: string
+          enum:
+          - prompt
+          description: Set to `prompt` to create a voice from a text description.
+        name:
+          type: string
+          minLength: 1
+          maxLength: 256
+          description: The name of the new voice.
+        prompt:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: A description of the desired voice. Must not contain only whitespace.
+        script_hint:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: Optional text for the voice to speak during creation. If omitted, a script is generated from the prompt. Must not be blank after trimming whitespace; scripts that are too short are rejected.
+        model:
+          anyOf:
+          - type: string
+          - type: string
+            enum:
+            - auto
+            - 2026-10-01
+          default: auto
+          description: The voice creation model to use. Defaults to `auto`.
+      required:
+      - type
+      - name
+      - prompt
+    CreateVoiceRequest:
+      discriminator:
+        propertyName: type
+        mapping:
+          audio_sample: '#/components/schemas/CreateVoiceFromConsentRequest'
+          prompt: '#/components/schemas/CreateVoicePromptRequest'
+      x-oai-default-discriminator-value: audio_sample
+      anyOf:
+      - $ref: '#/components/schemas/CreateVoiceFromConsentRequest'
+      - $ref: '#/components/schemas/CreateVoicePromptRequest'
     CustomToolCall:
       type: object
       title: Custom tool call
@@ -44357,7 +44737,7 @@ components:
 
         Use `images` (array of `ImageRefParam`) instead of multipart `image` uploads.
         You can reference images via external URLs, data URLs, or uploaded file IDs.
-        JSON edits support GPT image models only; DALL-E edits require multipart (`dall-e-2` only).
+        JSON edits support GPT image models.
       properties:
         model:
           anyOf:
@@ -44376,9 +44756,9 @@ components:
             - chatgpt-image-latest
           - type: 'null'
           x-oaiTypeLabel: string
-          default: gpt-image-1.5
-          example: gpt-image-1.5
-          description: The GPT image model to use for image editing, including `gpt-image-2`, its dated snapshot `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and `gpt-image-2.5-flare-2026-09-08`.
+          default: gpt-image-2.5-sunburst
+          example: gpt-image-2.5-sunburst
+          description: The GPT image model to use for image editing, including `gpt-image-2`, its dated snapshot `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and `gpt-image-2.5-flare-2026-09-08`. Defaults to `gpt-image-2.5-sunburst`.
         images:
           type: array
           minItems: 1
@@ -46823,6 +47203,7 @@ components:
       - $ref: '#/components/schemas/InputImageContent'
       - $ref: '#/components/schemas/InputFileContent'
     FunctionObject:
+      x-openai-structured-output: function
       type: object
       properties:
         description:
@@ -47724,14 +48105,14 @@ components:
       properties:
         b64_json:
           type: string
-          description: The base64-encoded JSON of the generated image. Returned by default for the GPT image models, and only present if `response_format` is set to `b64_json` for `dall-e-2` and `dall-e-3`.
+          description: The base64-encoded JSON of the generated image. Returned by default for GPT image models, or when `response_format` is set to `b64_json` for models that support that parameter.
         url:
           type: string
           format: uri
-          description: When using `dall-e-2` or `dall-e-3`, the URL of the generated image if `response_format` is set to `url` (default value). Unsupported for the GPT image models.
+          description: The URL of the generated image when `response_format` is set to `url` for models that support that parameter. Unsupported for GPT image models.
         revised_prompt:
           type: string
-          description: For `dall-e-3` only, the revised prompt that was used to generate the image.
+          description: The revised prompt used to generate the image, for models that support prompt revision. Not returned by GPT image models.
     ImageEditCompletedEvent:
       type: object
       description: |
@@ -48156,7 +48537,7 @@ components:
             - 1024x1536
             - 1536x1024
             - auto
-          description: The size of the generated images. For `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and `gpt-image-2.5-flare-2026-09-08`, arbitrary resolutions are supported as `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height must both be divisible by 16 and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above `2560x1440` are experimental, and the maximum supported resolution is `3840x2160`. The requested size must also satisfy the model's current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and `1024x1536` are supported by the GPT image models; `auto` is supported for models that allow automatic sizing. For `dall-e-2`, use one of `256x256`, `512x512`, or `1024x1024`. For `dall-e-3`, use one of `1024x1024`, `1792x1024`, or `1024x1792`.
+          description: The size of the generated images. For `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and `gpt-image-2.5-flare-2026-09-08`, arbitrary resolutions are supported as `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height must both be divisible by 16 and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above `2560x1440` are experimental, and the maximum supported resolution is `3840x2160`. The requested size must also satisfy the model's current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and `1024x1536` are supported by the GPT image models; `auto` is supported for models that allow automatic sizing.
           default: auto
         output_format:
           type: string
@@ -49477,6 +49858,24 @@ components:
         propertyName: type
       allOf:
       - $ref: '#/components/schemas/LiveServerEvent-2'
+    LiveSessionCreateRequest:
+      type: object
+      description: Create a Live session with a WebRTC SDP offer or place an outbound SIP call. Follow the [Live prompting guide](https://developers.openai.com/api/docs/guides/live-prompting) before choosing frontend and backend instructions. The request starts the session; do not send session.start again on the data channel or sideband.
+      properties:
+        session:
+          $ref: '#/components/schemas/LiveMediaSessionCreateParams'
+          description: Startup configuration for the Live session.
+        transport:
+          description: WebRTC transport with an SDP offer, or SIP transport with a destination and per-call trunk credentials.
+          discriminator:
+            propertyName: type
+          anyOf:
+          - $ref: '#/components/schemas/LiveWebRTCTransport'
+          - $ref: '#/components/schemas/LiveSIPTransport'
+      required:
+      - session
+      - transport
+      additionalProperties: false
     LiveSessionCreateResponse:
       type: object
       description: The created Live session and its transport. WebRTC creation returns 201 Created with an SDP answer. Outbound SIP creation returns 201 Created after initialization, before the callee necessarily answers, without SDP or trunk credentials.
@@ -50808,6 +51207,35 @@ components:
         - gpt-daybreak-red-latest
         - gpt-5.6-cyber
         - gpt-rosalind-research
+        x-openai-enum-deprecations:
+          o1-pro:
+            message: 'Announced shutdown date: 2026-10-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+          o1-pro-2025-03-19:
+            message: 'Announced shutdown date: 2026-10-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+          o3-pro-2025-06-10:
+            message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+          o3-deep-research:
+            message: 'Announced shutdown date: 2026-07-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+          o3-deep-research-2025-06-26:
+            message: 'Announced shutdown date: 2026-07-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+          o4-mini-deep-research:
+            message: 'Announced shutdown date: 2026-07-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+          o4-mini-deep-research-2025-06-26:
+            message: 'Announced shutdown date: 2026-07-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+          computer-use-preview:
+            message: 'Announced shutdown date: 2026-07-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+          computer-use-preview-2025-03-11:
+            message: 'Announced shutdown date: 2026-07-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+          gpt-5-codex:
+            message: 'Announced shutdown date: 2026-07-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+          gpt-5-pro-2025-10-06:
+            message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+          gpt-5.1-codex-max:
+            message: 'Announced shutdown date: 2026-07-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+          o3-pro:
+            message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+          gpt-5-pro:
+            message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
     ModelIdsShared:
       example: gpt-6-astra
       anyOf:
@@ -53452,6 +53880,7 @@ components:
             `marin`, and `cedar`. You may also provide a custom voice object with an
             `id`, for example `{ "id": "voice_1234" }`. Voice cannot be changed during
             the session once the model has responded with audio at least once.
+            Custom voices must be created from audio samples. Voices created from text prompts are supported only in Live.
         output_audio_format:
           type: string
           enum:
@@ -56783,6 +57212,7 @@ components:
                     `marin`, and `cedar`. You may also provide a custom voice object with
                     an `id`, for example `{ "id": "voice_1234" }`. Voice cannot be changed
                     during the session once the model has responded with audio at least once.
+                    Custom voices must be created from audio samples. Voices created from text prompts are supported only in Live.
                     We recommend `marin` and `cedar` for best quality.
         tools:
           type: array
@@ -59350,6 +59780,7 @@ components:
             `marin`, and `cedar`. You may also provide a custom voice object with an
             `id`, for example `{ "id": "voice_1234" }`. Voice cannot be changed during
             the session once the model has responded with audio at least once.
+            Custom voices must be created from audio samples. Voices created from text prompts are supported only in Live.
         input_audio_format:
           type: string
           description: |
@@ -59624,6 +60055,7 @@ components:
                     `marin`, and `cedar`. You may also provide a custom voice object with
                     an `id`, for example `{ "id": "voice_1234" }`. Voice cannot be changed
                     during the session once the model has responded with audio at least once.
+                    Custom voices must be created from audio samples. Voices created from text prompts are supported only in Live.
                     We recommend `marin` and `cedar` for best quality.
                 speed:
                   type: number
@@ -60369,7 +60801,10 @@ components:
               "language": null,
               "prompt": ""
             },
-            "client_secret": null
+            "client_secret": {
+              "value": "ek_abc123",
+              "expires_at": 1742188264
+            }
           }
     RealtimeTranscriptionSessionCreateResponseGA:
       type: object
@@ -62635,6 +63070,7 @@ components:
           - json_schema
           x-stainless-const: true
         json_schema:
+          x-openai-structured-output: json_schema
           type: object
           title: JSON schema
           description: |
@@ -67656,6 +68092,7 @@ components:
       discriminator:
         propertyName: type
     TextResponseFormatJsonSchema:
+      x-openai-structured-output: json_schema_default_strict
       type: object
       title: JSON schema
       description: |
@@ -68741,7 +69178,10 @@ components:
           description: The aggregated number of cached input tokens used across text, audio, and image inputs. For customers subscribed to Scale Tier, this includes Scale Tier tokens.
         input_cache_write_tokens:
           type: integer
-          description: The aggregated number of input tokens written to the cache.
+          description: The aggregated number of input tokens written to the cache with a 30-minute retention period.
+        input_cache_write_12h_tokens:
+          type: integer
+          description: The aggregated number of input tokens written to the cache with a 12-hour retention period.
         input_uncached_tokens:
           type: integer
           description: The aggregated number of uncached input tokens used across text, audio, and image inputs, excluding cache-write tokens.
@@ -68820,7 +69260,8 @@ components:
               "object": "organization.usage.completions.result",
               "input_tokens": 5000,
               "input_cached_tokens": 1800,
-              "input_cache_write_tokens": 200,
+              "input_cache_write_tokens": 150,
+              "input_cache_write_12h_tokens": 50,
               "input_uncached_tokens": 3000,
               "output_tokens": 1000,
               "input_text_tokens": 2500,
@@ -70182,7 +70623,7 @@ components:
     VoiceResource:
       type: object
       title: Voice
-      description: A custom voice that can be used for audio output.
+      description: A custom voice that can be used for audio output. Voices created from text prompts are supported only in Live.
       additionalProperties: false
       properties:
         object:
@@ -70194,6 +70635,12 @@ components:
         id:
           type: string
           description: The voice identifier, which can be referenced in API endpoints.
+        type:
+          type: string
+          description: How the voice was created. Voices created from text prompts are supported only in Live.
+          enum:
+          - audio_sample
+          - prompt
         name:
           type: string
           description: The name of the voice.
@@ -70205,6 +70652,7 @@ components:
       - object
       - id
       - name
+      - type
       - created_at
       x-oaiMeta:
         name: The voice object
@@ -70213,6 +70661,7 @@ components:
             "object": "audio.voice",
             "id": "voice_123abc",
             "name": "My new voice",
+            "type": "audio_sample",
             "created_at": 1734220800
           }
     WebSearchActionFind:
@@ -70473,6 +70922,181 @@ components:
       - type
       - status
       - action
+    WebhookAgentSessionActionRequired:
+      type: object
+      title: agent.session.action_required
+      description: |
+        Sent when an agent session requires an action. Retrieve the session for action details.
+      allOf:
+      - $ref: '#/components/schemas/WebhookAgentSessionEnvelope'
+      - type: object
+        required:
+        - type
+        - data
+        properties:
+          type:
+            type: string
+            description: The event type. Always `agent.session.action_required`.
+            enum:
+            - agent.session.action_required
+            x-stainless-const: true
+          data:
+            $ref: '#/components/schemas/AgentSessionActionRequiredPayloadResource'
+      x-oaiMeta:
+        name: agent.session.action_required
+        group: webhook-events
+        example: |
+          {
+            "id": "evt_123",
+            "object": "event",
+            "created_at": 1719168000,
+            "type": "agent.session.action_required",
+            "data": {"id": "sess_123", "required_action": {"type": "function_call"}}
+          }
+    WebhookAgentSessionCreated:
+      type: object
+      title: agent.session.created
+      description: |
+        Sent when an agent session is created.
+      allOf:
+      - $ref: '#/components/schemas/WebhookAgentSessionEnvelope'
+      - type: object
+        required:
+        - type
+        - data
+        properties:
+          type:
+            type: string
+            description: The event type. Always `agent.session.created`.
+            enum:
+            - agent.session.created
+            x-stainless-const: true
+          data:
+            $ref: '#/components/schemas/AgentSessionCreatedPayloadResource'
+      x-oaiMeta:
+        name: agent.session.created
+        group: webhook-events
+        example: |
+          {
+            "id": "evt_123",
+            "object": "event",
+            "created_at": 1719168000,
+            "type": "agent.session.created",
+            "data": {"id": "sess_123", "environment_id": "ccarenv_123", "environment_type": "self_hosted", "connect": {"remote_url": "https://api.openai.com/v1/agents/api/connect/example"}}
+          }
+    WebhookAgentSessionEnvelope:
+      type: object
+      required:
+      - id
+      - object
+      - created_at
+      properties:
+        id:
+          type: string
+          description: The unique ID of the event.
+        object:
+          type: string
+          description: The object type. Always `event`.
+          enum:
+          - event
+          x-stainless-const: true
+        created_at:
+          type: integer
+          format: unixtime
+          description: The Unix timestamp, in seconds, when the event was created.
+    WebhookAgentSessionFailed:
+      type: object
+      title: agent.session.failed
+      description: |
+        Sent when an agent session fails.
+      allOf:
+      - $ref: '#/components/schemas/WebhookAgentSessionEnvelope'
+      - type: object
+        required:
+        - type
+        - data
+        properties:
+          type:
+            type: string
+            description: The event type. Always `agent.session.failed`.
+            enum:
+            - agent.session.failed
+            x-stainless-const: true
+          data:
+            $ref: '#/components/schemas/AgentSessionEnvironmentPayloadResource'
+      x-oaiMeta:
+        name: agent.session.failed
+        group: webhook-events
+        example: |
+          {
+            "id": "evt_123",
+            "object": "event",
+            "created_at": 1719168000,
+            "type": "agent.session.failed",
+            "data": {"id": "sess_123", "environment_type": "none"}
+          }
+    WebhookAgentSessionIdle:
+      type: object
+      title: agent.session.idle
+      description: |
+        Sent when an agent session becomes idle.
+      allOf:
+      - $ref: '#/components/schemas/WebhookAgentSessionEnvelope'
+      - type: object
+        required:
+        - type
+        - data
+        properties:
+          type:
+            type: string
+            description: The event type. Always `agent.session.idle`.
+            enum:
+            - agent.session.idle
+            x-stainless-const: true
+          data:
+            $ref: '#/components/schemas/AgentSessionEnvironmentPayloadResource'
+      x-oaiMeta:
+        name: agent.session.idle
+        group: webhook-events
+        example: |
+          {
+            "id": "evt_123",
+            "object": "event",
+            "created_at": 1719168000,
+            "type": "agent.session.idle",
+            "data": {"id": "sess_123", "environment_type": "none"}
+          }
+    WebhookAgentSessionInProgress:
+      type: object
+      title: agent.session.in_progress
+      description: |
+        Sent when an agent session enters the in-progress state.
+      allOf:
+      - $ref: '#/components/schemas/WebhookAgentSessionEnvelope'
+      - type: object
+        required:
+        - type
+        - data
+        properties:
+          type:
+            type: string
+            description: The event type. Always `agent.session.in_progress`.
+            enum:
+            - agent.session.in_progress
+            x-stainless-const: true
+          data:
+            $ref: '#/components/schemas/AgentSessionEnvironmentPayloadResource'
+      x-oaiMeta:
+        name: agent.session.in_progress
+        group: webhook-events
+        example: |
+          {
+            "id": "evt_123",
+            "object": "event",
+            "created_at": 1719168000,
+            "type": "agent.session.in_progress",
+            "data": {"id": "sess_123", "environment_id": "ccarenv_123", "environment_type": "openai_hosted"}
+          }
     WebhookBatchCancelled:
       type: object
       title: batch.cancelled
@@ -73067,6 +73691,7 @@ components:
       - parameters
       title: Function
       description: Defines a function in your own code the model can choose to call. Learn more about [function calling](https://developers.openai.com/api/docs/guides/function-calling).
+      x-openai-structured-output: function
     RankerVersionType:
       type: string
       enum:
@@ -73492,6 +74117,7 @@ components:
       required:
       - name
       - type
+      x-openai-structured-output: function
     NamespaceToolParam:
       properties:
         type:
@@ -75992,8 +76618,6 @@ components:
       - workload_identity_provider_id
       - region
       - audience
-      x-stainless-skip:
-      - java
     provider:
       discriminator:
         propertyName: type
@@ -76757,8 +77381,6 @@ components:
       - workload_identity_project_number
       - workload_identity_pool_id
       - workload_identity_provider_id
-      x-stainless-skip:
-      - java
     CreateExternalStorageBody:
       properties:
         project_id:
@@ -78164,6 +78786,33 @@ components:
       - chatkit_configuration
       title: The chat session object
       description: Represents a ChatKit session and its resolved configuration.
+      example:
+        id: cksess_123
+        object: chatkit.session
+        client_secret: ek_token_123
+        expires_at: 1712349876
+        workflow:
+          id: workflow_alpha
+          version: 2024-10-01
+          state_variables:
+            message: hello
+          tracing:
+            enabled: true
+        user: user_789
+        rate_limits:
+          max_requests_per_1_minute: 60
+        max_requests_per_1_minute: 60
+        status: active
+        chatkit_configuration:
+          automatic_thread_titling:
+            enabled: true
+          file_upload:
+            enabled: true
+            max_file_size: 16
+            max_files: 20
+          history:
+            enabled: true
+            recent_threads: 10
     WorkflowTracingParam:
       properties:
         enabled:
@@ -80935,57 +81584,48 @@ components:
       - The turn was cancelled.
       description: The current status of a turn.
     SessionTurnErrorCodeResource:
+      type: string
+      enum:
+      - context_length_exceeded
+      - session_budget_exceeded
+      - usage_limit_exceeded
+      - credit_balance_exhausted
+      - rate_limit_exceeded
+      - flex_unavailable
+      - server_overloaded
+      - cyber_policy
+      - misalignment_policy_violation
+      - connection_failed
+      - server_error
+      - authentication_error
+      - invalid_request
+      - resource_not_found
+      - sandbox_error
+      - executor_version_incompatible
+      - active_turn_not_steerable
+      - request_timeout
+      - internal_error
+      x-enumDescriptions:
+      - The request exceeds the model's context window.
+      - The session has reached its usage budget.
+      - The organization has reached a usage, plan, or billing limit.
+      - The organization has no API credits remaining.
+      - The request exceeds the available rate limit.
+      - Flex processing is temporarily unavailable.
+      - The model service is temporarily overloaded.
+      - The request was rejected by a safety policy.
+      - The request was blocked by the safety systems.
+      - The request could not connect to the model service.
+      - The model service encountered an unexpected error.
+      - The API credentials are invalid or lack the required access.
+      - The request contains invalid input or configuration.
+      - The requested model or resource is unavailable.
+      - The request could not complete in its execution environment.
+      - The executor must be upgraded before it can run this turn.
+      - The session cannot accept additional input while a request is running.
+      - The request timed out before the model service responded.
+      - An unexpected internal error prevented the session request from completing.
       description: Stable public categories for session request failures.
-      anyOf:
-      - type: string
-        enum:
-        - context_length_exceeded
-        - session_budget_exceeded
-        - usage_limit_exceeded
-        - credit_balance_exhausted
-        - rate_limit_exceeded
-        x-enumDescriptions:
-        - The request exceeds the model's context window.
-        - The session has reached its usage budget.
-        - The organization has reached a usage, plan, or billing limit.
-        - The organization has no API credits remaining.
-        - The request exceeds the available rate limit.
-      - type: string
-        enum:
-        - flex_unavailable
-        x-enumDescriptions:
-        - Flex processing is temporarily unavailable.
-        x-stainless-skip:
-        - cli
-      - type: string
-        enum:
-        - server_overloaded
-        - cyber_policy
-        - misalignment_policy_violation
-        - connection_failed
-        - server_error
-        - authentication_error
-        - invalid_request
-        - resource_not_found
-        - sandbox_error
-        - executor_version_incompatible
-        - active_turn_not_steerable
-        - request_timeout
-        - internal_error
-        x-enumDescriptions:
-        - The model service is temporarily overloaded.
-        - The request was rejected by a safety policy.
-        - The request was blocked by the safety systems.
-        - The request could not connect to the model service.
-        - The model service encountered an unexpected error.
-        - The API credentials are invalid or lack the required access.
-        - The request contains invalid input or configuration.
-        - The requested model or resource is unavailable.
-        - The request could not complete in its execution environment.
-        - The executor must be upgraded before it can run this turn.
-        - The session cannot accept additional input while a request is running.
-        - The request timed out before the model service responded.
-        - An unexpected internal error prevented the session request from completing.
     SessionTurnErrorResource:
       type: object
       properties:
@@ -81893,14 +82533,12 @@ components:
       - flex
       - priority
       - fast
-      - ultrafast
       x-enumDescriptions:
       - Selects the service tier automatically.
       - Uses the default service tier.
       - Uses the flex service tier.
       - Uses the priority service tier.
       - Uses the fast service tier.
-      - Uses the ultrafast service tier.
       description: The service tier used for model requests.
     PersistedAgentToolConfigParamFunction:
       type: object
@@ -87833,6 +88471,11 @@ components:
       - realtime.call.incoming
       - video.completed
       - video.failed
+      - agent.session.created
+      - agent.session.action_required
+      - agent.session.in_progress
+      - agent.session.idle
+      - agent.session.failed
       - safety.alert.created
     PublicCreateEndpointBody:
       properties:
@@ -88011,6 +88654,84 @@ components:
       required:
       - object
       - data
+    AgentSessionRequiredActionTypeResource:
+      type: string
+      enum:
+      - computer_use_approval_request
+      - function_call
+      - environment_connection
+    AgentSessionRequiredActionPayloadResource:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/AgentSessionRequiredActionTypeResource'
+      required:
+      - type
+      additionalProperties: false
+    AgentSessionActionRequiredPayloadResource:
+      type: object
+      properties:
+        id:
+          type: string
+          minLength: 0
+          description: The ID of the session.
+        required_action:
+          $ref: '#/components/schemas/AgentSessionRequiredActionPayloadResource'
+          description: The action type. Retrieve the session for action details.
+      required:
+      - id
+      - required_action
+      additionalProperties: false
+    AgentSessionConnectPayloadResource:
+      type: object
+      properties:
+        remote_url:
+          type: string
+          minLength: 0
+          description: The URL used to connect the self-hosted environment.
+      required:
+      - remote_url
+      additionalProperties: false
+    AgentSessionCreatedPayloadResource:
+      type: object
+      properties:
+        id:
+          type: string
+          minLength: 0
+          description: The ID of the session.
+        environment_id:
+          type: string
+          minLength: 0
+          description: The ID of the environment, when one exists.
+        environment_type:
+          type: string
+          minLength: 0
+          description: 'The environment type: `none`, `openai_hosted`, or `self_hosted`.'
+        connect:
+          $ref: '#/components/schemas/AgentSessionConnectPayloadResource'
+      required:
+      - id
+      - environment_type
+      additionalProperties: false
+    AgentSessionEnvironmentPayloadResource:
+      type: object
+      properties:
+        id:
+          type: string
+          minLength: 0
+          description: The ID of the session.
+        environment_id:
+          type: string
+          minLength: 0
+          description: The ID of the environment, when one exists.
+        environment_type:
+          type: string
+          minLength: 0
+          description: 'The environment type: `none`, `openai_hosted`, or `self_hosted`.'
+      required:
+      - id
+      - environment_type
+      additionalProperties: false
     DragPoint:
       properties:
         x:
@@ -90294,6 +91015,7 @@ components:
       required:
       - type
     BetaTextResponseFormatJsonSchema:
+      x-openai-structured-output: json_schema_default_strict
       type: object
       title: JSON schema
       description: |
@@ -90678,6 +91400,7 @@ components:
       required:
       - name
       - type
+      x-openai-structured-output: function
     BetaFunctionShellToolParam:
       properties:
         type:
@@ -91011,7 +91734,7 @@ components:
             - 1024x1536
             - 1536x1024
             - auto
-          description: The size of the generated images. For `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and `gpt-image-2.5-flare-2026-09-08`, arbitrary resolutions are supported as `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height must both be divisible by 16 and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above `2560x1440` are experimental, and the maximum supported resolution is `3840x2160`. The requested size must also satisfy the model's current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and `1024x1536` are supported by the GPT image models; `auto` is supported for models that allow automatic sizing. For `dall-e-2`, use one of `256x256`, `512x512`, or `1024x1024`. For `dall-e-3`, use one of `1024x1024`, `1792x1024`, or `1024x1792`.
+          description: The size of the generated images. For `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and `gpt-image-2.5-flare-2026-09-08`, arbitrary resolutions are supported as `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height must both be divisible by 16 and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above `2560x1440` are experimental, and the maximum supported resolution is `3840x2160`. The requested size must also satisfy the model's current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and `1024x1536` are supported by the GPT image models; `auto` is supported for models that allow automatic sizing.
           default: auto
         output_format:
           type: string
@@ -91666,6 +92389,7 @@ components:
       - parameters
       title: Function
       description: Defines a function in your own code the model can choose to call. Learn more about [function calling](https://developers.openai.com/api/docs/guides/function-calling).
+      x-openai-structured-output: function
     BetaInputItem:
       discriminator:
         propertyName: type
@@ -95121,6 +95845,35 @@ components:
         - gpt-daybreak-red-latest
         - gpt-5.6-cyber
         - gpt-rosalind-research
+        x-openai-enum-deprecations:
+          o1-pro:
+            message: 'Announced shutdown date: 2026-10-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+          o1-pro-2025-03-19:
+            message: 'Announced shutdown date: 2026-10-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+          o3-pro-2025-06-10:
+            message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+          o3-deep-research:
+            message: 'Announced shutdown date: 2026-07-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+          o3-deep-research-2025-06-26:
+            message: 'Announced shutdown date: 2026-07-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+          o4-mini-deep-research:
+            message: 'Announced shutdown date: 2026-07-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+          o4-mini-deep-research-2025-06-26:
+            message: 'Announced shutdown date: 2026-07-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+          computer-use-preview:
+            message: 'Announced shutdown date: 2026-07-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+          computer-use-preview-2025-03-11:
+            message: 'Announced shutdown date: 2026-07-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+          gpt-5-codex:
+            message: 'Announced shutdown date: 2026-07-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+          gpt-5-pro-2025-10-06:
+            message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+          gpt-5.1-codex-max:
+            message: 'Announced shutdown date: 2026-07-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+          o3-pro:
+            message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+          gpt-5-pro:
+            message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
     BetaModelIdsShared:
       example: gpt-6-astra
       anyOf:
@@ -102518,6 +103271,127 @@ components:
       - gpt-3.5-turbo-1106
       - gpt-3.5-turbo-0125
       - gpt-3.5-turbo-16k-0613
+      x-openai-enum-deprecations:
+        gpt-5.3-chat-latest:
+          message: 'Announced shutdown date: 2026-08-10. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-5.2-chat-latest:
+          message: 'Announced shutdown date: 2026-08-10. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-5.1-codex:
+          message: 'Announced shutdown date: 2026-07-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-5.1-chat-latest:
+          message: 'Announced shutdown date: 2026-07-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-5-2025-08-07:
+          message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-5-mini-2025-08-07:
+          message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-5-nano-2025-08-07:
+          message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-5-chat-latest:
+          message: 'Announced shutdown date: 2026-07-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4.1-nano:
+          message: 'Announced shutdown date: 2026-10-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4.1-nano-2025-04-14:
+          message: 'Announced shutdown date: 2026-10-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        o4-mini:
+          message: 'Announced shutdown date: 2026-10-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        o4-mini-2025-04-16:
+          message: 'Announced shutdown date: 2026-10-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        o3-2025-04-16:
+          message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        o3-mini:
+          message: 'Announced shutdown date: 2026-10-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        o3-mini-2025-01-31:
+          message: 'Announced shutdown date: 2026-10-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        o1:
+          message: 'Announced shutdown date: 2026-10-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        o1-2024-12-17:
+          message: 'Announced shutdown date: 2026-10-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4o-2024-05-13:
+          message: 'Announced shutdown date: 2026-10-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-audio-mini:
+          message: 'Announced shutdown date: 2027-01-20. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4o-search-preview-2025-03-11:
+          message: 'Announced shutdown date: 2026-07-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4o-mini-search-preview-2025-03-11:
+          message: 'Announced shutdown date: 2026-07-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4-turbo:
+          message: 'Announced shutdown date: 2026-10-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4-turbo-2024-04-09:
+          message: 'Announced shutdown date: 2026-10-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4-0125-preview:
+          message: 'Announced shutdown date: 2026-03-26. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4-turbo-preview:
+          message: 'Announced shutdown date: 2026-03-26. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4-1106-preview:
+          message: 'Announced shutdown date: 2026-10-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4:
+          message: 'Announced shutdown date: 2026-10-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4-0314:
+          message: 'Announced shutdown date: 2026-03-26. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4-0613:
+          message: 'Announced shutdown date: 2026-10-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-3.5-turbo:
+          message: 'Announced shutdown date: 2026-10-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-3.5-turbo-1106:
+          message: 'Announced shutdown date: 2026-09-28. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-3.5-turbo-0125:
+          message: 'Announced shutdown date: 2026-10-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-3.5-turbo-0301:
+          message: 'Announced shutdown date: 2024-09-13. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-3.5-turbo-0613:
+          message: 'Announced shutdown date: 2024-09-13. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-3.5-turbo-16k:
+          message: 'Announced shutdown date: 2024-09-13. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-3.5-turbo-16k-0613:
+          message: 'Announced shutdown date: 2024-09-13. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4-vision-preview:
+          message: 'Announced shutdown date: 2024-12-06. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4-32k:
+          message: 'Announced shutdown date: 2025-06-06. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4-32k-0314:
+          message: 'Announced shutdown date: 2025-06-06. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4-32k-0613:
+          message: 'Announced shutdown date: 2025-06-06. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        o1-preview:
+          message: 'Announced shutdown date: 2025-07-28. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        o1-preview-2024-09-12:
+          message: 'Announced shutdown date: 2025-07-28. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4o-audio-preview-2024-10-01:
+          message: 'Announced shutdown date: 2025-10-10. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        o1-mini:
+          message: 'Announced shutdown date: 2025-10-27. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        o1-mini-2024-09-12:
+          message: 'Announced shutdown date: 2025-10-27. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        codex-mini-latest:
+          message: 'Announced shutdown date: 2026-02-12. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        chatgpt-4o-latest:
+          message: 'Announced shutdown date: 2026-02-17. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4o-audio-preview:
+          message: 'Announced shutdown date: 2026-05-07. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4o-mini-audio-preview:
+          message: 'Announced shutdown date: 2026-05-07. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4o-audio-preview-2024-12-17:
+          message: 'Announced shutdown date: 2026-05-07. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4o-audio-preview-2025-06-03:
+          message: 'Announced shutdown date: 2026-05-07. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4o-mini-audio-preview-2024-12-17:
+          message: 'Announced shutdown date: 2026-05-07. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4o-search-preview:
+          message: 'Announced shutdown date: 2026-07-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4o-mini-search-preview:
+          message: 'Announced shutdown date: 2026-07-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-5:
+          message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-5-mini:
+          message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-5-nano:
+          message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        o3:
+          message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-audio-mini-2025-12-15:
+          message: 'Announced shutdown date: 2027-01-20. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-5.1-mini:
+          message: Not a supported model ID. Retained for SDK compatibility.
       x-stainless-nominal: false
     LiveBuiltInVoice:
       type: string
@@ -103954,3 +104828,15 @@ x-oaiMeta:
     - type: object
       key: LiveInfoEvent
       path: <auto>
+x-openai-structured-output-limits:
+  version: 1
+  max_object_properties: 5000
+  max_nesting_depth: 10
+  max_enum_values: 1000
+  max_string_characters: 120000
+  large_enum_threshold: 250
+  max_large_enum_string_characters: 15000
+  string_length_unit: unicode_code_points
+  non_string_enum_characters: false
+  property_count_scope: root_or_definition
+  references: count_definition_once

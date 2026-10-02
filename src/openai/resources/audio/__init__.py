@@ -19,6 +19,14 @@ if _t.TYPE_CHECKING:
         SpeechWithStreamingResponse as SpeechWithStreamingResponse,
         AsyncSpeechWithStreamingResponse as AsyncSpeechWithStreamingResponse,
     )
+    from .voices import (
+        Voices as Voices,
+        AsyncVoices as AsyncVoices,
+        VoicesWithRawResponse as VoicesWithRawResponse,
+        AsyncVoicesWithRawResponse as AsyncVoicesWithRawResponse,
+        VoicesWithStreamingResponse as VoicesWithStreamingResponse,
+        AsyncVoicesWithStreamingResponse as AsyncVoicesWithStreamingResponse,
+    )
     from .translations import (
         Translations as Translations,
         AsyncTranslations as AsyncTranslations,
@@ -56,6 +64,12 @@ else:
         "AsyncSpeechWithRawResponse": (".speech", "AsyncSpeechWithRawResponse"),
         "SpeechWithStreamingResponse": (".speech", "SpeechWithStreamingResponse"),
         "AsyncSpeechWithStreamingResponse": (".speech", "AsyncSpeechWithStreamingResponse"),
+        "Voices": (".voices", "Voices"),
+        "AsyncVoices": (".voices", "AsyncVoices"),
+        "VoicesWithRawResponse": (".voices", "VoicesWithRawResponse"),
+        "AsyncVoicesWithRawResponse": (".voices", "AsyncVoicesWithRawResponse"),
+        "VoicesWithStreamingResponse": (".voices", "VoicesWithStreamingResponse"),
+        "AsyncVoicesWithStreamingResponse": (".voices", "AsyncVoicesWithStreamingResponse"),
         "Audio": (".audio", "Audio"),
         "AsyncAudio": (".audio", "AsyncAudio"),
         "AudioWithRawResponse": (".audio", "AudioWithRawResponse"),
@@ -68,6 +82,7 @@ else:
         "speech",
         "transcriptions",
         "translations",
+        "voices",
     }
 
     def __getattr__(name: str) -> _t.Any:
@@ -106,6 +121,12 @@ __all__ = [
     "AsyncSpeechWithRawResponse",
     "SpeechWithStreamingResponse",
     "AsyncSpeechWithStreamingResponse",
+    "Voices",
+    "AsyncVoices",
+    "VoicesWithRawResponse",
+    "AsyncVoicesWithRawResponse",
+    "VoicesWithStreamingResponse",
+    "AsyncVoicesWithStreamingResponse",
     "Audio",
     "AsyncAudio",
     "AudioWithRawResponse",
