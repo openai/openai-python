@@ -1,3 +1,4 @@
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 # Regression tests for the custom-code budget.
 from __future__ import annotations
 

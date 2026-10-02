@@ -1,3 +1,5 @@
+<!-- File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details. -->
+
 # Custom code
 
 The custom-code reporter measures the SDK's remaining customization of generated
@@ -77,8 +79,10 @@ The trusted run summary reports additions, deletions, total, mixed-file count,
 headroom, largest patches, and exact policy/candidate/generated revisions. The
 existing custom-code comment remains unchanged, including when the budget fails.
 The trusted compute job reuses its own report, never the candidate's artifacts.
-The checker, policy, and workflows are maintained in the SDK and preserved
-through the normal three-way merge during generation.
+The checker, workflows, and offline tests are generated from shared Castiron
+templates. The budget policy remains repository-owned and is never generated.
+Repository-specific customizations are preserved through the normal three-way
+merge during generation.
 
 ## Local verification
 

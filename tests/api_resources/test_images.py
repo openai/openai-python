@@ -11,6 +11,8 @@ from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
 from openai.types import ImagesResponse
 
+# pyright: reportDeprecated=false
+
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 
 
@@ -19,28 +21,33 @@ class TestImages:
 
     @parametrize
     def test_method_create_variation(self, client: OpenAI) -> None:
-        image = client.images.create_variation(
-            image=b"Example data",
-        )
+        with pytest.warns(DeprecationWarning):
+            image = client.images.create_variation(
+                image=b"Example data",
+            )
+
         assert_matches_type(ImagesResponse, image, path=["response"])
 
     @parametrize
     def test_method_create_variation_with_all_params(self, client: OpenAI) -> None:
-        image = client.images.create_variation(
-            image=b"Example data",
-            model="gpt-image-1",
-            n=1,
-            response_format="url",
-            size="1024x1024",
-            user="user-1234",
-        )
+        with pytest.warns(DeprecationWarning):
+            image = client.images.create_variation(
+                image=b"Example data",
+                model="gpt-image-1.5",
+                n=1,
+                response_format="url",
+                size="1024x1024",
+                user="user-1234",
+            )
+
         assert_matches_type(ImagesResponse, image, path=["response"])
 
     @parametrize
     def test_raw_response_create_variation(self, client: OpenAI) -> None:
-        response = client.images.with_raw_response.create_variation(
-            image=b"Example data",
-        )
+        with pytest.warns(DeprecationWarning):
+            response = client.images.with_raw_response.create_variation(
+                image=b"Example data",
+            )
 
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -49,14 +56,15 @@ class TestImages:
 
     @parametrize
     def test_streaming_response_create_variation(self, client: OpenAI) -> None:
-        with client.images.with_streaming_response.create_variation(
-            image=b"Example data",
-        ) as response:
-            assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        with pytest.warns(DeprecationWarning):
+            with client.images.with_streaming_response.create_variation(
+                image=b"Example data",
+            ) as response:
+                assert not response.is_closed
+                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
-            image = response.parse()
-            assert_matches_type(ImagesResponse, image, path=["response"])
+                image = response.parse()
+                assert_matches_type(ImagesResponse, image, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 
@@ -76,14 +84,14 @@ class TestImages:
             background="transparent",
             input_fidelity="high",
             mask=b"Example data",
-            model="gpt-image-2",
+            model="gpt-image-1.5",
             n=1,
             output_compression=100,
             output_format="png",
             partial_images=1,
             quality="high",
             response_format="url",
-            size="256x256",
+            size="1024x1024",
             stream=False,
             user="user-1234",
         )
@@ -133,14 +141,14 @@ class TestImages:
             background="transparent",
             input_fidelity="high",
             mask=b"Example data",
-            model="gpt-image-2",
+            model="gpt-image-1.5",
             n=1,
             output_compression=100,
             output_format="png",
             partial_images=1,
             quality="high",
             response_format="url",
-            size="256x256",
+            size="1024x1024",
             user="user-1234",
         )
         image_stream.response.close()
@@ -184,7 +192,7 @@ class TestImages:
         image = client.images.generate(
             prompt="A cute baby sea otter",
             background="transparent",
-            model="gpt-image-2",
+            model="gpt-image-2.5-flare",
             moderation="low",
             n=1,
             output_compression=100,
@@ -237,7 +245,7 @@ class TestImages:
             prompt="A cute baby sea otter",
             stream=True,
             background="transparent",
-            model="gpt-image-2",
+            model="gpt-image-2.5-flare",
             moderation="low",
             n=1,
             output_compression=100,
@@ -284,28 +292,33 @@ class TestAsyncImages:
 
     @parametrize
     async def test_method_create_variation(self, async_client: AsyncOpenAI) -> None:
-        image = await async_client.images.create_variation(
-            image=b"Example data",
-        )
+        with pytest.warns(DeprecationWarning):
+            image = await async_client.images.create_variation(
+                image=b"Example data",
+            )
+
         assert_matches_type(ImagesResponse, image, path=["response"])
 
     @parametrize
     async def test_method_create_variation_with_all_params(self, async_client: AsyncOpenAI) -> None:
-        image = await async_client.images.create_variation(
-            image=b"Example data",
-            model="gpt-image-1",
-            n=1,
-            response_format="url",
-            size="1024x1024",
-            user="user-1234",
-        )
+        with pytest.warns(DeprecationWarning):
+            image = await async_client.images.create_variation(
+                image=b"Example data",
+                model="gpt-image-1.5",
+                n=1,
+                response_format="url",
+                size="1024x1024",
+                user="user-1234",
+            )
+
         assert_matches_type(ImagesResponse, image, path=["response"])
 
     @parametrize
     async def test_raw_response_create_variation(self, async_client: AsyncOpenAI) -> None:
-        response = await async_client.images.with_raw_response.create_variation(
-            image=b"Example data",
-        )
+        with pytest.warns(DeprecationWarning):
+            response = await async_client.images.with_raw_response.create_variation(
+                image=b"Example data",
+            )
 
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -314,14 +327,15 @@ class TestAsyncImages:
 
     @parametrize
     async def test_streaming_response_create_variation(self, async_client: AsyncOpenAI) -> None:
-        async with async_client.images.with_streaming_response.create_variation(
-            image=b"Example data",
-        ) as response:
-            assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        with pytest.warns(DeprecationWarning):
+            async with async_client.images.with_streaming_response.create_variation(
+                image=b"Example data",
+            ) as response:
+                assert not response.is_closed
+                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
-            image = await response.parse()
-            assert_matches_type(ImagesResponse, image, path=["response"])
+                image = await response.parse()
+                assert_matches_type(ImagesResponse, image, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 
@@ -341,14 +355,14 @@ class TestAsyncImages:
             background="transparent",
             input_fidelity="high",
             mask=b"Example data",
-            model="gpt-image-2",
+            model="gpt-image-1.5",
             n=1,
             output_compression=100,
             output_format="png",
             partial_images=1,
             quality="high",
             response_format="url",
-            size="256x256",
+            size="1024x1024",
             stream=False,
             user="user-1234",
         )
@@ -398,14 +412,14 @@ class TestAsyncImages:
             background="transparent",
             input_fidelity="high",
             mask=b"Example data",
-            model="gpt-image-2",
+            model="gpt-image-1.5",
             n=1,
             output_compression=100,
             output_format="png",
             partial_images=1,
             quality="high",
             response_format="url",
-            size="256x256",
+            size="1024x1024",
             user="user-1234",
         )
         await image_stream.response.aclose()
@@ -449,7 +463,7 @@ class TestAsyncImages:
         image = await async_client.images.generate(
             prompt="A cute baby sea otter",
             background="transparent",
-            model="gpt-image-2",
+            model="gpt-image-2.5-flare",
             moderation="low",
             n=1,
             output_compression=100,
@@ -502,7 +516,7 @@ class TestAsyncImages:
             prompt="A cute baby sea otter",
             stream=True,
             background="transparent",
-            model="gpt-image-2",
+            model="gpt-image-2.5-flare",
             moderation="low",
             n=1,
             output_compression=100,
