@@ -1,3 +1,4 @@
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 """Run the trusted publishers against offline GitHub state."""
 
 from __future__ import annotations

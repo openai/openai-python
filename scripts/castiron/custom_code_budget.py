@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 """SDK custom-code budget gate. Run only from a trusted checkout, never PR code.
 
 Reuses Castiron's vendored snapshot verifier and generated-file accounting. This
-file and its workflow are maintained in the SDK repository.
+file and its workflows are generated from shared Castiron templates.
 """
 
 from __future__ import annotations

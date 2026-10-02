@@ -1,3 +1,4 @@
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 """Trusted GitHub evaluation with real local Git objects and an offline API."""
 
 from __future__ import annotations
