@@ -89,6 +89,15 @@ class ResponseStream(Generic[TextFormatT]):
 
         return response
 
+    def get_abort_reconciliation_items(self) -> List[Dict[str, Any]]:
+        """Returns a list of synthetic function_call_output items for any pending tool calls.
+        
+        This should be used if the stream is closed before it has been read to completion
+        to ensure that the conversation state remains consistent.
+        """
+        return self._state.get_abort_reconciliation_items()
+
+
     def until_done(self) -> Self:
         """Blocks until the stream has been consumed."""
         consume_sync_iterator(self)
@@ -190,6 +199,15 @@ class AsyncResponseStream(Generic[TextFormatT]):
             raise RuntimeError("Didn't receive a `response.completed` event.")
 
         return response
+
+    def get_abort_reconciliation_items(self) -> List[Dict[str, Any]]:
+        """Returns a list of synthetic function_call_output items for any pending tool calls.
+        
+        This should be used if the stream is closed before it has been read to completion
+        to ensure that the conversation state remains consistent.
+        """
+        return self._state.get_abort_reconciliation_items()
+
 
     async def until_done(self) -> Self:
         """Blocks until the stream has been consumed."""
