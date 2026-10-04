@@ -569,3 +569,106 @@ With `AsyncOpenAI`, await creation, use `async with` / `async for`, and await
 `get_final_result()`. The result exposes `output_text`, `turn`, final `messages`,
 `session_id`, and `turn_id`. Collection raises `AgentTurnResultError` when a complete
 successful answer cannot be established.
+
+## Typed beta Agents tools
+
+Bind an annotated function or bound method once, then reuse its definition and local handler:
+
+```py
+from openai.lib.beta.agents import function_tool
+
+@function_tool(name="lookup_item", description="Look up a catalog item.")
+def lookup(item_id: str) -> dict[str, str]:
+    return {"item_id": item_id, "name": "Notebook"}
+
+# Include lookup.definition in agent={"model": MODEL, "tools": [...]} when creating a session.
+with client.beta.agents.sessions.stream(
+    SESSION_ID, input="Find catalog item A123.", tool_handlers={lookup.name: lookup},
+) as stream:
+    stream.until_done()
+```
+
+For an existing Pydantic argument model, use an explicit binding:
+
+```py
+from pydantic import BaseModel
+from openai.lib.beta.agents import pydantic_function_tool
+
+class LookupArguments(BaseModel):
+    item_id: str
+
+lookup = pydantic_function_tool(
+    LookupArguments, name="lookup_item", handler=catalog.lookup,
+)
+# catalog.lookup receives a validated LookupArguments instance.
+```
+
+Callbacks can be async when used with `AsyncOpenAI`. Existing dictionary handlers still work.
+
+### Typed Agents output (beta)
+
+Pass a Pydantic model (or a Pydantic v2 dataclass) to generate the Agents output
+schema and parse the completed answer. Schemas use the same normalization as
+Responses; the API validates which schema features it supports.
+
+```python
+from pydantic import BaseModel
+
+class Report(BaseModel):
+    summary: str
+    findings: list[str]
+
+with client.beta.agents.sessions.create(
+    agent={"model": MODEL}, environment={"type": "none"},
+    input="Summarize the findings.", stream=True, output_type=Report,
+) as stream:
+    result = stream.get_final_result()
+print(result.output_parsed)
+```
+
+For a session already configured with that schema, use
+`sessions.stream(session_id, input="Update the report.", output_type=Report)`.
+This only selects the local parser; it does not change the session's schema.
+`output_parsed` exposes the first parsed final text part; every final text part is validated.
+`result.parse(Report)` parses an existing raw result. `AgentOutputParseError.result`
+retains the completed raw answer if validation fails. With `AsyncOpenAI`, await
+creation and the result getter, and use `async with`.
+
+### Stage files and download a turn artifact
+
+```python
+from pathlib import Path
+
+prepared = client.beta.agents.environments.files.prepare({
+    "/workspace/source.pdf": Path("source.pdf"),
+})
+session = client.beta.agents.sessions.create(
+    agent={"model": MODEL},
+    environment={"type": "openai_hosted", "files": prepared.files},
+)
+with client.beta.agents.sessions.stream(
+    session.id, input="Read source.pdf and write /workspace/outputs/report.md."
+) as stream:
+    result = stream.get_final_result()
+
+artifacts = client.beta.agents.sessions.artifacts.for_result(result)
+
+# Read in memory, or stream to an application-owned local path.
+report_bytes = artifacts.content("/workspace/outputs/report.md").content
+artifact = artifacts.download(
+    "/workspace/outputs/report.md", to=Path("downloaded-report.md")
+)
+```
+
+Use `prepare_directory("docs", destination="/workspace/docs", include=["**/*.md"])`
+for a selected directory snapshot, or `files.upload(environment_id, file=Path(...),
+path="/workspace/source.pdf")` to stage a file in an existing environment.
+Directory selection follows `Path.glob` semantics, including skipping unreadable directories.
+Uploads remain caller-owned: use `prepared.uploaded_file_ids` with the ordinary
+Files API when ready to delete them. Preparation errors expose partial uploads
+through `error.prepared`. A batch of multiple uploads cannot share one explicit
+`Idempotency-Key`.
+
+Local path/directory uploads are intended for static application-owned files and
+stable directories. They do not sandbox untrusted path selection or hostile local
+filesystem writers. With `AsyncOpenAI`, await preparation, staging, and artifact downloads.

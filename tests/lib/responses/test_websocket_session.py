@@ -800,6 +800,93 @@ async def test_uncertain_send_is_not_replayed_after_existing_recovery(
 
 
 @pytest.mark.parametrize("mode", ["sync", "async"])
+@pytest.mark.parametrize("beta", [False, True], ids=["stable", "beta"])
+@pytest.mark.parametrize("raw", [False, True], ids=["typed", "raw"])
+async def test_connection_does_not_replay_an_uncertain_create(
+    mode: str, beta: bool, raw: bool, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    requests: list[dict[str, Any]] = []
+
+    def reject_raw(_data: bytes | str) -> None:
+        raise ValueError("Synthetic application policy: raw sends are disabled")
+
+    def reconnect(_event: ReconnectingEvent) -> ReconnectingOverrides:
+        return {"extra_headers": {"X-Recovery": "fresh"}}
+
+    def script(socket: ServerConnection) -> None:
+        assert socket.request is not None
+        if socket.request.headers.get("X-Recovery") == "fresh":
+            socket.send(json.dumps({"type": "response.future", "restored": True}))
+            while True:
+                received = json.loads(socket.recv(timeout=5))
+                requests.append(received)
+                if received == fresh_request:
+                    break
+        else:
+            requests.append(json.loads(socket.recv(timeout=5)))
+            socket.close(code=1011)
+
+    request = {"type": "response.create", "input": "synthetic uncertain request"}
+    fresh_request = {"type": "response.create", "input": "synthetic fresh work"}
+    with script_server(script, expected_connections=2) as url:
+        if mode == "sync":
+            with OpenAI(api_key="fake-key", base_url=url, http_client=httpx2.Client(trust_env=False)) as client:
+                resource = client.beta.responses if beta else client.responses
+                with resource.connect(on_reconnecting=reconnect, initial_delay=0, max_retries=1) as connection:
+                    if not raw:
+                        monkeypatch.setattr(connection, "send_raw", reject_raw)
+                    original_send = connection._connection.send
+
+                    def uncertain_send(data: Any) -> None:
+                        original_send(data)
+                        raise OSError("Synthetic failure after write")
+
+                    monkeypatch.setattr(connection._connection, "send", uncertain_send)
+                    with pytest.raises(OSError, match="Synthetic failure after write"):
+                        if raw:
+                            connection.send_raw(json.dumps(request))
+                        else:
+                            connection.send({"type": "response.create", "input": "synthetic uncertain request"})
+                    assert next(iter(connection)).to_dict()["restored"] is True
+                    if raw:
+                        connection.send_raw(json.dumps(fresh_request))
+                    else:
+                        connection.send({"type": "response.create", "input": "synthetic fresh work"})
+        else:
+            async with AsyncOpenAI(
+                api_key="fake-key", base_url=url, http_client=httpx2.AsyncClient(trust_env=False)
+            ) as async_client:
+                async_resource = async_client.beta.responses if beta else async_client.responses
+                async with async_resource.connect(
+                    on_reconnecting=reconnect, initial_delay=0, max_retries=1
+                ) as async_connection:
+                    if not raw:
+                        monkeypatch.setattr(async_connection, "send_raw", reject_raw)
+                    original_async_send = async_connection._connection.send
+
+                    async def uncertain_async_send(data: Any) -> None:
+                        await original_async_send(data)
+                        raise OSError("Synthetic failure after write")
+
+                    monkeypatch.setattr(async_connection._connection, "send", uncertain_async_send)
+                    with pytest.raises(OSError, match="Synthetic failure after write"):
+                        if raw:
+                            await async_connection.send_raw(json.dumps(request))
+                        else:
+                            await async_connection.send(
+                                {"type": "response.create", "input": "synthetic uncertain request"}
+                            )
+                    event = await asyncio.wait_for(anext(aiter(async_connection)), timeout=5)
+                    assert event.to_dict()["restored"] is True
+                    if raw:
+                        await async_connection.send_raw(json.dumps(fresh_request))
+                    else:
+                        await async_connection.send({"type": "response.create", "input": "synthetic fresh work"})
+
+    assert requests == [request, fresh_request]
+
+
+@pytest.mark.parametrize("mode", ["sync", "async"])
 async def test_early_clean_close_is_not_a_completed_response(mode: str) -> None:
     def script(socket: ServerConnection) -> None:
         socket.recv(timeout=5)
@@ -1353,8 +1440,9 @@ async def test_sync_recovery_before_send_preparation_preserves_lane(
                 assert recovered.wait(5)
                 with session._router.condition:
                     assert session._router.condition.wait_for(
-                        lambda: session.connection._connection is not previous
-                        and not session.connection._is_reconnecting,
+                        lambda: (
+                            session.connection._connection is not previous and not session.connection._is_reconnecting
+                        ),
                         timeout=5,
                     )
                 if recover_before_check:

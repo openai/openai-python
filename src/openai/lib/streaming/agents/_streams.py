@@ -4,7 +4,7 @@ import inspect
 from copy import deepcopy
 from uuid import uuid4
 from types import TracebackType
-from typing import TYPE_CHECKING, Mapping, Iterable, Iterator, AsyncIterator
+from typing import TYPE_CHECKING, Any, Generic, Mapping, Iterable, Iterator, AsyncIterator
 from collections import deque
 from typing_extensions import Self, TypedDict
 
@@ -15,7 +15,13 @@ from ._types import ToolHandler, AsyncToolHandler
 from ...._types import Omit, Headers, NotGiven, omit, not_given
 from ...._streaming import Stream, AsyncStream
 from ...._exceptions import BadRequestError
-from ...beta.agents._result import AgentTurnResult, AgentTurnResultError, AgentTurnResultCollection
+from ...beta.agents._result import (
+    OutputT,
+    AgentTurnResult,
+    AgentTurnResultError,
+    AgentOutputParseError,
+    AgentTurnResultCollection,
+)
 from ....types.beta.agent_session_event import AgentSessionEvent
 from ....types.beta.agent_function_call_item import AgentFunctionCallItem
 from ....types.beta.agent_session_input_param import (
@@ -110,7 +116,7 @@ class _TurnState:
         return call
 
 
-class AgentSessionStream:
+class AgentSessionStream(Generic[OutputT]):
     """Submit input to an idle session and stream through the resulting turn's terminal session event.
 
     Use as a context manager. Only one caller may submit input to this session while
@@ -133,6 +139,7 @@ class AgentSessionStream:
         session_id: str,
         *,
         input: str | Iterable[AgentSessionInputMessageParam],
+        output_type: type[OutputT] | None = None,
         tool_handlers: Mapping[str, ToolHandler] | None = None,
         idempotency_key: str | Omit = omit,
         extra_headers: Headers | None = None,
@@ -145,7 +152,7 @@ class AgentSessionStream:
         self._idempotency_key = _input_key(idempotency_key, extra_headers)
         self._options = _request_options({"extra_headers": extra_headers, "timeout": timeout})
         self._state = _TurnState()
-        self._collection = AgentTurnResultCollection(session_id)
+        self._collection: AgentTurnResultCollection[OutputT] = AgentTurnResultCollection(session_id, output_type)
         self._stream: Stream[AgentSessionEvent] | None = None
         self._iterator: Iterator[AgentSessionEvent] | None = None
         self._entered = False
@@ -196,7 +203,7 @@ class AgentSessionStream:
         self._collection.enable()
         return self
 
-    def get_final_result(self) -> AgentTurnResult:
+    def get_final_result(self) -> AgentTurnResult[OutputT]:
         """Beta: drain this turn, executing handlers, and collect its final answer.
 
         Raises AgentTurnResultError when a successful complete result cannot be
@@ -212,8 +219,8 @@ class AgentSessionStream:
                     collector.check_outcome(self._handlers)
                     if collector.is_done():
                         break
-            return collector.result()
-        except AgentTurnResultError:
+            return self._collection.result()
+        except (AgentTurnResultError, AgentOutputParseError):
             raise
         except Exception as error:
             self._collection.record_error(error)
@@ -247,7 +254,13 @@ class AgentSessionStream:
                     return
                 if call is not None and handler is not None:
                     try:
-                        result = result_event(call, handler(arguments(call)))
+                        output: Any = handler(arguments(call))
+                        if inspect.isawaitable(output):
+                            close = getattr(output, "close", None)
+                            if callable(close):
+                                close()
+                            raise TypeError("Async tool handlers require AsyncOpenAI")
+                        result = result_event(call, output)
                     except Exception:
                         result = failed_event(call)
                     self._submit_result(result)
@@ -274,7 +287,7 @@ class AgentSessionStream:
                 self._sessions._sleep(delay)
 
 
-class AsyncAgentSessionStream:
+class AsyncAgentSessionStream(Generic[OutputT]):
     """Async counterpart of AgentSessionStream; use with ``async with``.
 
     Requires an idle session with a single input writer. Handlers may return a
@@ -289,6 +302,7 @@ class AsyncAgentSessionStream:
         session_id: str,
         *,
         input: str | Iterable[AgentSessionInputMessageParam],
+        output_type: type[OutputT] | None = None,
         tool_handlers: Mapping[str, AsyncToolHandler] | None = None,
         idempotency_key: str | Omit = omit,
         extra_headers: Headers | None = None,
@@ -301,7 +315,7 @@ class AsyncAgentSessionStream:
         self._idempotency_key = _input_key(idempotency_key, extra_headers)
         self._options = _request_options({"extra_headers": extra_headers, "timeout": timeout})
         self._state = _TurnState()
-        self._collection = AgentTurnResultCollection(session_id)
+        self._collection: AgentTurnResultCollection[OutputT] = AgentTurnResultCollection(session_id, output_type)
         self._stream: AsyncStream[AgentSessionEvent] | None = None
         self._iterator: AsyncIterator[AgentSessionEvent] | None = None
         self._entered = False
@@ -352,7 +366,7 @@ class AsyncAgentSessionStream:
         self._collection.enable()
         return self
 
-    async def get_final_result(self) -> AgentTurnResult:
+    async def get_final_result(self) -> AgentTurnResult[OutputT]:
         """Beta: drain this turn, executing handlers, and collect its final answer.
 
         Raises AgentTurnResultError when a successful complete result cannot be
@@ -368,8 +382,8 @@ class AsyncAgentSessionStream:
                     collector.check_outcome(self._handlers)
                     if collector.is_done():
                         break
-            return collector.result()
-        except AgentTurnResultError:
+            return self._collection.result()
+        except (AgentTurnResultError, AgentOutputParseError):
             raise
         except Exception as error:
             self._collection.record_error(error)

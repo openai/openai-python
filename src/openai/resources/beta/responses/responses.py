@@ -1504,6 +1504,9 @@ class Responses(SyncAPIResource):
             "/responses?beta=true",
             body=maybe_transform(
                 {
+                    "model": model,
+                    "stream": stream,
+                    "service_tier": service_tier,
                     "access_programs": access_programs,
                     "background": background,
                     "context_management": context_management,
@@ -1514,7 +1517,6 @@ class Responses(SyncAPIResource):
                     "max_output_tokens": max_output_tokens,
                     "max_tool_calls": max_tool_calls,
                     "metadata": metadata,
-                    "model": model,
                     "moderation": moderation,
                     "multi_agent": multi_agent,
                     "parallel_tool_calls": parallel_tool_calls,
@@ -1525,9 +1527,7 @@ class Responses(SyncAPIResource):
                     "prompt_cache_retention": prompt_cache_retention,
                     "reasoning": reasoning,
                     "safety_identifier": safety_identifier,
-                    "service_tier": service_tier,
                     "store": store,
-                    "stream": stream,
                     "stream_options": stream_options,
                     "temperature": temperature,
                     "text": text,
@@ -2046,13 +2046,13 @@ class Responses(SyncAPIResource):
             body=maybe_transform(
                 {
                     "model": model,
+                    "service_tier": service_tier,
                     "input": input,
                     "instructions": instructions,
                     "previous_response_id": previous_response_id,
                     "prompt_cache_key": prompt_cache_key,
                     "prompt_cache_options": prompt_cache_options,
                     "prompt_cache_retention": prompt_cache_retention,
-                    "service_tier": service_tier,
                 },
                 response_compact_params.ResponseCompactParams,
             ),
@@ -3522,6 +3522,9 @@ class AsyncResponses(AsyncAPIResource):
             "/responses?beta=true",
             body=await async_maybe_transform(
                 {
+                    "model": model,
+                    "stream": stream,
+                    "service_tier": service_tier,
                     "access_programs": access_programs,
                     "background": background,
                     "context_management": context_management,
@@ -3532,7 +3535,6 @@ class AsyncResponses(AsyncAPIResource):
                     "max_output_tokens": max_output_tokens,
                     "max_tool_calls": max_tool_calls,
                     "metadata": metadata,
-                    "model": model,
                     "moderation": moderation,
                     "multi_agent": multi_agent,
                     "parallel_tool_calls": parallel_tool_calls,
@@ -3543,9 +3545,7 @@ class AsyncResponses(AsyncAPIResource):
                     "prompt_cache_retention": prompt_cache_retention,
                     "reasoning": reasoning,
                     "safety_identifier": safety_identifier,
-                    "service_tier": service_tier,
                     "store": store,
-                    "stream": stream,
                     "stream_options": stream_options,
                     "temperature": temperature,
                     "text": text,
@@ -4064,13 +4064,13 @@ class AsyncResponses(AsyncAPIResource):
             body=await async_maybe_transform(
                 {
                     "model": model,
+                    "service_tier": service_tier,
                     "input": input,
                     "instructions": instructions,
                     "previous_response_id": previous_response_id,
                     "prompt_cache_key": prompt_cache_key,
                     "prompt_cache_options": prompt_cache_options,
                     "prompt_cache_retention": prompt_cache_retention,
-                    "service_tier": service_tier,
                 },
                 response_compact_params.ResponseCompactParams,
             ),
@@ -4342,11 +4342,7 @@ class AsyncResponsesConnection:
         if self._is_reconnecting:
             self._send_queue.enqueue(data)
             return
-        try:
-            await self._connection.send(data)
-        except Exception:
-            self._send_queue.enqueue(data)
-            raise
+        await self._connection.send(data)
 
     async def send_raw(self, data: bytes | str) -> None:
         if self._is_reconnecting:
@@ -4454,7 +4450,7 @@ class AsyncResponsesConnection:
             await self._connection.send(data)
 
         try:
-            await self._send_queue.flush_async(_send)
+            await self._send_queue.flush_async(_send, requeue_failed=False)
         except Exception:
             log.warning("Failed to flush send queue after reconnect")
 
@@ -4841,11 +4837,7 @@ class ResponsesConnection:
         if self._is_reconnecting:
             self._send_queue.enqueue(data)
             return
-        try:
-            self._connection.send(data)
-        except Exception:
-            self._send_queue.enqueue(data)
-            raise
+        self._connection.send(data)
 
     def send_raw(self, data: bytes | str) -> None:
         if self._is_reconnecting:
@@ -4947,7 +4939,7 @@ class ResponsesConnection:
     def _flush_send_queue(self) -> None:
         """Send all queued messages over the current connection."""
         try:
-            self._send_queue.flush_sync(lambda data: self._connection.send(data))
+            self._send_queue.flush_sync(lambda data: self._connection.send(data), requeue_failed=False)
         except Exception:
             log.warning("Failed to flush send queue after reconnect")
 
