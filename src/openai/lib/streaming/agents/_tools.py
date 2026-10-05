@@ -74,9 +74,11 @@ class ToolInvocation:
 
         parsed = arguments(self.call)
         self.stage = "execution"
-        if isinstance(handler, FunctionTool) and type(handler).__call__ is FunctionTool.__call__:
-            return cast(FunctionTool[Any], handler)._call(parsed, self.set_stage)
-        return handler(parsed)
+        if isinstance(handler, FunctionTool):
+            tool = cast(FunctionTool[Any], handler)
+            if type(tool).__call__ is FunctionTool[Any].__call__:
+                return tool._call(parsed, self.set_stage)
+        return cast(AsyncToolHandler, handler)(parsed)
 
     def failure(self, error: Exception) -> AgentToolError:
         return AgentToolError(
