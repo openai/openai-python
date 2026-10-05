@@ -103,7 +103,12 @@ __all__ = [
 if not _t.TYPE_CHECKING:
     from ._utils._resources_proxy import resources as resources
 
-from .lib import azure as _azure, bedrock as _bedrock, pydantic_function_tool as pydantic_function_tool
+from .lib import (
+    azure as _azure,
+    bedrock as _bedrock,
+    pydantic_function_tool as pydantic_function_tool,
+    pydantic_responses_function_tool as pydantic_responses_function_tool,
+)
 from .version import VERSION as VERSION
 from .lib.azure import AzureOpenAI as AzureOpenAI, AsyncAzureOpenAI as AsyncAzureOpenAI
 from .lib.bedrock import BedrockOpenAI as BedrockOpenAI, AsyncBedrockOpenAI as AsyncBedrockOpenAI
