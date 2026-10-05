@@ -691,3 +691,15 @@ def test_transplanted_method_keeps_module_visible_lexical_owner() -> None:
 def test_content_shaped_business_records_preserve_extra_fields(record: dict[str, str]) -> None:
     tool = function_tool(lambda: [record])
     assert json.loads(cast(str, tool({}))) == [record]
+
+
+def test_async_function_tool_returns_coroutine() -> None:
+    import asyncio
+
+    @function_tool
+    async def lookup(query: str) -> dict[str, str]:
+        return {"query": query}
+
+    output = lookup({"query": "test"})
+    assert asyncio.iscoroutine(output)
+    assert json.loads(asyncio.run(output)) == {"query": "test"}

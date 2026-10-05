@@ -69,6 +69,7 @@ from .....lib.streaming.agents import ToolHandler, AsyncToolHandler, AgentSessio
 from .....lib.beta.agents._output import bind_output_type, with_output_schema
 from .....lib.beta.agents._result import OutputT
 from .....types.beta.agent_session import AgentSession
+from .....lib.beta.agents._tool_error import ToolErrorHandler, AsyncToolErrorHandler
 from .....types.beta.environment_param import EnvironmentParam
 from .....types.beta.agent_session_deleted import AgentSessionDeleted
 from .....types.beta.agent_session_input_message_param import AgentSessionInputMessageParam
@@ -84,6 +85,7 @@ class Sessions(SyncAPIResource):
         input: str | Iterable[AgentSessionInputMessageParam],
         output_type: type[OutputT] | None = None,
         tool_handlers: Mapping[str, ToolHandler] | None = None,
+        on_tool_error: ToolErrorHandler | None = None,
         idempotency_key: str | Omit = omit,
         extra_headers: Headers | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
@@ -92,13 +94,17 @@ class Sessions(SyncAPIResource):
 
         Use as a context manager. Only one caller may submit input to the session
         while this helper runs. Optional tool handlers receive an arguments dict;
-        their results are submitted automatically. See AgentSessionStream for details.
+        their results are submitted automatically. Use on_tool_error alongside
+        tool_handlers to log or monitor local argument, handler, and output failures.
+        The callback does not receive API or stream errors. Ordinary observer
+        exceptions are ignored. See AgentSessionStream for details.
         """
         return AgentSessionStream(
             self,
             session_id,
             input=input,
             tool_handlers=tool_handlers,
+            on_tool_error=on_tool_error,
             output_type=output_type,
             idempotency_key=idempotency_key,
             extra_headers=extra_headers,
@@ -574,6 +580,7 @@ class AsyncSessions(AsyncAPIResource):
         input: str | Iterable[AgentSessionInputMessageParam],
         output_type: type[OutputT] | None = None,
         tool_handlers: Mapping[str, AsyncToolHandler] | None = None,
+        on_tool_error: AsyncToolErrorHandler | None = None,
         idempotency_key: str | Omit = omit,
         extra_headers: Headers | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
@@ -582,13 +589,17 @@ class AsyncSessions(AsyncAPIResource):
 
         Use as an async context manager. Only one caller may submit input to the session
         while this helper runs. Optional tool handlers receive an arguments dict;
-        their results are submitted automatically. See AsyncAgentSessionStream for details.
+        their results are submitted automatically. Use on_tool_error alongside
+        tool_handlers to log or monitor local argument, handler, and output failures.
+        The callback may be async; it does not receive API or stream errors.
+        Ordinary observer exceptions are ignored. See AsyncAgentSessionStream for details.
         """
         return AsyncAgentSessionStream(
             self,
             session_id,
             input=input,
             tool_handlers=tool_handlers,
+            on_tool_error=on_tool_error,
             output_type=output_type,
             idempotency_key=idempotency_key,
             extra_headers=extra_headers,

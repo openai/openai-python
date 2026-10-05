@@ -10,7 +10,7 @@ from typing_extensions import Self, TypedDict
 
 import httpx2
 
-from ._tools import arguments, failed_event, result_event, is_pending_call_race
+from ._tools import ToolInvocation, failed_event, result_event, is_pending_call_race
 from ._types import ToolHandler, AsyncToolHandler
 from ...._types import Omit, Headers, NotGiven, omit, not_given
 from ...._streaming import Stream, AsyncStream
@@ -22,6 +22,7 @@ from ...beta.agents._result import (
     AgentOutputParseError,
     AgentTurnResultCollection,
 )
+from ...beta.agents._tool_error import ToolErrorHandler, AsyncToolErrorHandler
 from ....types.beta.agent_session_event import AgentSessionEvent
 from ....types.beta.agent_function_call_item import AgentFunctionCallItem
 from ....types.beta.agent_session_input_param import (
@@ -141,6 +142,7 @@ class AgentSessionStream(Generic[OutputT]):
         input: str | Iterable[AgentSessionInputMessageParam],
         output_type: type[OutputT] | None = None,
         tool_handlers: Mapping[str, ToolHandler] | None = None,
+        on_tool_error: ToolErrorHandler | None = None,
         idempotency_key: str | Omit = omit,
         extra_headers: Headers | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
@@ -149,6 +151,7 @@ class AgentSessionStream(Generic[OutputT]):
         self._session_id = session_id
         self._input = _input_event(input)
         self._handlers = dict(tool_handlers or {})
+        self._on_tool_error = on_tool_error
         self._idempotency_key = _input_key(idempotency_key, extra_headers)
         self._options = _request_options({"extra_headers": extra_headers, "timeout": timeout})
         self._state = _TurnState()
@@ -253,16 +256,26 @@ class AgentSessionStream(Generic[OutputT]):
                 if terminal or self._closed:
                     return
                 if call is not None and handler is not None:
+                    invocation = ToolInvocation(self._session_id, call)
                     try:
-                        output: Any = handler(arguments(call))
+                        output: Any = invocation.invoke(handler)
                         if inspect.isawaitable(output):
                             close = getattr(output, "close", None)
                             if callable(close):
                                 close()
                             raise TypeError("Async tool handlers require AsyncOpenAI")
+                        invocation.stage = "output"
                         result = result_event(call, output)
-                    except Exception:
+                    except Exception as error:
                         result = failed_event(call)
+                        if self._on_tool_error is not None:
+                            try:
+                                notification: Any = self._on_tool_error(invocation.failure(error))
+                                # A sync stream cannot await an async observer.
+                                if inspect.iscoroutine(notification):
+                                    notification.close()
+                            except Exception:
+                                pass
                     self._submit_result(result)
             raise RuntimeError("Session event stream ended before the turn reached idle or failed")
         except Exception as error:
@@ -304,6 +317,7 @@ class AsyncAgentSessionStream(Generic[OutputT]):
         input: str | Iterable[AgentSessionInputMessageParam],
         output_type: type[OutputT] | None = None,
         tool_handlers: Mapping[str, AsyncToolHandler] | None = None,
+        on_tool_error: AsyncToolErrorHandler | None = None,
         idempotency_key: str | Omit = omit,
         extra_headers: Headers | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
@@ -312,6 +326,7 @@ class AsyncAgentSessionStream(Generic[OutputT]):
         self._session_id = session_id
         self._input = _input_event(input)
         self._handlers = dict(tool_handlers or {})
+        self._on_tool_error = on_tool_error
         self._idempotency_key = _input_key(idempotency_key, extra_headers)
         self._options = _request_options({"extra_headers": extra_headers, "timeout": timeout})
         self._state = _TurnState()
@@ -416,13 +431,22 @@ class AsyncAgentSessionStream(Generic[OutputT]):
                 if terminal or self._closed:
                     return
                 if call is not None and handler is not None:
+                    invocation = ToolInvocation(self._session_id, call)
                     try:
-                        output = handler(arguments(call))
+                        output = invocation.invoke(handler)
                         if inspect.isawaitable(output):
                             output = await output
+                        invocation.stage = "output"
                         result = result_event(call, output)
-                    except Exception:
+                    except Exception as error:
                         result = failed_event(call)
+                        if self._on_tool_error is not None:
+                            try:
+                                notification: Any = self._on_tool_error(invocation.failure(error))
+                                if inspect.isawaitable(notification):
+                                    await notification
+                            except Exception:
+                                pass
                     await self._submit_result(result)
             raise RuntimeError("Session event stream ended before the turn reached idle or failed")
         except Exception as error:
