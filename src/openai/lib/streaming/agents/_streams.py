@@ -275,6 +275,7 @@ class AgentSessionStream(Generic[OutputT]):
                                 if inspect.iscoroutine(notification):
                                     notification.close()
                             except Exception:
+                                # Observer failures must not change tool submission or the turn result.
                                 pass
                     self._submit_result(result)
             raise RuntimeError("Session event stream ended before the turn reached idle or failed")
@@ -446,6 +447,7 @@ class AsyncAgentSessionStream(Generic[OutputT]):
                                 if inspect.isawaitable(notification):
                                     await notification
                             except Exception:
+                                # Observer failures must not change tool submission or the turn result.
                                 pass
                     await self._submit_result(result)
             raise RuntimeError("Session event stream ended before the turn reached idle or failed")
