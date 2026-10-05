@@ -71,6 +71,7 @@ from .....lib.beta.agents._result import OutputT
 from .....types.beta.agent_session import AgentSession
 from .....lib.beta.agents._tool_error import ToolErrorHandler, AsyncToolErrorHandler
 from .....types.beta.environment_param import EnvironmentParam
+from .....lib.streaming.agents._dispatch import ToolDispatcher, AsyncToolDispatcher
 from .....types.beta.agent_session_deleted import AgentSessionDeleted
 from .....types.beta.agent_session_input_message_param import AgentSessionInputMessageParam
 
@@ -160,6 +161,7 @@ class Sessions(SyncAPIResource):
         *,
         environment: EnvironmentParam,
         output_type: type[OutputT] | None = None,
+        tool_handlers: Mapping[str, ToolHandler] | None = None,
         agent: session_create_params.Agent | Omit = omit,
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
@@ -215,6 +217,7 @@ class Sessions(SyncAPIResource):
         *,
         environment: EnvironmentParam,
         output_type: type[OutputT] | None = None,
+        tool_handlers: Mapping[str, ToolHandler] | None = None,
         stream: Literal[True],
         agent: session_create_params.Agent | Omit = omit,
         agent_id: str | Omit = omit,
@@ -270,6 +273,7 @@ class Sessions(SyncAPIResource):
         *,
         environment: EnvironmentParam,
         output_type: type[OutputT] | None = None,
+        tool_handlers: Mapping[str, ToolHandler] | None = None,
         stream: bool,
         agent: session_create_params.Agent | Omit = omit,
         agent_id: str | Omit = omit,
@@ -325,6 +329,7 @@ class Sessions(SyncAPIResource):
         *,
         environment: EnvironmentParam,
         output_type: type[OutputT] | None = None,
+        tool_handlers: Mapping[str, ToolHandler] | None = None,
         agent: session_create_params.Agent | Omit = omit,
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
@@ -340,6 +345,11 @@ class Sessions(SyncAPIResource):
     ) -> AgentSession | AgentSessionEventStream[OutputT]:
         extra_headers = {"OpenAI-Beta": "agents=v1", **(extra_headers or {})}
         agent = with_output_schema(agent, output_type)
+        if tool_handlers is not None and stream is not True:
+            raise ValueError("tool_handlers requires stream=True")
+        dispatcher = (
+            ToolDispatcher(self, tool_handlers, extra_headers=extra_headers, timeout=timeout) if tool_handlers else None
+        )
         return self._post(
             "/agents/sessions",
             body=maybe_transform(
@@ -357,7 +367,7 @@ class Sessions(SyncAPIResource):
                 else session_create_params.SessionCreateParamsNonStreaming,
             ),
             options=make_request_options(
-                post_parser=lambda response: bind_output_type(response, output_type),
+                post_parser=lambda response: bind_output_type(response, output_type, dispatcher),
                 extra_headers=extra_headers,
                 extra_query=extra_query,
                 extra_body=extra_body,
@@ -655,6 +665,7 @@ class AsyncSessions(AsyncAPIResource):
         *,
         environment: EnvironmentParam,
         output_type: type[OutputT] | None = None,
+        tool_handlers: Mapping[str, AsyncToolHandler] | None = None,
         agent: session_create_params.Agent | Omit = omit,
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
@@ -710,6 +721,7 @@ class AsyncSessions(AsyncAPIResource):
         *,
         environment: EnvironmentParam,
         output_type: type[OutputT] | None = None,
+        tool_handlers: Mapping[str, AsyncToolHandler] | None = None,
         stream: Literal[True],
         agent: session_create_params.Agent | Omit = omit,
         agent_id: str | Omit = omit,
@@ -765,6 +777,7 @@ class AsyncSessions(AsyncAPIResource):
         *,
         environment: EnvironmentParam,
         output_type: type[OutputT] | None = None,
+        tool_handlers: Mapping[str, AsyncToolHandler] | None = None,
         stream: bool,
         agent: session_create_params.Agent | Omit = omit,
         agent_id: str | Omit = omit,
@@ -820,6 +833,7 @@ class AsyncSessions(AsyncAPIResource):
         *,
         environment: EnvironmentParam,
         output_type: type[OutputT] | None = None,
+        tool_handlers: Mapping[str, AsyncToolHandler] | None = None,
         agent: session_create_params.Agent | Omit = omit,
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
@@ -835,6 +849,13 @@ class AsyncSessions(AsyncAPIResource):
     ) -> AgentSession | AsyncAgentSessionEventStream[OutputT]:
         extra_headers = {"OpenAI-Beta": "agents=v1", **(extra_headers or {})}
         agent = with_output_schema(agent, output_type)
+        if tool_handlers is not None and stream is not True:
+            raise ValueError("tool_handlers requires stream=True")
+        dispatcher = (
+            AsyncToolDispatcher(self, tool_handlers, extra_headers=extra_headers, timeout=timeout)
+            if tool_handlers
+            else None
+        )
         return await self._post(
             "/agents/sessions",
             body=await async_maybe_transform(
@@ -852,7 +873,7 @@ class AsyncSessions(AsyncAPIResource):
                 else session_create_params.SessionCreateParamsNonStreaming,
             ),
             options=make_request_options(
-                post_parser=lambda response: bind_output_type(response, output_type),
+                post_parser=lambda response: bind_output_type(response, output_type, dispatcher),
                 extra_headers=extra_headers,
                 extra_query=extra_query,
                 extra_body=extra_body,

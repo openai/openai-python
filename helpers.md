@@ -540,7 +540,7 @@ client.videos.create_and_poll(...)
 
 Both streamed session creation and the one-turn session helper can collect the final
 answer. Call `get_final_result()` directly, or enable `with_result_collection()`
-before iterating to display progress. Existing follow-up tool handlers continue to run while it drains.
+before iterating to display progress. Registered tool handlers run while either stream drains.
 
 ```python
 with client.beta.agents.sessions.create(
@@ -601,11 +601,12 @@ from openai.lib.beta.agents import function_tool
 def lookup(item_id: str) -> dict[str, str]:
     return {"item_id": item_id, "name": "Notebook"}
 
-# Include lookup.definition in agent={"model": MODEL, "tools": [...]} when creating a session.
-with client.beta.agents.sessions.stream(
-    SESSION_ID, input="Find catalog item A123.", tool_handlers={lookup.name: lookup},
+with client.beta.agents.sessions.create(
+    agent={"model": MODEL, "tools": [lookup.definition]},
+    environment={"type": "none"}, input="Find catalog item A123.",
+    stream=True, tool_handlers={lookup.name: lookup},
 ) as stream:
-    stream.until_done()
+    print(stream.get_final_result().output_text)
 ```
 
 For an existing Pydantic argument model, use an explicit binding:
@@ -623,7 +624,9 @@ lookup = pydantic_function_tool(
 # catalog.lookup receives a validated LookupArguments instance.
 ```
 
-Callbacks can be async when used with `AsyncOpenAI`. Existing dictionary handlers still work.
+Callbacks run after their call event is yielded. They can be async with `AsyncOpenAI`.
+The same `tool_handlers` mapping works with `sessions.stream()` for follow-up turns;
+creation requires `stream=True`. Existing dictionary handlers still work.
 
 For hosted tool search, set `defer_loading=True` on the Agents decorator,
 `pydantic_function_tool()`, or `FunctionTool` constructor. Register the same
