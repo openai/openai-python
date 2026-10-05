@@ -8,7 +8,6 @@ import pytest
 from pydantic import BaseModel
 
 import openai
-from openai import OpenAI, AsyncOpenAI, omit
 from openai._types import Omit
 from openai.types.responses import ToolParam
 
@@ -24,13 +23,13 @@ class LookupItem(BaseModel):
 @pytest.mark.parametrize("asynchronous", [False, True])
 @pytest.mark.parametrize("streaming", [False, True])
 @pytest.mark.parametrize("compatibility", [False, True])
-@pytest.mark.parametrize("defer_loading", [omit, False, True])
+@pytest.mark.parametrize("defer_loading", [openai.omit, False, True])
 async def test_deferred_typed_tool_request_and_parsing(
     asynchronous: bool, streaming: bool, compatibility: bool, defer_loading: bool | Omit
 ) -> None:
     if compatibility:
         tool: Any = openai.pydantic_function_tool(LookupItem, name="lookup_item")
-        if defer_loading is not omit:
+        if defer_loading is not openai.omit:
             tool["function"]["defer_loading"] = defer_loading
         # Applicable options added to the compatibility definition must survive conversion.
         tool["function"]["allowed_callers"] = ["direct"]
@@ -53,7 +52,7 @@ async def test_deferred_typed_tool_request_and_parsing(
         assert submitted["description"] == "Look up a catalog item."
         assert submitted["parameters"]["additionalProperties"] is False
         assert submitted["strict"] is True
-        if defer_loading is omit:
+        if defer_loading is openai.omit:
             assert "defer_loading" not in submitted
         else:
             assert submitted["defer_loading"] is defer_loading
@@ -73,7 +72,7 @@ async def test_deferred_typed_tool_request_and_parsing(
 
     transport = httpx2.MockTransport(respond)
     if asynchronous:
-        async with AsyncOpenAI(
+        async with openai.AsyncOpenAI(
             api_key="synthetic", http_client=httpx2.AsyncClient(transport=transport, trust_env=False)
         ) as client:
             if streaming:
@@ -82,7 +81,7 @@ async def test_deferred_typed_tool_request_and_parsing(
             else:
                 response = await client.responses.parse(model="test-model", input="Look up A123", tools=tools)
     else:
-        with OpenAI(
+        with openai.OpenAI(
             api_key="synthetic", http_client=httpx2.Client(transport=transport, trust_env=False)
         ) as sync_client:
             if streaming:
@@ -106,7 +105,7 @@ def test_deferred_tool_configuration_errors_are_api_errors(streaming: bool) -> N
 
     # Deliberately omit tool search: the SDK forwards the option and leaves validation to the API.
     tool = openai.pydantic_responses_function_tool(LookupItem, defer_loading=True)
-    with OpenAI(
+    with openai.OpenAI(
         api_key="synthetic", http_client=httpx2.Client(transport=httpx2.MockTransport(reject), trust_env=False)
     ) as client:
         with pytest.raises(openai.BadRequestError, match="Unsupported tool configuration"):
