@@ -611,13 +611,14 @@ Use `on_tool_error` to log or monitor failures in argument validation, handler
 execution, or output serialization. The callback receives an `AgentToolError`
 from `openai.lib.beta.agents`; its original exception stays local. The model
 still receives the generic tool failure, and the SDK does not log automatically.
+Exception messages and tracebacks may contain sensitive data; apply your
+application’s redaction policy before logging them.
 
 ```python
 def report_tool_error(failure):
     logger.error(
         "Tool %s failed during %s (call %s)",
         failure.tool_name, failure.stage, failure.call_id,
-        exc_info=(type(failure.error), failure.error, failure.error.__traceback__),
     )
 
 with client.beta.agents.sessions.stream(

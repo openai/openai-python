@@ -582,7 +582,9 @@ async def test_consumer_mutation_does_not_redirect_tool(sdk: OpenAI | AsyncOpenA
     assert server.body.closed
 
 
-@pytest.mark.parametrize("failure", ["json", "typed_arguments", "execution", "output", "typed_output", "success"])
+@pytest.mark.parametrize(
+    "failure", ["json", "typed_arguments", "execution", "output", "typed_output", "unicode", "success"]
+)
 async def test_tool_error_observer(sdk: OpenAI | AsyncOpenAI, server: Server, failure: str) -> None:
     from openai.lib.beta.agents import AgentToolError, function_tool
 
@@ -595,6 +597,8 @@ async def test_tool_error_observer(sdk: OpenAI | AsyncOpenAI, server: Server, fa
             raise original
         if failure in {"output", "typed_output"}:
             return {"value": object()}
+        if failure == "unicode":
+            return "\ud800"
         return "found"
 
     @function_tool
@@ -638,6 +642,8 @@ async def test_tool_error_observer(sdk: OpenAI | AsyncOpenAI, server: Server, fa
         from pydantic import ValidationError
 
         assert isinstance(error.error, ValidationError)
+    elif failure == "unicode":
+        assert isinstance(error.error, UnicodeEncodeError)
     else:
         assert isinstance(error.error, TypeError)
     assert server.inputs()[1] == {

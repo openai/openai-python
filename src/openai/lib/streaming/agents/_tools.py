@@ -7,6 +7,7 @@ from typing import Any, Dict, Mapping, cast
 from ._types import ToolOutput, ToolHandler, AsyncToolHandler
 from ...._utils import maybe_transform
 from ...._exceptions import BadRequestError
+from ...._utils._json import openapi_dumps
 from ...beta.agents._tool_error import AgentToolError, ToolErrorStage
 from ....types.beta.agent_function_call_item import AgentFunctionCallItem
 from ....types.beta.agent_session_input_param import SessionInputParamAgentSessionInputToolResult
@@ -28,7 +29,7 @@ def result_event(call: AgentFunctionCallItem, output: ToolOutput) -> SessionInpu
         output = list(output)
     # Use the same content normalization as events.create before checking JSON encoding.
     output = maybe_transform(output, AgentFunctionCallOutputParam)
-    json.dumps(output, allow_nan=False)
+    openapi_dumps(output)
     return {
         "type": "agent.session.input.tool_result",
         "turn_id": call.turn_id,
