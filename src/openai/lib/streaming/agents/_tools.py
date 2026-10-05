@@ -74,7 +74,7 @@ class ToolInvocation:
 
         parsed = arguments(self.call)
         self.stage = "execution"
-        if type(handler) is FunctionTool:
+        if isinstance(handler, FunctionTool) and type(handler).__call__ is FunctionTool.__call__:
             return cast(FunctionTool[Any], handler)._call(parsed, self.set_stage)
         return handler(parsed)
 

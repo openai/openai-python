@@ -750,3 +750,43 @@ def test_sync_stream_closes_async_observer(server: Server) -> None:
         ) as stream:
             stream.until_done()
     assert server.inputs()[1]["error"] == "Tool handler failed."
+
+
+@pytest.mark.parametrize("override_call", [False, True])
+async def test_function_tool_subclass_error_stage(
+    sdk: OpenAI | AsyncOpenAI, server: Server, override_call: bool
+) -> None:
+    from pydantic import BaseModel, ValidationError
+
+    from openai.lib.beta.agents import FunctionTool, AgentToolError
+
+    class Arguments(BaseModel):
+        query: str
+
+    class InheritedTool(FunctionTool[str]):
+        pass
+
+    original = RuntimeError("custom invocation")
+
+    class OverriddenTool(FunctionTool[str]):
+        @override
+        def __call__(self, arguments: dict[str, Any]) -> str:
+            assert arguments == {}
+            raise original
+
+    def handler(arguments: Arguments) -> str:
+        return arguments.query
+
+    tool = (OverriddenTool if override_call else InheritedTool)(
+        Arguments, handler, name="search", description="Search catalog"
+    )
+    observed: list[AgentToolError] = []
+    server.body = EventBody([turn_event("created"), call({}), turn_event("completed"), idle()])
+    await consume(sdk, input="Search", tool_handlers={"search": tool}, on_tool_error=observed.append)
+    assert len(observed) == 1
+    assert observed[0].stage == ("execution" if override_call else "arguments")
+    if override_call:
+        assert observed[0].error is original
+    else:
+        assert isinstance(observed[0].error, ValidationError)
+    assert server.inputs()[1]["error"] == "Tool handler failed."
