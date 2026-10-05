@@ -4082,6 +4082,8 @@ def _make_tools(tools: Iterable[ParseableToolParam] | Omit) -> List[ToolParam] |
             function.model,
         )
 
+        # Retain applicable options added to the compatibility definition.
+        new_tool.update({key: value for key, value in function.items() if key not in new_tool})
         converted_tools.append(new_tool.cast())
 
     return converted_tools

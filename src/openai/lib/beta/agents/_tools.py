@@ -12,7 +12,8 @@ from typing_extensions import Protocol, overload
 import pydantic
 
 from ._schema import model_schema
-from ...._utils import is_dict
+from ...._types import Omit, omit
+from ...._utils import is_dict, is_given
 from ...._compat import PYDANTIC_V1, model_dump, model_json, model_parse
 from ..._pydantic import resolve_ref
 from ._tool_error import ToolErrorStage
@@ -28,7 +29,8 @@ class FunctionTool(Generic[_OutputT]):
 
     Pass ``definition`` in the agent's tools and register this object as
     ``tool_handlers={tool.name: tool}`` on ``sessions.stream``. Arguments are
-    validated with Pydantic before invoking the application callback.
+    validated with Pydantic before invoking the application callback. Set
+    ``defer_loading=True`` with hosted tool search for on-demand discovery.
     """
 
     def __init__(
@@ -38,6 +40,7 @@ class FunctionTool(Generic[_OutputT]):
         *,
         name: str,
         description: str,
+        defer_loading: bool | Omit = omit,
     ) -> None:
         if not name:
             raise ValueError("Tool name must not be empty")
@@ -60,6 +63,9 @@ class FunctionTool(Generic[_OutputT]):
             "description": description,
             "parameters": parameters,
         }
+
+        if is_given(defer_loading):
+            self._definition["defer_loading"] = defer_loading
 
         self._model = model
         self._handler = handler
@@ -151,6 +157,7 @@ def pydantic_function_tool(  # type: ignore[overload-overlap]
     handler: Callable[[_ModelT], Awaitable[object]],
     name: str | None = None,
     description: str | None = None,
+    defer_loading: bool | Omit = omit,
 ) -> FunctionTool[Awaitable[ToolOutput]]: ...
 
 
@@ -161,6 +168,7 @@ def pydantic_function_tool(
     handler: Callable[[_ModelT], object],
     name: str | None = None,
     description: str | None = None,
+    defer_loading: bool | Omit = omit,
 ) -> FunctionTool[ToolOutput]: ...
 
 
@@ -170,6 +178,7 @@ def pydantic_function_tool(
     handler: Callable[[_ModelT], object],
     name: str | None = None,
     description: str | None = None,
+    defer_loading: bool | Omit = omit,
 ) -> FunctionTool[Any]:
     """Bind an explicit Pydantic argument model to a beta Agents callback.
 
@@ -184,6 +193,7 @@ def pydantic_function_tool(
         cast(Callable[[_ModelT], Any], handler),
         name=model.__name__ if name is None else name,
         description=(model.__doc__ or "") if description is None else description,
+        defer_loading=defer_loading,
     )
     tool._convert_output = True
     return tool
@@ -205,6 +215,7 @@ def function_tool(  # type: ignore[overload-overlap]
     *,
     name: str | None = None,
     description: str | None = None,
+    defer_loading: bool | Omit = omit,
 ) -> FunctionTool[Awaitable[ToolOutput]]: ...
 
 
@@ -214,6 +225,7 @@ def function_tool(
     *,
     name: str | None = None,
     description: str | None = None,
+    defer_loading: bool | Omit = omit,
 ) -> FunctionTool[ToolOutput]: ...
 
 
@@ -223,6 +235,7 @@ def function_tool(
     *,
     name: str | None = None,
     description: str | None = None,
+    defer_loading: bool | Omit = omit,
 ) -> _FunctionToolDecorator: ...
 
 
@@ -231,6 +244,7 @@ def function_tool(
     *,
     name: str | None = None,
     description: str | None = None,
+    defer_loading: bool | Omit = omit,
 ) -> FunctionTool[Any] | _FunctionToolDecorator:
     """Adapt an annotated function or bound method into a beta Agents tool.
 
@@ -243,7 +257,10 @@ def function_tool(
     Pydantic model when postponed types only exist in an enclosing local scope.
     """
     if function is None:
-        return cast(_FunctionToolDecorator, partial(function_tool, name=name, description=description))
+        return cast(
+            _FunctionToolDecorator,
+            partial(function_tool, name=name, description=description, defer_loading=defer_loading),
+        )
 
     signature = inspect.signature(function)
     annotation_source = inspect.unwrap(function)
@@ -317,4 +334,5 @@ def function_tool(
         handler=invoke_async if inspect.iscoroutinefunction(function) else invoke,
         name=function.__name__ if name is None else name,
         description=(inspect.getdoc(function) or "") if description is None else description,
+        defer_loading=defer_loading,
     )

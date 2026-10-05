@@ -570,6 +570,26 @@ With `AsyncOpenAI`, await creation, use `async with` / `async for`, and await
 `session_id`, and `turn_id`. Collection raises `AgentTurnResultError` when a complete
 successful answer cannot be established.
 
+## Deferred typed Responses tools
+
+Use `openai.pydantic_responses_function_tool()` for a flat Responses definition
+that retains Pydantic argument parsing in both `responses.parse()` and
+`responses.stream()`. Enable deferred loading alongside hosted tool search:
+
+```python
+tool = openai.pydantic_responses_function_tool(LookupItem, defer_loading=True)
+response = client.responses.parse(
+    model=MODEL, input="Find catalog item A123.",
+    tools=[{"type": "tool_search"}, tool],
+)
+for item in response.output:
+    if item.type == "function_call":
+        arguments = item.parsed_arguments  # LookupItem
+```
+
+The existing `pydantic_function_tool()` remains available for Chat Completions
+and its Responses compatibility path. The API validates tool-search configuration.
+
 ## Typed beta Agents tools
 
 Bind an annotated function or bound method once, then reuse its definition and local handler:
@@ -604,6 +624,20 @@ lookup = pydantic_function_tool(
 ```
 
 Callbacks can be async when used with `AsyncOpenAI`. Existing dictionary handlers still work.
+
+For hosted tool search, set `defer_loading=True` on the Agents decorator,
+`pydantic_function_tool()`, or `FunctionTool` constructor. Register the same
+handler as usual:
+
+```python
+@function_tool(defer_loading=True)
+def lookup_item(item_id: str) -> str:
+    """Look up a catalog item."""
+    return catalog.lookup(item_id)
+
+tools = [{"type": "tool_search"}, lookup_item.definition]
+handlers = {lookup_item.name: lookup_item}
+```
 
 ### Observing local tool failures
 
