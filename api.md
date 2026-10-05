@@ -755,8 +755,14 @@ from openai.types.beta.agents.sessions import Turn
 
 Methods:
 
-- <code title="get /agents/sessions/{session_id}/turns/{turn_id}">client.beta.agents.sessions.turns.<a href="./src/openai/resources/beta/agents/sessions/turns.py">retrieve</a>(turn_id, \*, session_id) -> <a href="./src/openai/types/beta/agents/sessions/turn.py">Turn</a></code>
-- <code title="get /agents/sessions/{session_id}/turns">client.beta.agents.sessions.turns.<a href="./src/openai/resources/beta/agents/sessions/turns.py">list</a>(session_id, \*\*<a href="src/openai/types/beta/agents/sessions/turn_list_params.py">params</a>) -> <a href="./src/openai/types/beta/agents/sessions/turn.py">SyncCursorPage[Turn]</a></code>
+- <code title="get /agents/sessions/{session_id}/turns/{turn_id}">client.beta.agents.sessions.turns.<a href="./src/openai/resources/beta/agents/sessions/turns/turns.py">retrieve</a>(turn_id, \*, session_id) -> <a href="./src/openai/types/beta/agents/sessions/turn.py">Turn</a></code>
+- <code title="get /agents/sessions/{session_id}/turns">client.beta.agents.sessions.turns.<a href="./src/openai/resources/beta/agents/sessions/turns/turns.py">list</a>(session_id, \*\*<a href="src/openai/types/beta/agents/sessions/turn_list_params.py">params</a>) -> <a href="./src/openai/types/beta/agents/sessions/turn.py">SyncCursorPage[Turn]</a></code>
+
+##### Items
+
+Methods:
+
+- <code title="get /agents/sessions/{session_id}/turns/{turn_id}/items">client.beta.agents.sessions.turns.items.<a href="./src/openai/resources/beta/agents/sessions/turns/items.py">list</a>(turn_id, \*, session_id, \*\*<a href="src/openai/types/beta/agents/sessions/turns/item_list_params.py">params</a>) -> <a href="./src/openai/types/beta/agent_session_item.py">SyncCursorPage[AgentSessionItem]</a></code>
 
 ## Responses
 

@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
-from typing import List, Union, Optional
+from typing import Dict, List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
 
 from ..._utils import PropertyInfo
@@ -16,6 +16,10 @@ __all__ = [
     "ToolChoiceLiveMCPToolChoiceParam",
     "Tool",
     "ToolWebSearch",
+    "ToolFileSearch",
+    "ToolCodeInterpreter",
+    "ToolShell",
+    "ToolImageGeneration",
 ]
 
 
@@ -71,7 +75,33 @@ class ToolWebSearch(BaseModel):
     """The tool type. Always `web_search`."""
 
 
-Tool: TypeAlias = Annotated[Union[FunctionTool, ToolWebSearch], PropertyInfo(discriminator="type")]
+class ToolFileSearch(BaseModel):
+    type: Literal["file_search"]
+
+
+class ToolCodeInterpreter(BaseModel):
+    type: Literal["code_interpreter"]
+
+
+class ToolShell(BaseModel):
+    """A Responses shell tool with a container_auto or container_reference environment.
+
+    Local execution and domain secrets are not supported.
+    """
+
+    environment: Dict[str, object]
+
+    type: Literal["shell"]
+
+
+class ToolImageGeneration(BaseModel):
+    type: Literal["image_generation"]
+
+
+Tool: TypeAlias = Annotated[
+    Union[FunctionTool, ToolWebSearch, ToolFileSearch, ToolCodeInterpreter, ToolShell, ToolImageGeneration],
+    PropertyInfo(discriminator="type"),
+]
 
 
 class ResponsesDelegationUpdateConfig(BaseModel):

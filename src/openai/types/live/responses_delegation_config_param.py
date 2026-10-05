@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Union, Iterable, Optional
+from typing import Dict, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from .function_tool_param import FunctionToolParam
@@ -16,6 +16,10 @@ __all__ = [
     "ToolChoiceLiveMCPToolChoiceParam",
     "Tool",
     "ToolWebSearch",
+    "ToolFileSearch",
+    "ToolCodeInterpreter",
+    "ToolShell",
+    "ToolImageGeneration",
 ]
 
 
@@ -71,7 +75,32 @@ class ToolWebSearch(TypedDict, total=False):
     """The tool type. Always `web_search`."""
 
 
-Tool: TypeAlias = Union[FunctionToolParam, ToolWebSearch]
+class ToolFileSearch(TypedDict, total=False):
+    type: Required[Literal["file_search"]]
+
+
+class ToolCodeInterpreter(TypedDict, total=False):
+    type: Required[Literal["code_interpreter"]]
+
+
+class ToolShell(TypedDict, total=False):
+    """A Responses shell tool with a container_auto or container_reference environment.
+
+    Local execution and domain secrets are not supported.
+    """
+
+    environment: Required[Dict[str, object]]
+
+    type: Required[Literal["shell"]]
+
+
+class ToolImageGeneration(TypedDict, total=False):
+    type: Required[Literal["image_generation"]]
+
+
+Tool: TypeAlias = Union[
+    FunctionToolParam, ToolWebSearch, ToolFileSearch, ToolCodeInterpreter, ToolShell, ToolImageGeneration
+]
 
 
 class ResponsesDelegationConfigParam(TypedDict, total=False):
