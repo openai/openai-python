@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import asyncio
 import inspect
 from typing import Any
 
@@ -164,7 +165,58 @@ async def test_handler_failure_sanitized_and_api_failure_propagates(
 
 async def test_nonstreaming_rejects_handlers(sdk: OpenAI | AsyncOpenAI, server: ResultServer) -> None:
     with pytest.raises(ValueError, match="stream=True"):
-        result = sdk.beta.agents.sessions.create(environment={"type": "none"}, tool_handlers={})
-        if inspect.isawaitable(result):
-            await result
+        if isinstance(sdk, AsyncOpenAI):
+            await sdk.beta.agents.sessions.create(environment={"type": "none"}, tool_handlers={})
+        else:
+            sdk.beta.agents.sessions.create(environment={"type": "none"}, tool_handlers={})
     assert not server.requests
+
+
+async def test_raw_wrapper_does_not_forward_response_control(sdk: OpenAI | AsyncOpenAI, server: ResultServer) -> None:
+    server.body = EventBody([call(), turn_event("created"), turn_event("completed"), idle()])
+
+    def handler(_arguments: object) -> str:
+        return "found"
+
+    if isinstance(sdk, AsyncOpenAI):
+        async with sdk.beta.agents.sessions.with_streaming_response.create(
+            agent={"model": "test-model"},
+            environment={"type": "none"},
+            input="Question",
+            stream=True,
+            tool_handlers={"search": handler},
+        ) as response:
+            stream = await response.parse()
+            await stream.get_final_result()
+    else:
+        with sdk.beta.agents.sessions.with_streaming_response.create(
+            agent={"model": "test-model"},
+            environment={"type": "none"},
+            input="Question",
+            stream=True,
+            tool_handlers={"search": handler},
+        ) as response:
+            stream = response.parse()
+            stream.get_final_result()
+    assert len(server.requests) == 2
+    assert "x-stainless-raw-response" not in server.requests[1].headers
+    assert server.body.closed
+
+
+async def test_raw_iteration_cancellation_closes_creation(sdk: OpenAI | AsyncOpenAI, server: ResultServer) -> None:
+    def sync_cancel(_arguments: object) -> str:
+        raise asyncio.CancelledError()
+
+    async def async_cancel(_arguments: object) -> str:
+        raise asyncio.CancelledError()
+
+    server.body = EventBody([call()])
+    stream = await create(sdk, tool_handlers={"search": async_cancel if isinstance(sdk, AsyncOpenAI) else sync_cancel})
+    with pytest.raises(asyncio.CancelledError):
+        if isinstance(sdk, AsyncOpenAI):
+            async for _ in stream:
+                pass
+        else:
+            list(stream)
+    assert len(server.requests) == 1
+    assert server.body.closed

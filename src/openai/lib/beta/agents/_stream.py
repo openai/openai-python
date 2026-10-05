@@ -36,6 +36,8 @@ class AgentSessionEventStream(Stream[AgentSessionEvent], Generic[OutputT]):
         except Exception as error:
             self._collection.record_error(error)
             raise
+        finally:
+            self.close()
 
     def with_result_collection(self) -> Self:
         """Beta: retain final messages for a result; call before consuming events."""
@@ -89,6 +91,8 @@ class AsyncAgentSessionEventStream(AsyncStream[AgentSessionEvent], Generic[Outpu
         except Exception as error:
             self._collection.record_error(error)
             raise
+        finally:
+            await self.close()
 
     def with_result_collection(self) -> Self:
         """Beta: retain final messages for a result; call before consuming events."""

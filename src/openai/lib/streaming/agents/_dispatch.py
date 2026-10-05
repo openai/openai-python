@@ -11,6 +11,7 @@ import httpx2
 from ._tools import arguments, failed_event, result_event, is_pending_call_race
 from ._types import ToolHandler, AsyncToolHandler
 from ...._types import Headers, NotGiven, not_given
+from ...._constants import RAW_RESPONSE_HEADER
 from ...._exceptions import BadRequestError
 from ....types.beta.agent_session_event import AgentSessionEvent
 from ....types.beta.agent_function_call_item import AgentFunctionCallItem
@@ -29,7 +30,11 @@ def _request_options(options: _RequestOptions) -> _RequestOptions:
     headers = options["extra_headers"]
     return {
         **options,
-        "extra_headers": {key: value for key, value in headers.items() if key.lower() != "idempotency-key"}
+        "extra_headers": {
+            key: value
+            for key, value in headers.items()
+            if key.lower() not in ("idempotency-key", RAW_RESPONSE_HEADER.lower())
+        }
         if headers is not None
         else None,
     }
