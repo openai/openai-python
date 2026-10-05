@@ -76,7 +76,8 @@ class ToolInvocation:
         self.stage = "execution"
         if isinstance(handler, FunctionTool):
             tool = cast(FunctionTool[Any], handler)
-            if type(tool).__call__ is FunctionTool[Any].__call__:
+            tool_type = cast(type[FunctionTool[Any]], FunctionTool)
+            if type(tool).__call__ is tool_type.__call__:
                 return tool._call(parsed, self.set_stage)
         return cast(AsyncToolHandler, handler)(parsed)
 
