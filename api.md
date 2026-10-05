@@ -762,7 +762,7 @@ Methods:
 
 Methods:
 
-- <code title="get /agents/sessions/{session_id}/turns/{turn_id}/items">client.beta.agents.sessions.turns.items.<a href="./src/openai/resources/beta/agents/sessions/turns/items.py">list</a>(turn_id, \*, session_id, \*\*<a href="src/openai/types/beta/agents/sessions/turns/item_list_params.py">params</a>) -> <a href="./src/openai/types/beta/agent_session_item.py">SyncCursorPage[AgentSessionItem]</a></code>
+- <code title="get /agents/sessions/{session_id}/turns/{turn_id}/items">client.beta.agents.sessions.turns.items.<a href="./src/openai/resources/beta/agents/sessions/turns/items.py">list</a>(turn_id, \*, session_id, \*\*<a href="src/openai/types/beta/agents/sessions/turns/item_list_params.py">params</a>) -> <a href="./src/openai/types/beta/agent_session_item.py">SyncConversationCursorPage[AgentSessionItem]</a></code>
 
 ## Responses
 

@@ -13,7 +13,7 @@ from ......_utils import path_template, maybe_transform
 from ......_compat import cached_property
 from ......_resource import SyncAPIResource, AsyncAPIResource
 from ......_response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
-from ......pagination import SyncCursorPage, AsyncCursorPage
+from ......pagination import SyncConversationCursorPage, AsyncConversationCursorPage
 from ......_base_client import AsyncPaginator, make_request_options
 from ......types.beta.agent_session_item import AgentSessionItem
 from ......types.beta.agents.sessions.turns import item_list_params
@@ -55,7 +55,7 @@ class Items(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> SyncCursorPage[AgentSessionItem]:
+    ) -> SyncConversationCursorPage[AgentSessionItem]:
         """
         Lists items belonging to one root-agent turn, including its interactions with
         subagents. See
@@ -88,7 +88,7 @@ class Items(SyncAPIResource):
             path_template(
                 "/agents/sessions/{session_id}/turns/{turn_id}/items", session_id=session_id, turn_id=turn_id
             ),
-            page=SyncCursorPage[AgentSessionItem],
+            page=SyncConversationCursorPage[AgentSessionItem],
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -142,7 +142,7 @@ class AsyncItems(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> AsyncPaginator[AgentSessionItem, AsyncCursorPage[AgentSessionItem]]:
+    ) -> AsyncPaginator[AgentSessionItem, AsyncConversationCursorPage[AgentSessionItem]]:
         """
         Lists items belonging to one root-agent turn, including its interactions with
         subagents. See
@@ -175,7 +175,7 @@ class AsyncItems(AsyncAPIResource):
             path_template(
                 "/agents/sessions/{session_id}/turns/{turn_id}/items", session_id=session_id, turn_id=turn_id
             ),
-            page=AsyncCursorPage[AgentSessionItem],
+            page=AsyncConversationCursorPage[AgentSessionItem],
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
