@@ -94,3 +94,24 @@ async def test_deferred_typed_tool_request_and_parsing(
     assert call.type == "function_call"
     assert isinstance(call.parsed_arguments, LookupItem)
     assert call.parsed_arguments.item_id == "A123"
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+def test_deferred_tool_configuration_errors_are_api_errors(streaming: bool) -> None:
+    def reject(request: httpx2.Request) -> httpx2.Response:
+        assert json.loads(request.content)["tools"][0]["defer_loading"] is True
+        return httpx2.Response(
+            400, json={"error": {"message": "Unsupported tool configuration", "type": "invalid_request_error"}}
+        )
+
+    # Deliberately omit tool search: the SDK forwards the option and leaves validation to the API.
+    tool = openai.pydantic_responses_function_tool(LookupItem, defer_loading=True)
+    with OpenAI(
+        api_key="synthetic", http_client=httpx2.Client(transport=httpx2.MockTransport(reject), trust_env=False)
+    ) as client:
+        with pytest.raises(openai.BadRequestError, match="Unsupported tool configuration"):
+            if streaming:
+                with client.responses.stream(model="test-model", input="Find A123", tools=[tool]) as stream:
+                    stream.get_final_response()
+            else:
+                client.responses.parse(model="test-model", input="Find A123", tools=[tool])
