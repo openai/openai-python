@@ -15,6 +15,7 @@ from ._schema import model_schema
 from ...._utils import is_dict
 from ...._compat import PYDANTIC_V1, model_dump, model_json, model_parse
 from ..._pydantic import resolve_ref
+from ._tool_error import ToolErrorStage
 from ...streaming.agents._types import ToolOutput
 from ....types.beta.agent_tool_param import AgentToolConfigParamFunction
 
@@ -60,10 +61,9 @@ class FunctionTool(Generic[_OutputT]):
             "parameters": parameters,
         }
 
-        def invoke(arguments: dict[str, Any]) -> _OutputT:
-            return handler(model_parse(model, arguments))
-
-        self._invoke = invoke
+        self._model = model
+        self._handler = handler
+        self._convert_output = False
 
     @property
     def name(self) -> str:
@@ -75,7 +75,31 @@ class FunctionTool(Generic[_OutputT]):
         return deepcopy(self._definition)
 
     def __call__(self, arguments: dict[str, Any]) -> _OutputT:
-        return self._invoke(arguments)
+        return self._call(arguments)
+
+    def _call(self, arguments: dict[str, Any], set_stage: Callable[[ToolErrorStage], None] | None = None) -> _OutputT:
+        if set_stage is not None:
+            set_stage("arguments")
+        parsed = model_parse(self._model, arguments)
+        if set_stage is not None:
+            set_stage("execution")
+        if self._convert_output and inspect.iscoroutinefunction(self._handler):
+
+            async def invoke_async() -> ToolOutput:
+                output = await cast(Awaitable[object], self._handler(parsed))
+                if set_stage is not None:
+                    set_stage("output")
+                return _tool_output(output)
+
+            return cast(_OutputT, invoke_async())
+        output = self._handler(parsed)
+        if not self._convert_output:
+            return output
+        if inspect.isawaitable(output):
+            return cast(_OutputT, _AwaitableToolOutput(output, set_stage))
+        if set_stage is not None:
+            set_stage("output")
+        return cast(_OutputT, _tool_output(output))
 
 
 def _tool_output(output: object) -> ToolOutput:
@@ -103,11 +127,14 @@ def _tool_output(output: object) -> ToolOutput:
 
 
 class _AwaitableToolOutput:
-    def __init__(self, output: Awaitable[object]) -> None:
+    def __init__(self, output: Awaitable[object], set_stage: Callable[[ToolErrorStage], None] | None = None) -> None:
         self._output = output
+        self._set_stage = set_stage
 
     def __await__(self) -> Generator[Any, None, ToolOutput]:
         output = yield from self._output.__await__()
+        if self._set_stage is not None:
+            self._set_stage("output")
         return _tool_output(output)
 
     def close(self) -> None:
@@ -152,21 +179,14 @@ def pydantic_function_tool(
     (such as union models) are unsupported; wrap a union in an ordinary model field.
     """
 
-    async def invoke_async(arguments: _ModelT) -> ToolOutput:
-        return _tool_output(await cast(Awaitable[object], handler(arguments)))
-
-    def invoke(arguments: _ModelT) -> ToolOutput | Awaitable[ToolOutput]:
-        output = handler(arguments)
-        if inspect.isawaitable(output):
-            return _AwaitableToolOutput(output)
-        return _tool_output(output)
-
-    return FunctionTool(
+    tool = FunctionTool[Any](
         model,
-        invoke_async if inspect.iscoroutinefunction(handler) else invoke,
+        cast(Callable[[_ModelT], Any], handler),
         name=model.__name__ if name is None else name,
         description=(model.__doc__ or "") if description is None else description,
     )
+    tool._convert_output = True
+    return tool
 
 
 class _FunctionToolDecorator(Protocol):

@@ -19,6 +19,7 @@ from ...beta.agents._result import (
     AgentOutputParseError,
     AgentTurnResultCollection,
 )
+from ...beta.agents._tool_error import ToolErrorHandler, AsyncToolErrorHandler
 from ....types.beta.agent_session_event import AgentSessionEvent
 from ....types.beta.agent_session_input_param import (
     SessionInputParamAgentSessionInputMessage,
@@ -110,6 +111,7 @@ class AgentSessionStream(Generic[OutputT]):
         input: str | Iterable[AgentSessionInputMessageParam],
         output_type: type[OutputT] | None = None,
         tool_handlers: Mapping[str, ToolHandler] | None = None,
+        on_tool_error: ToolErrorHandler | None = None,
         idempotency_key: str | Omit = omit,
         extra_headers: Headers | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
@@ -117,7 +119,9 @@ class AgentSessionStream(Generic[OutputT]):
         self._sessions = sessions
         self._session_id = session_id
         self._input = _input_event(input)
-        self._dispatcher = ToolDispatcher(sessions, tool_handlers, extra_headers=extra_headers, timeout=timeout)
+        self._dispatcher = ToolDispatcher(
+            sessions, tool_handlers, on_tool_error=on_tool_error, extra_headers=extra_headers, timeout=timeout
+        )
         self._handlers = self._dispatcher.handlers
         self._idempotency_key = _input_key(idempotency_key, extra_headers)
         self._options = _request_options({"extra_headers": extra_headers, "timeout": timeout})
@@ -245,6 +249,7 @@ class AsyncAgentSessionStream(Generic[OutputT]):
         input: str | Iterable[AgentSessionInputMessageParam],
         output_type: type[OutputT] | None = None,
         tool_handlers: Mapping[str, AsyncToolHandler] | None = None,
+        on_tool_error: AsyncToolErrorHandler | None = None,
         idempotency_key: str | Omit = omit,
         extra_headers: Headers | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
@@ -252,7 +257,9 @@ class AsyncAgentSessionStream(Generic[OutputT]):
         self._sessions = sessions
         self._session_id = session_id
         self._input = _input_event(input)
-        self._dispatcher = AsyncToolDispatcher(sessions, tool_handlers, extra_headers=extra_headers, timeout=timeout)
+        self._dispatcher = AsyncToolDispatcher(
+            sessions, tool_handlers, on_tool_error=on_tool_error, extra_headers=extra_headers, timeout=timeout
+        )
         self._handlers = self._dispatcher.handlers
         self._idempotency_key = _input_key(idempotency_key, extra_headers)
         self._options = _request_options({"extra_headers": extra_headers, "timeout": timeout})

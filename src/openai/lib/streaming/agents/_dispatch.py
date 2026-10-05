@@ -8,11 +8,12 @@ from typing_extensions import TypedDict
 
 import httpx2
 
-from ._tools import arguments, failed_event, result_event, is_pending_call_race
+from ._tools import ToolInvocation, failed_event, result_event, is_pending_call_race
 from ._types import ToolHandler, AsyncToolHandler
 from ...._types import Headers, NotGiven, not_given
 from ...._constants import RAW_RESPONSE_HEADER
 from ...._exceptions import BadRequestError
+from ...beta.agents._tool_error import ToolErrorHandler, AsyncToolErrorHandler
 from ....types.beta.agent_session_event import AgentSessionEvent
 from ....types.beta.agent_function_call_item import AgentFunctionCallItem
 from ....types.beta.agent_session_input_param import SessionInputParamAgentSessionInputToolResult
@@ -67,25 +68,38 @@ class ToolDispatcher(_Dispatcher[ToolHandler]):
         sessions: Sessions,
         handlers: Mapping[str, ToolHandler] | None,
         *,
+        on_tool_error: ToolErrorHandler | None = None,
         extra_headers: Headers | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> None:
         super().__init__(handlers)
         self._sessions = sessions
+        self._on_tool_error = on_tool_error
         self._options = _request_options({"extra_headers": extra_headers, "timeout": timeout})
 
     def dispatch(self, pending: tuple[str, AgentFunctionCallItem, ToolHandler]) -> None:
         session_id, call, handler = pending
+        invocation = ToolInvocation(session_id, call)
         try:
-            output: Any = handler(arguments(call))
+            output: Any = invocation.invoke(handler)
             if inspect.isawaitable(output):
                 close = getattr(output, "close", None)
                 if callable(close):
                     close()
                 raise TypeError("Async tool handlers require AsyncOpenAI")
+            invocation.stage = "output"
             result = result_event(call, output)
-        except Exception:
+        except Exception as error:
             result = failed_event(call)
+            if self._on_tool_error is not None:
+                try:
+                    notification: Any = self._on_tool_error(invocation.failure(error))
+                    # A sync stream cannot await an async observer.
+                    if inspect.iscoroutine(notification):
+                        notification.close()
+                except Exception:
+                    # Observer failures must not change tool submission or the turn result.
+                    pass
         self._submit_result(session_id, result)
 
     def _submit_result(self, session_id: str, result: SessionInputParamAgentSessionInputToolResult) -> None:
@@ -110,22 +124,34 @@ class AsyncToolDispatcher(_Dispatcher[AsyncToolHandler]):
         sessions: AsyncSessions,
         handlers: Mapping[str, AsyncToolHandler] | None,
         *,
+        on_tool_error: AsyncToolErrorHandler | None = None,
         extra_headers: Headers | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> None:
         super().__init__(handlers)
         self._sessions = sessions
+        self._on_tool_error = on_tool_error
         self._options = _request_options({"extra_headers": extra_headers, "timeout": timeout})
 
     async def dispatch(self, pending: tuple[str, AgentFunctionCallItem, AsyncToolHandler]) -> None:
         session_id, call, handler = pending
+        invocation = ToolInvocation(session_id, call)
         try:
-            output = handler(arguments(call))
+            output = invocation.invoke(handler)
             if inspect.isawaitable(output):
                 output = await output
+            invocation.stage = "output"
             result = result_event(call, output)
-        except Exception:
+        except Exception as error:
             result = failed_event(call)
+            if self._on_tool_error is not None:
+                try:
+                    notification: Any = self._on_tool_error(invocation.failure(error))
+                    if inspect.isawaitable(notification):
+                        await notification
+                except Exception:
+                    # Observer failures must not change tool submission or the turn result.
+                    pass
         await self._submit_result(session_id, result)
 
     async def _submit_result(self, session_id: str, result: SessionInputParamAgentSessionInputToolResult) -> None:

@@ -25,3 +25,4 @@ from ._artifacts import (
     AgentResultArtifacts as AgentResultArtifacts,
     AsyncAgentResultArtifacts as AsyncAgentResultArtifacts,
 )
+from ._tool_error import AgentToolError as AgentToolError
