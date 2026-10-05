@@ -605,6 +605,33 @@ lookup = pydantic_function_tool(
 
 Callbacks can be async when used with `AsyncOpenAI`. Existing dictionary handlers still work.
 
+### Observing local tool failures
+
+Use `on_tool_error` to log or monitor failures in argument validation, handler
+execution, or output serialization. The callback receives an `AgentToolError`
+from `openai.lib.beta.agents`; its original exception stays local. The model
+still receives the generic tool failure, and the SDK does not log automatically.
+Exception messages and tracebacks may contain sensitive data; apply your
+application’s redaction policy before logging them.
+
+```python
+def report_tool_error(failure):
+    logger.error(
+        "Tool %s failed during %s (call %s)",
+        failure.tool_name, failure.stage, failure.call_id,
+    )
+
+with client.beta.agents.sessions.stream(
+    SESSION_ID, input="Find catalog item A123.", tool_handlers=handlers,
+    on_tool_error=report_tool_error,
+) as stream:
+    stream.until_done()
+```
+
+`AsyncOpenAI` also accepts an async observer. Ordinary observer exceptions are
+ignored so the original tool failure can still be submitted; cancellation is
+not suppressed. Submission errors propagate normally without invoking this callback.
+
 ### Typed Agents output (beta)
 
 Pass a Pydantic model (or a Pydantic v2 dataclass) to generate the Agents output
