@@ -14,7 +14,7 @@ class FileObject(BaseModel):
     id: str
     """The file identifier, which can be referenced in the API endpoints."""
 
-    bytes: int
+    bytes: Optional[int] = None
     """The size of the file, in bytes.
 
     In a completed file upload response, this can be null when the file size is not
