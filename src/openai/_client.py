@@ -56,6 +56,7 @@ if TYPE_CHECKING:
         uploads,
         realtime,
         webhooks,
+        decisions,
         responses,
         containers,
         embeddings,
@@ -73,6 +74,7 @@ if TYPE_CHECKING:
     from .resources.batches import Batches, AsyncBatches
     from .resources.beta.beta import Beta, AsyncBeta
     from .resources.chat.chat import Chat, AsyncChat
+    from .resources.decisions import Decisions, AsyncDecisions
     from .resources.live.live import Live, AsyncLive
     from .resources.embeddings import Embeddings, AsyncEmbeddings
     from .resources.admin.admin import Admin, AsyncAdmin
@@ -198,6 +200,12 @@ class OpenAI(SyncAPIClient):
         )
 
         self._default_stream_cls = Stream
+
+    @cached_property
+    def decisions(self) -> Decisions:
+        from .resources.decisions import Decisions
+
+        return Decisions(self)
 
     @cached_property
     def completions(self) -> Completions:
@@ -630,6 +638,12 @@ class AsyncOpenAI(AsyncAPIClient):
         self._default_stream_cls = AsyncStream
 
     @cached_property
+    def decisions(self) -> AsyncDecisions:
+        from .resources.decisions import AsyncDecisions
+
+        return AsyncDecisions(self)
+
+    @cached_property
     def completions(self) -> AsyncCompletions:
         """
         Given a prompt, the model will return one or more predicted completions, and can also return the probabilities of alternative tokens at each position.
@@ -962,6 +976,12 @@ class OpenAIWithRawResponse:
         self._client = client
 
     @cached_property
+    def decisions(self) -> decisions.DecisionsWithRawResponse:
+        from .resources.decisions import DecisionsWithRawResponse
+
+        return DecisionsWithRawResponse(self._client.decisions)
+
+    @cached_property
     def completions(self) -> completions.CompletionsWithRawResponse:
         """
         Given a prompt, the model will return one or more predicted completions, and can also return the probabilities of alternative tokens at each position.
@@ -1136,6 +1156,12 @@ class AsyncOpenAIWithRawResponse:
 
     def __init__(self, client: AsyncOpenAI) -> None:
         self._client = client
+
+    @cached_property
+    def decisions(self) -> decisions.AsyncDecisionsWithRawResponse:
+        from .resources.decisions import AsyncDecisionsWithRawResponse
+
+        return AsyncDecisionsWithRawResponse(self._client.decisions)
 
     @cached_property
     def completions(self) -> completions.AsyncCompletionsWithRawResponse:
@@ -1314,6 +1340,12 @@ class OpenAIWithStreamedResponse:
         self._client = client
 
     @cached_property
+    def decisions(self) -> decisions.DecisionsWithStreamingResponse:
+        from .resources.decisions import DecisionsWithStreamingResponse
+
+        return DecisionsWithStreamingResponse(self._client.decisions)
+
+    @cached_property
     def completions(self) -> completions.CompletionsWithStreamingResponse:
         """
         Given a prompt, the model will return one or more predicted completions, and can also return the probabilities of alternative tokens at each position.
@@ -1488,6 +1520,12 @@ class AsyncOpenAIWithStreamedResponse:
 
     def __init__(self, client: AsyncOpenAI) -> None:
         self._client = client
+
+    @cached_property
+    def decisions(self) -> decisions.AsyncDecisionsWithStreamingResponse:
+        from .resources.decisions import AsyncDecisionsWithStreamingResponse
+
+        return AsyncDecisionsWithStreamingResponse(self._client.decisions)
 
     @cached_property
     def completions(self) -> completions.AsyncCompletionsWithStreamingResponse:

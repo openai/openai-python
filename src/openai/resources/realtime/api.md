@@ -90,7 +90,7 @@ from openai.types.realtime import (
     RealtimeTranslationSession,
     RealtimeTranslationSessionCloseEvent,
     RealtimeTranslationSessionClosedEvent,
-    RealtimeTranslationSessionCreateRequest,
+    RealtimeTranslationSessionCreateRequestParam,
     RealtimeTranslationSessionCreatedEvent,
     RealtimeTranslationSessionUpdateEvent,
     RealtimeTranslationSessionUpdateRequest,
