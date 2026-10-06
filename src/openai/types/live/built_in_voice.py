@@ -7,7 +7,6 @@ __all__ = ["BuiltInVoice"]
 BuiltInVoice: TypeAlias = Literal[
     "alloy",
     "ash",
-    "aube",
     "ballad",
     "beacon",
     "bossa",

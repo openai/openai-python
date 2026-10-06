@@ -5,21 +5,38 @@ from __future__ import annotations
 from typing import Dict, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
+from ..._types import SequenceNotStr
 from .function_tool_param import FunctionToolParam
 
 __all__ = [
     "ResponsesDelegationConfigParam",
     "Reasoning",
     "Text",
-    "ToolChoice",
-    "ToolChoiceLiveFunctionToolChoiceParam",
-    "ToolChoiceLiveMCPToolChoiceParam",
     "Tool",
     "ToolWebSearch",
     "ToolFileSearch",
     "ToolCodeInterpreter",
     "ToolShell",
+    "ToolShellEnvironment",
+    "ToolShellEnvironmentContainerAuto",
+    "ToolShellEnvironmentContainerAutoNetworkPolicy",
+    "ToolShellEnvironmentContainerAutoNetworkPolicyDisabled",
+    "ToolShellEnvironmentContainerAutoNetworkPolicyAllowlist",
+    "ToolShellEnvironmentContainerAutoSkill",
+    "ToolShellEnvironmentContainerAutoSkillSkillReference",
+    "ToolShellEnvironmentContainerAutoSkillInline",
+    "ToolShellEnvironmentContainerAutoSkillInlineSource",
+    "ToolShellEnvironmentContainerReference",
+    "ToolShellEnvironmentLocal",
+    "ToolShellEnvironmentLocalSkill",
     "ToolImageGeneration",
+    "ToolMcp",
+    "ToolCustom",
+    "ToolNamespace",
+    "ToolSearch",
+    "ToolProgrammaticToolCalling",
+    "ToolComputer",
+    "ToolApplyPatch",
 ]
 
 
@@ -49,25 +66,6 @@ class Text(TypedDict, total=False):
     """
 
 
-class ToolChoiceLiveFunctionToolChoiceParam(TypedDict, total=False):
-    name: Required[str]
-
-    type: Required[Literal["function"]]
-
-
-class ToolChoiceLiveMCPToolChoiceParam(TypedDict, total=False):
-    name: Required[str]
-
-    server_label: Required[str]
-
-    type: Required[Literal["mcp"]]
-
-
-ToolChoice: TypeAlias = Union[
-    Literal["auto", "none", "required"], ToolChoiceLiveFunctionToolChoiceParam, ToolChoiceLiveMCPToolChoiceParam
-]
-
-
 class ToolWebSearch(TypedDict, total=False):
     """A web search tool available to the Live session’s Responses backend."""
 
@@ -83,23 +81,173 @@ class ToolCodeInterpreter(TypedDict, total=False):
     type: Required[Literal["code_interpreter"]]
 
 
-class ToolShell(TypedDict, total=False):
-    """A Responses shell tool with a container_auto or container_reference environment.
+class ToolShellEnvironmentContainerAutoNetworkPolicyDisabled(TypedDict, total=False):
+    type: Required[Literal["disabled"]]
+    """Disable outbound network access. Always `disabled`."""
 
-    Local execution and domain secrets are not supported.
+
+class ToolShellEnvironmentContainerAutoNetworkPolicyAllowlist(TypedDict, total=False):
+    allowed_domains: Required[SequenceNotStr[str]]
+    """A list of allowed domains when type is `allowlist`."""
+
+    type: Required[Literal["allowlist"]]
+    """Allow outbound network access only to specified domains. Always `allowlist`."""
+
+
+ToolShellEnvironmentContainerAutoNetworkPolicy: TypeAlias = Union[
+    ToolShellEnvironmentContainerAutoNetworkPolicyDisabled, ToolShellEnvironmentContainerAutoNetworkPolicyAllowlist
+]
+
+
+class ToolShellEnvironmentContainerAutoSkillSkillReference(TypedDict, total=False):
+    skill_id: Required[str]
+    """The ID of the referenced skill."""
+
+    type: Required[Literal["skill_reference"]]
+    """References a skill created with the /v1/skills endpoint."""
+
+    version: Optional[str]
+    """Optional skill version. Use a positive integer or 'latest'. Omit for default."""
+
+
+class ToolShellEnvironmentContainerAutoSkillInlineSource(TypedDict, total=False):
+    """Inline skill payload"""
+
+    data: Required[str]
+    """Base64-encoded skill zip bundle."""
+
+    media_type: Required[Literal["application/zip"]]
+    """The media type of the inline skill payload. Must be `application/zip`."""
+
+    type: Required[Literal["base64"]]
+    """The type of the inline skill source. Must be `base64`."""
+
+
+class ToolShellEnvironmentContainerAutoSkillInline(TypedDict, total=False):
+    description: Required[str]
+    """The description of the skill."""
+
+    name: Required[str]
+    """The name of the skill."""
+
+    source: Required[ToolShellEnvironmentContainerAutoSkillInlineSource]
+    """Inline skill payload"""
+
+    type: Required[Literal["inline"]]
+    """Defines an inline skill for this request."""
+
+
+ToolShellEnvironmentContainerAutoSkill: TypeAlias = Union[
+    ToolShellEnvironmentContainerAutoSkillSkillReference, ToolShellEnvironmentContainerAutoSkillInline
+]
+
+
+class ToolShellEnvironmentContainerAuto(TypedDict, total=False):
+    type: Required[Literal["container_auto"]]
+    """Automatically creates a container for this request"""
+
+    file_ids: Optional[SequenceNotStr[str]]
+    """An optional list of uploaded files to make available to your code."""
+
+    memory_limit: Optional[Literal["1g", "4g", "16g", "64g"]]
+    """The memory limit for the container."""
+
+    network_policy: Optional[ToolShellEnvironmentContainerAutoNetworkPolicy]
+    """Network access policy for the container."""
+
+    skills: Optional[Iterable[ToolShellEnvironmentContainerAutoSkill]]
+    """An optional list of skills referenced by id or inline data."""
+
+
+class ToolShellEnvironmentContainerReference(TypedDict, total=False):
+    container_id: Required[str]
+    """The ID of the referenced container."""
+
+    type: Required[Literal["container_reference"]]
+    """References a container created with the /v1/containers endpoint"""
+
+
+class ToolShellEnvironmentLocalSkill(TypedDict, total=False):
+    description: Required[str]
+    """The description of the skill."""
+
+    name: Required[str]
+    """The name of the skill."""
+
+    path: Required[str]
+    """The path to the directory containing the skill."""
+
+
+class ToolShellEnvironmentLocal(TypedDict, total=False):
+    type: Required[Literal["local"]]
+    """Use a local computer environment."""
+
+    skills: Optional[Iterable[ToolShellEnvironmentLocalSkill]]
+    """An optional list of skills."""
+
+
+ToolShellEnvironment: TypeAlias = Union[
+    ToolShellEnvironmentContainerAuto, ToolShellEnvironmentContainerReference, ToolShellEnvironmentLocal
+]
+
+
+class ToolShell(TypedDict, total=False):
+    """A Responses shell tool.
+
+    Use a hosted container or return local shell results with response.item.create. Domain secrets are not supported.
     """
 
-    environment: Required[Dict[str, object]]
-
     type: Required[Literal["shell"]]
+
+    environment: Optional[ToolShellEnvironment]
 
 
 class ToolImageGeneration(TypedDict, total=False):
     type: Required[Literal["image_generation"]]
 
 
+class ToolMcp(TypedDict, total=False):
+    type: Required[Literal["mcp"]]
+
+
+class ToolCustom(TypedDict, total=False):
+    type: Required[Literal["custom"]]
+
+
+class ToolNamespace(TypedDict, total=False):
+    type: Required[Literal["namespace"]]
+
+
+class ToolSearch(TypedDict, total=False):
+    type: Required[Literal["tool_search"]]
+
+
+class ToolProgrammaticToolCalling(TypedDict, total=False):
+    type: Required[Literal["programmatic_tool_calling"]]
+
+
+class ToolComputer(TypedDict, total=False):
+    type: Required[Literal["computer"]]
+
+
+class ToolApplyPatch(TypedDict, total=False):
+    type: Required[Literal["apply_patch"]]
+
+
 Tool: TypeAlias = Union[
-    FunctionToolParam, ToolWebSearch, ToolFileSearch, ToolCodeInterpreter, ToolShell, ToolImageGeneration
+    FunctionToolParam,
+    ToolWebSearch,
+    ToolFileSearch,
+    ToolCodeInterpreter,
+    ToolShell,
+    ToolImageGeneration,
+    ToolMcp,
+    ToolCustom,
+    ToolNamespace,
+    ToolSearch,
+    ToolProgrammaticToolCalling,
+    ToolComputer,
+    ToolApplyPatch,
 ]
 
 
@@ -136,7 +284,7 @@ class ResponsesDelegationConfigParam(TypedDict, total=False):
     text: Optional[Text]
     """Text generation settings passed to each delegated Responses request."""
 
-    tool_choice: ToolChoice
+    tool_choice: Union[Literal["auto", "none", "required"], Dict[str, object]]
     """
     Controls which tool the Responses backend uses when handling a task delegated by
     the Live model.
