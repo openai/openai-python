@@ -16,14 +16,6 @@ from .items import (
     ItemsWithStreamingResponse,
     AsyncItemsWithStreamingResponse,
 )
-from .turns import (
-    Turns,
-    AsyncTurns,
-    TurnsWithRawResponse,
-    AsyncTurnsWithRawResponse,
-    TurnsWithStreamingResponse,
-    AsyncTurnsWithStreamingResponse,
-)
 from .events import (
     Events,
     AsyncEvents,
@@ -51,6 +43,14 @@ from .artifacts import (
 from ....._types import Body, Omit, Query, Headers, NotGiven, SequenceNotStr, omit, not_given
 from ....._utils import path_template, required_args, maybe_transform, async_maybe_transform
 from ....._compat import cached_property
+from .turns.turns import (
+    Turns,
+    AsyncTurns,
+    TurnsWithRawResponse,
+    AsyncTurnsWithRawResponse,
+    TurnsWithStreamingResponse,
+    AsyncTurnsWithStreamingResponse,
+)
 from ....._resource import SyncAPIResource, AsyncAPIResource
 from ....._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from .....pagination import SyncCursorPage, AsyncCursorPage

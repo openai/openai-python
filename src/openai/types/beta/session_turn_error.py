@@ -14,6 +14,9 @@ class SessionTurnError(BaseModel):
         "context_length_exceeded",
         "session_budget_exceeded",
         "usage_limit_exceeded",
+        "project_spend_limit_exceeded",
+        "organization_spend_limit_exceeded",
+        "organization_usage_limit_exceeded",
         "credit_balance_exhausted",
         "rate_limit_exceeded",
         "flex_unavailable",
@@ -31,7 +34,40 @@ class SessionTurnError(BaseModel):
         "request_timeout",
         "internal_error",
     ]
-    """A stable, machine-readable failure category."""
+    """A stable, machine-readable failure category.
+
+    - `context_length_exceeded` - The request exceeds the model's context window.
+    - `session_budget_exceeded` - The session has reached its usage budget.
+    - `usage_limit_exceeded` - The organization has reached a usage, plan, or
+      billing limit.
+    - `project_spend_limit_exceeded` - The project has reached its enforced spend
+      limit.
+    - `organization_spend_limit_exceeded` - The organization has reached its
+      enforced spend limit.
+    - `organization_usage_limit_exceeded` - The organization has reached its
+      OpenAI-assigned usage limit.
+    - `credit_balance_exhausted` - The organization has no API credits remaining.
+    - `rate_limit_exceeded` - The request exceeds the available rate limit.
+    - `flex_unavailable` - Flex processing is temporarily unavailable.
+    - `server_overloaded` - The model service is temporarily overloaded.
+    - `cyber_policy` - The request was rejected by a safety policy.
+    - `misalignment_policy_violation` - The request was blocked by the safety
+      systems.
+    - `connection_failed` - The request could not connect to the model service.
+    - `server_error` - The model service encountered an unexpected error.
+    - `authentication_error` - The API credentials are invalid or lack the required
+      access.
+    - `invalid_request` - The request contains invalid input or configuration.
+    - `resource_not_found` - The requested model or resource is unavailable.
+    - `sandbox_error` - The request could not complete in its execution environment.
+    - `executor_version_incompatible` - The executor must be upgraded before it can
+      run this turn.
+    - `active_turn_not_steerable` - The session cannot accept additional input while
+      a request is running.
+    - `request_timeout` - The request timed out before the model service responded.
+    - `internal_error` - An unexpected internal error prevented the session request
+      from completing.
+    """
 
     message: str
     """A customer-safe explanation of the failure."""

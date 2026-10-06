@@ -33,8 +33,8 @@ class TemplateUpdateParams(TypedDict, total=False):
     network: Optional[Network]
     """Network access available after setup completes.
 
-    Omit to preserve the current policy, or pass `null` to reset to disabled for GA
-    requests or enabled for beta requests.
+    Omit to preserve the current policy, or pass `null` to reset to the default
+    policy.
     """
 
     packages: Optional[Packages]
@@ -60,7 +60,7 @@ class Desktop(TypedDict, total=False):
 class Network(TypedDict, total=False):
     """Network access available after setup completes.
 
-    Omit to preserve the current policy, or pass `null` to reset to disabled for GA requests or enabled for beta requests.
+    Omit to preserve the current policy, or pass `null` to reset to the default policy.
     """
 
     access: Required[Literal["enabled", "disabled", "restricted"]]
