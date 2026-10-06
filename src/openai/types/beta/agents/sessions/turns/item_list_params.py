@@ -11,7 +11,10 @@ class ItemListParams(TypedDict, total=False):
     session_id: Required[str]
 
     after: str
-    """Return resources after this resource ID in the selected order."""
+    """Return items after this cursor in the selected order.
+
+    Pass the previous response's last_id, which can differ from the last item's ID.
+    """
 
     limit: int
     """The maximum number of resources to return, between 1 and 100. Defaults to 20."""

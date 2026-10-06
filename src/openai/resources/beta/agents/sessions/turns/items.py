@@ -62,7 +62,8 @@ class Items(SyncAPIResource):
         [inspecting agent output](https://developers.openai.com/api/docs/guides/agents-api/observability).
 
         Args:
-          after: Return resources after this resource ID in the selected order.
+          after: Return items after this cursor in the selected order. Pass the previous
+              response's last_id, which can differ from the last item's ID.
 
           limit: The maximum number of resources to return, between 1 and 100. Defaults to 20.
 
@@ -149,7 +150,8 @@ class AsyncItems(AsyncAPIResource):
         [inspecting agent output](https://developers.openai.com/api/docs/guides/agents-api/observability).
 
         Args:
-          after: Return resources after this resource ID in the selected order.
+          after: Return items after this cursor in the selected order. Pass the previous
+              response's last_id, which can differ from the last item's ID.
 
           limit: The maximum number of resources to return, between 1 and 100. Defaults to 20.
 

@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
-from typing import Dict, List, Union, Optional
+from typing import List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
 
 from ..._utils import PropertyInfo
@@ -11,31 +11,11 @@ __all__ = [
     "ResponsesDelegationUpdateConfig",
     "Reasoning",
     "Text",
+    "ToolChoice",
+    "ToolChoiceLiveFunctionToolChoiceParam",
+    "ToolChoiceLiveMCPToolChoiceParam",
     "Tool",
     "ToolWebSearch",
-    "ToolFileSearch",
-    "ToolCodeInterpreter",
-    "ToolShell",
-    "ToolShellEnvironment",
-    "ToolShellEnvironmentContainerAuto",
-    "ToolShellEnvironmentContainerAutoNetworkPolicy",
-    "ToolShellEnvironmentContainerAutoNetworkPolicyDisabled",
-    "ToolShellEnvironmentContainerAutoNetworkPolicyAllowlist",
-    "ToolShellEnvironmentContainerAutoSkill",
-    "ToolShellEnvironmentContainerAutoSkillSkillReference",
-    "ToolShellEnvironmentContainerAutoSkillInline",
-    "ToolShellEnvironmentContainerAutoSkillInlineSource",
-    "ToolShellEnvironmentContainerReference",
-    "ToolShellEnvironmentLocal",
-    "ToolShellEnvironmentLocalSkill",
-    "ToolImageGeneration",
-    "ToolMcp",
-    "ToolCustom",
-    "ToolNamespace",
-    "ToolSearch",
-    "ToolProgrammaticToolCalling",
-    "ToolComputer",
-    "ToolApplyPatch",
 ]
 
 
@@ -65,6 +45,25 @@ class Text(BaseModel):
     """
 
 
+class ToolChoiceLiveFunctionToolChoiceParam(BaseModel):
+    name: str
+
+    type: Literal["function"]
+
+
+class ToolChoiceLiveMCPToolChoiceParam(BaseModel):
+    name: str
+
+    server_label: str
+
+    type: Literal["mcp"]
+
+
+ToolChoice: TypeAlias = Union[
+    Literal["auto", "none", "required"], ToolChoiceLiveFunctionToolChoiceParam, ToolChoiceLiveMCPToolChoiceParam
+]
+
+
 class ToolWebSearch(BaseModel):
     """A web search tool available to the Live session’s Responses backend."""
 
@@ -72,192 +71,7 @@ class ToolWebSearch(BaseModel):
     """The tool type. Always `web_search`."""
 
 
-class ToolFileSearch(BaseModel):
-    type: Literal["file_search"]
-
-
-class ToolCodeInterpreter(BaseModel):
-    type: Literal["code_interpreter"]
-
-
-class ToolShellEnvironmentContainerAutoNetworkPolicyDisabled(BaseModel):
-    type: Literal["disabled"]
-    """Disable outbound network access. Always `disabled`."""
-
-
-class ToolShellEnvironmentContainerAutoNetworkPolicyAllowlist(BaseModel):
-    allowed_domains: List[str]
-    """A list of allowed domains when type is `allowlist`."""
-
-    type: Literal["allowlist"]
-    """Allow outbound network access only to specified domains. Always `allowlist`."""
-
-
-ToolShellEnvironmentContainerAutoNetworkPolicy: TypeAlias = Annotated[
-    Union[
-        ToolShellEnvironmentContainerAutoNetworkPolicyDisabled,
-        ToolShellEnvironmentContainerAutoNetworkPolicyAllowlist,
-        None,
-    ],
-    PropertyInfo(discriminator="type"),
-]
-
-
-class ToolShellEnvironmentContainerAutoSkillSkillReference(BaseModel):
-    skill_id: str
-    """The ID of the referenced skill."""
-
-    type: Literal["skill_reference"]
-    """References a skill created with the /v1/skills endpoint."""
-
-    version: Optional[str] = None
-    """Optional skill version. Use a positive integer or 'latest'. Omit for default."""
-
-
-class ToolShellEnvironmentContainerAutoSkillInlineSource(BaseModel):
-    """Inline skill payload"""
-
-    data: str
-    """Base64-encoded skill zip bundle."""
-
-    media_type: Literal["application/zip"]
-    """The media type of the inline skill payload. Must be `application/zip`."""
-
-    type: Literal["base64"]
-    """The type of the inline skill source. Must be `base64`."""
-
-
-class ToolShellEnvironmentContainerAutoSkillInline(BaseModel):
-    description: str
-    """The description of the skill."""
-
-    name: str
-    """The name of the skill."""
-
-    source: ToolShellEnvironmentContainerAutoSkillInlineSource
-    """Inline skill payload"""
-
-    type: Literal["inline"]
-    """Defines an inline skill for this request."""
-
-
-ToolShellEnvironmentContainerAutoSkill: TypeAlias = Annotated[
-    Union[ToolShellEnvironmentContainerAutoSkillSkillReference, ToolShellEnvironmentContainerAutoSkillInline],
-    PropertyInfo(discriminator="type"),
-]
-
-
-class ToolShellEnvironmentContainerAuto(BaseModel):
-    type: Literal["container_auto"]
-    """Automatically creates a container for this request"""
-
-    file_ids: Optional[List[str]] = None
-    """An optional list of uploaded files to make available to your code."""
-
-    memory_limit: Optional[Literal["1g", "4g", "16g", "64g"]] = None
-    """The memory limit for the container."""
-
-    network_policy: Optional[ToolShellEnvironmentContainerAutoNetworkPolicy] = None
-    """Network access policy for the container."""
-
-    skills: Optional[List[ToolShellEnvironmentContainerAutoSkill]] = None
-    """An optional list of skills referenced by id or inline data."""
-
-
-class ToolShellEnvironmentContainerReference(BaseModel):
-    container_id: str
-    """The ID of the referenced container."""
-
-    type: Literal["container_reference"]
-    """References a container created with the /v1/containers endpoint"""
-
-
-class ToolShellEnvironmentLocalSkill(BaseModel):
-    description: str
-    """The description of the skill."""
-
-    name: str
-    """The name of the skill."""
-
-    path: str
-    """The path to the directory containing the skill."""
-
-
-class ToolShellEnvironmentLocal(BaseModel):
-    type: Literal["local"]
-    """Use a local computer environment."""
-
-    skills: Optional[List[ToolShellEnvironmentLocalSkill]] = None
-    """An optional list of skills."""
-
-
-ToolShellEnvironment: TypeAlias = Annotated[
-    Union[ToolShellEnvironmentContainerAuto, ToolShellEnvironmentContainerReference, ToolShellEnvironmentLocal, None],
-    PropertyInfo(discriminator="type"),
-]
-
-
-class ToolShell(BaseModel):
-    """A Responses shell tool.
-
-    Use a hosted container or return local shell results with response.item.create. Domain secrets are not supported.
-    """
-
-    type: Literal["shell"]
-
-    environment: Optional[ToolShellEnvironment] = None
-
-
-class ToolImageGeneration(BaseModel):
-    type: Literal["image_generation"]
-
-
-class ToolMcp(BaseModel):
-    type: Literal["mcp"]
-
-
-class ToolCustom(BaseModel):
-    type: Literal["custom"]
-
-
-class ToolNamespace(BaseModel):
-    type: Literal["namespace"]
-
-
-class ToolSearch(BaseModel):
-    type: Literal["tool_search"]
-
-
-class ToolProgrammaticToolCalling(BaseModel):
-    type: Literal["programmatic_tool_calling"]
-
-
-class ToolComputer(BaseModel):
-    type: Literal["computer"]
-
-
-class ToolApplyPatch(BaseModel):
-    type: Literal["apply_patch"]
-
-
-Tool: TypeAlias = Annotated[
-    Union[
-        FunctionTool,
-        ToolWebSearch,
-        ToolFileSearch,
-        ToolCodeInterpreter,
-        ToolShell,
-        ToolImageGeneration,
-        ToolMcp,
-        ToolCustom,
-        ToolNamespace,
-        ToolSearch,
-        ToolProgrammaticToolCalling,
-        ToolComputer,
-        ToolApplyPatch,
-    ],
-    PropertyInfo(discriminator="type"),
-]
+Tool: TypeAlias = Annotated[Union[FunctionTool, ToolWebSearch], PropertyInfo(discriminator="type")]
 
 
 class ResponsesDelegationUpdateConfig(BaseModel):
@@ -297,7 +111,7 @@ class ResponsesDelegationUpdateConfig(BaseModel):
     text: Optional[Text] = None
     """Text generation settings passed to each delegated Responses request."""
 
-    tool_choice: Union[Literal["auto", "none", "required"], Dict[str, object], None] = None
+    tool_choice: Optional[ToolChoice] = None
     """
     Controls which tool the Responses backend uses when handling a task delegated by
     the Live model.

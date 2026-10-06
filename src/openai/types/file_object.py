@@ -14,12 +14,8 @@ class FileObject(BaseModel):
     id: str
     """The file identifier, which can be referenced in the API endpoints."""
 
-    bytes: Optional[int] = None
-    """The size of the file, in bytes.
-
-    In a completed file upload response, this can be null when the file size is not
-    yet available.
-    """
+    bytes: int
+    """The size of the file, in bytes."""
 
     created_at: int
     """The Unix timestamp (in seconds) for when the file was created."""
@@ -54,15 +50,11 @@ class FileObject(BaseModel):
     """
 
     expires_at: Optional[int] = None
-    """The Unix timestamp (in seconds) for when the file will expire.
-
-    In a completed file upload response, this can be null when no expiry is set.
-    """
+    """The Unix timestamp (in seconds) for when the file will expire."""
 
     status_details: Optional[str] = None
     """Deprecated.
 
     For details on why a fine-tuning training file failed validation, see the
-    `error` field on `fine_tuning.job`. Completed file upload responses can return
-    null when these details are unset.
+    `error` field on `fine_tuning.job`.
     """
