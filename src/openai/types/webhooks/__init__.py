@@ -21,6 +21,7 @@ from .batch_completed_webhook_event import BatchCompletedWebhookEvent as BatchCo
 from .eval_run_failed_webhook_event import EvalRunFailedWebhookEvent as EvalRunFailedWebhookEvent
 from .response_failed_webhook_event import ResponseFailedWebhookEvent as ResponseFailedWebhookEvent
 from .eval_run_canceled_webhook_event import EvalRunCanceledWebhookEvent as EvalRunCanceledWebhookEvent
+from .agent_session_idle_webhook_event import AgentSessionIdleWebhookEvent as AgentSessionIdleWebhookEvent
 from .eval_run_succeeded_webhook_event import EvalRunSucceededWebhookEvent as EvalRunSucceededWebhookEvent
 from .live_call_incoming_webhook_event import (
     LiveCallIncomingWebhookEvent as LiveCallIncomingWebhookEvent,  # pyright: ignore[reportDeprecated]
@@ -28,7 +29,9 @@ from .live_call_incoming_webhook_event import (
 from .response_cancelled_webhook_event import ResponseCancelledWebhookEvent as ResponseCancelledWebhookEvent
 from .response_completed_webhook_event import ResponseCompletedWebhookEvent as ResponseCompletedWebhookEvent
 from .response_incomplete_webhook_event import ResponseIncompleteWebhookEvent as ResponseIncompleteWebhookEvent
+from .agent_session_failed_webhook_event import AgentSessionFailedWebhookEvent as AgentSessionFailedWebhookEvent
 from .safety_alert_created_webhook_event import SafetyAlertCreatedWebhookEvent as SafetyAlertCreatedWebhookEvent
+from .agent_session_created_webhook_event import AgentSessionCreatedWebhookEvent as AgentSessionCreatedWebhookEvent
 from .safety_warning_issued_webhook_event import SafetyWarningIssuedWebhookEvent as SafetyWarningIssuedWebhookEvent
 from .fine_tuning_job_failed_webhook_event import FineTuningJobFailedWebhookEvent as FineTuningJobFailedWebhookEvent
 from .realtime_call_incoming_webhook_event import RealtimeCallIncomingWebhookEvent as RealtimeCallIncomingWebhookEvent
@@ -37,6 +40,9 @@ from .live_transport_incoming_webhook_event import (
 )
 from .safety_org_alert_created_webhook_event import (
     SafetyOrgAlertCreatedWebhookEvent as SafetyOrgAlertCreatedWebhookEvent,
+)
+from .agent_session_in_progress_webhook_event import (
+    AgentSessionInProgressWebhookEvent as AgentSessionInProgressWebhookEvent,
 )
 from .fine_tuning_job_cancelled_webhook_event import (
     FineTuningJobCancelledWebhookEvent as FineTuningJobCancelledWebhookEvent,
@@ -49,4 +55,7 @@ from .safety_identifier_blocked_webhook_event import (
 )
 from .safety_deactivation_issued_webhook_event import (
     SafetyDeactivationIssuedWebhookEvent as SafetyDeactivationIssuedWebhookEvent,
+)
+from .agent_session_action_required_webhook_event import (
+    AgentSessionActionRequiredWebhookEvent as AgentSessionActionRequiredWebhookEvent,
 )

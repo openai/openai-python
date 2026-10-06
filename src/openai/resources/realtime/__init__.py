@@ -19,6 +19,14 @@ if _t.TYPE_CHECKING:
         RealtimeWithStreamingResponse as RealtimeWithStreamingResponse,
         AsyncRealtimeWithStreamingResponse as AsyncRealtimeWithStreamingResponse,
     )
+    from .translations import (
+        Translations as Translations,
+        AsyncTranslations as AsyncTranslations,
+        TranslationsWithRawResponse as TranslationsWithRawResponse,
+        AsyncTranslationsWithRawResponse as AsyncTranslationsWithRawResponse,
+        TranslationsWithStreamingResponse as TranslationsWithStreamingResponse,
+        AsyncTranslationsWithStreamingResponse as AsyncTranslationsWithStreamingResponse,
+    )
     from .client_secrets import (
         ClientSecrets as ClientSecrets,
         AsyncClientSecrets as AsyncClientSecrets,
@@ -42,6 +50,12 @@ else:
         "AsyncCallsWithRawResponse": (".calls", "AsyncCallsWithRawResponse"),
         "CallsWithStreamingResponse": (".calls", "CallsWithStreamingResponse"),
         "AsyncCallsWithStreamingResponse": (".calls", "AsyncCallsWithStreamingResponse"),
+        "Translations": (".translations", "Translations"),
+        "AsyncTranslations": (".translations", "AsyncTranslations"),
+        "TranslationsWithRawResponse": (".translations", "TranslationsWithRawResponse"),
+        "AsyncTranslationsWithRawResponse": (".translations", "AsyncTranslationsWithRawResponse"),
+        "TranslationsWithStreamingResponse": (".translations", "TranslationsWithStreamingResponse"),
+        "AsyncTranslationsWithStreamingResponse": (".translations", "AsyncTranslationsWithStreamingResponse"),
         "Realtime": (".realtime", "Realtime"),
         "AsyncRealtime": (".realtime", "AsyncRealtime"),
         "RealtimeWithRawResponse": (".realtime", "RealtimeWithRawResponse"),
@@ -53,6 +67,7 @@ else:
         "calls",
         "client_secrets",
         "realtime",
+        "translations",
     }
 
     def __getattr__(name: str) -> _t.Any:
@@ -85,6 +100,12 @@ __all__ = [
     "AsyncCallsWithRawResponse",
     "CallsWithStreamingResponse",
     "AsyncCallsWithStreamingResponse",
+    "Translations",
+    "AsyncTranslations",
+    "TranslationsWithRawResponse",
+    "AsyncTranslationsWithRawResponse",
+    "TranslationsWithStreamingResponse",
+    "AsyncTranslationsWithStreamingResponse",
     "Realtime",
     "AsyncRealtime",
     "RealtimeWithRawResponse",

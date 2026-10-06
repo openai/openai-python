@@ -101,8 +101,8 @@ class Embeddings(SyncAPIResource):
           timeout: Override the client-level default timeout for this request, in seconds
         """
         params = {
-            "input": input,
             "model": model,
+            "input": input,
             "user": user,
             "dimensions": dimensions,
             "encoding_format": encoding_format,
@@ -203,8 +203,8 @@ class AsyncEmbeddings(AsyncAPIResource):
           timeout: Override the client-level default timeout for this request, in seconds
         """
         params = {
-            "input": input,
             "model": model,
+            "input": input,
             "user": user,
             "dimensions": dimensions,
             "encoding_format": encoding_format,

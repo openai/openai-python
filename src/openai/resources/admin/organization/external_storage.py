@@ -190,8 +190,12 @@ class ExternalStorage(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ExternalStorageDeleted:
-        """
-        Soft-delete one customer-managed external storage configuration.
+        """Disconnect a customer-managed external storage configuration.
+
+        Removing the
+        project's last configuration restores organization-default retention if
+        customer-managed retention was active. Repeating a deletion also completes any
+        interrupted retention update. Cloud storage is unchanged.
 
         Args:
           extra_headers: Send extra headers
@@ -427,8 +431,12 @@ class AsyncExternalStorage(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ExternalStorageDeleted:
-        """
-        Soft-delete one customer-managed external storage configuration.
+        """Disconnect a customer-managed external storage configuration.
+
+        Removing the
+        project's last configuration restores organization-default retention if
+        customer-managed retention was active. Repeating a deletion also completes any
+        interrupted retention update. Cloud storage is unchanged.
 
         Args:
           extra_headers: Send extra headers

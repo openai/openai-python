@@ -21,16 +21,12 @@ class ImageEditParamsBase(TypedDict, total=False):
     `gpt-image-2.5-flare-2026-09-08`, and `chatgpt-image-latest`), each image should
     be a `png`, `webp`, or `jpg` file less than 50MB. You can provide up to 16
     images.
-
-    For `dall-e-2`, you can only provide one image, and it should be a square `png`
-    file less than 4MB.
     """
 
     prompt: Required[str]
     """A text description of the desired image(s).
 
-    The maximum length is 1000 characters for `dall-e-2`, and 32000 characters for
-    the GPT image models.
+    The maximum length is 32000 characters for the GPT image models.
     """
 
     background: Optional[Literal["transparent", "opaque", "auto"]]
@@ -63,13 +59,12 @@ class ImageEditParamsBase(TypedDict, total=False):
     """
 
     model: Union[str, ImageModel, None]
-    """The model to use for image generation.
-
-    One of `dall-e-2` or a GPT image model (`gpt-image-1`, `gpt-image-1-mini`,
+    """
+    The GPT image model to use for image editing (`gpt-image-1`, `gpt-image-1-mini`,
     `gpt-image-1.5`, `gpt-image-2`, `gpt-image-2-2026-04-21`,
     `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`,
     `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`, or
-    `chatgpt-image-latest`). Defaults to `gpt-image-1.5`.
+    `chatgpt-image-latest`).
     """
 
     n: Optional[int]
@@ -100,7 +95,7 @@ class ImageEditParamsBase(TypedDict, total=False):
     are generated if the full image is generated more quickly.
     """
 
-    quality: Optional[Literal["standard", "low", "medium", "high", "xhigh", "max", "auto"]]
+    quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard"]]
     """The quality of the image that will be generated for GPT image models.
 
     The GPT image models support `low`, `medium`, and `high`.
@@ -109,29 +104,24 @@ class ImageEditParamsBase(TypedDict, total=False):
     """
 
     response_format: Optional[Literal["url", "b64_json"]]
-    """The format in which the generated images are returned.
+    """Legacy response format parameter for retired image models.
 
-    Must be one of `url` or `b64_json`. URLs are only valid for 60 minutes after the
-    image has been generated. This parameter is only supported for `dall-e-2`
-    (default is `url` for `dall-e-2`), as GPT image models always return
-    base64-encoded images.
+    Unsupported for GPT image models, which always return base64-encoded images.
     """
 
-    size: Union[str, Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"], None]
+    size: Union[str, Literal["1024x1024", "1536x1024", "1024x1536", "auto", "256x256", "512x512"], None]
     """The size of the generated images.
 
-    For `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
-    `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and
-    `gpt-image-2.5-flare-2026-09-08`, arbitrary resolutions are supported as
-    `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height must both be
-    divisible by 16 and the requested aspect ratio must be between 1:3 and 3:1.
-    Resolutions above `2560x1440` are experimental, and the maximum supported
-    resolution is `3840x2160`. The requested size must also satisfy the model's
-    current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and
-    `1024x1536` are supported by the GPT image models; `auto` is supported for
-    models that allow automatic sizing. For `dall-e-2`, use one of `256x256`,
-    `512x512`, or `1024x1024`. For `dall-e-3`, use one of `1024x1024`, `1792x1024`,
-    or `1024x1792`.
+    Defaults to `auto`. For `gpt-image-2`, `gpt-image-2-2026-04-21`,
+    `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`,
+    `gpt-image-2.5-flare`, and `gpt-image-2.5-flare-2026-09-08`, arbitrary
+    resolutions are supported as `WIDTHxHEIGHT` strings, for example `1536x864`.
+    Width and height must both be divisible by 16 and the requested aspect ratio
+    must be between 1:3 and 3:1. Resolutions above `2560x1440` are experimental, and
+    the maximum supported resolution is `3840x2160`. The requested size must also
+    satisfy the model's current pixel and edge limits. The standard sizes
+    `1024x1024`, `1536x1024`, and `1024x1536` are supported by the GPT image models;
+    `auto` is supported for models that allow automatic sizing.
     """
 
     user: str

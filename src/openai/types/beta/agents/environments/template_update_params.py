@@ -11,12 +11,15 @@ from ...hosted_plugin_param import HostedPluginParam
 from ...setup_command_param import SetupCommandParam
 from ...hosted_environment_file_param import HostedEnvironmentFileParam
 
-__all__ = ["TemplateUpdateParams", "Network", "Packages"]
+__all__ = ["TemplateUpdateParams", "Desktop", "Network", "Packages"]
 
 
 class TemplateUpdateParams(TypedDict, total=False):
     capability_directories: Optional[SequenceNotStr[str]]
     """Directories that expose capabilities to the agent."""
+
+    desktop: Optional[Desktop]
+    """Replacement desktop configuration, or null to disable the desktop."""
 
     env: Optional[Dict[str, str]]
     """Replacement confidential environment values."""
@@ -31,7 +34,7 @@ class TemplateUpdateParams(TypedDict, total=False):
     """Network access available after setup completes.
 
     Omit to preserve the current policy, or pass `null` to reset to disabled for GA
-    requests or enabled for alpha/beta requests.
+    requests or enabled for beta requests.
     """
 
     packages: Optional[Packages]
@@ -47,10 +50,17 @@ class TemplateUpdateParams(TypedDict, total=False):
     """Replacement skill configuration installed for each new session."""
 
 
+class Desktop(TypedDict, total=False):
+    """Replacement desktop configuration, or null to disable the desktop."""
+
+    enabled: Required[bool]
+    """Whether to provision the desktop and its browser proxy."""
+
+
 class Network(TypedDict, total=False):
     """Network access available after setup completes.
 
-    Omit to preserve the current policy, or pass `null` to reset to disabled for GA requests or enabled for alpha/beta requests.
+    Omit to preserve the current policy, or pass `null` to reset to disabled for GA requests or enabled for beta requests.
     """
 
     access: Required[Literal["enabled", "disabled", "restricted"]]
@@ -58,11 +68,18 @@ class Network(TypedDict, total=False):
 
     - `enabled` - Allows unrestricted network access.
     - `disabled` - Disables network access.
-    - `restricted` - Allows access only to configured domains.
+    - `restricted` - Applies the configured domain restrictions.
     """
 
     allowed_domains: Optional[SequenceNotStr[str]]
     """Domains the environment may access when network access is restricted."""
+
+    blocked_domains: Optional[SequenceNotStr[str]]
+    """Domains blocked for both executor and browser when access is restricted.
+
+    A nonempty list requires `access: restricted` and cannot be combined with
+    nonempty `allowed_domains`. Wildcard domains are not supported.
+    """
 
 
 class Packages(TypedDict, total=False):

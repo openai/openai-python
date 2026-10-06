@@ -227,6 +227,18 @@ Methods:
 
 - <code title="post /audio/speech">client.audio.speech.<a href="./src/openai/resources/audio/speech.py">create</a>(\*\*<a href="src/openai/types/audio/speech_create_params.py">params</a>) -> HttpxBinaryResponseContent</code>
 
+## Voices
+
+Types:
+
+```python
+from openai.types.audio import Voice
+```
+
+Methods:
+
+- <code title="post /audio/voices">client.audio.voices.<a href="./src/openai/resources/audio/voices.py">create</a>(\*\*<a href="src/openai/types/audio/voice_create_params.py">params</a>) -> <a href="./src/openai/types/audio/voice.py">Voice</a></code>
+
 # Moderations
 
 Types:
@@ -451,18 +463,6 @@ Methods:
 
 # Safety
 
-## Alerts
-
-Types:
-
-```python
-from openai.types.safety import SafetyAlert
-```
-
-Methods:
-
-- <code title="get /safety/alerts/{id}">client.safety.alerts.<a href="./src/openai/resources/safety/alerts.py">retrieve</a>(id) -> <a href="./src/openai/types/safety/safety_alert.py">SafetyAlert</a></code>
-
 ## Cases
 
 Types:
@@ -474,6 +474,18 @@ from openai.types.safety import SafetyCase
 Methods:
 
 - <code title="get /safety/cases/{id}">client.safety.cases.<a href="./src/openai/resources/safety/cases.py">retrieve</a>(id) -> <a href="./src/openai/types/safety/safety_case.py">SafetyCase</a></code>
+
+## Alerts
+
+Types:
+
+```python
+from openai.types.safety import SafetyAlert
+```
+
+Methods:
+
+- <code title="get /safety/alerts/{id}">client.safety.alerts.<a href="./src/openai/resources/safety/alerts.py">retrieve</a>(id) -> <a href="./src/openai/types/safety/safety_alert.py">SafetyAlert</a></code>
 
 # [Webhooks](src/openai/resources/webhooks/api.md)
 
@@ -491,6 +503,9 @@ Types:
 ```python
 from openai.types.beta import (
     Agent,
+    AgentBrowserAuthenticationCancelParam,
+    AgentBrowserAuthenticationSubmitParam,
+    AgentBrowserOriginAccessParam,
     AgentCloseSubagentCallItem,
     AgentCommandExecutionItem,
     AgentContent,
@@ -744,6 +759,18 @@ Methods:
 
 - <code title="post /agents/sessions/{session_id}/events">client.beta.agents.sessions.events.<a href="./src/openai/resources/beta/agents/sessions/events.py">create</a>(session_id, \*\*<a href="src/openai/types/beta/agents/sessions/event_create_params.py">params</a>) -> None</code>
 - <code title="get /agents/sessions/{session_id}/events">client.beta.agents.sessions.events.<a href="./src/openai/resources/beta/agents/sessions/events.py">stream</a>(session_id) -> <a href="./src/openai/types/beta/agent_session_event.py">AgentSessionEvent</a></code>
+
+#### Traces
+
+Types:
+
+```python
+from openai.types.beta.agents.sessions import SessionTrace
+```
+
+Methods:
+
+- <code title="get /agents/sessions/{session_id}/traces">client.beta.agents.sessions.traces.<a href="./src/openai/resources/beta/agents/sessions/traces.py">list</a>(session_id, \*\*<a href="src/openai/types/beta/agents/sessions/trace_list_params.py">params</a>) -> <a href="./src/openai/types/beta/agents/sessions/session_trace.py">SyncCursorPage[SessionTrace]</a></code>
 
 #### Turns
 
@@ -1299,27 +1326,6 @@ Methods:
 
 ## Organization
 
-### ExternalStorage
-
-Types:
-
-```python
-from openai.types.admin.organization import (
-    AwsExternalStorageProvider,
-    AzureExternalStorageProvider,
-    ExternalStorageConfiguration,
-    ExternalStorageDeleted,
-)
-```
-
-Methods:
-
-- <code title="post /organization/external_storage">client.admin.organization.external_storage.<a href="./src/openai/resources/admin/organization/external_storage.py">create</a>(\*\*<a href="src/openai/types/admin/organization/external_storage_create_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/external_storage_configuration.py">ExternalStorageConfiguration</a></code>
-- <code title="get /organization/external_storage/{external_storage_id}">client.admin.organization.external_storage.<a href="./src/openai/resources/admin/organization/external_storage.py">retrieve</a>(external_storage_id) -> <a href="./src/openai/types/admin/organization/external_storage_configuration.py">ExternalStorageConfiguration</a></code>
-- <code title="get /organization/external_storage">client.admin.organization.external_storage.<a href="./src/openai/resources/admin/organization/external_storage.py">list</a>(\*\*<a href="src/openai/types/admin/organization/external_storage_list_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/external_storage_configuration.py">SyncCursorPage[ExternalStorageConfiguration]</a></code>
-- <code title="delete /organization/external_storage/{external_storage_id}">client.admin.organization.external_storage.<a href="./src/openai/resources/admin/organization/external_storage.py">delete</a>(external_storage_id) -> <a href="./src/openai/types/admin/organization/external_storage_deleted.py">ExternalStorageDeleted</a></code>
-- <code title="post /organization/external_storage/{external_storage_id}/validate">client.admin.organization.external_storage.<a href="./src/openai/resources/admin/organization/external_storage.py">validate</a>(external_storage_id) -> <a href="./src/openai/types/admin/organization/external_storage_configuration.py">ExternalStorageConfiguration</a></code>
-
 ### AuditLogs
 
 Types:
@@ -1520,6 +1526,28 @@ Methods:
 
 - <code title="get /organization/data_retention">client.admin.organization.data_retention.<a href="./src/openai/resources/admin/organization/data_retention.py">retrieve</a>() -> <a href="./src/openai/types/admin/organization/organization_data_retention.py">OrganizationDataRetention</a></code>
 - <code title="post /organization/data_retention">client.admin.organization.data_retention.<a href="./src/openai/resources/admin/organization/data_retention.py">update</a>(\*\*<a href="src/openai/types/admin/organization/data_retention_update_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/organization_data_retention.py">OrganizationDataRetention</a></code>
+
+### ExternalStorage
+
+Types:
+
+```python
+from openai.types.admin.organization import (
+    AwsExternalStorageProvider,
+    AzureExternalStorageProvider,
+    ExternalStorageConfiguration,
+    ExternalStorageDeleted,
+    GcpExternalStorageProvider,
+)
+```
+
+Methods:
+
+- <code title="post /organization/external_storage">client.admin.organization.external_storage.<a href="./src/openai/resources/admin/organization/external_storage.py">create</a>(\*\*<a href="src/openai/types/admin/organization/external_storage_create_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/external_storage_configuration.py">ExternalStorageConfiguration</a></code>
+- <code title="get /organization/external_storage/{external_storage_id}">client.admin.organization.external_storage.<a href="./src/openai/resources/admin/organization/external_storage.py">retrieve</a>(external_storage_id) -> <a href="./src/openai/types/admin/organization/external_storage_configuration.py">ExternalStorageConfiguration</a></code>
+- <code title="get /organization/external_storage">client.admin.organization.external_storage.<a href="./src/openai/resources/admin/organization/external_storage.py">list</a>(\*\*<a href="src/openai/types/admin/organization/external_storage_list_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/external_storage_configuration.py">SyncCursorPage[ExternalStorageConfiguration]</a></code>
+- <code title="delete /organization/external_storage/{external_storage_id}">client.admin.organization.external_storage.<a href="./src/openai/resources/admin/organization/external_storage.py">delete</a>(external_storage_id) -> <a href="./src/openai/types/admin/organization/external_storage_deleted.py">ExternalStorageDeleted</a></code>
+- <code title="post /organization/external_storage/{external_storage_id}/validate">client.admin.organization.external_storage.<a href="./src/openai/resources/admin/organization/external_storage.py">validate</a>(external_storage_id) -> <a href="./src/openai/types/admin/organization/external_storage_configuration.py">ExternalStorageConfiguration</a></code>
 
 ### SpendLimit
 
@@ -1883,7 +1911,7 @@ Methods:
 - <code title="get /evals/{eval_id}/runs/{run_id}">client.evals.runs.<a href="./src/openai/resources/evals/runs/runs.py">retrieve</a>(run_id, \*, eval_id) -> <a href="./src/openai/types/evals/run_retrieve_response.py">RunRetrieveResponse</a></code>
 - <code title="get /evals/{eval_id}/runs">client.evals.runs.<a href="./src/openai/resources/evals/runs/runs.py">list</a>(eval_id, \*\*<a href="src/openai/types/evals/run_list_params.py">params</a>) -> <a href="./src/openai/types/evals/run_list_response.py">SyncCursorPage[RunListResponse]</a></code>
 - <code title="delete /evals/{eval_id}/runs/{run_id}">client.evals.runs.<a href="./src/openai/resources/evals/runs/runs.py">delete</a>(run_id, \*, eval_id) -> <a href="./src/openai/types/evals/run_delete_response.py">RunDeleteResponse</a></code>
-- <code title="post /evals/{eval_id}/runs/{run_id}">client.evals.runs.<a href="./src/openai/resources/evals/runs/runs.py">cancel</a>(run_id, \*, eval_id) -> <a href="./src/openai/types/evals/run_cancel_response.py">RunCancelResponse</a></code>
+- <code title="post /evals/{eval_id}/runs/{run_id}/cancel">client.evals.runs.<a href="./src/openai/resources/evals/runs/runs.py">cancel</a>(run_id, \*, eval_id) -> <a href="./src/openai/types/evals/run_cancel_response.py">RunCancelResponse</a></code>
 
 ### OutputItems
 

@@ -32,6 +32,14 @@ from .events import (
     EventsWithStreamingResponse,
     AsyncEventsWithStreamingResponse,
 )
+from .traces import (
+    Traces,
+    AsyncTraces,
+    TracesWithRawResponse,
+    AsyncTracesWithRawResponse,
+    TracesWithStreamingResponse,
+    AsyncTracesWithStreamingResponse,
+)
 from .artifacts import (
     Artifacts,
     AsyncArtifacts,
@@ -45,9 +53,9 @@ from ....._utils import path_template, required_args, maybe_transform, async_may
 from ....._compat import cached_property
 from ....._resource import SyncAPIResource, AsyncAPIResource
 from ....._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
-from ....._streaming import Stream, AsyncStream
 from .....pagination import SyncCursorPage, AsyncCursorPage
 from ....._base_client import AsyncPaginator, make_request_options
+from .....lib.beta.agents import AgentSessionEventStream, AsyncAgentSessionEventStream
 from .subagents.subagents import (
     Subagents,
     AsyncSubagents,
@@ -58,9 +66,12 @@ from .subagents.subagents import (
 )
 from .....types.beta.agents import session_list_params, session_create_params, session_update_params
 from .....lib.streaming.agents import ToolHandler, AsyncToolHandler, AgentSessionStream, AsyncAgentSessionStream
+from .....lib.beta.agents._output import bind_output_type, with_output_schema
+from .....lib.beta.agents._result import OutputT
 from .....types.beta.agent_session import AgentSession
+from .....lib.beta.agents._tool_error import ToolErrorHandler, AsyncToolErrorHandler
 from .....types.beta.environment_param import EnvironmentParam
-from .....types.beta.agent_session_event import AgentSessionEvent
+from .....lib.streaming.agents._dispatch import ToolDispatcher, AsyncToolDispatcher
 from .....types.beta.agent_session_deleted import AgentSessionDeleted
 from .....types.beta.agent_session_input_message_param import AgentSessionInputMessageParam
 
@@ -73,22 +84,29 @@ class Sessions(SyncAPIResource):
         session_id: str,
         *,
         input: str | Iterable[AgentSessionInputMessageParam],
+        output_type: type[OutputT] | None = None,
         tool_handlers: Mapping[str, ToolHandler] | None = None,
+        on_tool_error: ToolErrorHandler | None = None,
         idempotency_key: str | Omit = omit,
         extra_headers: Headers | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> AgentSessionStream:
+    ) -> AgentSessionStream[OutputT]:
         """Stream one turn of an idle session, subscribing before submitting input.
 
         Use as a context manager. Only one caller may submit input to the session
         while this helper runs. Optional tool handlers receive an arguments dict;
-        their results are submitted automatically. See AgentSessionStream for details.
+        their results are submitted automatically. Use on_tool_error alongside
+        tool_handlers to log or monitor local argument, handler, and output failures.
+        The callback does not receive API or stream errors. Ordinary observer
+        exceptions are ignored. See AgentSessionStream for details.
         """
         return AgentSessionStream(
             self,
             session_id,
             input=input,
             tool_handlers=tool_handlers,
+            on_tool_error=on_tool_error,
+            output_type=output_type,
             idempotency_key=idempotency_key,
             extra_headers=extra_headers,
             timeout=timeout,
@@ -109,6 +127,10 @@ class Sessions(SyncAPIResource):
     @cached_property
     def events(self) -> Events:
         return Events(self._client)
+
+    @cached_property
+    def traces(self) -> Traces:
+        return Traces(self._client)
 
     @cached_property
     def turns(self) -> Turns:
@@ -138,6 +160,8 @@ class Sessions(SyncAPIResource):
         self,
         *,
         environment: EnvironmentParam,
+        output_type: type[OutputT] | None = None,
+        tool_handlers: Mapping[str, ToolHandler] | None = None,
         agent: session_create_params.Agent | Omit = omit,
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
@@ -192,6 +216,8 @@ class Sessions(SyncAPIResource):
         self,
         *,
         environment: EnvironmentParam,
+        output_type: type[OutputT] | None = None,
+        tool_handlers: Mapping[str, ToolHandler] | None = None,
         stream: Literal[True],
         agent: session_create_params.Agent | Omit = omit,
         agent_id: str | Omit = omit,
@@ -204,7 +230,7 @@ class Sessions(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> Stream[AgentSessionEvent]:
+    ) -> AgentSessionEventStream[OutputT]:
         """
         Creates a managed agent session, optionally submits initial input, and returns
         the session or streams its events when stream is true. See
@@ -246,6 +272,8 @@ class Sessions(SyncAPIResource):
         self,
         *,
         environment: EnvironmentParam,
+        output_type: type[OutputT] | None = None,
+        tool_handlers: Mapping[str, ToolHandler] | None = None,
         stream: bool,
         agent: session_create_params.Agent | Omit = omit,
         agent_id: str | Omit = omit,
@@ -258,7 +286,7 @@ class Sessions(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> AgentSession | Stream[AgentSessionEvent]:
+    ) -> AgentSession | AgentSessionEventStream[OutputT]:
         """
         Creates a managed agent session, optionally submits initial input, and returns
         the session or streams its events when stream is true. See
@@ -300,6 +328,8 @@ class Sessions(SyncAPIResource):
         self,
         *,
         environment: EnvironmentParam,
+        output_type: type[OutputT] | None = None,
+        tool_handlers: Mapping[str, ToolHandler] | None = None,
         agent: session_create_params.Agent | Omit = omit,
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
@@ -312,18 +342,24 @@ class Sessions(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> AgentSession | Stream[AgentSessionEvent]:
+    ) -> AgentSession | AgentSessionEventStream[OutputT]:
         extra_headers = {"OpenAI-Beta": "agents=v1", **(extra_headers or {})}
+        agent = with_output_schema(agent, output_type)
+        if tool_handlers is not None and stream is not True:
+            raise ValueError("tool_handlers requires stream=True")
+        dispatcher = (
+            ToolDispatcher(self, tool_handlers, extra_headers=extra_headers, timeout=timeout) if tool_handlers else None
+        )
         return self._post(
             "/agents/sessions",
             body=maybe_transform(
                 {
+                    "stream": stream,
                     "environment": environment,
                     "agent": agent,
                     "agent_id": agent_id,
                     "input": input,
                     "metadata": metadata,
-                    "stream": stream,
                     "vault_ids": vault_ids,
                 },
                 session_create_params.SessionCreateParamsStreaming
@@ -331,6 +367,7 @@ class Sessions(SyncAPIResource):
                 else session_create_params.SessionCreateParamsNonStreaming,
             ),
             options=make_request_options(
+                post_parser=lambda response: bind_output_type(response, output_type, dispatcher),
                 extra_headers=extra_headers,
                 extra_query=extra_query,
                 extra_body=extra_body,
@@ -339,7 +376,7 @@ class Sessions(SyncAPIResource):
             ),
             cast_to=AgentSession,
             stream=stream or False,
-            stream_cls=Stream[AgentSessionEvent],
+            stream_cls=AgentSessionEventStream,
         )
 
     def retrieve(
@@ -551,22 +588,29 @@ class AsyncSessions(AsyncAPIResource):
         session_id: str,
         *,
         input: str | Iterable[AgentSessionInputMessageParam],
+        output_type: type[OutputT] | None = None,
         tool_handlers: Mapping[str, AsyncToolHandler] | None = None,
+        on_tool_error: AsyncToolErrorHandler | None = None,
         idempotency_key: str | Omit = omit,
         extra_headers: Headers | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> AsyncAgentSessionStream:
+    ) -> AsyncAgentSessionStream[OutputT]:
         """Stream one turn of an idle session, subscribing before submitting input.
 
         Use as an async context manager. Only one caller may submit input to the session
         while this helper runs. Optional tool handlers receive an arguments dict;
-        their results are submitted automatically. See AsyncAgentSessionStream for details.
+        their results are submitted automatically. Use on_tool_error alongside
+        tool_handlers to log or monitor local argument, handler, and output failures.
+        The callback may be async; it does not receive API or stream errors.
+        Ordinary observer exceptions are ignored. See AsyncAgentSessionStream for details.
         """
         return AsyncAgentSessionStream(
             self,
             session_id,
             input=input,
             tool_handlers=tool_handlers,
+            on_tool_error=on_tool_error,
+            output_type=output_type,
             idempotency_key=idempotency_key,
             extra_headers=extra_headers,
             timeout=timeout,
@@ -587,6 +631,10 @@ class AsyncSessions(AsyncAPIResource):
     @cached_property
     def events(self) -> AsyncEvents:
         return AsyncEvents(self._client)
+
+    @cached_property
+    def traces(self) -> AsyncTraces:
+        return AsyncTraces(self._client)
 
     @cached_property
     def turns(self) -> AsyncTurns:
@@ -616,6 +664,8 @@ class AsyncSessions(AsyncAPIResource):
         self,
         *,
         environment: EnvironmentParam,
+        output_type: type[OutputT] | None = None,
+        tool_handlers: Mapping[str, AsyncToolHandler] | None = None,
         agent: session_create_params.Agent | Omit = omit,
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
@@ -670,6 +720,8 @@ class AsyncSessions(AsyncAPIResource):
         self,
         *,
         environment: EnvironmentParam,
+        output_type: type[OutputT] | None = None,
+        tool_handlers: Mapping[str, AsyncToolHandler] | None = None,
         stream: Literal[True],
         agent: session_create_params.Agent | Omit = omit,
         agent_id: str | Omit = omit,
@@ -682,7 +734,7 @@ class AsyncSessions(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> AsyncStream[AgentSessionEvent]:
+    ) -> AsyncAgentSessionEventStream[OutputT]:
         """
         Creates a managed agent session, optionally submits initial input, and returns
         the session or streams its events when stream is true. See
@@ -724,6 +776,8 @@ class AsyncSessions(AsyncAPIResource):
         self,
         *,
         environment: EnvironmentParam,
+        output_type: type[OutputT] | None = None,
+        tool_handlers: Mapping[str, AsyncToolHandler] | None = None,
         stream: bool,
         agent: session_create_params.Agent | Omit = omit,
         agent_id: str | Omit = omit,
@@ -736,7 +790,7 @@ class AsyncSessions(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> AgentSession | AsyncStream[AgentSessionEvent]:
+    ) -> AgentSession | AsyncAgentSessionEventStream[OutputT]:
         """
         Creates a managed agent session, optionally submits initial input, and returns
         the session or streams its events when stream is true. See
@@ -778,6 +832,8 @@ class AsyncSessions(AsyncAPIResource):
         self,
         *,
         environment: EnvironmentParam,
+        output_type: type[OutputT] | None = None,
+        tool_handlers: Mapping[str, AsyncToolHandler] | None = None,
         agent: session_create_params.Agent | Omit = omit,
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
@@ -790,18 +846,26 @@ class AsyncSessions(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> AgentSession | AsyncStream[AgentSessionEvent]:
+    ) -> AgentSession | AsyncAgentSessionEventStream[OutputT]:
         extra_headers = {"OpenAI-Beta": "agents=v1", **(extra_headers or {})}
+        agent = with_output_schema(agent, output_type)
+        if tool_handlers is not None and stream is not True:
+            raise ValueError("tool_handlers requires stream=True")
+        dispatcher = (
+            AsyncToolDispatcher(self, tool_handlers, extra_headers=extra_headers, timeout=timeout)
+            if tool_handlers
+            else None
+        )
         return await self._post(
             "/agents/sessions",
             body=await async_maybe_transform(
                 {
+                    "stream": stream,
                     "environment": environment,
                     "agent": agent,
                     "agent_id": agent_id,
                     "input": input,
                     "metadata": metadata,
-                    "stream": stream,
                     "vault_ids": vault_ids,
                 },
                 session_create_params.SessionCreateParamsStreaming
@@ -809,6 +873,7 @@ class AsyncSessions(AsyncAPIResource):
                 else session_create_params.SessionCreateParamsNonStreaming,
             ),
             options=make_request_options(
+                post_parser=lambda response: bind_output_type(response, output_type, dispatcher),
                 extra_headers=extra_headers,
                 extra_query=extra_query,
                 extra_body=extra_body,
@@ -817,7 +882,7 @@ class AsyncSessions(AsyncAPIResource):
             ),
             cast_to=AgentSession,
             stream=stream or False,
-            stream_cls=AsyncStream[AgentSessionEvent],
+            stream_cls=AsyncAgentSessionEventStream,
         )
 
     async def retrieve(
@@ -1060,6 +1125,10 @@ class SessionsWithRawResponse:
         return EventsWithRawResponse(self._sessions.events)
 
     @cached_property
+    def traces(self) -> TracesWithRawResponse:
+        return TracesWithRawResponse(self._sessions.traces)
+
+    @cached_property
     def turns(self) -> TurnsWithRawResponse:
         return TurnsWithRawResponse(self._sessions.turns)
 
@@ -1099,6 +1168,10 @@ class AsyncSessionsWithRawResponse:
     @cached_property
     def events(self) -> AsyncEventsWithRawResponse:
         return AsyncEventsWithRawResponse(self._sessions.events)
+
+    @cached_property
+    def traces(self) -> AsyncTracesWithRawResponse:
+        return AsyncTracesWithRawResponse(self._sessions.traces)
 
     @cached_property
     def turns(self) -> AsyncTurnsWithRawResponse:
@@ -1142,6 +1215,10 @@ class SessionsWithStreamingResponse:
         return EventsWithStreamingResponse(self._sessions.events)
 
     @cached_property
+    def traces(self) -> TracesWithStreamingResponse:
+        return TracesWithStreamingResponse(self._sessions.traces)
+
+    @cached_property
     def turns(self) -> TurnsWithStreamingResponse:
         return TurnsWithStreamingResponse(self._sessions.turns)
 
@@ -1181,6 +1258,10 @@ class AsyncSessionsWithStreamingResponse:
     @cached_property
     def events(self) -> AsyncEventsWithStreamingResponse:
         return AsyncEventsWithStreamingResponse(self._sessions.events)
+
+    @cached_property
+    def traces(self) -> AsyncTracesWithStreamingResponse:
+        return AsyncTracesWithStreamingResponse(self._sessions.traces)
 
     @cached_property
     def turns(self) -> AsyncTurnsWithStreamingResponse:

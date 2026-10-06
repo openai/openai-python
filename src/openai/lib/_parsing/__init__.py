@@ -6,6 +6,7 @@ from ._completions import (
     validate_input_tools as validate_input_tools,
     parse_chat_completion as parse_chat_completion,
     get_input_tool_by_name as get_input_tool_by_name,
+    materialize_input_tools as materialize_input_tools,
     parse_function_tool_arguments as parse_function_tool_arguments,
     type_to_response_format_param as type_to_response_format_param,
 )

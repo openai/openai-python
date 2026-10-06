@@ -22,7 +22,12 @@ class Filters(BaseModel):
 
 
 class UserLocation(BaseModel):
-    """The approximate location of the user."""
+    """The approximate location of the user.
+
+    If omitted or null, defaults to the
+    United States. To avoid this fallback, pass `{"type": "approximate"}` without
+    location fields. To localize results, provide the relevant location fields.
+    """
 
     city: Optional[str] = None
     """Free text input for the city of the user, e.g. `San Francisco`."""
@@ -77,4 +82,9 @@ class WebSearchTool(BaseModel):
     """
 
     user_location: Optional[UserLocation] = None
-    """The approximate location of the user."""
+    """The approximate location of the user.
+
+    If omitted or null, defaults to the United States. To avoid this fallback, pass
+    `{"type": "approximate"}` without location fields. To localize results, provide
+    the relevant location fields.
+    """

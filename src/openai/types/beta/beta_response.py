@@ -25,6 +25,7 @@ from .beta_tool_choice_apply_patch import BetaToolChoiceApplyPatch
 
 __all__ = [
     "BetaResponse",
+    "AccessPrograms",
     "IncompleteDetails",
     "ToolChoice",
     "ToolChoiceBetaSpecificProgrammaticToolCallingParam",
@@ -44,6 +45,11 @@ __all__ = [
     "PromptCacheOptions",
     "Reasoning",
 ]
+
+
+class AccessPrograms(BaseModel):
+    cyber: Literal["standard", "daybreak_blue", "daybreak_red"]
+    """The effective Cyber access program used for this response."""
 
 
 class IncompleteDetails(BaseModel):
@@ -311,6 +317,8 @@ class BetaResponse(BaseModel):
     id: str
     """Unique identifier for this Response."""
 
+    access_programs: Optional[AccessPrograms] = None
+
     created_at: float
     """Unix timestamp (in seconds) of when this Response was created."""
 
@@ -341,6 +349,9 @@ class BetaResponse(BaseModel):
     model: Union[
         Literal[
             "gpt-6-astra",
+            "gpt-6.1-sol",
+            "gpt-6-sol",
+            "gpt-6-luna",
             "gpt-5.6-sol",
             "gpt-5.6-terra",
             "gpt-5.6-luna",
@@ -360,6 +371,7 @@ class BetaResponse(BaseModel):
             "gpt-5.1",
             "gpt-5.1-2025-11-13",
             "gpt-5.1-codex",
+            "gpt-5.1-mini",
             "gpt-5.1-chat-latest",
             "gpt-5",
             "gpt-5-mini",
@@ -444,6 +456,7 @@ class BetaResponse(BaseModel):
             "gpt-daybreak-blue-latest",
             "gpt-daybreak-red-latest",
             "gpt-5.6-cyber",
+            "gpt-rosalind-research",
         ],
         str,
     ]

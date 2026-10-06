@@ -605,6 +605,7 @@ def render_report(
 ) -> str:
     head = require_sha(report["head_sha"])
     lines = [MARKER, "", "## Castiron custom code", ""]
+    lines.extend([f"Evaluated main: `{require_sha(report['target_base_sha'])}`.", ""])
     if report.get("status") != "ok":
         reason = html.escape(str(report.get("error", "Report could not be computed")))
         lines.extend([f"⚠️ Report unavailable for `{head[:12]}`.", "", reason])
@@ -803,7 +804,8 @@ def publish_comment(
     if (
         pull["state"] != "open"
         or pull["head"]["sha"] != report["head_sha"]
-        or pull["base"]["sha"] != report["target_base_sha"]
+        or pull["base"]["ref"] != "main"
+        or pull["base"]["repo"]["full_name"] != repository
     ):
         return "Skipped stale report"
     run = api("GET", f"{root}/actions/runs/{run_id}")
@@ -850,7 +852,8 @@ def publish_comment(
     if (
         pull["state"] != "open"
         or pull["head"]["sha"] != report["head_sha"]
-        or pull["base"]["sha"] != report["target_base_sha"]
+        or pull["base"]["ref"] != "main"
+        or pull["base"]["repo"]["full_name"] != repository
     ):
         return "Skipped stale report"
     if found is not None:
@@ -893,9 +896,12 @@ def write_report(
 
 
 def trusted_report(
-    repo: Path, repository: str, run_id: int, run_attempt: int, out: Path
+    repo: Path, repository: str, run_id: int, run_attempt: int, out: Path, *, base: str
 ) -> None:
     """Recompute from GitHub-associated Git objects, never from PR-produced artifacts."""
+    # The caller pins this to the trusted checkout selected from main. PR base
+    # metadata may lag behind main, and main may move again during computation.
+    base = require_sha(base)
     if not REPOSITORY.fullmatch(repository) or min(run_id, run_attempt) <= 0:
         raise ReportError("invalid GitHub report target")
     root = f"repos/{repository}"
@@ -910,7 +916,7 @@ def trusted_report(
         return
     head = require_sha(run["head_sha"])
     associated = associated_pulls(repository, run)
-    current: list[tuple[int, str]] = []
+    current: list[int] = []
     for number in sorted({int(pr["number"]) for pr in associated}):
         if number <= 0:
             raise ReportError("invalid associated pull request")
@@ -919,13 +925,14 @@ def trusted_report(
             pull["state"] == "open"
             and pull["head"]["sha"] == head
             and pull["base"]["repo"]["full_name"] == repository
+            and pull["base"]["ref"] == "main"
         ):
-            current.append((number, require_sha(pull["base"]["sha"])))
+            current.append(number)
     if not current:
         return
     if len(current) != 1:
         raise ReportError("workflow run has multiple current pull requests")
-    number, base = current[0]
+    number = current[0]
     public = not api("GET", root)["private"]
     # This must be a new, bare repository: no PR worktree, hooks, configuration,
     # submodules, or Python imports can affect the trusted reporter.
@@ -935,9 +942,7 @@ def trusted_report(
     git(repo, "fetch", "--quiet", "--no-tags", "origin", base, head)
     write_report(repo, base, head, out, fetch=True, require_head_hash=True, public=public)
     (out / "context.json").write_text(
-        json.dumps(
-            {"pr": number, "repository": repository, "run": run_id, "attempt": run_attempt}
-        )
+        json.dumps({"pr": number, "repository": repository, "run": run_id, "attempt": run_attempt})
         + "\n"
     )
 
@@ -962,6 +967,7 @@ def main() -> int:
     trusted.add_argument("--run-id", type=int, required=True)
     trusted.add_argument("--run-attempt", type=int, required=True)
     trusted.add_argument("--out", type=Path, required=True)
+    trusted.add_argument("--base", required=True, help="immutable main SHA of the trusted checkout")
     preparing = commands.add_parser("prepare-public")
     preparing.add_argument("--source-repo", type=Path, required=True)
     preparing.add_argument("--source-base", required=True)
@@ -996,7 +1002,9 @@ def main() -> int:
                 + "\n"
             )
         elif args.command == "trusted-report":
-            trusted_report(args.repo, args.repository, args.run_id, args.run_attempt, args.out)
+            trusted_report(
+                args.repo, args.repository, args.run_id, args.run_attempt, args.out, base=args.base
+            )
         elif args.command == "comment":
             if args.report.stat().st_size > 5_000_000:
                 raise ReportError("report artifact is too large")

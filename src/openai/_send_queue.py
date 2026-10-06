@@ -37,11 +37,12 @@ class SendQueue:
             self._queue.append((data, byte_length))
             self._bytes += byte_length
 
-    def flush_sync(self, send: typing.Callable[[str], object]) -> None:
+    def flush_sync(self, send: typing.Callable[[str], object], *, requeue_failed: bool = True) -> None:
         """Send every queued message via *send*.
 
         If *send* raises, the failing message and all subsequent messages
-        are re-queued and the error is re-raised.
+        are re-queued and the error is re-raised. When `requeue_failed` is
+        false, release the attempted message even on failure or interruption.
         """
         while isinstance(pending := self._begin_flush(), threading.Event):
             pending.wait()
@@ -49,14 +50,21 @@ class SendQueue:
         try:
             while pending:
                 data, byte_length = pending[0]
-                send(data)
-                with self._lock:
-                    pending.popleft()
-                    self._bytes -= byte_length
+                sent = False
+                try:
+                    send(data)
+                    sent = True
+                finally:
+                    if sent or not requeue_failed:
+                        with self._lock:
+                            pending.popleft()
+                            self._bytes -= byte_length
         finally:
             self._end_flush(pending)
 
-    async def flush_async(self, send: typing.Callable[[str], typing.Awaitable[object]]) -> None:
+    async def flush_async(
+        self, send: typing.Callable[[str], typing.Awaitable[object]], *, requeue_failed: bool = True
+    ) -> None:
         """Async variant of :meth:`flush_sync`."""
         while isinstance(pending := self._begin_flush(), threading.Event):
             # Waiting in a worker keeps the event loop responsive. Cancellation
@@ -66,10 +74,15 @@ class SendQueue:
         try:
             while pending:
                 data, byte_length = pending[0]
-                await send(data)
-                with self._lock:
-                    pending.popleft()
-                    self._bytes -= byte_length
+                sent = False
+                try:
+                    await send(data)
+                    sent = True
+                finally:
+                    if sent or not requeue_failed:
+                        with self._lock:
+                            pending.popleft()
+                            self._bytes -= byte_length
         finally:
             self._end_flush(pending)
 

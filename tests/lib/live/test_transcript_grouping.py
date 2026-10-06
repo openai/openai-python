@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import sys
 import itertools
+import subprocess
 from typing import Callable, Sequence, AsyncIterator
+from pathlib import Path
 
 import pytest
 
@@ -291,6 +294,64 @@ async def test_zero_disables_suppression(make_transcript: Factory) -> None:
     t = make_transcript(backchannel_max_duration_ms=0)
     await t.feed(fragment("user", "Tell me ", 0), fragment("assistant", "mhm", 200), fragment("user", "more", 400))
     await t.finish(("user", "Tell me more"), ("assistant", "mhm"))
+
+
+@pytest.mark.parametrize("async_mode", [False, True], ids=["sync", "async"])
+@pytest.mark.parametrize(
+    "options,fragments,expected",
+    [
+        pytest.param(
+            {"assistant_silence_ms": 0.1},
+            [("assistant", "First", 0, 200), ("assistant", "Second", 201, 300)],
+            [("assistant", "First", "inactivity"), ("assistant", "Second", "manual")],
+            id="assistant-silence",
+        ),
+        pytest.param(
+            {"min_turn_separation_ms": 0.1},
+            [("user", "Question", 0, 200), ("assistant", "Answer", 200, 400), ("user", "More", 800, 1000)],
+            [
+                ("user", "Question", "speaker_change"),
+                ("assistant", "Answer", "speaker_change"),
+                ("user", "More", "manual"),
+            ],
+            id="speaker-separation",
+        ),
+        pytest.param(
+            {"min_turn_separation_ms": 0, "backchannel_isolation_ms": 0.1},
+            [("user", "Question", 0, 150), ("assistant", "okay", 100, 200), ("user", " More", 800, 1000)],
+            [("user", "Question More", "manual")],
+            id="backchannel-isolation",
+        ),
+    ],
+)
+def test_fractional_source_deadlines(
+    async_mode: bool,
+    options: dict[str, float],
+    fragments: list[tuple[str, str, int, int]],
+    expected: list[tuple[str, str, str]],
+) -> None:
+    # A synchronous non-progressing loop also blocks asyncio timeouts.
+    code = f"""
+import asyncio
+from tests.lib.live.test_transcript_grouping import Transcript, fragment
+
+async def run():
+    t = Transcript({async_mode!r}, **{options!r})
+    for speaker, value, start, end in {fragments!r}:
+        await t.feed(fragment(speaker, value, start, end))
+    await t.finish(*[(speaker, value) for speaker, value, _ in {expected!r}])
+    assert [(c.segment.speaker, c.segment.text, c.reason) for c in t.recording.closed] == {expected!r}
+
+asyncio.run(run())
+"""
+    result = subprocess.run(
+        [sys.executable, "-c", code],
+        cwd=Path(__file__).resolve().parents[3],
+        capture_output=True,
+        text=True,
+        timeout=5,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
 
 
 async def test_fractional_timeout_rounds_up(make_transcript: Factory) -> None:

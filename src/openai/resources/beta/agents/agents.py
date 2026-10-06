@@ -149,12 +149,12 @@ class Agents(SyncAPIResource):
             body=maybe_transform(
                 {
                     "model": model,
+                    "service_tier": service_tier,
                     "instructions": instructions,
                     "metadata": metadata,
                     "multi_agent": multi_agent,
                     "name": name,
                     "reasoning": reasoning,
-                    "service_tier": service_tier,
                     "text": text,
                     "tools": tools,
                 },
@@ -279,13 +279,13 @@ class Agents(SyncAPIResource):
             path_template("/agents/{agent_id}", agent_id=agent_id),
             body=maybe_transform(
                 {
+                    "model": model,
+                    "service_tier": service_tier,
                     "instructions": instructions,
                     "metadata": metadata,
-                    "model": model,
                     "multi_agent": multi_agent,
                     "name": name,
                     "reasoning": reasoning,
-                    "service_tier": service_tier,
                     "text": text,
                     "tools": tools,
                 },
@@ -499,12 +499,12 @@ class AsyncAgents(AsyncAPIResource):
             body=await async_maybe_transform(
                 {
                     "model": model,
+                    "service_tier": service_tier,
                     "instructions": instructions,
                     "metadata": metadata,
                     "multi_agent": multi_agent,
                     "name": name,
                     "reasoning": reasoning,
-                    "service_tier": service_tier,
                     "text": text,
                     "tools": tools,
                 },
@@ -629,13 +629,13 @@ class AsyncAgents(AsyncAPIResource):
             path_template("/agents/{agent_id}", agent_id=agent_id),
             body=await async_maybe_transform(
                 {
+                    "model": model,
+                    "service_tier": service_tier,
                     "instructions": instructions,
                     "metadata": metadata,
-                    "model": model,
                     "multi_agent": multi_agent,
                     "name": name,
                     "reasoning": reasoning,
-                    "service_tier": service_tier,
                     "text": text,
                     "tools": tools,
                 },

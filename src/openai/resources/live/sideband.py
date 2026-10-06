@@ -142,7 +142,7 @@ class AsyncSidebandConnection:
         self._extra_headers = extra_headers
         self._intentionally_closed = False
         self._is_reconnecting = False
-        self._send_queue = send_queue or SendQueue()
+        self._send_queue = send_queue if send_queue is not None else SendQueue()
         self._event_handler_registry = EventHandlerRegistry(use_lock=False)
 
         self.session = AsyncSidebandSessionResource(self)
@@ -218,11 +218,7 @@ class AsyncSidebandConnection:
         if self._is_reconnecting:
             self._send_queue.enqueue(data)
             return
-        try:
-            await self._connection.send(data)
-        except Exception:
-            self._send_queue.enqueue(data)
-            raise
+        await self._connection.send(data)
 
     async def send_raw(self, data: bytes | str) -> None:
         if self._is_reconnecting:
@@ -329,7 +325,7 @@ class AsyncSidebandConnection:
             await self._connection.send(data)
 
         try:
-            await self._send_queue.flush_async(_send)
+            await self._send_queue.flush_async(_send, requeue_failed=False)
         except Exception:
             log.warning("Failed to flush send queue after reconnect")
 
@@ -472,7 +468,7 @@ class AsyncSidebandConnectionManager:
         data = (
             event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
             if isinstance(event, BaseModel)
-            else json.dumps(event)
+            else json.dumps(maybe_transform(event, ConnectClientEventParam))
         )
         self.__send_queue.enqueue(data)
 
@@ -553,12 +549,19 @@ class AsyncSidebandConnectionManager:
         except ImportError as exc:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
-        url = self._prepare_url().copy_with(
-            params={
-                **self.__client.base_url.params,
-                **({"graceful_close": self.__graceful_close} if self.__graceful_close is not omit else {}),
-                **extra_query,
-            },
+        url = self._prepare_url()
+        url = url.copy_with(
+            params=httpx2.QueryParams(self.__client.qs.stringify(cast(Any, self.__client.default_query)))
+            .merge(url.params)
+            .merge(
+                cast(
+                    Any,
+                    {
+                        **({"graceful_close": self.__graceful_close} if self.__graceful_close is not omit else {}),
+                        **extra_query,
+                    },
+                )
+            ),
         )
         url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
         options = await self.__client._prepare_options(
@@ -602,9 +605,9 @@ class AsyncSidebandConnectionManager:
             ws_scheme = "ws" if scheme == "http" else "wss"
             base_url = self.__client._base_url.copy_with(scheme=ws_scheme)
 
-        merge_raw_path = base_url.raw_path.rstrip(b"/") + path_template(
-            "/live/sessions/{session_id}/attach", session_id=self.__session_id
-        ).encode("utf-8")
+        path, separator, query = base_url.raw_path.partition(b"?")
+        endpoint = path_template("/live/sessions/{session_id}/attach", session_id=self.__session_id).encode("utf-8")
+        merge_raw_path = path.rstrip(b"/") + endpoint + separator + query
         return base_url.copy_with(raw_path=merge_raw_path)
 
     async def __aexit__(
@@ -646,7 +649,7 @@ class SidebandConnection:
         self._extra_headers = extra_headers
         self._intentionally_closed = False
         self._is_reconnecting = False
-        self._send_queue = send_queue or SendQueue()
+        self._send_queue = send_queue if send_queue is not None else SendQueue()
         self._event_handler_registry = EventHandlerRegistry(use_lock=True)
 
         self.session = SidebandSessionResource(self)
@@ -722,11 +725,7 @@ class SidebandConnection:
         if self._is_reconnecting:
             self._send_queue.enqueue(data)
             return
-        try:
-            self._connection.send(data)
-        except Exception:
-            self._send_queue.enqueue(data)
-            raise
+        self._connection.send(data)
 
     def send_raw(self, data: bytes | str) -> None:
         if self._is_reconnecting:
@@ -827,7 +826,7 @@ class SidebandConnection:
     def _flush_send_queue(self) -> None:
         """Send all queued messages over the current connection."""
         try:
-            self._send_queue.flush_sync(lambda data: self._connection.send(data))
+            self._send_queue.flush_sync(lambda data: self._connection.send(data), requeue_failed=False)
         except Exception:
             log.warning("Failed to flush send queue after reconnect")
 
@@ -964,7 +963,7 @@ class SidebandConnectionManager:
         data = (
             event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
             if isinstance(event, BaseModel)
-            else json.dumps(event)
+            else json.dumps(maybe_transform(event, ConnectClientEventParam))
         )
         self.__send_queue.enqueue(data)
 
@@ -1045,12 +1044,19 @@ class SidebandConnectionManager:
         except ImportError as exc:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
-        url = self._prepare_url().copy_with(
-            params={
-                **self.__client.base_url.params,
-                **({"graceful_close": self.__graceful_close} if self.__graceful_close is not omit else {}),
-                **extra_query,
-            },
+        url = self._prepare_url()
+        url = url.copy_with(
+            params=httpx2.QueryParams(self.__client.qs.stringify(cast(Any, self.__client.default_query)))
+            .merge(url.params)
+            .merge(
+                cast(
+                    Any,
+                    {
+                        **({"graceful_close": self.__graceful_close} if self.__graceful_close is not omit else {}),
+                        **extra_query,
+                    },
+                )
+            ),
         )
         url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
         options = self.__client._prepare_options(
@@ -1094,9 +1100,9 @@ class SidebandConnectionManager:
             ws_scheme = "ws" if scheme == "http" else "wss"
             base_url = self.__client._base_url.copy_with(scheme=ws_scheme)
 
-        merge_raw_path = base_url.raw_path.rstrip(b"/") + path_template(
-            "/live/sessions/{session_id}/attach", session_id=self.__session_id
-        ).encode("utf-8")
+        path, separator, query = base_url.raw_path.partition(b"?")
+        endpoint = path_template("/live/sessions/{session_id}/attach", session_id=self.__session_id).encode("utf-8")
+        merge_raw_path = path.rstrip(b"/") + endpoint + separator + query
         return base_url.copy_with(raw_path=merge_raw_path)
 
     def __exit__(

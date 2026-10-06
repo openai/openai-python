@@ -14,6 +14,7 @@ __all__ = [
     "AgentToolResourceMcp",
     "AgentToolResourceWebSearch",
     "AgentToolResourceWebSearchLocation",
+    "AgentToolResourceComputerUse",
 ]
 
 
@@ -112,12 +113,23 @@ class AgentToolResourceWebSearch(BaseModel):
     """The type of the object. Always `web_search`."""
 
 
+class AgentToolResourceComputerUse(BaseModel):
+    """Browser use in an OpenAI-hosted session."""
+
+    include_screenshots: bool
+    """Whether computer tool outputs include screenshots."""
+
+    type: Literal["computer_use"]
+    """The type of the object. Always `computer_use`."""
+
+
 AgentTool: TypeAlias = Annotated[
     Union[
         AgentToolResourceFunction,
         AgentToolResourceProgrammaticToolCalling,
         AgentToolResourceMcp,
         AgentToolResourceWebSearch,
+        AgentToolResourceComputerUse,
     ],
     PropertyInfo(discriminator="type"),
 ]
