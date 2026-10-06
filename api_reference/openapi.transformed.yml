@@ -30099,6 +30099,64 @@ paths:
               "first_id": "cthr_abc123",
               "last_id": "cthr_def456"
             }
+  /decisions:
+    post:
+      operationId: createDecision
+      summary: Create a decision
+      description: |-
+        Evaluate ordered classification and scoring questions against shared input. Answers are returned in question order.
+
+        Supply input as a string or user messages containing text and inline images. Only user messages with `input_text` and `input_image` parts are supported; non-user roles, function calls, files, audio, and item references are not supported. Images require a data URL, not an external URL or file ID. At most 128 images are allowed across the request.
+
+        Each question can return a refusal instead of a scored answer. A refusal has type `refusal` and the corresponding question name, or null if unnamed.
+      tags:
+      - Decisions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DecisionRequest'
+        required: true
+      responses:
+        '200':
+          description: The answers and token usage.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DecisionResponse'
+      x-oaiMeta:
+        group: decisions
+        examples:
+          request:
+            curl: |
+              curl https://api.openai.com/v1/decisions \
+                -H "Content-Type: application/json" \
+                -H "Authorization: Bearer $OPENAI_API_KEY" \
+                -d '{
+                  "model": "gpt-6-luna",
+                  "input": "The package arrived with a broken screen.",
+                  "questions": [
+                    {
+                      "type": "predicate",
+                      "name": "damaged",
+                      "instructions": "Does the customer report a damaged item?"
+                    }
+                  ]
+                }'
+          response: |
+            {
+              "model": "gpt-6-luna",
+              "answers": [
+                {"type": "predicate", "name": "damaged", "probability": 0.95}
+              ],
+              "usage": {
+                "input_tokens": 42,
+                "input_tokens_details": {"cached_tokens": 0, "cache_write_tokens": 0},
+                "output_tokens": 0,
+                "output_tokens_details": {"reasoning_tokens": 0},
+                "total_tokens": 42
+              }
+            }
   /agents/environments/{environment_id}:
     get:
       operationId: retrieveAgentEnvironment
@@ -68691,6 +68749,28 @@ components:
           - code_interpreter
       required:
       - type
+    ToolSearchOutputTool:
+      description: |
+        A tool definition returned by a tool search output.
+      discriminator:
+        propertyName: type
+      anyOf:
+      - $ref: '#/components/schemas/FunctionTool'
+      - $ref: '#/components/schemas/FileSearchTool'
+      - $ref: '#/components/schemas/ComputerTool'
+      - $ref: '#/components/schemas/ComputerUsePreviewTool'
+      - $ref: '#/components/schemas/WebSearchTool'
+      - $ref: '#/components/schemas/MCPTool'
+      - $ref: '#/components/schemas/CodeInterpreterTool'
+      - $ref: '#/components/schemas/ProgrammaticToolCallingParam'
+      - $ref: '#/components/schemas/ImageGenTool'
+      - $ref: '#/components/schemas/LocalShellToolParam'
+      - $ref: '#/components/schemas/FunctionShellToolParam'
+      - $ref: '#/components/schemas/CustomToolParam'
+      - $ref: '#/components/schemas/ToolSearchOutputNamespaceToolParam'
+      - $ref: '#/components/schemas/ToolSearchToolParam'
+      - $ref: '#/components/schemas/WebSearchPreviewTool'
+      - $ref: '#/components/schemas/ApplyPatchToolParam'
     ToolsArray:
       type: array
       description: |
@@ -75584,6 +75664,94 @@ components:
       required:
       - type
       - arguments
+    ToolSearchOutputFunctionToolParam:
+      properties:
+        name:
+          type: string
+          maxLength: 128
+          minLength: 1
+          pattern: ^(?![\s\S]*[\r\n])[a-zA-Z0-9_.-]+$
+          description: The name of the loaded function tool.
+        description:
+          anyOf:
+          - type: string
+          - type: 'null'
+        parameters:
+          anyOf:
+          - $ref: '#/components/schemas/EmptyModelParam'
+          - type: 'null'
+        strict:
+          anyOf:
+          - type: boolean
+            description: Whether to enforce strict parameter validation. If omitted, Responses attempts to use strict validation when the schema is compatible, and falls back to non-strict validation otherwise.
+          - type: 'null'
+        type:
+          type: string
+          enum:
+          - function
+          default: function
+          x-stainless-const: true
+        async:
+          type: boolean
+          description: Whether the tool response can be returned asynchronously versus immediately returned on next response creation.
+        output_schema:
+          anyOf:
+          - additionalProperties: {}
+            type: object
+            description: A JSON Schema describing the JSON value encoded in string outputs for this function tool. This does not describe content-array outputs.
+            x-oaiTypeLabel: map
+          - type: 'null'
+        defer_loading:
+          type: boolean
+          description: Whether this function should be deferred and discovered via tool search.
+        allowed_callers:
+          anyOf:
+          - items:
+              $ref: '#/components/schemas/CallableToolAllowedCaller'
+            type: array
+            minItems: 1
+            description: The tool invocation context(s).
+          - type: 'null'
+      type: object
+      required:
+      - name
+      - type
+      x-openai-structured-output: function
+    ToolSearchOutputNamespaceToolParam:
+      properties:
+        type:
+          type: string
+          enum:
+          - namespace
+          description: The type of the tool. Always `namespace`.
+          default: namespace
+          x-stainless-const: true
+        name:
+          type: string
+          minLength: 1
+          description: The namespace name used in tool calls (for example, `crm`).
+        description:
+          type: string
+          description: A description of the namespace shown to the model.
+        tools:
+          items:
+            discriminator:
+              propertyName: type
+            description: A function or custom tool loaded into a namespace by tool search.
+            anyOf:
+            - $ref: '#/components/schemas/ToolSearchOutputFunctionToolParam'
+            - $ref: '#/components/schemas/CustomToolParam'
+          type: array
+          minItems: 1
+          description: The function/custom tools loaded inside this namespace.
+      type: object
+      required:
+      - type
+      - name
+      - description
+      - tools
+      title: Namespace
+      description: Groups function/custom tools under a shared namespace.
     ToolSearchOutputItemParam:
       properties:
         id:
@@ -75611,7 +75779,7 @@ components:
           description: Whether tool search was executed by the server or by the client.
         tools:
           items:
-            $ref: '#/components/schemas/Tool'
+            $ref: '#/components/schemas/ToolSearchOutputTool'
           type: array
           description: The loaded tool definitions returned by the tool search output.
         status:
@@ -80276,6 +80444,511 @@ components:
       - has_more
       title: Threads
       description: A paginated list of ChatKit threads.
+    DecisionInputText:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+          - input_text
+          default: input_text
+          x-stainless-const: true
+        text:
+          type: string
+          minLength: 0
+          maxLength: 10485760
+      required:
+      - type
+      - text
+      additionalProperties: false
+    ImageDetailParam:
+      type: string
+      enum:
+      - low
+      - high
+      - auto
+      - original
+    DecisionInputImage:
+      type: object
+      properties:
+        image_url:
+          type: string
+          minLength: 0
+          maxLength: 1073741824
+          pattern: '^data:'
+          description: A base64-encoded image in a data URL.
+        detail:
+          anyOf:
+          - $ref: '#/components/schemas/ImageDetailParam'
+          - type: 'null'
+          description: The image detail level, using the selected model's image profile. Defaults to auto.
+          default: auto
+        type:
+          type: string
+          enum:
+          - input_image
+          default: input_image
+          x-stainless-const: true
+      required:
+      - image_url
+      - type
+      additionalProperties: false
+      description: An inline image. External URLs and file IDs are not supported.
+    DecisionInputContentParts:
+      type: array
+      items:
+        x-oai-discriminator-values:
+        - input_text
+        - input_image
+        discriminator:
+          propertyName: type
+          mapping:
+            input_text: '#/components/schemas/DecisionInputText'
+            input_image: '#/components/schemas/DecisionInputImage'
+        anyOf:
+        - $ref: '#/components/schemas/DecisionInputText'
+        - $ref: '#/components/schemas/DecisionInputImage'
+      minItems: 0
+      maxItems: 16384
+    DecisionInputContent:
+      description: Text evidence or an ordered list of text and inline image parts.
+      anyOf:
+      - type: string
+        minLength: 0
+        maxLength: 10485760
+      - $ref: '#/components/schemas/DecisionInputContentParts'
+        title: Parts
+    DecisionInputMessage:
+      type: object
+      properties:
+        role:
+          type: string
+          enum:
+          - user
+          default: user
+          x-stainless-const: true
+        content:
+          $ref: '#/components/schemas/DecisionInputContent'
+        type:
+          type: string
+          enum:
+          - message
+          default: message
+          x-stainless-const: true
+      required:
+      - role
+      - content
+      additionalProperties: false
+      description: A user message containing text or inline images.
+    DecisionInput:
+      description: Shared evidence, as a string or an array of user messages containing text and inline images. Non-user roles, function calls, function-call outputs, files, audio, and item references are not supported. At most 128 image parts are allowed across all messages in one request.
+      anyOf:
+      - type: string
+        minLength: 0
+        maxLength: 10485760
+      - type: array
+        items:
+          x-oai-default-discriminator-value: message
+          discriminator:
+            propertyName: type
+            mapping:
+              message: '#/components/schemas/DecisionInputMessage'
+          x-oai-discriminator-values:
+          - message
+          anyOf:
+          - $ref: '#/components/schemas/DecisionInputMessage'
+        minItems: 0
+        maxItems: 131072
+    QuestionParamPredicate:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+          - predicate
+          default: predicate
+          x-stainless-const: true
+          description: The type of the object. Always `predicate`.
+        name:
+          type: string
+          minLength: 0
+          maxLength: 1048576
+        instructions:
+          type: string
+          minLength: 0
+          maxLength: 1048576
+      required:
+      - type
+      - instructions
+      additionalProperties: false
+    ChoiceValueParam:
+      description: 'Choice values are typed: a string and a boolean with the same text are distinct.'
+      anyOf:
+      - type: string
+        minLength: 0
+        maxLength: 1048576
+      - type: boolean
+    ChoiceOptionParam:
+      type: object
+      properties:
+        value:
+          $ref: '#/components/schemas/ChoiceValueParam'
+        description:
+          type: string
+          minLength: 0
+          maxLength: 1048576
+      required:
+      - value
+      additionalProperties: false
+    QuestionParamChoice:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+          - choice
+          default: choice
+          x-stainless-const: true
+          description: The type of the object. Always `choice`.
+        name:
+          type: string
+          minLength: 0
+          maxLength: 1048576
+        instructions:
+          type: string
+          minLength: 0
+          maxLength: 1048576
+        choices:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChoiceOptionParam'
+          minItems: 2
+          maxItems: 255
+      required:
+      - type
+      - instructions
+      - choices
+      additionalProperties: false
+    ScoreLevelParam:
+      type: object
+      properties:
+        label:
+          type: string
+          minLength: 0
+          maxLength: 1048576
+        description:
+          type: string
+          minLength: 0
+          maxLength: 1048576
+      required:
+      - label
+      additionalProperties: false
+    QuestionParamScore:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+          - score
+          default: score
+          x-stainless-const: true
+          description: The type of the object. Always `score`.
+        name:
+          type: string
+          minLength: 0
+          maxLength: 1048576
+        instructions:
+          type: string
+          minLength: 0
+          maxLength: 1048576
+        levels:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScoreLevelParam'
+          minItems: 2
+          maxItems: 10
+      required:
+      - type
+      - instructions
+      - levels
+      additionalProperties: false
+    QuestionParam:
+      description: A question about the request's input, with an optional correlation name.
+      discriminator:
+        propertyName: type
+        mapping:
+          predicate: '#/components/schemas/QuestionParamPredicate'
+          choice: '#/components/schemas/QuestionParamChoice'
+          score: '#/components/schemas/QuestionParamScore'
+      x-oai-discriminator-values:
+      - predicate
+      - choice
+      - score
+      anyOf:
+      - $ref: '#/components/schemas/QuestionParamPredicate'
+      - $ref: '#/components/schemas/QuestionParamChoice'
+      - $ref: '#/components/schemas/QuestionParamScore'
+    DecisionRequest:
+      type: object
+      properties:
+        model:
+          type: string
+          minLength: 0
+          maxLength: 1048576
+        input:
+          $ref: '#/components/schemas/DecisionInput'
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuestionParam'
+          minItems: 1
+          maxItems: 200
+        safety_identifier:
+          type:
+          - string
+          - 'null'
+          minLength: 0
+          maxLength: 128
+          description: Opaque caller-provided end-user identifier, scoped by the verified org. Match Responses' limit; this is never the authenticated user identity.
+      required:
+      - model
+      - input
+      - questions
+      additionalProperties: false
+    AnswerResourcePredicate:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+          - predicate
+          default: predicate
+          x-stainless-const: true
+          description: The type of the object. Always `predicate`.
+        name:
+          type:
+          - string
+          - 'null'
+          minLength: 0
+        probability:
+          type: number
+      required:
+      - type
+      - name
+      - probability
+      additionalProperties: false
+    ChoiceValueResource:
+      description: 'Choice values are typed: a string and a boolean with the same text are distinct.'
+      anyOf:
+      - type: string
+        minLength: 0
+      - type: boolean
+    ChoiceProbabilityResource:
+      type: object
+      properties:
+        value:
+          $ref: '#/components/schemas/ChoiceValueResource'
+        probability:
+          type: number
+      required:
+      - value
+      - probability
+      additionalProperties: false
+    AnswerResourceChoice:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+          - choice
+          default: choice
+          x-stainless-const: true
+          description: The type of the object. Always `choice`.
+        name:
+          type:
+          - string
+          - 'null'
+          minLength: 0
+        choice:
+          $ref: '#/components/schemas/ChoiceValueResource'
+        probabilities:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChoiceProbabilityResource'
+          minItems: 0
+          maxItems: 2000
+        confidence:
+          type: number
+      required:
+      - type
+      - name
+      - choice
+      - probabilities
+      - confidence
+      additionalProperties: false
+    ScoreProbabilityResource:
+      type: object
+      properties:
+        value:
+          type: integer
+          format: int64
+        label:
+          type: string
+          minLength: 0
+        probability:
+          type: number
+      required:
+      - value
+      - label
+      - probability
+      additionalProperties: false
+    AnswerResourceScore:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+          - score
+          default: score
+          x-stainless-const: true
+          description: The type of the object. Always `score`.
+        name:
+          type:
+          - string
+          - 'null'
+          minLength: 0
+        score:
+          type: number
+        probabilities:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScoreProbabilityResource'
+          minItems: 0
+          maxItems: 2000
+        confidence:
+          type: number
+      required:
+      - type
+      - name
+      - score
+      - probabilities
+      - confidence
+      additionalProperties: false
+    AnswerResourceRefusal:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+          - refusal
+          default: refusal
+          x-stainless-const: true
+          description: The type of the object. Always `refusal`.
+        name:
+          type:
+          - string
+          - 'null'
+          minLength: 0
+      required:
+      - type
+      - name
+      additionalProperties: false
+      description: The host may decline one question without disclosing its refusal score.
+    AnswerResource:
+      description: A completed question always includes its name, including null when unnamed.
+      discriminator:
+        propertyName: type
+        mapping:
+          predicate: '#/components/schemas/AnswerResourcePredicate'
+          choice: '#/components/schemas/AnswerResourceChoice'
+          score: '#/components/schemas/AnswerResourceScore'
+          refusal: '#/components/schemas/AnswerResourceRefusal'
+      x-oai-discriminator-values:
+      - predicate
+      - choice
+      - score
+      - refusal
+      anyOf:
+      - $ref: '#/components/schemas/AnswerResourcePredicate'
+      - $ref: '#/components/schemas/AnswerResourceChoice'
+      - $ref: '#/components/schemas/AnswerResourceScore'
+      - $ref: '#/components/schemas/AnswerResourceRefusal'
+    InputTokensDetailsResource:
+      type: object
+      properties:
+        cached_tokens:
+          type: integer
+          format: int64
+          minimum: -2147483648
+          maximum: 2147483647
+        cache_write_tokens:
+          type: integer
+          format: int64
+          minimum: -2147483648
+          maximum: 2147483647
+      required:
+      - cached_tokens
+      - cache_write_tokens
+      additionalProperties: false
+    OutputTokensDetailsResource:
+      type: object
+      properties:
+        reasoning_tokens:
+          type: integer
+          format: int64
+          minimum: -2147483648
+          maximum: 2147483647
+      required:
+      - reasoning_tokens
+      additionalProperties: false
+    ResponseUsageResource:
+      type: object
+      properties:
+        input_tokens:
+          type: integer
+          format: int64
+          minimum: -2147483648
+          maximum: 2147483647
+        input_tokens_details:
+          $ref: '#/components/schemas/InputTokensDetailsResource'
+        output_tokens:
+          type: integer
+          format: int64
+          minimum: -2147483648
+          maximum: 2147483647
+        output_tokens_details:
+          $ref: '#/components/schemas/OutputTokensDetailsResource'
+        total_tokens:
+          type: integer
+          format: int64
+          minimum: -2147483648
+          maximum: 2147483647
+      required:
+      - input_tokens
+      - input_tokens_details
+      - output_tokens
+      - output_tokens_details
+      - total_tokens
+      additionalProperties: false
+    DecisionResponse:
+      type: object
+      properties:
+        model:
+          type: string
+          minLength: 0
+        answers:
+          type: array
+          items:
+            $ref: '#/components/schemas/AnswerResource'
+          minItems: 0
+          maxItems: 2000
+        usage:
+          $ref: '#/components/schemas/ResponseUsageResource'
+      required:
+      - model
+      - answers
+      - usage
+      additionalProperties: false
     EnvironmentTypeResource:
       type: string
       enum:
@@ -82240,7 +82913,7 @@ components:
       - message
       additionalProperties: false
       description: A customer-safe error describing why a session request failed.
-    InputTokensDetailsResource:
+    InputTokensDetailsResource-2:
       type: object
       properties:
         cached_tokens:
@@ -82251,7 +82924,7 @@ components:
       - cached_tokens
       additionalProperties: false
       description: A breakdown of input token usage for a session or turn.
-    OutputTokensDetailsResource:
+    OutputTokensDetailsResource-2:
       type: object
       properties:
         reasoning_tokens:
@@ -82270,14 +82943,14 @@ components:
           format: int64
           description: The number of input tokens used by the agent.
         input_tokens_details:
-          $ref: '#/components/schemas/InputTokensDetailsResource'
+          $ref: '#/components/schemas/InputTokensDetailsResource-2'
           description: A breakdown of the agent's input token usage.
         output_tokens:
           type: integer
           format: int64
           description: The number of output tokens generated by the agent.
         output_tokens_details:
-          $ref: '#/components/schemas/OutputTokensDetailsResource'
+          $ref: '#/components/schemas/OutputTokensDetailsResource-2'
           description: A breakdown of the agent's output token usage.
         total_tokens:
           type: integer
@@ -94686,7 +95359,7 @@ components:
           description: Whether tool search was executed by the server or by the client.
         tools:
           items:
-            $ref: '#/components/schemas/BetaTool'
+            $ref: '#/components/schemas/BetaToolSearchOutputTool'
           type: array
           description: The loaded tool definitions returned by the tool search output.
         status:
@@ -94704,6 +95377,116 @@ components:
       - in_progress
       - completed
       - incomplete
+    BetaToolSearchOutputTool:
+      description: |
+        A tool definition returned by a tool search output.
+      discriminator:
+        propertyName: type
+      anyOf:
+      - $ref: '#/components/schemas/BetaFunctionTool'
+      - $ref: '#/components/schemas/BetaFileSearchTool'
+      - $ref: '#/components/schemas/BetaComputerTool'
+      - $ref: '#/components/schemas/BetaComputerUsePreviewTool'
+      - $ref: '#/components/schemas/BetaWebSearchTool'
+      - $ref: '#/components/schemas/BetaMCPTool'
+      - $ref: '#/components/schemas/BetaCodeInterpreterTool'
+      - $ref: '#/components/schemas/BetaProgrammaticToolCallingParam'
+      - $ref: '#/components/schemas/BetaImageGenTool'
+      - $ref: '#/components/schemas/BetaLocalShellToolParam'
+      - $ref: '#/components/schemas/BetaFunctionShellToolParam'
+      - $ref: '#/components/schemas/BetaCustomToolParam'
+      - $ref: '#/components/schemas/BetaToolSearchOutputNamespaceToolParam'
+      - $ref: '#/components/schemas/BetaToolSearchToolParam'
+      - $ref: '#/components/schemas/BetaWebSearchPreviewTool'
+      - $ref: '#/components/schemas/BetaApplyPatchToolParam'
+    BetaToolSearchOutputNamespaceToolParam:
+      properties:
+        type:
+          type: string
+          enum:
+          - namespace
+          description: The type of the tool. Always `namespace`.
+          default: namespace
+          x-stainless-const: true
+        name:
+          type: string
+          minLength: 1
+          description: The namespace name used in tool calls (for example, `crm`).
+        description:
+          type: string
+          description: A description of the namespace shown to the model.
+        tools:
+          items:
+            discriminator:
+              propertyName: type
+            description: A function or custom tool loaded into a namespace by tool search.
+            anyOf:
+            - $ref: '#/components/schemas/BetaToolSearchOutputFunctionToolParam'
+            - $ref: '#/components/schemas/BetaCustomToolParam'
+          type: array
+          minItems: 1
+          description: The function/custom tools loaded inside this namespace.
+      type: object
+      required:
+      - type
+      - name
+      - description
+      - tools
+      title: Namespace
+      description: Groups function/custom tools under a shared namespace.
+    BetaToolSearchOutputFunctionToolParam:
+      properties:
+        name:
+          type: string
+          maxLength: 128
+          minLength: 1
+          pattern: ^(?![\s\S]*[\r\n])[a-zA-Z0-9_.-]+$
+          description: The name of the loaded function tool.
+        description:
+          anyOf:
+          - type: string
+          - type: 'null'
+        parameters:
+          anyOf:
+          - $ref: '#/components/schemas/BetaEmptyModelParam'
+          - type: 'null'
+        strict:
+          anyOf:
+          - type: boolean
+            description: Whether to enforce strict parameter validation. If omitted, Responses attempts to use strict validation when the schema is compatible, and falls back to non-strict validation otherwise.
+          - type: 'null'
+        type:
+          type: string
+          enum:
+          - function
+          default: function
+          x-stainless-const: true
+        async:
+          type: boolean
+          description: Whether the tool response can be returned asynchronously versus immediately returned on next response creation.
+        output_schema:
+          anyOf:
+          - additionalProperties: {}
+            type: object
+            description: A JSON Schema describing the JSON value encoded in string outputs for this function tool. This does not describe content-array outputs.
+            x-oaiTypeLabel: map
+          - type: 'null'
+        defer_loading:
+          type: boolean
+          description: Whether this function should be deferred and discovered via tool search.
+        allowed_callers:
+          anyOf:
+          - items:
+              $ref: '#/components/schemas/BetaCallableToolAllowedCaller'
+            type: array
+            minItems: 1
+            description: The tool invocation context(s).
+          - type: 'null'
+      type: object
+      required:
+      - name
+      - type
+      x-openai-structured-output: function
     BetaToolSearchCallItemParam:
       properties:
         agent:

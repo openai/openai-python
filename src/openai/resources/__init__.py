@@ -107,6 +107,14 @@ if _t.TYPE_CHECKING:
         UploadsWithStreamingResponse as UploadsWithStreamingResponse,
         AsyncUploadsWithStreamingResponse as AsyncUploadsWithStreamingResponse,
     )
+    from .decisions import (
+        Decisions as Decisions,
+        AsyncDecisions as AsyncDecisions,
+        DecisionsWithRawResponse as DecisionsWithRawResponse,
+        AsyncDecisionsWithRawResponse as AsyncDecisionsWithRawResponse,
+        DecisionsWithStreamingResponse as DecisionsWithStreamingResponse,
+        AsyncDecisionsWithStreamingResponse as AsyncDecisionsWithStreamingResponse,
+    )
     from .containers import (
         Containers as Containers,
         AsyncContainers as AsyncContainers,
@@ -166,6 +174,12 @@ if _t.TYPE_CHECKING:
 
 else:
     _EXPORTS = {
+        "Decisions": (".decisions", "Decisions"),
+        "AsyncDecisions": (".decisions", "AsyncDecisions"),
+        "DecisionsWithRawResponse": (".decisions", "DecisionsWithRawResponse"),
+        "AsyncDecisionsWithRawResponse": (".decisions", "AsyncDecisionsWithRawResponse"),
+        "DecisionsWithStreamingResponse": (".decisions", "DecisionsWithStreamingResponse"),
+        "AsyncDecisionsWithStreamingResponse": (".decisions", "AsyncDecisionsWithStreamingResponse"),
         "Completions": (".completions", "Completions"),
         "AsyncCompletions": (".completions", "AsyncCompletions"),
         "CompletionsWithRawResponse": (".completions", "CompletionsWithRawResponse"),
@@ -308,6 +322,7 @@ else:
         "completions",
         "containers",
         "content_provenance_checks",
+        "decisions",
         "embeddings",
         "evals",
         "files",
@@ -340,6 +355,12 @@ else:
 
 
 __all__ = [
+    "Decisions",
+    "AsyncDecisions",
+    "DecisionsWithRawResponse",
+    "AsyncDecisionsWithRawResponse",
+    "DecisionsWithStreamingResponse",
+    "AsyncDecisionsWithStreamingResponse",
     "Completions",
     "AsyncCompletions",
     "CompletionsWithRawResponse",

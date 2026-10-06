@@ -481,6 +481,7 @@ from ._module_client import (
     uploads as uploads,
     realtime as realtime,
     webhooks as webhooks,
+    decisions as decisions,
     responses as responses,
     containers as containers,
     embeddings as embeddings,
