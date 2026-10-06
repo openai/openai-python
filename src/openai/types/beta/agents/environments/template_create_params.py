@@ -39,7 +39,8 @@ class TemplateCreateParams(TypedDict, total=False):
     network: Optional[Network]
     """Network access policy for the environment.
 
-    Defaults to disabled for GA requests and enabled for beta requests.
+    If omitted, the API version determines whether network access is enabled or
+    disabled.
     """
 
     packages: Optional[Packages]
@@ -71,7 +72,7 @@ class Desktop(TypedDict, total=False):
 class Network(TypedDict, total=False):
     """Network access policy for the environment.
 
-    Defaults to disabled for GA requests and enabled for beta requests.
+    If omitted, the API version determines whether network access is enabled or disabled.
     """
 
     access: Required[Literal["enabled", "disabled", "restricted"]]

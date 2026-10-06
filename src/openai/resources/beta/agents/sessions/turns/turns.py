@@ -6,21 +6,33 @@ from typing_extensions import Literal
 
 import httpx2
 
-from ..... import _legacy_response
-from ....._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
-from ....._utils import path_template, maybe_transform
-from ....._compat import cached_property
-from ....._resource import SyncAPIResource, AsyncAPIResource
-from ....._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
-from .....pagination import SyncCursorPage, AsyncCursorPage
-from ....._base_client import AsyncPaginator, make_request_options
-from .....types.beta.agents.sessions import turn_list_params
-from .....types.beta.agents.sessions.turn import Turn
+from ...... import _legacy_response
+from .items import (
+    Items,
+    AsyncItems,
+    ItemsWithRawResponse,
+    AsyncItemsWithRawResponse,
+    ItemsWithStreamingResponse,
+    AsyncItemsWithStreamingResponse,
+)
+from ......_types import Body, Omit, Query, Headers, NotGiven, omit, not_given
+from ......_utils import path_template, maybe_transform
+from ......_compat import cached_property
+from ......_resource import SyncAPIResource, AsyncAPIResource
+from ......_response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
+from ......pagination import SyncCursorPage, AsyncCursorPage
+from ......_base_client import AsyncPaginator, make_request_options
+from ......types.beta.agents.sessions import turn_list_params
+from ......types.beta.agents.sessions.turn import Turn
 
 __all__ = ["Turns", "AsyncTurns"]
 
 
 class Turns(SyncAPIResource):
+    @cached_property
+    def items(self) -> Items:
+        return Items(self._client)
+
     @cached_property
     def with_raw_response(self) -> TurnsWithRawResponse:
         """
@@ -148,6 +160,10 @@ class Turns(SyncAPIResource):
 
 
 class AsyncTurns(AsyncAPIResource):
+    @cached_property
+    def items(self) -> AsyncItems:
+        return AsyncItems(self._client)
+
     @cached_property
     def with_raw_response(self) -> AsyncTurnsWithRawResponse:
         """
@@ -285,6 +301,10 @@ class TurnsWithRawResponse:
             turns.list,
         )
 
+    @cached_property
+    def items(self) -> ItemsWithRawResponse:
+        return ItemsWithRawResponse(self._turns.items)
+
 
 class AsyncTurnsWithRawResponse:
     def __init__(self, turns: AsyncTurns) -> None:
@@ -296,6 +316,10 @@ class AsyncTurnsWithRawResponse:
         self.list = _legacy_response.async_to_raw_response_wrapper(
             turns.list,
         )
+
+    @cached_property
+    def items(self) -> AsyncItemsWithRawResponse:
+        return AsyncItemsWithRawResponse(self._turns.items)
 
 
 class TurnsWithStreamingResponse:
@@ -309,6 +333,10 @@ class TurnsWithStreamingResponse:
             turns.list,
         )
 
+    @cached_property
+    def items(self) -> ItemsWithStreamingResponse:
+        return ItemsWithStreamingResponse(self._turns.items)
+
 
 class AsyncTurnsWithStreamingResponse:
     def __init__(self, turns: AsyncTurns) -> None:
@@ -320,3 +348,7 @@ class AsyncTurnsWithStreamingResponse:
         self.list = async_to_streamed_response_wrapper(
             turns.list,
         )
+
+    @cached_property
+    def items(self) -> AsyncItemsWithStreamingResponse:
+        return AsyncItemsWithStreamingResponse(self._turns.items)
