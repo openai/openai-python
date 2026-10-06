@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.26.0](https://github.com/openai/openai-python/compare/v3.25.0...v3.26.0) (2026-10-06)
+
+
+### Features
+
+* **api:** add standalone Decisions support ([#4033](https://github.com/openai/openai-python/issues/4033)) ([b99e3e4](https://github.com/openai/openai-python/commit/b99e3e4eee03e99eebc2c762eee9d73fdd4b0eff))
+
 ## [3.25.0](https://github.com/openai/openai-python/compare/v3.24.0...v3.25.0) (2026-10-06)
 
 
