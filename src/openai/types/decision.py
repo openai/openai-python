@@ -119,6 +119,8 @@ class Usage(BaseModel):
 
     total_tokens: int
 
+    compute_units: Optional[int] = None
+
 
 class Decision(BaseModel):
     answers: List[Answer]
