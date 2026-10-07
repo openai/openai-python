@@ -411,4 +411,9 @@ class ResponseStreamState(Generic[TextFormatT]):
 
 
 def _is_json_parse_error(exc: pydantic.ValidationError) -> bool:
-    return any("json" in str(error.get("type", "")).lower() for error in exc.errors())
+    # Deferral only makes sense while the outer document itself fails to
+    # parse, since later chunks may still complete it. A nested Json field
+    # raises the same json_invalid / json_type codes but with a non-empty
+    # loc, and by then the document is already complete, so the error is
+    # deterministic and must keep surfacing at text-done.
+    return any(error.get("type") == "json_invalid" and error.get("loc") == () for error in exc.errors())

@@ -11,14 +11,16 @@ from tests.respx2 import MockRouter
 from openai._types import omit
 from openai._utils import assert_signatures_in_sync
 from openai._models import construct_type_unchecked
-from openai.types.responses import Response, ResponseCreatedEvent, ResponseOutputItemAddedEvent
-from openai.lib._parsing._responses import parse_response
 from openai.types.responses import (
+    Response,
+    ResponseCreatedEvent,
     ResponseTextDoneEvent,
     ResponseCompletedEvent as RawResponseCompletedEvent,
     ResponseIncompleteEvent,
+    ResponseOutputItemAddedEvent,
     ResponseContentPartAddedEvent,
 )
+from openai.lib._parsing._responses import parse_response
 from openai.lib.streaming.responses._responses import ResponseStreamState
 
 from ...conftest import base_url
@@ -64,7 +66,7 @@ def _message_payload(*, text: str, status: str) -> dict[str, object]:
     }
 
 
-def _start_response_stream(state: ResponseStreamState[_StructuredText]) -> None:
+def _start_response_stream(state: ResponseStreamState[_T]) -> None:
     state.handle_event(
         construct_type_unchecked(
             type_=ResponseCreatedEvent,
@@ -254,6 +256,37 @@ def test_stream_output_text_done_preserves_structured_validation_errors() -> Non
                     "item_id": "msg_test",
                     "logprobs": [],
                     "text": "{}",
+                },
+            )
+        )
+
+
+class _NestedJsonText(pydantic.BaseModel):
+    answer: str
+    payload: pydantic.Json[list[int]]
+
+
+@pytest.mark.parametrize("payload", ['"not-json"', "42"])
+def test_stream_output_text_done_preserves_nested_json_field_errors(payload: str) -> None:
+    # A nested Json field raises the same json_invalid / json_type codes as
+    # a truncated outer document, but with a non-empty loc: the document is
+    # already complete, so the error must surface at text-done instead of
+    # being deferred.
+    state = ResponseStreamState(text_format=_NestedJsonText, input_tools=[])
+    _start_response_stream(state)
+
+    with pytest.raises(pydantic.ValidationError):
+        state.handle_event(
+            construct_type_unchecked(
+                type_=ResponseTextDoneEvent,
+                value={
+                    "type": "response.output_text.done",
+                    "sequence_number": 3,
+                    "output_index": 0,
+                    "content_index": 0,
+                    "item_id": "msg_test",
+                    "logprobs": [],
+                    "text": f'{{"answer":"fictional","payload":{payload}}}',
                 },
             )
         )
