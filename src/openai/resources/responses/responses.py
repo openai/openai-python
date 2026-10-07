@@ -4188,7 +4188,7 @@ class AsyncResponsesConnection:
 
     async def send(self, event: ResponsesClientEvent | ResponsesClientEventParam) -> None:
         data = (
-            event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
+            event.to_json(use_api_names=True, exclude_unset=True)
             if isinstance(event, BaseModel)
             else json.dumps(await async_maybe_transform(event, ResponsesClientEventParam))
         )
@@ -4440,7 +4440,7 @@ class AsyncResponsesConnectionManager:
         are automatically sent once the WebSocket connection opens.
         """
         data = (
-            event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
+            event.to_json(use_api_names=True, exclude_unset=True)
             if isinstance(event, BaseModel)
             else json.dumps(maybe_transform(event, ResponsesClientEventParam))
         )
@@ -4685,7 +4685,7 @@ class ResponsesConnection:
 
     def send(self, event: ResponsesClientEvent | ResponsesClientEventParam) -> None:
         data = (
-            event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
+            event.to_json(use_api_names=True, exclude_unset=True)
             if isinstance(event, BaseModel)
             else json.dumps(maybe_transform(event, ResponsesClientEventParam))
         )
@@ -4935,7 +4935,7 @@ class ResponsesConnectionManager:
         are automatically sent once the WebSocket connection opens.
         """
         data = (
-            event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
+            event.to_json(use_api_names=True, exclude_unset=True)
             if isinstance(event, BaseModel)
             else json.dumps(maybe_transform(event, ResponsesClientEventParam))
         )

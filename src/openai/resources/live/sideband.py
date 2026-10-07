@@ -211,7 +211,7 @@ class AsyncSidebandConnection:
 
     async def send(self, event: ConnectClientEvent | ConnectClientEventParam) -> None:
         data = (
-            event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
+            event.to_json(use_api_names=True, exclude_unset=True)
             if isinstance(event, BaseModel)
             else json.dumps(await async_maybe_transform(event, ConnectClientEventParam))
         )
@@ -466,7 +466,7 @@ class AsyncSidebandConnectionManager:
         are automatically sent once the WebSocket connection opens.
         """
         data = (
-            event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
+            event.to_json(use_api_names=True, exclude_unset=True)
             if isinstance(event, BaseModel)
             else json.dumps(maybe_transform(event, ConnectClientEventParam))
         )
@@ -718,7 +718,7 @@ class SidebandConnection:
 
     def send(self, event: ConnectClientEvent | ConnectClientEventParam) -> None:
         data = (
-            event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
+            event.to_json(use_api_names=True, exclude_unset=True)
             if isinstance(event, BaseModel)
             else json.dumps(maybe_transform(event, ConnectClientEventParam))
         )
@@ -961,7 +961,7 @@ class SidebandConnectionManager:
         are automatically sent once the WebSocket connection opens.
         """
         data = (
-            event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
+            event.to_json(use_api_names=True, exclude_unset=True)
             if isinstance(event, BaseModel)
             else json.dumps(maybe_transform(event, ConnectClientEventParam))
         )

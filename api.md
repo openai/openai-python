@@ -23,6 +23,24 @@ from openai.types import (
 )
 ```
 
+# Decisions
+
+Types:
+
+```python
+from openai.types import (
+    Decision,
+    DecisionInputImageParam,
+    DecisionInputMessageParam,
+    DecisionInputPartUnionParam,
+    DecisionInputTextParam,
+)
+```
+
+Methods:
+
+- <code title="post /decisions">client.decisions.<a href="./src/openai/resources/decisions.py">create</a>(\*\*<a href="src/openai/types/decision_create_params.py">params</a>) -> <a href="./src/openai/types/decision.py">Decision</a></code>
+
 # Completions
 
 Types:
@@ -49,21 +67,22 @@ Types:
 
 ```python
 from openai.types.chat import (
+    ChatCompletionAllowedToolsParam,
     ChatCompletion,
-    ChatCompletionAllowedToolChoice,
+    ChatCompletionAllowedToolChoiceParam,
     ChatCompletionAssistantMessageParam,
     ChatCompletionAudio,
     ChatCompletionAudioParam,
     ChatCompletionChunk,
-    ChatCompletionContentPart,
+    ChatCompletionContentPartParam,
     ChatCompletionContentPartImage,
-    ChatCompletionContentPartInputAudio,
-    ChatCompletionContentPartRefusal,
+    ChatCompletionContentPartInputAudioParam,
+    ChatCompletionContentPartRefusalParam,
     ChatCompletionContentPartText,
-    ChatCompletionCustomTool,
+    ChatCompletionCustomToolParam,
     ChatCompletionDeleted,
     ChatCompletionDeveloperMessageParam,
-    ChatCompletionFunctionCallOption,
+    ChatCompletionFunctionCallOptionParam,
     ChatCompletionFunctionMessageParam,
     ChatCompletionFunctionTool,
     ChatCompletionMessage,
@@ -72,19 +91,18 @@ from openai.types.chat import (
     ChatCompletionMessageParam,
     ChatCompletionMessageToolCallUnion,
     ChatCompletionModality,
-    ChatCompletionNamedToolChoice,
-    ChatCompletionNamedToolChoiceCustom,
-    ChatCompletionPredictionContent,
+    ChatCompletionNamedToolChoiceParam,
+    ChatCompletionNamedToolChoiceCustomParam,
+    ChatCompletionPredictionContentParam,
     ChatCompletionRole,
     ChatCompletionStoreMessage,
-    ChatCompletionStreamOptions,
+    ChatCompletionStreamOptionsParam,
     ChatCompletionSystemMessageParam,
     ChatCompletionTokenLogprob,
-    ChatCompletionToolUnion,
-    ChatCompletionToolChoiceOption,
+    ChatCompletionToolUnionParam,
+    ChatCompletionToolChoiceOptionParam,
     ChatCompletionToolMessageParam,
     ChatCompletionUserMessageParam,
-    ChatCompletionAllowedTools,
     ChatCompletionReasoningEffort,
 )
 ```
@@ -246,10 +264,10 @@ Types:
 ```python
 from openai.types import (
     Moderation,
-    ModerationImageURLInput,
+    ModerationImageURLInputParam,
     ModerationModel,
-    ModerationMultiModalInput,
-    ModerationTextInput,
+    ModerationMultiModalInputParam,
+    ModerationTextInputParam,
     ModerationCreateResponse,
 )
 ```
@@ -659,7 +677,7 @@ Methods:
 Types:
 
 ```python
-from openai.types.beta.agents import Vault, VaultDeleted, VaultStatus, VaultStatusFilter
+from openai.types.beta.agents import Vault, VaultDeleted, VaultStatus, VaultStatusFilterParam
 ```
 
 Methods:
@@ -782,8 +800,14 @@ from openai.types.beta.agents.sessions import Turn
 
 Methods:
 
-- <code title="get /agents/sessions/{session_id}/turns/{turn_id}">client.beta.agents.sessions.turns.<a href="./src/openai/resources/beta/agents/sessions/turns.py">retrieve</a>(turn_id, \*, session_id) -> <a href="./src/openai/types/beta/agents/sessions/turn.py">Turn</a></code>
-- <code title="get /agents/sessions/{session_id}/turns">client.beta.agents.sessions.turns.<a href="./src/openai/resources/beta/agents/sessions/turns.py">list</a>(session_id, \*\*<a href="src/openai/types/beta/agents/sessions/turn_list_params.py">params</a>) -> <a href="./src/openai/types/beta/agents/sessions/turn.py">SyncCursorPage[Turn]</a></code>
+- <code title="get /agents/sessions/{session_id}/turns/{turn_id}">client.beta.agents.sessions.turns.<a href="./src/openai/resources/beta/agents/sessions/turns/turns.py">retrieve</a>(turn_id, \*, session_id) -> <a href="./src/openai/types/beta/agents/sessions/turn.py">Turn</a></code>
+- <code title="get /agents/sessions/{session_id}/turns">client.beta.agents.sessions.turns.<a href="./src/openai/resources/beta/agents/sessions/turns/turns.py">list</a>(session_id, \*\*<a href="src/openai/types/beta/agents/sessions/turn_list_params.py">params</a>) -> <a href="./src/openai/types/beta/agents/sessions/turn.py">SyncCursorPage[Turn]</a></code>
+
+##### Items
+
+Methods:
+
+- <code title="get /agents/sessions/{session_id}/turns/{turn_id}/items">client.beta.agents.sessions.turns.items.<a href="./src/openai/resources/beta/agents/sessions/turns/items.py">list</a>(turn_id, \*, session_id, \*\*<a href="src/openai/types/beta/agents/sessions/turns/item_list_params.py">params</a>) -> <a href="./src/openai/types/beta/agent_session_item.py">SyncConversationCursorPage[AgentSessionItem]</a></code>
 
 ## Responses
 
@@ -958,6 +982,7 @@ from openai.types.beta import (
     BetaToolChoiceOptions,
     BetaToolChoiceShell,
     BetaToolChoiceTypes,
+    BetaToolSearchOutputNamespaceTool,
     BetaToolSearchTool,
     BetaWebSearchPreviewTool,
     BetaWebSearchTool,

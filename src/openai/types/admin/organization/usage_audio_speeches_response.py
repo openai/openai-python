@@ -54,6 +54,14 @@ class DataResultOrganizationUsageCompletionsResult(BaseModel):
     usage result.
     """
 
+    api_source: Optional[Literal["agents_api", "unlabeled"]] = None
+    """
+    When grouped by `api_source`, `agents_api` identifies attributed Agents API
+    activity and `unlabeled` includes all records without published source
+    attribution, including historical and unknown origins. Unlabeled does not imply
+    direct API usage. Without source grouping, this field is null.
+    """
+
     batch: Optional[bool] = None
     """
     When `group_by=batch`, this field tells whether the grouped usage result is
@@ -413,6 +421,14 @@ class DataResultOrganizationUsageWebSearchesResult(BaseModel):
     usage result.
     """
 
+    api_source: Optional[Literal["agents_api", "unlabeled"]] = None
+    """
+    When grouped by `api_source`, `agents_api` identifies attributed Agents API
+    activity and `unlabeled` includes all records without published source
+    attribution, including historical and unknown origins. Unlabeled does not imply
+    direct API usage. Without source grouping, this field is null.
+    """
+
     context_level: Optional[str] = None
     """
     When `group_by=context_level`, this field provides the search context size of
@@ -462,6 +478,14 @@ class DataResultOrganizationCostsResult(BaseModel):
     costs result.
     """
 
+    api_source: Optional[Literal["agents_api", "unlabeled"]] = None
+    """
+    When grouped by `api_source`, `agents_api` identifies attributed Agents API
+    activity and `unlabeled` includes all records without published source
+    attribution, including historical and unknown origins. Unlabeled does not imply
+    direct API usage. Without source grouping, this field is null.
+    """
+
     line_item: Optional[str] = None
     """
     When `group_by=line_item`, this field provides the line item of the grouped
@@ -484,6 +508,12 @@ class DataResultOrganizationCostsResult(BaseModel):
     """The unit of the `quantity` value.
 
     If no single supported unit applies to the result, this field is `null`.
+    """
+
+    user_id: Optional[str] = None
+    """
+    When `group_by=user_id`, this field provides the user ID of the grouped costs
+    result.
     """
 
 
