@@ -29,7 +29,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 ci_only = pytest.mark.skipif(
     os.environ.get("CI") != "true",
-    reason="Checks the CI release lockfile or build environment; run locally with CI=true",
+    reason="Packaging policy check runs only in CI; set CI=true to run locally",
 )
 
 
