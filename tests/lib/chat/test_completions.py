@@ -1015,3 +1015,80 @@ def test_parse_method_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpe
         checking_client.chat.completions.parse,
         exclude_params={"response_format", "stream"},
     )
+
+
+class _TruncatedJSONModel(BaseModel):
+    city: str
+    temperature: float
+    units: Literal["c", "f"]
+
+
+def _build_truncated_chat_completion(content: str) -> openai.types.chat.ChatCompletion:
+    """Construct a minimal ChatCompletion whose message content is intentionally
+    truncated / malformed JSON. Used by the regression tests for #1763."""
+    return openai.types.chat.ChatCompletion.model_validate(
+        {
+            "id": "chatcmpl-truncated-fixture",
+            "object": "chat.completion",
+            "created": 1727346142,
+            "model": "gpt-4o-2024-08-06",
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": content,
+                        "refusal": None,
+                    },
+                    "logprobs": None,
+                    "finish_reason": "stop",
+                }
+            ],
+            "usage": {
+                "prompt_tokens": 79,
+                "completion_tokens": 14,
+                "total_tokens": 93,
+            },
+        }
+    )
+
+
+def test_parse_chat_completion_does_not_raise_on_truncated_json_content() -> None:
+    """#1763: chat.completions.parse must not propagate pydantic.ValidationError
+    or json.JSONDecodeError when the model returns truncated JSON in the content
+    field. The parse helper should treat such a response as unparseable and
+    surface ``message.parsed = None`` instead of letting the exception escape."""
+
+    from openai.lib._parsing._completions import parse_chat_completion
+
+    # The trailing brace is deliberately missing — a pydantic model_parse_json call
+    # on this string raises ValidationError today.
+    truncated = '{"city":"San Francisco","temperature":65,"units":'
+
+    raw = _build_truncated_chat_completion(truncated)
+
+    parsed = parse_chat_completion(
+        response_format=_TruncatedJSONModel,
+        input_tools=openai._types.omit,
+        chat_completion=raw,
+    )
+
+    assert parsed.choices[0].message.parsed is None
+    assert parsed.choices[0].message.content == truncated
+
+
+def test_parse_chat_completion_does_not_raise_on_garbage_json_content() -> None:
+    """#1763 follow-up: garbage / non-JSON content must not crash parse either."""
+
+    from openai.lib._parsing._completions import parse_chat_completion
+
+    raw = _build_truncated_chat_completion("not even close to json")
+
+    parsed = parse_chat_completion(
+        response_format=_TruncatedJSONModel,
+        input_tools=openai._types.omit,
+        chat_completion=raw,
+    )
+
+    assert parsed.choices[0].message.parsed is None
+    assert parsed.choices[0].message.content == "not even close to json"
