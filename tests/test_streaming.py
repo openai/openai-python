@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import ssl
+import asyncio
 import importlib
 from typing import Any, Iterator, AsyncIterator
 from contextlib import aclosing, nullcontext
@@ -10,7 +11,7 @@ import anyio
 import httpx2
 import pytest
 
-from openai import OpenAI, AsyncOpenAI, APITimeoutError, APIConnectionError
+from openai import OpenAI, APIError, AsyncOpenAI, APITimeoutError, APIConnectionError
 from openai._streaming import Stream, AsyncStream, ServerSentEvent
 
 
@@ -27,6 +28,152 @@ from openai._streaming import Stream, AsyncStream, ServerSentEvent
 )
 def http_module(request: pytest.FixtureRequest) -> Any:
     return importlib.import_module(request.param)
+
+
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+@pytest.mark.parametrize("http_version", [b"HTTP/1.1", b"HTTP/2"])
+@pytest.mark.parametrize("ending", ["eof", "timeout", "protocol-error", "unexpected-error"])
+async def test_done_drains_bytes_without_decoding_trailing_events(
+    sync: bool, http_version: bytes, ending: str, http_module: Any
+) -> None:
+    reached_eof = False
+    error = {
+        "timeout": http_module.ReadTimeout("synthetic timeout"),
+        "protocol-error": http_module.RemoteProtocolError("synthetic incomplete body"),
+        "unexpected-error": ValueError("synthetic application error"),
+    }.get(ending)
+
+    def body() -> Iterator[bytes]:
+        nonlocal reached_eof
+        yield b'data: {"foo":true}\n\ndata: [DONE]\n\n'
+        # Invalid UTF-8 and an unterminated line must be discarded without SSE decoding.
+        yield b"\xff" * 65536
+        if error is not None:
+            raise error
+        reached_eof = True
+
+    async def async_body() -> AsyncIterator[bytes]:
+        for chunk in body():
+            yield chunk
+
+    def handler(_request: Any) -> Any:
+        return http_module.Response(
+            200,
+            content=body() if sync else async_body(),
+            extensions={"http_version": http_version},
+        )
+
+    context = (
+        pytest.raises(ValueError, match="synthetic application error")
+        if ending == "unexpected-error" and http_version == b"HTTP/1.1"
+        else nullcontext()
+    )
+    received: list[object] = []
+    if sync:
+        with OpenAI(
+            api_key="synthetic",
+            http_client=http_module.Client(transport=http_module.MockTransport(handler), trust_env=False),
+        ) as client:
+            stream = client.post("/synthetic", cast_to=object, stream=True, stream_cls=Stream[object])
+            with context:
+                received.extend(stream)
+            assert stream.response.is_closed
+    else:
+        async with AsyncOpenAI(
+            api_key="synthetic",
+            http_client=http_module.AsyncClient(transport=http_module.MockTransport(handler), trust_env=False),
+        ) as async_client:
+            async_stream = await async_client.post(
+                "/synthetic", cast_to=object, stream=True, stream_cls=AsyncStream[object]
+            )
+            with context:
+                async for event in async_stream:
+                    received.append(event)
+            assert async_stream.response.is_closed
+
+    assert received == [{"foo": True}]
+    assert reached_eof == (ending == "eof" and http_version == b"HTTP/1.1")
+
+
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+@pytest.mark.parametrize("exit_kind", ["early-close", "api-error", "invalid-json"])
+async def test_incomplete_stream_does_not_drain(sync: bool, exit_kind: str, http_module: Any) -> None:
+    read_tail = False
+
+    def body() -> Iterator[bytes]:
+        nonlocal read_tail
+        if exit_kind == "api-error":
+            yield b'data: {"error":{"message":"synthetic API error"}}\n\n'
+        elif exit_kind == "invalid-json":
+            yield b"data: invalid json\n\n"
+        else:
+            yield b'data: {"foo":true}\n\n'
+        read_tail = True
+        yield b"data: [DONE]\n\n"
+
+    async def async_body() -> AsyncIterator[bytes]:
+        for chunk in body():
+            yield chunk
+
+    def handler(_request: Any) -> Any:
+        return http_module.Response(200, content=body() if sync else async_body())
+
+    context = (
+        nullcontext()
+        if exit_kind == "early-close"
+        else pytest.raises(APIError if exit_kind == "api-error" else ValueError)
+    )
+    if sync:
+        with OpenAI(
+            api_key="synthetic",
+            http_client=http_module.Client(transport=http_module.MockTransport(handler), trust_env=False),
+        ) as client:
+            stream = client.post("/synthetic", cast_to=object, stream=True, stream_cls=Stream[object])
+            with context, stream:
+                next(stream)
+            assert stream.response.is_closed
+    else:
+        async with AsyncOpenAI(
+            api_key="synthetic",
+            http_client=http_module.AsyncClient(transport=http_module.MockTransport(handler), trust_env=False),
+        ) as async_client:
+            async_stream = await async_client.post(
+                "/synthetic", cast_to=object, stream=True, stream_cls=AsyncStream[object]
+            )
+            with context:
+                async with async_stream:
+                    await async_stream.__anext__()
+            assert async_stream.response.is_closed
+
+    assert not read_tail
+
+
+async def test_cancellation_during_done_drain_closes_response(http_module: Any) -> None:
+    draining = asyncio.Event()
+
+    async def body() -> AsyncIterator[bytes]:
+        yield b"data: [DONE]\n\n"
+        draining.set()
+        await asyncio.Event().wait()
+
+    def handler(_request: Any) -> Any:
+        return http_module.Response(200, content=body())
+
+    async with AsyncOpenAI(
+        api_key="synthetic",
+        http_client=http_module.AsyncClient(transport=http_module.MockTransport(handler), trust_env=False),
+    ) as client:
+        stream = await client.post("/synthetic", cast_to=object, stream=True, stream_cls=AsyncStream[object])
+        task = asyncio.create_task(stream.__anext__())
+        try:
+            await asyncio.wait_for(draining.wait(), timeout=5)
+            task.cancel()
+            with pytest.raises(asyncio.CancelledError):
+                await task
+            assert stream.response.is_closed
+        finally:
+            task.cancel()
+            await asyncio.gather(task, return_exceptions=True)
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
