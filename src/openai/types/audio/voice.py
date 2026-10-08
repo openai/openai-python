@@ -8,10 +8,7 @@ __all__ = ["Voice"]
 
 
 class Voice(BaseModel):
-    """A custom voice that can be used for audio output.
-
-    Voices created from text prompts are supported only in Live.
-    """
+    """A custom voice that can be used for audio output."""
 
     id: str
     """The voice identifier, which can be referenced in API endpoints."""
@@ -25,8 +22,5 @@ class Voice(BaseModel):
     object: Literal["audio.voice"]
     """The object type, which is always `audio.voice`."""
 
-    type: Literal["audio_sample", "prompt"]
-    """How the voice was created.
-
-    Voices created from text prompts are supported only in Live.
-    """
+    type: Literal["audio_sample"]
+    """How the voice was created."""
