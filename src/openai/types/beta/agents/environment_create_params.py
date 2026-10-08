@@ -2,34 +2,30 @@
 
 from __future__ import annotations
 
-from typing import Dict, Union, Iterable, Optional
-from typing_extensions import Literal, Required, TypeAlias, TypedDict
+from typing import Dict, Iterable, Optional
+from typing_extensions import Literal, Required, Annotated, TypedDict
 
-from ..._types import SequenceNotStr
-from .hosted_skill_param import HostedSkillParam
-from .hosted_plugin_param import HostedPluginParam
-from .setup_command_param import SetupCommandParam
-from .hosted_environment_file_param import HostedEnvironmentFileParam
+from ...._types import SequenceNotStr
+from ...._utils import PropertyInfo
+from ..hosted_skill_param import HostedSkillParam
+from ..hosted_plugin_param import HostedPluginParam
+from ..setup_command_param import SetupCommandParam
+from ..hosted_environment_file_param import HostedEnvironmentFileParam
 
-__all__ = [
-    "EnvironmentParam",
-    "EnvironmentParamNone",
-    "EnvironmentParamOpenAIHosted",
-    "EnvironmentParamOpenAIHostedDesktop",
-    "EnvironmentParamOpenAIHostedNetwork",
-    "EnvironmentParamOpenAIHostedPackages",
-    "EnvironmentParamSelfHosted",
-]
+__all__ = ["EnvironmentCreateParams", "Environment", "EnvironmentDesktop", "EnvironmentNetwork", "EnvironmentPackages"]
 
 
-class EnvironmentParamNone(TypedDict, total=False):
-    """Runs the agent without an execution environment."""
+class EnvironmentCreateParams(TypedDict, total=False):
+    environment: Required[Environment]
+    """The required hosting type and its configuration."""
 
-    type: Required[Literal["none"]]
-    """The type of the object. Always `none`."""
+    vault_ids: Optional[SequenceNotStr[str]]
+    """The IDs of up to 10 vaults made available to an OpenAI-hosted environment."""
+
+    idempotency_key: Annotated[str, PropertyInfo(alias="Idempotency-Key")]
 
 
-class EnvironmentParamOpenAIHostedDesktop(TypedDict, total=False):
+class EnvironmentDesktop(TypedDict, total=False):
     """Desktop provisioning.
 
     Omission or null inherits the template setting, or defaults to disabled.
@@ -39,7 +35,7 @@ class EnvironmentParamOpenAIHostedDesktop(TypedDict, total=False):
     """Whether to provision the desktop and its browser proxy."""
 
 
-class EnvironmentParamOpenAIHostedNetwork(TypedDict, total=False):
+class EnvironmentNetwork(TypedDict, total=False):
     """Network access policy for the environment.
 
     If omitted, the API version determines whether network access is enabled or disabled.
@@ -64,7 +60,7 @@ class EnvironmentParamOpenAIHostedNetwork(TypedDict, total=False):
     """
 
 
-class EnvironmentParamOpenAIHostedPackages(TypedDict, total=False):
+class EnvironmentPackages(TypedDict, total=False):
     """Packages to install in the environment. Defaults to empty package lists."""
 
     npm: Optional[SequenceNotStr[str]]
@@ -77,10 +73,8 @@ class EnvironmentParamOpenAIHostedPackages(TypedDict, total=False):
     """System packages to install. Defaults to an empty list."""
 
 
-class EnvironmentParamOpenAIHosted(TypedDict, total=False):
-    """
-    An existing OpenAI-hosted environment or new inline/template-based hosted configuration.
-    """
+class Environment(TypedDict, total=False):
+    """The required hosting type and its configuration."""
 
     type: Required[Literal["openai_hosted"]]
     """The type of the object. Always `openai_hosted`."""
@@ -91,10 +85,7 @@ class EnvironmentParamOpenAIHosted(TypedDict, total=False):
     Defaults to an empty list.
     """
 
-    container_size: Literal["small", "medium", "large"]
-    """The hosted container size. Omission selects the medium tier."""
-
-    desktop: Optional[EnvironmentParamOpenAIHostedDesktop]
+    desktop: Optional[EnvironmentDesktop]
     """Desktop provisioning.
 
     Omission or null inherits the template setting, or defaults to disabled.
@@ -103,14 +94,8 @@ class EnvironmentParamOpenAIHosted(TypedDict, total=False):
     env: Optional[Dict[str, str]]
     """Environment variables made available to the agent."""
 
-    environment_id: str
-    """An existing prewarmed environment.
-
-    Cannot be combined with a template or inline configuration.
-    """
-
     environment_template_id: str
-    """A reusable hosted template applied before inline session configuration.
+    """A reusable hosted template applied before inline configuration.
 
     Omitted fields inherit the template; network overrides cannot broaden its
     policy.
@@ -119,14 +104,14 @@ class EnvironmentParamOpenAIHosted(TypedDict, total=False):
     files: Optional[Iterable[HostedEnvironmentFileParam]]
     """Files available before the agent starts. Defaults to an empty list."""
 
-    network: Optional[EnvironmentParamOpenAIHostedNetwork]
+    network: Optional[EnvironmentNetwork]
     """Network access policy for the environment.
 
     If omitted, the API version determines whether network access is enabled or
     disabled.
     """
 
-    packages: Optional[EnvironmentParamOpenAIHostedPackages]
+    packages: Optional[EnvironmentPackages]
     """Packages to install in the environment. Defaults to empty package lists."""
 
     plugins: Optional[Iterable[HostedPluginParam]]
@@ -140,22 +125,3 @@ class EnvironmentParamOpenAIHosted(TypedDict, total=False):
 
     Defaults to an empty list.
     """
-
-
-class EnvironmentParamSelfHosted(TypedDict, total=False):
-    """An application-hosted environment configured inline."""
-
-    type: Required[Literal["self_hosted"]]
-    """The type of the object. Always `self_hosted`."""
-
-    workspace_directory: Required[str]
-    """Absolute project directory inside the self-hosted environment."""
-
-    capability_directories: Optional[SequenceNotStr[str]]
-    """Directories that contain capabilities exposed to the agent.
-
-    Defaults to an empty list.
-    """
-
-
-EnvironmentParam: TypeAlias = Union[EnvironmentParamNone, EnvironmentParamOpenAIHosted, EnvironmentParamSelfHosted]

@@ -4,6 +4,8 @@ Types:
 
 ```python
 from openai.types.webhooks import (
+    AgentEnvironmentFailedWebhookEvent,
+    AgentEnvironmentReadyWebhookEvent,
     AgentSessionActionRequiredWebhookEvent,
     AgentSessionCreatedWebhookEvent,
     AgentSessionFailedWebhookEvent,

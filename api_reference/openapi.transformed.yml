@@ -30153,6 +30153,171 @@ paths:
                 "total_tokens": 42
               }
             }
+  /agents/environments:
+    get:
+      operationId: listAgentEnvironments
+      summary: List agent environments
+      description: Lists OpenAI-hosted environments owned by the authenticated principal. Requires access to the prewarming beta.
+      tags:
+      - Agents
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 100
+          default: 20
+        description: The maximum number of environments to return, between 1 and 100. Defaults to 20.
+      - name: order
+        in: query
+        required: false
+        schema:
+          $ref: '#/components/schemas/ListOrderParam'
+          default: desc
+        description: The order in which environments are returned. Defaults to `desc`.
+      - name: after
+        in: query
+        required: false
+        schema:
+          type: string
+          minLength: 0
+          maxLength: 1048576
+        description: Return environments after this environment ID in the selected order.
+      - name: type
+        in: query
+        required: false
+        schema:
+          $ref: '#/components/schemas/EnvironmentTypeParam'
+        description: The hosting type to list. Defaults to `openai_hosted`.
+      responses:
+        '200':
+          description: A page of owned environments.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentEnvironmentListResource'
+                description: An ID-paginated list of owned environments.
+        '400':
+          description: The request was invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse-2'
+        '401':
+          description: Authentication or project context was missing.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse-2'
+        '403':
+          description: The API key lacks the required permission.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse-2'
+        '404':
+          description: The requested environment or referenced resource was not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse-2'
+        '409':
+          description: The request conflicted with the current environment state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse-2'
+        '500':
+          description: An internal error occurred.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse-2'
+        '503':
+          description: The service is temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse-2'
+    post:
+      operationId: createAgentEnvironment
+      summary: Create an agent environment
+      description: Creates an OpenAI-hosted environment before creating a session. Requires access to the prewarming beta.
+      tags:
+      - Agents
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: false
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 256
+        description: Deduplicates creation for 24 hours within the authenticated organization, project, and creator. Retry the same JSON parameters with the same key to retrieve the original environment in its current state. Different parameters or an incomplete hosted creation return 409. Deleted environments are not recreated. After retention expires, the key may create a new environment. Without this header, each request creates a new environment.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAgentEnvironmentParams'
+        required: true
+      responses:
+        '201':
+          description: The created OpenAI-hosted environment.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicEnvironmentResource'
+        '400':
+          description: The request was invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse-2'
+        '401':
+          description: Authentication or project context was missing.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse-2'
+        '403':
+          description: The API key lacks the required permission.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse-2'
+        '404':
+          description: The requested environment or referenced resource was not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse-2'
+        '409':
+          description: The request conflicted with the current environment state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse-2'
+        '429':
+          description: The request exceeded a rate or capacity limit.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse-2'
+        '500':
+          description: An internal error occurred.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse-2'
+        '503':
+          description: The service is temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse-2'
   /agents/environments/{environment_id}:
     get:
       operationId: retrieveAgentEnvironment
@@ -36023,6 +36188,36 @@ paths:
               "input_tokens": 11
             }
 webhooks:
+  agent_environment_failed:
+    post:
+      description: |
+        Sent when setup fails for a prewarmed OpenAI-hosted environment before it is attached to a session.
+      requestBody:
+        description: The event payload sent by the API.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookAgentEnvironmentFailed'
+      responses:
+        '200':
+          description: |
+            Return a 200 status code to acknowledge receipt of the event. Non-200
+            status codes will be retried.
+  agent_environment_ready:
+    post:
+      description: |
+        Sent when a prewarmed OpenAI-hosted environment finishes setup before being attached to a session.
+      requestBody:
+        description: The event payload sent by the API.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookAgentEnvironmentReady'
+      responses:
+        '200':
+          description: |
+            Return a 200 status code to acknowledge receipt of the event. Non-200
+            status codes will be retried.
   agent_session_action_required:
     post:
       description: |
@@ -71229,6 +71424,68 @@ components:
       - type
       - status
       - action
+    WebhookAgentEnvironmentFailed:
+      type: object
+      title: agent.environment.failed
+      description: |
+        Sent when setup fails for a prewarmed OpenAI-hosted environment before it is attached to a session.
+      allOf:
+      - $ref: '#/components/schemas/WebhookAgentSessionEnvelope'
+      - type: object
+        required:
+        - type
+        - data
+        properties:
+          type:
+            type: string
+            description: The event type. Always `agent.environment.failed`.
+            enum:
+            - agent.environment.failed
+            x-stainless-const: true
+          data:
+            $ref: '#/components/schemas/AgentEnvironmentEvent'
+      x-oaiMeta:
+        name: agent.environment.failed
+        group: webhook-events
+        example: |
+          {
+            "id": "evt_123",
+            "object": "event",
+            "created_at": 1719168000,
+            "type": "agent.environment.failed",
+            "data": {"id": "ccarenv_123"}
+          }
+    WebhookAgentEnvironmentReady:
+      type: object
+      title: agent.environment.ready
+      description: |
+        Sent when a prewarmed OpenAI-hosted environment finishes setup before being attached to a session.
+      allOf:
+      - $ref: '#/components/schemas/WebhookAgentSessionEnvelope'
+      - type: object
+        required:
+        - type
+        - data
+        properties:
+          type:
+            type: string
+            description: The event type. Always `agent.environment.ready`.
+            enum:
+            - agent.environment.ready
+            x-stainless-const: true
+          data:
+            $ref: '#/components/schemas/AgentEnvironmentEvent'
+      x-oaiMeta:
+        name: agent.environment.ready
+        group: webhook-events
+        example: |
+          {
+            "id": "evt_123",
+            "object": "event",
+            "created_at": 1719168000,
+            "type": "agent.environment.ready",
+            "data": {"id": "ccarenv_123"}
+          }
     WebhookAgentSessionActionRequired:
       type: object
       title: agent.session.action_required
@@ -80894,6 +81151,11 @@ components:
       - answers
       - usage
       additionalProperties: false
+    EnvironmentTypeParam:
+      type: string
+      enum:
+      - openai_hosted
+      description: The hosting type of an execution environment.
     EnvironmentTypeResource:
       type: string
       enum:
@@ -80904,12 +81166,14 @@ components:
       type: string
       enum:
       - pending
+      - ready
       - connected
       - disconnected
       - expired
       - failed
       x-enumDescriptions:
       - ''
+      - Provisioning succeeded and the environment is available for attachment or use.
       - ''
       - ''
       - ''
@@ -81149,6 +81413,46 @@ components:
       - plugins
       additionalProperties: false
       description: Safe metadata for a first-class execution environment.
+    AgentEnvironmentListResource:
+      type: object
+      properties:
+        object:
+          type: string
+          enum:
+          - list
+          default: list
+          x-stainless-const: true
+          description: The object type, which is always `list`.
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicEnvironmentResource'
+          minItems: 0
+          maxItems: 2000
+          description: The resources returned in this page, in the requested sort order.
+        first_id:
+          type:
+          - string
+          - 'null'
+          minLength: 0
+          description: The ID of the first resource in `data`, or `null` if the page is empty.
+        last_id:
+          type:
+          - string
+          - 'null'
+          minLength: 0
+          description: The ID of the last resource in `data`, or `null` if the page is empty. Pass this as `after` with the same order and filters.
+        has_more:
+          type: boolean
+          description: Whether there are more resources to retrieve after this page.
+      required:
+      - object
+      - data
+      - first_id
+      - last_id
+      - has_more
+      additionalProperties: false
+      description: A page of Agents API resources, with IDs for retrieving additional pages.
     ErrorBodyResource:
       type: object
       properties:
@@ -81196,6 +81500,133 @@ components:
       - Returns resources in ascending order.
       - Returns resources in descending order.
       description: The order in which paginated resources are returned.
+    CreateEnvironmentParamOpenaiHosted:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+          - openai_hosted
+          default: openai_hosted
+          x-stainless-const: true
+          description: The type of the object. Always `openai_hosted`.
+        packages:
+          anyOf:
+          - $ref: '#/components/schemas/EnvironmentPackagesParam'
+          - type: 'null'
+          description: Packages to install in the environment. Defaults to empty package lists.
+        setup_commands:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/SetupCommandParam'
+          minItems: 0
+          maxItems: 16
+          description: Ordered, confidential setup commands. Command bodies are never returned.
+        network:
+          anyOf:
+          - $ref: '#/components/schemas/NetworkPolicyParam'
+          - type: 'null'
+          description: Network access policy for the environment. If omitted, the API version determines whether network access is enabled or disabled.
+        desktop:
+          anyOf:
+          - $ref: '#/components/schemas/DesktopParam'
+          - type: 'null'
+          description: Desktop provisioning. Omission or null inherits the template setting, or defaults to disabled.
+        env:
+          type:
+          - object
+          - 'null'
+          additionalProperties:
+            type: string
+            minLength: 0
+            maxLength: 1048576
+          propertyNames:
+            type: string
+            minLength: 1
+            maxLength: 256
+          minProperties: 0
+          maxProperties: 1024
+          description: Environment variables made available to the agent.
+        capability_directories:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+            minLength: 0
+            maxLength: 1048576
+          minItems: 0
+          maxItems: 16384
+          description: Directories that contain capabilities exposed to the agent. Defaults to an empty list.
+        skills:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/HostedSkillParam'
+          minItems: 0
+          maxItems: 200
+          description: Skills referenced by ID or provided as inline ZIP archives. Defaults to an empty list.
+        plugins:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/HostedPluginParam'
+          minItems: 0
+          maxItems: 32
+          description: Plugins provided as inline ZIP archives. Defaults to an empty list.
+        files:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/HostedEnvironmentFileParam'
+          minItems: 0
+          maxItems: 50
+          description: Files available before the agent starts. Defaults to an empty list.
+        environment_template_id:
+          type: string
+          minLength: 0
+          maxLength: 64
+          description: A reusable hosted template applied before inline configuration. Omitted fields inherit the template; network overrides cannot broaden its policy.
+      required:
+      - type
+      additionalProperties: false
+      description: Provision an OpenAI-hosted environment from inline configuration or a template.
+    CreateEnvironmentParam:
+      description: Configuration for a new prewarmed OpenAI-hosted environment.
+      discriminator:
+        propertyName: type
+        mapping:
+          openai_hosted: '#/components/schemas/CreateEnvironmentParamOpenaiHosted'
+      x-oai-discriminator-values:
+      - openai_hosted
+      anyOf:
+      - $ref: '#/components/schemas/CreateEnvironmentParamOpenaiHosted'
+    CreateAgentEnvironmentParams:
+      type: object
+      properties:
+        environment:
+          $ref: '#/components/schemas/CreateEnvironmentParam'
+          description: The required hosting type and its configuration.
+        vault_ids:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+            minLength: 0
+            maxLength: 1048576
+          minItems: 0
+          maxItems: 10
+          description: The IDs of up to 10 vaults made available to an OpenAI-hosted environment.
+      required:
+      - environment
+      additionalProperties: false
+      description: Parameters for creating an execution environment before its sessions.
     EnvironmentFilePageObjectResource:
       type: string
       enum:
@@ -86359,6 +86790,11 @@ components:
           minItems: 0
           maxItems: 50
           description: Files available before the agent starts. Defaults to an empty list.
+        environment_id:
+          type: string
+          minLength: 9
+          maxLength: 256
+          description: An existing prewarmed environment. Cannot be combined with a template or inline configuration.
         environment_template_id:
           type: string
           minLength: 0
@@ -86373,6 +86809,32 @@ components:
       - type
       additionalProperties: false
       description: An existing OpenAI-hosted environment or new inline/template-based hosted configuration.
+      not:
+        required:
+        - environment_id
+        anyOf:
+        - required:
+          - packages
+        - required:
+          - setup_commands
+        - required:
+          - network
+        - required:
+          - desktop
+        - required:
+          - env
+        - required:
+          - capability_directories
+        - required:
+          - skills
+        - required:
+          - plugins
+        - required:
+          - files
+        - required:
+          - environment_template_id
+        - required:
+          - container_size
     EnvironmentParamSelfHosted:
       type: object
       properties:
@@ -89688,6 +90150,8 @@ components:
       - realtime.call.incoming
       - video.completed
       - video.failed
+      - agent.environment.ready
+      - agent.environment.failed
       - agent.session.created
       - agent.session.action_required
       - agent.session.in_progress
@@ -89871,6 +90335,17 @@ components:
       required:
       - object
       - data
+    AgentEnvironmentEvent:
+      type: object
+      properties:
+        id:
+          type: string
+          minLength: 0
+          description: The ID of the environment.
+      required:
+      - id
+      additionalProperties: false
+      description: Identifies the environment whose lifecycle changed.
     AgentSessionRequiredActionTypeResource:
       type: string
       enum:
