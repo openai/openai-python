@@ -64,54 +64,6 @@ class TestVoices:
 
         assert cast(Any, response.is_closed) is True
 
-    @parametrize
-    def test_method_create_overload_2(self, client: OpenAI) -> None:
-        voice = client.audio.voices.create(
-            name="x",
-            prompt="prompt",
-            type="prompt",
-        )
-        assert_matches_type(Voice, voice, path=["response"])
-
-    @parametrize
-    def test_method_create_with_all_params_overload_2(self, client: OpenAI) -> None:
-        voice = client.audio.voices.create(
-            name="x",
-            prompt="prompt",
-            type="prompt",
-            model="auto",
-            script_hint="script_hint",
-        )
-        assert_matches_type(Voice, voice, path=["response"])
-
-    @parametrize
-    def test_raw_response_create_overload_2(self, client: OpenAI) -> None:
-        response = client.audio.voices.with_raw_response.create(
-            name="x",
-            prompt="prompt",
-            type="prompt",
-        )
-
-        assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
-        voice = response.parse()
-        assert_matches_type(Voice, voice, path=["response"])
-
-    @parametrize
-    def test_streaming_response_create_overload_2(self, client: OpenAI) -> None:
-        with client.audio.voices.with_streaming_response.create(
-            name="x",
-            prompt="prompt",
-            type="prompt",
-        ) as response:
-            assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
-
-            voice = response.parse()
-            assert_matches_type(Voice, voice, path=["response"])
-
-        assert cast(Any, response.is_closed) is True
-
 
 class TestAsyncVoices:
     parametrize = pytest.mark.parametrize(
@@ -156,54 +108,6 @@ class TestAsyncVoices:
             audio_sample=b"Example data",
             consent="consent",
             name="x",
-        ) as response:
-            assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
-
-            voice = await response.parse()
-            assert_matches_type(Voice, voice, path=["response"])
-
-        assert cast(Any, response.is_closed) is True
-
-    @parametrize
-    async def test_method_create_overload_2(self, async_client: AsyncOpenAI) -> None:
-        voice = await async_client.audio.voices.create(
-            name="x",
-            prompt="prompt",
-            type="prompt",
-        )
-        assert_matches_type(Voice, voice, path=["response"])
-
-    @parametrize
-    async def test_method_create_with_all_params_overload_2(self, async_client: AsyncOpenAI) -> None:
-        voice = await async_client.audio.voices.create(
-            name="x",
-            prompt="prompt",
-            type="prompt",
-            model="auto",
-            script_hint="script_hint",
-        )
-        assert_matches_type(Voice, voice, path=["response"])
-
-    @parametrize
-    async def test_raw_response_create_overload_2(self, async_client: AsyncOpenAI) -> None:
-        response = await async_client.audio.voices.with_raw_response.create(
-            name="x",
-            prompt="prompt",
-            type="prompt",
-        )
-
-        assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
-        voice = response.parse()
-        assert_matches_type(Voice, voice, path=["response"])
-
-    @parametrize
-    async def test_streaming_response_create_overload_2(self, async_client: AsyncOpenAI) -> None:
-        async with async_client.audio.voices.with_streaming_response.create(
-            name="x",
-            prompt="prompt",
-            type="prompt",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
