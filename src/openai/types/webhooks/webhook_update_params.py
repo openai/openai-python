@@ -36,6 +36,8 @@ class WebhookUpdateParams(TypedDict, total=False):
             "agent.session.idle",
             "agent.session.failed",
             "safety.alert.created",
+            "agent.environment.suspended",
+            "agent.environment.expired",
         ]
     ]
     """The complete set of event types that should trigger deliveries."""

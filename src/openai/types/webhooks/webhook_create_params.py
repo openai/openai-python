@@ -37,6 +37,8 @@ class WebhookCreateParams(TypedDict, total=False):
                 "agent.session.idle",
                 "agent.session.failed",
                 "safety.alert.created",
+                "agent.environment.suspended",
+                "agent.environment.expired",
             ]
         ]
     ]
