@@ -35,8 +35,14 @@ from .agent_session_created_webhook_event import AgentSessionCreatedWebhookEvent
 from .safety_warning_issued_webhook_event import SafetyWarningIssuedWebhookEvent as SafetyWarningIssuedWebhookEvent
 from .fine_tuning_job_failed_webhook_event import FineTuningJobFailedWebhookEvent as FineTuningJobFailedWebhookEvent
 from .realtime_call_incoming_webhook_event import RealtimeCallIncomingWebhookEvent as RealtimeCallIncomingWebhookEvent
+from .agent_environment_ready_webhook_event import (
+    AgentEnvironmentReadyWebhookEvent as AgentEnvironmentReadyWebhookEvent,
+)
 from .live_transport_incoming_webhook_event import (
     LiveTransportIncomingWebhookEvent as LiveTransportIncomingWebhookEvent,
+)
+from .agent_environment_failed_webhook_event import (
+    AgentEnvironmentFailedWebhookEvent as AgentEnvironmentFailedWebhookEvent,
 )
 from .safety_org_alert_created_webhook_event import (
     SafetyOrgAlertCreatedWebhookEvent as SafetyOrgAlertCreatedWebhookEvent,

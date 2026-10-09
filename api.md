@@ -641,7 +641,9 @@ from openai.types.beta.agents import EnvironmentInfo
 
 Methods:
 
+- <code title="post /agents/environments">client.beta.agents.environments.<a href="./src/openai/resources/beta/agents/environments/environments.py">create</a>(\*\*<a href="src/openai/types/beta/agents/environment_create_params.py">params</a>) -> <a href="./src/openai/types/beta/agents/environment_info.py">EnvironmentInfo</a></code>
 - <code title="get /agents/environments/{environment_id}">client.beta.agents.environments.<a href="./src/openai/resources/beta/agents/environments/environments.py">retrieve</a>(environment_id) -> <a href="./src/openai/types/beta/agents/environment_info.py">EnvironmentInfo</a></code>
+- <code title="get /agents/environments">client.beta.agents.environments.<a href="./src/openai/resources/beta/agents/environments/environments.py">list</a>(\*\*<a href="src/openai/types/beta/agents/environment_list_params.py">params</a>) -> <a href="./src/openai/types/beta/agents/environment_info.py">SyncCursorPage[EnvironmentInfo]</a></code>
 
 #### Files
 
