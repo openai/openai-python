@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Union
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from ..._types import FileTypes
 
-__all__ = ["VoiceCreateParams", "CreateVoiceRequestAudioSample", "CreateVoiceRequestPrompt"]
+__all__ = ["VoiceCreateParams", "CreateVoiceRequestAudioSample"]
 
 
 class CreateVoiceRequestAudioSample(TypedDict, total=False):
@@ -20,16 +19,4 @@ class CreateVoiceRequestAudioSample(TypedDict, total=False):
     type: Literal["audio_sample"]
 
 
-class CreateVoiceRequestPrompt(TypedDict, total=False):
-    name: Required[str]
-
-    prompt: Required[str]
-
-    type: Required[Literal["prompt"]]
-
-    model: Union[str, Union[Literal["auto"], Literal["2026-10-01"]]]
-
-    script_hint: str
-
-
-VoiceCreateParams: TypeAlias = Union[CreateVoiceRequestAudioSample, CreateVoiceRequestPrompt]
+VoiceCreateParams: TypeAlias = CreateVoiceRequestAudioSample

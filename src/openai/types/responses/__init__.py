@@ -178,6 +178,7 @@ from .response_function_tool_call_param import ResponseFunctionToolCallParam as 
 from .response_input_file_content_param import ResponseInputFileContentParam as ResponseInputFileContentParam
 from .response_input_text_content_param import ResponseInputTextContentParam as ResponseInputTextContentParam
 from .response_mcp_call_completed_event import ResponseMcpCallCompletedEvent as ResponseMcpCallCompletedEvent
+from .tool_search_output_namespace_tool import ToolSearchOutputNamespaceTool as ToolSearchOutputNamespaceTool
 from .container_network_policy_allowlist import ContainerNetworkPolicyAllowlist as ContainerNetworkPolicyAllowlist
 from .response_configuration_update_item import ResponseConfigurationUpdateItem as ResponseConfigurationUpdateItem
 from .response_function_call_output_item import ResponseFunctionCallOutputItem as ResponseFunctionCallOutputItem
@@ -243,6 +244,9 @@ from .response_shell_call_command_added_event import (
 )
 from .response_shell_call_command_delta_event import (
     ResponseShellCallCommandDeltaEvent as ResponseShellCallCommandDeltaEvent,
+)
+from .tool_search_output_namespace_tool_param import (
+    ToolSearchOutputNamespaceToolParam as ToolSearchOutputNamespaceToolParam,
 )
 from .container_network_policy_allowlist_param import (
     ContainerNetworkPolicyAllowlistParam as ContainerNetworkPolicyAllowlistParam,

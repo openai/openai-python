@@ -316,7 +316,8 @@ class Usage(SyncAPIResource):
         batch: bool | Omit = omit,
         bucket_width: Literal["1m", "1h", "1d"] | Omit = omit,
         end_time: int | Omit = omit,
-        group_by: List[Literal["project_id", "user_id", "api_key_id", "model", "batch", "service_tier"]] | Omit = omit,
+        group_by: List[Literal["project_id", "user_id", "api_key_id", "model", "batch", "service_tier", "api_source"]]
+        | Omit = omit,
         limit: int | Omit = omit,
         models: SequenceNotStr[str] | Omit = omit,
         page: str | Omit = omit,
@@ -346,8 +347,10 @@ class Usage(SyncAPIResource):
           end_time: End time (Unix seconds) of the query time range, exclusive.
 
           group_by: Group the usage data by the specified fields. Support fields include
-              `project_id`, `user_id`, `api_key_id`, `model`, `batch`, `service_tier` or any
-              combination of them.
+              `project_id`, `user_id`, `api_key_id`, `model`, `batch`, `service_tier`,
+              `api_source` or any combination of them. When grouped by `api_source`, results
+              use `agents_api` for attributed Agents API activity and `unlabeled` for all
+              other activity. Without source grouping, `api_source` is null.
 
           limit: Specifies the number of buckets to return.
 
@@ -407,7 +410,7 @@ class Usage(SyncAPIResource):
         api_key_ids: SequenceNotStr[str] | Omit = omit,
         bucket_width: Literal["1d"] | Omit = omit,
         end_time: int | Omit = omit,
-        group_by: List[Literal["project_id", "line_item", "api_key_id"]] | Omit = omit,
+        group_by: List[Literal["project_id", "user_id", "line_item", "api_key_id", "api_source"]] | Omit = omit,
         limit: int | Omit = omit,
         line_items: SequenceNotStr[str] | Omit = omit,
         page: str | Omit = omit,
@@ -432,8 +435,13 @@ class Usage(SyncAPIResource):
 
           end_time: End time (Unix seconds) of the query time range, exclusive.
 
-          group_by: Group the costs by the specified fields. Support fields include `project_id`,
-              `line_item`, `api_key_id` and any combination of them.
+          group_by: Group the costs by the specified fields. Supported fields include `project_id`,
+              `user_id`, `line_item`, `api_key_id`, and `api_source`. Support for combining
+              `user_id` with `project_id` grouping or the `project_ids` filter depends on the
+              organization and requested time range. Unsupported combinations return HTTP 400.
+              When grouped by `api_source`, results use `agents_api` for attributed Agents API
+              activity and `unlabeled` for all other activity. Without source grouping,
+              `api_source` is null.
 
           limit: A limit on the number of buckets to be returned. Limit can range between 1 and
               180, and the default is 7.
@@ -918,7 +926,8 @@ class Usage(SyncAPIResource):
         bucket_width: Literal["1m", "1h", "1d"] | Omit = omit,
         context_levels: List[Literal["low", "medium", "high"]] | Omit = omit,
         end_time: int | Omit = omit,
-        group_by: List[Literal["project_id", "user_id", "api_key_id", "model", "context_level"]] | Omit = omit,
+        group_by: List[Literal["project_id", "user_id", "api_key_id", "model", "context_level", "api_source"]]
+        | Omit = omit,
         limit: int | Omit = omit,
         models: SequenceNotStr[str] | Omit = omit,
         page: str | Omit = omit,
@@ -947,8 +956,10 @@ class Usage(SyncAPIResource):
           end_time: End time (Unix seconds) of the query time range, exclusive.
 
           group_by: Group the usage data by the specified fields. Support fields include
-              `project_id`, `user_id`, `api_key_id`, `model`, `context_level` or any
-              combination of them.
+              `project_id`, `user_id`, `api_key_id`, `model`, `context_level`, `api_source` or
+              any combination of them. When grouped by `api_source`, results use `agents_api`
+              for attributed Agents API activity and `unlabeled` for all other activity.
+              Without source grouping, `api_source` is null.
 
           limit: Specifies the number of buckets to return.
 
@@ -1276,7 +1287,8 @@ class AsyncUsage(AsyncAPIResource):
         batch: bool | Omit = omit,
         bucket_width: Literal["1m", "1h", "1d"] | Omit = omit,
         end_time: int | Omit = omit,
-        group_by: List[Literal["project_id", "user_id", "api_key_id", "model", "batch", "service_tier"]] | Omit = omit,
+        group_by: List[Literal["project_id", "user_id", "api_key_id", "model", "batch", "service_tier", "api_source"]]
+        | Omit = omit,
         limit: int | Omit = omit,
         models: SequenceNotStr[str] | Omit = omit,
         page: str | Omit = omit,
@@ -1306,8 +1318,10 @@ class AsyncUsage(AsyncAPIResource):
           end_time: End time (Unix seconds) of the query time range, exclusive.
 
           group_by: Group the usage data by the specified fields. Support fields include
-              `project_id`, `user_id`, `api_key_id`, `model`, `batch`, `service_tier` or any
-              combination of them.
+              `project_id`, `user_id`, `api_key_id`, `model`, `batch`, `service_tier`,
+              `api_source` or any combination of them. When grouped by `api_source`, results
+              use `agents_api` for attributed Agents API activity and `unlabeled` for all
+              other activity. Without source grouping, `api_source` is null.
 
           limit: Specifies the number of buckets to return.
 
@@ -1367,7 +1381,7 @@ class AsyncUsage(AsyncAPIResource):
         api_key_ids: SequenceNotStr[str] | Omit = omit,
         bucket_width: Literal["1d"] | Omit = omit,
         end_time: int | Omit = omit,
-        group_by: List[Literal["project_id", "line_item", "api_key_id"]] | Omit = omit,
+        group_by: List[Literal["project_id", "user_id", "line_item", "api_key_id", "api_source"]] | Omit = omit,
         limit: int | Omit = omit,
         line_items: SequenceNotStr[str] | Omit = omit,
         page: str | Omit = omit,
@@ -1392,8 +1406,13 @@ class AsyncUsage(AsyncAPIResource):
 
           end_time: End time (Unix seconds) of the query time range, exclusive.
 
-          group_by: Group the costs by the specified fields. Support fields include `project_id`,
-              `line_item`, `api_key_id` and any combination of them.
+          group_by: Group the costs by the specified fields. Supported fields include `project_id`,
+              `user_id`, `line_item`, `api_key_id`, and `api_source`. Support for combining
+              `user_id` with `project_id` grouping or the `project_ids` filter depends on the
+              organization and requested time range. Unsupported combinations return HTTP 400.
+              When grouped by `api_source`, results use `agents_api` for attributed Agents API
+              activity and `unlabeled` for all other activity. Without source grouping,
+              `api_source` is null.
 
           limit: A limit on the number of buckets to be returned. Limit can range between 1 and
               180, and the default is 7.
@@ -1878,7 +1897,8 @@ class AsyncUsage(AsyncAPIResource):
         bucket_width: Literal["1m", "1h", "1d"] | Omit = omit,
         context_levels: List[Literal["low", "medium", "high"]] | Omit = omit,
         end_time: int | Omit = omit,
-        group_by: List[Literal["project_id", "user_id", "api_key_id", "model", "context_level"]] | Omit = omit,
+        group_by: List[Literal["project_id", "user_id", "api_key_id", "model", "context_level", "api_source"]]
+        | Omit = omit,
         limit: int | Omit = omit,
         models: SequenceNotStr[str] | Omit = omit,
         page: str | Omit = omit,
@@ -1907,8 +1927,10 @@ class AsyncUsage(AsyncAPIResource):
           end_time: End time (Unix seconds) of the query time range, exclusive.
 
           group_by: Group the usage data by the specified fields. Support fields include
-              `project_id`, `user_id`, `api_key_id`, `model`, `context_level` or any
-              combination of them.
+              `project_id`, `user_id`, `api_key_id`, `model`, `context_level`, `api_source` or
+              any combination of them. When grouped by `api_source`, results use `agents_api`
+              for attributed Agents API activity and `unlabeled` for all other activity.
+              Without source grouping, `api_source` is null.
 
           limit: Specifies the number of buckets to return.
 

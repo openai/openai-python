@@ -691,3 +691,73 @@ def test_transplanted_method_keeps_module_visible_lexical_owner() -> None:
 def test_content_shaped_business_records_preserve_extra_fields(record: dict[str, str]) -> None:
     tool = function_tool(lambda: [record])
     assert json.loads(cast(str, tool({}))) == [record]
+
+
+def test_async_function_tool_returns_coroutine() -> None:
+    import asyncio
+
+    @function_tool
+    async def lookup(query: str) -> dict[str, str]:
+        return {"query": query}
+
+    output = lookup({"query": "test"})
+    assert asyncio.iscoroutine(output)
+    assert json.loads(asyncio.run(output)) == {"query": "test"}
+
+
+@pytest.mark.parametrize("binding", ["constructor", "pydantic", "decorator"])
+@pytest.mark.parametrize("defer_loading", [None, False, True])
+def test_deferred_tool_definition_and_dispatch(binding: str, defer_loading: bool | None) -> None:
+    from openai import omit
+
+    class Arguments(BaseModel):
+        query: str
+
+    seen: list[str] = []
+
+    def handler(arguments: Arguments) -> str:
+        seen.append(arguments.query)
+        return "found"
+
+    flag = omit if defer_loading is None else defer_loading
+    if binding == "constructor":
+        tool = FunctionTool(Arguments, handler, name="search", description="Search catalog", defer_loading=flag)
+    elif binding == "pydantic":
+        tool = pydantic_function_tool(Arguments, handler=handler, name="search", defer_loading=flag)
+    else:
+
+        @function_tool(name="search", defer_loading=flag)
+        def decorated(query: str) -> str:
+            seen.append(query)
+            return "found"
+
+        tool = decorated
+
+    server = Server()
+    server.body = EventBody([turn_event("created"), call(), turn_event("completed"), idle()])
+
+    def respond(request: httpx2.Request) -> httpx2.Response:
+        if request.method == "POST" and request.url.path.endswith("/sessions"):
+            definition = json.loads(request.content)["agent"]["tools"][1]
+            if defer_loading is None:
+                assert "defer_loading" not in definition
+            else:
+                assert definition["defer_loading"] is defer_loading
+            from tests.lib.streaming.agents.test_streams import session
+
+            return httpx2.Response(200, json=session())
+        return server.handle(request)
+
+    with OpenAI(
+        api_key="synthetic", http_client=httpx2.Client(transport=httpx2.MockTransport(respond), trust_env=False)
+    ) as client:
+        session = client.beta.agents.sessions.create(
+            agent={"model": "test-model", "tools": [{"type": "tool_search"}, tool.definition]},
+            environment={"type": "openai_hosted"},
+        )
+        with client.beta.agents.sessions.stream(
+            session.id, input="Find an item", tool_handlers={tool.name: tool}
+        ) as stream:
+            stream.until_done()
+    assert seen == ["test"]
+    assert server.inputs()[1]["output"] == "found"

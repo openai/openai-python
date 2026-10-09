@@ -12,9 +12,11 @@ from typing_extensions import Protocol, overload
 import pydantic
 
 from ._schema import model_schema
-from ...._utils import is_dict
+from ...._types import Omit, omit
+from ...._utils import is_dict, is_given
 from ...._compat import PYDANTIC_V1, model_dump, model_json, model_parse
 from ..._pydantic import resolve_ref
+from ._tool_error import ToolErrorStage
 from ...streaming.agents._types import ToolOutput
 from ....types.beta.agent_tool_param import AgentToolConfigParamFunction
 
@@ -27,7 +29,8 @@ class FunctionTool(Generic[_OutputT]):
 
     Pass ``definition`` in the agent's tools and register this object as
     ``tool_handlers={tool.name: tool}`` on ``sessions.stream``. Arguments are
-    validated with Pydantic before invoking the application callback.
+    validated with Pydantic before invoking the application callback. Set
+    ``defer_loading=True`` with hosted tool search for on-demand discovery.
     """
 
     def __init__(
@@ -37,6 +40,7 @@ class FunctionTool(Generic[_OutputT]):
         *,
         name: str,
         description: str,
+        defer_loading: bool | Omit = omit,
     ) -> None:
         if not name:
             raise ValueError("Tool name must not be empty")
@@ -60,10 +64,12 @@ class FunctionTool(Generic[_OutputT]):
             "parameters": parameters,
         }
 
-        def invoke(arguments: dict[str, Any]) -> _OutputT:
-            return handler(model_parse(model, arguments))
+        if is_given(defer_loading):
+            self._definition["defer_loading"] = defer_loading
 
-        self._invoke = invoke
+        self._model = model
+        self._handler = handler
+        self._convert_output = False
 
     @property
     def name(self) -> str:
@@ -75,7 +81,31 @@ class FunctionTool(Generic[_OutputT]):
         return deepcopy(self._definition)
 
     def __call__(self, arguments: dict[str, Any]) -> _OutputT:
-        return self._invoke(arguments)
+        return self._call(arguments)
+
+    def _call(self, arguments: dict[str, Any], set_stage: Callable[[ToolErrorStage], None] | None = None) -> _OutputT:
+        if set_stage is not None:
+            set_stage("arguments")
+        parsed = model_parse(self._model, arguments)
+        if set_stage is not None:
+            set_stage("execution")
+        if self._convert_output and inspect.iscoroutinefunction(self._handler):
+
+            async def invoke_async() -> ToolOutput:
+                output = await cast(Awaitable[object], self._handler(parsed))
+                if set_stage is not None:
+                    set_stage("output")
+                return _tool_output(output)
+
+            return cast(_OutputT, invoke_async())
+        output = self._handler(parsed)
+        if not self._convert_output:
+            return output
+        if inspect.isawaitable(output):
+            return cast(_OutputT, _AwaitableToolOutput(output, set_stage))
+        if set_stage is not None:
+            set_stage("output")
+        return cast(_OutputT, _tool_output(output))
 
 
 def _tool_output(output: object) -> ToolOutput:
@@ -103,11 +133,14 @@ def _tool_output(output: object) -> ToolOutput:
 
 
 class _AwaitableToolOutput:
-    def __init__(self, output: Awaitable[object]) -> None:
+    def __init__(self, output: Awaitable[object], set_stage: Callable[[ToolErrorStage], None] | None = None) -> None:
         self._output = output
+        self._set_stage = set_stage
 
     def __await__(self) -> Generator[Any, None, ToolOutput]:
         output = yield from self._output.__await__()
+        if self._set_stage is not None:
+            self._set_stage("output")
         return _tool_output(output)
 
     def close(self) -> None:
@@ -124,6 +157,7 @@ def pydantic_function_tool(  # type: ignore[overload-overlap]
     handler: Callable[[_ModelT], Awaitable[object]],
     name: str | None = None,
     description: str | None = None,
+    defer_loading: bool | Omit = omit,
 ) -> FunctionTool[Awaitable[ToolOutput]]: ...
 
 
@@ -134,6 +168,7 @@ def pydantic_function_tool(
     handler: Callable[[_ModelT], object],
     name: str | None = None,
     description: str | None = None,
+    defer_loading: bool | Omit = omit,
 ) -> FunctionTool[ToolOutput]: ...
 
 
@@ -143,6 +178,7 @@ def pydantic_function_tool(
     handler: Callable[[_ModelT], object],
     name: str | None = None,
     description: str | None = None,
+    defer_loading: bool | Omit = omit,
 ) -> FunctionTool[Any]:
     """Bind an explicit Pydantic argument model to a beta Agents callback.
 
@@ -152,21 +188,15 @@ def pydantic_function_tool(
     (such as union models) are unsupported; wrap a union in an ordinary model field.
     """
 
-    async def invoke_async(arguments: _ModelT) -> ToolOutput:
-        return _tool_output(await cast(Awaitable[object], handler(arguments)))
-
-    def invoke(arguments: _ModelT) -> ToolOutput | Awaitable[ToolOutput]:
-        output = handler(arguments)
-        if inspect.isawaitable(output):
-            return _AwaitableToolOutput(output)
-        return _tool_output(output)
-
-    return FunctionTool(
+    tool = FunctionTool[Any](
         model,
-        invoke_async if inspect.iscoroutinefunction(handler) else invoke,
+        cast(Callable[[_ModelT], Any], handler),
         name=model.__name__ if name is None else name,
         description=(model.__doc__ or "") if description is None else description,
+        defer_loading=defer_loading,
     )
+    tool._convert_output = True
+    return tool
 
 
 class _FunctionToolDecorator(Protocol):
@@ -185,6 +215,7 @@ def function_tool(  # type: ignore[overload-overlap]
     *,
     name: str | None = None,
     description: str | None = None,
+    defer_loading: bool | Omit = omit,
 ) -> FunctionTool[Awaitable[ToolOutput]]: ...
 
 
@@ -194,6 +225,7 @@ def function_tool(
     *,
     name: str | None = None,
     description: str | None = None,
+    defer_loading: bool | Omit = omit,
 ) -> FunctionTool[ToolOutput]: ...
 
 
@@ -203,6 +235,7 @@ def function_tool(
     *,
     name: str | None = None,
     description: str | None = None,
+    defer_loading: bool | Omit = omit,
 ) -> _FunctionToolDecorator: ...
 
 
@@ -211,6 +244,7 @@ def function_tool(
     *,
     name: str | None = None,
     description: str | None = None,
+    defer_loading: bool | Omit = omit,
 ) -> FunctionTool[Any] | _FunctionToolDecorator:
     """Adapt an annotated function or bound method into a beta Agents tool.
 
@@ -223,7 +257,10 @@ def function_tool(
     Pydantic model when postponed types only exist in an enclosing local scope.
     """
     if function is None:
-        return cast(_FunctionToolDecorator, partial(function_tool, name=name, description=description))
+        return cast(
+            _FunctionToolDecorator,
+            partial(function_tool, name=name, description=description, defer_loading=defer_loading),
+        )
 
     signature = inspect.signature(function)
     annotation_source = inspect.unwrap(function)
@@ -297,4 +334,5 @@ def function_tool(
         handler=invoke_async if inspect.iscoroutinefunction(function) else invoke,
         name=function.__name__ if name is None else name,
         description=(inspect.getdoc(function) or "") if description is None else description,
+        defer_loading=defer_loading,
     )

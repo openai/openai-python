@@ -540,7 +540,7 @@ client.videos.create_and_poll(...)
 
 Both streamed session creation and the one-turn session helper can collect the final
 answer. Call `get_final_result()` directly, or enable `with_result_collection()`
-before iterating to display progress. Existing follow-up tool handlers continue to run while it drains.
+before iterating to display progress. Registered tool handlers run while either stream drains.
 
 ```python
 with client.beta.agents.sessions.create(
@@ -570,6 +570,26 @@ With `AsyncOpenAI`, await creation, use `async with` / `async for`, and await
 `session_id`, and `turn_id`. Collection raises `AgentTurnResultError` when a complete
 successful answer cannot be established.
 
+## Deferred typed Responses tools
+
+Use `openai.pydantic_responses_function_tool()` for a flat Responses definition
+that retains Pydantic argument parsing in both `responses.parse()` and
+`responses.stream()`. Enable deferred loading alongside hosted tool search:
+
+```python
+tool = openai.pydantic_responses_function_tool(LookupItem, defer_loading=True)
+response = client.responses.parse(
+    model=MODEL, input="Find catalog item A123.",
+    tools=[{"type": "tool_search"}, tool],
+)
+for item in response.output:
+    if item.type == "function_call":
+        arguments = item.parsed_arguments  # LookupItem
+```
+
+The existing `pydantic_function_tool()` remains available for Chat Completions
+and its Responses compatibility path. The API validates tool-search configuration.
+
 ## Typed beta Agents tools
 
 Bind an annotated function or bound method once, then reuse its definition and local handler:
@@ -581,11 +601,12 @@ from openai.lib.beta.agents import function_tool
 def lookup(item_id: str) -> dict[str, str]:
     return {"item_id": item_id, "name": "Notebook"}
 
-# Include lookup.definition in agent={"model": MODEL, "tools": [...]} when creating a session.
-with client.beta.agents.sessions.stream(
-    SESSION_ID, input="Find catalog item A123.", tool_handlers={lookup.name: lookup},
+with client.beta.agents.sessions.create(
+    agent={"model": MODEL, "tools": [lookup.definition]},
+    environment={"type": "none"}, input="Find catalog item A123.",
+    stream=True, tool_handlers={lookup.name: lookup},
 ) as stream:
-    stream.until_done()
+    print(stream.get_final_result().output_text)
 ```
 
 For an existing Pydantic argument model, use an explicit binding:
@@ -603,7 +624,50 @@ lookup = pydantic_function_tool(
 # catalog.lookup receives a validated LookupArguments instance.
 ```
 
-Callbacks can be async when used with `AsyncOpenAI`. Existing dictionary handlers still work.
+Callbacks run after their call event is yielded. They can be async with `AsyncOpenAI`.
+The same `tool_handlers` mapping works with `sessions.stream()` for follow-up turns;
+creation requires `stream=True`. Existing dictionary handlers still work.
+
+For hosted tool search, set `defer_loading=True` on the Agents decorator,
+`pydantic_function_tool()`, or `FunctionTool` constructor. Register the same
+handler as usual:
+
+```python
+@function_tool(defer_loading=True)
+def lookup_item(item_id: str) -> str:
+    """Look up a catalog item."""
+    return catalog.lookup(item_id)
+
+tools = [{"type": "tool_search"}, lookup_item.definition]
+handlers = {lookup_item.name: lookup_item}
+```
+
+### Observing local tool failures
+
+Use `on_tool_error` to log or monitor failures in argument validation, handler
+execution, or output serialization. The callback receives an `AgentToolError`
+from `openai.lib.beta.agents`; its original exception stays local. The model
+still receives the generic tool failure, and the SDK does not log automatically.
+Exception messages and tracebacks may contain sensitive data; apply your
+application’s redaction policy before logging them.
+
+```python
+def report_tool_error(failure):
+    logger.error(
+        "Tool %s failed during %s (call %s)",
+        failure.tool_name, failure.stage, failure.call_id,
+    )
+
+with client.beta.agents.sessions.stream(
+    SESSION_ID, input="Find catalog item A123.", tool_handlers=handlers,
+    on_tool_error=report_tool_error,
+) as stream:
+    stream.until_done()
+```
+
+`AsyncOpenAI` also accepts an async observer. Ordinary observer exceptions are
+ignored so the original tool failure can still be submitted; cancellation is
+not suppressed. Submission errors propagate normally without invoking this callback.
 
 ### Typed Agents output (beta)
 
