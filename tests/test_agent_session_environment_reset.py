@@ -6,7 +6,11 @@ import httpx2
 import pytest
 
 from openai import OpenAI, AsyncOpenAI
-from openai.types.beta import AgentSessionEnvironmentResetEvent
+from openai.types.beta import (
+    AgentSessionEnvironmentResetEvent,
+    AgentSessionEnvironmentExpiredEvent,
+    AgentSessionEnvironmentSuspendedEvent,
+)
 
 
 @pytest.mark.asyncio
@@ -67,3 +71,73 @@ async def test_session_environment_reset_stream(
     assert event.turn_id == turn_id
     assert event.reset_count == reset_count
     assert event.to_dict() == payload
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+@pytest.mark.parametrize("strict", [False, True], ids=["loose", "strict"])
+async def test_session_environment_lifecycle_stream(sync: bool, strict: bool) -> None:
+    event_classes = {
+        "suspended": AgentSessionEnvironmentSuspendedEvent,
+        "expired": AgentSessionEnvironmentExpiredEvent,
+    }
+    payloads = [
+        {
+            "type": f"agent.session.environment.{status}",
+            "event_id": f"event_{status}",
+            "session_id": "session_synthetic",
+            "turn_id": None,
+            "environment": {
+                "id": "environment_synthetic",
+                "type": "openai_hosted",
+                "status": status,
+                "error": None,
+            },
+        }
+        for status in event_classes
+    ]
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        assert request.method == "GET"
+        assert request.url.path == "/v1/agents/sessions/session_synthetic/events"
+        return httpx2.Response(
+            200,
+            headers={"content-type": "text/event-stream"},
+            content="".join(f"data: {json.dumps(payload)}\n\n" for payload in payloads),
+        )
+
+    if sync:
+        with OpenAI(
+            api_key="synthetic",
+            base_url="https://sdk-test.example/v1",
+            max_retries=0,
+            _strict_response_validation=strict,
+            http_client=httpx2.Client(transport=httpx2.MockTransport(handler), trust_env=False),
+        ) as client:
+            with client.beta.agents.sessions.events.stream("session_synthetic") as stream:
+                events = list(stream)
+            assert stream.response.is_closed
+    else:
+        async with AsyncOpenAI(
+            api_key="synthetic",
+            base_url="https://sdk-test.example/v1",
+            max_retries=0,
+            _strict_response_validation=strict,
+            http_client=httpx2.AsyncClient(transport=httpx2.MockTransport(handler), trust_env=False),
+        ) as async_client:
+            async with await async_client.beta.agents.sessions.events.stream("session_synthetic") as async_stream:
+                events = [event async for event in async_stream]
+            assert async_stream.response.is_closed
+
+    assert len(events) == 2
+    for event, (status, event_class), payload in zip(events, event_classes.items(), payloads, strict=True):
+        assert isinstance(event, event_class)
+        assert event.type == f"agent.session.environment.{status}"
+        assert event.event_id == f"event_{status}"
+        assert event.session_id == "session_synthetic"
+        assert event.turn_id is None
+        assert event.environment.id == "environment_synthetic"
+        assert event.environment.type == "openai_hosted"
+        assert event.environment.status == status
+        assert event.environment.error is None
+        assert event.to_dict() == payload

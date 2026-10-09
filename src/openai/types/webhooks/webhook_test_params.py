@@ -35,6 +35,8 @@ class WebhookTestParams(TypedDict, total=False):
             "agent.session.idle",
             "agent.session.failed",
             "safety.alert.created",
+            "agent.environment.suspended",
+            "agent.environment.expired",
         ]
     ]
     """The event type to send as a sample delivery."""
