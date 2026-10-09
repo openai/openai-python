@@ -45,6 +45,9 @@ from .agent_environment_failed_webhook_event import (
 from .safety_org_alert_created_webhook_event import (
     SafetyOrgAlertCreatedWebhookEvent as SafetyOrgAlertCreatedWebhookEvent,
 )
+from .agent_environment_expired_webhook_event import (
+    AgentEnvironmentExpiredWebhookEvent as AgentEnvironmentExpiredWebhookEvent,
+)
 from .agent_session_in_progress_webhook_event import (
     AgentSessionInProgressWebhookEvent as AgentSessionInProgressWebhookEvent,
 )
@@ -56,6 +59,9 @@ from .fine_tuning_job_succeeded_webhook_event import (
 )
 from .safety_deactivation_issued_webhook_event import (
     SafetyDeactivationIssuedWebhookEvent as SafetyDeactivationIssuedWebhookEvent,
+)
+from .agent_environment_suspended_webhook_event import (
+    AgentEnvironmentSuspendedWebhookEvent as AgentEnvironmentSuspendedWebhookEvent,
 )
 from .agent_session_action_required_webhook_event import (
     AgentSessionActionRequiredWebhookEvent as AgentSessionActionRequiredWebhookEvent,

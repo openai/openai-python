@@ -95,6 +95,8 @@ class Webhooks(SyncAPIResource):
                 "agent.session.idle",
                 "agent.session.failed",
                 "safety.alert.created",
+                "agent.environment.suspended",
+                "agent.environment.expired",
             ]
         ],
         name: str,
@@ -214,6 +216,8 @@ class Webhooks(SyncAPIResource):
                 "agent.session.idle",
                 "agent.session.failed",
                 "safety.alert.created",
+                "agent.environment.suspended",
+                "agent.environment.expired",
             ]
         ]
         | Omit = omit,
@@ -434,6 +438,8 @@ class Webhooks(SyncAPIResource):
             "agent.session.idle",
             "agent.session.failed",
             "safety.alert.created",
+            "agent.environment.suspended",
+            "agent.environment.expired",
         ],
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -537,6 +543,8 @@ class AsyncWebhooks(AsyncAPIResource):
                 "agent.session.idle",
                 "agent.session.failed",
                 "safety.alert.created",
+                "agent.environment.suspended",
+                "agent.environment.expired",
             ]
         ],
         name: str,
@@ -656,6 +664,8 @@ class AsyncWebhooks(AsyncAPIResource):
                 "agent.session.idle",
                 "agent.session.failed",
                 "safety.alert.created",
+                "agent.environment.suspended",
+                "agent.environment.expired",
             ]
         ]
         | Omit = omit,
@@ -876,6 +886,8 @@ class AsyncWebhooks(AsyncAPIResource):
             "agent.session.idle",
             "agent.session.failed",
             "safety.alert.created",
+            "agent.environment.suspended",
+            "agent.environment.expired",
         ],
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
