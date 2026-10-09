@@ -31,7 +31,7 @@ class Agent(BaseModel):
 
 class BetaResponseComputerToolCallOutputItem(BaseModel):
     id: str
-    """The unique ID of the computer call tool output."""
+    """The ID of the computer tool call output."""
 
     call_id: str
     """The ID of the computer tool call that produced the output."""

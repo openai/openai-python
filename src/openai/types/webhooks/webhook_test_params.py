@@ -27,6 +27,8 @@ class WebhookTestParams(TypedDict, total=False):
             "realtime.call.incoming",
             "video.completed",
             "video.failed",
+            "agent.environment.ready",
+            "agent.environment.failed",
             "agent.session.created",
             "agent.session.action_required",
             "agent.session.in_progress",

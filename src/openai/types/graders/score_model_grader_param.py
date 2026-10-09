@@ -129,7 +129,7 @@ class ScoreModelGraderParam(TypedDict, total=False):
     """The object type, which is always `score_model`."""
 
     range: Iterable[float]
-    """The range of the score. Defaults to `[0, 1]`."""
+    """The service requires two numbers for the score range. Defaults to `[0, 1]`."""
 
     sampling_params: SamplingParams
     """The sampling parameters for the model."""
