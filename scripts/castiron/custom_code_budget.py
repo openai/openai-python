@@ -55,7 +55,7 @@ def read_budget(repo: Path, revision: str) -> int:
         report.git(repo, "show", f"{revision}:{POLICY}"), object_pairs_hook=unique_keys
     )
     if not isinstance(value, dict):
-        raise ValueError("budget file must be an object")
+        raise ValueError("budget file must be an object")  # noqa: TRY004 - malformed policy is a value error
     value = cast(dict[str, Any], value)
     if set(value) != {"schema_version", "max_custom_patch_lines"}:
         raise ValueError("budget file must contain only schema_version and max_custom_patch_lines")
@@ -424,8 +424,7 @@ def main() -> int:
     write_result(args.out, result, patch)
     if args.command == "github" and "GITHUB_OUTPUT" in os.environ:
         with Path(os.environ["GITHUB_OUTPUT"]).open("a") as output:
-            for name in ("isolation", "budget"):
-                output.write(f"{name}={result['checks'][name]['state']}\n")
+            output.writelines(f"{name}={result['checks'][name]['state']}\n" for name in ("isolation", "budget"))
             output.write(f"base_sha={result.get('base_sha', '')}\n")
             output.write(f"head_sha={result.get('head_sha', '')}\n")
     return 0 if all(c["state"] == "success" for c in result["checks"].values()) else 1
