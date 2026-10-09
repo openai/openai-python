@@ -5,15 +5,15 @@ from __future__ import annotations
 
 import json
 import os
-import tempfile
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from typing import Any
 from unittest import mock
 
-import custom_code_report as report
 import custom_code_budget as budget
+import custom_code_report as report
 from custom_code_test_support import GENERATION, GitTestCase, source_run
 
 REPOSITORY = "openai/example"

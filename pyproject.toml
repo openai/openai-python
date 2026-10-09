@@ -47,7 +47,7 @@ realtime = ["websockets >= 13, < 16"]
 datalib = ["numpy >= 1", "pandas >= 1.2.3"]
 voice_helpers = ["sounddevice>=0.5.1", "numpy>=2.0.2"]
 bedrock = [
-  "botocore<2,>=1.40.0",
+  "botocore>=1.40.0,<2",
   "urllib3>=2.7.0,<3",
 ]
 

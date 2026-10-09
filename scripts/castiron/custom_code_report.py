@@ -82,8 +82,7 @@ def git(repo: Path, *args: str, input_bytes: bytes | None = None) -> bytes:
     result = subprocess.run(
         ["git", "--no-replace-objects", "-C", str(repo), *args],
         input=input_bytes,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         env=env,
         check=False,
     )
