@@ -2372,18 +2372,6 @@ for name, requirements in new_direct.items():
         raise SystemExit("Do not weaken a published security exclusion or upper bound for " + name)
     if old_versions.get(name, set()) == new_versions.get(name, set()) and previous_domains == current_domains:
         continue
-    # Reviewed for #3991 only: HTTPX2 encodes URL/proxy hosts with IDNA before TLS
-    # (GHSA-82r6-8w77-94w6's workaround); the SDK does not use AnyIO process APIs
-    # (GHSA-5p39-cfhj-2xmp, GHSA-3w57-8xmc-8v26). Custom raw-Unicode SNI overrides
-    # still require patched AnyIO. Do not exempt other releases or dependency contexts.
-    if (
-        name == "anyio"
-        and previous_contexts == current_contexts == {("runtime", "", (), ()): {"anyio>=4.10.0,<5"}}
-        and previous_domains == {(): {"4.12.1"}}
-        and current_domains == {(): {"4.14.2"}}
-        and old_contexts.get("httpx2") == new_contexts.get("httpx2") == {("runtime", "", (), ()): {"httpx2>=2.12.0,<3"}}
-    ):
-        continue
     if previous == requirements:
         raise SystemExit("Raise the published security-fixed minimum for " + name)
     if secures_supported_published_branches(

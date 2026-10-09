@@ -2271,38 +2271,6 @@ def test_only_direct_security_updates_must_raise_published_minimums(
     assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
 
 
-@pytest.mark.parametrize(
-    "variant",
-    ["reviewed", "other-package", "other-base", "future-release", "lower-floor", "optional", "transport", "grouped"],
-)
-def test_anyio_security_exception_is_limited_to_reviewed_update(tmp_path: Path, variant: str) -> None:
-    name = "other" if variant == "other-package" else "anyio"
-    floor = "4.9.0" if variant == "lower-floor" else "4.10.0"
-    before = "4.12.0" if variant == "other-base" else "4.12.1"
-    after = "4.14.3" if variant == "future-release" else "4.14.2"
-    transport = "httpx2>=2.11.0,<3" if variant == "transport" else "httpx2>=2.12.0,<3"
-    requirements = [f"{name}>={floor},<5", transport]
-    head = requirements.copy()
-    base_packages = [(name, before), ("httpx2", "2.12.0")]
-    head_packages = [(name, after), ("httpx2", "2.12.0")]
-    if variant == "grouped":
-        requirements.append("other>=1.0")
-        head.append("other>=1.0")
-        base_packages.append(("other", "1.0"))
-        head_packages.append(("other", "1.1"))
-    result = run_security_dependency_floor_check(
-        tmp_path,
-        base_requirements=requirements,
-        head_requirements=head,
-        base_packages=base_packages,
-        head_packages=head_packages,
-        optional=variant == "optional",
-    )
-    assert result.returncode == (0 if variant == "reviewed" else 1), result.stdout + result.stderr
-    if variant == "grouped":
-        assert "Raise the published security-fixed minimum for other" in result.stderr
-
-
 @pytest.mark.parametrize("scope", ["runtime", "optional", "protected"])
 @pytest.mark.parametrize(
     ("previous", "current", "before", "after", "accepted"),
