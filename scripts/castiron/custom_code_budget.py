@@ -55,7 +55,7 @@ def read_budget(repo: Path, revision: str) -> int:
         report.git(repo, "show", f"{revision}:{POLICY}"), object_pairs_hook=unique_keys
     )
     if not isinstance(value, dict):
-        raise ValueError("budget file must be an object")
+        raise ValueError("budget file must be an object")  # noqa: TRY004 - malformed policy is a value error
     value = cast(dict[str, Any], value)
     if set(value) != {"schema_version", "max_custom_patch_lines"}:
         raise ValueError("budget file must contain only schema_version and max_custom_patch_lines")
