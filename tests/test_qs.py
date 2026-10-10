@@ -76,3 +76,14 @@ def test_array_brackets(method: str) -> None:
 def test_unknown_array_format() -> None:
     with pytest.raises(NotImplementedError, match="Unknown array_format value: foo, choose from comma, repeat"):
         stringify({"a": ["foo", "bar"]}, array_format=cast(Any, "foo"))
+
+
+@pytest.mark.parametrize("nested_format", ["brackets", "dots"])
+def test_empty_string_metadata_filter(nested_format: str) -> None:
+    key = "metadata[state]" if nested_format == "brackets" else "metadata.state"
+    assert unquote(stringify({"metadata": {"state": ""}}, nested_format=cast(Any, nested_format))) == f"{key}="
+
+
+def test_empty_string_and_none_are_distinct() -> None:
+    assert stringify({"empty": "", "absent": None}) == "empty="
+    assert unquote(stringify({"metadata": {"state": "", "absent": None}})) == "metadata[state]="

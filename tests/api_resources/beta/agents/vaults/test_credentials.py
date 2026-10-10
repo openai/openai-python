@@ -237,6 +237,7 @@ class TestCredentials:
             vault_id="vault_id",
             after="after",
             limit=0,
+            metadata={"foo": "string"},
             order="asc",
             status="active",
         )
@@ -543,6 +544,7 @@ class TestAsyncCredentials:
             vault_id="vault_id",
             after="after",
             limit=0,
+            metadata={"foo": "string"},
             order="asc",
             status="active",
         )

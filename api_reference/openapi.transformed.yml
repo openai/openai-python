@@ -33246,6 +33246,24 @@ paths:
           minLength: 0
           maxLength: 1048576
         description: Return resources after this resource ID in the selected order.
+      - name: metadata
+        in: query
+        required: false
+        schema:
+          type: object
+          additionalProperties:
+            type: string
+            minLength: 0
+            maxLength: 512
+          propertyNames:
+            type: string
+            minLength: 1
+            maxLength: 64
+          minProperties: 0
+          maxProperties: 16
+        description: Exact string matches supplied as `metadata[key]=value`. All supplied pairs must match. Up to 16 pairs, with keys from 1 to 64 characters and values up to 512 characters. Filtering is eventually consistent; metadata changes may take time to appear.
+        style: deepObject
+        explode: true
       responses:
         '200':
           description: A page of vaults.
@@ -33485,6 +33503,78 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse-2'
+    post:
+      operationId: updateVault
+      summary: Update a vault
+      description: Updates the name or metadata of an active vault. Omitted fields remain unchanged. See [vaults](https://developers.openai.com/api/docs/guides/agents-api/tools/vaults).
+      tags:
+      - Vaults
+      parameters:
+      - name: vault_id
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 0
+          maxLength: 1048576
+        description: The ID of the vault.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateVaultParams'
+            example:
+              name: Research vault
+        required: true
+      responses:
+        '200':
+          description: The updated vault.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VaultResource'
+        '400':
+          description: The request was invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse-2'
+        '401':
+          description: Authentication or project context was missing.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse-2'
+        '403':
+          description: The API key lacks the required management permission.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse-2'
+        '404':
+          description: The requested vault or credential was not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse-2'
+        '409':
+          description: The request conflicted with the current vault state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse-2'
+        '500':
+          description: An internal error occurred.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse-2'
+        '503':
+          description: The service is temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse-2'
   /vaults/{vault_id}/credentials:
     get:
       operationId: listVaultCredentials
@@ -33532,6 +33622,24 @@ paths:
           minLength: 0
           maxLength: 1048576
         description: Return resources after this resource ID in the selected order.
+      - name: metadata
+        in: query
+        required: false
+        schema:
+          type: object
+          additionalProperties:
+            type: string
+            minLength: 0
+            maxLength: 512
+          propertyNames:
+            type: string
+            minLength: 1
+            maxLength: 64
+          minProperties: 0
+          maxProperties: 16
+        description: Exact string matches supplied as `metadata[key]=value`. All supplied pairs must match. Up to 16 pairs, with keys from 1 to 64 characters and values up to 512 characters. Filtering is eventually consistent; metadata changes may take time to appear.
+        style: deepObject
+        explode: true
       responses:
         '200':
           description: A page of vault credentials.
@@ -105022,6 +105130,31 @@ components:
             "type": "agent.environment.suspended",
             "data": {"id": "ccarenv_123"}
           }
+    UpdateVaultParams:
+      type: object
+      properties:
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+            minLength: 0
+            maxLength: 512
+          propertyNames:
+            type: string
+            minLength: 1
+            maxLength: 64
+          minProperties: 0
+          maxProperties: 16
+          description: Replaces all metadata. Omit to leave unchanged, or pass {} to clear it. Up to 16 string key-value pairs, with keys up to 64 and values up to 512 characters.
+        name:
+          type:
+          - string
+          - 'null'
+          minLength: 1
+          maxLength: 1048576
+          description: A replacement name. Omit to leave unchanged, or pass null to clear it. The name is trimmed before storage. It must contain 1 to 256 UTF-8 bytes after trimming.
+      additionalProperties: false
+      description: Fields to replace on an active vault.
     OAuthErrorCode:
       anyOf:
       - enum:
