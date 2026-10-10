@@ -80893,7 +80893,7 @@ components:
       additionalProperties: false
       description: A user message containing text or inline images.
     DecisionInput:
-      description: Shared evidence, as a string or an array of user messages containing text and inline images. Non-user roles, function calls, function-call outputs, files, audio, and item references are not supported. At most 128 image parts are allowed across all messages in one request.
+      description: The text or images to evaluate for every question. Provide a text string or user messages containing text and inline images. Images must be inline data URLs; at most 128 images are allowed across all messages in one request. External URLs, files, audio, tools, and item references are not supported.
       anyOf:
       - type: string
         minLength: 0
@@ -80933,6 +80933,7 @@ components:
       - type
       - instructions
       additionalProperties: false
+      description: Estimate how likely it is that a statement about the input is true.
     ChoiceValueParam:
       description: 'Choice values are typed: a string and a boolean with the same text are distinct.'
       anyOf:
@@ -80981,6 +80982,7 @@ components:
       - instructions
       - choices
       additionalProperties: false
+      description: Choose from the supplied options based on the input.
     ScoreLevelParam:
       type: object
       properties:
@@ -81024,6 +81026,7 @@ components:
       - instructions
       - levels
       additionalProperties: false
+      description: Rate the input against the supplied ordered levels.
     QuestionParam:
       description: A question about the request's input, with an optional correlation name.
       discriminator:
@@ -81205,7 +81208,7 @@ components:
       - type
       - name
       additionalProperties: false
-      description: The host may decline one question without disclosing its refusal score.
+      description: The model declined to answer this question. Other questions in the same request can still receive answers.
     AnswerResource:
       description: A completed question always includes its name, including null when unnamed.
       discriminator:
