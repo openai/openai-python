@@ -4,7 +4,7 @@ import io
 import pathlib
 from typing import Any, Dict, List, Union, TypeVar, Iterable, Optional, cast
 from datetime import date, datetime
-from typing_extensions import Required, Annotated, TypedDict
+from typing_extensions import Required, Annotated, TypedDict, NotRequired
 
 import pytest
 
@@ -357,6 +357,21 @@ async def test_pydantic_default_field(use_async: bool) -> None:
     assert cast(Any, await transform(model, Any, use_async)) == {"with_none_default": "bar", "with_str_default": "baz"}
 
 
+class ModelWithApiExcludedField(BaseModel):
+    foo: str
+    client_only: str
+
+    __api_exclude__ = {"client_only"}
+
+
+@parametrize
+@pytest.mark.asyncio
+async def test_pydantic_model_api_exclude(use_async: bool) -> None:
+    model = ModelWithApiExcludedField(foo="hello!", client_only="local")
+    assert cast(Any, await transform(model, Any, use_async)) == {"foo": "hello!"}
+    assert cast(Any, await transform([model], List[ModelWithApiExcludedField], use_async)) == [{"foo": "hello!"}]
+
+
 class TypedDictIterableUnion(TypedDict):
     foo: Annotated[Union[Bar8, Iterable[Baz8]], PropertyInfo(alias="FOO")]
 
@@ -490,3 +505,24 @@ async def test_strips_notgiven(use_async: bool) -> None:
 async def test_strips_omit(use_async: bool) -> None:
     assert await transform({"foo_bar": "bar"}, Foo1, use_async) == {"fooBar": "bar"}
     assert await transform({"foo_bar": omit}, Foo1, use_async) == {}
+
+
+class DateDictWithNotRequiredAlias(TypedDict):
+    optional_prop: NotRequired[Annotated[date, PropertyInfo(format="iso8601", alias="prop")]]
+    nested: NotRequired[Bar2]
+    items: NotRequired[List[Bar2]]
+
+
+@parametrize
+@pytest.mark.asyncio
+async def test_not_required_transforms(use_async: bool) -> None:
+    assert await transform(cast(Dict[str, Any], {}), DateDictWithNotRequiredAlias, use_async) == {}
+    assert await transform({"optional_prop": date(2023, 2, 23)}, DateDictWithNotRequiredAlias, use_async) == {
+        "prop": "2023-02-23"
+    }
+    assert await transform({"nested": {"this_thing": 1}}, DateDictWithNotRequiredAlias, use_async) == {
+        "nested": {"this__thing": 1}
+    }
+    assert await transform({"items": [{"this_thing": 1}]}, DateDictWithNotRequiredAlias, use_async) == {
+        "items": [{"this__thing": 1}]
+    }

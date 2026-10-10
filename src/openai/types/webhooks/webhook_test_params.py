@@ -27,7 +27,16 @@ class WebhookTestParams(TypedDict, total=False):
             "realtime.call.incoming",
             "video.completed",
             "video.failed",
+            "agent.environment.ready",
+            "agent.environment.failed",
+            "agent.session.created",
+            "agent.session.action_required",
+            "agent.session.in_progress",
+            "agent.session.idle",
+            "agent.session.failed",
             "safety.alert.created",
+            "agent.environment.suspended",
+            "agent.environment.expired",
         ]
     ]
     """The event type to send as a sample delivery."""

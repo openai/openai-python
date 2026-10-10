@@ -9,7 +9,7 @@ import pytest
 from openai import OpenAI, AsyncOpenAI
 from tests.respx2 import MockRouter
 from tests.respx2.models import Call
-from openai.types.admin.organization import ExternalStorageConfiguration
+from openai.types.admin.organization import GcpExternalStorageProvider, ExternalStorageConfiguration
 from openai.types.admin.organization.external_storage_create_params import Provider
 
 BASE_URL = "https://example.com/v1"
@@ -46,6 +46,25 @@ PROVIDERS: list[tuple[Provider, dict[str, object]]] = [
             "future_provider_field": {"retained": True},
         },
     ),
+    (
+        {
+            "type": "gcp",
+            "bucket": "test-bucket",
+            "workload_identity_pool_id": "test-pool",
+            "workload_identity_project_number": "000000000000",
+            "workload_identity_provider_id": "test-provider",
+        },
+        {
+            "type": "gcp",
+            "bucket": "test-bucket",
+            "workload_identity_pool_id": "test-pool",
+            "workload_identity_project_number": "000000000000",
+            "workload_identity_provider_id": "test-provider",
+            "audience": "test-audience",
+            "region": "us-central1",
+            "future_provider_field": {"retained": True},
+        },
+    ),
 ]
 
 
@@ -63,7 +82,7 @@ def configuration(provider: dict[str, object], storage_id: str = "extstorage_tes
 
 
 @pytest.mark.respx2(base_url=BASE_URL)
-@pytest.mark.parametrize("provider,response_provider", PROVIDERS, ids=["aws", "azure"])
+@pytest.mark.parametrize("provider,response_provider", PROVIDERS, ids=["aws", "azure", "gcp"])
 def test_sync_external_storage_provider_and_admin_auth(
     provider: Provider, response_provider: dict[str, object], respx2_mock: MockRouter
 ) -> None:
@@ -78,6 +97,8 @@ def test_sync_external_storage_provider_and_admin_auth(
         result = client.admin.organization.external_storage.create(project_id="proj_test", provider=provider)
 
     assert isinstance(result, ExternalStorageConfiguration)
+    if provider["type"] == "gcp":
+        assert isinstance(result.provider, GcpExternalStorageProvider)
     assert result.to_dict() == payload
     request = route.calls.last.request
     assert request.headers["Authorization"] == "Bearer test-admin-key"
@@ -85,7 +106,7 @@ def test_sync_external_storage_provider_and_admin_auth(
 
 
 @pytest.mark.respx2(base_url=BASE_URL)
-@pytest.mark.parametrize("provider,response_provider", PROVIDERS, ids=["aws", "azure"])
+@pytest.mark.parametrize("provider,response_provider", PROVIDERS, ids=["aws", "azure", "gcp"])
 async def test_async_external_storage_provider_and_admin_auth(
     provider: Provider, response_provider: dict[str, object], respx2_mock: MockRouter
 ) -> None:
@@ -100,6 +121,8 @@ async def test_async_external_storage_provider_and_admin_auth(
         result = await client.admin.organization.external_storage.create(project_id="proj_test", provider=provider)
 
     assert isinstance(result, ExternalStorageConfiguration)
+    if provider["type"] == "gcp":
+        assert isinstance(result.provider, GcpExternalStorageProvider)
     assert result.to_dict() == payload
     request = route.calls.last.request
     assert request.headers["Authorization"] == "Bearer test-admin-key"

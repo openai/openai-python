@@ -224,6 +224,7 @@ from .beta_response_input_message_item import BetaResponseInputMessageItem as Be
 from .beta_response_input_text_content import BetaResponseInputTextContent as BetaResponseInputTextContent
 from .beta_response_refusal_done_event import BetaResponseRefusalDoneEvent as BetaResponseRefusalDoneEvent
 from .beta_response_steer_failed_event import BetaResponseSteerFailedEvent as BetaResponseSteerFailedEvent
+from .agent_browser_origin_access_param import AgentBrowserOriginAccessParam as AgentBrowserOriginAccessParam
 from .agent_session_input_message_param import AgentSessionInputMessageParam as AgentSessionInputMessageParam
 from .beta_response_container_reference import BetaResponseContainerReference as BetaResponseContainerReference
 from .beta_response_function_web_search import BetaResponseFunctionWebSearch as BetaResponseFunctionWebSearch
@@ -312,6 +313,15 @@ from .beta_response_input_text_content_param import (
 from .beta_response_mcp_call_completed_event import (
     BetaResponseMcpCallCompletedEvent as BetaResponseMcpCallCompletedEvent,
 )
+from .beta_tool_search_output_namespace_tool import (
+    BetaToolSearchOutputNamespaceTool as BetaToolSearchOutputNamespaceTool,
+)
+from .agent_browser_origin_access_param_param import (
+    AgentBrowserOriginAccessParamParam as AgentBrowserOriginAccessParamParam,
+)
+from .agent_session_environment_expired_event import (
+    AgentSessionEnvironmentExpiredEvent as AgentSessionEnvironmentExpiredEvent,
+)
 from .agent_session_environment_pending_event import (
     AgentSessionEnvironmentPendingEvent as AgentSessionEnvironmentPendingEvent,
 )
@@ -348,8 +358,17 @@ from .beta_response_mcp_call_in_progress_event import (
 from .beta_response_reasoning_text_delta_event import (
     BetaResponseReasoningTextDeltaEvent as BetaResponseReasoningTextDeltaEvent,
 )
+from .agent_browser_authentication_cancel_param import (
+    AgentBrowserAuthenticationCancelParam as AgentBrowserAuthenticationCancelParam,
+)
+from .agent_browser_authentication_submit_param import (
+    AgentBrowserAuthenticationSubmitParam as AgentBrowserAuthenticationSubmitParam,
+)
 from .agent_session_environment_connected_event import (
     AgentSessionEnvironmentConnectedEvent as AgentSessionEnvironmentConnectedEvent,
+)
+from .agent_session_environment_suspended_event import (
+    AgentSessionEnvironmentSuspendedEvent as AgentSessionEnvironmentSuspendedEvent,
 )
 from .agent_session_turn_output_text_done_event import (
     AgentSessionTurnOutputTextDoneEvent as AgentSessionTurnOutputTextDoneEvent,
@@ -435,6 +454,9 @@ from .beta_response_shell_call_command_added_event import (
 from .beta_response_shell_call_command_delta_event import (
     BetaResponseShellCallCommandDeltaEvent as BetaResponseShellCallCommandDeltaEvent,
 )
+from .beta_tool_search_output_namespace_tool_param import (
+    BetaToolSearchOutputNamespaceToolParam as BetaToolSearchOutputNamespaceToolParam,
+)
 from .beta_container_network_policy_allowlist_param import (
     BetaContainerNetworkPolicyAllowlistParam as BetaContainerNetworkPolicyAllowlistParam,
 )
@@ -473,6 +495,12 @@ from .beta_response_input_message_content_list_param import (
 )
 from .beta_response_mcp_list_tools_in_progress_event import (
     BetaResponseMcpListToolsInProgressEvent as BetaResponseMcpListToolsInProgressEvent,
+)
+from .agent_browser_authentication_cancel_param_param import (
+    AgentBrowserAuthenticationCancelParamParam as AgentBrowserAuthenticationCancelParamParam,
+)
+from .agent_browser_authentication_submit_param_param import (
+    AgentBrowserAuthenticationSubmitParamParam as AgentBrowserAuthenticationSubmitParamParam,
 )
 from .beta_response_custom_tool_call_input_done_event import (
     BetaResponseCustomToolCallInputDoneEvent as BetaResponseCustomToolCallInputDoneEvent,

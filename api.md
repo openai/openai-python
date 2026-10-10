@@ -23,6 +23,24 @@ from openai.types import (
 )
 ```
 
+# Decisions
+
+Types:
+
+```python
+from openai.types import (
+    Decision,
+    DecisionInputImageParam,
+    DecisionInputMessageParam,
+    DecisionInputPartUnionParam,
+    DecisionInputTextParam,
+)
+```
+
+Methods:
+
+- <code title="post /decisions">client.decisions.<a href="./src/openai/resources/decisions.py">create</a>(\*\*<a href="src/openai/types/decision_create_params.py">params</a>) -> <a href="./src/openai/types/decision.py">Decision</a></code>
+
 # Completions
 
 Types:
@@ -49,21 +67,22 @@ Types:
 
 ```python
 from openai.types.chat import (
+    ChatCompletionAllowedToolsParam,
     ChatCompletion,
-    ChatCompletionAllowedToolChoice,
+    ChatCompletionAllowedToolChoiceParam,
     ChatCompletionAssistantMessageParam,
     ChatCompletionAudio,
     ChatCompletionAudioParam,
     ChatCompletionChunk,
-    ChatCompletionContentPart,
+    ChatCompletionContentPartParam,
     ChatCompletionContentPartImage,
-    ChatCompletionContentPartInputAudio,
-    ChatCompletionContentPartRefusal,
+    ChatCompletionContentPartInputAudioParam,
+    ChatCompletionContentPartRefusalParam,
     ChatCompletionContentPartText,
-    ChatCompletionCustomTool,
+    ChatCompletionCustomToolParam,
     ChatCompletionDeleted,
     ChatCompletionDeveloperMessageParam,
-    ChatCompletionFunctionCallOption,
+    ChatCompletionFunctionCallOptionParam,
     ChatCompletionFunctionMessageParam,
     ChatCompletionFunctionTool,
     ChatCompletionMessage,
@@ -72,19 +91,18 @@ from openai.types.chat import (
     ChatCompletionMessageParam,
     ChatCompletionMessageToolCallUnion,
     ChatCompletionModality,
-    ChatCompletionNamedToolChoice,
-    ChatCompletionNamedToolChoiceCustom,
-    ChatCompletionPredictionContent,
+    ChatCompletionNamedToolChoiceParam,
+    ChatCompletionNamedToolChoiceCustomParam,
+    ChatCompletionPredictionContentParam,
     ChatCompletionRole,
     ChatCompletionStoreMessage,
-    ChatCompletionStreamOptions,
+    ChatCompletionStreamOptionsParam,
     ChatCompletionSystemMessageParam,
     ChatCompletionTokenLogprob,
-    ChatCompletionToolUnion,
-    ChatCompletionToolChoiceOption,
+    ChatCompletionToolUnionParam,
+    ChatCompletionToolChoiceOptionParam,
     ChatCompletionToolMessageParam,
     ChatCompletionUserMessageParam,
-    ChatCompletionAllowedTools,
     ChatCompletionReasoningEffort,
 )
 ```
@@ -227,6 +245,18 @@ Methods:
 
 - <code title="post /audio/speech">client.audio.speech.<a href="./src/openai/resources/audio/speech.py">create</a>(\*\*<a href="src/openai/types/audio/speech_create_params.py">params</a>) -> HttpxBinaryResponseContent</code>
 
+## Voices
+
+Types:
+
+```python
+from openai.types.audio import Voice
+```
+
+Methods:
+
+- <code title="post /audio/voices">client.audio.voices.<a href="./src/openai/resources/audio/voices.py">create</a>(\*\*<a href="src/openai/types/audio/voice_create_params.py">params</a>) -> <a href="./src/openai/types/audio/voice.py">Voice</a></code>
+
 # Moderations
 
 Types:
@@ -234,10 +264,10 @@ Types:
 ```python
 from openai.types import (
     Moderation,
-    ModerationImageURLInput,
+    ModerationImageURLInputParam,
     ModerationModel,
-    ModerationMultiModalInput,
-    ModerationTextInput,
+    ModerationMultiModalInputParam,
+    ModerationTextInputParam,
     ModerationCreateResponse,
 )
 ```
@@ -451,18 +481,6 @@ Methods:
 
 # Safety
 
-## Alerts
-
-Types:
-
-```python
-from openai.types.safety import SafetyAlert
-```
-
-Methods:
-
-- <code title="get /safety/alerts/{id}">client.safety.alerts.<a href="./src/openai/resources/safety/alerts.py">retrieve</a>(id) -> <a href="./src/openai/types/safety/safety_alert.py">SafetyAlert</a></code>
-
 ## Cases
 
 Types:
@@ -474,6 +492,18 @@ from openai.types.safety import SafetyCase
 Methods:
 
 - <code title="get /safety/cases/{id}">client.safety.cases.<a href="./src/openai/resources/safety/cases.py">retrieve</a>(id) -> <a href="./src/openai/types/safety/safety_case.py">SafetyCase</a></code>
+
+## Alerts
+
+Types:
+
+```python
+from openai.types.safety import SafetyAlert
+```
+
+Methods:
+
+- <code title="get /safety/alerts/{id}">client.safety.alerts.<a href="./src/openai/resources/safety/alerts.py">retrieve</a>(id) -> <a href="./src/openai/types/safety/safety_alert.py">SafetyAlert</a></code>
 
 # [Webhooks](src/openai/resources/webhooks/api.md)
 
@@ -491,6 +521,9 @@ Types:
 ```python
 from openai.types.beta import (
     Agent,
+    AgentBrowserAuthenticationCancelParam,
+    AgentBrowserAuthenticationSubmitParam,
+    AgentBrowserOriginAccessParam,
     AgentCloseSubagentCallItem,
     AgentCommandExecutionItem,
     AgentContent,
@@ -516,11 +549,13 @@ from openai.types.beta import (
     AgentSessionDeleted,
     AgentSessionEnvironmentConnectedEvent,
     AgentSessionEnvironmentDisconnectedEvent,
+    AgentSessionEnvironmentExpiredEvent,
     AgentSessionEnvironmentFailedEvent,
     AgentSessionEnvironmentPendingEvent,
     AgentSessionEnvironmentReadyEvent,
     AgentSessionEnvironmentResetEvent,
     AgentSessionEnvironmentState,
+    AgentSessionEnvironmentSuspendedEvent,
     AgentSessionErrorEvent,
     AgentSessionEvent,
     AgentSessionFailedEvent,
@@ -608,7 +643,9 @@ from openai.types.beta.agents import EnvironmentInfo
 
 Methods:
 
+- <code title="post /agents/environments">client.beta.agents.environments.<a href="./src/openai/resources/beta/agents/environments/environments.py">create</a>(\*\*<a href="src/openai/types/beta/agents/environment_create_params.py">params</a>) -> <a href="./src/openai/types/beta/agents/environment_info.py">EnvironmentInfo</a></code>
 - <code title="get /agents/environments/{environment_id}">client.beta.agents.environments.<a href="./src/openai/resources/beta/agents/environments/environments.py">retrieve</a>(environment_id) -> <a href="./src/openai/types/beta/agents/environment_info.py">EnvironmentInfo</a></code>
+- <code title="get /agents/environments">client.beta.agents.environments.<a href="./src/openai/resources/beta/agents/environments/environments.py">list</a>(\*\*<a href="src/openai/types/beta/agents/environment_list_params.py">params</a>) -> <a href="./src/openai/types/beta/agents/environment_info.py">SyncCursorPage[EnvironmentInfo]</a></code>
 
 #### Files
 
@@ -644,13 +681,14 @@ Methods:
 Types:
 
 ```python
-from openai.types.beta.agents import Vault, VaultDeleted, VaultStatus, VaultStatusFilter
+from openai.types.beta.agents import Vault, VaultDeleted, VaultStatus, VaultStatusFilterParam
 ```
 
 Methods:
 
 - <code title="post /vaults">client.beta.agents.vaults.<a href="./src/openai/resources/beta/agents/vaults/vaults.py">create</a>(\*\*<a href="src/openai/types/beta/agents/vault_create_params.py">params</a>) -> <a href="./src/openai/types/beta/agents/vault.py">Vault</a></code>
 - <code title="get /vaults/{vault_id}">client.beta.agents.vaults.<a href="./src/openai/resources/beta/agents/vaults/vaults.py">retrieve</a>(vault_id) -> <a href="./src/openai/types/beta/agents/vault.py">Vault</a></code>
+- <code title="post /vaults/{vault_id}">client.beta.agents.vaults.<a href="./src/openai/resources/beta/agents/vaults/vaults.py">update</a>(vault_id, \*\*<a href="src/openai/types/beta/agents/vault_update_params.py">params</a>) -> <a href="./src/openai/types/beta/agents/vault.py">Vault</a></code>
 - <code title="get /vaults">client.beta.agents.vaults.<a href="./src/openai/resources/beta/agents/vaults/vaults.py">list</a>(\*\*<a href="src/openai/types/beta/agents/vault_list_params.py">params</a>) -> <a href="./src/openai/types/beta/agents/vault.py">SyncCursorPage[Vault]</a></code>
 - <code title="delete /vaults/{vault_id}">client.beta.agents.vaults.<a href="./src/openai/resources/beta/agents/vaults/vaults.py">delete</a>(vault_id) -> <a href="./src/openai/types/beta/agents/vault_deleted.py">VaultDeleted</a></code>
 
@@ -745,6 +783,18 @@ Methods:
 - <code title="post /agents/sessions/{session_id}/events">client.beta.agents.sessions.events.<a href="./src/openai/resources/beta/agents/sessions/events.py">create</a>(session_id, \*\*<a href="src/openai/types/beta/agents/sessions/event_create_params.py">params</a>) -> None</code>
 - <code title="get /agents/sessions/{session_id}/events">client.beta.agents.sessions.events.<a href="./src/openai/resources/beta/agents/sessions/events.py">stream</a>(session_id) -> <a href="./src/openai/types/beta/agent_session_event.py">AgentSessionEvent</a></code>
 
+#### Traces
+
+Types:
+
+```python
+from openai.types.beta.agents.sessions import SessionTrace
+```
+
+Methods:
+
+- <code title="get /agents/sessions/{session_id}/traces">client.beta.agents.sessions.traces.<a href="./src/openai/resources/beta/agents/sessions/traces.py">list</a>(session_id, \*\*<a href="src/openai/types/beta/agents/sessions/trace_list_params.py">params</a>) -> <a href="./src/openai/types/beta/agents/sessions/session_trace.py">SyncCursorPage[SessionTrace]</a></code>
+
 #### Turns
 
 Types:
@@ -755,8 +805,14 @@ from openai.types.beta.agents.sessions import Turn
 
 Methods:
 
-- <code title="get /agents/sessions/{session_id}/turns/{turn_id}">client.beta.agents.sessions.turns.<a href="./src/openai/resources/beta/agents/sessions/turns.py">retrieve</a>(turn_id, \*, session_id) -> <a href="./src/openai/types/beta/agents/sessions/turn.py">Turn</a></code>
-- <code title="get /agents/sessions/{session_id}/turns">client.beta.agents.sessions.turns.<a href="./src/openai/resources/beta/agents/sessions/turns.py">list</a>(session_id, \*\*<a href="src/openai/types/beta/agents/sessions/turn_list_params.py">params</a>) -> <a href="./src/openai/types/beta/agents/sessions/turn.py">SyncCursorPage[Turn]</a></code>
+- <code title="get /agents/sessions/{session_id}/turns/{turn_id}">client.beta.agents.sessions.turns.<a href="./src/openai/resources/beta/agents/sessions/turns/turns.py">retrieve</a>(turn_id, \*, session_id) -> <a href="./src/openai/types/beta/agents/sessions/turn.py">Turn</a></code>
+- <code title="get /agents/sessions/{session_id}/turns">client.beta.agents.sessions.turns.<a href="./src/openai/resources/beta/agents/sessions/turns/turns.py">list</a>(session_id, \*\*<a href="src/openai/types/beta/agents/sessions/turn_list_params.py">params</a>) -> <a href="./src/openai/types/beta/agents/sessions/turn.py">SyncCursorPage[Turn]</a></code>
+
+##### Items
+
+Methods:
+
+- <code title="get /agents/sessions/{session_id}/turns/{turn_id}/items">client.beta.agents.sessions.turns.items.<a href="./src/openai/resources/beta/agents/sessions/turns/items.py">list</a>(turn_id, \*, session_id, \*\*<a href="src/openai/types/beta/agents/sessions/turns/item_list_params.py">params</a>) -> <a href="./src/openai/types/beta/agent_session_item.py">SyncConversationCursorPage[AgentSessionItem]</a></code>
 
 ## Responses
 
@@ -931,6 +987,7 @@ from openai.types.beta import (
     BetaToolChoiceOptions,
     BetaToolChoiceShell,
     BetaToolChoiceTypes,
+    BetaToolSearchOutputNamespaceTool,
     BetaToolSearchTool,
     BetaWebSearchPreviewTool,
     BetaWebSearchTool,
@@ -1299,27 +1356,6 @@ Methods:
 
 ## Organization
 
-### ExternalStorage
-
-Types:
-
-```python
-from openai.types.admin.organization import (
-    AwsExternalStorageProvider,
-    AzureExternalStorageProvider,
-    ExternalStorageConfiguration,
-    ExternalStorageDeleted,
-)
-```
-
-Methods:
-
-- <code title="post /organization/external_storage">client.admin.organization.external_storage.<a href="./src/openai/resources/admin/organization/external_storage.py">create</a>(\*\*<a href="src/openai/types/admin/organization/external_storage_create_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/external_storage_configuration.py">ExternalStorageConfiguration</a></code>
-- <code title="get /organization/external_storage/{external_storage_id}">client.admin.organization.external_storage.<a href="./src/openai/resources/admin/organization/external_storage.py">retrieve</a>(external_storage_id) -> <a href="./src/openai/types/admin/organization/external_storage_configuration.py">ExternalStorageConfiguration</a></code>
-- <code title="get /organization/external_storage">client.admin.organization.external_storage.<a href="./src/openai/resources/admin/organization/external_storage.py">list</a>(\*\*<a href="src/openai/types/admin/organization/external_storage_list_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/external_storage_configuration.py">SyncCursorPage[ExternalStorageConfiguration]</a></code>
-- <code title="delete /organization/external_storage/{external_storage_id}">client.admin.organization.external_storage.<a href="./src/openai/resources/admin/organization/external_storage.py">delete</a>(external_storage_id) -> <a href="./src/openai/types/admin/organization/external_storage_deleted.py">ExternalStorageDeleted</a></code>
-- <code title="post /organization/external_storage/{external_storage_id}/validate">client.admin.organization.external_storage.<a href="./src/openai/resources/admin/organization/external_storage.py">validate</a>(external_storage_id) -> <a href="./src/openai/types/admin/organization/external_storage_configuration.py">ExternalStorageConfiguration</a></code>
-
 ### AuditLogs
 
 Types:
@@ -1520,6 +1556,28 @@ Methods:
 
 - <code title="get /organization/data_retention">client.admin.organization.data_retention.<a href="./src/openai/resources/admin/organization/data_retention.py">retrieve</a>() -> <a href="./src/openai/types/admin/organization/organization_data_retention.py">OrganizationDataRetention</a></code>
 - <code title="post /organization/data_retention">client.admin.organization.data_retention.<a href="./src/openai/resources/admin/organization/data_retention.py">update</a>(\*\*<a href="src/openai/types/admin/organization/data_retention_update_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/organization_data_retention.py">OrganizationDataRetention</a></code>
+
+### ExternalStorage
+
+Types:
+
+```python
+from openai.types.admin.organization import (
+    AwsExternalStorageProvider,
+    AzureExternalStorageProvider,
+    ExternalStorageConfiguration,
+    ExternalStorageDeleted,
+    GcpExternalStorageProvider,
+)
+```
+
+Methods:
+
+- <code title="post /organization/external_storage">client.admin.organization.external_storage.<a href="./src/openai/resources/admin/organization/external_storage.py">create</a>(\*\*<a href="src/openai/types/admin/organization/external_storage_create_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/external_storage_configuration.py">ExternalStorageConfiguration</a></code>
+- <code title="get /organization/external_storage/{external_storage_id}">client.admin.organization.external_storage.<a href="./src/openai/resources/admin/organization/external_storage.py">retrieve</a>(external_storage_id) -> <a href="./src/openai/types/admin/organization/external_storage_configuration.py">ExternalStorageConfiguration</a></code>
+- <code title="get /organization/external_storage">client.admin.organization.external_storage.<a href="./src/openai/resources/admin/organization/external_storage.py">list</a>(\*\*<a href="src/openai/types/admin/organization/external_storage_list_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/external_storage_configuration.py">SyncCursorPage[ExternalStorageConfiguration]</a></code>
+- <code title="delete /organization/external_storage/{external_storage_id}">client.admin.organization.external_storage.<a href="./src/openai/resources/admin/organization/external_storage.py">delete</a>(external_storage_id) -> <a href="./src/openai/types/admin/organization/external_storage_deleted.py">ExternalStorageDeleted</a></code>
+- <code title="post /organization/external_storage/{external_storage_id}/validate">client.admin.organization.external_storage.<a href="./src/openai/resources/admin/organization/external_storage.py">validate</a>(external_storage_id) -> <a href="./src/openai/types/admin/organization/external_storage_configuration.py">ExternalStorageConfiguration</a></code>
 
 ### SpendLimit
 
@@ -1883,7 +1941,7 @@ Methods:
 - <code title="get /evals/{eval_id}/runs/{run_id}">client.evals.runs.<a href="./src/openai/resources/evals/runs/runs.py">retrieve</a>(run_id, \*, eval_id) -> <a href="./src/openai/types/evals/run_retrieve_response.py">RunRetrieveResponse</a></code>
 - <code title="get /evals/{eval_id}/runs">client.evals.runs.<a href="./src/openai/resources/evals/runs/runs.py">list</a>(eval_id, \*\*<a href="src/openai/types/evals/run_list_params.py">params</a>) -> <a href="./src/openai/types/evals/run_list_response.py">SyncCursorPage[RunListResponse]</a></code>
 - <code title="delete /evals/{eval_id}/runs/{run_id}">client.evals.runs.<a href="./src/openai/resources/evals/runs/runs.py">delete</a>(run_id, \*, eval_id) -> <a href="./src/openai/types/evals/run_delete_response.py">RunDeleteResponse</a></code>
-- <code title="post /evals/{eval_id}/runs/{run_id}">client.evals.runs.<a href="./src/openai/resources/evals/runs/runs.py">cancel</a>(run_id, \*, eval_id) -> <a href="./src/openai/types/evals/run_cancel_response.py">RunCancelResponse</a></code>
+- <code title="post /evals/{eval_id}/runs/{run_id}/cancel">client.evals.runs.<a href="./src/openai/resources/evals/runs/runs.py">cancel</a>(run_id, \*, eval_id) -> <a href="./src/openai/types/evals/run_cancel_response.py">RunCancelResponse</a></code>
 
 ### OutputItems
 

@@ -11,7 +11,7 @@ class ImageURL(TypedDict, total=False):
     url: Required[str]
     """Either a URL of the image or the base64 encoded image data."""
 
-    detail: Literal["auto", "low", "high"]
+    detail: Literal["auto", "low", "high", "original"]
     """Specifies the detail level of the image.
 
     Learn more in the

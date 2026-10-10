@@ -1,6 +1,9 @@
 # File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
+from typing import Dict
 from typing_extensions import Literal
+
+from pydantic import Field as FieldInfo
 
 from ....._models import BaseModel
 from .credential_auth import CredentialAuth
@@ -19,6 +22,9 @@ class Credential(BaseModel):
 
     created_at: int
     """The Unix timestamp, in seconds, when the credential was created."""
+
+    metadata: Dict[str, str] = FieldInfo(default_factory=dict)
+    """Application-defined key-value pairs associated with this credential."""
 
     name: str
     """The human-readable name of the credential."""

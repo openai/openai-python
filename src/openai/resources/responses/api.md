@@ -168,6 +168,7 @@ from openai.types.responses import (
     ToolChoiceOptions,
     ToolChoiceShell,
     ToolChoiceTypes,
+    ToolSearchOutputNamespaceTool,
     ToolSearchTool,
     WebSearchPreviewTool,
     WebSearchTool,

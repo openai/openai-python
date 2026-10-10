@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from typing import Optional
+from typing_extensions import Literal
+
 import httpx2
 
 from ..... import _legacy_response
@@ -21,12 +24,14 @@ from .templates import (
     TemplatesWithStreamingResponse,
     AsyncTemplatesWithStreamingResponse,
 )
-from ....._types import Body, Query, Headers, NotGiven, not_given
-from ....._utils import path_template
+from ....._types import Body, Omit, Query, Headers, NotGiven, SequenceNotStr, omit, not_given
+from ....._utils import path_template, maybe_transform, strip_not_given, async_maybe_transform
 from ....._compat import cached_property
 from ....._resource import SyncAPIResource, AsyncAPIResource
 from ....._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
-from ....._base_client import make_request_options
+from .....pagination import SyncCursorPage, AsyncCursorPage
+from ....._base_client import AsyncPaginator, make_request_options
+from .....types.beta.agents import environment_list_params, environment_create_params
 from .....types.beta.agents.environment_info import EnvironmentInfo
 
 __all__ = ["Environments", "AsyncEnvironments"]
@@ -59,6 +64,58 @@ class Environments(SyncAPIResource):
         For more information, see https://www.github.com/openai/openai-python#with_streaming_response
         """
         return EnvironmentsWithStreamingResponse(self)
+
+    def create(
+        self,
+        *,
+        environment: environment_create_params.Environment,
+        vault_ids: Optional[SequenceNotStr[str]] | Omit = omit,
+        idempotency_key: str | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> EnvironmentInfo:
+        """Creates an OpenAI-hosted environment before creating a session.
+
+        Requires access
+        to the prewarming beta.
+
+        Args:
+          environment: The required hosting type and its configuration.
+
+          vault_ids: The IDs of up to 10 vaults made available to an OpenAI-hosted environment.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        extra_headers = {**strip_not_given({"Idempotency-Key": idempotency_key}), **(extra_headers or {})}
+        extra_headers = {"OpenAI-Beta": "agents=v1", **(extra_headers or {})}
+        return self._post(
+            "/agents/environments",
+            body=maybe_transform(
+                {
+                    "environment": environment,
+                    "vault_ids": vault_ids,
+                },
+                environment_create_params.EnvironmentCreateParams,
+            ),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+            ),
+            cast_to=EnvironmentInfo,
+        )
 
     def retrieve(
         self,
@@ -100,6 +157,68 @@ class Environments(SyncAPIResource):
             cast_to=EnvironmentInfo,
         )
 
+    def list(
+        self,
+        *,
+        after: str | Omit = omit,
+        limit: int | Omit = omit,
+        order: Literal["asc", "desc"] | Omit = omit,
+        type: Literal["openai_hosted"] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> SyncCursorPage[EnvironmentInfo]:
+        """Lists OpenAI-hosted environments owned by the authenticated principal.
+
+        Requires
+        access to the prewarming beta.
+
+        Args:
+          after: Return environments after this environment ID in the selected order.
+
+          limit: The maximum number of environments to return, between 1 and 100. Defaults to 20.
+
+          order: The order in which environments are returned. Defaults to `desc`.
+
+              - `asc` - Returns resources in ascending order.
+              - `desc` - Returns resources in descending order.
+
+          type: The hosting type to list. Defaults to `openai_hosted`.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        extra_headers = {"OpenAI-Beta": "agents=v1", **(extra_headers or {})}
+        return self._get_api_list(
+            "/agents/environments",
+            page=SyncCursorPage[EnvironmentInfo],
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                query=maybe_transform(
+                    {
+                        "after": after,
+                        "limit": limit,
+                        "order": order,
+                        "type": type,
+                    },
+                    environment_list_params.EnvironmentListParams,
+                ),
+                security={"bearer_auth": True},
+            ),
+            model=EnvironmentInfo,
+        )
+
 
 class AsyncEnvironments(AsyncAPIResource):
     @cached_property
@@ -128,6 +247,58 @@ class AsyncEnvironments(AsyncAPIResource):
         For more information, see https://www.github.com/openai/openai-python#with_streaming_response
         """
         return AsyncEnvironmentsWithStreamingResponse(self)
+
+    async def create(
+        self,
+        *,
+        environment: environment_create_params.Environment,
+        vault_ids: Optional[SequenceNotStr[str]] | Omit = omit,
+        idempotency_key: str | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> EnvironmentInfo:
+        """Creates an OpenAI-hosted environment before creating a session.
+
+        Requires access
+        to the prewarming beta.
+
+        Args:
+          environment: The required hosting type and its configuration.
+
+          vault_ids: The IDs of up to 10 vaults made available to an OpenAI-hosted environment.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        extra_headers = {**strip_not_given({"Idempotency-Key": idempotency_key}), **(extra_headers or {})}
+        extra_headers = {"OpenAI-Beta": "agents=v1", **(extra_headers or {})}
+        return await self._post(
+            "/agents/environments",
+            body=await async_maybe_transform(
+                {
+                    "environment": environment,
+                    "vault_ids": vault_ids,
+                },
+                environment_create_params.EnvironmentCreateParams,
+            ),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+            ),
+            cast_to=EnvironmentInfo,
+        )
 
     async def retrieve(
         self,
@@ -169,13 +340,81 @@ class AsyncEnvironments(AsyncAPIResource):
             cast_to=EnvironmentInfo,
         )
 
+    def list(
+        self,
+        *,
+        after: str | Omit = omit,
+        limit: int | Omit = omit,
+        order: Literal["asc", "desc"] | Omit = omit,
+        type: Literal["openai_hosted"] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AsyncPaginator[EnvironmentInfo, AsyncCursorPage[EnvironmentInfo]]:
+        """Lists OpenAI-hosted environments owned by the authenticated principal.
+
+        Requires
+        access to the prewarming beta.
+
+        Args:
+          after: Return environments after this environment ID in the selected order.
+
+          limit: The maximum number of environments to return, between 1 and 100. Defaults to 20.
+
+          order: The order in which environments are returned. Defaults to `desc`.
+
+              - `asc` - Returns resources in ascending order.
+              - `desc` - Returns resources in descending order.
+
+          type: The hosting type to list. Defaults to `openai_hosted`.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        extra_headers = {"OpenAI-Beta": "agents=v1", **(extra_headers or {})}
+        return self._get_api_list(
+            "/agents/environments",
+            page=AsyncCursorPage[EnvironmentInfo],
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                query=maybe_transform(
+                    {
+                        "after": after,
+                        "limit": limit,
+                        "order": order,
+                        "type": type,
+                    },
+                    environment_list_params.EnvironmentListParams,
+                ),
+                security={"bearer_auth": True},
+            ),
+            model=EnvironmentInfo,
+        )
+
 
 class EnvironmentsWithRawResponse:
     def __init__(self, environments: Environments) -> None:
         self._environments = environments
 
+        self.create = _legacy_response.to_raw_response_wrapper(
+            environments.create,
+        )
         self.retrieve = _legacy_response.to_raw_response_wrapper(
             environments.retrieve,
+        )
+        self.list = _legacy_response.to_raw_response_wrapper(
+            environments.list,
         )
 
     @cached_property
@@ -191,8 +430,14 @@ class AsyncEnvironmentsWithRawResponse:
     def __init__(self, environments: AsyncEnvironments) -> None:
         self._environments = environments
 
+        self.create = _legacy_response.async_to_raw_response_wrapper(
+            environments.create,
+        )
         self.retrieve = _legacy_response.async_to_raw_response_wrapper(
             environments.retrieve,
+        )
+        self.list = _legacy_response.async_to_raw_response_wrapper(
+            environments.list,
         )
 
     @cached_property
@@ -208,8 +453,14 @@ class EnvironmentsWithStreamingResponse:
     def __init__(self, environments: Environments) -> None:
         self._environments = environments
 
+        self.create = to_streamed_response_wrapper(
+            environments.create,
+        )
         self.retrieve = to_streamed_response_wrapper(
             environments.retrieve,
+        )
+        self.list = to_streamed_response_wrapper(
+            environments.list,
         )
 
     @cached_property
@@ -225,8 +476,14 @@ class AsyncEnvironmentsWithStreamingResponse:
     def __init__(self, environments: AsyncEnvironments) -> None:
         self._environments = environments
 
+        self.create = async_to_streamed_response_wrapper(
+            environments.create,
+        )
         self.retrieve = async_to_streamed_response_wrapper(
             environments.retrieve,
+        )
+        self.list = async_to_streamed_response_wrapper(
+            environments.list,
         )
 
     @cached_property

@@ -580,6 +580,8 @@ class Runs(SyncAPIResource):
             path_template("/threads/{thread_id}/runs", thread_id=thread_id),
             body=maybe_transform(
                 {
+                    "model": model,
+                    "stream": stream,
                     "assistant_id": assistant_id,
                     "additional_instructions": additional_instructions,
                     "additional_messages": additional_messages,
@@ -587,11 +589,9 @@ class Runs(SyncAPIResource):
                     "max_completion_tokens": max_completion_tokens,
                     "max_prompt_tokens": max_prompt_tokens,
                     "metadata": metadata,
-                    "model": model,
                     "parallel_tool_calls": parallel_tool_calls,
                     "reasoning_effort": reasoning_effort,
                     "response_format": response_format,
-                    "stream": stream,
                     "temperature": temperature,
                     "tool_choice": tool_choice,
                     "tools": tools,
@@ -1366,8 +1366,8 @@ class Runs(SyncAPIResource):
             path_template("/threads/{thread_id}/runs/{run_id}/submit_tool_outputs", thread_id=thread_id, run_id=run_id),
             body=maybe_transform(
                 {
-                    "tool_outputs": tool_outputs,
                     "stream": stream,
+                    "tool_outputs": tool_outputs,
                 },
                 run_submit_tool_outputs_params.RunSubmitToolOutputsParamsStreaming
                 if stream
@@ -2049,6 +2049,8 @@ class AsyncRuns(AsyncAPIResource):
             path_template("/threads/{thread_id}/runs", thread_id=thread_id),
             body=await async_maybe_transform(
                 {
+                    "model": model,
+                    "stream": stream,
                     "assistant_id": assistant_id,
                     "additional_instructions": additional_instructions,
                     "additional_messages": additional_messages,
@@ -2056,11 +2058,9 @@ class AsyncRuns(AsyncAPIResource):
                     "max_completion_tokens": max_completion_tokens,
                     "max_prompt_tokens": max_prompt_tokens,
                     "metadata": metadata,
-                    "model": model,
                     "parallel_tool_calls": parallel_tool_calls,
                     "reasoning_effort": reasoning_effort,
                     "response_format": response_format,
-                    "stream": stream,
                     "temperature": temperature,
                     "tool_choice": tool_choice,
                     "tools": tools,
@@ -2834,8 +2834,8 @@ class AsyncRuns(AsyncAPIResource):
             path_template("/threads/{thread_id}/runs/{run_id}/submit_tool_outputs", thread_id=thread_id, run_id=run_id),
             body=await async_maybe_transform(
                 {
-                    "tool_outputs": tool_outputs,
                     "stream": stream,
+                    "tool_outputs": tool_outputs,
                 },
                 run_submit_tool_outputs_params.RunSubmitToolOutputsParamsStreaming
                 if stream

@@ -29,6 +29,7 @@ class SpeechCreateParams(TypedDict, total=False):
     may also provide a custom voice object with an `id`, for example
     `{ "id": "voice_1234" }`. Previews of the voices are available in the
     [Text to speech guide](https://developers.openai.com/api/docs/guides/text-to-speech#voice-options).
+    Custom voices must be created from audio samples.
     """
 
     instructions: str
@@ -65,5 +66,9 @@ class VoiceID(TypedDict, total=False):
 
 
 Voice: TypeAlias = Union[
-    str, Literal["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse", "marin", "cedar"], VoiceID
+    str,
+    Literal[
+        "alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse", "marin", "cedar", "fable", "onyx", "nova"
+    ],
+    VoiceID,
 ]

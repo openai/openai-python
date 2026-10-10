@@ -37,6 +37,7 @@ from ....lib._parsing import (
     ResponseFormatT,
     validate_input_tools as _validate_input_tools,
     parse_chat_completion as _parse_chat_completion,
+    materialize_input_tools as _materialize_input_tools,
     type_to_response_format_param as _type_to_response_format,
 )
 from ....lib.streaming.chat import ChatCompletionStreamManager, AsyncChatCompletionStreamManager
@@ -116,7 +117,7 @@ class Completions(SyncAPIResource):
         safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
-        stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
+        stop: Union[str, SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -194,8 +195,10 @@ class Completions(SyncAPIResource):
             "/chat/completions",
             body=maybe_transform(
                 {
-                    "messages": messages,
                     "model": model,
+                    "stream": False,
+                    "service_tier": service_tier,
+                    "messages": messages,
                     "audio": audio,
                     "frequency_penalty": frequency_penalty,
                     "function_call": function_call,
@@ -218,14 +221,12 @@ class Completions(SyncAPIResource):
                     "response_format": _type_to_response_format(response_format),
                     "safety_identifier": safety_identifier,
                     "seed": seed,
-                    "service_tier": service_tier,
                     "stop": stop,
                     "store": store,
-                    "stream": False,
                     "stream_options": stream_options,
                     "temperature": temperature,
                     "tool_choice": tool_choice,
-                    "tools": tools,
+                    "tools": chat_completion_tools,
                     "top_logprobs": top_logprobs,
                     "top_p": top_p,
                     "user": user,
@@ -277,7 +278,7 @@ class Completions(SyncAPIResource):
         safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
-        stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
+        stop: Union[str, SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Omit = omit,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
@@ -617,7 +618,7 @@ class Completions(SyncAPIResource):
         safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
-        stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
+        stop: Union[str, SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -956,7 +957,7 @@ class Completions(SyncAPIResource):
         safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
-        stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
+        stop: Union[str, SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -1294,7 +1295,7 @@ class Completions(SyncAPIResource):
         safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
-        stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
+        stop: Union[str, SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
@@ -1318,8 +1319,10 @@ class Completions(SyncAPIResource):
             "/chat/completions",
             body=maybe_transform(
                 {
-                    "messages": messages,
                     "model": model,
+                    "stream": stream,
+                    "service_tier": service_tier,
+                    "messages": messages,
                     "audio": audio,
                     "frequency_penalty": frequency_penalty,
                     "function_call": function_call,
@@ -1342,10 +1345,8 @@ class Completions(SyncAPIResource):
                     "response_format": response_format,
                     "safety_identifier": safety_identifier,
                     "seed": seed,
-                    "service_tier": service_tier,
                     "stop": stop,
                     "store": store,
-                    "stream": stream,
                     "stream_options": stream_options,
                     "temperature": temperature,
                     "tool_choice": tool_choice,
@@ -1593,7 +1594,7 @@ class Completions(SyncAPIResource):
         safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
-        stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
+        stop: Union[str, SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -1633,6 +1634,8 @@ class Completions(SyncAPIResource):
         When the context manager exits, the response will be closed, however the `stream` instance is still available outside
         the context manager.
         """
+        chat_completion_tools = _materialize_input_tools(tools)
+
         extra_headers = {
             "X-Stainless-Helper-Method": "chat.completions.stream",
             **(extra_headers or {}),
@@ -1671,7 +1674,7 @@ class Completions(SyncAPIResource):
             stream_options=stream_options,
             temperature=temperature,
             tool_choice=tool_choice,
-            tools=tools,
+            tools=chat_completion_tools,
             top_logprobs=top_logprobs,
             top_p=top_p,
             user=user,
@@ -1685,7 +1688,7 @@ class Completions(SyncAPIResource):
         return ChatCompletionStreamManager(
             api_request,
             response_format=response_format,
-            input_tools=tools,
+            input_tools=chat_completion_tools,
         )
 
 
@@ -1748,7 +1751,7 @@ class AsyncCompletions(AsyncAPIResource):
         safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
-        stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
+        stop: Union[str, SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -1808,7 +1811,7 @@ class AsyncCompletions(AsyncAPIResource):
             print("answer: ", message.parsed.final_answer)
         ```
         """
-        _validate_input_tools(tools)
+        chat_completion_tools = _validate_input_tools(tools)
 
         extra_headers = {
             "X-Stainless-Helper-Method": "chat.completions.parse",
@@ -1819,15 +1822,17 @@ class AsyncCompletions(AsyncAPIResource):
             return _parse_chat_completion(
                 response_format=response_format,
                 chat_completion=raw_completion,
-                input_tools=tools,
+                input_tools=chat_completion_tools,
             )
 
         return await self._post(
             "/chat/completions",
             body=await async_maybe_transform(
                 {
-                    "messages": messages,
                     "model": model,
+                    "stream": False,
+                    "service_tier": service_tier,
+                    "messages": messages,
                     "audio": audio,
                     "frequency_penalty": frequency_penalty,
                     "function_call": function_call,
@@ -1850,14 +1855,12 @@ class AsyncCompletions(AsyncAPIResource):
                     "response_format": _type_to_response_format(response_format),
                     "safety_identifier": safety_identifier,
                     "seed": seed,
-                    "service_tier": service_tier,
                     "store": store,
                     "stop": stop,
-                    "stream": False,
                     "stream_options": stream_options,
                     "temperature": temperature,
                     "tool_choice": tool_choice,
-                    "tools": tools,
+                    "tools": chat_completion_tools,
                     "top_logprobs": top_logprobs,
                     "top_p": top_p,
                     "user": user,
@@ -1909,7 +1912,7 @@ class AsyncCompletions(AsyncAPIResource):
         safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
-        stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
+        stop: Union[str, SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Omit = omit,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
@@ -2249,7 +2252,7 @@ class AsyncCompletions(AsyncAPIResource):
         safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
-        stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
+        stop: Union[str, SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -2588,7 +2591,7 @@ class AsyncCompletions(AsyncAPIResource):
         safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
-        stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
+        stop: Union[str, SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -2926,7 +2929,7 @@ class AsyncCompletions(AsyncAPIResource):
         safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
-        stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
+        stop: Union[str, SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
@@ -2950,8 +2953,10 @@ class AsyncCompletions(AsyncAPIResource):
             "/chat/completions",
             body=await async_maybe_transform(
                 {
-                    "messages": messages,
                     "model": model,
+                    "stream": stream,
+                    "service_tier": service_tier,
+                    "messages": messages,
                     "audio": audio,
                     "frequency_penalty": frequency_penalty,
                     "function_call": function_call,
@@ -2974,10 +2979,8 @@ class AsyncCompletions(AsyncAPIResource):
                     "response_format": response_format,
                     "safety_identifier": safety_identifier,
                     "seed": seed,
-                    "service_tier": service_tier,
                     "stop": stop,
                     "store": store,
-                    "stream": stream,
                     "stream_options": stream_options,
                     "temperature": temperature,
                     "tool_choice": tool_choice,
@@ -3225,7 +3228,7 @@ class AsyncCompletions(AsyncAPIResource):
         safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
-        stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
+        stop: Union[str, SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -3265,7 +3268,7 @@ class AsyncCompletions(AsyncAPIResource):
         When the context manager exits, the response will be closed, however the `stream` instance is still available outside
         the context manager.
         """
-        _validate_input_tools(tools)
+        chat_completion_tools = _materialize_input_tools(tools)
 
         extra_headers = {
             "X-Stainless-Helper-Method": "chat.completions.stream",
@@ -3304,7 +3307,7 @@ class AsyncCompletions(AsyncAPIResource):
             stream_options=stream_options,
             temperature=temperature,
             tool_choice=tool_choice,
-            tools=tools,
+            tools=chat_completion_tools,
             top_logprobs=top_logprobs,
             top_p=top_p,
             user=user,
@@ -3318,7 +3321,7 @@ class AsyncCompletions(AsyncAPIResource):
         return AsyncChatCompletionStreamManager(
             api_request,
             response_format=response_format,
-            input_tools=tools,
+            input_tools=chat_completion_tools,
         )
 
 

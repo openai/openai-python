@@ -15,6 +15,9 @@ class ResponseCompactParams(TypedDict, total=False):
         Union[
             Literal[
                 "gpt-6-astra",
+                "gpt-6.1-sol",
+                "gpt-6-sol",
+                "gpt-6-luna",
                 "gpt-5.6-sol",
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
@@ -34,6 +37,7 @@ class ResponseCompactParams(TypedDict, total=False):
                 "gpt-5.1",
                 "gpt-5.1-2025-11-13",
                 "gpt-5.1-codex",
+                "gpt-5.1-mini",
                 "gpt-5.1-chat-latest",
                 "gpt-5",
                 "gpt-5-mini",
@@ -118,6 +122,7 @@ class ResponseCompactParams(TypedDict, total=False):
                 "gpt-daybreak-blue-latest",
                 "gpt-daybreak-red-latest",
                 "gpt-5.6-cyber",
+                "gpt-rosalind-research",
             ],
             str,
             None,

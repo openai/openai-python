@@ -69,6 +69,7 @@ from .realtime_audio_formats_param import RealtimeAudioFormatsParam as RealtimeA
 from .realtime_function_tool_param import RealtimeFunctionToolParam as RealtimeFunctionToolParam
 from .realtime_mcp_tool_call_param import RealtimeMcpToolCallParam as RealtimeMcpToolCallParam
 from .realtime_mcphttp_error_param import RealtimeMcphttpErrorParam as RealtimeMcphttpErrorParam
+from .realtime_translation_session import RealtimeTranslationSession as RealtimeTranslationSession
 from .client_secret_create_response import ClientSecretCreateResponse as ClientSecretCreateResponse
 from .realtime_mcp_approval_request import RealtimeMcpApprovalRequest as RealtimeMcpApprovalRequest
 from .realtime_mcp_list_tools_param import RealtimeMcpListToolsParam as RealtimeMcpListToolsParam
@@ -213,8 +214,14 @@ from .realtime_conversation_item_system_message_param import (
 from .realtime_transcription_session_audio_input_param import (
     RealtimeTranscriptionSessionAudioInputParam as RealtimeTranscriptionSessionAudioInputParam,
 )
+from .realtime_translation_session_create_request_param import (
+    RealtimeTranslationSessionCreateRequestParam as RealtimeTranslationSessionCreateRequestParam,
+)
 from .realtime_conversation_item_assistant_message_param import (
     RealtimeConversationItemAssistantMessageParam as RealtimeConversationItemAssistantMessageParam,
+)
+from .realtime_translation_client_secret_create_response import (
+    RealtimeTranslationClientSecretCreateResponse as RealtimeTranslationClientSecretCreateResponse,
 )
 from .conversation_item_input_audio_transcription_segment import (
     ConversationItemInputAudioTranscriptionSegment as ConversationItemInputAudioTranscriptionSegment,

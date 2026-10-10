@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
-from typing import Union, Optional
+from typing import Dict, Union, Optional
 from typing_extensions import Literal
 
 from .._models import BaseModel
@@ -31,6 +31,12 @@ class Misalignment(BaseModel):
     ] = None
     """An optional classification; clients must accept additional values."""
 
+    review_target: Optional[str] = None
+    """
+    An opaque target for explicitly continuing this review, or null when
+    unavailable.
+    """
+
     steer: Optional[MisalignmentSteer] = None
     """An optional public continuation instruction."""
 
@@ -43,5 +49,11 @@ class VideoCreateError(BaseModel):
 
     message: str
     """A human-readable description of the error that was returned."""
+
+    headers: Optional[Dict[str, str]] = None
+    """
+    The Retry-After and Retry-After-Ms headers returned with the original error, if
+    any.
+    """
 
     misalignment: Optional[Misalignment] = None

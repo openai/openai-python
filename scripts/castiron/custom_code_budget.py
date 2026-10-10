@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 """SDK custom-code budget gate. Run only from a trusted checkout, never PR code.
 
 Reuses Castiron's vendored snapshot verifier and generated-file accounting. This
-file and its workflow are maintained in the SDK repository.
+file and its workflows are generated from shared Castiron templates.
 """
 
 from __future__ import annotations
@@ -54,7 +55,7 @@ def read_budget(repo: Path, revision: str) -> int:
         report.git(repo, "show", f"{revision}:{POLICY}"), object_pairs_hook=unique_keys
     )
     if not isinstance(value, dict):
-        raise ValueError("budget file must be an object")
+        raise ValueError("budget file must be an object")  # noqa: TRY004 - malformed policy is a value error
     value = cast(dict[str, Any], value)
     if set(value) != {"schema_version", "max_custom_patch_lines"}:
         raise ValueError("budget file must contain only schema_version and max_custom_patch_lines")
@@ -282,9 +283,9 @@ def github_evaluate(
     if event["repository"]["full_name"] != repository:
         raise ValueError("event repository mismatch")
     branch = metadata["default_branch"]
-    main = report.require_sha(report.api("GET", f"{root}/git/ref/heads/{branch}")["object"]["sha"])
-    if report.require_sha(trusted_sha) != main:
-        raise ValueError("trusted checkout is stale; rerun against current main")
+    if branch != "main":
+        raise ValueError("budget gate requires main as the default branch")
+    main = report.require_sha(trusted_sha)
     signal = event["workflow_run"]
     run_id = signal["id"]
     if type(run_id) is not int or run_id <= 0:
@@ -311,12 +312,18 @@ def github_evaluate(
                 and pull["head"]["sha"] == head
                 and pull["base"]["repo"]["full_name"] == repository
                 and pull["base"]["ref"] == branch
-                and pull["base"]["sha"] == main
             ):
                 current.append(number)
         if len(current) != 1:
             raise ValueError("source run must identify exactly one current PR targeting main")
     elif run["event"] == "merge_group":
+        # Queue candidates independently validate actual current main. A PR's
+        # captured snapshot must never authorize a different merged candidate.
+        current_main = report.require_sha(
+            report.api("GET", f"{root}/git/ref/heads/{branch}")["object"]["sha"]
+        )
+        if main != current_main:
+            raise ValueError("trusted checkout is stale; rerun against current main")
         if not run["head_branch"].startswith(f"gh-readonly-queue/{branch}/"):
             raise ValueError("queue signal does not target main")
     else:
@@ -335,7 +342,7 @@ def github_evaluate(
             raise ValueError("only PR runs can reuse the trusted report")
         measured = json.loads((trusted_report_dir / "report.json").read_text())
         if measured["target_base_sha"] != main or measured["head_sha"] != head:
-            raise ValueError("trusted report is stale; rerun against current main")
+            raise ValueError("trusted report does not match the captured base/head")
         if report.git(repo, "rev-parse", "--is-bare-repository").strip() != b"true":
             raise ValueError("trusted report must use a bare object store")
         measurement = (measured, (trusted_report_dir / "custom-code.patch").read_bytes())
@@ -417,8 +424,7 @@ def main() -> int:
     write_result(args.out, result, patch)
     if args.command == "github" and "GITHUB_OUTPUT" in os.environ:
         with Path(os.environ["GITHUB_OUTPUT"]).open("a") as output:
-            for name in ("isolation", "budget"):
-                output.write(f"{name}={result['checks'][name]['state']}\n")
+            output.writelines(f"{name}={result['checks'][name]['state']}\n" for name in ("isolation", "budget"))
             output.write(f"base_sha={result.get('base_sha', '')}\n")
             output.write(f"head_sha={result.get('head_sha', '')}\n")
     return 0 if all(c["state"] == "success" for c in result["checks"].values()) else 1

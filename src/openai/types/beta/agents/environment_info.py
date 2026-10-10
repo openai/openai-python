@@ -29,8 +29,14 @@ class EnvironmentInfo(BaseModel):
     skills: List[HostedSkill]
     """Skills installed in the environment, without their archive contents."""
 
-    status: Literal["pending", "connected", "disconnected", "expired", "failed"]
-    """The current environment connection status."""
+    status: Literal["pending", "ready", "connected", "disconnected", "expired", "failed", "suspended"]
+    """The current environment connection status.
+
+    - `ready` - Provisioning succeeded and the environment is available for
+      attachment or use.
+    - `suspended` - The sandbox is stopped and can be resumed from its private
+      checkpoint.
+    """
 
     type: Literal["openai_hosted", "self_hosted"]
     """Whether the environment is hosted by OpenAI or by the application."""
