@@ -29,6 +29,7 @@ def _ensure_strict_json_schema(
     *,
     path: tuple[str, ...],
     root: dict[str, object],
+    ancestors: frozenset[int] = frozenset(),
 ) -> dict[str, Any]:
     """Mutates the given JSON schema to ensure it conforms to the `strict` standard
     that the API expects.
@@ -36,15 +37,19 @@ def _ensure_strict_json_schema(
     if not is_dict(json_schema):
         raise TypeError(f"Expected {json_schema} to be a dictionary; path={path}")
 
+    ancestors = ancestors | {id(json_schema)}
+
     defs = json_schema.get("$defs")
     if is_dict(defs):
         for def_name, def_schema in defs.items():
-            _ensure_strict_json_schema(def_schema, path=(*path, "$defs", def_name), root=root)
+            _ensure_strict_json_schema(def_schema, path=(*path, "$defs", def_name), root=root, ancestors=ancestors)
 
     definitions = json_schema.get("definitions")
     if is_dict(definitions):
         for definition_name, definition_schema in definitions.items():
-            _ensure_strict_json_schema(definition_schema, path=(*path, "definitions", definition_name), root=root)
+            _ensure_strict_json_schema(
+                definition_schema, path=(*path, "definitions", definition_name), root=root, ancestors=ancestors
+            )
 
     typ = json_schema.get("type")
     if typ == "object" and "additionalProperties" not in json_schema:
@@ -56,7 +61,9 @@ def _ensure_strict_json_schema(
     if is_dict(properties):
         json_schema["required"] = [prop for prop in properties.keys()]
         json_schema["properties"] = {
-            key: _ensure_strict_json_schema(prop_schema, path=(*path, "properties", key), root=root)
+            key: _ensure_strict_json_schema(
+                prop_schema, path=(*path, "properties", key), root=root, ancestors=ancestors
+            )
             for key, prop_schema in properties.items()
         }
 
@@ -64,13 +71,13 @@ def _ensure_strict_json_schema(
     # { 'type': 'array', 'items': {...} }
     items = json_schema.get("items")
     if is_dict(items):
-        json_schema["items"] = _ensure_strict_json_schema(items, path=(*path, "items"), root=root)
+        json_schema["items"] = _ensure_strict_json_schema(items, path=(*path, "items"), root=root, ancestors=ancestors)
 
     # unions
     any_of = json_schema.get("anyOf")
     if is_list(any_of):
         json_schema["anyOf"] = [
-            _ensure_strict_json_schema(variant, path=(*path, "anyOf", str(i)), root=root)
+            _ensure_strict_json_schema(variant, path=(*path, "anyOf", str(i)), root=root, ancestors=ancestors)
             for i, variant in enumerate(any_of)
         ]
 
@@ -78,11 +85,13 @@ def _ensure_strict_json_schema(
     all_of = json_schema.get("allOf")
     if is_list(all_of):
         if len(all_of) == 1:
-            json_schema.update(_ensure_strict_json_schema(all_of[0], path=(*path, "allOf", "0"), root=root))
+            json_schema.update(
+                _ensure_strict_json_schema(all_of[0], path=(*path, "allOf", "0"), root=root, ancestors=ancestors)
+            )
             json_schema.pop("allOf")
         else:
             json_schema["allOf"] = [
-                _ensure_strict_json_schema(entry, path=(*path, "allOf", str(i)), root=root)
+                _ensure_strict_json_schema(entry, path=(*path, "allOf", str(i)), root=root, ancestors=ancestors)
                 for i, entry in enumerate(all_of)
             ]
 
@@ -105,12 +114,17 @@ def _ensure_strict_json_schema(
         if not is_dict(resolved):
             raise ValueError(f"Expected `$ref: {ref}` to resolved to a dictionary but got {resolved}")
 
+        if id(resolved) in ancestors:
+            # Keep recursive references finite, with annotations outside the `$ref`.
+            json_schema["anyOf"] = [{"$ref": json_schema.pop("$ref")}]
+            return json_schema
+
         # properties from the json schema take priority over the ones on the `$ref`
         json_schema.update({**resolved, **json_schema})
         json_schema.pop("$ref")
         # Since the schema expanded from `$ref` might not have `additionalProperties: false` applied,
         # we call `_ensure_strict_json_schema` again to fix the inlined schema and ensure it's valid.
-        return _ensure_strict_json_schema(json_schema, path=path, root=root)
+        return _ensure_strict_json_schema(json_schema, path=path, root=root, ancestors=ancestors | {id(resolved)})
 
     return json_schema
 
