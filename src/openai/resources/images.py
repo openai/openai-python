@@ -133,9 +133,10 @@ class Images(SyncAPIResource):
     def edit(
         self,
         *,
-        image: Union[FileTypes, SequenceNotStr[FileTypes]],
+        image: Union[FileTypes, SequenceNotStr[FileTypes]] | Omit = omit,
         prompt: str,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        image_url: str | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
         mask: FileTypes | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
@@ -183,6 +184,10 @@ class Images(SyncAPIResource):
               backgrounds are available for supported GPT Image models. For `gpt-image-2` and
               `gpt-image-2-2026-04-21`, this support is in preview. When using `transparent`,
               set the output format to `png` or `webp`.
+
+          image_url: A fully qualified URL or base64-encoded data URL for the image to edit.
+              This parameter can be used as an alternative to `image` when you want to
+              reference an image by URL instead of uploading a file.
 
           input_fidelity: Control how much effort the model will exert to match the style and features,
               especially facial features, of input images. Supports `high` and `low` on
@@ -259,10 +264,11 @@ class Images(SyncAPIResource):
     def edit(
         self,
         *,
-        image: Union[FileTypes, SequenceNotStr[FileTypes]],
+        image: Union[FileTypes, SequenceNotStr[FileTypes]] | Omit = omit,
         prompt: str,
         stream: Literal[True],
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        image_url: str | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
         mask: FileTypes | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
@@ -385,10 +391,11 @@ class Images(SyncAPIResource):
     def edit(
         self,
         *,
-        image: Union[FileTypes, SequenceNotStr[FileTypes]],
+        image: Union[FileTypes, SequenceNotStr[FileTypes]] | Omit = omit,
         prompt: str,
         stream: bool,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        image_url: str | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
         mask: FileTypes | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
@@ -507,11 +514,12 @@ class Images(SyncAPIResource):
         """
         ...
 
-    @required_args(["image", "prompt"], ["image", "prompt", "stream"])
+    @required_args(["image", "prompt"], ["image", "prompt", "stream"], ["image_url", "prompt"], ["image_url", "prompt", "stream"])
     def edit(
         self,
         *,
-        image: Union[FileTypes, SequenceNotStr[FileTypes]],
+        image: Union[FileTypes, SequenceNotStr[FileTypes]] | Omit = omit,
+        image_url: str | Omit = omit,
         prompt: str,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
@@ -534,6 +542,48 @@ class Images(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | Stream[ImageEditStreamEvent]:
+        if image_url is not omit:
+            if image is not omit:
+                raise ValueError("Cannot specify both `image` and `image_url`.")
+            if mask is not omit:
+                raise ValueError("`mask` file uploads are not supported when using `image_url`.")
+
+            image_url_value = cast(str, image_url)
+            return self._post(
+                "/images/edits",
+                body=maybe_transform(
+                    {
+                        "images": [{"image_url": image_url_value}],
+                        "prompt": prompt,
+                        "background": background,
+                        "input_fidelity": input_fidelity,
+                        "model": model,
+                        "n": n,
+                        "output_compression": output_compression,
+                        "output_format": output_format,
+                        "partial_images": partial_images,
+                        "quality": quality,
+                        "response_format": response_format,
+                        "size": size,
+                        "stream": stream,
+                        "user": user,
+                    },
+                    image_edit_params.ImageEditParamsStreaming
+                    if stream
+                    else image_edit_params.ImageEditParamsNonStreaming,
+                ),
+                options=make_request_options(
+                    extra_headers=extra_headers,
+                    extra_query=extra_query,
+                    extra_body=extra_body,
+                    timeout=timeout,
+                    security={"bearer_auth": True},
+                ),
+                cast_to=ImagesResponse,
+                stream=stream or False,
+                stream_cls=Stream[ImageEditStreamEvent],
+            )
+
         body = deepcopy_with_paths(
             {
                 "image": image,
@@ -1102,9 +1152,10 @@ class AsyncImages(AsyncAPIResource):
     async def edit(
         self,
         *,
-        image: Union[FileTypes, SequenceNotStr[FileTypes]],
+        image: Union[FileTypes, SequenceNotStr[FileTypes]] | Omit = omit,
         prompt: str,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        image_url: str | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
         mask: FileTypes | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
@@ -1228,10 +1279,11 @@ class AsyncImages(AsyncAPIResource):
     async def edit(
         self,
         *,
-        image: Union[FileTypes, SequenceNotStr[FileTypes]],
+        image: Union[FileTypes, SequenceNotStr[FileTypes]] | Omit = omit,
         prompt: str,
         stream: Literal[True],
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        image_url: str | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
         mask: FileTypes | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
@@ -1354,10 +1406,11 @@ class AsyncImages(AsyncAPIResource):
     async def edit(
         self,
         *,
-        image: Union[FileTypes, SequenceNotStr[FileTypes]],
+        image: Union[FileTypes, SequenceNotStr[FileTypes]] | Omit = omit,
         prompt: str,
         stream: bool,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        image_url: str | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
         mask: FileTypes | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
@@ -1476,11 +1529,12 @@ class AsyncImages(AsyncAPIResource):
         """
         ...
 
-    @required_args(["image", "prompt"], ["image", "prompt", "stream"])
+    @required_args(["image", "prompt"], ["image", "prompt", "stream"], ["image_url", "prompt"], ["image_url", "prompt", "stream"])
     async def edit(
         self,
         *,
-        image: Union[FileTypes, SequenceNotStr[FileTypes]],
+        image: Union[FileTypes, SequenceNotStr[FileTypes]] | Omit = omit,
+        image_url: str | Omit = omit,
         prompt: str,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
@@ -1503,6 +1557,48 @@ class AsyncImages(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | AsyncStream[ImageEditStreamEvent]:
+        if image_url is not omit:
+            if image is not omit:
+                raise ValueError("Cannot specify both `image` and `image_url`.")
+            if mask is not omit:
+                raise ValueError("`mask` file uploads are not supported when using `image_url`.")
+
+            image_url_value = cast(str, image_url)
+            return await self._post(
+                "/images/edits",
+                body=await async_maybe_transform(
+                    {
+                        "images": [{"image_url": image_url_value}],
+                        "prompt": prompt,
+                        "background": background,
+                        "input_fidelity": input_fidelity,
+                        "model": model,
+                        "n": n,
+                        "output_compression": output_compression,
+                        "output_format": output_format,
+                        "partial_images": partial_images,
+                        "quality": quality,
+                        "response_format": response_format,
+                        "size": size,
+                        "stream": stream,
+                        "user": user,
+                    },
+                    image_edit_params.ImageEditParamsStreaming
+                    if stream
+                    else image_edit_params.ImageEditParamsNonStreaming,
+                ),
+                options=make_request_options(
+                    extra_headers=extra_headers,
+                    extra_query=extra_query,
+                    extra_body=extra_body,
+                    timeout=timeout,
+                    security={"bearer_auth": True},
+                ),
+                cast_to=ImagesResponse,
+                stream=stream or False,
+                stream_cls=AsyncStream[ImageEditStreamEvent],
+            )
+
         body = deepcopy_with_paths(
             {
                 "image": image,
