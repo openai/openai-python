@@ -83389,6 +83389,7 @@ components:
       - project_spend_limit_exceeded
       - organization_spend_limit_exceeded
       - organization_usage_limit_exceeded
+      - billing_not_active
       - credit_balance_exhausted
       - rate_limit_exceeded
       - flex_unavailable
@@ -83412,6 +83413,7 @@ components:
       - The project has reached its enforced spend limit.
       - The organization has reached its enforced spend limit.
       - The organization has reached its OpenAI-assigned usage limit.
+      - Billing is not active for the account.
       - The organization has no API credits remaining.
       - The request exceeds the available rate limit.
       - Flex processing is temporarily unavailable.
