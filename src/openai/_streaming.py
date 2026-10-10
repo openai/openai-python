@@ -42,6 +42,7 @@ class Stream(Generic[_T]):
         self._client = client
         self._options = options
         self._decoder = client._make_sse_decoder()
+        self._raw_stream = response.iter_bytes()
         self._iterator = self.__stream__()
 
     def __next__(self) -> _T:
@@ -53,7 +54,7 @@ class Stream(Generic[_T]):
 
     def _iter_events(self) -> Iterator[ServerSentEvent]:
         try:
-            yield from self._decoder.iter_bytes(self.response.iter_bytes())
+            yield from self._decoder.iter_bytes(self._raw_stream)
         except timeout_exceptions() as err:
             raise APITimeoutError(request=self.response.request) from err
         except request_exceptions() as err:
@@ -68,6 +69,16 @@ class Stream(Generic[_T]):
         try:
             for sse in iterator:
                 if sse.data.startswith("[DONE]"):
+                    if response.http_version == "HTTP/1.1":
+                        # Finish the HTTP body so the connection can be reused. Resume the
+                        # active byte iterator without decoding discarded SSE data. This
+                        # uses the request's read timeout; HTTP/2 needs no drain for reuse.
+                        try:
+                            for _ in self._raw_stream:
+                                pass
+                        except request_exceptions():
+                            # Cleanup must not turn a completed stream into a request error.
+                            pass
                     break
 
                 # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
@@ -156,6 +167,7 @@ class AsyncStream(Generic[_T]):
         self._client = client
         self._options = options
         self._decoder = client._make_sse_decoder()
+        self._raw_stream = response.aiter_bytes()
         self._iterator = self.__stream__()
 
     async def __anext__(self) -> _T:
@@ -167,7 +179,7 @@ class AsyncStream(Generic[_T]):
 
     async def _iter_events(self) -> AsyncIterator[ServerSentEvent]:
         try:
-            async for sse in self._decoder.aiter_bytes(self.response.aiter_bytes()):
+            async for sse in self._decoder.aiter_bytes(self._raw_stream):
                 yield sse
         except timeout_exceptions() as err:
             raise APITimeoutError(request=self.response.request) from err
@@ -183,6 +195,16 @@ class AsyncStream(Generic[_T]):
         try:
             async for sse in iterator:
                 if sse.data.startswith("[DONE]"):
+                    if response.http_version == "HTTP/1.1":
+                        # Finish the HTTP body so the connection can be reused. Resume the
+                        # active byte iterator without decoding discarded SSE data. This
+                        # uses the request's read timeout; HTTP/2 needs no drain for reuse.
+                        try:
+                            async for _ in self._raw_stream:
+                                pass
+                        except request_exceptions():
+                            # Cleanup must not turn a completed stream into a request error.
+                            pass
                     break
 
                 # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
