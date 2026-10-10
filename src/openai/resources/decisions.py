@@ -68,10 +68,10 @@ class Decisions(SyncAPIResource):
         type `refusal` and the corresponding question name, or null if unnamed.
 
         Args:
-          input: Shared evidence, as a string or an array of user messages containing text and
-              inline images. Non-user roles, function calls, function-call outputs, files,
-              audio, and item references are not supported. At most 128 image parts are
-              allowed across all messages in one request.
+          input: The text or images to evaluate for every question. Provide a text string or user
+              messages containing text and inline images. Images must be inline data URLs; at
+              most 128 images are allowed across all messages in one request. External URLs,
+              files, audio, tools, and item references are not supported.
 
           safety_identifier: Opaque caller-provided end-user identifier, scoped by the verified org. Match
               Responses' limit; this is never the authenticated user identity.
@@ -154,10 +154,10 @@ class AsyncDecisions(AsyncAPIResource):
         type `refusal` and the corresponding question name, or null if unnamed.
 
         Args:
-          input: Shared evidence, as a string or an array of user messages containing text and
-              inline images. Non-user roles, function calls, function-call outputs, files,
-              audio, and item references are not supported. At most 128 image parts are
-              allowed across all messages in one request.
+          input: The text or images to evaluate for every question. Provide a text string or user
+              messages containing text and inline images. Images must be inline data URLs; at
+              most 128 images are allowed across all messages in one request. External URLs,
+              files, audio, tools, and item references are not supported.
 
           safety_identifier: Opaque caller-provided end-user identifier, scoped by the verified org. Match
               Responses' limit; this is never the authenticated user identity.
