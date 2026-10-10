@@ -30552,6 +30552,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse-2'
+        '429':
+          description: The Files API rate limit for your user has been exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse-2'
   /agents/sessions/{session_id}/subagents:
     get:
       operationId: listAgentSessionSubagents
@@ -32096,6 +32102,12 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse-2'
         '503':
           description: The service is temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse-2'
+        '429':
+          description: The Files API rate limit for your user has been exceeded.
           content:
             application/json:
               schema:
