@@ -5,6 +5,7 @@ from urllib.parse import unquote
 import pytest
 
 from openai._qs import Querystring, stringify
+from openai._types import ArrayFormat
 
 
 def test_empty() -> None:
@@ -52,6 +53,17 @@ def test_array_comma(method: str) -> None:
     assert unquote(serialise({"in": ["foo", "bar"]})) == "in=foo,bar"
     assert unquote(serialise({"a": {"b": [True, False]}})) == "a[b]=true,false"
     assert unquote(serialise({"a": {"b": [True, False, None, True]}})) == "a[b]=true,false,true"
+    assert unquote(serialise({"filter": []})) == ""
+    assert unquote(serialise({"filter": [None]})) == ""
+    assert unquote(serialise({"filter": [""]})) == "filter="
+    assert unquote(serialise({"filter": [None, "active"]})) == "filter=active"
+
+
+@pytest.mark.parametrize("array_format", ["comma", "repeat", "indices", "brackets"])
+def test_empty_array_omits_parameter(array_format: ArrayFormat) -> None:
+    # Non-empty output remains format-specific; only the empty outcome is shared.
+    assert stringify({"filter": []}, array_format=array_format) == ""
+    assert stringify({"filter": [None]}, array_format=array_format) == ""
 
 
 def test_array_repeat() -> None:
