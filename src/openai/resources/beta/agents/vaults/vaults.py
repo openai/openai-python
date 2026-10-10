@@ -23,7 +23,7 @@ from ....._resource import SyncAPIResource, AsyncAPIResource
 from ....._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from .....pagination import SyncCursorPage, AsyncCursorPage
 from ....._base_client import AsyncPaginator, make_request_options
-from .....types.beta.agents import vault_list_params, vault_create_params
+from .....types.beta.agents import vault_list_params, vault_create_params, vault_update_params
 from .....types.beta.agents.vault import Vault
 from .....types.beta.agents.vault_deleted import VaultDeleted
 from .....types.beta.agents.vault_status_filter_param import VaultStatusFilterParam
@@ -147,11 +147,68 @@ class Vaults(SyncAPIResource):
             cast_to=Vault,
         )
 
+    def update(
+        self,
+        vault_id: str,
+        *,
+        metadata: Dict[str, str] | Omit = omit,
+        name: Optional[str] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Vault:
+        """Updates the name or metadata of an active vault.
+
+        Omitted fields remain
+        unchanged. See
+        [vaults](https://developers.openai.com/api/docs/guides/agents-api/tools/vaults).
+
+        Args:
+          metadata: Replaces all metadata. Omit to leave unchanged, or pass {} to clear it. Up to 16
+              string key-value pairs, with keys up to 64 and values up to 512 characters.
+
+          name: A replacement name. Omit to leave unchanged, or pass null to clear it. The name
+              is trimmed before storage. It must contain 1 to 256 UTF-8 bytes after trimming.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not vault_id:
+            raise ValueError(f"Expected a non-empty value for `vault_id` but received {vault_id!r}")
+        extra_headers = {"OpenAI-Beta": "agents=v1", **(extra_headers or {})}
+        return self._post(
+            path_template("/vaults/{vault_id}", vault_id=vault_id),
+            body=maybe_transform(
+                {
+                    "metadata": metadata,
+                    "name": name,
+                },
+                vault_update_params.VaultUpdateParams,
+            ),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+            ),
+            cast_to=Vault,
+        )
+
     def list(
         self,
         *,
         after: str | Omit = omit,
         limit: Optional[int] | Omit = omit,
+        metadata: Dict[str, str] | Omit = omit,
         order: Literal["asc", "desc"] | Omit = omit,
         status: VaultStatusFilterParam | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -171,6 +228,11 @@ class Vaults(SyncAPIResource):
 
           limit: The maximum number of resources to return. Defaults to 20. Values are clamped
               between 1 and 100.
+
+          metadata: Exact string matches supplied as `metadata[key]=value`. All supplied pairs must
+              match. Up to 16 pairs, with keys from 1 to 64 characters and values up to 512
+              characters. Filtering is eventually consistent; metadata changes may take time
+              to appear.
 
           order: Sort order by the `created_at` timestamp. Use `asc` for ascending order or
               `desc` for descending order. Defaults to `desc`.
@@ -202,6 +264,7 @@ class Vaults(SyncAPIResource):
                     {
                         "after": after,
                         "limit": limit,
+                        "metadata": metadata,
                         "order": order,
                         "status": status,
                     },
@@ -369,11 +432,68 @@ class AsyncVaults(AsyncAPIResource):
             cast_to=Vault,
         )
 
+    async def update(
+        self,
+        vault_id: str,
+        *,
+        metadata: Dict[str, str] | Omit = omit,
+        name: Optional[str] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Vault:
+        """Updates the name or metadata of an active vault.
+
+        Omitted fields remain
+        unchanged. See
+        [vaults](https://developers.openai.com/api/docs/guides/agents-api/tools/vaults).
+
+        Args:
+          metadata: Replaces all metadata. Omit to leave unchanged, or pass {} to clear it. Up to 16
+              string key-value pairs, with keys up to 64 and values up to 512 characters.
+
+          name: A replacement name. Omit to leave unchanged, or pass null to clear it. The name
+              is trimmed before storage. It must contain 1 to 256 UTF-8 bytes after trimming.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not vault_id:
+            raise ValueError(f"Expected a non-empty value for `vault_id` but received {vault_id!r}")
+        extra_headers = {"OpenAI-Beta": "agents=v1", **(extra_headers or {})}
+        return await self._post(
+            path_template("/vaults/{vault_id}", vault_id=vault_id),
+            body=await async_maybe_transform(
+                {
+                    "metadata": metadata,
+                    "name": name,
+                },
+                vault_update_params.VaultUpdateParams,
+            ),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+            ),
+            cast_to=Vault,
+        )
+
     def list(
         self,
         *,
         after: str | Omit = omit,
         limit: Optional[int] | Omit = omit,
+        metadata: Dict[str, str] | Omit = omit,
         order: Literal["asc", "desc"] | Omit = omit,
         status: VaultStatusFilterParam | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -393,6 +513,11 @@ class AsyncVaults(AsyncAPIResource):
 
           limit: The maximum number of resources to return. Defaults to 20. Values are clamped
               between 1 and 100.
+
+          metadata: Exact string matches supplied as `metadata[key]=value`. All supplied pairs must
+              match. Up to 16 pairs, with keys from 1 to 64 characters and values up to 512
+              characters. Filtering is eventually consistent; metadata changes may take time
+              to appear.
 
           order: Sort order by the `created_at` timestamp. Use `asc` for ascending order or
               `desc` for descending order. Defaults to `desc`.
@@ -424,6 +549,7 @@ class AsyncVaults(AsyncAPIResource):
                     {
                         "after": after,
                         "limit": limit,
+                        "metadata": metadata,
                         "order": order,
                         "status": status,
                     },
@@ -485,6 +611,9 @@ class VaultsWithRawResponse:
         self.retrieve = _legacy_response.to_raw_response_wrapper(
             vaults.retrieve,
         )
+        self.update = _legacy_response.to_raw_response_wrapper(
+            vaults.update,
+        )
         self.list = _legacy_response.to_raw_response_wrapper(
             vaults.list,
         )
@@ -506,6 +635,9 @@ class AsyncVaultsWithRawResponse:
         )
         self.retrieve = _legacy_response.async_to_raw_response_wrapper(
             vaults.retrieve,
+        )
+        self.update = _legacy_response.async_to_raw_response_wrapper(
+            vaults.update,
         )
         self.list = _legacy_response.async_to_raw_response_wrapper(
             vaults.list,
@@ -529,6 +661,9 @@ class VaultsWithStreamingResponse:
         self.retrieve = to_streamed_response_wrapper(
             vaults.retrieve,
         )
+        self.update = to_streamed_response_wrapper(
+            vaults.update,
+        )
         self.list = to_streamed_response_wrapper(
             vaults.list,
         )
@@ -550,6 +685,9 @@ class AsyncVaultsWithStreamingResponse:
         )
         self.retrieve = async_to_streamed_response_wrapper(
             vaults.retrieve,
+        )
+        self.update = async_to_streamed_response_wrapper(
+            vaults.update,
         )
         self.list = async_to_streamed_response_wrapper(
             vaults.list,

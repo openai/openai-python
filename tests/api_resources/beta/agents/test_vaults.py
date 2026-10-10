@@ -93,6 +93,53 @@ class TestVaults:
             )
 
     @parametrize
+    def test_method_update(self, client: OpenAI) -> None:
+        vault = client.beta.agents.vaults.update(
+            vault_id="vault_id",
+        )
+        assert_matches_type(Vault, vault, path=["response"])
+
+    @parametrize
+    def test_method_update_with_all_params(self, client: OpenAI) -> None:
+        vault = client.beta.agents.vaults.update(
+            vault_id="vault_id",
+            metadata={"foo": "string"},
+            name="Research vault",
+        )
+        assert_matches_type(Vault, vault, path=["response"])
+
+    @parametrize
+    def test_raw_response_update(self, client: OpenAI) -> None:
+        response = client.beta.agents.vaults.with_raw_response.update(
+            vault_id="vault_id",
+        )
+
+        assert response.is_closed is True
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        vault = response.parse()
+        assert_matches_type(Vault, vault, path=["response"])
+
+    @parametrize
+    def test_streaming_response_update(self, client: OpenAI) -> None:
+        with client.beta.agents.vaults.with_streaming_response.update(
+            vault_id="vault_id",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            vault = response.parse()
+            assert_matches_type(Vault, vault, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    def test_path_params_update(self, client: OpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `vault_id` but received ''"):
+            client.beta.agents.vaults.with_raw_response.update(
+                vault_id="",
+            )
+
+    @parametrize
     def test_method_list(self, client: OpenAI) -> None:
         vault = client.beta.agents.vaults.list()
         assert_matches_type(SyncCursorPage[Vault], vault, path=["response"])
@@ -102,6 +149,7 @@ class TestVaults:
         vault = client.beta.agents.vaults.list(
             after="after",
             limit=0,
+            metadata={"foo": "string"},
             order="asc",
             status="active",
         )
@@ -243,6 +291,53 @@ class TestAsyncVaults:
             )
 
     @parametrize
+    async def test_method_update(self, async_client: AsyncOpenAI) -> None:
+        vault = await async_client.beta.agents.vaults.update(
+            vault_id="vault_id",
+        )
+        assert_matches_type(Vault, vault, path=["response"])
+
+    @parametrize
+    async def test_method_update_with_all_params(self, async_client: AsyncOpenAI) -> None:
+        vault = await async_client.beta.agents.vaults.update(
+            vault_id="vault_id",
+            metadata={"foo": "string"},
+            name="Research vault",
+        )
+        assert_matches_type(Vault, vault, path=["response"])
+
+    @parametrize
+    async def test_raw_response_update(self, async_client: AsyncOpenAI) -> None:
+        response = await async_client.beta.agents.vaults.with_raw_response.update(
+            vault_id="vault_id",
+        )
+
+        assert response.is_closed is True
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        vault = response.parse()
+        assert_matches_type(Vault, vault, path=["response"])
+
+    @parametrize
+    async def test_streaming_response_update(self, async_client: AsyncOpenAI) -> None:
+        async with async_client.beta.agents.vaults.with_streaming_response.update(
+            vault_id="vault_id",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            vault = await response.parse()
+            assert_matches_type(Vault, vault, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    async def test_path_params_update(self, async_client: AsyncOpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `vault_id` but received ''"):
+            await async_client.beta.agents.vaults.with_raw_response.update(
+                vault_id="",
+            )
+
+    @parametrize
     async def test_method_list(self, async_client: AsyncOpenAI) -> None:
         vault = await async_client.beta.agents.vaults.list()
         assert_matches_type(AsyncCursorPage[Vault], vault, path=["response"])
@@ -252,6 +347,7 @@ class TestAsyncVaults:
         vault = await async_client.beta.agents.vaults.list(
             after="after",
             limit=0,
+            metadata={"foo": "string"},
             order="asc",
             status="active",
         )
