@@ -65,7 +65,7 @@ class LocalAudioPlayer:
             if input.dtype == np.int16 and self.dtype == np.float32:
                 audio_content = (input.astype(np.float32) / 32767.0).reshape(-1, self.channels)
             elif input.dtype == np.float32:
-                audio_content = cast("npt.NDArray[np.float32]", input)
+                audio_content = cast("npt.NDArray[np.float32]", input).reshape(-1, self.channels)
             else:
                 raise ValueError(f"Unsupported dtype: {input.dtype}")
         else:
@@ -136,6 +136,8 @@ class LocalAudioPlayer:
 
                         if current_buffer.dtype == np.int16 and self.dtype == np.float32:
                             current_buffer = (current_buffer.astype(np.float32) / 32767.0).reshape(-1, self.channels)
+                        elif current_buffer.dtype == np.float32:
+                            current_buffer = current_buffer.reshape(-1, self.channels)
 
                     except queue.Empty:
                         outdata[frames_written:] = 0
