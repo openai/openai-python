@@ -39,6 +39,7 @@ __all__ = [
     "ExternalStorageRegistered",
     "ExternalStorageRegisteredData",
     "ExternalStorageRegisteredDataProvider",
+    "ExternalStorageRegisteredDataProviderOci",
     "ExternalStorageRemoved",
     "GroupCreated",
     "GroupCreatedData",
@@ -313,8 +314,23 @@ class ExternalKeyRemoved(BaseModel):
     """The ID of the external key configuration."""
 
 
+class ExternalStorageRegisteredDataProviderOci(BaseModel):
+    bucket: str
+
+    region: str
+
+    tenancy_ocid: str
+
+    type: Literal["oci"]
+
+
 ExternalStorageRegisteredDataProvider: TypeAlias = Annotated[
-    Union[AwsExternalStorageProvider, AzureExternalStorageProvider, GcpExternalStorageProvider],
+    Union[
+        AwsExternalStorageProvider,
+        AzureExternalStorageProvider,
+        GcpExternalStorageProvider,
+        ExternalStorageRegisteredDataProviderOci,
+    ],
     PropertyInfo(discriminator="type"),
 ]
 
