@@ -63,6 +63,7 @@ class QuestionQuestionParamChoice(TypedDict, total=False):
     """Choose from the supplied options based on the input."""
 
     choices: Required[Iterable[QuestionQuestionParamChoiceChoice]]
+    """Provide between 2 and 255 choices. Each choice must be unique."""
 
     instructions: Required[str]
 

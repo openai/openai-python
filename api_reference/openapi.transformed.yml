@@ -80972,6 +80972,7 @@ components:
           minLength: 0
           maxLength: 1048576
         choices:
+          description: Provide between 2 and 255 choices. Each choice must be unique.
           type: array
           items:
             $ref: '#/components/schemas/ChoiceOptionParam'
