@@ -58,6 +58,7 @@ class TestSessions:
             agent_id="agent_id",
             input="x",
             metadata={"foo": "string"},
+            spend_control={"limit": 1},
             stream=False,
             vault_ids=["string"],
         )
@@ -129,6 +130,7 @@ class TestSessions:
             agent_id="agent_id",
             input="x",
             metadata={"foo": "string"},
+            spend_control={"limit": 1},
             vault_ids=["string"],
         )
         session_stream.response.close()
@@ -213,6 +215,7 @@ class TestSessions:
                 "service_tier": "auto",
             },
             metadata={"foo": "string"},
+            spend_control={"limit": 1},
         )
         assert_matches_type(AgentSession, session, path=["response"])
 
@@ -366,6 +369,7 @@ class TestAsyncSessions:
             agent_id="agent_id",
             input="x",
             metadata={"foo": "string"},
+            spend_control={"limit": 1},
             stream=False,
             vault_ids=["string"],
         )
@@ -437,6 +441,7 @@ class TestAsyncSessions:
             agent_id="agent_id",
             input="x",
             metadata={"foo": "string"},
+            spend_control={"limit": 1},
             vault_ids=["string"],
         )
         await session_stream.response.aclose()
@@ -521,6 +526,7 @@ class TestAsyncSessions:
                 "service_tier": "auto",
             },
             metadata={"foo": "string"},
+            spend_control={"limit": 1},
         )
         assert_matches_type(AgentSession, session, path=["response"])
 

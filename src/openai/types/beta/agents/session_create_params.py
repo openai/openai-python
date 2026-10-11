@@ -13,7 +13,13 @@ from ..agent_reasoning_param import AgentReasoningParam
 from ..multi_agent_config_param import MultiAgentConfigParam
 from ..agent_session_input_message_param import AgentSessionInputMessageParam
 
-__all__ = ["SessionCreateParamsBase", "Agent", "SessionCreateParamsNonStreaming", "SessionCreateParamsStreaming"]
+__all__ = [
+    "SessionCreateParamsBase",
+    "Agent",
+    "SpendControl",
+    "SessionCreateParamsNonStreaming",
+    "SessionCreateParamsStreaming",
+]
 
 
 class SessionCreateParamsBase(TypedDict, total=False):
@@ -46,6 +52,12 @@ class SessionCreateParamsBase(TypedDict, total=False):
     """
     Up to 16 string key-value pairs, with keys up to 64 and values up to 512
     characters. Omission or null defaults to an empty map.
+    """
+
+    spend_control: Optional[SpendControl]
+    """Optional spending limit in USD cents.
+
+    Omission or null creates an unlimited session.
     """
 
     vault_ids: Optional[SequenceNotStr[str]]
@@ -92,6 +104,16 @@ class Agent(TypedDict, total=False):
 
     tools: Optional[Iterable[AgentToolParam]]
     """Tools available to the agent. Omit to inherit, or pass null to clear them."""
+
+
+class SpendControl(TypedDict, total=False):
+    """Optional spending limit in USD cents.
+
+    Omission or null creates an unlimited session.
+    """
+
+    limit: Required[Optional[int]]
+    """Positive USD cents, or null to remove the limit."""
 
 
 class SessionCreateParamsNonStreaming(SessionCreateParamsBase, total=False):
