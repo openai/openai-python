@@ -207,7 +207,7 @@ class Vaults(SyncAPIResource):
         self,
         *,
         after: str | Omit = omit,
-        limit: Optional[int] | Omit = omit,
+        limit: int | Omit = omit,
         metadata: Dict[str, str] | Omit = omit,
         order: Literal["asc", "desc"] | Omit = omit,
         status: VaultStatusFilterParam | Omit = omit,
@@ -226,16 +226,14 @@ class Vaults(SyncAPIResource):
         Args:
           after: Return resources after this resource ID in the selected order.
 
-          limit: The maximum number of resources to return. Defaults to 20. Values are clamped
-              between 1 and 100.
+          limit: The maximum number of resources to return, between 1 and 100. Defaults to 20.
 
           metadata: Exact string matches supplied as `metadata[key]=value`. All supplied pairs must
               match. Up to 16 pairs, with keys from 1 to 64 characters and values up to 512
               characters. Filtering is eventually consistent; metadata changes may take time
               to appear.
 
-          order: Sort order by the `created_at` timestamp. Use `asc` for ascending order or
-              `desc` for descending order. Defaults to `desc`.
+          order: The order in which resources are returned. Defaults to `desc`.
 
               - `asc` - Returns resources in ascending order.
               - `desc` - Returns resources in descending order.
@@ -492,7 +490,7 @@ class AsyncVaults(AsyncAPIResource):
         self,
         *,
         after: str | Omit = omit,
-        limit: Optional[int] | Omit = omit,
+        limit: int | Omit = omit,
         metadata: Dict[str, str] | Omit = omit,
         order: Literal["asc", "desc"] | Omit = omit,
         status: VaultStatusFilterParam | Omit = omit,
@@ -511,16 +509,14 @@ class AsyncVaults(AsyncAPIResource):
         Args:
           after: Return resources after this resource ID in the selected order.
 
-          limit: The maximum number of resources to return. Defaults to 20. Values are clamped
-              between 1 and 100.
+          limit: The maximum number of resources to return, between 1 and 100. Defaults to 20.
 
           metadata: Exact string matches supplied as `metadata[key]=value`. All supplied pairs must
               match. Up to 16 pairs, with keys from 1 to 64 characters and values up to 512
               characters. Filtering is eventually consistent; metadata changes may take time
               to appear.
 
-          order: Sort order by the `created_at` timestamp. Use `asc` for ascending order or
-              `desc` for descending order. Defaults to `desc`.
+          order: The order in which resources are returned. Defaults to `desc`.
 
               - `asc` - Returns resources in ascending order.
               - `desc` - Returns resources in descending order.
