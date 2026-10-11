@@ -24,6 +24,7 @@ __all__ = [
     "RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequestComputerUseApprovalRequestKindResourceBrowserOriginAccess",
     "RequiredActionSessionRequiredActionResourceFunctionCall",
     "RequiredActionSessionRequiredActionResourceEnvironmentConnection",
+    "SpendControl",
 ]
 
 
@@ -198,6 +199,21 @@ RequiredAction: TypeAlias = Annotated[
 ]
 
 
+class SpendControl(BaseModel):
+    """Configured spending limit and best-effort consumption, in USD cents.
+
+    Unlimited sessions omit this object.
+    """
+
+    consumed: Optional[int] = None
+    """
+    Best-effort recorded spend floored to whole USD cents, or null when unavailable.
+    """
+
+    limit: int
+    """The configured positive limit in USD cents."""
+
+
 class AgentSession(BaseModel):
     """A Managed Agents session."""
 
@@ -246,3 +262,9 @@ class AgentSession(BaseModel):
 
     vault_ids: List[str]
     """The IDs of vaults made available to the session."""
+
+    spend_control: Optional[SpendControl] = None
+    """Configured spending limit and best-effort consumption, in USD cents.
+
+    Unlimited sessions omit this object.
+    """

@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from typing import Dict, Optional
-from typing_extensions import Literal, TypedDict
+from typing_extensions import Literal, Required, TypedDict
 
-__all__ = ["SessionUpdateParams", "Agent", "AgentReasoning"]
+__all__ = ["SessionUpdateParams", "Agent", "AgentReasoning", "SpendControl"]
 
 
 class SessionUpdateParams(TypedDict, total=False):
@@ -17,6 +17,12 @@ class SessionUpdateParams(TypedDict, total=False):
 
     Omit to leave unchanged, or pass null or {} to clear it. Up to 16 string
     key-value pairs, with keys up to 64 and values up to 512 characters.
+    """
+
+    spend_control: Optional[SpendControl]
+    """
+    Omit to retain the limit; null or a null limit removes it without resetting
+    spend.
     """
 
 
@@ -45,3 +51,12 @@ class Agent(TypedDict, total=False):
     - `priority` - Uses the priority service tier.
     - `fast` - Uses the fast service tier.
     """
+
+
+class SpendControl(TypedDict, total=False):
+    """
+    Omit to retain the limit; null or a null limit removes it without resetting spend.
+    """
+
+    limit: Required[Optional[int]]
+    """Positive USD cents, or null to remove the limit."""
