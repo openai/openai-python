@@ -3273,7 +3273,7 @@ class AsyncResponsesConnection:
         self._extra_headers = extra_headers
         self._intentionally_closed = False
         self._is_reconnecting = False
-        self._send_queue = send_queue or SendQueue()
+        self._send_queue = send_queue if send_queue is not None else SendQueue()
         self._event_handler_registry = EventHandlerRegistry(use_lock=False)
 
         self.response = AsyncResponsesResponseResource(self)
@@ -3327,7 +3327,7 @@ class AsyncResponsesConnection:
         then you can call `.parse_event(data)`.
         """
         message = await self._connection.recv(decode=False)
-        log.debug(f"Received WebSocket message: %s", message)
+        log.debug("Received WebSocket message: %i bytes", len(message))
         if self._reconnect_attempt:
             # Account for raw application progress without changing frame delivery.
             try:
@@ -3348,11 +3348,7 @@ class AsyncResponsesConnection:
         if self._is_reconnecting:
             self._send_queue.enqueue(data)
             return
-        try:
-            await self._connection.send(data)
-        except Exception:
-            self._send_queue.enqueue(data)
-            raise
+        await self._connection.send(data)
 
     async def send_raw(self, data: bytes | str) -> None:
         if self._is_reconnecting:
@@ -3460,9 +3456,9 @@ class AsyncResponsesConnection:
             await self._connection.send(data)
 
         try:
-            await self._send_queue.flush_async(_send)
+            await self._send_queue.flush_async(_send, requeue_failed=False)
         except Exception:
-            log.warning("Failed to flush send queue after reconnect", exc_info=True)
+            log.warning("Failed to flush send queue after reconnect")
 
     def on(
         self, event_type: str, handler: Callable[..., Any] | None = None
@@ -3680,15 +3676,23 @@ class AsyncResponsesConnectionManager:
         except ImportError as exc:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
-        url = self._prepare_url().copy_with(
-            params={
-                **self.__client.base_url.params,
-                **extra_query,
-            },
+        url = self._prepare_url()
+        url = url.copy_with(
+            params=httpx2.QueryParams(self.__client.qs.stringify(cast(Any, self.__client.default_query)))
+            .merge(url.params)
+            .merge(
+                cast(
+                    Any,
+                    {
+                        **extra_query,
+                    },
+                )
+            ),
         )
-        log.debug("Connecting to %s", url)
+        url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
+        log.debug("Connecting to WebSocket API")
         if self.__websocket_connection_options:
-            log.debug("Connection options: %s", self.__websocket_connection_options)
+            log.debug("Custom WebSocket connection options provided")
 
         return await connect(
             str(url),
@@ -3710,7 +3714,8 @@ class AsyncResponsesConnectionManager:
             ws_scheme = "ws" if scheme == "http" else "wss"
             base_url = self.__client._base_url.copy_with(scheme=ws_scheme)
 
-        merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/responses"
+        path, separator, query = base_url.raw_path.partition(b"?")
+        merge_raw_path = path.rstrip(b"/") + b"/responses" + separator + query
         return base_url.copy_with(raw_path=merge_raw_path)
 
     async def __aexit__(
@@ -3751,7 +3756,7 @@ class ResponsesConnection:
         self._extra_headers = extra_headers
         self._intentionally_closed = False
         self._is_reconnecting = False
-        self._send_queue = send_queue or SendQueue()
+        self._send_queue = send_queue if send_queue is not None else SendQueue()
         self._event_handler_registry = EventHandlerRegistry(use_lock=True)
 
         self.response = ResponsesResponseResource(self)
@@ -3805,7 +3810,7 @@ class ResponsesConnection:
         then you can call `.parse_event(data)`.
         """
         message = self._connection.recv(decode=False)
-        log.debug(f"Received WebSocket message: %s", message)
+        log.debug("Received WebSocket message: %i bytes", len(message))
         if self._reconnect_attempt:
             # Account for raw application progress without changing frame delivery.
             try:
@@ -3826,11 +3831,7 @@ class ResponsesConnection:
         if self._is_reconnecting:
             self._send_queue.enqueue(data)
             return
-        try:
-            self._connection.send(data)
-        except Exception:
-            self._send_queue.enqueue(data)
-            raise
+        self._connection.send(data)
 
     def send_raw(self, data: bytes | str) -> None:
         if self._is_reconnecting:
@@ -3932,9 +3933,9 @@ class ResponsesConnection:
     def _flush_send_queue(self) -> None:
         """Send all queued messages over the current connection."""
         try:
-            self._send_queue.flush_sync(lambda data: self._connection.send(data))
+            self._send_queue.flush_sync(lambda data: self._connection.send(data), requeue_failed=False)
         except Exception:
-            log.warning("Failed to flush send queue after reconnect", exc_info=True)
+            log.warning("Failed to flush send queue after reconnect")
 
     def on(
         self, event_type: str, handler: Callable[..., Any] | None = None
@@ -4146,15 +4147,23 @@ class ResponsesConnectionManager:
         except ImportError as exc:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
-        url = self._prepare_url().copy_with(
-            params={
-                **self.__client.base_url.params,
-                **extra_query,
-            },
+        url = self._prepare_url()
+        url = url.copy_with(
+            params=httpx2.QueryParams(self.__client.qs.stringify(cast(Any, self.__client.default_query)))
+            .merge(url.params)
+            .merge(
+                cast(
+                    Any,
+                    {
+                        **extra_query,
+                    },
+                )
+            ),
         )
-        log.debug("Connecting to %s", url)
+        url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
+        log.debug("Connecting to WebSocket API")
         if self.__websocket_connection_options:
-            log.debug("Connection options: %s", self.__websocket_connection_options)
+            log.debug("Custom WebSocket connection options provided")
 
         return connect(
             str(url),
@@ -4176,7 +4185,8 @@ class ResponsesConnectionManager:
             ws_scheme = "ws" if scheme == "http" else "wss"
             base_url = self.__client._base_url.copy_with(scheme=ws_scheme)
 
-        merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/responses"
+        path, separator, query = base_url.raw_path.partition(b"?")
+        merge_raw_path = path.rstrip(b"/") + b"/responses" + separator + query
         return base_url.copy_with(raw_path=merge_raw_path)
 
     def __exit__(
