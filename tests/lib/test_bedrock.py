@@ -656,6 +656,37 @@ def test_preserves_aws_credentials_across_with_options() -> None:
     assert copied_client._bedrock_state.aws_access_key_id == "access key"
 
 
+def test_with_options_preserves_falsy_http_client() -> None:
+    class FalsyHttpClient(httpx2.Client):
+        def __bool__(self) -> bool:
+            return False
+
+    with (
+        make_sync_client(base_url="https://example.com/openai/v1", api_key="token") as client,
+        FalsyHttpClient() as http_client,
+    ):
+        copied_client = client.with_options(http_client=http_client)
+
+        assert copied_client._client is http_client
+        copied_client.close()
+
+
+@pytest.mark.asyncio
+async def test_async_with_options_preserves_falsy_http_client() -> None:
+    class FalsyHttpClient(httpx2.AsyncClient):
+        def __bool__(self) -> bool:
+            return False
+
+    async with (
+        make_async_client(base_url="https://example.com/openai/v1", api_key="token") as client,
+        FalsyHttpClient() as http_client,
+    ):
+        copied_client = client.with_options(http_client=http_client)
+
+        assert copied_client._client is http_client
+        await copied_client.close()
+
+
 @pytest.mark.parametrize("client_cls", [BedrockOpenAI, AsyncBedrockOpenAI])
 def test_preserves_default_chain_mode_across_with_options(client_cls: type[Client]) -> None:
     with update_env(AWS_BEARER_TOKEN_BEDROCK=Omit(), AWS_REGION="us-east-1"):
