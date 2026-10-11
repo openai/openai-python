@@ -305,7 +305,7 @@ class Agents(SyncAPIResource):
         self,
         *,
         after: str | Omit = omit,
-        limit: Optional[int] | Omit = omit,
+        limit: int | Omit = omit,
         order: Literal["asc", "desc"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -322,7 +322,7 @@ class Agents(SyncAPIResource):
         Args:
           after: Return resources after this resource ID in the selected order.
 
-          limit: The maximum number of resources to return.
+          limit: The maximum number of resources to return, between 1 and 100. Defaults to 20.
 
           order: The order in which resources are returned. Defaults to `desc`.
 
@@ -655,7 +655,7 @@ class AsyncAgents(AsyncAPIResource):
         self,
         *,
         after: str | Omit = omit,
-        limit: Optional[int] | Omit = omit,
+        limit: int | Omit = omit,
         order: Literal["asc", "desc"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -672,7 +672,7 @@ class AsyncAgents(AsyncAPIResource):
         Args:
           after: Return resources after this resource ID in the selected order.
 
-          limit: The maximum number of resources to return.
+          limit: The maximum number of resources to return, between 1 and 100. Defaults to 20.
 
           order: The order in which resources are returned. Defaults to `desc`.
 

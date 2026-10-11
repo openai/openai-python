@@ -480,7 +480,7 @@ class Sessions(SyncAPIResource):
         *,
         after: str | Omit = omit,
         agent_id: str | Omit = omit,
-        limit: Optional[int] | Omit = omit,
+        limit: int | Omit = omit,
         order: Literal["asc", "desc"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -500,10 +500,9 @@ class Sessions(SyncAPIResource):
           agent_id: Only return sessions whose root agent has this ID. Omit to return sessions for
               all agents.
 
-          limit: The maximum number of resources to return.
+          limit: The maximum number of resources to return, between 1 and 100. Defaults to 20.
 
-          order: Sort order by the `created_at` timestamp. Use `asc` for ascending order or
-              `desc` for descending order. Defaults to `desc`.
+          order: The order in which resources are returned. Defaults to `desc`.
 
               - `asc` - Returns resources in ascending order.
               - `desc` - Returns resources in descending order.
@@ -986,7 +985,7 @@ class AsyncSessions(AsyncAPIResource):
         *,
         after: str | Omit = omit,
         agent_id: str | Omit = omit,
-        limit: Optional[int] | Omit = omit,
+        limit: int | Omit = omit,
         order: Literal["asc", "desc"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1006,10 +1005,9 @@ class AsyncSessions(AsyncAPIResource):
           agent_id: Only return sessions whose root agent has this ID. Omit to return sessions for
               all agents.
 
-          limit: The maximum number of resources to return.
+          limit: The maximum number of resources to return, between 1 and 100. Defaults to 20.
 
-          order: Sort order by the `created_at` timestamp. Use `asc` for ascending order or
-              `desc` for descending order. Defaults to `desc`.
+          order: The order in which resources are returned. Defaults to `desc`.
 
               - `asc` - Returns resources in ascending order.
               - `desc` - Returns resources in descending order.
