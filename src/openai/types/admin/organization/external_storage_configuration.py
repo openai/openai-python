@@ -7,23 +7,15 @@ from ...._utils import PropertyInfo
 from ...._models import BaseModel
 from .aws_external_storage_provider import AwsExternalStorageProvider
 from .gcp_external_storage_provider import GcpExternalStorageProvider
+from .oci_external_storage_provider import OciExternalStorageProvider
 from .azure_external_storage_provider import AzureExternalStorageProvider
 
-__all__ = ["ExternalStorageConfiguration", "Provider", "ProviderOci"]
-
-
-class ProviderOci(BaseModel):
-    bucket: str
-
-    region: str
-
-    tenancy_ocid: str
-
-    type: Literal["oci"]
-
+__all__ = ["ExternalStorageConfiguration", "Provider"]
 
 Provider: TypeAlias = Annotated[
-    Union[AwsExternalStorageProvider, AzureExternalStorageProvider, GcpExternalStorageProvider, ProviderOci],
+    Union[
+        AwsExternalStorageProvider, AzureExternalStorageProvider, GcpExternalStorageProvider, OciExternalStorageProvider
+    ],
     PropertyInfo(discriminator="type"),
 ]
 

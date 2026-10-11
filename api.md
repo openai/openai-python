@@ -1451,6 +1451,7 @@ from openai.types.admin.organization import (
     ExternalStorageConfiguration,
     ExternalStorageDeleted,
     GcpExternalStorageProvider,
+    OciExternalStorageProvider,
 )
 ```
 
