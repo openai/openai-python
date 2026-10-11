@@ -11,10 +11,10 @@ __all__ = ["DecisionInputMessageParam"]
 
 
 class DecisionInputMessageParam(TypedDict, total=False):
-    """A user message containing text or inline images."""
+    """A user message containing text or images."""
 
     content: Required[Union[str, Iterable[DecisionInputPartUnionParam]]]
-    """Text evidence or an ordered list of text and inline image parts."""
+    """Text evidence or an ordered list of text and image parts."""
 
     role: Required[Literal["user"]]
 

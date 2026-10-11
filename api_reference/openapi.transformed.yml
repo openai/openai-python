@@ -30102,7 +30102,7 @@ paths:
       description: |-
         Use this endpoint to ask classification or scoring questions about the same input. You’ll get the answers back in the order you asked the questions.
 
-        For text, you can pass a string. You can also send user messages containing `input_text` and `input_image` parts, with up to 128 images per request. Images must be data URLs; external URLs and file IDs aren’t accepted. Other message roles, function calls, files, audio, and item references aren’t supported.
+        For text, you can pass a string. You can also send user messages containing `input_text` and `input_image` parts, with up to 128 images per request. Images can be base64 data URLs or publicly accessible HTTP(S) URLs. File IDs aren’t accepted. Other message roles, function calls, files, audio, and item references aren’t supported.
 
         Sometimes a question returns a refusal instead of an answer. The result has type `refusal` and includes the question’s name, or `null` if you didn’t give it one.
       tags:
@@ -78416,6 +78416,11 @@ components:
           - type: string
             description: A customer-safe description derived from error_type, or null for zero data retention requests.
           - type: 'null'
+        detailed_explanation:
+          anyOf:
+          - type: string
+            description: A generated explanation, temporarily available for eligible zero data retention alerts. Omitted when unavailable.
+          - type: 'null'
       type: object
       required:
       - id
@@ -80903,8 +80908,8 @@ components:
           type: string
           minLength: 0
           maxLength: 1073741824
-          pattern: '^data:'
-          description: A base64-encoded image in a data URL.
+          pattern: ^(data:|https?://)
+          description: A base64-encoded image in a data URL or a publicly accessible HTTP(S) image URL.
         detail:
           anyOf:
           - $ref: '#/components/schemas/ImageDetailParam'
@@ -80921,7 +80926,7 @@ components:
       - image_url
       - type
       additionalProperties: false
-      description: An inline image. External URLs and file IDs are not supported.
+      description: An image provided as a base64 data URL or a publicly accessible HTTP(S) URL. File IDs are not supported.
     DecisionInputContentParts:
       type: array
       items:
@@ -80939,7 +80944,7 @@ components:
       minItems: 0
       maxItems: 16384
     DecisionInputContent:
-      description: Text evidence or an ordered list of text and inline image parts.
+      description: Text evidence or an ordered list of text and image parts.
       anyOf:
       - type: string
         minLength: 0
@@ -80967,9 +80972,9 @@ components:
       - role
       - content
       additionalProperties: false
-      description: A user message containing text or inline images.
+      description: A user message containing text or images.
     DecisionInput:
-      description: The text or images to evaluate for every question. Provide a text string or user messages containing text and inline images. Images must be inline data URLs; at most 128 images are allowed across all messages in one request. External URLs, files, audio, tools, and item references are not supported.
+      description: The text or images to evaluate for every question. Provide a text string or user messages containing text and images. Images can be base64 data URLs or publicly accessible HTTP(S) URLs; at most 128 images are allowed across all messages in one request. Files, audio, tools, and item references are not supported.
       anyOf:
       - type: string
         minLength: 0
