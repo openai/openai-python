@@ -9,7 +9,12 @@ import pytest
 from openai import OpenAI, AsyncOpenAI
 from tests.respx2 import MockRouter
 from tests.respx2.models import Call
-from openai.types.admin.organization import GcpExternalStorageProvider, ExternalStorageConfiguration
+from openai.types.admin.organization import (
+    AuditLogListResponse,
+    GcpExternalStorageProvider,
+    OciExternalStorageProvider,
+    ExternalStorageConfiguration,
+)
 from openai.types.admin.organization.external_storage_create_params import Provider
 
 BASE_URL = "https://example.com/v1"
@@ -65,6 +70,21 @@ PROVIDERS: list[tuple[Provider, dict[str, object]]] = [
             "future_provider_field": {"retained": True},
         },
     ),
+    (
+        {
+            "type": "oci",
+            "tenancy_ocid": "ocid1.tenancy.synthetic",
+            "region": "us-ashburn-1",
+            "bucket": "test-oci-bucket",
+        },
+        {
+            "type": "oci",
+            "tenancy_ocid": "ocid1.tenancy.synthetic",
+            "region": "us-ashburn-1",
+            "bucket": "test-oci-bucket",
+            "future_provider_field": {"retained": True},
+        },
+    ),
 ]
 
 
@@ -82,7 +102,7 @@ def configuration(provider: dict[str, object], storage_id: str = "extstorage_tes
 
 
 @pytest.mark.respx2(base_url=BASE_URL)
-@pytest.mark.parametrize("provider,response_provider", PROVIDERS, ids=["aws", "azure", "gcp"])
+@pytest.mark.parametrize("provider,response_provider", PROVIDERS, ids=["aws", "azure", "gcp", "oci"])
 def test_sync_external_storage_provider_and_admin_auth(
     provider: Provider, response_provider: dict[str, object], respx2_mock: MockRouter
 ) -> None:
@@ -99,6 +119,11 @@ def test_sync_external_storage_provider_and_admin_auth(
     assert isinstance(result, ExternalStorageConfiguration)
     if provider["type"] == "gcp":
         assert isinstance(result.provider, GcpExternalStorageProvider)
+    elif provider["type"] == "oci":
+        assert isinstance(result.provider, OciExternalStorageProvider)
+        assert result.provider.tenancy_ocid == provider["tenancy_ocid"]
+        assert result.provider.region == provider["region"]
+        assert result.provider.bucket == provider["bucket"]
     assert result.to_dict() == payload
     request = route.calls.last.request
     assert request.headers["Authorization"] == "Bearer test-admin-key"
@@ -106,7 +131,7 @@ def test_sync_external_storage_provider_and_admin_auth(
 
 
 @pytest.mark.respx2(base_url=BASE_URL)
-@pytest.mark.parametrize("provider,response_provider", PROVIDERS, ids=["aws", "azure", "gcp"])
+@pytest.mark.parametrize("provider,response_provider", PROVIDERS, ids=["aws", "azure", "gcp", "oci"])
 async def test_async_external_storage_provider_and_admin_auth(
     provider: Provider, response_provider: dict[str, object], respx2_mock: MockRouter
 ) -> None:
@@ -123,6 +148,11 @@ async def test_async_external_storage_provider_and_admin_auth(
     assert isinstance(result, ExternalStorageConfiguration)
     if provider["type"] == "gcp":
         assert isinstance(result.provider, GcpExternalStorageProvider)
+    elif provider["type"] == "oci":
+        assert isinstance(result.provider, OciExternalStorageProvider)
+        assert result.provider.tenancy_ocid == provider["tenancy_ocid"]
+        assert result.provider.region == provider["region"]
+        assert result.provider.bucket == provider["bucket"]
     assert result.to_dict() == payload
     request = route.calls.last.request
     assert request.headers["Authorization"] == "Bearer test-admin-key"
@@ -201,3 +231,73 @@ async def test_async_external_storage_never_falls_back_to_project_key(
         with pytest.raises(TypeError, match="Could not resolve authentication method"):
             await client.admin.organization.external_storage.retrieve("extstorage_test")
     assert len(respx2_mock.calls) == 0
+
+
+def mock_oci_audit_log(respx2_mock: MockRouter) -> tuple[dict[str, object], dict[str, object]]:
+    provider: dict[str, object] = {
+        "type": "oci",
+        "tenancy_ocid": "ocid1.tenancy.synthetic",
+        "region": "us-ashburn-1",
+        "bucket": "test-oci-bucket",
+        "future_provider_field": {"retained": True},
+    }
+    event: dict[str, object] = {
+        "id": "audit_test",
+        "effective_at": 123,
+        "type": "external_storage.registered",
+        "external_storage.registered": {"id": "extstorage_test", "data": {"provider": provider}},
+        "future_audit_field": {"retained": True},
+    }
+    respx2_mock.get("/organization/audit_logs").mock(
+        return_value=httpx2.Response(
+            200,
+            json={
+                "object": "list",
+                "data": [event],
+                "first_id": "audit_test",
+                "last_id": "audit_test",
+                "has_more": False,
+            },
+        )
+    )
+    return event, provider
+
+
+def assert_oci_audit_log(result: AuditLogListResponse, event: dict[str, object], provider: dict[str, object]) -> None:
+    assert result.external_storage_registered is not None
+    assert result.external_storage_registered.data is not None
+    parsed = result.external_storage_registered.data.provider
+    assert isinstance(parsed, OciExternalStorageProvider)
+    assert parsed.type == "oci"
+    assert parsed.tenancy_ocid == provider["tenancy_ocid"]
+    assert parsed.region == provider["region"]
+    assert parsed.bucket == provider["bucket"]
+    assert result.to_dict() == event
+
+
+@pytest.mark.respx2(base_url=BASE_URL)
+def test_sync_oci_audit_log_uses_shared_provider(respx2_mock: MockRouter) -> None:
+    event, provider = mock_oci_audit_log(respx2_mock)
+    with OpenAI(
+        base_url=BASE_URL,
+        api_key="test-project-key",
+        admin_api_key="test-admin-key",
+        _strict_response_validation=True,
+    ) as client:
+        result = client.admin.organization.audit_logs.list().data[0]
+    assert_oci_audit_log(result, event, provider)
+    assert respx2_mock.calls.last.request.headers["Authorization"] == "Bearer test-admin-key"
+
+
+@pytest.mark.respx2(base_url=BASE_URL)
+async def test_async_oci_audit_log_uses_shared_provider(respx2_mock: MockRouter) -> None:
+    event, provider = mock_oci_audit_log(respx2_mock)
+    async with AsyncOpenAI(
+        base_url=BASE_URL,
+        api_key="test-project-key",
+        admin_api_key="test-admin-key",
+        _strict_response_validation=True,
+    ) as client:
+        result = (await client.admin.organization.audit_logs.list()).data[0]
+    assert_oci_audit_log(result, event, provider)
+    assert respx2_mock.calls.last.request.headers["Authorization"] == "Bearer test-admin-key"

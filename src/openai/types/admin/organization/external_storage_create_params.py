@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Union
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
-__all__ = ["ExternalStorageCreateParams", "Provider", "ProviderAws", "ProviderAzure", "ProviderGcp"]
+__all__ = ["ExternalStorageCreateParams", "Provider", "ProviderAws", "ProviderAzure", "ProviderGcp", "ProviderOci"]
 
 
 class ExternalStorageCreateParams(TypedDict, total=False):
@@ -48,4 +48,14 @@ class ProviderGcp(TypedDict, total=False):
     workload_identity_provider_id: Required[str]
 
 
-Provider: TypeAlias = Union[ProviderAws, ProviderAzure, ProviderGcp]
+class ProviderOci(TypedDict, total=False):
+    bucket: Required[str]
+
+    region: Required[str]
+
+    tenancy_ocid: Required[str]
+
+    type: Required[Literal["oci"]]
+
+
+Provider: TypeAlias = Union[ProviderAws, ProviderAzure, ProviderGcp, ProviderOci]
