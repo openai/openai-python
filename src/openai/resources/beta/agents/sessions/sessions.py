@@ -127,6 +127,7 @@ class Sessions(SyncAPIResource):
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
+        spend_control: Optional[session_create_params.SpendControl] | Omit = omit,
         stream: Literal[False] | Omit = omit,
         vault_ids: Optional[SequenceNotStr[str]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -158,6 +159,9 @@ class Sessions(SyncAPIResource):
           metadata: Up to 16 string key-value pairs, with keys up to 64 and values up to 512
               characters. Omission or null defaults to an empty map.
 
+          spend_control: Optional spending limit in USD cents. Omission or null creates an unlimited
+              session.
+
           stream: Whether to stream session events as server-sent events. Defaults to `false`.
 
           vault_ids: The IDs of vaults made available to the session.
@@ -182,6 +186,7 @@ class Sessions(SyncAPIResource):
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
+        spend_control: Optional[session_create_params.SpendControl] | Omit = omit,
         vault_ids: Optional[SequenceNotStr[str]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -214,6 +219,9 @@ class Sessions(SyncAPIResource):
           metadata: Up to 16 string key-value pairs, with keys up to 64 and values up to 512
               characters. Omission or null defaults to an empty map.
 
+          spend_control: Optional spending limit in USD cents. Omission or null creates an unlimited
+              session.
+
           vault_ids: The IDs of vaults made available to the session.
 
           extra_headers: Send extra headers
@@ -236,6 +244,7 @@ class Sessions(SyncAPIResource):
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
+        spend_control: Optional[session_create_params.SpendControl] | Omit = omit,
         vault_ids: Optional[SequenceNotStr[str]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -268,6 +277,9 @@ class Sessions(SyncAPIResource):
           metadata: Up to 16 string key-value pairs, with keys up to 64 and values up to 512
               characters. Omission or null defaults to an empty map.
 
+          spend_control: Optional spending limit in USD cents. Omission or null creates an unlimited
+              session.
+
           vault_ids: The IDs of vaults made available to the session.
 
           extra_headers: Send extra headers
@@ -289,6 +301,7 @@ class Sessions(SyncAPIResource):
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
+        spend_control: Optional[session_create_params.SpendControl] | Omit = omit,
         stream: Literal[False] | Literal[True] | Omit = omit,
         vault_ids: Optional[SequenceNotStr[str]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -309,6 +322,7 @@ class Sessions(SyncAPIResource):
                     "agent_id": agent_id,
                     "input": input,
                     "metadata": metadata,
+                    "spend_control": spend_control,
                     "vault_ids": vault_ids,
                 },
                 session_create_params.SessionCreateParamsStreaming
@@ -373,6 +387,7 @@ class Sessions(SyncAPIResource):
         *,
         agent: session_update_params.Agent | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
+        spend_control: Optional[session_update_params.SpendControl] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -393,6 +408,9 @@ class Sessions(SyncAPIResource):
               Up to 16 string key-value pairs, with keys up to 64 and values up to 512
               characters.
 
+          spend_control: Omit to retain the limit; null or a null limit removes it without resetting
+              spend.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -410,6 +428,7 @@ class Sessions(SyncAPIResource):
                 {
                     "agent": agent,
                     "metadata": metadata,
+                    "spend_control": spend_control,
                 },
                 session_update_params.SessionUpdateParams,
             ),
@@ -582,6 +601,7 @@ class AsyncSessions(AsyncAPIResource):
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
+        spend_control: Optional[session_create_params.SpendControl] | Omit = omit,
         stream: Literal[False] | Omit = omit,
         vault_ids: Optional[SequenceNotStr[str]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -613,6 +633,9 @@ class AsyncSessions(AsyncAPIResource):
           metadata: Up to 16 string key-value pairs, with keys up to 64 and values up to 512
               characters. Omission or null defaults to an empty map.
 
+          spend_control: Optional spending limit in USD cents. Omission or null creates an unlimited
+              session.
+
           stream: Whether to stream session events as server-sent events. Defaults to `false`.
 
           vault_ids: The IDs of vaults made available to the session.
@@ -637,6 +660,7 @@ class AsyncSessions(AsyncAPIResource):
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
+        spend_control: Optional[session_create_params.SpendControl] | Omit = omit,
         vault_ids: Optional[SequenceNotStr[str]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -669,6 +693,9 @@ class AsyncSessions(AsyncAPIResource):
           metadata: Up to 16 string key-value pairs, with keys up to 64 and values up to 512
               characters. Omission or null defaults to an empty map.
 
+          spend_control: Optional spending limit in USD cents. Omission or null creates an unlimited
+              session.
+
           vault_ids: The IDs of vaults made available to the session.
 
           extra_headers: Send extra headers
@@ -691,6 +718,7 @@ class AsyncSessions(AsyncAPIResource):
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
+        spend_control: Optional[session_create_params.SpendControl] | Omit = omit,
         vault_ids: Optional[SequenceNotStr[str]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -723,6 +751,9 @@ class AsyncSessions(AsyncAPIResource):
           metadata: Up to 16 string key-value pairs, with keys up to 64 and values up to 512
               characters. Omission or null defaults to an empty map.
 
+          spend_control: Optional spending limit in USD cents. Omission or null creates an unlimited
+              session.
+
           vault_ids: The IDs of vaults made available to the session.
 
           extra_headers: Send extra headers
@@ -744,6 +775,7 @@ class AsyncSessions(AsyncAPIResource):
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
+        spend_control: Optional[session_create_params.SpendControl] | Omit = omit,
         stream: Literal[False] | Literal[True] | Omit = omit,
         vault_ids: Optional[SequenceNotStr[str]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -764,6 +796,7 @@ class AsyncSessions(AsyncAPIResource):
                     "agent_id": agent_id,
                     "input": input,
                     "metadata": metadata,
+                    "spend_control": spend_control,
                     "vault_ids": vault_ids,
                 },
                 session_create_params.SessionCreateParamsStreaming
@@ -828,6 +861,7 @@ class AsyncSessions(AsyncAPIResource):
         *,
         agent: session_update_params.Agent | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
+        spend_control: Optional[session_update_params.SpendControl] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -848,6 +882,9 @@ class AsyncSessions(AsyncAPIResource):
               Up to 16 string key-value pairs, with keys up to 64 and values up to 512
               characters.
 
+          spend_control: Omit to retain the limit; null or a null limit removes it without resetting
+              spend.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -865,6 +902,7 @@ class AsyncSessions(AsyncAPIResource):
                 {
                     "agent": agent,
                     "metadata": metadata,
+                    "spend_control": spend_control,
                 },
                 session_update_params.SessionUpdateParams,
             ),
