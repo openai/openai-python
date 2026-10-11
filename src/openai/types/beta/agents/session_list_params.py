@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Optional
 from typing_extensions import Literal, TypedDict
 
 __all__ = ["SessionListParams"]
@@ -18,14 +17,11 @@ class SessionListParams(TypedDict, total=False):
     Omit to return sessions for all agents.
     """
 
-    limit: Optional[int]
-    """The maximum number of resources to return."""
+    limit: int
+    """The maximum number of resources to return, between 1 and 100. Defaults to 20."""
 
     order: Literal["asc", "desc"]
-    """Sort order by the `created_at` timestamp.
-
-    Use `asc` for ascending order or `desc` for descending order. Defaults to
-    `desc`.
+    """The order in which resources are returned. Defaults to `desc`.
 
     - `asc` - Returns resources in ascending order.
     - `desc` - Returns resources in descending order.

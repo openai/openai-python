@@ -31155,12 +31155,12 @@ paths:
         in: query
         required: false
         schema:
-          type:
-          - integer
-          - 'null'
+          type: integer
           format: int64
           minimum: 1
-        description: The maximum number of resources to return.
+          maximum: 100
+          default: 20
+        description: The maximum number of resources to return, between 1 and 100. Defaults to 20.
       - name: order
         in: query
         required: false
@@ -31964,27 +31964,19 @@ paths:
         in: query
         required: false
         schema:
-          type:
-          - integer
-          - 'null'
+          type: integer
           format: int64
           minimum: 1
-        description: The maximum number of resources to return.
+          maximum: 100
+          default: 20
+        description: The maximum number of resources to return, between 1 and 100. Defaults to 20.
       - name: order
         in: query
         required: false
         schema:
           $ref: '#/components/schemas/ListOrderParam'
           default: desc
-        description: Sort order by the `created_at` timestamp. Use `asc` for ascending order or `desc` for descending order. Defaults to `desc`.
-      - name: agent_id
-        in: query
-        required: false
-        schema:
-          type: string
-          minLength: 0
-          maxLength: 1048576
-        description: Only return sessions whose root agent has this ID. Omit to return sessions for all agents.
+        description: The order in which resources are returned. Defaults to `desc`.
       - name: after
         in: query
         required: false
@@ -31993,6 +31985,14 @@ paths:
           minLength: 0
           maxLength: 1048576
         description: Return resources after this resource ID in the selected order.
+      - name: agent_id
+        in: query
+        required: false
+        schema:
+          type: string
+          minLength: 0
+          maxLength: 1048576
+        description: Only return sessions whose root agent has this ID. Omit to return sessions for all agents.
       responses:
         '200':
           description: A page of sessions.
@@ -32329,12 +32329,31 @@ paths:
           minLength: 0
           maxLength: 1048576
         description: The ID of the session.
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 100
+          default: 20
+        description: The maximum number of resources to return, between 1 and 100. Defaults to 20.
       - name: order
         in: query
         required: false
         schema:
           $ref: '#/components/schemas/ListOrderParam'
-        description: Sort by creation time and ID. Defaults to descending.
+          default: desc
+        description: The order in which resources are returned. Defaults to `desc`.
+      - name: after
+        in: query
+        required: false
+        schema:
+          type: string
+          minLength: 0
+          maxLength: 1048576
+        description: Return resources after this resource ID in the selected order.
       - name: environment_id
         in: query
         required: false
@@ -32345,27 +32364,6 @@ paths:
           minLength: 0
           maxLength: 1048576
         description: Restrict the listing to artifacts produced by this environment.
-      - name: limit
-        in: query
-        required: false
-        schema:
-          type:
-          - integer
-          - 'null'
-          format: int64
-          minimum: 1
-          maximum: 100
-        description: The maximum number of artifacts to return, between 1 and 100.
-      - name: after
-        in: query
-        required: false
-        schema:
-          type:
-          - string
-          - 'null'
-          minLength: 0
-          maxLength: 1048576
-        description: Return artifacts after this immutable artifact ID.
       responses:
         '200':
           description: A page of durable session artifacts.
@@ -33227,29 +33225,23 @@ paths:
       tags:
       - Vaults
       parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 100
+          default: 20
+        description: The maximum number of resources to return, between 1 and 100. Defaults to 20.
       - name: order
         in: query
         required: false
         schema:
           $ref: '#/components/schemas/ListOrderParam'
           default: desc
-        description: Sort order by the `created_at` timestamp. Use `asc` for ascending order or `desc` for descending order. Defaults to `desc`.
-      - name: limit
-        in: query
-        required: false
-        schema:
-          type:
-          - integer
-          - 'null'
-          format: int64
-          minimum: 0
-        description: The maximum number of resources to return. Defaults to 20. Values are clamped between 1 and 100.
-      - name: status
-        in: query
-        required: false
-        schema:
-          $ref: '#/components/schemas/VaultStatusFilterParam'
-        description: Filter by one status or a list, such as `status=active` or `status[]=active&status[]=archived`. Both statuses are included by default.
+        description: The order in which resources are returned. Defaults to `desc`.
       - name: after
         in: query
         required: false
@@ -33276,6 +33268,12 @@ paths:
         description: Exact string matches supplied as `metadata[key]=value`. All supplied pairs must match. Up to 16 pairs, with keys from 1 to 64 characters and values up to 512 characters. Filtering is eventually consistent; metadata changes may take time to appear.
         style: deepObject
         explode: true
+      - name: status
+        in: query
+        required: false
+        schema:
+          $ref: '#/components/schemas/VaultStatusFilterParam'
+        description: Filter by one status or a list, such as `status=active` or `status[]=active&status[]=archived`. Both statuses are included by default.
       responses:
         '200':
           description: A page of vaults.
@@ -33603,29 +33601,23 @@ paths:
           minLength: 0
           maxLength: 1048576
         description: The ID of the vault.
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 100
+          default: 20
+        description: The maximum number of resources to return, between 1 and 100. Defaults to 20.
       - name: order
         in: query
         required: false
         schema:
           $ref: '#/components/schemas/ListOrderParam'
           default: desc
-        description: Sort order by the `created_at` timestamp. Use `asc` for ascending order or `desc` for descending order. Defaults to `desc`.
-      - name: limit
-        in: query
-        required: false
-        schema:
-          type:
-          - integer
-          - 'null'
-          format: int64
-          minimum: 0
-        description: The maximum number of resources to return. Defaults to 20. Values are clamped between 1 and 100.
-      - name: status
-        in: query
-        required: false
-        schema:
-          $ref: '#/components/schemas/VaultStatusFilterParam'
-        description: Filter by one status or a list, such as `status=active` or `status[]=active&status[]=archived`. Both statuses are included by default.
+        description: The order in which resources are returned. Defaults to `desc`.
       - name: after
         in: query
         required: false
@@ -33652,6 +33644,12 @@ paths:
         description: Exact string matches supplied as `metadata[key]=value`. All supplied pairs must match. Up to 16 pairs, with keys from 1 to 64 characters and values up to 512 characters. Filtering is eventually consistent; metadata changes may take time to appear.
         style: deepObject
         explode: true
+      - name: status
+        in: query
+        required: false
+        schema:
+          $ref: '#/components/schemas/VaultStatusFilterParam'
+        description: Filter by one status or a list, such as `status=active` or `status[]=active&status[]=archived`. Both statuses are included by default.
       responses:
         '200':
           description: A page of vault credentials.

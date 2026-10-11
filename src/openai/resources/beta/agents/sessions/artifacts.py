@@ -104,9 +104,9 @@ class Artifacts(SyncAPIResource):
         self,
         session_id: str,
         *,
-        after: Optional[str] | Omit = omit,
+        after: str | Omit = omit,
         environment_id: Optional[str] | Omit = omit,
-        limit: Optional[int] | Omit = omit,
+        limit: int | Omit = omit,
         order: Literal["asc", "desc"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -121,13 +121,13 @@ class Artifacts(SyncAPIResource):
         [session artifacts](https://developers.openai.com/api/docs/guides/agents-api/environments/files#openai-hosted-artifacts).
 
         Args:
-          after: Return artifacts after this immutable artifact ID.
+          after: Return resources after this resource ID in the selected order.
 
           environment_id: Restrict the listing to artifacts produced by this environment.
 
-          limit: The maximum number of artifacts to return, between 1 and 100.
+          limit: The maximum number of resources to return, between 1 and 100. Defaults to 20.
 
-          order: Sort by creation time and ID. Defaults to descending.
+          order: The order in which resources are returned. Defaults to `desc`.
 
               - `asc` - Returns resources in ascending order.
               - `desc` - Returns resources in descending order.
@@ -332,9 +332,9 @@ class AsyncArtifacts(AsyncAPIResource):
         self,
         session_id: str,
         *,
-        after: Optional[str] | Omit = omit,
+        after: str | Omit = omit,
         environment_id: Optional[str] | Omit = omit,
-        limit: Optional[int] | Omit = omit,
+        limit: int | Omit = omit,
         order: Literal["asc", "desc"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -349,13 +349,13 @@ class AsyncArtifacts(AsyncAPIResource):
         [session artifacts](https://developers.openai.com/api/docs/guides/agents-api/environments/files#openai-hosted-artifacts).
 
         Args:
-          after: Return artifacts after this immutable artifact ID.
+          after: Return resources after this resource ID in the selected order.
 
           environment_id: Restrict the listing to artifacts produced by this environment.
 
-          limit: The maximum number of artifacts to return, between 1 and 100.
+          limit: The maximum number of resources to return, between 1 and 100. Defaults to 20.
 
-          order: Sort by creation time and ID. Defaults to descending.
+          order: The order in which resources are returned. Defaults to `desc`.
 
               - `asc` - Returns resources in ascending order.
               - `desc` - Returns resources in descending order.
