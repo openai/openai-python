@@ -5,14 +5,18 @@ from __future__ import annotations
 from typing import Dict, List, Union, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
-from . import web_search_tool_param
 from ..chat import ChatCompletionFunctionToolParam
 from ..._types import SequenceNotStr
 from .custom_tool_param import CustomToolParam
 from .computer_tool_param import ComputerToolParam
 from .function_tool_param import FunctionToolParam
 from .namespace_tool_param import NamespaceToolParam
-from .web_search_tool_param import WebSearchToolParam
+from .web_search_tool_param import (
+    Filters as _compat_WebSearchToolFilters,
+    UserLocation as _compat_WebSearchToolUserLocation,
+    WebSearchToolParam,
+    WebSearchToolParam as _compat_WebSearchTool,
+)
 from .apply_patch_tool_param import ApplyPatchToolParam
 from .file_search_tool_param import FileSearchToolParam
 from .tool_search_tool_param import ToolSearchToolParam
@@ -40,10 +44,6 @@ __all__ = [
     "ImageGenerationInputImageMask",
     "LocalShell",
 ]
-
-WebSearchTool = web_search_tool_param.WebSearchToolParam
-WebSearchToolFilters = web_search_tool_param.Filters
-WebSearchToolUserLocation = web_search_tool_param.UserLocation
 
 
 class McpAllowedToolsMcpToolFilter(TypedDict, total=False):
@@ -391,3 +391,8 @@ ToolParam: TypeAlias = Union[
 
 
 ParseableToolParam: TypeAlias = Union[ToolParam, ChatCompletionFunctionToolParam]
+WebSearchTool: TypeAlias = _compat_WebSearchTool
+
+WebSearchToolFilters: TypeAlias = _compat_WebSearchToolFilters
+
+WebSearchToolUserLocation: TypeAlias = _compat_WebSearchToolUserLocation

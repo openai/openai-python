@@ -3,14 +3,17 @@
 from typing import Dict, List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
 
-from . import web_search_tool
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
 from .custom_tool import CustomTool
 from .computer_tool import ComputerTool
 from .function_tool import FunctionTool
 from .namespace_tool import NamespaceTool
-from .web_search_tool import WebSearchTool
+from .web_search_tool import (
+    Filters as _compat_WebSearchToolFilters,
+    UserLocation as _compat_WebSearchToolUserLocation,
+    WebSearchTool as WebSearchTool,
+)
 from .apply_patch_tool import ApplyPatchTool
 from .file_search_tool import FileSearchTool
 from .tool_search_tool import ToolSearchTool
@@ -39,9 +42,6 @@ __all__ = [
     "ImageGenerationInputImageMask",
     "LocalShell",
 ]
-
-WebSearchToolFilters = web_search_tool.Filters
-WebSearchToolUserLocation = web_search_tool.UserLocation
 
 
 class McpAllowedToolsMcpToolFilter(BaseModel):
@@ -392,3 +392,7 @@ Tool: TypeAlias = Annotated[
     ],
     PropertyInfo(discriminator="type"),
 ]
+
+WebSearchToolFilters: TypeAlias = _compat_WebSearchToolFilters
+
+WebSearchToolUserLocation: TypeAlias = _compat_WebSearchToolUserLocation

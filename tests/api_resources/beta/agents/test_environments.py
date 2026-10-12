@@ -43,11 +43,7 @@ class TestEnvironments:
                         "type": "file_id",
                     }
                 ],
-                "network": {
-                    "access": "enabled",
-                    "allowed_domains": ["string"],
-                    "blocked_domains": ["string"],
-                },
+                "network": {"access": "restricted", "allowed_domains": ["example.com"], "blocked_domains": []},
                 "packages": {
                     "npm": ["string"],
                     "python": ["string"],
@@ -210,11 +206,7 @@ class TestAsyncEnvironments:
                         "type": "file_id",
                     }
                 ],
-                "network": {
-                    "access": "enabled",
-                    "allowed_domains": ["string"],
-                    "blocked_domains": ["string"],
-                },
+                "network": {"access": "restricted", "allowed_domains": ["example.com"], "blocked_domains": []},
                 "packages": {
                     "npm": ["string"],
                     "python": ["string"],

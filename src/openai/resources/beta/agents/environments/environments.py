@@ -177,11 +177,11 @@ class Environments(SyncAPIResource):
         access to the prewarming beta.
 
         Args:
-          after: Return environments after this environment ID in the selected order.
+          after: Return resources after this resource ID in the selected order.
 
-          limit: The maximum number of environments to return, between 1 and 100. Defaults to 20.
+          limit: The maximum number of resources to return, between 1 and 100. Defaults to 20.
 
-          order: The order in which environments are returned. Defaults to `desc`.
+          order: The order in which resources are returned. Defaults to `desc`.
 
               - `asc` - Returns resources in ascending order.
               - `desc` - Returns resources in descending order.
@@ -360,11 +360,11 @@ class AsyncEnvironments(AsyncAPIResource):
         access to the prewarming beta.
 
         Args:
-          after: Return environments after this environment ID in the selected order.
+          after: Return resources after this resource ID in the selected order.
 
-          limit: The maximum number of environments to return, between 1 and 100. Defaults to 20.
+          limit: The maximum number of resources to return, between 1 and 100. Defaults to 20.
 
-          order: The order in which environments are returned. Defaults to `desc`.
+          order: The order in which resources are returned. Defaults to `desc`.
 
               - `asc` - Returns resources in ascending order.
               - `desc` - Returns resources in descending order.
