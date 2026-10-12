@@ -50,6 +50,188 @@ tags:
 - name: Audit Logs
   description: List user actions and configuration changes within this organization.
 paths:
+  /organization/usage/decisions:
+    get:
+      summary: Decisions
+      description: Get Decisions API usage details for the organization.
+      operationId: OrganizationDecisionsusage
+      parameters:
+      - name: start_time
+        in: query
+        description: Start time (Unix seconds) of the query time range, inclusive.
+        required: true
+        schema:
+          type: integer
+      - name: end_time
+        in: query
+        description: End time (Unix seconds) of the query time range, exclusive.
+        required: false
+        schema:
+          anyOf:
+          - type: integer
+          - type: 'null'
+      - name: bucket_width
+        in: query
+        description: Width of each time bucket in response. Currently `1m`, `1h` and `1d` are supported, default to `1d`.
+        required: false
+        schema:
+          anyOf:
+          - description: Width of each time bucket in response. Currently `1m`, `1h` and `1d` are supported, default to `1d`.
+            anyOf:
+            - $ref: '#/components/schemas/DecisionsUsageBucketWidth'
+          - type: 'null'
+      - name: limit
+        in: query
+        description: |-
+          Specifies the number of buckets to return.
+          - `bucket_width=1d`: default: 7, max: 31
+          - `bucket_width=1h`: default: 24, max: 168
+          - `bucket_width=1m`: default: 60, max: 1440
+        required: false
+        schema:
+          anyOf:
+          - type: integer
+          - type: 'null'
+      - name: page
+        in: query
+        description: A cursor for use in pagination. Corresponding to the `next_page` field from the previous response.
+        required: false
+        schema:
+          anyOf:
+          - description: A cursor for use in pagination. Corresponding to the `next_page` field from the previous response.
+            type: string
+          - type: 'null'
+      - name: project_ids
+        in: query
+        description: Return only usage for these projects.
+        required: false
+        schema:
+          anyOf:
+          - description: Return only usage for these projects.
+            anyOf:
+            - type: array
+              items:
+                type: string
+          - type: 'null'
+      - name: group_by
+        in: query
+        description: Group the usage data by the specified fields. Support fields include `project_id`, `user_id`, `api_key_id`, `model`, `batch`, `service_tier`, `api_source` or any combination of them. When grouped by `api_source`, results use `agents_api` for attributed Agents API activity and `unlabeled` for all other activity. Without source grouping, `api_source` is null.
+        required: false
+        schema:
+          anyOf:
+          - description: Group the usage data by the specified fields. Support fields include `project_id`, `user_id`, `api_key_id`, `model`, `batch`, `service_tier`, `api_source` or any combination of them. When grouped by `api_source`, results use `agents_api` for attributed Agents API activity and `unlabeled` for all other activity. Without source grouping, `api_source` is null.
+            anyOf:
+            - type: array
+              items:
+                $ref: '#/components/schemas/DecisionsUsageGroupBy'
+          - type: 'null'
+      - name: user_ids
+        in: query
+        description: Return only usage for these users.
+        required: false
+        schema:
+          anyOf:
+          - description: Return only usage for these users.
+            anyOf:
+            - type: array
+              items:
+                type: string
+          - type: 'null'
+      - name: api_key_ids
+        in: query
+        description: Return only usage for these API keys.
+        required: false
+        schema:
+          anyOf:
+          - description: Return only usage for these API keys.
+            anyOf:
+            - type: array
+              items:
+                type: string
+          - type: 'null'
+      - name: models
+        in: query
+        description: Return only usage for these models.
+        required: false
+        schema:
+          anyOf:
+          - description: Return only usage for these models.
+            anyOf:
+            - type: array
+              items:
+                type: string
+          - type: 'null'
+      - name: batch
+        in: query
+        description: If `true`, return batch jobs only. If `false`, return non-batch jobs only. By default, return both.
+        required: false
+        schema:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicDecisionsUsageResponseResource'
+        '400':
+          description: The request parameters are invalid or the requested operation cannot be performed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DecisionsUsageErrorResponse'
+        '403':
+          description: The caller does not have permission to perform this operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DecisionsUsagePermissionErrorResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      x-oaiMeta:
+        group: usage-decisions
+        examples:
+          request:
+            curl: |
+              curl --get "https://api.openai.com/v1/organization/usage/decisions" \
+                -H "Authorization: Bearer $OPENAI_ADMIN_KEY" \
+                --data-urlencode "start_time=1790812800" \
+                --data-urlencode "end_time=1790899200" \
+                --data-urlencode "bucket_width=1d" \
+                --data-urlencode "group_by=project_id" \
+                --data-urlencode "group_by=model"
+          response: |
+            {
+                "object": "page",
+                "data": [
+                    {
+                        "object": "bucket",
+                        "start_time": 1790812800,
+                        "end_time": 1790899200,
+                        "results": [
+                            {
+                                "object": "organization.usage.decisions.result",
+                                "input_tokens": 1000,
+                                "input_cached_tokens": 400,
+                                "output_tokens": 0,
+                                "num_model_requests": 5,
+                                "project_id": "proj_example",
+                                "model": "gpt-6-luna",
+                                "user_id": null,
+                                "api_key_id": null,
+                                "batch": null,
+                                "service_tier": null
+                            }
+                        ]
+                    }
+                ],
+                "has_more": false,
+                "next_page": null
+            }
+      security:
+      - AdminApiKeyAuth: []
   /assistants:
     get:
       operationId: listAssistants
@@ -36730,6 +36912,235 @@ webhooks:
             status codes will be retried.
 components:
   schemas:
+    DecisionsUsageBucketWidth:
+      type: string
+      enum:
+      - 1m
+      - 1h
+      - 1d
+    DecisionsUsageGroupBy:
+      type: string
+      enum:
+      - project_id
+      - user_id
+      - api_key_id
+      - model
+      - batch
+      - service_tier
+      - api_source
+    DecisionsUsageApiSource:
+      type: string
+      enum:
+      - agents_api
+      - unlabeled
+    DecisionsUsageResult:
+      properties:
+        api_source:
+          anyOf:
+          - $ref: '#/components/schemas/DecisionsUsageApiSource'
+            description: When grouped by `api_source`, `agents_api` identifies attributed Agents API activity and `unlabeled` includes all records without published source attribution, including historical and unknown origins. Unlabeled does not imply direct API usage. Without source grouping, this field is null.
+          - type: 'null'
+        object:
+          type: string
+          enum:
+          - organization.usage.decisions.result
+          default: organization.usage.decisions.result
+          x-stainless-const: true
+        input_tokens:
+          type: integer
+          description: The aggregated number of input tokens used, including cached and cache-write tokens. This includes text, audio, and image tokens. For customers subscribed to Scale Tier, this includes Scale Tier tokens.
+        input_cached_tokens:
+          anyOf:
+          - type: integer
+            description: The aggregated number of cached input tokens used across text, audio, and image inputs. For customers subscribed to Scale Tier, this includes Scale Tier tokens.
+          - type: 'null'
+        input_cache_write_tokens:
+          anyOf:
+          - type: integer
+            description: The aggregated number of input tokens written to the cache with a 30-minute retention period.
+          - type: 'null'
+        input_cache_write_12h_tokens:
+          anyOf:
+          - type: integer
+            description: The aggregated number of input tokens written to the cache with a 12-hour retention period.
+          - type: 'null'
+        input_uncached_tokens:
+          anyOf:
+          - type: integer
+            description: The aggregated number of uncached input tokens used across text, audio, and image inputs, excluding cache-write tokens.
+          - type: 'null'
+        output_tokens:
+          type: integer
+          description: The aggregated number of output tokens used across text, audio, and image outputs. For customers subscribed to Scale Tier, this includes Scale Tier tokens.
+        input_text_tokens:
+          anyOf:
+          - type: integer
+            description: The aggregated number of uncached text input tokens used, excluding cache-write tokens.
+          - type: 'null'
+        output_text_tokens:
+          anyOf:
+          - type: integer
+            description: The aggregated number of text output tokens used.
+          - type: 'null'
+        input_cached_text_tokens:
+          anyOf:
+          - type: integer
+            description: The aggregated number of cached text input tokens used.
+          - type: 'null'
+        input_audio_tokens:
+          anyOf:
+          - type: integer
+            description: The aggregated number of uncached audio input tokens used.
+          - type: 'null'
+        input_cached_audio_tokens:
+          anyOf:
+          - type: integer
+            description: The aggregated number of cached audio input tokens used.
+          - type: 'null'
+        output_audio_tokens:
+          anyOf:
+          - type: integer
+            description: The aggregated number of audio output tokens used.
+          - type: 'null'
+        input_image_tokens:
+          anyOf:
+          - type: integer
+            description: The aggregated number of uncached image input tokens used.
+          - type: 'null'
+        input_cached_image_tokens:
+          anyOf:
+          - type: integer
+            description: The aggregated number of cached image input tokens used.
+          - type: 'null'
+        output_image_tokens:
+          anyOf:
+          - type: integer
+            description: The aggregated number of image output tokens used.
+          - type: 'null'
+        num_model_requests:
+          type: integer
+          description: The count of requests made to the model.
+        project_id:
+          anyOf:
+          - type: string
+            description: When `group_by=project_id`, this field provides the project ID of the grouped usage result.
+          - type: 'null'
+        user_id:
+          anyOf:
+          - type: string
+            description: When `group_by=user_id`, this field provides the user ID of the grouped usage result.
+          - type: 'null'
+        api_key_id:
+          anyOf:
+          - type: string
+            description: When `group_by=api_key_id`, this field provides the API key ID of the grouped usage result.
+          - type: 'null'
+        model:
+          anyOf:
+          - type: string
+            description: When `group_by=model`, this field provides the model name of the grouped usage result.
+          - type: 'null'
+        batch:
+          anyOf:
+          - type: boolean
+            description: When `group_by=batch`, this field tells whether the grouped usage result is batch or not.
+          - type: 'null'
+        service_tier:
+          anyOf:
+          - type: string
+            description: When `group_by=service_tier`, this field provides the service tier of the grouped usage result.
+          - type: 'null'
+      type: object
+      required:
+      - object
+      - input_tokens
+      - output_tokens
+      - num_model_requests
+      description: The aggregated Decisions API usage details of the specific time bucket.
+    DecisionsUsageBucket:
+      properties:
+        object:
+          type: string
+          enum:
+          - bucket
+          default: bucket
+          x-stainless-const: true
+        start_time:
+          type: integer
+        end_time:
+          type: integer
+        results:
+          items:
+            $ref: '#/components/schemas/DecisionsUsageResult'
+          type: array
+      type: object
+      required:
+      - object
+      - start_time
+      - end_time
+      - results
+    PublicDecisionsUsageResponseResource:
+      properties:
+        object:
+          type: string
+          enum:
+          - page
+          default: page
+          x-stainless-const: true
+        has_more:
+          type: boolean
+        next_page:
+          anyOf:
+          - type: string
+          - type: 'null'
+        data:
+          items:
+            $ref: '#/components/schemas/DecisionsUsageBucket'
+          type: array
+      type: object
+      required:
+      - object
+      - has_more
+      - next_page
+      - data
+    DecisionsUsageErrorDetails:
+      properties:
+        code:
+          anyOf:
+          - type: string
+          - type: 'null'
+        message:
+          type: string
+        param:
+          anyOf:
+          - type: string
+          - type: 'null'
+        type:
+          type: string
+      type: object
+      required:
+      - code
+      - message
+      - param
+      - type
+    DecisionsUsageErrorResponse:
+      properties:
+        error:
+          $ref: '#/components/schemas/DecisionsUsageErrorDetails'
+      type: object
+      required:
+      - error
+    DecisionsUsagePermissionErrorResponse:
+      properties:
+        error:
+          description: Details about the permission error.
+          anyOf:
+          - $ref: '#/components/schemas/DecisionsUsageErrorDetails'
+          - type: string
+            description: An explanation of the missing API permissions.
+      type: object
+      required:
+      - error
     OciExternalStorageProviderParams:
       properties:
         type:
