@@ -43,3 +43,8 @@ class AgentSessionMessage(BaseModel):
 
     type: Literal["message"]
     """The item type. Always `message`."""
+
+    @property
+    def output_text(self) -> str:
+        """Join all `output_text` content blocks, returning an empty string if none exist."""
+        return "".join(content.text for content in self.content if content.type == "output_text")

@@ -39,8 +39,10 @@ __all__ = ["UnwrapWebhookEvent"]
 
 UnwrapWebhookEvent: TypeAlias = Annotated[
     Union[
+        AgentEnvironmentExpiredWebhookEvent,
         AgentEnvironmentFailedWebhookEvent,
         AgentEnvironmentReadyWebhookEvent,
+        AgentEnvironmentSuspendedWebhookEvent,
         AgentSessionActionRequiredWebhookEvent,
         AgentSessionCreatedWebhookEvent,
         AgentSessionFailedWebhookEvent,
@@ -67,8 +69,6 @@ UnwrapWebhookEvent: TypeAlias = Annotated[
         SafetyDeactivationIssuedWebhookEvent,
         SafetyOrgAlertCreatedWebhookEvent,
         SafetyWarningIssuedWebhookEvent,
-        AgentEnvironmentSuspendedWebhookEvent,
-        AgentEnvironmentExpiredWebhookEvent,
     ],
     PropertyInfo(discriminator="type"),
 ]

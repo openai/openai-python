@@ -149,6 +149,7 @@ Methods:
 - <code title="delete /files/{file_id}">client.files.<a href="./src/openai/resources/files.py">delete</a>(file_id) -> <a href="./src/openai/types/file_deleted.py">FileDeleted</a></code>
 - <code title="get /files/{file_id}/content">client.files.<a href="./src/openai/resources/files.py">content</a>(file_id) -> HttpxBinaryResponseContent</code>
 - <code title="get /files/{file_id}/content">client.files.<a href="./src/openai/resources/files.py">retrieve_content</a>(file_id) -> <a href="./src/openai/types/file_content.py">str</a></code>
+- <code>client.files.<a href="./src/openai/resources/files.py">wait_for_processing</a>(id, poll_interval=..., max_wait_seconds=...) -> <a href="./src/openai/types/file_object.py">FileObject</a></code>
 
 # Images
 
@@ -441,6 +442,10 @@ Methods:
 - <code title="get /vector_stores/{vector_store_id}/files">client.vector_stores.files.<a href="./src/openai/resources/vector_stores/files.py">list</a>(vector_store_id, \*\*<a href="src/openai/types/vector_stores/file_list_params.py">params</a>) -> <a href="./src/openai/types/vector_stores/vector_store_file.py">SyncCursorPage[VectorStoreFile]</a></code>
 - <code title="delete /vector_stores/{vector_store_id}/files/{file_id}">client.vector_stores.files.<a href="./src/openai/resources/vector_stores/files.py">delete</a>(file_id, \*, vector_store_id) -> <a href="./src/openai/types/vector_stores/vector_store_file_deleted.py">VectorStoreFileDeleted</a></code>
 - <code title="get /vector_stores/{vector_store_id}/files/{file_id}/content">client.vector_stores.files.<a href="./src/openai/resources/vector_stores/files.py">content</a>(file_id, \*, vector_store_id) -> <a href="./src/openai/types/vector_stores/file_content_response.py">SyncPage[FileContentResponse]</a></code>
+- <code>client.vector_stores.files.<a href="./src/openai/resources/vector_stores/files.py">create_and_poll</a>(file_id, vector_store_id=..., attributes=..., poll_interval_ms=..., max_wait_seconds=..., chunking_strategy=..., extra_headers=..., extra_query=..., extra_body=..., timeout=...) -> <a href="./src/openai/types/vector_stores/vector_store_file.py">VectorStoreFile</a></code>
+- <code>client.vector_stores.files.<a href="./src/openai/resources/vector_stores/files.py">poll</a>(file_id, vector_store_id=..., poll_interval_ms=..., max_wait_seconds=...) -> <a href="./src/openai/types/vector_stores/vector_store_file.py">VectorStoreFile</a></code>
+- <code>client.vector_stores.files.<a href="./src/openai/resources/vector_stores/files.py">upload</a>(vector_store_id=..., file=..., chunking_strategy=...) -> <a href="./src/openai/types/vector_stores/vector_store_file.py">VectorStoreFile</a></code>
+- <code>client.vector_stores.files.<a href="./src/openai/resources/vector_stores/files.py">upload_and_poll</a>(vector_store_id=..., file=..., attributes=..., poll_interval_ms=..., max_wait_seconds=..., chunking_strategy=...) -> <a href="./src/openai/types/vector_stores/vector_store_file.py">VectorStoreFile</a></code>
 
 ## FileBatches
 
@@ -456,6 +461,9 @@ Methods:
 - <code title="get /vector_stores/{vector_store_id}/file_batches/{batch_id}">client.vector_stores.file_batches.<a href="./src/openai/resources/vector_stores/file_batches.py">retrieve</a>(batch_id, \*, vector_store_id) -> <a href="./src/openai/types/vector_stores/vector_store_file_batch.py">VectorStoreFileBatch</a></code>
 - <code title="post /vector_stores/{vector_store_id}/file_batches/{batch_id}/cancel">client.vector_stores.file_batches.<a href="./src/openai/resources/vector_stores/file_batches.py">cancel</a>(batch_id, \*, vector_store_id) -> <a href="./src/openai/types/vector_stores/vector_store_file_batch.py">VectorStoreFileBatch</a></code>
 - <code title="get /vector_stores/{vector_store_id}/file_batches/{batch_id}/files">client.vector_stores.file_batches.<a href="./src/openai/resources/vector_stores/file_batches.py">list_files</a>(batch_id, \*, vector_store_id, \*\*<a href="src/openai/types/vector_stores/file_batch_list_files_params.py">params</a>) -> <a href="./src/openai/types/vector_stores/vector_store_file.py">SyncCursorPage[VectorStoreFile]</a></code>
+- <code>client.vector_stores.file_batches.<a href="./src/openai/resources/vector_stores/file_batches.py">create_and_poll</a>(vector_store_id, attributes=..., chunking_strategy=..., file_ids=..., files=..., poll_interval_ms=..., extra_headers=..., extra_query=..., extra_body=..., timeout=...) -> <a href="./src/openai/types/vector_stores/vector_store_file_batch.py">VectorStoreFileBatch</a></code>
+- <code>client.vector_stores.file_batches.<a href="./src/openai/resources/vector_stores/file_batches.py">poll</a>(batch_id, vector_store_id=..., poll_interval_ms=...) -> <a href="./src/openai/types/vector_stores/vector_store_file_batch.py">VectorStoreFileBatch</a></code>
+- <code>client.vector_stores.file_batches.<a href="./src/openai/resources/vector_stores/file_batches.py">upload_and_poll</a>(vector_store_id, files=..., max_concurrency=..., file_ids=..., poll_interval_ms=..., chunking_strategy=...) -> <a href="./src/openai/types/vector_stores/vector_store_file_batch.py">VectorStoreFileBatch</a></code>
 
 # Safety
 

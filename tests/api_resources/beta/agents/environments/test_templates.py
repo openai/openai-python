@@ -40,11 +40,7 @@ class TestTemplates:
                 }
             ],
             name="x",
-            network={
-                "access": "enabled",
-                "allowed_domains": ["string"],
-                "blocked_domains": ["string"],
-            },
+            network={"access": "restricted", "allowed_domains": ["example.com"], "blocked_domains": []},
             packages={
                 "npm": ["string"],
                 "python": ["string"],
@@ -160,11 +156,7 @@ class TestTemplates:
                 }
             ],
             name="x",
-            network={
-                "access": "enabled",
-                "allowed_domains": ["string"],
-                "blocked_domains": ["string"],
-            },
+            network={"access": "restricted", "allowed_domains": ["example.com"], "blocked_domains": []},
             packages={
                 "npm": ["string"],
                 "python": ["string"],
@@ -330,11 +322,7 @@ class TestAsyncTemplates:
                 }
             ],
             name="x",
-            network={
-                "access": "enabled",
-                "allowed_domains": ["string"],
-                "blocked_domains": ["string"],
-            },
+            network={"access": "restricted", "allowed_domains": ["example.com"], "blocked_domains": []},
             packages={
                 "npm": ["string"],
                 "python": ["string"],
@@ -450,11 +438,7 @@ class TestAsyncTemplates:
                 }
             ],
             name="x",
-            network={
-                "access": "enabled",
-                "allowed_domains": ["string"],
-                "blocked_domains": ["string"],
-            },
+            network={"access": "restricted", "allowed_domains": ["example.com"], "blocked_domains": []},
             packages={
                 "npm": ["string"],
                 "python": ["string"],

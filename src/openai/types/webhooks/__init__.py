@@ -57,6 +57,9 @@ from .fine_tuning_job_cancelled_webhook_event import (
 from .fine_tuning_job_succeeded_webhook_event import (
     FineTuningJobSucceededWebhookEvent as FineTuningJobSucceededWebhookEvent,
 )
+from .safety_identifier_blocked_webhook_event import (
+    SafetyIdentifierBlockedWebhookEvent as SafetyIdentifierBlockedWebhookEvent,
+)
 from .safety_deactivation_issued_webhook_event import (
     SafetyDeactivationIssuedWebhookEvent as SafetyDeactivationIssuedWebhookEvent,
 )

@@ -9,7 +9,12 @@ from .custom_tool import CustomTool
 from .computer_tool import ComputerTool
 from .function_tool import FunctionTool
 from .namespace_tool import NamespaceTool
-from .web_search_tool import WebSearchTool
+from .web_search_tool import (
+    Filters as _compat_WebSearchToolFilters,
+    UserLocation as _compat_WebSearchToolUserLocation,
+    WebSearchTool,
+    WebSearchTool as WebSearchTool,
+)
 from .apply_patch_tool import ApplyPatchTool
 from .file_search_tool import FileSearchTool
 from .tool_search_tool import ToolSearchTool
@@ -36,6 +41,7 @@ __all__ = [
     "ImageGeneration",
     "ImageGenerationInputImageMask",
     "LocalShell",
+    "WebSearchTool",
 ]
 
 
@@ -387,3 +393,7 @@ Tool: TypeAlias = Annotated[
     ],
     PropertyInfo(discriminator="type"),
 ]
+
+WebSearchToolFilters: TypeAlias = _compat_WebSearchToolFilters
+
+WebSearchToolUserLocation: TypeAlias = _compat_WebSearchToolUserLocation

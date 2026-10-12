@@ -39,6 +39,16 @@ __all__ = [
     "ResponseCreateStreamOptions",
     "ResponseCreateToolChoice",
     "ResponseCreateToolChoiceSpecificProgrammaticToolCallingParam",
+    "ContextManagement",
+    "Conversation",
+    "Moderation",
+    "ModerationPolicy",
+    "ModerationPolicyInput",
+    "ModerationPolicyOutput",
+    "PromptCacheOptions",
+    "StreamOptions",
+    "ToolChoice",
+    "ToolChoiceSpecificProgrammaticToolCallingParam",
 ]
 
 
@@ -510,3 +520,23 @@ class ResponseCreate(TypedDict, total=False):
 
 
 ResponsesClientEventParam: TypeAlias = Union[ResponseCreate, ResponseSteerEventParam]
+
+ContextManagement: TypeAlias = ResponseCreateContextManagement
+
+Conversation: TypeAlias = ResponseCreateConversation
+
+Moderation: TypeAlias = ResponseCreateModeration
+
+ModerationPolicy: TypeAlias = ResponseCreateModerationPolicy
+
+ModerationPolicyInput: TypeAlias = ResponseCreateModerationPolicyInput
+
+ModerationPolicyOutput: TypeAlias = ResponseCreateModerationPolicyOutput
+
+PromptCacheOptions: TypeAlias = ResponseCreatePromptCacheOptions
+
+StreamOptions: TypeAlias = ResponseCreateStreamOptions
+
+ToolChoice: TypeAlias = ResponseCreateToolChoice
+
+ToolChoiceSpecificProgrammaticToolCallingParam: TypeAlias = ResponseCreateToolChoiceSpecificProgrammaticToolCallingParam

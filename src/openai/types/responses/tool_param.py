@@ -10,7 +10,12 @@ from .custom_tool_param import CustomToolParam
 from .computer_tool_param import ComputerToolParam
 from .function_tool_param import FunctionToolParam
 from .namespace_tool_param import NamespaceToolParam
-from .web_search_tool_param import WebSearchToolParam
+from .web_search_tool_param import (
+    Filters as _compat_WebSearchToolFilters,
+    UserLocation as _compat_WebSearchToolUserLocation,
+    WebSearchToolParam,
+    WebSearchToolParam as _compat_WebSearchTool,
+)
 from .apply_patch_tool_param import ApplyPatchToolParam
 from .file_search_tool_param import FileSearchToolParam
 from .tool_search_tool_param import ToolSearchToolParam
@@ -382,3 +387,9 @@ ToolParam: TypeAlias = Union[
     WebSearchPreviewToolParam,
     ApplyPatchToolParam,
 ]
+
+WebSearchTool: TypeAlias = _compat_WebSearchTool
+
+WebSearchToolFilters: TypeAlias = _compat_WebSearchToolFilters
+
+WebSearchToolUserLocation: TypeAlias = _compat_WebSearchToolUserLocation

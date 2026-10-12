@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
-from typing import Dict, List, Union, Optional
+from typing import Dict, List, Union, Optional, cast
 from typing_extensions import Literal, Annotated, TypeAlias
 
 from .tool import Tool
@@ -551,3 +551,19 @@ class Response(BaseModel):
     similar requests and to help OpenAI detect and prevent abuse.
     [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
     """
+
+    @property
+    def output_text(self) -> str:
+        """Convenience property that aggregates all `output_text` items from the `output` list.
+
+        If no `output_text` content blocks exist, then an empty string is returned.
+        """
+        texts: list[str] = []
+        for output in self.output:
+            if output.type == "message":
+                for content in output.content:
+                    if content.type == "output_text":
+                        text = cast(Optional[str], content.text)
+                        if text is not None:
+                            texts.append(text)
+        return "".join(texts)
