@@ -12,6 +12,7 @@ from tests.utils import assert_matches_type
 from openai.types.admin.organization import (
     UsageCostsResponse,
     UsageImagesResponse,
+    UsageDecisionsResponse,
     UsageEmbeddingsResponse,
     UsageCompletionsResponse,
     UsageModerationsResponse,
@@ -258,6 +259,54 @@ class TestUsage:
 
             usage = response.parse()
             assert_matches_type(UsageCostsResponse, usage, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    def test_method_decisions(self, client: OpenAI) -> None:
+        usage = client.admin.organization.usage.decisions(
+            start_time=0,
+        )
+        assert_matches_type(UsageDecisionsResponse, usage, path=["response"])
+
+    @parametrize
+    def test_method_decisions_with_all_params(self, client: OpenAI) -> None:
+        usage = client.admin.organization.usage.decisions(
+            start_time=0,
+            api_key_ids=["string"],
+            batch=True,
+            bucket_width="1m",
+            end_time=0,
+            group_by=["project_id"],
+            limit=0,
+            models=["string"],
+            page="page",
+            project_ids=["string"],
+            user_ids=["string"],
+        )
+        assert_matches_type(UsageDecisionsResponse, usage, path=["response"])
+
+    @parametrize
+    def test_raw_response_decisions(self, client: OpenAI) -> None:
+        response = client.admin.organization.usage.with_raw_response.decisions(
+            start_time=0,
+        )
+
+        assert response.is_closed is True
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        usage = response.parse()
+        assert_matches_type(UsageDecisionsResponse, usage, path=["response"])
+
+    @parametrize
+    def test_streaming_response_decisions(self, client: OpenAI) -> None:
+        with client.admin.organization.usage.with_streaming_response.decisions(
+            start_time=0,
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            usage = response.parse()
+            assert_matches_type(UsageDecisionsResponse, usage, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 
@@ -778,6 +827,54 @@ class TestAsyncUsage:
 
             usage = await response.parse()
             assert_matches_type(UsageCostsResponse, usage, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    async def test_method_decisions(self, async_client: AsyncOpenAI) -> None:
+        usage = await async_client.admin.organization.usage.decisions(
+            start_time=0,
+        )
+        assert_matches_type(UsageDecisionsResponse, usage, path=["response"])
+
+    @parametrize
+    async def test_method_decisions_with_all_params(self, async_client: AsyncOpenAI) -> None:
+        usage = await async_client.admin.organization.usage.decisions(
+            start_time=0,
+            api_key_ids=["string"],
+            batch=True,
+            bucket_width="1m",
+            end_time=0,
+            group_by=["project_id"],
+            limit=0,
+            models=["string"],
+            page="page",
+            project_ids=["string"],
+            user_ids=["string"],
+        )
+        assert_matches_type(UsageDecisionsResponse, usage, path=["response"])
+
+    @parametrize
+    async def test_raw_response_decisions(self, async_client: AsyncOpenAI) -> None:
+        response = await async_client.admin.organization.usage.with_raw_response.decisions(
+            start_time=0,
+        )
+
+        assert response.is_closed is True
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        usage = response.parse()
+        assert_matches_type(UsageDecisionsResponse, usage, path=["response"])
+
+    @parametrize
+    async def test_streaming_response_decisions(self, async_client: AsyncOpenAI) -> None:
+        async with async_client.admin.organization.usage.with_streaming_response.decisions(
+            start_time=0,
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            usage = await response.parse()
+            assert_matches_type(UsageDecisionsResponse, usage, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 

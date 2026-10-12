@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import List
+from typing import List, Optional
 from typing_extensions import Literal
 
 import httpx2
@@ -17,6 +17,7 @@ from ...._base_client import make_request_options
 from ....types.admin.organization import (
     usage_costs_params,
     usage_images_params,
+    usage_decisions_params,
     usage_embeddings_params,
     usage_completions_params,
     usage_moderations_params,
@@ -29,6 +30,7 @@ from ....types.admin.organization import (
 )
 from ....types.admin.organization.usage_costs_response import UsageCostsResponse
 from ....types.admin.organization.usage_images_response import UsageImagesResponse
+from ....types.admin.organization.usage_decisions_response import UsageDecisionsResponse
 from ....types.admin.organization.usage_embeddings_response import UsageEmbeddingsResponse
 from ....types.admin.organization.usage_completions_response import UsageCompletionsResponse
 from ....types.admin.organization.usage_moderations_response import UsageModerationsResponse
@@ -486,6 +488,103 @@ class Usage(SyncAPIResource):
                 security={"admin_api_key_auth": True},
             ),
             cast_to=UsageCostsResponse,
+        )
+
+    def decisions(
+        self,
+        *,
+        start_time: int,
+        api_key_ids: Optional[SequenceNotStr[str]] | Omit = omit,
+        batch: Optional[bool] | Omit = omit,
+        bucket_width: Optional[Literal["1m", "1h", "1d"]] | Omit = omit,
+        end_time: Optional[int] | Omit = omit,
+        group_by: Optional[
+            List[Literal["project_id", "user_id", "api_key_id", "model", "batch", "service_tier", "api_source"]]
+        ]
+        | Omit = omit,
+        limit: Optional[int] | Omit = omit,
+        models: Optional[SequenceNotStr[str]] | Omit = omit,
+        page: Optional[str] | Omit = omit,
+        project_ids: Optional[SequenceNotStr[str]] | Omit = omit,
+        user_ids: Optional[SequenceNotStr[str]] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> UsageDecisionsResponse:
+        """
+        Get Decisions API usage details for the organization.
+
+        Args:
+          start_time: Start time (Unix seconds) of the query time range, inclusive.
+
+          api_key_ids: Return only usage for these API keys.
+
+          batch: If `true`, return batch jobs only. If `false`, return non-batch jobs only. By
+              default, return both.
+
+          bucket_width: Width of each time bucket in response. Currently `1m`, `1h` and `1d` are
+              supported, default to `1d`.
+
+          end_time: End time (Unix seconds) of the query time range, exclusive.
+
+          group_by: Group the usage data by the specified fields. Support fields include
+              `project_id`, `user_id`, `api_key_id`, `model`, `batch`, `service_tier`,
+              `api_source` or any combination of them. When grouped by `api_source`, results
+              use `agents_api` for attributed Agents API activity and `unlabeled` for all
+              other activity. Without source grouping, `api_source` is null.
+
+          limit: Specifies the number of buckets to return.
+
+              - `bucket_width=1d`: default: 7, max: 31
+              - `bucket_width=1h`: default: 24, max: 168
+              - `bucket_width=1m`: default: 60, max: 1440
+
+          models: Return only usage for these models.
+
+          page: A cursor for use in pagination. Corresponding to the `next_page` field from the
+              previous response.
+
+          project_ids: Return only usage for these projects.
+
+          user_ids: Return only usage for these users.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        return self._get(
+            "/organization/usage/decisions",
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                query=maybe_transform(
+                    {
+                        "start_time": start_time,
+                        "api_key_ids": api_key_ids,
+                        "batch": batch,
+                        "bucket_width": bucket_width,
+                        "end_time": end_time,
+                        "group_by": group_by,
+                        "limit": limit,
+                        "models": models,
+                        "page": page,
+                        "project_ids": project_ids,
+                        "user_ids": user_ids,
+                    },
+                    usage_decisions_params.UsageDecisionsParams,
+                ),
+                security={"admin_api_key_auth": True},
+            ),
+            cast_to=UsageDecisionsResponse,
         )
 
     def embeddings(
@@ -1459,6 +1558,103 @@ class AsyncUsage(AsyncAPIResource):
             cast_to=UsageCostsResponse,
         )
 
+    async def decisions(
+        self,
+        *,
+        start_time: int,
+        api_key_ids: Optional[SequenceNotStr[str]] | Omit = omit,
+        batch: Optional[bool] | Omit = omit,
+        bucket_width: Optional[Literal["1m", "1h", "1d"]] | Omit = omit,
+        end_time: Optional[int] | Omit = omit,
+        group_by: Optional[
+            List[Literal["project_id", "user_id", "api_key_id", "model", "batch", "service_tier", "api_source"]]
+        ]
+        | Omit = omit,
+        limit: Optional[int] | Omit = omit,
+        models: Optional[SequenceNotStr[str]] | Omit = omit,
+        page: Optional[str] | Omit = omit,
+        project_ids: Optional[SequenceNotStr[str]] | Omit = omit,
+        user_ids: Optional[SequenceNotStr[str]] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> UsageDecisionsResponse:
+        """
+        Get Decisions API usage details for the organization.
+
+        Args:
+          start_time: Start time (Unix seconds) of the query time range, inclusive.
+
+          api_key_ids: Return only usage for these API keys.
+
+          batch: If `true`, return batch jobs only. If `false`, return non-batch jobs only. By
+              default, return both.
+
+          bucket_width: Width of each time bucket in response. Currently `1m`, `1h` and `1d` are
+              supported, default to `1d`.
+
+          end_time: End time (Unix seconds) of the query time range, exclusive.
+
+          group_by: Group the usage data by the specified fields. Support fields include
+              `project_id`, `user_id`, `api_key_id`, `model`, `batch`, `service_tier`,
+              `api_source` or any combination of them. When grouped by `api_source`, results
+              use `agents_api` for attributed Agents API activity and `unlabeled` for all
+              other activity. Without source grouping, `api_source` is null.
+
+          limit: Specifies the number of buckets to return.
+
+              - `bucket_width=1d`: default: 7, max: 31
+              - `bucket_width=1h`: default: 24, max: 168
+              - `bucket_width=1m`: default: 60, max: 1440
+
+          models: Return only usage for these models.
+
+          page: A cursor for use in pagination. Corresponding to the `next_page` field from the
+              previous response.
+
+          project_ids: Return only usage for these projects.
+
+          user_ids: Return only usage for these users.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        return await self._get(
+            "/organization/usage/decisions",
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                query=await async_maybe_transform(
+                    {
+                        "start_time": start_time,
+                        "api_key_ids": api_key_ids,
+                        "batch": batch,
+                        "bucket_width": bucket_width,
+                        "end_time": end_time,
+                        "group_by": group_by,
+                        "limit": limit,
+                        "models": models,
+                        "page": page,
+                        "project_ids": project_ids,
+                        "user_ids": user_ids,
+                    },
+                    usage_decisions_params.UsageDecisionsParams,
+                ),
+                security={"admin_api_key_auth": True},
+            ),
+            cast_to=UsageDecisionsResponse,
+        )
+
     async def embeddings(
         self,
         *,
@@ -2003,6 +2199,9 @@ class UsageWithRawResponse:
         self.costs = _legacy_response.to_raw_response_wrapper(
             usage.costs,
         )
+        self.decisions = _legacy_response.to_raw_response_wrapper(
+            usage.decisions,
+        )
         self.embeddings = _legacy_response.to_raw_response_wrapper(
             usage.embeddings,
         )
@@ -2041,6 +2240,9 @@ class AsyncUsageWithRawResponse:
         )
         self.costs = _legacy_response.async_to_raw_response_wrapper(
             usage.costs,
+        )
+        self.decisions = _legacy_response.async_to_raw_response_wrapper(
+            usage.decisions,
         )
         self.embeddings = _legacy_response.async_to_raw_response_wrapper(
             usage.embeddings,
@@ -2081,6 +2283,9 @@ class UsageWithStreamingResponse:
         self.costs = to_streamed_response_wrapper(
             usage.costs,
         )
+        self.decisions = to_streamed_response_wrapper(
+            usage.decisions,
+        )
         self.embeddings = to_streamed_response_wrapper(
             usage.embeddings,
         )
@@ -2119,6 +2324,9 @@ class AsyncUsageWithStreamingResponse:
         )
         self.costs = async_to_streamed_response_wrapper(
             usage.costs,
+        )
+        self.decisions = async_to_streamed_response_wrapper(
+            usage.decisions,
         )
         self.embeddings = async_to_streamed_response_wrapper(
             usage.embeddings,
