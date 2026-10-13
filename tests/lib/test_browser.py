@@ -1012,6 +1012,7 @@ async def test_observed_long_title_is_projected(
     result = payload(await execute_read(lane, Driver("Visible text"), "read_page"))
     state = cast(BrowserState, result["state"])
     assert state["tabs"][0]["title"] == expected
+    assert "observation" in state
     assert state["observation"]["title_truncated"] is truncated
     assert observation["title_truncated"] is already_truncated
 
