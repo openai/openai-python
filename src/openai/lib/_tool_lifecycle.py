@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import inspect
 from uuid import uuid4
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Any, Callable
 from threading import Lock
 from typing_extensions import Literal, TypedDict
 
@@ -22,6 +22,26 @@ def rotated_idempotency_headers(client: OpenAI | AsyncOpenAI, extra: Headers | N
         **{name: value for name, value in headers.items() if name.lower() != "idempotency-key"},
         "Idempotency-Key": f"stainless-python-retry-{uuid4()}",
     }
+
+
+def callable_flavor(method: Callable[..., object]) -> bool | None:
+    """Report known awaitable results without invoking opaque driver wrappers."""
+    target = inspect.unwrap(method)
+    returns_awaitable = inspect.iscoroutinefunction(target)
+    if not returns_awaitable and not inspect.isroutine(target):
+        returns_awaitable = inspect.iscoroutinefunction(inspect.unwrap(target.__call__))
+    if not returns_awaitable:
+        try:
+            annotation = inspect.signature(target).return_annotation
+        except (TypeError, ValueError):
+            return None
+        if annotation is inspect.Signature.empty or annotation is Any or annotation is object:
+            return None
+        text = str(annotation)
+        if text in ("Any", "typing.Any", "object", "builtins.object"):
+            return None
+        returns_awaitable = any(name in text for name in ("Awaitable[", "Coroutine[", "Future["))
+    return returns_awaitable
 
 
 class CloseStatus(TypedDict):

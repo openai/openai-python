@@ -485,7 +485,7 @@ def _plain(value: object, *, allow_omitted: bool = False) -> object:
     raise ValueError("Checkpoint data must be plain JSON values.")
 
 
-def _history_calls(history: ResponseInputParam, tools: list[ToolParam]) -> set[str]:
+def _history_calls(history: ResponseInputParam, tools: list[ToolParam], *, budget_only: bool = False) -> set[str]:
     # Modern computer calls can omit the legacy checklist; validate these with
     # the same action parser as dispatch, without changing the saved input.
     try:
@@ -502,8 +502,19 @@ def _history_calls(history: ResponseInputParam, tools: list[ToolParam]) -> set[s
     approvals: dict[str, dict[str, object]] = {}
     approved: dict[str, dict[str, object]] = {}
     answered: set[str] = set()
-    for item in cast(list[dict[str, object]], history):
+    for index, item in enumerate(cast(list[dict[str, object]], history)):
         kind = item.get("type", "message")
+        if budget_only:
+            if kind == "compaction_trigger":
+                if index != len(history) - 1:
+                    raise ValueError("A compaction trigger must be the final input item.")
+                continue
+            if kind == "item_reference" or (
+                item.get("type") is None and "id" in item and "role" not in item and "content" not in item
+            ):
+                if type(item.get("id")) is not str:
+                    raise ValueError("Item references require a native string ID.")
+                continue
         if kind in ("function_call", "computer_call"):
             call_id = item.get("call_id")
             if type(call_id) is not str or call_id in calls:
@@ -519,7 +530,7 @@ def _history_calls(history: ResponseInputParam, tools: list[ToolParam]) -> set[s
                     or not _valid_function_metadata(item)
                 ):
                     raise ValueError("Replay history has an unregistered function.")
-                if type(json.loads(arguments)) is not dict:
+                if type(json.loads(arguments, parse_constant=_invalid_function_constant)) is not dict:
                     raise ValueError("Replay function arguments must be a JSON object.")
             else:
                 if not computer:
@@ -1248,7 +1259,7 @@ class _Run:
                 }
             )
         projected: ResponseInputParam = [*messages, *cast(ResponseInputParam, retained)]
-        _history_calls(projected, self.tools)
+        _history_calls(projected, self.tools, budget_only=self.ledger is None)
         size, images = self.context_size(projected)
         assert self.context_budget is not None
         if size > self.context_budget["max_input_bytes"] or images > self.context_budget["max_input_images"]:
@@ -1266,7 +1277,9 @@ class _Run:
         ):
             raise ValueError("Checkpoint revision or original request budget is invalid.")
         history = cast(ResponseInputParam, _plain(self.history))
-        self._seen = _history_calls(history, self.tools)
+        self._seen = _history_calls(
+            history, self.tools, budget_only=self.ledger is None and self.context_budget is not None
+        )
         if self.attempted != self.completed or any(call_id not in self._seen for call_id in self.completed):
             raise ValueError("A boundary cannot contain unresolved call receipts.")
         if any(type(call_id) is not str for call_id in self.attempted) or len(set(self.attempted)) != len(
@@ -1386,6 +1399,12 @@ class _Run:
         self.pending_items = None
         self.turn_seen = self._seen.copy()
         self.stream_seen = self.turn_seen.copy()
+        self.turn_native_ids = {
+            cast(str, item["id"])
+            for item in cast(list[dict[str, object]], self.history)
+            if type(item.get("id")) is str and item["id"] != ""
+        }
+        self.stream_native_ids = self.turn_native_ids.copy()
         self.stream_items: dict[int, dict[str, object]] = {}
         self.arguments: dict[str, object] = {}
         self.deferred = False
@@ -1513,6 +1532,7 @@ class _Run:
         """Execute only the contiguous prefix. Defer any gap until final output is reconciled."""
         if type(index) is not int or index < 0 or index in self.stream_items:
             raise self.error("Tool stream output item index is invalid or duplicated.")
+        self.validate_native_id(item, self.stream_native_ids)
         local = self.validate(item, self.stream_seen)
         if index != len(self.stream_items):
             self.deferred = True
@@ -1529,25 +1549,28 @@ class _Run:
             self.deferred = True
         return not self.deferred
 
+    def validate_native_id(self, item: ResponseOutputItem, seen: set[str]) -> None:
+        item_id = getattr(item, "id", None)
+        if type(item_id) is str:
+            if item_id in seen:
+                raise self.error("Response output item IDs must be unique across the run.")
+            seen.add(item_id)
+
     def preflight(self, response: Response, *, selective: bool = False) -> bool:
         if response.status != "completed":
             raise self.error("Response did not complete.")
         # Already executed prefix IDs belong to this turn, not to its baseline.
         seen = self.turn_seen.copy()
-        native_ids: set[str] = set()
+        native_ids = self.turn_native_ids.copy()
         tools = False
         for item in response.output:
+            self.validate_native_id(item, native_ids)
             tools |= self.validate(item, seen)
             if item.type == "mcp_call":
                 try:
                     _validated_mcp_call(_wire(item), self.approved_mcp)
                 except ValueError:
                     raise self.error("Server tool did not match its approval.") from None
-            item_id = getattr(item, "id", None)
-            if type(item_id) is str:
-                if item_id in native_ids:
-                    raise self.error("Response output item IDs must be unique within a turn.")
-                native_ids.add(item_id)
         if selective:
             if not _same_stream_output(
                 [self.stream_items[index] for index in sorted(self.stream_items)],
@@ -1666,6 +1689,13 @@ class _Run:
             ):
                 return True
             raise self.error("Response has no completed final message or tool call.")
+        if (
+            self.context_budget is not None
+            and self.ledger is None
+            and self.history
+            and self.history[-1].get("type") == "compaction_trigger"
+        ):
+            self.history.pop()
         self.history.extend(cast(ResponseInputParam, deepcopy(self.items)))
         self.history.extend(self.outputs)
         return False

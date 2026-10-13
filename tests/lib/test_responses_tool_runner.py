@@ -26,7 +26,7 @@ from openai.lib.browser import (
     BrowserConfirmContext,
 )
 from openai.lib.computer import ComputerToolset, ComputerActionInput, AsyncComputerToolset
-from openai.types.responses import Response, ResponseOutputItem, ResponseFunctionToolCall
+from openai.types.responses import Response, ResponseInputParam, ResponseOutputItem, ResponseFunctionToolCall
 from openai.lib.tool_diagnostics import ToolDiagnostic
 from openai.lib.responses_tool_runner import (
     ContextBudget,
@@ -6053,3 +6053,150 @@ async def test_duplicate_native_item_ids_stop_before_local_effect(lane: str, kin
         await run(lane, None, [resp([call, other], "first"), FINAL], requests, params=params, effects=effects)
     assert requests and len(requests) == 1
     assert effects == []
+
+
+@pytest.mark.parametrize("lane", ["sync", "async"])
+@pytest.mark.parametrize("mode", ["turn", "eager", "input", "resume"])
+async def test_native_item_id_cannot_be_reused_after_prior_turn(lane: str, mode: str) -> None:
+    original = fn("record", "old", text="first")
+    reused = {**fn("record", "new", text="second"), "id": original["id"]}
+    requests: list[dict[str, Any]] = []
+    effects: list[str] = []
+    records: list[ResponsesToolCheckpoint] = []
+    resume: ResponsesToolCheckpoint | None = None
+    params = PARAMS.copy()
+    if mode == "input":
+        params["input"] = cast(
+            ResponseInputParam,
+            [original, {"type": "function_call_output", "call_id": "old", "output": "first"}],
+        )
+    if mode == "resume":
+        await run(
+            lane,
+            None,
+            [resp([original], "old_response"), FINAL],
+            [],
+            effects=effects,
+            save=records.append,
+            max_steps=4,
+        )
+        resume = next(row for row in records if row["phase"] == "boundary" and row["returned_call_ids"])
+    responses = ([resp([original], "old_response")] if mode in ("turn", "eager") else []) + [
+        resp([reused], "new_response"),
+        FINAL,
+    ]
+    with pytest.raises(ToolRunnerError, match="item ID"):
+        await run(
+            lane,
+            None,
+            responses,
+            requests,
+            params=params,
+            effects=effects,
+            stream=mode == "eager",
+            eager=mode == "eager",
+            save=records.append if mode == "resume" else None,
+            resume=resume,
+            max_steps=4,
+        )
+    assert effects == ([] if mode == "input" else ["first"])
+    assert len(requests) == (2 if mode in ("turn", "eager") else 1)
+
+
+@pytest.mark.parametrize("lane", ["sync", "async"])
+async def test_empty_optional_function_ids_remain_unassigned_across_turns(lane: str) -> None:
+    first = {**fn("record", "first", text="one"), "id": ""}
+    second = {**fn("record", "second", text="two"), "id": ""}
+    effects: list[str] = []
+    requests: list[dict[str, Any]] = []
+    await run(lane, None, [resp([first], "first"), resp([second], "second"), FINAL], requests, effects=effects)
+    assert effects == ["one", "two"]
+    assert len(requests) == 3
+
+
+@pytest.mark.parametrize("lane", ["sync", "async"])
+@pytest.mark.parametrize(
+    "reference",
+    [{"type": "item_reference", "id": "ref_fixture"}, {"id": "ref_fixture"}, {"type": None, "id": "ref_fixture"}],
+)
+async def test_budget_retains_native_reference_and_consumes_trigger(lane: str, reference: dict[str, object]) -> None:
+    original = cast(
+        ResponseInputParam,
+        [
+            fn("record", "old", text="old"),
+            {"type": "function_call_output", "call_id": "old", "output": "x" * 4000},
+            reference,
+            {"type": "compaction_trigger"},
+        ],
+    )
+    before = deepcopy(original)
+    params: ResponseCreateParamsNonStreaming = {**PARAMS, "input": original}
+    requests: list[dict[str, Any]] = []
+    effects: list[str] = []
+    await run(
+        lane,
+        None,
+        [resp([fn("record", "new", text="new")], "next"), FINAL],
+        requests,
+        params=params,
+        effects=effects,
+        context_budget={
+            "max_input_bytes": 1200,
+            "max_input_images": 0,
+            "compact": lambda snapshot: {"drop_call_ids": snapshot["eligible_call_ids"]},
+        },
+    )
+    assert reference in requests[0]["input"] and reference in requests[1]["input"]
+    assert requests[0]["input"][-1] == {"type": "compaction_trigger"}
+    assert all(item.get("type") != "compaction_trigger" for item in requests[1]["input"])
+    assert effects == ["new"] and original == before
+
+
+@pytest.mark.parametrize("lane", ["sync", "async"])
+@pytest.mark.parametrize("mode", ["input", "resume"])
+@pytest.mark.parametrize("constant", ["NaN", "Infinity", "-Infinity"])
+async def test_ledger_rejects_non_json_function_constants(lane: str, mode: str, constant: str) -> None:
+    valid = fn("record", "old", text="first")
+    invalid = {**valid, "arguments": '{"text":' + constant + "}"}
+    requests: list[dict[str, Any]] = []
+    effects: list[str] = []
+    records: list[ResponsesToolCheckpoint] = []
+    resume: ResponsesToolCheckpoint | None = None
+    params = PARAMS.copy()
+    if mode == "input":
+        params["input"] = cast(
+            ResponseInputParam,
+            [invalid, {"type": "function_call_output", "call_id": "old", "output": "first"}],
+        )
+    else:
+        await run(
+            lane,
+            None,
+            [resp([valid], "old_response"), FINAL],
+            [],
+            effects=effects,
+            save=records.append,
+            max_steps=4,
+        )
+        boundary = next(row for row in records if row["phase"] == "boundary" and row["returned_call_ids"])
+        resume = deepcopy(boundary)
+        resume["history"] = cast(
+            ResponseInputParam,
+            [invalid if item.get("type") == "function_call" else item for item in resume["history"]],
+        )
+    previous_writes = len(records)
+    with pytest.raises(ValueError):
+        await run(
+            lane,
+            None,
+            [FINAL],
+            requests,
+            params=params,
+            effects=effects,
+            save=records.append,
+            resume=resume,
+            max_steps=4,
+        )
+    assert requests == []
+    assert len(records) == previous_writes
+    assert effects == ([] if mode == "input" else ["first"])
