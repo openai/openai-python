@@ -102,7 +102,10 @@ class ActionAdmissionTests(unittest.TestCase):
                     {"ok": False, "uncertain": False, "error": "Unsupported or invalid action."},
                 )
                 self.assertFalse((root / "oversized-entered").exists())
-                requested = {"type": "type", "text": "synthetic fixture " * 192 + "\nDesktop receipt D-2201"}
+                requested: dict[str, object] = {
+                    "type": "type",
+                    "text": "synthetic fixture " * 192 + "\nDesktop receipt D-2201",
+                }
                 effect = send("input", requested)
                 self.assertTrue(wait_for(root / "input-validated"), "The next action never reached admission.")
                 self.assertFalse(wait_for(root / "input-entered", 0.2), "Input overlapped an abandoned read.")

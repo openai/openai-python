@@ -154,7 +154,7 @@ async def main() -> None:
                         checks += 3
                     finally:
                         await fixture.close()
-                for member in ("read_page", "find", "click"):
+                for member in ("state", "read_page", "find", "click"):
                     fixture = await browser.new_context()
                     borrowed = PlaywrightBrowser(fixture, {origin})
                     sentinel = await browser.new_page()
@@ -166,7 +166,15 @@ async def main() -> None:
                         prior = await borrowed.read_page({"tab_id": selected, "filter": "all"})
                         assert not isinstance(prior, str)
                         ref = prior["elements"][0]["ref"]
-                        await target.evaluate("""() => {
+                        await target.evaluate("""(operation) => {
+                            if (operation === 'state') {
+                                Object.defineProperty(document, 'title', {get() {
+                                    const until = performance.now() + 8000;
+                                    while (performance.now() < until) {}
+                                    return 'Fixture title';
+                                }});
+                                return;
+                            }
                             const matches = Element.prototype.matches;
                             let once = true;
                             Element.prototype.matches = function(selector) {
@@ -177,10 +185,12 @@ async def main() -> None:
                                 }
                                 return matches.call(this, selector);
                             };
-                        }""")
+                        }""", member)
                         started = asyncio.get_running_loop().time()
                         try:
-                            if member == "read_page":
+                            if member == "state":
+                                await borrowed.state()
+                            elif member == "read_page":
                                 await borrowed.read_page({"tab_id": selected, "filter": "all"})
                             elif member == "find":
                                 await borrowed.find({"tab_id": selected, "query": "Current choice"})

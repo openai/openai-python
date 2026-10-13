@@ -1628,7 +1628,9 @@ class PlaywrightBrowser:
                 pass
 
     async def state(self, *, cancelled: Callable[[], bool] | None = None) -> BrowserState:
-        return await self._observation(self._observe_state, cancelled)
+        return await self._observation(
+            self._observe_state, cancelled, timeout=None if self.owned_fixture_urls is not None else 5
+        )
 
     async def _observe_state(self) -> BrowserState:
         self._usable()

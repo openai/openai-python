@@ -2212,3 +2212,41 @@ async def test_incomplete_computer_driver_is_rejected_before_effects(mode: str, 
         else:
             AsyncComputerToolset(current)
     assert driver.actions == []
+
+
+@pytest.mark.parametrize("mode", ["sync", "async"])
+def test_computer_driver_flavor_is_rejected_before_effects(mode: str) -> None:
+    driver = Driver()
+    wrong: Any = AsyncDriver(driver) if mode == "sync" else driver
+    with pytest.raises(ValueError, match="Computer member.*method flavor"):
+        if mode == "sync":
+            ComputerToolset(wrong)
+        else:
+            AsyncComputerToolset(wrong)
+    assert driver.actions == []
+
+
+@pytest.mark.parametrize("mode", ["sync", "async"])
+@pytest.mark.parametrize("annotation", [Any, "Any", object, "object"])
+async def test_computer_driver_opaque_return_annotation(mode: str, annotation: object) -> None:
+    driver = Driver()
+    implementation = driver if mode == "sync" else AsyncDriver(driver)
+
+    class Wrapper:
+        def __getattr__(self, member: str) -> Any:
+            method = getattr(implementation, member)
+
+            def wrapped(*args: Any, **kwargs: Any) -> Any:
+                return method(*args, **kwargs)
+
+            wrapped.__annotations__["return"] = annotation
+            return wrapped
+
+    wrapped: Any = Wrapper()
+    pending = ResponseComputerToolCall(**call(actions=[{"type": "wait"}]))
+    if mode == "sync":
+        result = ComputerToolset(wrapped).execute(pending)
+    else:
+        result = await AsyncComputerToolset(wrapped).execute(pending)
+    assert result["output"] == SCREENSHOT
+    assert driver.actions == ["wait", "screenshot"]

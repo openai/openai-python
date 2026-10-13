@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import os
 import sys
+import signal
 import argparse
 import subprocess
 from pathlib import Path
+from contextlib import suppress
 
 import openai
 
@@ -46,6 +48,7 @@ CASES: dict[str, list[tuple[str, ...]]] = {
         ("examples/computer/exercise.py",),
         ("examples/computer-desktop/exercise.py", "--check-frames"),
         ("examples/computer-desktop/exercise_helper_env.py",),
+        ("examples/computer-desktop/exercise_container.py",),
         ("examples/computer-desktop/guest/test_action_admission.py",),
         ("examples/computer-desktop/guest/test_receipt.py",),
     ],
@@ -56,6 +59,19 @@ CASES: dict[str, list[tuple[str, ...]]] = {
     ],
     "daytona": [("examples/computer-daytona/exercise.py",)],
 }
+
+
+def run_case(command: list[str], env: dict[str, str], *, timeout: float = 120) -> None:
+    with subprocess.Popen(command, cwd=ROOT, env=env, start_new_session=True) as process:
+        try:
+            code = process.wait(timeout=timeout)
+        except BaseException:
+            with suppress(ProcessLookupError):
+                os.killpg(process.pid, signal.SIGKILL)
+            process.wait()
+            raise
+        if code:
+            raise subprocess.CalledProcessError(code, command)
 
 
 def main() -> None:
@@ -76,7 +92,7 @@ def main() -> None:
         # Exercises import neighboring example modules and the exact checkout.
         env["PYTHONPATH"] = os.pathsep.join((str(ROOT / "src"), str(script.parent)))
         print(f"Running {script.relative_to(ROOT)} {' '.join(command[1:])}", flush=True)
-        subprocess.run([sys.executable, "-B", str(script), *command[1:]], cwd=ROOT, env=env, check=True, timeout=120)
+        run_case([sys.executable, "-B", str(script), *command[1:]], env)
 
 
 if __name__ == "__main__":

@@ -113,6 +113,12 @@ def run_sync(runtime_dir: Path) -> None:
             )
         )
         long_text = desktop.verify()
+        for _ in range(5):
+            if not long_text["file_empty"]:
+                break
+            # Wait for the actual local editor save receipt, within five normal GUI waits.
+            desktop.operation(lambda tools: tools.execute(call(action.Wait(type="wait"))))
+            long_text = desktop.verify()
         assert not long_text["file_empty"] and not long_text["file_matches"]
         assert not long_text["browser_matches"] and long_text["browser_effects"] == 0
         # Removing the prefix through the editor proves the exact suffix after character 2,000 reached the file.

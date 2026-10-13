@@ -17,7 +17,7 @@ from .._types import Headers
 from .._utils import transform
 from .._compat import PYDANTIC_V1, model_copy, get_model_fields
 from .._utils._json import openapi_dumps
-from ._tool_lifecycle import CloseStatus, ToolLifecycle, invoke, rotated_idempotency_headers
+from ._tool_lifecycle import CloseStatus, ToolLifecycle, invoke, callable_flavor, rotated_idempotency_headers
 from ..types.responses import (
     Response,
     ResponseOutputItem,
@@ -544,12 +544,18 @@ def _check_cancelled(cancelled: Callable[[], bool] | None, response: Response | 
         raise ComputerUseError("Computer run was cancelled", response)
 
 
-def _computer_handlers(driver: ComputerDriver | AsyncComputerDriver) -> dict[str, Callable[..., object]]:
+def _computer_handlers(
+    driver: ComputerDriver | AsyncComputerDriver, *, asynchronous: bool
+) -> dict[str, Callable[..., object]]:
     handlers: dict[str, Callable[..., object]] = {}
     for member in ("click", "double_click", "drag", "keypress", "move", "screenshot", "scroll", "type", "wait"):
         handler = getattr(driver, member, None)
         if not callable(handler):
             raise ValueError("Computer toolset requires callable computer driver methods.")
+        returns_awaitable = callable_flavor(handler)
+        if returns_awaitable is not None and returns_awaitable != asynchronous:
+            correct = "AsyncComputerToolset" if returns_awaitable else "ComputerToolset"
+            raise ValueError(f"Computer member {member!r} has the wrong method flavor; use {correct}.")
         handlers[member] = handler
     return handlers
 
@@ -563,7 +569,7 @@ class ComputerToolset:
 
     def __init__(self, driver: ComputerDriver) -> None:
         self.driver = driver
-        self._handlers = _computer_handlers(driver)
+        self._handlers = _computer_handlers(driver, asynchronous=False)
         self._lifecycle = ToolLifecycle("Computer toolset")
 
     def close(self) -> CloseStatus:
@@ -783,7 +789,7 @@ class AsyncComputerToolset:
 
     def __init__(self, driver: AsyncComputerDriver) -> None:
         self.driver = driver
-        self._handlers = _computer_handlers(driver)
+        self._handlers = _computer_handlers(driver, asynchronous=True)
         self._lifecycle = ToolLifecycle("Computer toolset")
 
     def close(self) -> CloseStatus:

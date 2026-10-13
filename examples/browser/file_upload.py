@@ -98,6 +98,10 @@ class UploadOwner:
         approve: Callable[[Mapping[str, object]], Awaitable[object]],
         after_stat: Callable[[], Awaitable[None]] = no_hook,
     ) -> UploadOwner:
+        if not getattr(os, "O_NOFOLLOW", None) or not getattr(os, "O_NONBLOCK", None):
+            raise ValueError(
+                "Uploads are not supported on this platform: non-following, nonblocking file opens are required."
+            )
         area = Path(tempfile.mkdtemp(prefix="openai-file-upload-"))
         document: JSHandle | None = None
 
