@@ -35,13 +35,21 @@ def save(path: Path, data: object) -> None:
         file.write("\n")
 
 
-def resolved_sdk_files(node: Path, python: Path, node_package: Path, python_package: Path) -> list[Path]:
-    # Resolve exactly as the entry points do; importing these SDK modules performs no request.
-    env = {
+def evaluation_environment() -> dict[str, str]:
+    environment = {
         key: value
         for key, value in os.environ.items()
-        if not key.startswith("OPENAI_") and key != "LONG_WORKFLOW_MODEL"
+        if not key.startswith(("OPENAI_", "PYTHON", "LD_", "DYLD_"))
+        and key not in ("LONG_WORKFLOW_MODEL", "NODE_OPTIONS", "NODE_PATH")
     }
+    environment["PYTHONNOUSERSITE"] = "1"
+    environment["PYTHONDONTWRITEBYTECODE"] = "1"
+    return environment
+
+
+def resolved_sdk_files(node: Path, python: Path, node_package: Path, python_package: Path) -> list[Path]:
+    # Resolve exactly as the entry points do; importing these SDK modules performs no request.
+    env = evaluation_environment()
     resolved_node = subprocess.run(
         [
             "node",
@@ -163,11 +171,7 @@ def main() -> int:
     if digest(manifest_path) != manifest_hash:
         raise RuntimeError("Prospective manifest changed.")
     manifest = json.loads(manifest_path.read_text())
-    environment = {
-        key: value
-        for key, value in os.environ.items()
-        if not key.startswith("OPENAI_") and key != "LONG_WORKFLOW_MODEL"
-    }
+    environment = evaluation_environment()
     models = {"responses": "local", "decisions": "local"}
     if manifest["mode"] == "live":
         if args.private_config is None or digest(args.private_config) != manifest["config_sha256"]:

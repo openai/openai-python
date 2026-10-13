@@ -1021,11 +1021,16 @@ class Run:
             )
             try:
                 response = await network_read(self.http_transport.handle_async_request(request), phase)
-                response.stream = PhaseStream(cast(httpx.AsyncByteStream, response.stream), phase, receipt, started)
                 receipt["phase"] = "headers"
                 receipt["status"] = response.status_code
                 receipt["headersMs"] = round((time.monotonic() - started) * 1000)
                 self.headers_ms += receipt["headersMs"]
+                if response.is_stream_consumed and response.is_closed:
+                    # A custom transport may return cached content whose stream
+                    # has already completed; HTTPX will not iterate it again.
+                    receipt["durationMs"] = round((time.monotonic() - started) * 1000)
+                else:
+                    response.stream = PhaseStream(cast(httpx.AsyncByteStream, response.stream), phase, receipt, started)
             except asyncio.CancelledError:
                 receipt["phase"] = "cancelled"
                 receipt["durationMs"] = round((time.monotonic() - started) * 1000)

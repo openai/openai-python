@@ -188,8 +188,8 @@ class Desktop:
             )
             try:
                 reply = json.loads(raw)
-            except (UnicodeError, ValueError) as exc:
-                raise ComputerUseError("Invalid desktop reply.") from exc
+            except (UnicodeError, ValueError):
+                reply = None
             if not isinstance(reply, dict):
                 raise ComputerUseError("Invalid desktop reply.")
             fields = cast(dict[str, object], reply)

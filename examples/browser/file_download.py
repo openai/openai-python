@@ -148,12 +148,12 @@ class DownloadOwner:
                 "peakFileBytes": 0,
             }
             return result
-        except asyncio.CancelledError:
-            await abandon()
-            raise
         except Exception:
             await abandon()
             raise ValueError("Result owner initialization refused.") from None
+        except BaseException:
+            await abandon()
+            raise
 
     @property
     def stats(self) -> dict[str, int]:

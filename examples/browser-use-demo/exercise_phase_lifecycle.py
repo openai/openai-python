@@ -104,6 +104,44 @@ async def network_duration_check(outcome: str) -> None:
     assert receipt["durationMs"] == duration and closed == ["stream"], (receipt, closed)
 
 
+async def network_buffered_duration_check(kind: str) -> None:
+    app = Fieldwork(cast(WorkspaceBrowser, None), "http://127.0.0.1:1", desktop_runtime=Path("/synthetic/unused"))
+    run = Run(app, {"environment": "browser", "taskId": "service", "api": "responses", "mode": "live"})
+    app.current = run
+    body = b"event: done\ndata: [DONE]\n\n"
+    response = (
+        httpx.Response(200, json={"answer": "fixture"}, headers={"x-request-id": "local-json"})
+        if kind == "json"
+        else httpx.Response(
+            200, content=body, headers={"content-type": "text/event-stream", "x-request-id": "local-sse"}
+        )
+    )
+    # Custom transports can legally return a complete, buffered response. The SDK
+    # then reads its cached bytes without iterating or closing its stream again.
+    assert response.is_stream_consumed and response.is_closed
+    original = response.stream
+
+    class Transport(httpx.AsyncBaseTransport):
+        @override
+        async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
+            del request
+            return response
+
+    run.http_transport = Transport()
+    returned = await run.dispatch(httpx.Request("POST", "http://127.0.0.1:1/responses"))
+    (receipt,) = [entry for entry in run.receipts if entry["kind"] == "request"]
+    assert receipt["phase"] == "headers" and receipt["durationMs"] >= receipt["headersMs"], receipt
+    assert returned is response and returned.stream is original, "Already closed content needs no stream wrapper"
+    if kind == "json":
+        assert returned.headers["x-request-id"] == "local-json" and returned.json() == {"answer": "fixture"}
+    else:
+        assert returned.headers["x-request-id"] == "local-sse" and await returned.aread() == body
+    duration = receipt["durationMs"]
+    await asyncio.sleep(0.004)
+    await returned.aclose()
+    assert receipt["durationMs"] == duration
+
+
 async def network_phase_check(where: str, transfer: bool) -> None:
     app = Fieldwork(cast(WorkspaceBrowser, None), "http://127.0.0.1:1", desktop_runtime=Path("/synthetic/unused"))
     run = Run(app, {"environment": "browser", "taskId": "service", "api": "responses", "mode": "live"})
@@ -1119,6 +1157,7 @@ async def main() -> None:
             (f"Network duration {outcome}", network_duration_check(outcome))
             for outcome in ("complete", "failed", "cancelled", "closed", "close failure")
         ],
+        *[(f"Buffered {kind} request duration", network_buffered_duration_check(kind)) for kind in ("json", "sse")],
         ("Superseded mixed Host frame failure", superseded_mixed_frame_check()),
         ("mixed launch clean", launch_check(False)),
         ("mixed launch close failure", launch_check(True)),
