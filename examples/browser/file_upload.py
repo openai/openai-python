@@ -173,6 +173,13 @@ class UploadOwner:
 
     async def prepare(self, root: Path, name: object, expires_at: int) -> dict[str, str]:
         if (
+            self.work is None
+            and self.grant is not None
+            and (self.grant["expires_at"] <= milliseconds() or self.grant["session"] != self.active_session)
+        ):
+            self.grant["buffer"][:] = b"\0" * len(self.grant["buffer"])
+            self.grant = None
+        if (
             not self.allowed
             or self.revoked
             or self.work is not None
@@ -187,6 +194,7 @@ class UploadOwner:
             raise ValueError("File preparation refused.")
         # Stop waits for this operation's release, not the caller's next work.
         self.work = completion = asyncio.get_running_loop().create_future()
+        prepared_session = self.active_session
         frozen = bytearray()
         try:
             try:
@@ -214,11 +222,11 @@ class UploadOwner:
                         raise ValueError()
                 finally:
                     os.close(descriptor)
-                if self.revoked or self.session != self.active_session or expires_at <= milliseconds():
+                if self.revoked or prepared_session != self.active_session or expires_at <= milliseconds():
                     raise ValueError()
                 self.grant = {
                     "id": secrets.token_hex(24),
-                    "session": self.session,
+                    "session": prepared_session,
                     "buffer": frozen,
                     "count": len(frozen),
                     "sha256": digest(frozen),
@@ -388,7 +396,14 @@ class UploadOwner:
             raise
         except Exception:
             self.last = unknown() if admitted else refusal()
-            if not admitted and interrupted() and self.grant is chosen and chosen is not None:
+            if (
+                not admitted
+                and chosen is not None
+                and self.grant is chosen
+                and (
+                    interrupted() or chosen["expires_at"] <= milliseconds() or chosen["session"] != self.active_session
+                )
+            ):
                 chosen["buffer"][:] = b"\0" * len(chosen["buffer"])
                 self.grant = None
         finally:
