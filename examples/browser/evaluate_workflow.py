@@ -21,6 +21,7 @@ from playwright.async_api import async_playwright
 from openai import AsyncOpenAI
 from openai.lib.browser import AsyncBrowserToolset
 from openai.types.responses import ResponseFunctionToolCall
+from openai.lib.tool_diagnostics import ToolDiagnostic
 from openai.lib.decisions_tool_runner import DecisionObservation, AsyncDecisionCandidate, AsyncDecisionsToolRunner
 from openai.lib.responses_tool_runner import AsyncResponsesToolRunner
 
@@ -490,9 +491,16 @@ async def main(config: argparse.Namespace) -> int:
             }
 
         transport = httpx.AsyncHTTPTransport()
+        request_started = 0.0
+
+        def on_diagnostic(event: ToolDiagnostic) -> None:
+            if event["api"] == config.api and event["stage"] == "request" and event["reason"] == "completed":
+                record = receipt["requests"][-1]
+                record["usage"] = event["usage"]
+                record["body_ms"] = round((time.monotonic() - request_started) * 1000)
 
         async def dispatch(request: httpx.Request) -> httpx.Response:
-            nonlocal read_next
+            nonlocal read_next, request_started
             if refused or stopped.is_set() or len(receipt["requests"]) >= 64 or time.monotonic() - started >= 180:
                 raise RuntimeError("Trial admission ended.")
             record: dict[str, Any] = {
@@ -507,6 +515,7 @@ async def main(config: argparse.Namespace) -> int:
                     record, "decision_input", {"input": payload.get("input"), "questions": payload.get("questions")}
                 )
             tick = time.monotonic()
+            request_started = tick
             if config.mode == "live":
                 if (
                     request.url.scheme != "https"
@@ -592,24 +601,6 @@ async def main(config: argparse.Namespace) -> int:
                     )
             record["headers_ms"] = round((time.monotonic() - tick) * 1000)
             record["status"] = response.status_code
-            if response.is_success:
-                await response.aread()
-                data = response.json()
-                record["usage"] = data.get("usage")
-                if config.api == "decisions":
-                    capture_decision(
-                        record,
-                        "decision_answers",
-                        [
-                            {
-                                key: answer[key]
-                                for key in ("name", "type", "choice", "confidence", "probabilities")
-                                if key in answer
-                            }
-                            for answer in data.get("answers", [])
-                        ],
-                    )
-                record["body_ms"] = round((time.monotonic() - tick) * 1000)
             return response
 
         async with AsyncOpenAI(
@@ -783,15 +774,30 @@ async def main(config: argparse.Namespace) -> int:
                     remaining = 0.001 if config.fault == "deadline" else max(0.001, 180 - (time.monotonic() - started))
                     if config.api == "decisions":
                         runner = AsyncDecisionsToolRunner(observe=observe, candidates=candidates, verify=verify)
-                        await asyncio.wait_for(
+                        first_request = len(receipt["requests"])
+                        result = await asyncio.wait_for(
                             runner.run(
                                 client,
                                 {"model": model, "input": INSTRUCTION},
                                 max_steps=64 - len(receipt["requests"]),
                                 cancelled=stopped.is_set,
+                                on_diagnostic=on_diagnostic,
                             ),
                             timeout=remaining,
                         )
+                        for index, decision in enumerate(result["decisions"], start=first_request):
+                            capture_decision(
+                                receipt["requests"][index],
+                                "decision_answers",
+                                [
+                                    {
+                                        key: value
+                                        for key, value in answer.to_dict().items()
+                                        if key in ("name", "type", "choice", "confidence", "probabilities")
+                                    }
+                                    for answer in decision.answers
+                                ],
+                            )
                     else:
                         responses_runner = AsyncResponsesToolRunner(browser=tools)
                         await asyncio.wait_for(
@@ -813,6 +819,7 @@ async def main(config: argparse.Namespace) -> int:
                                 max_steps=64 - len(receipt["requests"]),
                                 stream=False,
                                 cancelled=stopped.is_set,
+                                on_diagnostic=on_diagnostic,
                             ),
                             timeout=remaining,
                         )

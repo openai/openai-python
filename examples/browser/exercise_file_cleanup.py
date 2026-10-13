@@ -86,6 +86,74 @@ async def refuse(_context: object) -> bool:
 
 async def main() -> None:
     checks = 0
+    for reason in ("expiry", "session"):
+        for boundary in ("prepare", "transfer"):
+            probe = Fixture()
+
+            async def approve(_context: object) -> bool:
+                return True
+
+            owner = await UploadOwner.create(cast(Page, probe), probe.configuration, approve)
+            clock = {"now": milliseconds()}
+
+            def fixture_now(clock: dict[str, int] = clock) -> int:
+                return clock["now"]
+
+            try:
+                with patch("file_upload.milliseconds", fixture_now):
+                    name = owner.generated_name()
+                    (owner.upload_root / name).write_text("First")
+                    first = await owner.prepare(owner.upload_root, name, clock["now"] + 10_000)
+                    try:
+                        await owner.prepare(owner.upload_root, name, clock["now"] + 20_000)
+                    except ValueError:
+                        pass
+                    else:
+                        raise AssertionError("A still-valid grant must occupy its slot")
+                    if reason == "expiry":
+                        clock["now"] += 10_001
+                    else:
+                        owner.change_session()
+                    if boundary == "transfer":
+                        assert (await owner.upload_file({"grant_id": first["grant_id"]}))["status"] == "refused"
+                    (owner.upload_root / name).write_text("Second")
+                    second = await owner.prepare(owner.upload_root, name, clock["now"] + 20_000)
+                    assert (await owner.upload_file({"grant_id": first["grant_id"]}))["status"] == "refused"
+                    assert probe.assignments == 0
+                    assert (await owner.upload_file({"grant_id": second["grant_id"]}))["status"] == "completed"
+                    assert owner.receipt()["sha256"] == digest(b"Second")
+                    assert probe.assignments == 1
+                    checks += 1
+            finally:
+                await owner.stop()
+    probe = Fixture()
+    prepare_entered, prepare_release = asyncio.Event(), asyncio.Event()
+
+    async def hold_prepare() -> None:
+        prepare_entered.set()
+        await prepare_release.wait()
+
+    owner = await UploadOwner.create(cast(Page, probe), probe.configuration, approve, hold_prepare)
+    try:
+        name = owner.generated_name()
+        (owner.upload_root / name).write_text("Session fixture")
+        waiting = asyncio.create_task(owner.prepare(owner.upload_root, name, milliseconds() + 20_000))
+        await prepare_entered.wait()
+        owner.change_session()
+        prepare_release.set()
+        try:
+            await waiting
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("Session changed during preparation but grant was issued")
+        fresh = await owner.prepare(owner.upload_root, name, milliseconds() + 20_000)
+        assert (await owner.upload_file({"grant_id": fresh["grant_id"]}))["status"] == "completed"
+        assert probe.assignments == 1
+        checks += 1
+    finally:
+        prepare_release.set()
+        await owner.stop()
     for flags in (SimpleNamespace(O_NONBLOCK=4), SimpleNamespace(O_NOFOLLOW=256)):
         unavailable = Fixture()
         with patch("file_upload.os", flags):
