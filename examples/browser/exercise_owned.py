@@ -1611,25 +1611,30 @@ async def forms(url: str, urls: frozenset[str]) -> None:
         _, page = driver.page(None)
         await page.evaluate(setup)
         # A first event may run page code before a second event is dispatched.
-        # Observe externally via the existing fixture endpoint, even if the
-        # driver retires its context immediately.
-        await page.evaluate("""() => {
-          many.addEventListener('input',()=>{
-            navigator.sendBeacon('/effect', JSON.stringify({operation:'input',id:'form_a'}));
-            formrow.dataset.recordId='form_b';
-          });
-          many.addEventListener('change',()=>navigator.sendBeacon('/effect',JSON.stringify({operation:'bad-change',id:'form_b'})));
-        }""")
+        await page.evaluate("many.addEventListener('input',()=>{formrow.dataset.recordId='form_b'})")
         refs = await selected(driver)
-        before = len(EFFECTS)
-        try:
-            await driver.select_option({"target": refs["Multiple"], "tab_id": None, "values": ["b"]})
-        except Exception:
-            pass
-        else:
-            raise AssertionError("Post-input logical replacement must retire the owned context.")
-        await wait_effects(before + 1)
-        assert EFFECTS[-1] == {"operation": "input", "id": "form_a"}
+        before = await page.evaluate("({ ...formSnapshot(), record:formrow.dataset.recordId })")
+        assert before["record"] == "form_a" and before["events"] == []
+        observed: dict[str, Any] = {}
+        close = driver.context.close
+
+        async def record_then_close(*args: Any, **kwargs: Any) -> None:
+            try:
+                # Read the synchronous event log before the owned context closes.
+                observed.update(await page.evaluate("({ ...formSnapshot(), record:formrow.dataset.recordId })"))
+            finally:
+                await close(*args, **kwargs)
+
+        with patch.object(driver.context, "close", record_then_close):
+            try:
+                await driver.select_option({"target": refs["Multiple"], "tab_id": None, "values": ["b"]})
+            except Exception:
+                pass
+            else:
+                raise AssertionError("Post-input logical replacement must retire the owned context.")
+        assert observed["record"] == "form_b" and observed["events"] == [["input", "many"]]
+        assert observed["selections"] == [False, True, False]
+        assert page.is_closed()
         try:
             await driver.state()
         except RuntimeError:
