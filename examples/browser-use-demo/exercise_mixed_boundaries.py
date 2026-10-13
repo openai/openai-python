@@ -86,6 +86,7 @@ async def initial_read() -> None:
                 try:
                     await asyncio.wait_for(release.wait(), 0.02)
                 except asyncio.TimeoutError:
+                    # Check cancellation again after the bounded wait.
                     pass
             return {"version": 1, "text": "local", "elements": [], "omitted": []}
 
@@ -121,6 +122,7 @@ async def initial_read() -> None:
             try:
                 await asyncio.wait_for(asyncio.shield(pending), 0.5)
             except BrowserCancelledError:
+                # Stopping initial inspection may interrupt this read.
                 pass
             assert requests == []
         finally:

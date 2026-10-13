@@ -101,6 +101,7 @@ async def check(mode: str) -> None:
                         self.send_response(200)
                         self.end_headers()
                     except (BrokenPipeError, ConnectionResetError):
+                        # Cancellation closes the client before this delayed response.
                         pass
 
             slow = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
