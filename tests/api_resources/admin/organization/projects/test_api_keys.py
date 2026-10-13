@@ -10,7 +10,10 @@ import pytest
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
 from openai.pagination import SyncConversationCursorPage, AsyncConversationCursorPage
-from openai.types.admin.organization.projects import ProjectAPIKey, APIKeyDeleteResponse
+from openai.types.admin.organization.projects import (
+    ProjectAPIKey,
+    APIKeyDeleteResponse,
+)
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 
@@ -64,6 +67,59 @@ class TestAPIKeys:
             client.admin.organization.projects.api_keys.with_raw_response.retrieve(
                 api_key_id="",
                 project_id="project_id",
+            )
+
+    @parametrize
+    def test_method_update(self, client: OpenAI) -> None:
+        api_key = client.admin.organization.projects.api_keys.update(
+            api_key_id="api_key_id",
+            project_id="project_id",
+            expires_in_seconds=1,
+        )
+        assert_matches_type(ProjectAPIKey, api_key, path=["response"])
+
+    @parametrize
+    def test_raw_response_update(self, client: OpenAI) -> None:
+        response = client.admin.organization.projects.api_keys.with_raw_response.update(
+            api_key_id="api_key_id",
+            project_id="project_id",
+            expires_in_seconds=1,
+        )
+
+        assert response.is_closed is True
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        api_key = response.parse()
+        assert_matches_type(ProjectAPIKey, api_key, path=["response"])
+
+    @parametrize
+    def test_streaming_response_update(self, client: OpenAI) -> None:
+        with client.admin.organization.projects.api_keys.with_streaming_response.update(
+            api_key_id="api_key_id",
+            project_id="project_id",
+            expires_in_seconds=1,
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            api_key = response.parse()
+            assert_matches_type(ProjectAPIKey, api_key, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    def test_path_params_update(self, client: OpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `project_id` but received ''"):
+            client.admin.organization.projects.api_keys.with_raw_response.update(
+                api_key_id="api_key_id",
+                project_id="",
+                expires_in_seconds=1,
+            )
+
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `api_key_id` but received ''"):
+            client.admin.organization.projects.api_keys.with_raw_response.update(
+                api_key_id="",
+                project_id="project_id",
+                expires_in_seconds=1,
             )
 
     @parametrize
@@ -214,6 +270,59 @@ class TestAsyncAPIKeys:
             await async_client.admin.organization.projects.api_keys.with_raw_response.retrieve(
                 api_key_id="",
                 project_id="project_id",
+            )
+
+    @parametrize
+    async def test_method_update(self, async_client: AsyncOpenAI) -> None:
+        api_key = await async_client.admin.organization.projects.api_keys.update(
+            api_key_id="api_key_id",
+            project_id="project_id",
+            expires_in_seconds=1,
+        )
+        assert_matches_type(ProjectAPIKey, api_key, path=["response"])
+
+    @parametrize
+    async def test_raw_response_update(self, async_client: AsyncOpenAI) -> None:
+        response = await async_client.admin.organization.projects.api_keys.with_raw_response.update(
+            api_key_id="api_key_id",
+            project_id="project_id",
+            expires_in_seconds=1,
+        )
+
+        assert response.is_closed is True
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        api_key = response.parse()
+        assert_matches_type(ProjectAPIKey, api_key, path=["response"])
+
+    @parametrize
+    async def test_streaming_response_update(self, async_client: AsyncOpenAI) -> None:
+        async with async_client.admin.organization.projects.api_keys.with_streaming_response.update(
+            api_key_id="api_key_id",
+            project_id="project_id",
+            expires_in_seconds=1,
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            api_key = await response.parse()
+            assert_matches_type(ProjectAPIKey, api_key, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    async def test_path_params_update(self, async_client: AsyncOpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `project_id` but received ''"):
+            await async_client.admin.organization.projects.api_keys.with_raw_response.update(
+                api_key_id="api_key_id",
+                project_id="",
+                expires_in_seconds=1,
+            )
+
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `api_key_id` but received ''"):
+            await async_client.admin.organization.projects.api_keys.with_raw_response.update(
+                api_key_id="",
+                project_id="project_id",
+                expires_in_seconds=1,
             )
 
     @parametrize

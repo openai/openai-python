@@ -104,7 +104,7 @@ class TestVaults:
         vault = client.beta.agents.vaults.update(
             vault_id="vault_id",
             metadata={"foo": "string"},
-            name="x",
+            name="Research vault",
         )
         assert_matches_type(Vault, vault, path=["response"])
 
@@ -302,7 +302,7 @@ class TestAsyncVaults:
         vault = await async_client.beta.agents.vaults.update(
             vault_id="vault_id",
             metadata={"foo": "string"},
-            name="x",
+            name="Research vault",
         )
         assert_matches_type(Vault, vault, path=["response"])
 
