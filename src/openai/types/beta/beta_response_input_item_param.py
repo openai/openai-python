@@ -61,6 +61,8 @@ __all__ = [
     "AdditionalToolsAgent",
     "ImageGenerationCall",
     "ImageGenerationCallAgent",
+    "ImageGenerationCallError",
+    "ImageGenerationCallErrorModerationDetails",
     "LocalShellCall",
     "LocalShellCallAction",
     "LocalShellCallAgent",
@@ -496,6 +498,35 @@ class ImageGenerationCallAgent(TypedDict, total=False):
     """The canonical name of the agent that produced this item."""
 
 
+class ImageGenerationCallErrorModerationDetails(TypedDict, total=False):
+    """Public details for a `moderation_blocked` error, when available."""
+
+    categories: Required[SequenceNotStr[str]]
+    """Public moderation categories. New category values may be added over time."""
+
+    moderation_stage: Required[Literal["input", "output", "unknown"]]
+    """The stage where moderation blocked the image generation call."""
+
+
+class ImageGenerationCallError(TypedDict, total=False):
+    """Details of a moderation failure, when available."""
+
+    code: Required[Optional[str]]
+    """The error code."""
+
+    message: Required[str]
+    """A description of the error."""
+
+    param: Required[Optional[str]]
+    """The related request parameter."""
+
+    type: Required[str]
+    """The error type."""
+
+    moderation_details: ImageGenerationCallErrorModerationDetails
+    """Public details for a `moderation_blocked` error, when available."""
+
+
 class ImageGenerationCall(TypedDict, total=False):
     """An image generation request made by the model."""
 
@@ -519,6 +550,9 @@ class ImageGenerationCall(TypedDict, total=False):
 
     background: Optional[Literal["transparent", "opaque", "auto"]]
     """The background setting used for generation."""
+
+    error: ImageGenerationCallError
+    """Details of a moderation failure, when available."""
 
     output_format: Optional[Literal["png", "webp", "jpeg"]]
     """The output format used for generation."""
