@@ -19,6 +19,7 @@ from .project_spend_alert import ProjectSpendAlert as ProjectSpendAlert
 from .project_spend_limit import ProjectSpendLimit as ProjectSpendLimit
 from .role_delete_response import RoleDeleteResponse as RoleDeleteResponse
 from .user_delete_response import UserDeleteResponse as UserDeleteResponse
+from .api_key_update_params import APIKeyUpdateParams as APIKeyUpdateParams
 from .group_delete_response import GroupDeleteResponse as GroupDeleteResponse
 from .group_retrieve_params import GroupRetrieveParams as GroupRetrieveParams
 from .project_data_retention import ProjectDataRetention as ProjectDataRetention
