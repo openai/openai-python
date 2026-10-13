@@ -37006,6 +37006,96 @@ webhooks:
           description: Return any 2xx status code to acknowledge receipt. A 410 Gone response also stops retries; other non-2xx responses are retried.
 components:
   schemas:
+    ImageGenToolCallError:
+      properties:
+        code:
+          anyOf:
+          - type: string
+            description: The error code.
+          - type: 'null'
+        type:
+          type: string
+          description: The error type.
+        message:
+          type: string
+          description: A description of the error.
+        param:
+          anyOf:
+          - type: string
+            description: The related request parameter.
+          - type: 'null'
+        moderation_details:
+          $ref: '#/components/schemas/ImageGenToolCallModerationDetails'
+          description: Public details for a `moderation_blocked` error, when available.
+      type: object
+      required:
+      - code
+      - type
+      - message
+      - param
+    ImageGenToolCallModerationDetails:
+      properties:
+        moderation_stage:
+          type: string
+          enum:
+          - input
+          - output
+          - unknown
+          description: The stage where moderation blocked the image generation call.
+        categories:
+          items:
+            type: string
+          type: array
+          description: Public moderation categories. New category values may be added over time.
+      type: object
+      required:
+      - moderation_stage
+      - categories
+    BetaImageGenToolCallError:
+      properties:
+        code:
+          anyOf:
+          - type: string
+            description: The error code.
+          - type: 'null'
+        type:
+          type: string
+          description: The error type.
+        message:
+          type: string
+          description: A description of the error.
+        param:
+          anyOf:
+          - type: string
+            description: The related request parameter.
+          - type: 'null'
+        moderation_details:
+          $ref: '#/components/schemas/BetaImageGenToolCallModerationDetails'
+          description: Public details for a `moderation_blocked` error, when available.
+      type: object
+      required:
+      - code
+      - type
+      - message
+      - param
+    BetaImageGenToolCallModerationDetails:
+      properties:
+        moderation_stage:
+          type: string
+          enum:
+          - input
+          - output
+          - unknown
+          description: The stage where moderation blocked the image generation call.
+        categories:
+          items:
+            type: string
+          type: array
+          description: Public moderation categories. New category values may be added over time.
+      type: object
+      required:
+      - moderation_stage
+      - categories
     AddUploadPartRequest:
       type: object
       additionalProperties: false
@@ -74356,6 +74446,9 @@ components:
       - jpeg
     ImageGenToolCall:
       properties:
+        error:
+          $ref: '#/components/schemas/ImageGenToolCallError'
+          description: Details of a moderation failure, when available.
         type:
           type: string
           enum:
@@ -96694,6 +96787,9 @@ components:
       description: The logs output from the code interpreter.
     BetaImageGenToolCall:
       properties:
+        error:
+          $ref: '#/components/schemas/BetaImageGenToolCallError'
+          description: Details of a moderation failure, when available.
         agent:
           anyOf:
           - $ref: '#/components/schemas/BetaAgentTag'
