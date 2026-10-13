@@ -130,6 +130,7 @@ async def check(mode: str) -> None:
                     try:
                         await task
                     except asyncio.CancelledError:
+                        # Teardown cancelled this owned task; draining it must report cancellation.
                         pass
                 await asyncio.to_thread(slow.shutdown)
                 slow.server_close()

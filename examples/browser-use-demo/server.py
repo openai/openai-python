@@ -566,6 +566,7 @@ async def serve(
             try:
                 self.wfile.write(answer.body)
             except (BrokenPipeError, ConnectionResetError):
+                # The client disconnected after the request completed; there is no response left to send.
                 pass
 
         do_GET = respond
@@ -665,4 +666,5 @@ if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
+        # Ctrl-C ends the CLI after main's context manager performs its normal shutdown.
         pass
