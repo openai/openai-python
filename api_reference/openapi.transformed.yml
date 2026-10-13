@@ -12954,6 +12954,100 @@ paths:
                 "id": "key_abc",
                 "deleted": true
             }
+    post:
+      security:
+      - AdminApiKeyAuth: []
+      summary: Update project API key
+      description: |
+        Updates the expiration of an existing API key in the project, including a
+        service-account-owned key. Requires permission to write project API keys.
+
+        Provide `expires_in_seconds` to set the expiration relative to this request.
+        The value must satisfy the organization's and project's expiry policies.
+        Expired keys cannot be updated. Retrying resets the expiration relative to
+        the new request. The response contains only the redacted key, not its secret.
+      operationId: update-project-api-key
+      tags:
+      - Projects
+      parameters:
+      - name: project_id
+        in: path
+        description: The ID of the project.
+        required: true
+        schema:
+          type: string
+      - name: api_key_id
+        in: path
+        description: The ID of the API key.
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProjectApiKeyBody'
+      responses:
+        '200':
+          description: Project API key expiration updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectApiKey'
+        '400':
+          description: The project is archived, the key is expired, or the requested expiration is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: The caller does not have permission to update this API key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PermissionErrorResponse'
+        '404':
+          description: The project or API key was not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Too many management requests. Reduce the request rate and try again later.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      x-oaiMeta:
+        group: administration
+        examples:
+          request:
+            curl: |
+              curl -X POST https://api.openai.com/v1/organization/projects/proj_abc/api_keys/key_abc \
+                -H "Authorization: Bearer $OPENAI_ADMIN_KEY" \
+                -H "Content-Type: application/json" \
+                -d '{"expires_in_seconds": 86400}'
+          response: |
+            {
+                "object": "organization.project.api_key",
+                "redacted_value": "sk-abc...def",
+                "name": "My API Key",
+                "created_at": 1711471533,
+                "expires_at": 1711557933,
+                "last_used_at": null,
+                "id": "key_abc",
+                "owner_project_access": "active",
+                "owner": {
+                    "type": "service_account",
+                    "service_account": {
+                        "id": "svc_acct_abc",
+                        "name": "My Service Account",
+                        "role": "member",
+                        "created_at": 1711471533
+                    }
+                }
+            }
   /organization/projects/{project_id}/archive:
     post:
       summary: Archive project
@@ -33651,6 +33745,8 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/UpdateVaultParams'
+            example:
+              name: Research vault
         required: true
       responses:
         '200':
@@ -78301,6 +78397,16 @@ components:
       - GB_STORAGE
       - AE_STORAGE
       - AE_STORAGE_PROCESSING
+    UpdateProjectApiKeyBody:
+      properties:
+        expires_in_seconds:
+          type: integer
+          maximum: 31536000
+          minimum: 1
+          description: Number of seconds from this request until the API key expires. Must comply with the organization and project expiry policies. Expired keys cannot be updated. Retrying resets the expiry relative to the new request.
+      type: object
+      required:
+      - expires_in_seconds
     SpecificProgrammaticToolCallingParam:
       properties:
         type:
