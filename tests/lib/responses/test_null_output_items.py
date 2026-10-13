@@ -42,6 +42,66 @@ async def _consume(
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+@pytest.mark.parametrize(
+    ("kind", "output", "identity"),
+    [
+        ("response.created", "missing", "changed"),
+        ("response.queued", "null", "changed"),
+        ("response.in_progress", "supplied", "changed"),
+        ("response.failed", "null", "null"),
+        ("response.incomplete", "missing", "missing"),
+        ("response.completed", "missing", "changed"),
+        ("response.completed", "null", "changed"),
+        ("response.completed", "supplied", "changed"),
+    ],
+)
+async def test_lifecycle_response_cannot_change_identity(sync: bool, kind: str, output: str, identity: str) -> None:
+    item: dict[str, object] = {
+        "id": "fc_identity",
+        "type": "function_call",
+        "call_id": "call_identity",
+        "name": "lookup",
+        "arguments": "{}",
+        "status": "completed",
+    }
+    replacement: dict[str, object] = {"id": "resp_other", "status": "completed", "output": [item]}
+    if output == "missing":
+        del replacement["output"]
+    if output == "null":
+        replacement["output"] = None
+    if identity == "missing":
+        del replacement["id"]
+    if identity == "null":
+        replacement["id"] = None
+    events: list[dict[str, object]] = [
+        {"type": "response.created", "response": {"id": "resp_test", "output": []}},
+        {"type": "response.output_item.added", "output_index": 3, "item": item},
+        {"type": "response.output_item.done", "output_index": 3, "item": item},
+        {"type": kind, "response": replacement},
+    ]
+    body = "".join(f"data: {json.dumps({**event, 'sequence_number': index})}\n\n" for index, event in enumerate(events))
+    transport = httpx2.MockTransport(
+        lambda _request: httpx2.Response(200, text=body, headers={"content-type": "text/event-stream"})
+    )
+    observed: list[int] = []
+    with pytest.raises(RuntimeError, match="Lifecycle response identity changed"):
+        if sync:
+            with OpenAI(api_key="fake-test-key", http_client=httpx2.Client(transport=transport)) as client:
+                with client.responses.stream(model="test-model", input="test") as stream:
+                    observed.extend(event.sequence_number for event in stream)
+                    stream.get_final_response()
+        else:
+            async with AsyncOpenAI(
+                api_key="fake-test-key", http_client=httpx2.AsyncClient(transport=transport)
+            ) as async_client:
+                async with async_client.responses.stream(model="test-model", input="test") as async_stream:
+                    async for event in async_stream:
+                        observed.append(event.sequence_number)
+                    await async_stream.get_final_response()
+    assert observed == [0, 1, 2]
+
+
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
 @pytest.mark.parametrize("missing", [False, True], ids=["null", "missing"])
 @pytest.mark.parametrize("index", [0, 1, 1_000_000], ids=["reused-index", "gap", "large-gap"])
 @pytest.mark.parametrize("null_completion", [False, True])

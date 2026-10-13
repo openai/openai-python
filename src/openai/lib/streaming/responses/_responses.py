@@ -404,6 +404,16 @@ class ResponseStreamState(Generic[TextFormatT]):
         if snapshot is None:
             return self._create_initial_response(event)
 
+        if (
+            event.type == "response.created"
+            or event.type == "response.queued"
+            or event.type == "response.in_progress"
+            or event.type == "response.completed"
+            or event.type == "response.failed"
+            or event.type == "response.incomplete"
+        ) and getattr(event.response, "id", None) != getattr(snapshot, "id", None):
+            raise RuntimeError("Lifecycle response identity changed.")
+
         if event.type == "response.created" or event.type == "response.queued" or event.type == "response.in_progress":
             replacements: dict[tuple[str, str | None, str | None], ResponseOutputItem] = {}
             lifecycle_output = cast("list[ResponseOutputItem] | None", getattr(event.response, "output", None))
