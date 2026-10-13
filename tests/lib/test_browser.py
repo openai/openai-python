@@ -979,6 +979,66 @@ async def test_legacy_tab_state_removes_payload_urls(lane: str, url: str, expect
 
 
 @pytest.mark.parametrize("lane", ["sync", "async"])
+@pytest.mark.parametrize(
+    "title,expected,truncated,already_truncated",
+    [
+        ("a" * 1025, "a" * 1024, True, False),
+        ("é" * 513, "é" * 512, True, False),
+        ("😀" * 257, "😀" * 256, True, False),
+        ("é" * 512, "é" * 512, False, False),
+        ("Short", "Short", True, True),
+    ],
+    ids=["ascii", "multibyte", "emoji", "exact-boundary", "already-truncated"],
+)
+async def test_observed_long_title_is_projected(
+    lane: str, title: str, expected: str, truncated: bool, already_truncated: bool
+) -> None:
+    observation: BrowserObservationV1 = {
+        "version": 1,
+        "sequence": 0,
+        "dropped_changes": 0,
+        "title_truncated": already_truncated,
+        "changes": [],
+    }
+
+    class Driver(RichReads):
+        @override
+        def state(self) -> BrowserState:
+            return {
+                "tabs": [{"id": "one", "title": title, "url": "https://fixture.invalid/", "active": True}],
+                "observation": observation,
+            }
+
+    result = payload(await execute_read(lane, Driver("Visible text"), "read_page"))
+    state = cast(BrowserState, result["state"])
+    assert state["tabs"][0]["title"] == expected
+    assert state["observation"]["title_truncated"] is truncated
+    assert observation["title_truncated"] is already_truncated
+
+
+@pytest.mark.parametrize("lane", ["sync", "async"])
+async def test_invalid_unicode_after_projected_title_is_rejected(lane: str) -> None:
+    class Driver(RichReads):
+        @override
+        def state(self) -> BrowserState:
+            return {
+                "tabs": [
+                    {"id": "one", "title": "a" * 2048 + "\ud800", "url": "https://fixture.invalid/", "active": True}
+                ],
+                "observation": {
+                    "version": 1,
+                    "sequence": 0,
+                    "dropped_changes": 0,
+                    "title_truncated": False,
+                    "changes": [],
+                },
+            }
+
+    with pytest.raises(RuntimeError, match="Browser state"):
+        await execute_read(lane, Driver("Visible text"), "read_page")
+
+
+@pytest.mark.parametrize("lane", ["sync", "async"])
 @pytest.mark.parametrize("observed", [False, True])
 async def test_101_reported_tabs_work_with_or_without_observation(lane: str, observed: bool) -> None:
     reported_state: BrowserState = {

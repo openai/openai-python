@@ -81,6 +81,28 @@ _ModelT = TypeVar("_ModelT", bound=pydantic.BaseModel)
 def _ledger_tools(tools: list[ToolParam]) -> list[ToolParam]:
     result: list[ToolParam] = []
     for tool in tools:
+        if tool["type"] == "code_interpreter" and not isinstance(tool["container"], str):
+            container = tool["container"]
+            policy = container.get("network_policy")
+            if (
+                policy is not None
+                and policy["type"] == "allowlist"
+                and "domain_secrets" in policy
+                and policy["domain_secrets"] is not None
+            ):
+                result.append(
+                    {
+                        **tool,
+                        "container": {
+                            **container,
+                            "network_policy": {
+                                **policy,
+                                "domain_secrets": [{**secret, "value": ""} for secret in policy["domain_secrets"]],
+                            },
+                        },
+                    }
+                )
+                continue
         if tool["type"] != "mcp":
             result.append(tool)
             continue
@@ -254,7 +276,12 @@ def _validate_server_item(item: dict[str, object], tools: list[ToolParam]) -> No
                     valid = False
                     break
                 entry = cast(dict[str, object], tool)
-                if type(entry.get("name")) is not str or "input_schema" not in entry:
+                description = entry.get("description")
+                if (
+                    type(entry.get("name")) is not str
+                    or "input_schema" not in entry
+                    or (description is not None and type(description) is not str)
+                ):
                     valid = False
                     break
                 _plain(entry)
@@ -294,9 +321,9 @@ def _mcp_approval_policy(declaration: Mapping[str, object], name: str) -> Litera
             return None
         tool_filter = cast(dict[str, object], raw_filter)
         names = tool_filter.get("tool_names")
-        if "read_only" in tool_filter or not isinstance(names, list):
+        if "read_only" in tool_filter or ("tool_names" in tool_filter and not isinstance(names, list)):
             return None
-        if name in names:
+        if "tool_names" not in tool_filter or (isinstance(names, list) and name in names):
             if matched is not None:
                 return None
             matched = rule
@@ -947,7 +974,6 @@ class _Run:
         if saved is not None and type(saved) is not dict:
             raise ValueError("Resume requires a complete checkpoint.")
         checkpoint = cast(ResponsesToolCheckpoint | None, saved)
-        self.resuming = checkpoint is not None
         if max_steps is None:
             max_steps = 20 if checkpoint is None else checkpoint.get("max_steps")
         if type(max_steps) is not int or max_steps < 1:
@@ -1318,12 +1344,23 @@ class _Run:
         return checkpoint
 
     def approvals_to_refresh(self) -> Generator[tuple[dict[str, object], McpApprovalRequest], None, None]:
-        if not self.resuming or self.consumed_requests >= self.max_steps:
+        if self.consumed_requests >= self.max_steps:
             return
-        # Only validated history reaches here. Preserve consumed grants and all
+        history = [
+            item
+            for item in cast(list[dict[str, object]], self.history)
+            if item.get("type") in ("mcp_approval_request", "mcp_approval_response", "mcp_call")
+        ]
+        if not history:
+            return
+        if self.ledger is None:
+            if self.context_budget is not None:
+                self.validate_boundary()
+            else:
+                _history_calls(cast(ResponseInputParam, history), self.tools)
+        # Only validated imported MCP history reaches here. Preserve consumed grants and all
         # receipts; a returned approval alone does not prove remote execution.
-        approved = _approved_mcp_requests(self.history)
-        history = cast(list[dict[str, object]], self.history)
+        approved = _approved_mcp_requests(cast(ResponseInputParam, history))
         for item in history:
             if item.get("type") == "mcp_approval_response" and item.get("approve") is True:
                 request = approved.get(cast(str, item["approval_request_id"]))
@@ -1436,8 +1473,8 @@ class _Run:
             if allowed is not None and (not isinstance(allowed, (list, tuple)) or caller_type not in allowed):
                 raise self.error("Function caller is excluded by allowed_callers.")
         if item.type == "computer_call":
-            if not self.has_computer:
-                raise self.error("No computer driver was registered.")
+            if not self.has_computer or wire.get("status") != "completed":
+                raise self.error("Incomplete or unregistered computer call.")
             _computer_actions(item)
         if (item.type == "function_call" and item.name not in self.selected_functions) or (
             item.type == "computer_call" and not self.selected_computer
