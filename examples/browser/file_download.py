@@ -170,6 +170,12 @@ class DownloadOwner:
         self.session = secrets.token_hex(16)
 
     def issue(self, source: dict[str, object], expires_at: int) -> dict[str, str]:
+        if (
+            self.work is None
+            and self.grant is not None
+            and (self.grant["expires_at"] <= milliseconds() or self.grant["session"] != self.session)
+        ):
+            self.grant = None
         metadata = dict(source) if type(source) is dict else {}
         url, count, sha256 = (metadata.get(name) for name in ("url", "count", "sha256"))
         url_text = url if type(url) is str else ""
@@ -421,7 +427,12 @@ class DownloadOwner:
             raise
         except Exception:
             self.last = unknown() if admitted else refusal()
-            if not admitted and interrupted() and self.grant is chosen:
+            if (
+                not admitted
+                and chosen is not None
+                and self.grant is chosen
+                and (interrupted() or chosen["expires_at"] <= milliseconds() or chosen["session"] != self.session)
+            ):
                 self.grant = None
         finally:
             try:
