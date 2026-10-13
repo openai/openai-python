@@ -86,6 +86,86 @@ async def refuse(_context: object) -> bool:
 
 async def main() -> None:
     checks = 0
+    result_bytes = b"Granted fixture result"
+    requests = 0
+
+    async def serve_result(reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
+        nonlocal requests
+        try:
+            await reader.readuntil(b"\r\n\r\n")
+            requests += 1
+            writer.write(
+                b"HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: "
+                + str(len(result_bytes)).encode()
+                + b"\r\nConnection: close\r\n\r\n"
+                + result_bytes
+            )
+            await writer.drain()
+        finally:
+            writer.close()
+            await writer.wait_closed()
+
+    async with await asyncio.start_server(serve_result, "127.0.0.1", 0) as server:
+        source: dict[str, object] = {
+            "url": f"http://127.0.0.1:{server.sockets[0].getsockname()[1]}/result",
+            "count": len(result_bytes),
+            "sha256": digest(result_bytes),
+        }
+        for reason in ("expiry", "session"):
+            for boundary in ("issue", "transfer"):
+                probe = Fixture()
+                approval = {"agreed": False}
+
+                async def approve_download(_context: object, approval: dict[str, bool] = approval) -> bool:
+                    return approval["agreed"]
+
+                download_owner = await DownloadOwner.create(cast(Page, probe), probe.configuration, approve_download)
+                clock = {"now": milliseconds()}
+
+                def download_now(clock: dict[str, int] = clock) -> int:
+                    return clock["now"]
+
+                before = requests
+                try:
+                    with patch("file_download.milliseconds", download_now):
+                        first = download_owner.issue(source, clock["now"] + 10_000)
+                        try:
+                            download_owner.issue(source, clock["now"] + 20_000)
+                        except ValueError:
+                            pass
+                        else:
+                            raise AssertionError("A valid grant still occupies the only slot")
+                        if reason == "expiry":
+                            clock["now"] += 10_001
+                        else:
+                            download_owner.change_session()
+                        if boundary == "transfer":
+                            assert (await download_owner.download_file({"grant_id": first["grant_id"]}))[
+                                "status"
+                            ] == "refused"
+                        second = download_owner.issue(source, clock["now"] + 20_000)
+                        assert (await download_owner.download_file({"grant_id": first["grant_id"]}))[
+                            "status"
+                        ] == "refused"
+                        assert (await download_owner.download_file({"grant_id": second["grant_id"]}))[
+                            "status"
+                        ] == "refused"
+                        assert requests == before
+                        approval["agreed"] = True
+                        assert (await download_owner.download_file({"grant_id": second["grant_id"]}))[
+                            "status"
+                        ] == "completed"
+                        assert download_owner.receipt()["sha256"] == source["sha256"]
+                        assert requests == before + 1
+                        try:
+                            download_owner.issue(source, clock["now"] + 20_000)
+                        except ValueError:
+                            pass
+                        else:
+                            raise AssertionError("A second GET must never be issued")
+                        checks += 1
+                finally:
+                    await download_owner.stop()
     for reason in ("expiry", "session"):
         for boundary in ("prepare", "transfer"):
             probe = Fixture()
@@ -266,6 +346,17 @@ async def main() -> None:
             )
             transfer = asyncio.create_task(subject.download_file({"grant_id": grant["grant_id"]}))
         await asyncio.wait_for(probe.read_entered.wait(), 2)
+        if isinstance(subject, DownloadOwner):
+            subject.change_session()
+            try:
+                subject.issue(
+                    {"url": "http://127.0.0.1:1/unused", "count": 7, "sha256": digest(b"Fixture")},
+                    milliseconds() + 20_000,
+                )
+            except ValueError:
+                pass
+            else:
+                raise AssertionError("In-progress transfer cannot be superseded")
         stopping = asyncio.create_task(subject.stop())
         try:
             await asyncio.wait_for(probe.entered.wait(), 2)
