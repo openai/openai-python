@@ -137,6 +137,12 @@ does not prove hosted access, remote context support, release, or cost.
 
 ## What the generic driver can protect
 
+Borrowed DOM reads and reference checks have a five-second deadline. If a
+check expires, the driver refuses further calls and returns no partial result.
+It leaves the caller's context open. The caller must close the context to stop
+any remaining page evaluation; the session wrapper closes its own context when
+its scope exits.
+
 Use this driver only on pages your application has approved for model access.
 A page controls its own scripts and DOM. The read filters omit common private
 controls; they cannot make a hostile signed-in page safe. Screenshots can show

@@ -2084,7 +2084,11 @@ class PlaywrightBrowser:
             await scan.dispose()
 
     async def _observation(
-        self, work: Callable[[], Awaitable[_Observation]], cancelled: Callable[[], bool] | None
+        self,
+        work: Callable[[], Awaitable[_Observation]],
+        cancelled: Callable[[], bool] | None,
+        *,
+        timeout: float | None = None,
     ) -> _Observation:
         if cancelled is not None and cancelled():
             raise BrowserCancelledError()
@@ -2093,31 +2097,39 @@ class PlaywrightBrowser:
             return await work()
 
         reading = asyncio.create_task(observe())
+        deadline = None if timeout is None else time.monotonic() + timeout
+        retired = False
         try:
-            if cancelled is None:
+            if cancelled is None and deadline is None:
                 return await asyncio.shield(reading)
             while not reading.done():
-                if cancelled():
+                if cancelled is not None and cancelled():
                     raise BrowserCancelledError()
+                if deadline is not None and time.monotonic() >= deadline:
+                    retired = True
+                    raise BrowserError("Browser observation timed out.")
                 await asyncio.wait({reading}, timeout=0.05)
-            if cancelled():
+            if cancelled is not None and cancelled():
                 raise BrowserCancelledError()
             return reading.result()
         except (BrowserCancelledError, asyncio.CancelledError):
-            # Clear admission synchronously; the caller still owns its context.
-            self._unusable = True
-            self._revoke()
-            # Do not block Stop on a renderer, but always observe late rejection.
-            reading.add_done_callback(lambda done: done.exception() if not done.cancelled() else None)
-            if self.owned_fixture_urls is not None:
-                for handles in self._refs.values():
-                    handles.clear()
-                if self._retirement is None:
-                    self._retirement = asyncio.create_task(self.context.close())
-                self._retirement.add_done_callback(lambda done: done.exception() if not done.cancelled() else None)
-            else:
-                self._retire_borrowed_refs()
+            retired = True
             raise
+        finally:
+            if retired:
+                # Clear admission synchronously; the caller still owns its context.
+                self._unusable = True
+                self._revoke()
+                # Do not block Stop on a renderer, but always observe late rejection.
+                reading.add_done_callback(lambda done: done.exception() if not done.cancelled() else None)
+                if self.owned_fixture_urls is not None:
+                    for handles in self._refs.values():
+                        handles.clear()
+                    if self._retirement is None:
+                        self._retirement = asyncio.create_task(self.context.close())
+                    self._retirement.add_done_callback(lambda done: done.exception() if not done.cancelled() else None)
+                else:
+                    self._retire_borrowed_refs()
 
     async def read_page(
         self, action: ReadPageInput, *, cancelled: Callable[[], bool] | None = None
@@ -2127,7 +2139,7 @@ class PlaywrightBrowser:
                 lambda: self._read_owned(action["tab_id"], full=action["filter"] == "all"), cancelled
             )
         return await self._observation(
-            lambda: self._read_borrowed(action["tab_id"], full=action["filter"] == "all"), cancelled
+            lambda: self._read_borrowed(action["tab_id"], full=action["filter"] == "all"), cancelled, timeout=5
         )
 
     async def get_page_text(
@@ -2138,7 +2150,7 @@ class PlaywrightBrowser:
                 lambda: self._read_owned(action["tab_id"], full=True, text_only=True), cancelled
             )
         report = await self._observation(
-            lambda: self._read_borrowed(action["tab_id"], full=True, text_only=True), cancelled
+            lambda: self._read_borrowed(action["tab_id"], full=True, text_only=True), cancelled, timeout=5
         )
         return report["text"]
 
@@ -2152,12 +2164,13 @@ class PlaywrightBrowser:
                 action["tab_id"], full=False, query=" ".join(action["query"].split()).casefold(), finding=True
             ),
             cancelled,
+            timeout=5,
         )
 
     async def _target(
         self, target: str, tab_id: str | None, *, cancelled: Callable[[], bool] | None = None
     ) -> ElementHandle:
-        return await self._observation(lambda: self._checked_target(target, tab_id), cancelled)
+        return await self._observation(lambda: self._checked_target(target, tab_id), cancelled, timeout=5)
 
     @asynccontextmanager
     async def _reference_action(self) -> AsyncGenerator[None, None]:

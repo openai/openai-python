@@ -154,6 +154,61 @@ async def main() -> None:
                         checks += 3
                     finally:
                         await fixture.close()
+                for member in ("read_page", "find", "click"):
+                    fixture = await browser.new_context()
+                    borrowed = PlaywrightBrowser(fixture, {origin})
+                    sentinel = await browser.new_page()
+                    try:
+                        await sentinel.set_content("<p>Caller still owns this page</p>")
+                        target = await fixture.new_page()
+                        await target.set_content("<button>Current choice</button>")
+                        selected = (await borrowed.state())["tabs"][0]["id"]
+                        prior = await borrowed.read_page({"tab_id": selected, "filter": "all"})
+                        assert not isinstance(prior, str)
+                        ref = prior["elements"][0]["ref"]
+                        await target.evaluate("""() => {
+                            const matches = Element.prototype.matches;
+                            let once = true;
+                            Element.prototype.matches = function(selector) {
+                                if (once) {
+                                    once = false;
+                                    const until = performance.now() + 8000;
+                                    while (performance.now() < until) {}
+                                }
+                                return matches.call(this, selector);
+                            };
+                        }""")
+                        started = asyncio.get_running_loop().time()
+                        try:
+                            if member == "read_page":
+                                await borrowed.read_page({"tab_id": selected, "filter": "all"})
+                            elif member == "find":
+                                await borrowed.find({"tab_id": selected, "query": "Current choice"})
+                            else:
+                                await borrowed.click({"tab_id": selected, "target": ref})
+                        except BrowserError as exc:
+                            assert "timed out" in str(exc)
+                        else:
+                            raise AssertionError("A stalled renderer exceeded the observation deadline")
+                        assert asyncio.get_running_loop().time() - started < 7.2
+                        for operation in (
+                            borrowed.state,
+                            lambda held=borrowed, tab=selected, target_ref=ref: held.click(
+                                {"tab_id": tab, "target": target_ref}
+                            ),
+                        ):
+                            try:
+                                await operation()
+                            except RuntimeError:
+                                pass
+                            else:
+                                raise AssertionError("Expired borrowed read left the driver usable")
+                        assert not target.is_closed()
+                        assert await sentinel.text_content("p") == "Caller still owns this page"
+                        checks += 1
+                    finally:
+                        await fixture.close()
+                        await sentinel.close()
                 context = await browser.new_context()
                 driver = PlaywrightBrowser(context, {origin})
                 page = await context.new_page()

@@ -6,6 +6,7 @@ import inspect
 from copy import deepcopy
 from typing import Any, Callable, Awaitable, cast
 from datetime import datetime, timezone
+from collections.abc import Mapping, Iterator
 from typing_extensions import override
 
 import httpx2
@@ -662,6 +663,57 @@ async def test_continuation_idempotency_uses_effective_client_headers(mode: str,
     assert [headers.get("x-prepared") for headers in sent] == ["1", "2", "3"]
     assert [headers.get("x-default") for headers in sent] == [None, None, None]
     assert [headers.get("x-kept") for headers in sent] == ["client", "client", "client"]
+
+
+@pytest.mark.parametrize("mode", ["sync", "async"])
+async def test_continuation_dispatch_uses_the_inspected_header_values(mode: str) -> None:
+    driver = Driver()
+    sent: list[httpx2.Headers] = []
+
+    class ChangingHeaders(Mapping[str, str | Omit]):
+        continuation_reads = 0
+
+        @override
+        def __len__(self) -> int:
+            return 2
+
+        @override
+        def __iter__(self) -> Iterator[str]:
+            return iter(("Idempotency-Key", "x-kept"))
+
+        @override
+        def __getitem__(self, key: str) -> str | Omit:
+            if key == "x-kept":
+                return "request"
+            if key != "Idempotency-Key":
+                raise KeyError(key)
+            if driver.actions:
+                self.continuation_reads += 1
+                if self.continuation_reads == 1:
+                    return Omit()
+            return "original-request"
+
+    extra = ChangingHeaders()
+
+    def transport(request: httpx2.Request) -> httpx2.Response:
+        sent.append(request.headers)
+        output = [call(actions=[{"type": "wait"}])] if len(sent) == 1 else FINAL["output"]
+        return httpx2.Response(200, json=response(output))
+
+    params = cast(ResponseCreateParamsNonStreaming, {"model": "", "input": "fixture", "extra_headers": extra})
+    if mode == "sync":
+        with OpenAI(
+            api_key="fixture", max_retries=0, http_client=httpx2.Client(transport=httpx2.MockTransport(transport))
+        ) as client:
+            ComputerToolset(driver).run(client, params)
+    else:
+        async with AsyncOpenAI(
+            api_key="fixture", max_retries=0, http_client=httpx2.AsyncClient(transport=httpx2.MockTransport(transport))
+        ) as async_client:
+            await AsyncComputerToolset(AsyncDriver(driver)).run(async_client, params)
+    assert driver.actions == ["wait", "screenshot"]
+    assert [headers.get("idempotency-key") for headers in sent] == ["original-request", None]
+    assert [headers.get("x-kept") for headers in sent] == ["request", "request"]
 
 
 @pytest.mark.parametrize("mode", ["sync", "async"])

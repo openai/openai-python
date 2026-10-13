@@ -104,8 +104,8 @@ def validate(raw: object) -> tuple[dict[str, object], list[str]]:
             point(item)
     if kind == "type":
         text = value.get("text")
-        if type(text) is not str or len(text) > 2000:
-            raise Invalid("Text limit exceeded.")
+        if type(text) is not str:
+            raise Invalid("Text must be a string.")
         if "\0" in text:
             raise Invalid("Text cannot contain NUL.")
         try:
@@ -242,7 +242,7 @@ def reply(request: object) -> dict[str, object]:
                     )
         elif kind == "type":
             text = cast(str, action["text"]).replace("\r\n", "\r").replace("\n", "\r")
-            xdo("type", "--delay", 1, "--clearmodifiers", "--", text)
+            xdo("type", "--delay", 0, "--clearmodifiers", "--", text)
         elif kind == "wait":
             time.sleep(0.25)
     finally:

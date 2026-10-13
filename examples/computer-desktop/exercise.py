@@ -103,6 +103,31 @@ def run_sync(runtime_dir: Path) -> None:
         assert desktop.verify() == EMPTY, "Denied input reached the fixture"
         assert not desktop.uncertain_effects
 
+        desktop.operation(
+            lambda tools: tools.execute(
+                call(
+                    action.Click(type="click", button="left", x=700, y=180),
+                    action.Type(type="type", text="synthetic fixture " * 192 + "\nDesktop receipt D-2201"),
+                    action.Keypress(type="keypress", keys=["CTRL", "S"]),
+                )
+            )
+        )
+        long_text = desktop.verify()
+        assert not long_text["file_empty"] and not long_text["file_matches"]
+        assert not long_text["browser_matches"] and long_text["browser_effects"] == 0
+        # Removing the prefix through the editor proves the exact suffix after character 2,000 reached the file.
+        desktop.operation(
+            lambda tools: tools.execute(
+                call(
+                    action.Keypress(type="keypress", keys=["HOME"]),
+                    action.Keypress(type="keypress", keys=["CTRL", "SHIFT", "HOME"]),
+                    action.Keypress(type="keypress", keys=["BACKSPACE"]),
+                    action.Keypress(type="keypress", keys=["CTRL", "S"]),
+                )
+            )
+        )
+        assert desktop.verify()["file_matches"], "The suffix after character 2,000 was not saved in full"
+
         screenshot(desktop.operation(lambda tools: tools.execute(workflow(), before_action=lambda _: True)))
         assert desktop.verify() == COMPLETE, "Browser route or editor save did not reach the fixed fixture"
         assert not desktop.uncertain_effects
