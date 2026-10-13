@@ -156,6 +156,11 @@ class Script:
                 assert tool_outputs[-1]["output"] == PUBLIC_RECEIPT.decode("ascii")
             else:
                 assert PUBLIC_RECEIPT.decode("ascii") in body["input"][0]["content"][0]["text"]
+            if self.mode == "positive" and self.private_result:
+                with httpx2.Client(trust_env=False, timeout=2) as direct:
+                    repeated = direct.get(self.private_result)
+                    assert repeated.status_code == 409, "Receipt capability cannot be replayed after delivery"
+                    assert repeated.content == b""
             text = "/tmp/NOT_GRANTED" if self.mode == "native_path" else PUBLIC_RECEIPT.decode("ascii")
             output = [
                 {

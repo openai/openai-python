@@ -11,13 +11,181 @@ import threading
 from typing import Any, cast
 from pathlib import Path
 from unittest.mock import AsyncMock, patch
-from collections.abc import Callable
+from collections.abc import Callable, AsyncIterator
+from typing_extensions import override
 
+import httpx2 as httpx
 from PIL import Image
 from server import Run, Fieldwork, WorkspaceBrowser, serve
 from playwright.async_api import Playwright
 
 from openai.lib.computer import ComputerUseError
+
+
+async def network_phase_check(where: str, transfer: bool) -> None:
+    app = Fieldwork(cast(WorkspaceBrowser, None), "http://127.0.0.1:1", desktop_runtime=Path("/synthetic/unused"))
+    run = Run(app, {"environment": "browser", "taskId": "service", "api": "responses", "mode": "live"})
+    app.current = run
+    entered, release, cancelled = asyncio.Event(), asyncio.Event(), asyncio.Event()
+    closed: list[str] = []
+
+    class Stream(httpx.AsyncByteStream):
+        @override
+        async def __aiter__(self) -> AsyncIterator[bytes]:
+            if where == "body":
+                yield b'event: response.created\ndata: {"type":"response.created"}\n\n'
+                entered.set()
+                try:
+                    await release.wait()
+                except asyncio.CancelledError:
+                    cancelled.set()
+                    raise
+            yield b"data: [DONE]\n\n"
+
+        @override
+        async def aclose(self) -> None:
+            closed.append("stream")
+
+    class Transport(httpx.AsyncBaseTransport):
+        @override
+        async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
+            del request
+            if where == "headers":
+                entered.set()
+                try:
+                    await release.wait()
+                except asyncio.CancelledError:
+                    cancelled.set()
+                    raise
+            return httpx.Response(200, headers={"content-type": "text/event-stream"}, stream=Stream())
+
+    run.http_transport = Transport()
+
+    async def request() -> None:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(run.dispatch)) as client:
+            async with client.stream("POST", "http://127.0.0.1:1/responses") as response:
+                async for _line in response.aiter_lines():
+                    pass
+
+    run.agent = asyncio.create_task(request())
+    try:
+        await asyncio.wait_for(entered.wait(), 1)
+        if transfer:
+            run.set_owner("draining-to-human")
+            run.phase_cancel.set()
+            # A Return starts a new phase. It cannot revive the request from the prior one.
+            run.set_owner("agent")
+            run.phase_cancel = asyncio.Event()
+        else:
+            run.stop()
+        done, _ = await asyncio.wait({run.agent}, timeout=0.65)
+        assert run.agent in done, f"{where}: pending network did not retire with its captured phase"
+        assert cancelled.is_set(), "The outstanding network operation was left running"
+        assert isinstance(run.agent.exception(), Exception), "Retired request reported successful completion"
+        requests = [entry for entry in run.receipts if entry["kind"] == "request"]
+        assert len(requests) == 1 and requests[0]["phase"] == "cancelled"
+        if where == "body":
+            assert closed == ["stream"], "The interrupted SSE response did not close exactly once"
+        if transfer:
+            release.set()
+            # A new request after Return observes its own phase, not the prior cancellation.
+            await asyncio.wait_for(request(), 1)
+            requests = [entry for entry in run.receipts if entry["kind"] == "request"]
+            assert [entry["phase"] for entry in requests] == ["cancelled", "headers"]
+        else:
+            assert run.cleanup is not None
+            await asyncio.wait_for(asyncio.shield(run.cleanup), 1)
+            assert run.cleanup_status == "completed"
+    finally:
+        release.set()
+        await asyncio.gather(run.agent, *([run.cleanup] if run.cleanup else []), return_exceptions=True)
+        if not run.cleanup:
+            run.stop()
+            cleanup = cast("asyncio.Task[None] | None", run.cleanup)
+            assert cleanup
+            await cleanup
+
+
+async def network_simultaneous_stop_check() -> None:
+    app = Fieldwork(cast(WorkspaceBrowser, None), "http://127.0.0.1:1", desktop_runtime=Path("/synthetic/unused"))
+    run = Run(app, {"environment": "browser", "taskId": "service", "api": "responses", "mode": "live"})
+    app.current = run
+    closed: list[str] = []
+
+    class Stream(httpx.AsyncByteStream):
+        @override
+        async def __aiter__(self) -> AsyncIterator[bytes]:
+            yield b"must not be returned"
+
+        @override
+        async def aclose(self) -> None:
+            closed.append("stream")
+
+    class Transport(httpx.AsyncBaseTransport):
+        @override
+        async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
+            del request
+            run.stop()
+            return httpx.Response(200, stream=Stream())
+
+    run.http_transport = Transport()
+    try:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(run.dispatch)) as client:
+            try:
+                await client.get("http://127.0.0.1:1/responses")
+            except Exception:
+                pass
+            else:
+                raise AssertionError("Response arriving with Stop was returned as success")
+        assert closed == ["stream"]
+        requests = [entry for entry in run.receipts if entry["kind"] == "request"]
+        assert len(requests) == 1 and requests[0]["phase"] == "cancelled"
+    finally:
+        assert run.cleanup
+        await run.cleanup
+
+
+async def superseded_mixed_frame_check() -> None:
+    app = Fieldwork(cast(WorkspaceBrowser, None), "http://127.0.0.1:1", desktop_runtime=Path("/synthetic/unused"))
+    run = Run(app, {"environment": "mixed", "taskId": "mixed", "api": "responses", "mode": "live"})
+    app.current = run
+    workspace = run.workspace
+    assert workspace is not None
+    entered, release = asyncio.Event(), asyncio.Event()
+
+    class Guest:
+        def stop(self) -> None:
+            pass
+
+    workspace.guest = cast(Any, Guest())
+    run.task_tab = "host-tab"
+
+    async def frame(*, cancelled: Callable[[], bool] | None = None) -> None:
+        del cancelled
+        point = workspace.binding()
+        if point and point["view"] == "host":
+            entered.set()
+            await release.wait()
+            raise RuntimeError("Controlled superseded Host failure")
+        run.frame = b"current Guest"
+        run.view_binding = point
+
+    with patch.object(workspace, "frame", frame):
+        old = asyncio.create_task(run.refresh_view())
+        try:
+            await asyncio.wait_for(entered.wait(), 1)
+            await cast(Any, workspace).select("guest")
+            assert run.frame == b"current Guest"
+            release.set()
+            await asyncio.wait_for(old, 1)
+            assert run.owner == "agent", "obsolete capture stopped a healthy new view"
+            assert run.frame == b"current Guest" and workspace.matches(run.view_binding)
+        finally:
+            release.set()
+            await asyncio.gather(old, return_exceptions=True)
+            run.stop()
+            assert run.cleanup
+            await run.cleanup
 
 
 async def launch_check(fail_close: bool) -> None:
@@ -859,6 +1027,13 @@ async def mixed_context_retirement_check() -> None:
 async def main() -> None:
     results: list[dict[str, object]] = []
     for name, work in [
+        *[
+            (f"Network {where} {'Take/Return' if transfer else 'Stop'}", network_phase_check(where, transfer))
+            for where in ("headers", "body")
+            for transfer in (False, True)
+        ],
+        ("Response and Stop arrive together", network_simultaneous_stop_check()),
+        ("Superseded mixed Host frame failure", superseded_mixed_frame_check()),
         ("mixed launch clean", launch_check(False)),
         ("mixed launch close failure", launch_check(True)),
         ("mixed Host closes before guest retirement", mixed_context_retirement_check()),

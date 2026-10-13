@@ -67,6 +67,12 @@ Client retry settings still apply to each call. If your application already has 
 unsupported action, invalid coordinate, excessive scroll, or refusal stops before
 later actions run. Pointer modifier keys and drag buttons are released even on errors.
 
+Use synchronous driver methods with `ComputerToolset` and `async def` methods
+with `AsyncComputerToolset`. The helper rejects known mismatches when you create
+it. Preserve decorator metadata or return annotations when wrapping methods.
+Opaque wrappers are checked when called, so their own code can run before the
+helper detects a mismatch.
+
 ## Exercise without an API key
 
 This smoke run sends scripted model responses through the real SDK HTTP client and

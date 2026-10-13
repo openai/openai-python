@@ -45,7 +45,10 @@ async def main() -> None:
                 pass
             assert "Reserve R2 Garden" in questions[-1] and booking["ref"] not in questions[-1]
             assert workflow.stopped
-            assert await workflow.stored() == {"bookings": {}, "correspondence": {}}
+            assert await asyncio.wait_for(workflow.stored(allow_stopped=True), 5) == {
+                "bookings": {},
+                "correspondence": {},
+            }
 
         questions.clear()
 

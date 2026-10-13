@@ -18,7 +18,7 @@ from openai.lib.responses_tool_runner import ToolRunnerError
 
 # The trusted sibling source directory is fixed by the repository, never by task input.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "computer-desktop"))
-from desktop import Desktop
+from desktop import Desktop, DesktopStartupError
 
 
 class Terminal:
@@ -206,7 +206,7 @@ async def main() -> None:
                     terminal.retire_desktop()
                     assert terminal.desktop_cleanup is not None
                     await terminal.desktop_cleanup
-    except BrowserCancelledError:
+    except (BrowserCancelledError, DesktopStartupError):
         if terminal.session is not None or not terminal.stopped.is_set():
             raise
         report = {

@@ -8,12 +8,21 @@ from server import serve
 
 async def check(stopped: bool) -> None:
     entered, release = asyncio.Event(), asyncio.Event()
+    draining = asyncio.Event()
+    requests = 0
 
     async def dispatch(request: httpx.Request) -> httpx.Response:
+        nonlocal requests
         assert request.url.path == "/v1/decisions"
+        requests += 1
         entered.set()
         if stopped:
-            await asyncio.wait_for(release.wait(), 5)
+            try:
+                await asyncio.wait_for(release.wait(), 5)
+            except asyncio.CancelledError:
+                # A custom transport can take time to release its active request.
+                draining.set()
+                await asyncio.wait_for(release.wait(), 5)
         return httpx.Response(
             200,
             json={
@@ -41,6 +50,7 @@ async def check(stopped: bool) -> None:
                 current = (await client.get("/api/state")).json()["run"]
                 response = await client.post("/api/stop", json={"runId": current["id"]})
                 assert response.status_code == 200
+                await asyncio.wait_for(draining.wait(), 5)
                 first = (await client.get("/api/state")).json()["run"]
                 assert first["owner"] == "stopped" and first["closing"]
                 await asyncio.sleep(0.04)
@@ -58,6 +68,7 @@ async def check(stopped: bool) -> None:
                 await asyncio.sleep(0.01)
             assert run["status"] == ("stopped" if stopped else "refused")
             assert run["result"] == "unverified"
+            assert requests == 1 and run["fixture"]["results"] == []
             exported = (await client.get("/api/export", params={"run": run["id"]})).json()
             assert exported["status"] == run["status"] and exported["result"] == "unverified"
             assert exported["cleanup"] == "completed"

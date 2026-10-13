@@ -16,6 +16,8 @@ from urllib.parse import quote, urlparse
 from collections.abc import Callable, Awaitable, Generator, AsyncGenerator
 from typing_extensions import TypeAlias, TypedDict, TypeGuard, override
 
+from playwright.async_api import Error as PlaywrightError
+
 sys.path.insert(1, str(Path(__file__).resolve().parents[1] / "browser"))
 from browser_driver import PlaywrightBrowser, open_browser
 
@@ -169,6 +171,7 @@ def serve(fixture_file: Path | None = None) -> Generator[Server, None, None]:
             self.send_header("Content-Type", f"{mime}; charset=utf-8")
             self.send_header("Content-Length", str(len(body)))
             self.send_header("Cache-Control", "no-store")
+            self.send_header("Cross-Origin-Resource-Policy", "same-origin")
             self.end_headers()
             self.wfile.write(body)
 
@@ -295,8 +298,8 @@ class Workflow:
         )
         return choices
 
-    async def stored(self) -> dict[str, Any]:
-        if self.stopped:
+    async def stored(self, *, allow_stopped: bool = False) -> dict[str, Any]:
+        if self.stopped and not allow_stopped:
             raise asyncio.CancelledError()
         reading = asyncio.create_task(
             self.page.evaluate(
@@ -309,10 +312,10 @@ class Workflow:
         )
         try:
             while not reading.done():
-                if self.stopped:
+                if self.stopped and not allow_stopped:
                     raise asyncio.CancelledError()
                 await asyncio.wait({reading}, timeout=0.05)
-            if self.stopped:
+            if self.stopped and not allow_stopped:
                 raise asyncio.CancelledError()
             return json.loads(reading.result())
         finally:
@@ -511,13 +514,14 @@ async def main(args: argparse.Namespace) -> None:
                     record["requests"] = workflow.requests
                     record["calls"] = workflow.calls
                     record["runnerError"] = workflow.runner_error
-                    record["stored"] = (
-                        workflow.verified_records
-                        if workflow.stopped
-                        else None
-                        if workflow.browser_lost
-                        else await workflow.stored()
-                    )
+                    record["stored"] = None
+                    if workflow.stopped and not workflow.browser_lost:
+                        try:
+                            record["stored"] = await asyncio.wait_for(workflow.stored(allow_stopped=True), timeout=5)
+                        except (PlaywrightError, asyncio.TimeoutError):
+                            pass
+                    elif not workflow.browser_lost:
+                        record["stored"] = await workflow.stored()
         record["cleanup"] = True
     except asyncio.CancelledError:
         # Setup was cancelled before open_workflow yielded; its owned contexts have exited.

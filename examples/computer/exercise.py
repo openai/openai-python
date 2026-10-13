@@ -8,6 +8,7 @@ import json
 import base64
 import asyncio
 import argparse
+import traceback
 from types import SimpleNamespace
 from typing import Any
 from pathlib import Path
@@ -122,7 +123,7 @@ async def check_borrowed_key_release() -> None:
         driver = PlaywrightBrowser(page, {origin("http://fixture.invalid")})
         try:
             await driver.keypress(actions.Keypress(type="keypress", keys=["CTRL", "ALT", "SHIFT"]))
-        except (Error, asyncio.CancelledError):
+        except (ComputerUseError, asyncio.CancelledError):
             pass
         else:
             raise AssertionError("An uncertain key press must stop the action.")
@@ -182,8 +183,11 @@ async def check_borrowed_mouse_release() -> None:
 
 
 async def check_input_outcome() -> None:
+    class InterruptedInput(BaseException):
+        pass
+
     for member in ("click", "type"):
-        for failure in (Error("Synthetic input failure"), asyncio.CancelledError()):
+        for failure in (Error("synthetic-private-page-marker"), asyncio.CancelledError(), InterruptedInput()):
             page = Mock(spec=Page)
             page.keyboard = AsyncMock()
             page.mouse = AsyncMock()
@@ -198,8 +202,12 @@ async def check_input_outcome() -> None:
                 work = driver.type(actions.Type(type="type", text="fixture"))
             try:
                 await work
-            except (Error, asyncio.CancelledError):
-                pass
+            except (ComputerUseError, asyncio.CancelledError, InterruptedInput) as error:
+                if isinstance(failure, Error):
+                    assert "synthetic-private-page-marker" not in "".join(traceback.format_exception(error))
+                    assert isinstance(error, ComputerUseError)
+                else:
+                    assert error is failure
             else:
                 raise AssertionError("The uncertain input outcome must escape.")
             page.keyboard.insert_text.reset_mock(side_effect=True)
@@ -219,6 +227,18 @@ async def check_input_outcome() -> None:
             page.keyboard.insert_text.assert_not_awaited()
             page.screenshot.assert_not_awaited()
             page.close.assert_not_awaited()
+
+    page = Mock(spec=Page)
+    page.screenshot = AsyncMock(side_effect=Error("synthetic-private-page-marker"))
+    page.close = AsyncMock()
+    driver = PlaywrightBrowser(page, set())
+    try:
+        await driver.screenshot()
+    except ComputerUseError as error:
+        assert "synthetic-private-page-marker" not in "".join(traceback.format_exception(error))
+    else:
+        raise AssertionError("Provider screenshot errors must be suppressed at the borrowed driver boundary.")
+    page.close.assert_not_awaited()
 
 
 async def check_cancelled_input_release() -> None:

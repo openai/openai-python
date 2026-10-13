@@ -190,17 +190,13 @@ async def exercise(api_name: str, mode: str) -> None:
                 active = await state_until(lambda run: run["browser"] is not None)
                 if mode == "take":
                     await send("/api/take-control", binding(active))
-                    state = await state_until(lambda run: run["owner"] == "stopped")
-                    assert state["status"] == "handoff_unavailable" and state["closing"], state
+                    state = await state_until(lambda run: run["owner"] == "human")
+                    assert state["status"] == "paused" and state["fixture"]["results"] == [], state
+                    assert len(transport.calls) == 1 and not transport.release.is_set()
+                    await send("/api/stop", {"runId": state["id"]})
                 else:
                     await send("/api/stop", {"runId": active["id"]})
                     state = await state_until(lambda run: run["owner"] == "stopped")
-                await send("/api/start", {"taskId": "support", "api": api_name, "mode": "live"}, 409)
-                exported = await receipt(client, state)
-                assert exported["cleanup"] == "pending"
-                request = next(event for event in exported["events"] if event["kind"] == "request")
-                assert request["phase"] == "pending" and request["headersMs"] is None and request["durationMs"] is None
-                transport.release.set()
                 state = await state_until(lambda run: not run["closing"])
                 assert state["fixture"]["results"] == [] and state["result"] == "unverified", state
                 assert len(transport.calls) == 1
@@ -208,11 +204,25 @@ async def exercise(api_name: str, mode: str) -> None:
             assert exported["cleanup"] == "completed"
             requests = [event for event in exported["events"] if event["kind"] == "request"]
             assert len(requests) == exported["requests"] == len(transport.calls)
-            assert all(
-                event["phase"] == "headers" and event["status"] == 200 and event["durationMs"] >= event["headersMs"]
-                for event in requests
-            )
-            assert exported["requestHeadersMs"] == sum(event["headersMs"] for event in requests)
+            if mode == "complete":
+                assert all(
+                    event["phase"] == "headers" and event["status"] == 200 and event["durationMs"] >= event["headersMs"]
+                    for event in requests
+                )
+                assert exported["requestHeadersMs"] == sum(event["headersMs"] for event in requests)
+            else:
+                assert len(requests) == 1
+                assert requests[0]["phase"] == "cancelled" and requests[0]["headersMs"] is None
+                assert requests[0]["durationMs"] is not None and exported["requestHeadersMs"] == 0
+                # Old network was retired without a server reply; no old request can affect the new workspace.
+                assert not transport.release.is_set()
+                await send("/api/start", {"taskId": "support", "api": api_name, "mode": "live"})
+                replacement = await state_until(lambda run: run["id"] != state["id"] and run["requests"] == 1)
+                assert len(transport.calls) == 2
+                assert replacement["fixture"]["results"] == []
+                await send("/api/stop", {"runId": replacement["id"]})
+                await state_until(lambda run: run["owner"] == "stopped" and not run["closing"])
+                assert len(transport.calls) == 2
             assert exported["elapsedMs"] <= state["elapsedMs"] + 1
             print(f"PASS controlled {api_name} HTTP {mode} ({len(transport.calls)} SDK requests)")
 

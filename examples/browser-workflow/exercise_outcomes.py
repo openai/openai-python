@@ -165,6 +165,8 @@ async def main(mode: str) -> None:
         assert saved["status"] == ("failed" if mode == "browser-loss" else "stopped"), saved
         assert saved["cleanup"] is True
         assert requests == 1
+        if mode == "operator-stop":
+            assert saved["stored"] == {"bookings": {}, "correspondence": {}}, saved
     print(f"PASS {mode} has the correct CLI receipt and cleanup")
 
 

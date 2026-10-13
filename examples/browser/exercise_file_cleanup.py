@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import json
 import asyncio
+from types import SimpleNamespace
 from typing import Any, cast
 from datetime import timedelta
+from unittest.mock import patch
 
 from file_upload import UploadOwner, milliseconds
 from file_download import DownloadOwner, digest
@@ -73,6 +75,18 @@ async def refuse(_context: object) -> bool:
 
 async def main() -> None:
     checks = 0
+    for flags in (SimpleNamespace(O_NONBLOCK=4), SimpleNamespace(O_NOFOLLOW=256)):
+        unavailable = Fixture()
+        with patch("file_upload.os", flags):
+            try:
+                upload = await UploadOwner.create(cast(Page, unavailable), unavailable.configuration, refuse)
+            except ValueError as error:
+                assert "not supported on this platform" in str(error)
+            else:
+                await upload.stop()
+                raise AssertionError("Unsupported uploads must fail before creating an owner.")
+        assert not unavailable.captured
+        checks += 1
     for owner_type in (UploadOwner, DownloadOwner):
         normal = Fixture()
         owner = await owner_type.create(cast(Page, normal), normal.configuration, refuse)

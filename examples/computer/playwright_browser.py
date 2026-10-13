@@ -146,32 +146,33 @@ class PlaywrightBrowser:
         if modifiers_only and any(name not in _MODIFIERS for name in names):
             raise ComputerUseError("Pointer actions accept modifier keys only.")
         pressed: list[str] = []
-        cancelled = False
+        interrupted = False
         try:
             for name in names:
                 pressed.append(name)
                 await self.page.keyboard.down(name)
             yield
-        except (Exception, asyncio.CancelledError) as error:
-            cancelled = isinstance(error, asyncio.CancelledError)
+        except BaseException as error:
+            interrupted = not isinstance(error, Exception)
             self._unusable = True
+            if isinstance(error, Error):
+                raise ComputerUseError("Browser input failed; this borrowed driver cannot be reused.") from None
             raise
         finally:
             failed = False
-            release_cancelled: asyncio.CancelledError | None = None
+            release_interrupted: BaseException | None = None
             for name in reversed(pressed):
                 try:
                     await self.page.keyboard.up(name)
-                except asyncio.CancelledError as error:
-                    if release_cancelled is None:
-                        release_cancelled = error
+                except BaseException as error:
+                    if isinstance(error, Exception):
+                        failed = True
+                    elif release_interrupted is None:
+                        release_interrupted = error
                     self._unusable = True
-                except Exception:
-                    failed = True
-                    self._unusable = True
-            if release_cancelled is not None and not cancelled:
-                raise release_cancelled
-            if failed and not cancelled:
+            if release_interrupted is not None and not interrupted:
+                raise release_interrupted
+            if failed and not interrupted:
                 raise ComputerUseError("Input release was uncertain; this borrowed driver cannot be reused.")
 
     async def click(self, action: Union[modern.Click, legacy.ActionClick]) -> None:
@@ -199,24 +200,22 @@ class PlaywrightBrowser:
         async with self.held(action.keys):
             start, *rest = action.path
             await self.page.mouse.move(start.x, start.y)
-            cancelled = False
+            interrupted = False
             try:
                 await self.page.mouse.down()
                 for point in rest:
                     await self.page.mouse.move(point.x, point.y)
-            except asyncio.CancelledError:
-                cancelled = True
+            except BaseException as error:
+                interrupted = not isinstance(error, Exception)
                 raise
             finally:
                 try:
                     await self.page.mouse.up()
-                except asyncio.CancelledError:
+                except BaseException as error:
                     self._unusable = True
-                    if not cancelled:
-                        raise
-                except Exception:
-                    self._unusable = True
-                    if not cancelled:
+                    if not interrupted:
+                        if not isinstance(error, Exception):
+                            raise
                         raise ComputerUseError(
                             "Input release was uncertain; this borrowed driver cannot be reused."
                         ) from None
@@ -249,5 +248,8 @@ class PlaywrightBrowser:
 
     async def screenshot(self) -> Screenshot:
         self._check()
-        png = await self.page.screenshot(type="png", full_page=False, timeout=5_000)
+        try:
+            png = await self.page.screenshot(type="png", full_page=False, timeout=5_000)
+        except Error:
+            raise ComputerUseError("Browser screenshot failed.") from None
         return {"type": "computer_screenshot", "image_url": "data:image/png;base64," + base64.b64encode(png).decode()}

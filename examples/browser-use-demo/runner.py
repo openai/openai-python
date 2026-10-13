@@ -10,10 +10,11 @@ import uuid
 import base64
 import asyncio
 import secrets
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, TypeVar, cast
 from pathlib import Path
 from dataclasses import dataclass
-from collections.abc import Mapping, Callable, Iterable, Awaitable
+from collections.abc import Mapping, Callable, Iterable, Awaitable, AsyncIterator
+from typing_extensions import override
 
 import httpx2 as httpx
 from file_state import wait_for_decision
@@ -56,6 +57,49 @@ TASKS: dict[str, dict[str, Any]] = json.loads((ROOT / "tasks.json").read_text())
 OWNERS = ("agent", "draining-to-human", "human", "draining-to-agent", "stopped")
 CLEANUP = ("not_started", "pending", "completed", "failed")
 FILE_STATUSES = ("ready", "in_progress", "completed", "refused", "interrupted", "unknown", "failed")
+_NetworkResult = TypeVar("_NetworkResult")
+
+
+async def network_read(work: Awaitable[_NetworkResult], phase: asyncio.Event) -> _NetworkResult:
+    pending = asyncio.ensure_future(work)
+    stopped = asyncio.create_task(phase.wait())
+    try:
+        await asyncio.wait({pending, stopped}, return_when=asyncio.FIRST_COMPLETED)
+        if phase.is_set():
+            if not pending.done():
+                pending.cancel()
+            result = (await asyncio.gather(pending, return_exceptions=True))[0]
+            # Headers may arrive in the same event-loop turn as Stop or Take.
+            if isinstance(result, httpx.Response):
+                await result.aclose()
+            raise BrowserError("Request interrupted.")
+        return await pending
+    finally:
+        stopped.cancel()
+        if not pending.done():
+            pending.cancel()
+        await asyncio.gather(pending, stopped, return_exceptions=True)
+
+
+class PhaseStream(httpx.AsyncByteStream):
+    def __init__(self, stream: httpx.AsyncByteStream, phase: asyncio.Event, receipt: dict[str, Any]) -> None:
+        self.stream, self.phase, self.receipt = stream, phase, receipt
+
+    @override
+    async def __aiter__(self) -> AsyncIterator[bytes]:
+        iterator = self.stream.__aiter__()
+        while True:
+            try:
+                yield await network_read(anext(iterator), self.phase)
+            except StopAsyncIteration:
+                return
+            except Exception:
+                self.receipt["phase"] = "cancelled" if self.phase.is_set() else "failed"
+                raise
+
+    @override
+    async def aclose(self) -> None:
+        await self.stream.aclose()
 
 
 def member(value: Any, choices: Iterable[str], fallback: str | None = None) -> str | None:
@@ -524,6 +568,7 @@ class Run:
         phase = self.phase_cancel if self.owner == "agent" else None
         transfer = self.transfer_cancel
         version = self.version
+        point = self.workspace.binding() if self.workspace else None
 
         def interrupted() -> bool:
             return (
@@ -549,6 +594,14 @@ class Run:
             task.add_done_callback(lambda done: done.exception() if not done.cancelled() else None)
             await wait_for_decision(lambda: asyncio.shield(task), interrupted)
         except Exception:
+            if (
+                self.workspace
+                and point is not None
+                and self.version == version
+                and self.workspace.binding() is not None
+                and not self.workspace.matches(point)
+            ):
+                return
             if self.version == version:
                 self.view_binding = self.frame = None
             if self.workspace and not interrupted():
@@ -908,7 +961,8 @@ class Run:
         return value[:400]
 
     async def dispatch(self, request: httpx.Request) -> httpx.Response:
-        if self.phase_cancel.is_set() or self.owner != "agent" or self.turns >= self.step_limit:
+        phase = self.phase_cancel
+        if phase.is_set() or self.owner != "agent" or self.turns >= self.step_limit:
             raise BrowserError("No further request is admitted for this task.")
         self.turns += 1
         started = time.monotonic()
@@ -944,13 +998,14 @@ class Run:
                 "request", attempt=self.requests, phase="pending", status=None, headersMs=None, durationMs=None
             )
             try:
-                response = await self.http_transport.handle_async_request(request)
+                response = await network_read(self.http_transport.handle_async_request(request), phase)
+                response.stream = PhaseStream(cast(httpx.AsyncByteStream, response.stream), phase, receipt)
                 receipt["phase"] = "headers"
                 receipt["status"] = response.status_code
                 receipt["headersMs"] = round((time.monotonic() - started) * 1000)
                 self.headers_ms += receipt["headersMs"]
             except Exception:
-                receipt["phase"] = "cancelled" if self.phase_cancel.is_set() else "failed"
+                receipt["phase"] = "cancelled" if phase.is_set() else "failed"
                 raise
             finally:
                 receipt["durationMs"] = round((time.monotonic() - started) * 1000)

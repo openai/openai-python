@@ -6,12 +6,14 @@ import os
 import sys
 import json
 import asyncio
+import threading
 from typing import Any, cast
 from pathlib import Path
 from unittest.mock import patch
 
 import run_mixed
 import browser_driver
+from desktop import DesktopStartupError
 
 
 async def exercise(failure: str) -> None:
@@ -115,6 +117,60 @@ async def exercise(failure: str) -> None:
             await asyncio.gather(work, return_exceptions=True)
 
 
+async def desktop_startup(stopped: bool) -> None:
+    terminal = run_mixed.Terminal()
+    entered, release = asyncio.Event(), threading.Event()
+    loop = asyncio.get_running_loop()
+    printed: list[str] = []
+
+    class Guest:
+        def __init__(self, _runtime: Path, **_options: Any) -> None:
+            loop.call_soon_threadsafe(entered.set)
+            assert release.wait(2), "The startup fixture was not released"
+            raise DesktopStartupError("Controlled startup failure")
+
+    async def approve(_description: str) -> bool:
+        return True
+
+    def output(value: object) -> None:
+        printed.append(str(value))
+
+    async def invoked() -> BaseException | None:
+        try:
+            await run_mixed.main()
+        except (Exception, SystemExit) as error:
+            return error
+        return None
+
+    with (
+        patch.object(run_mixed, "Terminal", return_value=terminal),
+        patch.object(run_mixed, "Desktop", Guest),
+        patch.object(terminal, "start", lambda: None),
+        patch.object(terminal, "ask", approve),
+        patch.object(run_mixed, "print", output, create=True),
+        patch.dict(os.environ, {"OPENAI_API_KEY": "synthetic", "OPENAI_MODEL": "synthetic"}),
+        patch.object(sys, "argv", ["run_mixed.py", "--live", "--runtime-dir", "/unused"]),
+    ):
+        work = asyncio.create_task(invoked())
+        try:
+            await asyncio.wait_for(entered.wait(), 2)
+            if stopped:
+                terminal.stop()
+            release.set()
+            result = await asyncio.wait_for(work, 2)
+            reports = [json.loads(line) for line in printed if line.startswith("{")]
+            if stopped:
+                assert isinstance(result, SystemExit) and result.code == 1, result
+                assert len(reports) == 1 and reports[0]["status"] == "stopped", reports
+                assert reports[0]["requests"] == 0 and reports[0]["guest_editor"] is False
+            else:
+                assert isinstance(result, DesktopStartupError), result
+                assert reports == [], reports
+        finally:
+            release.set()
+            await asyncio.gather(work, return_exceptions=True)
+
+
 async def active_control() -> None:
     terminal = run_mixed.Terminal()
     stopped: list[str] = []
@@ -145,6 +201,9 @@ async def main() -> None:
             results.append({"case": kind, "pass": False, "error": f"{type(error).__name__}: {error}"})
     await active_control()
     results.append({"case": "active-session-drain", "pass": True})
+    for stopped in (False, True):
+        await desktop_startup(stopped)
+        results.append({"case": f"desktop-startup-stopped-{stopped}", "pass": True})
     print(json.dumps({"results": results, "api_calls": 0, "vm_calls": 0}))
     assert all(item["pass"] for item in results), results
 

@@ -9,7 +9,7 @@ import asyncio
 import secrets
 from typing import TYPE_CHECKING, Literal
 from pathlib import Path
-from threading import Thread
+from threading import Lock, Thread
 from contextlib import asynccontextmanager
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from collections.abc import Mapping, Callable, Awaitable, AsyncGenerator
@@ -78,6 +78,7 @@ class Dispatch(ThreadingHTTPServer):
         super().__init__(("127.0.0.1", 0), Handler)
         self.routes = 0
         self.results = 0
+        self.result_lock = Lock()
         self.checked_click = False
         self.browser_routed = False
         self._workspace_token = secrets.token_urlsafe(32)
@@ -132,11 +133,11 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         assert isinstance(self.server, Dispatch)
         if self.path == self.server._result_path:
-            if self.server.routes == 1 and self.server.browser_routed:
-                self.server.results += 1
-                self.reply(200, PUBLIC_RECEIPT)
-            else:
-                self.reply(409)
+            with self.server.result_lock:
+                available = self.server.routes == 1 and self.server.browser_routed and self.server.results == 0
+                if available:
+                    self.server.results += 1
+            self.reply(200 if available else 409, PUBLIC_RECEIPT if available else b"")
         elif not self.server.authorized(self.headers.get("cookie", "")):
             self.reply(403)
         elif self.path == "/dispatch":

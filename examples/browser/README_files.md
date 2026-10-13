@@ -7,6 +7,10 @@ uses the optional `upload_file` and `download_file` members in
 `AsyncBrowserToolset`. It connects to local Chromium through CDP and tests two local sources.
 The default browser tools do not include either file member.
 
+Uploads require the OS file-open flags `O_NOFOLLOW` and `O_NONBLOCK`. Upload
+owner creation rejects unsupported platforms, including Windows, before it
+creates a staging directory. This requirement applies only to the upload example.
+
 Follow the [browser setup](README.md) to get the released example files and
 install the SDK, Playwright, and Chromium. Run these commands from the
 unpacked release's root. If you are in `examples`, run `cd ..` first.
