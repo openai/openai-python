@@ -115,6 +115,8 @@ def main() -> int:
             node,
             node.parent / "driver.mjs",
             node.parent / "owned-pointer.mjs",
+            node.parent / "borrowed-read.mjs",
+            node.parent / "owned-element.mjs",
             node.parent / "long-workflow-fixture.html",
             node.parent / "long-workflow-oracle.json",
             node.parent / "package.json",

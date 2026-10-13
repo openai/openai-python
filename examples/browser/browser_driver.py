@@ -1441,23 +1441,37 @@ class PlaywrightBrowser:
         self._sequence = 0
         self._changes: deque[BrowserStateChange] = deque(maxlen=32)
         self.tabs: dict[str, Page] = {}
+        self._page_listeners: dict[str, dict[str, Callable[[object], None]]] = {}
         self._page_generations: dict[str, int] = {}
         self.active = ""
         self._next_tab = 0
         self._generation = 0
         self._refs: dict[str, dict[str, tuple[ElementHandle, object, int]]] = {}
         context.on("page", self._register)
-        context.on("close", lambda _context: self._retired())
+        self._on_context_close: Callable[[BrowserContext], None] = lambda _context: self._retired()
+        context.on("close", self._on_context_close)
         for page in context.pages:
             self._register(page)
 
     def _register(self, page: Page) -> None:
         if self._unusable or page in self.tabs.values():
             return
-        if self.owned_fixture_urls is not None and len(self.tabs) >= 100:
+        if len(self.tabs) >= 100:
             self._retired()
-            self._retirement = asyncio.create_task(self.context.close())
-            self._retirement.add_done_callback(lambda done: done.exception() if not done.cancelled() else None)
+            self._unusable = True
+            if self.owned_fixture_urls is not None:
+                self._retirement = asyncio.create_task(self.context.close())
+                self._retirement.add_done_callback(lambda done: done.exception() if not done.cancelled() else None)
+            else:
+                self.context.remove_listener("page", self._register)
+                self.context.remove_listener("close", self._on_context_close)
+                for tab_id, tracked in self.tabs.items():
+                    for event, listener in self._page_listeners[tab_id].items():
+                        tracked.remove_listener(event, listener)
+                self._retire_borrowed_refs()
+                self.tabs.clear()
+                self._page_generations.clear()
+                self._page_listeners.clear()
             return
         self._next_tab += 1
         tab_id = str(self._next_tab)
@@ -1467,9 +1481,15 @@ class PlaywrightBrowser:
         self._refs[tab_id] = {}
         page.set_default_timeout(5_000)
         self._notice("tab_opened", tab_id)
-        page.on("framenavigated", lambda _frame: self._notice("navigation", tab_id))
-        page.on("framedetached", lambda _frame: self._revoke(tab_id))
-        page.on("close", lambda _page: self._closed_tab(tab_id))
+        listeners: dict[str, Callable[[object], None]] = {
+            "framenavigated": lambda _frame: self._notice("navigation", tab_id),
+            "framedetached": lambda _frame: self._revoke(tab_id),
+            "close": lambda _page: self._closed_tab(tab_id),
+        }
+        self._page_listeners[tab_id] = listeners
+        page.on("framenavigated", listeners["framenavigated"])
+        page.on("framedetached", listeners["framedetached"])
+        page.on("close", listeners["close"])
         if self.owned_fixture_urls is not None:
             page.on("dialog", lambda dialog: self._dismiss(dialog, tab_id))
             page.on("download", lambda download: self._download(download, tab_id))
@@ -1479,6 +1499,7 @@ class PlaywrightBrowser:
         self.tabs.pop(tab_id, None)
         self._page_generations.pop(tab_id, None)
         self._refs.pop(tab_id, None)
+        self._page_listeners.pop(tab_id, None)
 
     def _usable(self) -> None:
         if self._unusable:
@@ -2212,10 +2233,14 @@ class PlaywrightBrowser:
                 or self._refs[selected].get(target) is not ref
             ):
                 raise BrowserError("Stale element reference. Read the page again.")
-        except Exception as exc:
+        except Exception:
             self._refs[selected].pop(target, None)
-            await handle.dispose()
-            raise BrowserError("Stale element reference. Read the page again.") from exc
+            try:
+                await handle.dispose()
+            except Error:
+                # Navigation or closure may already have destroyed this handle.
+                pass
+            raise BrowserError("Stale element reference. Read the page again.") from None
         return handle
 
     async def _guarded_input(
@@ -2298,8 +2323,8 @@ class PlaywrightBrowser:
         handle, binding, _ = ref
         try:
             description: object = await handle.evaluate(_OWNED_ACT, {"binding": binding, "action": "describe"})
-        except Exception as exc:
-            raise BrowserError("Stale element reference. Read the page again.") from exc
+        except Error:
+            raise BrowserError("Stale element reference. Read the page again.") from None
         if (
             not isinstance(description, dict)
             or ref[2] != self._generation
