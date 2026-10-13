@@ -14,10 +14,10 @@ if TYPE_CHECKING:
 
 
 def rotated_idempotency_headers(client: OpenAI | AsyncOpenAI, extra: Headers | None) -> Headers | None:
-    headers = extra or {}
+    headers = dict(extra) if extra is not None else {}
     effective = _merge_headers(client._custom_headers, headers)
     if not any(name.lower() == "idempotency-key" for name in effective):
-        return None
+        return headers if extra is not None else None
     return {
         **{name: value for name, value in headers.items() if name.lower() != "idempotency-key"},
         "Idempotency-Key": f"stainless-python-retry-{uuid4()}",

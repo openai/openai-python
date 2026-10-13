@@ -40,7 +40,7 @@ def guest_process(root: Path, name: str, descriptor: int) -> None:
         return result
 
     def controlled_reply(request: object) -> dict[str, object]:
-        del request
+        (root / f"{name}-request.json").write_text(json.dumps(request), encoding="utf-8")
         (root / f"{name}-entered").touch()
         if name == "read" and not wait_for(root / "release", 3):
             raise TimeoutError("Fixture read was not released.")
@@ -96,7 +96,14 @@ class ActionAdmissionTests(unittest.TestCase):
                     {"ok": False, "uncertain": False, "error": "Unsupported or invalid action."},
                 )
                 self.assertFalse((root / "invalid-entered").exists())
-                effect = send("input", {"type": "type", "text": "synthetic fixture"})
+                too_large = send("oversized", {"type": "type", "text": "x" * 16384})
+                self.assertEqual(
+                    json.loads(too_large.recv(4096)),
+                    {"ok": False, "uncertain": False, "error": "Unsupported or invalid action."},
+                )
+                self.assertFalse((root / "oversized-entered").exists())
+                requested = {"type": "type", "text": "synthetic fixture " * 192 + "\nDesktop receipt D-2201"}
+                effect = send("input", requested)
                 self.assertTrue(wait_for(root / "input-validated"), "The next action never reached admission.")
                 self.assertFalse(wait_for(root / "input-entered", 0.2), "Input overlapped an abandoned read.")
                 if crash:
@@ -106,6 +113,7 @@ class ActionAdmissionTests(unittest.TestCase):
                     (root / "release").touch()
                 self.assertEqual(json.loads(effect.recv(4096)), {"ok": True})
                 self.assertTrue((root / "input-entered").exists(), "The queued action never ran after release.")
+                self.assertEqual(json.loads((root / "input-request.json").read_text(encoding="utf-8")), requested)
                 children[-1].wait(timeout=2)
                 self.assertEqual(children[-1].returncode, 0)
             finally:
