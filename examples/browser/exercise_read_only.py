@@ -6,9 +6,11 @@ import json
 import asyncio
 from typing import Any
 from pathlib import Path
+from unittest.mock import patch
 
 import httpx2 as httpx
 from read_only import open_reader, answer_question
+from playwright.async_api import Page, Response as PlaywrightResponse
 
 from openai import AsyncOpenAI
 from openai.lib.browser import BrowserError
@@ -36,6 +38,29 @@ def payload(output: Any) -> dict[str, Any]:
 async def main() -> None:
     documents = json.loads(Path(__file__).with_name("reader-site.json").read_text())
     original = json.dumps(documents)
+    async with open_reader(documents) as reader:
+        original_goto = Page.goto
+
+        async def committed_failure(page: Page, url: str, **kwargs: Any) -> PlaywrightResponse | None:
+            await original_goto(page, url, **kwargs)
+            assert page.url == url
+            raise RuntimeError("Local fixture failed after navigation commit")
+
+        with patch.object(Page, "goto", committed_failure):
+            try:
+                await reader.execute(
+                    ResponseFunctionToolCall(**call("navigate", {"tab_id": None, "url": "http://reader.invalid/hours"}))
+                )
+            except RuntimeError as error:
+                assert str(error) == "Browser state report failed."
+            else:
+                raise AssertionError("A retired reader supplied state after a failed navigation.")
+        try:
+            after = await reader.execute(ResponseFunctionToolCall(**call("get_page_text", {"tab_id": None})))
+        except RuntimeError as error:
+            assert str(error) == "Browser state report failed."
+        else:
+            assert payload(after)["ok"] is False, "A reader must retire after an uncertain navigation."
     boundary = "/" + "a" * (16_384 - len("http://reader.invalid/".encode()))
     try:
         async with open_reader({**documents, boundary + "b": documents["/"]}):

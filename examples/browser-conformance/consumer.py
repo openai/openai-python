@@ -543,7 +543,9 @@ async def v1(lane: str) -> None:
             value["tabs"][0][text["field"]] = text["value"]
             rig.driver.state = adapt(lane, lambda: value)
             if text["valid"]:
-                assert payload(await rig.execute())["state"]["tabs"][0][text["field"]] == text["value"]
+                state = payload(await rig.execute())["state"]
+                assert state["tabs"][0][text["field"]] == text.get("expected", text["value"])
+                assert state["observation"]["title_truncated"] is text.get("title_truncated", False)
             else:
                 error = await expect_error(rig.execute)
                 assert str(error) == "Browser state report failed.", error

@@ -8,6 +8,7 @@ import httpx2
 import pytest
 
 from openai import OpenAI, AsyncOpenAI
+from openai.types.responses import Response
 from openai.lib.responses_tool_runner import (
     ToolRunnerError,
     RegisteredFunction,
@@ -18,10 +19,87 @@ from openai.lib.responses_tool_runner import (
     AsyncResponsesToolLedger,
     AsyncResponsesToolRunner,
 )
+from openai.resources.responses.responses import Responses, AsyncResponses
 from openai.types.responses.response_output_item import McpApprovalRequest
 from openai.types.responses.response_create_params import ResponseCreateParamsNonStreaming
 
 from .test_responses_tool_runner import TOOL, FINAL, PARAMS, fn, run, sse, resp, iteration, next_turn
+
+
+@pytest.mark.parametrize("lane", ["sync", "async"])
+@pytest.mark.parametrize(
+    "fields,valid",
+    [
+        ({}, True),
+        ({"description": None}, True),
+        ({"description": "Read a local fixture"}, True),
+        ({"description": 3}, False),
+        ({"description": False}, False),
+        ({"description": {"text": "read"}}, False),
+    ],
+)
+async def test_native_mcp_list_metadata_before_sibling(
+    lane: str, fields: dict[str, object], valid: bool, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    listed = {
+        "type": "mcp_list_tools",
+        "id": "listed",
+        "server_label": "desk",
+        "tools": [{"name": "read", "input_schema": {}, "annotations": ["free", 1, None], **fields}],
+    }
+    params = cast(
+        ResponseCreateParamsNonStreaming,
+        {
+            **PARAMS,
+            "tools": [{"type": "mcp", "server_label": "desk", "server_url": "https://fixture.invalid/mcp"}],
+            "tool_choice": {"type": "allowed_tools", "mode": "auto", "tools": [{"type": "function", "name": "record"}]},
+        },
+    )
+    requests: list[dict[str, Any]] = []
+    effects: list[str] = []
+    approvals: list[str] = []
+
+    def approve(item: McpApprovalRequest) -> bool:
+        approvals.append(item.id)
+        return True
+
+    # Preserve an untyped custom client's native value across Pydantic versions.
+    sync_create, async_create = Responses.create, AsyncResponses.create
+
+    def preserve(response: Response) -> Response:
+        for item in response.output:
+            if item.type == "mcp_list_tools" and "description" in fields:
+                object.__setattr__(item.tools[0], "description", fields["description"])
+        return response
+
+    def create(self: Responses, *args: Any, **kwargs: Any) -> Response:
+        return preserve(cast(Response, sync_create(self, *args, **kwargs)))
+
+    async def acreate(self: AsyncResponses, *args: Any, **kwargs: Any) -> Response:
+        return preserve(cast(Response, await async_create(self, *args, **kwargs)))
+
+    monkeypatch.setattr(Responses, "create", create)
+    monkeypatch.setattr(AsyncResponses, "create", acreate)
+
+    result = run(
+        lane,
+        None,
+        [resp([fn("record", "local", text="permitted"), listed], "first"), FINAL],
+        requests,
+        params=params,
+        effects=effects,
+        approve_mcp=approve,
+    )
+    if valid:
+        await result
+        assert effects == ["permitted"] and len(requests) == 2
+        assert any(item.get("type") == "mcp_list_tools" for item in requests[1]["input"])
+        assert not any(item.get("type") == "mcp_call" for item in requests[1]["input"])
+    else:
+        with pytest.raises(ToolRunnerError):
+            await result
+        assert effects == [] and len(requests) == 1
+    assert approvals == []
 
 
 @pytest.mark.parametrize("lane", ["sync", "async"])
@@ -132,6 +210,10 @@ async def test_mcp_approval_tool_choice(
         ({"always": {"tool_names": ["write"]}}, False, True),
         ({"always": {"tool_names": ["write"]}}, True, False),
         ({"always": {"read_only": True}}, False, True),
+        ({"always": {}}, False, False),
+        ({"always": {}}, True, True),
+        ({"never": {}}, False, True),
+        ({"never": {}}, True, False),
         ({"always": {"tool_names": ["read"]}, "never": {"tool_names": ["read"]}}, False, True),
     ],
 )
@@ -272,8 +354,66 @@ async def test_mcp_grant_used_once(lane: str, stream: bool, eager: bool, scenari
         with pytest.raises((ToolRunnerError, ValueError)):
             await result
         assert effects == [] and writes == []
-        assert len(requests) == (0 if scenario == "saved-history" else 1)
-    assert approvals == [] and history == original
+        assert len(requests) == (0 if scenario in ("saved-history", "repeated-history") else 1)
+    expected = (
+        ["approval", "approval_second"]
+        if scenario == "independent-grants"
+        else ["approval"]
+        if scenario in ("single-grant", "same-output")
+        else []
+    )
+    assert approvals == expected and history == original
+
+
+@pytest.mark.parametrize("lane", ["sync", "async"])
+@pytest.mark.parametrize("mode", ["ordinary", "budget", "ledger"])
+@pytest.mark.parametrize("decision", ["allow", "deny", "missing", "invalid"])
+async def test_imported_mcp_grant_before_save_or_request(lane: str, mode: str, decision: str) -> None:
+    history = [
+        {"type": "mcp_approval_request", "id": "approval", "server_label": "desk", "name": "read", "arguments": "{}"},
+        {"type": "mcp_approval_response", "approval_request_id": "approval", "approve": True},
+        {"role": "user", "content": "continue"},
+    ]
+    original = deepcopy(history)
+    requests: list[dict[str, Any]] = []
+    writes: list[ResponsesToolCheckpoint] = []
+    approvals: list[str] = []
+    params = cast(
+        ResponseCreateParamsNonStreaming,
+        {
+            **PARAMS,
+            "input": history,
+            "tools": [{"type": "mcp", "server_label": "desk", "server_url": "https://fixture.invalid/mcp"}],
+        },
+    )
+
+    def approve(item: McpApprovalRequest) -> bool:
+        assert requests == [] and writes == []
+        approvals.append(item.id)
+        return cast(bool, "yes" if decision == "invalid" else decision == "allow")
+
+    result = run(
+        lane,
+        None,
+        [FINAL],
+        requests,
+        params=params,
+        save=writes.append if mode == "ledger" else None,
+        context_budget={"max_input_bytes": 8000, "max_input_images": 0} if mode == "budget" else None,
+        approve_mcp=None if decision == "missing" else approve,
+    )
+    if decision in ("missing", "invalid"):
+        with pytest.raises(ToolRunnerError):
+            await result
+        assert requests == [] and writes == []
+    else:
+        await result
+        expected = {"type": "mcp_approval_response", "approval_request_id": "approval", "approve": decision == "allow"}
+        assert expected in requests[0]["input"]
+        if mode == "ledger":
+            assert expected in writes[0]["history"]
+    assert approvals == ([] if decision == "missing" else ["approval"])
+    assert history == original
 
 
 @pytest.mark.parametrize("lane", ["sync", "async"])
@@ -479,7 +619,7 @@ async def test_duplicate_mcp_request_id_cannot_replace_approved_action(lane: str
         turns, _desktop, _computer, effects, requests, _closed = rig
         with pytest.raises(ToolRunnerError):
             await next_turn(turns)
-        assert effects == [] and len(requests) == 1
+        assert effects == [] and requests == []
 
 
 @pytest.mark.parametrize("lane", ["sync", "async"])

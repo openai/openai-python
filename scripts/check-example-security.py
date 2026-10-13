@@ -13,6 +13,16 @@ import openai
 ROOT = Path(__file__).resolve().parent.parent
 CASES: dict[str, list[tuple[str, ...]]] = {
     "browser": [
+        ("examples/browser/exercise.py",),
+        ("examples/browser/exercise_borrowed_retirement.py",),
+        ("examples/browser/exercise_wait_editable.py", "wait"),
+        ("examples/browser/exercise_wait_editable.py", "editable"),
+        ("examples/browser/exercise_scoped.py",),
+        ("examples/browser/exercise_capabilities.py",),
+        ("examples/browser/exercise_portable_files.py",),
+        ("examples/browser/exercise_coordinates.py",),
+        ("examples/browser/exercise_find_budget.py",),
+        ("examples/browser/exercise_batch_timeout.py",),
         ("examples/browser/exercise_network.py",),
         ("examples/browser/exercise_navigation.py",),
         ("examples/browser/exercise_navigation_retirement.py",),

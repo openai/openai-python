@@ -116,6 +116,44 @@ async def main() -> None:
         async with async_playwright() as pw:
             browser = await pw.chromium.launch()
             try:
+                for replaced in ("options", "encoder"):
+                    fixture = await browser.new_context()
+                    borrowed = PlaywrightBrowser(fixture, {origin})
+                    try:
+                        target = await fixture.new_page()
+                        await target.set_content(
+                            '<p>Å漢😀 shipment</p><select aria-label="Current choice">'
+                            '<option value="one">Å漢😀 one</option><option value="two">Two</option></select>'
+                        )
+                        selected = (await borrowed.state())["tabs"][0]["id"]
+                        await target.evaluate(
+                            """(kind) => {
+                              if (kind === 'options') {
+                                Object.defineProperty(document.querySelector('select').options, Symbol.iterator, {
+                                  value() { throw new Error('fixture called page option iterator'); },
+                                });
+                              } else {
+                                window.TextEncoder = class {
+                                  constructor() { throw new Error('fixture called page encoder'); }
+                                };
+                              }
+                            }""",
+                            replaced,
+                        )
+                        result = await borrowed.read_page({"tab_id": selected, "filter": "all"})
+                        assert not isinstance(result, str)
+                        choice = next(item for item in result["elements"] if item["label"] == "Current choice")
+                        assert "options" in choice
+                        assert choice["options"][0]["value"] == "one"
+                        assert "Å漢😀 shipment" in result["text"]
+                        found = await borrowed.find({"tab_id": selected, "query": "Current choice"})
+                        assert not isinstance(found, str)
+                        assert found["elements"][0]["label"] == "Current choice"
+                        assert "Å漢😀 shipment" in await borrowed.get_page_text({"tab_id": selected})
+                        assert not target.is_closed()
+                        checks += 3
+                    finally:
+                        await fixture.close()
                 context = await browser.new_context()
                 driver = PlaywrightBrowser(context, {origin})
                 page = await context.new_page()

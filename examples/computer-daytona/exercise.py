@@ -7,6 +7,7 @@ import base64
 import asyncio
 import hashlib
 import inspect
+import traceback
 import importlib.metadata as md
 from types import SimpleNamespace
 from typing import Any, cast
@@ -34,6 +35,7 @@ class API:
         self.calls: list[tuple[str, dict[str, Any]]] = []
         self.value = PNG
         self.failed_pointer: str | None = None
+        self.failed_read: str | None = None
         self.cancel_on: str | None = None
         self.cancelled = False
         self.change_during_screenshot = False
@@ -42,6 +44,8 @@ class API:
         self.display = DisplayInfo(id=7, is_active=True, x=0, y=0, width=1024, height=768)
 
     async def get_display_info(self, **_kwargs: object) -> DisplayInfoResponse:
+        if self.failed_read == "display":
+            raise ValueError("SYNTHETIC_PROVIDER_DETAIL")
         if self.display_gate is not None:
             entered, finish = self.display_gate
             self.display_gate = None
@@ -51,6 +55,8 @@ class API:
 
     async def take_screenshot(self, **_kwargs: object) -> ScreenshotResponse:
         self.calls.append(("screenshot", {}))
+        if self.failed_read == "screenshot":
+            raise ValueError("SYNTHETIC_PROVIDER_DETAIL")
         if self.cancel_on == "screenshot":
             self.cancelled = True
         if self.change_during_screenshot:
@@ -155,6 +161,33 @@ async def main() -> None:
         return
 
     pointer = {"type": "click", "x": 1023, "y": 767, "button": "left"}
+    for boundary in ("initial", "display", "screenshot", "click"):
+        api.failed_read = None
+        api.failed_pointer = None
+        driver = await DaytonaComputer.from_started_desktop(cu)
+        tool = AsyncComputerToolset(driver)
+        await tool.execute(computer_call({"type": "screenshot"}), before_action=yes)
+        api.failed_read = "display" if boundary == "initial" else boundary
+        api.failed_pointer = "click" if boundary == "click" else None
+        try:
+            if boundary == "initial":
+                await DaytonaComputer.from_started_desktop(cu)
+            else:
+                await tool.execute(
+                    computer_call(pointer if boundary == "click" else {"type": "screenshot"}), before_action=yes
+                )
+        except Exception as error:
+            rendered = "".join(traceback.format_exception(type(error), error, error.__traceback__))
+            assert "SYNTHETIC_PROVIDER_DETAIL" not in rendered
+            assert "Uncertain pointer effect in local fixture" not in rendered
+            assert "Daytona provider operation failed." in str(error)
+        else:
+            raise AssertionError(f"Provider error at {boundary} was ignored")
+        passed.append(f"sanitized:{boundary}")
+    api.failed_read = None
+    api.failed_pointer = None
+    driver = await DaytonaComputer.from_started_desktop(cu)
+    tool = AsyncComputerToolset(driver)
     await check_refusal("display:initial-screenshot-required", pointer)
     await tool.execute(computer_call({"type": "screenshot"}), before_action=yes)
     cases = [

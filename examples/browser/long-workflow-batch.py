@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import json
 import stat
+import signal
 import hashlib
 import tarfile
 import zipfile
@@ -12,6 +13,7 @@ import argparse
 import subprocess
 from typing import Any, cast
 from pathlib import Path
+from contextlib import suppress
 from urllib.parse import unquote, urlparse
 
 
@@ -209,18 +211,22 @@ def main() -> int:
         ]
         child_environment = {**environment, "LONG_WORKFLOW_MODEL": models[trial["api"]]}
         with log.open("xb") as stream:
-            try:
-                completed = subprocess.run(
-                    child_command,
-                    stdout=stream,
-                    stderr=subprocess.STDOUT,
-                    check=False,
-                    timeout=manifest["limits"]["process_and_cleanup_seconds"],
-                    env=child_environment,
-                )
-                code = completed.returncode
-            except subprocess.TimeoutExpired:
-                code = 2
+            with subprocess.Popen(
+                child_command,
+                stdout=stream,
+                stderr=subprocess.STDOUT,
+                env=child_environment,
+                start_new_session=True,
+            ) as process:
+                try:
+                    code = process.wait(timeout=manifest["limits"]["process_and_cleanup_seconds"])
+                except BaseException as error:
+                    with suppress(ProcessLookupError):
+                        os.killpg(process.pid, signal.SIGKILL)
+                    process.wait()
+                    if not isinstance(error, subprocess.TimeoutExpired):
+                        raise
+                    code = 2
         try:
             receipt = json.loads(result.read_text())
             halted = code == 2 or not receipt["cleanup"] or not receipt.get("oracle", {}).get("explained", False)

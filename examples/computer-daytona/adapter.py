@@ -41,6 +41,13 @@ T = TypeVar("T")
 _MODIFIERS = {"ctrl", "shift", "alt", "cmd"}
 
 
+async def _provider(work: Callable[[], Awaitable[T]]) -> T:
+    try:
+        return await work()
+    except Exception:
+        raise ValueError("Daytona provider operation failed.") from None
+
+
 class DaytonaComputer:
     def __init__(
         self,
@@ -81,7 +88,7 @@ class DaytonaComputer:
         pixel_limit = _screenshot_limit(max_screenshot_pixels)
         if max_screenshot_bytes is not None:
             _screenshot_limit(max_screenshot_bytes, "max_screenshot_bytes")
-        info = await computer_use.display.get_info()
+        info = await _provider(computer_use.display.get_info)
         displays = info.displays
         if not displays or len(displays) != 1:
             raise ValueError("Exactly one active display is required.")
@@ -117,7 +124,7 @@ class DaytonaComputer:
         if self._retired:
             raise ValueError("The display changed. Create a new adapter and take a fresh screenshot.")
         try:
-            info = await self.cu.display.get_info()
+            info = await _provider(self.cu.display.get_info)
         except asyncio.CancelledError:
             self._retired = True
             self._has_screenshot = False
@@ -150,7 +157,7 @@ class DaytonaComputer:
         try:
             await self._check_display(cancelled)
             dispatched = True
-            result = await work()
+            result = await _provider(work)
             try:
                 await self._check_display(cancelled)
             except BaseException:
@@ -267,7 +274,7 @@ class DaytonaComputer:
         try:
             self._has_screenshot = False
             await self._check_display(cancelled)
-            shot = await self.cu.screenshot.take_full_screen()
+            shot = await _provider(self.cu.screenshot.take_full_screen)
             value = shot.screenshot
             if type(value) is not str:
                 raise ValueError("Daytona returned no screenshot.")

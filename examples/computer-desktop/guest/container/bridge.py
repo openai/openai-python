@@ -15,7 +15,7 @@ if pid == 0:
 
 right.close()
 try:
-    left.settimeout(12)
+    left.settimeout(14)
     left.sendall(sys.stdin.buffer.readline(16385))
     left.shutdown(socket.SHUT_WR)
     total = 0

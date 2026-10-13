@@ -63,9 +63,11 @@ async def execute(
 
 
 async def tests(url: str) -> None:
-    async with session(url) as (_, page, tool):
+    async with session(url) as (driver, page, tool):
         screenshot = page.screenshot
         entered, release, cancelled = asyncio.Event(), asyncio.Event(), asyncio.Event()
+        closed = asyncio.Event()
+        driver.context.on("close", lambda _context: closed.set())
 
         async def held(*args: Any, **kwargs: Any) -> bytes:
             image = await screenshot(*args, **kwargs)
@@ -85,10 +87,17 @@ async def tests(url: str) -> None:
             else:
                 raise AssertionError("A cancelled capture succeeded.")
         action: dict[str, Any] = {"tab_id": None, "x": 20, "y": 20, "button": "left", "click_count": 1, "keys": []}
-        assert not (await execute(tool, "click_at", action))["ok"]
-        assert (await execute(tool, "screenshot", {"tab_id": None}))["ok"]
-        assert (await execute(tool, "click_at", action))["ok"]
-        print("PASS per-call cancelled capture publishes no pointer permit; fresh screenshot permits reuse")
+        assert driver._unusable
+        for member, args in (("click_at", action), ("screenshot", {"tab_id": None})):
+            try:
+                await execute(tool, member, args)
+            except RuntimeError:
+                pass
+            else:
+                raise AssertionError("A cancelled capture revived a retired owned context.")
+        await asyncio.wait_for(closed.wait(), timeout=2)
+        assert driver.context.pages == []
+        print("PASS cancelled owned capture retires its context; neither input nor another capture revives it")
     async with session(url) as (_, page, tool):
         for button, count in [("right", 1), ("left", 2), ("middle", 1), ("left", 3)]:
             assert (await execute(tool, "screenshot", {"tab_id": None}))["ok"]
@@ -178,6 +187,8 @@ async def tests(url: str) -> None:
         print("PASS replaced target receives no third click; held modifier released and context retired")
 
     async with session(url) as (driver, page, tool), session(url) as (_, other_page, other_tool):
+        closed = asyncio.Event()
+        driver.context.on("close", lambda _context: closed.set())
         await page.locator("#board").focus()
         await execute(tool, "screenshot", {"tab_id": None})
         cancelled = asyncio.Event()
@@ -197,7 +208,9 @@ async def tests(url: str) -> None:
             pass
         else:
             raise AssertionError("Expected cancelled held keys")
-        assert driver.context.pages == [] and driver._unusable
+        assert driver._unusable
+        await asyncio.wait_for(closed.wait(), timeout=2)
+        assert driver.context.pages == []
         assert (await execute(other_tool, "screenshot", {"tab_id": None}))["ok"]
         assert (await other_page.evaluate("() => window.readCanvasResult()"))["pressed"] == []
         print("PASS cancelled hold retires only its own context; second owner remains usable")

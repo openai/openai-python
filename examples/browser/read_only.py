@@ -101,7 +101,9 @@ class ReadOnlyBrowser:
             self._closing = asyncio.create_task(self.browser.close())
         return self._closing
 
-    async def _observe(self, work: Callable[[], Awaitable[T]], cancelled: Callable[[], bool] | None) -> T:
+    async def _observe(
+        self, work: Callable[[], Awaitable[T]], cancelled: Callable[[], bool] | None, *, navigation: bool = False
+    ) -> T:
         if self.retired:
             raise BrowserError("Reader was stopped. Open a new reader.")
         if cancelled and cancelled():
@@ -118,10 +120,11 @@ class ReadOnlyBrowser:
             if cancelled():
                 raise BrowserCancelledError()
             return result
-        except (BrowserCancelledError, asyncio.CancelledError):
-            self.retired = True
-            reading.add_done_callback(lambda done: done.exception() if not done.cancelled() else None)
-            self.close().add_done_callback(lambda done: done.exception() if not done.cancelled() else None)
+        except BaseException as error:
+            if navigation or isinstance(error, (BrowserCancelledError, asyncio.CancelledError)):
+                self.retired = True
+                reading.add_done_callback(lambda done: done.exception() if not done.cancelled() else None)
+                self.close().add_done_callback(lambda done: done.exception() if not done.cancelled() else None)
             raise
 
     async def state(self, *, cancelled: Callable[[], bool] | None = None) -> BrowserState:
@@ -153,7 +156,7 @@ class ReadOnlyBrowser:
         url = args["url"]
         if url not in self.pages:
             raise ValueError("Choose one of the three local guide pages.")
-        await self._observe(lambda: self.page.goto(url), cancelled)
+        await self._observe(lambda: self.page.goto(url), cancelled, navigation=True)
 
     async def get_page_text(self, args: TabInput, *, cancelled: Callable[[], bool] | None = None) -> str:
         self.check_tab(args["tab_id"])

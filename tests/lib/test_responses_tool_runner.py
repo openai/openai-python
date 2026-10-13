@@ -895,6 +895,78 @@ async def test_preflight_refuses_malformed_native_message_before_siblings(
 
 
 @pytest.mark.parametrize("lane", ["sync", "async"])
+async def test_interpreter_checkpoint_policy_identity_and_credential_rotation(lane: str) -> None:
+    def token(revision: int) -> str:
+        return f"fixture-interpreter-credential-{revision}"
+
+    def tool(revision: int, domain: str = "fixture.invalid", name: str = "fixture_auth") -> dict[str, Any]:
+        return {
+            "type": "code_interpreter",
+            "container": {
+                "type": "auto",
+                "network_policy": {
+                    "type": "allowlist",
+                    "allowed_domains": ["fixture.invalid"],
+                    "domain_secrets": [{"domain": domain, "name": name, "value": token(revision)}],
+                },
+            },
+        }
+
+    original = tool(1)
+    requests: list[dict[str, Any]] = []
+    writes: list[ResponsesToolCheckpoint] = []
+    params = cast(ResponseCreateParamsNonStreaming, {**PARAMS, "tools": [original]})
+    await run(
+        lane,
+        None,
+        [resp([fn("record", "r", text="effect")], "first"), {**FINAL, "tools": [original]}],
+        requests,
+        params=params,
+        save=writes.append,
+    )
+    assert original in requests[0]["tools"]
+    assert not any(token(1) in json.dumps(item) for item in writes)
+    boundary = next(item for item in writes if item["phase"] == "boundary" and item["returned_call_ids"] == ["r"])
+    refreshed = tool(2)
+    resumed_requests: list[dict[str, Any]] = []
+    resumed_writes: list[ResponsesToolCheckpoint] = []
+    resumed_params = cast(
+        ResponseCreateParamsNonStreaming, {**PARAMS, "input": "fresh observation", "tools": [refreshed]}
+    )
+    await run(lane, None, [FINAL], resumed_requests, params=resumed_params, save=resumed_writes.append, resume=boundary)
+    assert refreshed in resumed_requests[0]["tools"]
+    assert not any(token(2) in json.dumps(item) for item in resumed_writes)
+    for changed in (tool(2, "other.invalid"), tool(2, "fixture.invalid", "different_auth")):
+        no_requests: list[dict[str, Any]] = []
+        no_writes: list[ResponsesToolCheckpoint] = []
+        changed_params = cast(ResponseCreateParamsNonStreaming, {**resumed_params, "tools": [changed]})
+        with pytest.raises((ToolRunnerError, ValueError)):
+            await run(lane, None, [], no_requests, params=changed_params, save=no_writes.append, resume=boundary)
+        assert no_requests == no_writes == []
+
+
+@pytest.mark.parametrize("lane", ["sync", "async"])
+async def test_interpreter_checkpoint_preserves_nullable_native_output_policy(lane: str) -> None:
+    tool: dict[str, Any] = {
+        "type": "code_interpreter",
+        "container": {
+            "type": "auto",
+            "network_policy": {"type": "allowlist", "allowed_domains": ["fixture.invalid"]},
+        },
+    }
+    native = deepcopy(tool)
+    native["container"]["network_policy"]["domain_secrets"] = None
+    requests: list[dict[str, Any]] = []
+    writes: list[ResponsesToolCheckpoint] = []
+    params = cast(ResponseCreateParamsNonStreaming, {**PARAMS, "tools": [tool]})
+    await run(lane, None, [{**FINAL, "tools": [native]}], requests, params=params, save=writes.append)
+    assert len(requests) == 1
+    final = writes[-1]["final_response"]
+    assert final is not None
+    assert final["tools"] == [native]
+
+
+@pytest.mark.parametrize("lane", ["sync", "async"])
 async def test_mcp_checkpoint_registry_omits_credentials_and_accepts_refreshed_auth(lane: str) -> None:
     requests: list[dict[str, Any]] = []
     writes: list[ResponsesToolCheckpoint] = []
@@ -1601,6 +1673,33 @@ async def test_native_computer_and_functions_use_existing_dispatch(lane: str) ->
     assert computer.actions == ["type", "screenshot"]
     outputs = [i for i in requests[1]["input"] if i.get("type", "").endswith("_call_output")]
     assert [item["type"] for item in outputs] == ["computer_call_output", "function_call_output"]
+
+
+@pytest.mark.parametrize("lane", ["sync", "async"])
+@pytest.mark.parametrize("status", [None, "missing", "in_progress", "incomplete"])
+async def test_computer_status_preflight_before_sibling(lane: str, status: str | None) -> None:
+    native: dict[str, object] = {
+        "id": "cu",
+        "type": "computer_call",
+        "call_id": "comp",
+        "pending_safety_checks": [],
+        "actions": [{"type": "type", "text": "local"}],
+    }
+    if status != "missing":
+        native["status"] = status
+    driver = Driver()
+    requests: list[dict[str, Any]] = []
+    effects: list[str] = []
+    with pytest.raises(ToolRunnerError):
+        await run(
+            lane,
+            None,
+            [resp([fn("record", "earlier", text="never"), native], "r"), FINAL],
+            requests,
+            computer=driver,
+            effects=effects,
+        )
+    assert effects == [] and driver.actions == [] and len(requests) == 1
 
 
 @pytest.mark.parametrize("lane", ["sync", "async"])

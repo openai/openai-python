@@ -296,6 +296,7 @@ def check_frames() -> None:
             self.held_kind: str | None = None
             self.input_entered = threading.Event()
             self.input_release = threading.Event()
+            self.interruption: BaseException | None = None
 
         def healthy(self, *, cancelled: Callable[[], bool] | None = None) -> bool:
             del cancelled
@@ -307,6 +308,8 @@ def check_frames() -> None:
             assert timeout > 0 and limit > 0
             kind = json.loads(data)["type"]
             self.requests.append(kind)
+            if kind == "type" and self.interruption is not None:
+                raise self.interruption
             if kind == self.held_kind:
                 self.input_entered.set()
                 end = time.monotonic() + 2
@@ -329,6 +332,32 @@ def check_frames() -> None:
             self.removed = True
 
     with patch("desktop.Guest", ControlledGuest):
+        for interruption in (KeyboardInterrupt(), SystemExit(), BaseException("Synthetic interruption")):
+            desktop = Desktop(Path("controlled-fixture"))
+            guest = cast(ControlledGuest, cast(object, desktop._guest))
+            guest.interruption = interruption
+            try:
+                try:
+                    desktop.operation(
+                        lambda tools: tools.execute(call(action.Type(type="type", text="Synthetic note")))
+                    )
+                except BaseException as error:
+                    assert error is interruption
+                else:
+                    raise AssertionError("Transport interruption was swallowed")
+                assert desktop.uncertain_effects and guest.removed
+                before = len(guest.requests)
+                try:
+                    desktop.verify()
+                except ComputerUseError:
+                    pass
+                else:
+                    raise AssertionError("Interrupted input left desktop reusable")
+                assert len(guest.requests) == before
+            finally:
+                desktop.stop()
+        print("PASS: three transport interruptions preserve the error and retire uncertain input")
+
         desktop = Desktop(Path("controlled-fixture"))
         try:
             assert desktop.verify() == COMPLETE

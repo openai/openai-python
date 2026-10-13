@@ -197,7 +197,7 @@ class Desktop:
                 raise ComputerUseError("Invalid desktop reply.")
             if value.get("type") == "screenshot" and fields["ok"] is True:
                 _validate_screenshot(fields.get("image_url"))
-        except ComputerUseError:
+        except BaseException:
             if is_input:
                 with self._state:
                     self.uncertain_effects = True
@@ -227,7 +227,7 @@ class Desktop:
 
         try:
             reply = self._exchange(value, timeout=timeout, cancelled=stopped)
-        except ComputerUseError:
+        except BaseException:
             if stopped():
                 # An interrupted input has no confirmed receipt; do not reuse
                 # its guest. Read-only verification can still be repeated.
@@ -282,7 +282,7 @@ class Desktop:
             raise ComputerUseError("Desktop sealing was cancelled.")
         self._begin()
         try:
-            reply = self._request({"type": "seal"}, cancelled=cancelled)
+            reply = self._request({"type": "seal"}, timeout=15, cancelled=cancelled)
             if cancelled is not None and cancelled():
                 with self._state:
                     self._stopped = True
