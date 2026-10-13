@@ -67,6 +67,8 @@ class ComputerDriver(Protocol):
 
     Drivers own permissions, bounds checks, waits, and cleanup. A method must raise
     if it cannot execute an action; do not silently ignore unsupported input.
+    Approval covers action arguments, not a frozen screen. For target-specific
+    consent, bind the target or reject the action after a state change.
     """
 
     @abstractmethod

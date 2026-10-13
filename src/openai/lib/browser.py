@@ -991,9 +991,14 @@ def _state(value: object, previous: BrowserObservationV1 | None = None) -> Brows
         title = str.__str__(validated["title"])
         url = str.__str__(validated["url"])
         if observation is not None and (
-            not _state_text(tab_id, 128, allow_empty=False) or not _state_text(title, 1024, allow_empty=True)
+            not _state_text(tab_id, 128, allow_empty=False) or not _state_text(title, None, allow_empty=True)
         ):
             raise RuntimeError("Browser state is invalid.")
+        if observation is not None:
+            projected_title = title[:1024].encode("utf-8")[:1024].decode("utf-8", errors="ignore")
+            if projected_title != title:
+                title = projected_title
+                observation["title_truncated"] = True
         tabs.append(
             {
                 "id": tab_id,
