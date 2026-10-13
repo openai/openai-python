@@ -82,8 +82,17 @@ async def network_read(work: Awaitable[_NetworkResult], phase: asyncio.Event) ->
 
 
 class PhaseStream(httpx.AsyncByteStream):
-    def __init__(self, stream: httpx.AsyncByteStream, phase: asyncio.Event, receipt: dict[str, Any]) -> None:
+    def __init__(
+        self, stream: httpx.AsyncByteStream, phase: asyncio.Event, receipt: dict[str, Any], started: float
+    ) -> None:
         self.stream, self.phase, self.receipt = stream, phase, receipt
+        self.started = started
+
+    def finish(self, phase: str | None = None) -> None:
+        if self.receipt["durationMs"] is None:
+            if phase is not None:
+                self.receipt["phase"] = phase
+            self.receipt["durationMs"] = round((time.monotonic() - self.started) * 1000)
 
     @override
     async def __aiter__(self) -> AsyncIterator[bytes]:
@@ -92,14 +101,27 @@ class PhaseStream(httpx.AsyncByteStream):
             try:
                 yield await network_read(anext(iterator), self.phase)
             except StopAsyncIteration:
+                self.finish()
                 return
+            except asyncio.CancelledError:
+                self.finish("cancelled")
+                raise
             except Exception:
-                self.receipt["phase"] = "cancelled" if self.phase.is_set() else "failed"
+                self.finish("cancelled" if self.phase.is_set() else "failed")
                 raise
 
     @override
     async def aclose(self) -> None:
-        await self.stream.aclose()
+        try:
+            await self.stream.aclose()
+        except asyncio.CancelledError:
+            self.finish("cancelled")
+            raise
+        except Exception:
+            self.finish("cancelled" if self.phase.is_set() else "failed")
+            raise
+        else:
+            self.finish("cancelled")
 
 
 def member(value: Any, choices: Iterable[str], fallback: str | None = None) -> str | None:
@@ -999,16 +1021,19 @@ class Run:
             )
             try:
                 response = await network_read(self.http_transport.handle_async_request(request), phase)
-                response.stream = PhaseStream(cast(httpx.AsyncByteStream, response.stream), phase, receipt)
+                response.stream = PhaseStream(cast(httpx.AsyncByteStream, response.stream), phase, receipt, started)
                 receipt["phase"] = "headers"
                 receipt["status"] = response.status_code
                 receipt["headersMs"] = round((time.monotonic() - started) * 1000)
                 self.headers_ms += receipt["headersMs"]
+            except asyncio.CancelledError:
+                receipt["phase"] = "cancelled"
+                receipt["durationMs"] = round((time.monotonic() - started) * 1000)
+                raise
             except Exception:
                 receipt["phase"] = "cancelled" if phase.is_set() else "failed"
-                raise
-            finally:
                 receipt["durationMs"] = round((time.monotonic() - started) * 1000)
+                raise
         self.add(
             "request",
             "Scripted local choice · No API request"

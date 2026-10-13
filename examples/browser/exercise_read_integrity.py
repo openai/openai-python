@@ -4,14 +4,15 @@ from __future__ import annotations
 
 import json
 import asyncio
+import traceback
 from typing import Literal, Callable, Awaitable, cast
 from threading import Thread
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
-from unittest.mock import patch
+from unittest.mock import AsyncMock, MagicMock, patch
 from typing_extensions import override
 
 from browser_driver import PlaywrightBrowser
-from playwright.async_api import Browser, JSHandle, async_playwright
+from playwright.async_api import Page, Error, Browser, JSHandle, ElementHandle, BrowserContext, async_playwright
 
 from openai.lib.browser import TabInput, BrowserError, BrowserReadV1, BrowserCancelledError
 
@@ -116,6 +117,28 @@ async def main() -> None:
         async with async_playwright() as pw:
             browser = await pw.chromium.launch()
             try:
+                # Exercise the registration boundary without starting 101 renderer processes.
+                context = MagicMock(spec=BrowserContext)
+                context.pages = []
+                context.close = AsyncMock()
+                borrowed = PlaywrightBrowser(context, {origin})
+                register = next(call.args[1] for call in context.on.call_args_list if call.args[0] == "page")
+                for _ in range(100):
+                    stub = MagicMock(spec=Page)
+                    stub.url = "about:blank"
+                    stub.is_closed.return_value = False
+                    stub.evaluate = AsyncMock(return_value="Caller tab")
+                    register(stub)
+                assert len((await borrowed.state())["tabs"]) == 100
+                register(MagicMock(spec=Page))
+                try:
+                    await borrowed.state()
+                except RuntimeError as error:
+                    assert "retired" in str(error)
+                else:
+                    raise AssertionError("Borrowed registration exceeded the owned bookkeeping budget")
+                context.close.assert_not_awaited()
+                checks += 3
                 for replaced in ("options", "encoder"):
                     fixture = await browser.new_context()
                     borrowed = PlaywrightBrowser(fixture, {origin})
@@ -166,7 +189,8 @@ async def main() -> None:
                         prior = await borrowed.read_page({"tab_id": selected, "filter": "all"})
                         assert not isinstance(prior, str)
                         ref = prior["elements"][0]["ref"]
-                        await target.evaluate("""(operation) => {
+                        await target.evaluate(
+                            """(operation) => {
                             if (operation === 'state') {
                                 Object.defineProperty(document, 'title', {get() {
                                     const until = performance.now() + 8000;
@@ -185,7 +209,9 @@ async def main() -> None:
                                 }
                                 return matches.call(this, selector);
                             };
-                        }""", member)
+                        }""",
+                            member,
+                        )
                         started = asyncio.get_running_loop().time()
                         try:
                             if member == "state":
@@ -345,6 +371,33 @@ async def main() -> None:
                 await driver.type({"tab_id": tab, "target": entry["ref"], "text": "same reference"})
                 assert await page.locator("#allowed").input_value() == "same reference"
                 checks += 14
+                native_page_evaluate = page.evaluate
+
+                async def failing_reference(expression: str, arg: object = None) -> object:
+                    if isinstance(arg, dict):
+                        node = cast(dict[str, object], arg).get("checkedNode")
+                        if isinstance(node, ElementHandle):
+
+                            async def missing_handle() -> None:
+                                raise Error("SYNTHETIC_DISPOSAL_6902")
+
+                            node.dispose = missing_handle
+                            raise Error("SYNTHETIC_PAGE_URL_6902")
+                    return await native_page_evaluate(expression, cast(object, arg))
+
+                with patch.object(page, "evaluate", failing_reference):
+                    try:
+                        await driver.type({"tab_id": tab, "target": entry["ref"], "text": "must not type"})
+                    except BrowserError as error:
+                        formatted = "".join(traceback.format_exception(error))
+                        assert "SYNTHETIC_" not in formatted
+                        assert "Stale element reference" in str(error)
+                    else:
+                        raise AssertionError("Failed reference check admitted input")
+                assert await page.locator("#allowed").input_value() == "same reference"
+                refreshed = await read()
+                assert any(item["label"] == "Allowed" for item in refreshed["elements"])
+                checks += 3
                 full_ready, full_gate = asyncio.Event(), asyncio.Event()
                 text_ready, text_gate = asyncio.Event(), asyncio.Event()
 

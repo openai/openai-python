@@ -73,7 +73,8 @@ completed history.
 
 Use a clean local consumer directory with its own package.json and installed
 Node SDK plus Playwright. Copy evaluate-workflow.mjs, driver.mjs,
-owned-pointer.mjs and long-workflow-fixture.html/long-workflow-oracle.json there.
+owned-pointer.mjs, borrowed-read.mjs, owned-element.mjs,
+and long-workflow-fixture.html/long-workflow-oracle.json there.
 Use the Python example alongside browser_driver.py and owned_pointer.py in an
 environment with the installed Python SDK and Playwright. Set
 PLAYWRIGHT_BROWSERS_PATH to an existing local Chromium cache. The examples start

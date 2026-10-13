@@ -19,7 +19,89 @@ from PIL import Image
 from server import Run, Fieldwork, WorkspaceBrowser, serve
 from playwright.async_api import Playwright
 
+from openai.lib.browser import BrowserError
 from openai.lib.computer import ComputerUseError
+
+
+async def network_duration_check(outcome: str) -> None:
+    app = Fieldwork(cast(WorkspaceBrowser, None), "http://127.0.0.1:1", desktop_runtime=Path("/synthetic/unused"))
+    run = Run(app, {"environment": "browser", "taskId": "service", "api": "responses", "mode": "live"})
+    app.current = run
+    entered, release = asyncio.Event(), asyncio.Event()
+    reads: list[str] = []
+    closed: list[str] = []
+
+    class Stream(httpx.AsyncByteStream):
+        @override
+        async def __aiter__(self) -> AsyncIterator[bytes]:
+            reads.append("first")
+            yield b"data: first\n\n"
+            reads.append("last")
+            entered.set()
+            await release.wait()
+            if outcome == "failed":
+                raise RuntimeError("Controlled body read failed")
+            yield b"data: last\n\n"
+
+        @override
+        async def aclose(self) -> None:
+            closed.append("stream")
+            if outcome == "close failure":
+                raise RuntimeError("Controlled close failed")
+
+    class Transport(httpx.AsyncBaseTransport):
+        @override
+        async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
+            del request
+            return httpx.Response(
+                201, headers={"content-type": "text/event-stream", "x-request-id": "fixture"}, stream=Stream()
+            )
+
+    run.http_transport = Transport()
+    response = await run.dispatch(httpx.Request("POST", "http://127.0.0.1:1/responses"))
+    (receipt,) = [entry for entry in run.receipts if entry["kind"] == "request"]
+    assert response.status_code == 201 and response.headers["x-request-id"] == "fixture"
+    assert receipt["phase"] == "headers" and receipt["durationMs"] is None, receipt
+    assert not reads, "Timing must not consume or prefetch any response data"
+    iterator = response.aiter_raw()
+    assert await anext(iterator) == b"data: first\n\n"
+    assert receipt["durationMs"] is None
+    if outcome in ("closed", "close failure"):
+        try:
+            await response.aclose()
+        except RuntimeError as exc:
+            assert outcome == "close failure" and str(exc) == "Controlled close failed"
+        else:
+            assert outcome == "closed"
+    else:
+        last = asyncio.create_task(anext(iterator))
+        await asyncio.wait_for(entered.wait(), 1)
+        assert receipt["durationMs"] is None, "Headers and one chunk do not complete the request"
+        if outcome == "cancelled":
+            run.phase_cancel.set()
+        else:
+            release.set()
+        if outcome in ("failed", "cancelled"):
+            try:
+                await asyncio.wait_for(last, 1)
+            except (RuntimeError, BrowserError):
+                pass
+            else:
+                raise AssertionError("Interrupted stream returned content")
+        else:
+            assert await last == b"data: last\n\n"
+            try:
+                await anext(iterator)
+            except StopAsyncIteration:
+                pass
+            else:
+                raise AssertionError("Extra data escaped")
+    expected = "cancelled" if outcome in ("cancelled", "closed") else "headers" if outcome == "complete" else "failed"
+    assert receipt["phase"] == expected and receipt["durationMs"] >= receipt["headersMs"], receipt
+    duration = receipt["durationMs"]
+    await asyncio.sleep(0.004)
+    await response.aclose()
+    assert receipt["durationMs"] == duration and closed == ["stream"], (receipt, closed)
 
 
 async def network_phase_check(where: str, transfer: bool) -> None:
@@ -1033,6 +1115,10 @@ async def main() -> None:
             for transfer in (False, True)
         ],
         ("Response and Stop arrive together", network_simultaneous_stop_check()),
+        *[
+            (f"Network duration {outcome}", network_duration_check(outcome))
+            for outcome in ("complete", "failed", "cancelled", "closed", "close failure")
+        ],
         ("Superseded mixed Host frame failure", superseded_mixed_frame_check()),
         ("mixed launch clean", launch_check(False)),
         ("mixed launch close failure", launch_check(True)),
