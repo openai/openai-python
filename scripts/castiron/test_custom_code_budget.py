@@ -210,7 +210,7 @@ class BudgetTests(GitTestCase):
             "--out",
             str(out),
         ]
-        completed = subprocess.run(command, cwd=self.repo, capture_output=True, text=True)
+        completed = subprocess.run(command, cwd=self.repo, capture_output=True, text=True, check=False)
         self.assertEqual(completed.returncode, 0, completed.stderr + completed.stdout)
         self.assertEqual(json.loads((out / "budget.json").read_text())["total"], 0)
 

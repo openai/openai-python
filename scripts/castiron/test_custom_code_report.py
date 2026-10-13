@@ -8,10 +8,9 @@ import os
 import struct
 import subprocess
 import unittest
-import unittest.mock as mock
+from unittest import mock
 
 import custom_code_report as report
-
 from custom_code_test_support import GENERATION, GitTestCase
 
 

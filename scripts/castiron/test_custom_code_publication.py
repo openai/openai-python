@@ -15,7 +15,6 @@ from unittest import mock
 import custom_code_report as report
 from custom_code_test_support import GitTestCase, source_run
 
-
 WORKFLOW = (
     Path(__file__).resolve().parents[2] / ".github/workflows/castiron-custom-code-comment.yml"
 )

@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
-from typing import Dict, List, Union, Optional
+from typing import Dict, List, Union, Optional, cast
 from typing_extensions import Literal, Annotated, TypeAlias
 
 from .tool import Tool
@@ -469,7 +469,7 @@ class Response(BaseModel):
     """
     A stable identifier used to help detect users of your application that may be
     violating OpenAI's usage policies. The IDs should be a string that uniquely
-    identifies each user, with a maximum length of 64 characters. We recommend
+    identifies each user, with a maximum length of 128 characters. We recommend
     hashing their username or email address, in order to avoid sending us any
     identifying information.
     [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
@@ -558,12 +558,12 @@ class Response(BaseModel):
 
         If no `output_text` content blocks exist, then an empty string is returned.
         """
-        texts: List[str] = []
+        texts: list[str] = []
         for output in self.output:
             if output.type == "message":
                 for content in output.content:
-                    # Tolerate null text from compatible providers without changing the public string type.
-                    if content.type == "output_text" and content.text is not None:  # pyright: ignore[reportUnnecessaryComparison]
-                        texts.append(content.text)
-
+                    if content.type == "output_text":
+                        text = cast(Optional[str], content.text)
+                        if text is not None:
+                            texts.append(text)
         return "".join(texts)

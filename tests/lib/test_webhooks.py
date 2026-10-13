@@ -13,7 +13,9 @@ from openai._exceptions import InvalidWebhookSignatureError
 from openai.types.webhooks import (
     UnwrapWebhookEvent,
     SafetyWarningIssuedWebhookEvent,
+    AgentEnvironmentExpiredWebhookEvent,
     SafetyDeactivationIssuedWebhookEvent,
+    AgentEnvironmentSuspendedWebhookEvent,
 )
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
@@ -29,6 +31,10 @@ SIP_MEDIA_SECURITY_VALUES = [None, "rtp", "srtp", "future_media_security"]
 SAFETY_EVENT_TYPES = {
     "safety.warning_issued": SafetyWarningIssuedWebhookEvent,
     "safety.deactivation_issued": SafetyDeactivationIssuedWebhookEvent,
+}
+AGENT_ENVIRONMENT_LIFECYCLE_EVENT_TYPES = {
+    "agent.environment.suspended": AgentEnvironmentSuspendedWebhookEvent,
+    "agent.environment.expired": AgentEnvironmentExpiredWebhookEvent,
 }
 
 
@@ -99,6 +105,31 @@ def assert_safety_event(event: UnwrapWebhookEvent, event_type: str, payload: str
     assert event.to_dict() == json.loads(payload)
 
 
+def create_agent_environment_lifecycle_payload(event_type: str) -> tuple[str, dict[str, str]]:
+    payload = json.dumps(
+        {
+            "id": "evt_agent_environment_test",
+            "object": "event",
+            "created_at": TEST_TIMESTAMP,
+            "type": event_type,
+            "data": {"id": "ccarenv_test"},
+        }
+    )
+    signed_payload = f"{TEST_WEBHOOK_ID}.{TEST_TIMESTAMP}.{payload}".encode()
+    signature = base64.b64encode(
+        hmac.new(base64.b64decode(TEST_SECRET.removeprefix("whsec_")), signed_payload, "sha256").digest()
+    ).decode()
+    return payload, create_test_headers(signature=f"v1,{signature}")
+
+
+def assert_agent_environment_lifecycle_event(event: UnwrapWebhookEvent, event_type: str, payload: str) -> None:
+    assert isinstance(event, AGENT_ENVIRONMENT_LIFECYCLE_EVENT_TYPES[event_type])
+    assert event.type == "agent.environment.suspended" or event.type == "agent.environment.expired"
+    assert event.type == event_type
+    assert event.data.id == "ccarenv_test"
+    assert event.to_dict() == json.loads(payload)
+
+
 class TestWebhooks:
     parametrize = pytest.mark.parametrize("client", [False, True], indirect=True, ids=["loose", "strict"])
 
@@ -116,6 +147,14 @@ class TestWebhooks:
 
         with pytest.raises(InvalidWebhookSignatureError, match="The given webhook signature does not match"):
             client.webhooks.unwrap(payload, headers, secret="wrong_safety_webhook_secret")
+
+    @mock.patch("time.time", mock.MagicMock(return_value=TEST_TIMESTAMP))
+    @parametrize
+    @pytest.mark.parametrize("event_type", AGENT_ENVIRONMENT_LIFECYCLE_EVENT_TYPES)
+    def test_unwrap_agent_environment_lifecycle_events(self, client: openai.OpenAI, event_type: str) -> None:
+        payload, headers = create_agent_environment_lifecycle_payload(event_type)
+        event = client.webhooks.unwrap(payload, headers, secret=TEST_SECRET)
+        assert_agent_environment_lifecycle_event(event, event_type, payload)
 
     @mock.patch("time.time", mock.MagicMock(return_value=TEST_TIMESTAMP))
     @parametrize
@@ -282,6 +321,16 @@ class TestAsyncWebhooks:
 
         with pytest.raises(InvalidWebhookSignatureError, match="The given webhook signature does not match"):
             async_client.webhooks.unwrap(payload, headers, secret="wrong_safety_webhook_secret")
+
+    @mock.patch("time.time", mock.MagicMock(return_value=TEST_TIMESTAMP))
+    @parametrize
+    @pytest.mark.parametrize("event_type", AGENT_ENVIRONMENT_LIFECYCLE_EVENT_TYPES)
+    async def test_unwrap_agent_environment_lifecycle_events(
+        self, async_client: openai.AsyncOpenAI, event_type: str
+    ) -> None:
+        payload, headers = create_agent_environment_lifecycle_payload(event_type)
+        event = async_client.webhooks.unwrap(payload, headers, secret=TEST_SECRET)
+        assert_agent_environment_lifecycle_event(event, event_type, payload)
 
     @mock.patch("time.time", mock.MagicMock(return_value=TEST_TIMESTAMP))
     @parametrize

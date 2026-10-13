@@ -23,18 +23,26 @@ from .agent_session_created_webhook_event import AgentSessionCreatedWebhookEvent
 from .safety_warning_issued_webhook_event import SafetyWarningIssuedWebhookEvent
 from .fine_tuning_job_failed_webhook_event import FineTuningJobFailedWebhookEvent
 from .realtime_call_incoming_webhook_event import RealtimeCallIncomingWebhookEvent
+from .agent_environment_ready_webhook_event import AgentEnvironmentReadyWebhookEvent
 from .live_transport_incoming_webhook_event import LiveTransportIncomingWebhookEvent
+from .agent_environment_failed_webhook_event import AgentEnvironmentFailedWebhookEvent
 from .safety_org_alert_created_webhook_event import SafetyOrgAlertCreatedWebhookEvent
+from .agent_environment_expired_webhook_event import AgentEnvironmentExpiredWebhookEvent
 from .agent_session_in_progress_webhook_event import AgentSessionInProgressWebhookEvent
 from .fine_tuning_job_cancelled_webhook_event import FineTuningJobCancelledWebhookEvent
 from .fine_tuning_job_succeeded_webhook_event import FineTuningJobSucceededWebhookEvent
 from .safety_deactivation_issued_webhook_event import SafetyDeactivationIssuedWebhookEvent
+from .agent_environment_suspended_webhook_event import AgentEnvironmentSuspendedWebhookEvent
 from .agent_session_action_required_webhook_event import AgentSessionActionRequiredWebhookEvent
 
 __all__ = ["UnwrapWebhookEvent"]
 
 UnwrapWebhookEvent: TypeAlias = Annotated[
     Union[
+        AgentEnvironmentExpiredWebhookEvent,
+        AgentEnvironmentFailedWebhookEvent,
+        AgentEnvironmentReadyWebhookEvent,
+        AgentEnvironmentSuspendedWebhookEvent,
         AgentSessionActionRequiredWebhookEvent,
         AgentSessionCreatedWebhookEvent,
         AgentSessionFailedWebhookEvent,

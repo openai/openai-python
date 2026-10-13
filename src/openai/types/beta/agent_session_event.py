@@ -23,8 +23,10 @@ from .agent_session_turn_in_progress_event import AgentSessionTurnInProgressEven
 from .agent_session_environment_ready_event import AgentSessionEnvironmentReadyEvent
 from .agent_session_environment_reset_event import AgentSessionEnvironmentResetEvent
 from .agent_session_environment_failed_event import AgentSessionEnvironmentFailedEvent
+from .agent_session_environment_expired_event import AgentSessionEnvironmentExpiredEvent
 from .agent_session_environment_pending_event import AgentSessionEnvironmentPendingEvent
 from .agent_session_environment_connected_event import AgentSessionEnvironmentConnectedEvent
+from .agent_session_environment_suspended_event import AgentSessionEnvironmentSuspendedEvent
 from .agent_session_turn_output_text_done_event import AgentSessionTurnOutputTextDoneEvent
 from .agent_session_turn_content_part_done_event import AgentSessionTurnContentPartDoneEvent
 from .agent_session_turn_output_text_delta_event import AgentSessionTurnOutputTextDeltaEvent
@@ -42,6 +44,8 @@ AgentSessionEvent: TypeAlias = Annotated[
     Union[
         AgentSessionErrorEvent,
         AgentSessionEnvironmentReadyEvent,
+        AgentSessionEnvironmentSuspendedEvent,
+        AgentSessionEnvironmentExpiredEvent,
         AgentSessionEnvironmentResetEvent,
         AgentOutputCommandExecutionOutputDeltaEvent,
         AgentSessionCreatedEvent,

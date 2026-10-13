@@ -34,6 +34,7 @@ from .project_create_params import ProjectCreateParams as ProjectCreateParams
 from .project_update_params import ProjectUpdateParams as ProjectUpdateParams
 from .usage_images_response import UsageImagesResponse as UsageImagesResponse
 from .invite_delete_response import InviteDeleteResponse as InviteDeleteResponse
+from .usage_decisions_params import UsageDecisionsParams as UsageDecisionsParams
 from .audit_log_list_response import AuditLogListResponse as AuditLogListResponse
 from .certificate_list_params import CertificateListParams as CertificateListParams
 from .spend_alert_list_params import SpendAlertListParams as SpendAlertListParams
@@ -42,6 +43,7 @@ from .external_storage_deleted import ExternalStorageDeleted as ExternalStorageD
 from .organization_spend_alert import OrganizationSpendAlert as OrganizationSpendAlert
 from .organization_spend_limit import OrganizationSpendLimit as OrganizationSpendLimit
 from .usage_completions_params import UsageCompletionsParams as UsageCompletionsParams
+from .usage_decisions_response import UsageDecisionsResponse as UsageDecisionsResponse
 from .usage_moderations_params import UsageModerationsParams as UsageModerationsParams
 from .admin_api_key_list_params import AdminAPIKeyListParams as AdminAPIKeyListParams
 from .certificate_create_params import CertificateCreateParams as CertificateCreateParams
@@ -69,6 +71,7 @@ from .aws_external_storage_provider import AwsExternalStorageProvider as AwsExte
 from .certificate_activate_response import CertificateActivateResponse as CertificateActivateResponse
 from .certificate_deactivate_params import CertificateDeactivateParams as CertificateDeactivateParams
 from .gcp_external_storage_provider import GcpExternalStorageProvider as GcpExternalStorageProvider
+from .oci_external_storage_provider import OciExternalStorageProvider as OciExternalStorageProvider
 from .usage_audio_speeches_response import UsageAudioSpeechesResponse as UsageAudioSpeechesResponse
 from .usage_web_search_calls_params import UsageWebSearchCallsParams as UsageWebSearchCallsParams
 from .external_storage_configuration import ExternalStorageConfiguration as ExternalStorageConfiguration

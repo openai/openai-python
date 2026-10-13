@@ -319,6 +319,9 @@ from .beta_tool_search_output_namespace_tool import (
 from .agent_browser_origin_access_param_param import (
     AgentBrowserOriginAccessParamParam as AgentBrowserOriginAccessParamParam,
 )
+from .agent_session_environment_expired_event import (
+    AgentSessionEnvironmentExpiredEvent as AgentSessionEnvironmentExpiredEvent,
+)
 from .agent_session_environment_pending_event import (
     AgentSessionEnvironmentPendingEvent as AgentSessionEnvironmentPendingEvent,
 )
@@ -363,6 +366,9 @@ from .agent_browser_authentication_submit_param import (
 )
 from .agent_session_environment_connected_event import (
     AgentSessionEnvironmentConnectedEvent as AgentSessionEnvironmentConnectedEvent,
+)
+from .agent_session_environment_suspended_event import (
+    AgentSessionEnvironmentSuspendedEvent as AgentSessionEnvironmentSuspendedEvent,
 )
 from .agent_session_turn_output_text_done_event import (
     AgentSessionTurnOutputTextDoneEvent as AgentSessionTurnOutputTextDoneEvent,

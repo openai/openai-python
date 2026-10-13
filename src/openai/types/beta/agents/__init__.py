@@ -9,6 +9,9 @@ from .environment_info import EnvironmentInfo as EnvironmentInfo
 from .vault_list_params import VaultListParams as VaultListParams
 from .session_list_params import SessionListParams as SessionListParams
 from .vault_create_params import VaultCreateParams as VaultCreateParams
+from .vault_update_params import VaultUpdateParams as VaultUpdateParams
 from .session_create_params import SessionCreateParams as SessionCreateParams
 from .session_update_params import SessionUpdateParams as SessionUpdateParams
+from .environment_list_params import EnvironmentListParams as EnvironmentListParams
+from .environment_create_params import EnvironmentCreateParams as EnvironmentCreateParams
 from .vault_status_filter_param import VaultStatusFilterParam as VaultStatusFilterParam

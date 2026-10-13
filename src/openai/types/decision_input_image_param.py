@@ -9,10 +9,15 @@ __all__ = ["DecisionInputImageParam"]
 
 
 class DecisionInputImageParam(TypedDict, total=False):
-    """An inline image. External URLs and file IDs are not supported."""
+    """An image provided as a base64 data URL or a publicly accessible HTTP(S) URL.
+
+    File IDs are not supported.
+    """
 
     image_url: Required[str]
-    """A base64-encoded image in a data URL."""
+    """
+    A base64-encoded image in a data URL or a publicly accessible HTTP(S) image URL.
+    """
 
     type: Required[Literal["input_image"]]
 

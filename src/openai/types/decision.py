@@ -79,7 +79,10 @@ class AnswerAnswerResourceScore(BaseModel):
 
 
 class AnswerAnswerResourceRefusal(BaseModel):
-    """The host may decline one question without disclosing its refusal score."""
+    """The model declined to answer this question.
+
+    Other questions in the same request can still receive answers.
+    """
 
     name: Optional[str] = None
 

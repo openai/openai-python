@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import os
 import json
-from typing import Any, Callable, Awaitable
+from typing import Any, Callable, Awaitable, cast
 from typing_extensions import TypeVar
 
 import httpx2
-from inline_snapshot import get_snapshot_value
+from inline_snapshot import get_snapshot_value  # pyright: ignore[reportUnknownVariableType]
 
 from openai import OpenAI, AsyncOpenAI
 from tests.respx2 import MockRouter
@@ -42,7 +42,7 @@ def make_snapshot_request(
         respx2_mock.post(path).mock(
             return_value=httpx2.Response(
                 200,
-                content=get_snapshot_value(content_snapshot),
+                content=cast("str | bytes", get_snapshot_value(content_snapshot)),
                 headers={"content-type": "application/json"},
             )
         )
@@ -85,7 +85,7 @@ async def make_async_snapshot_request(
         respx2_mock.post(path).mock(
             return_value=httpx2.Response(
                 200,
-                content=get_snapshot_value(content_snapshot),
+                content=cast("str | bytes", get_snapshot_value(content_snapshot)),
                 headers={"content-type": "application/json"},
             )
         )

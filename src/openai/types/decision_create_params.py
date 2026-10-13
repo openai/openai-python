@@ -20,11 +20,12 @@ __all__ = [
 
 class DecisionCreateParams(TypedDict, total=False):
     input: Required[Union[str, Iterable[DecisionInputMessageParam]]]
-    """
-    Shared evidence, as a string or an array of user messages containing text and
-    inline images. Non-user roles, function calls, function-call outputs, files,
-    audio, and item references are not supported. At most 128 image parts are
-    allowed across all messages in one request.
+    """The text or images to evaluate for every question.
+
+    Provide a text string or user messages containing text and images. Images can be
+    base64 data URLs or publicly accessible HTTP(S) URLs; at most 128 images are
+    allowed across all messages in one request. Files, audio, tools, and item
+    references are not supported.
     """
 
     model: Required[str]
@@ -39,6 +40,8 @@ class DecisionCreateParams(TypedDict, total=False):
 
 
 class QuestionQuestionParamPredicate(TypedDict, total=False):
+    """Estimate how likely it is that a statement about the input is true."""
+
     instructions: Required[str]
 
     type: Required[Literal["predicate"]]
@@ -57,7 +60,10 @@ class QuestionQuestionParamChoiceChoice(TypedDict, total=False):
 
 
 class QuestionQuestionParamChoice(TypedDict, total=False):
+    """Choose from the supplied options based on the input."""
+
     choices: Required[Iterable[QuestionQuestionParamChoiceChoice]]
+    """Provide between 2 and 255 choices. Each choice must be unique."""
 
     instructions: Required[str]
 
@@ -74,6 +80,8 @@ class QuestionQuestionParamScoreLevel(TypedDict, total=False):
 
 
 class QuestionQuestionParamScore(TypedDict, total=False):
+    """Rate the input against the supplied ordered levels."""
+
     instructions: Required[str]
 
     levels: Required[Iterable[QuestionQuestionParamScoreLevel]]
