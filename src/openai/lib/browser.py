@@ -21,7 +21,7 @@ import httpx2
 
 from .._compat import model_copy
 from .computer import _capture_replay
-from ._tool_lifecycle import CloseStatus, ToolLifecycle, invoke
+from ._tool_lifecycle import CloseStatus, ToolLifecycle, invoke, callable_flavor
 from ..types.responses import ResponseFunctionToolCall
 from .tool_diagnostics import ToolDiagnosticObserver, emit_tool_diagnostic
 from ..types.responses.tool_param import FunctionToolParam
@@ -1247,20 +1247,8 @@ def _check_method_flavor(driver: object, member: str, *, asynchronous: bool) -> 
 
 
 def _check_callable_flavor(method: Callable[..., object], member: str, *, asynchronous: bool) -> None:
-    target = inspect.unwrap(method)
-    returns_awaitable = inspect.iscoroutinefunction(target)
-    if not returns_awaitable and not inspect.isroutine(target):
-        returns_awaitable = inspect.iscoroutinefunction(inspect.unwrap(target.__call__))
-    if not returns_awaitable:
-        try:
-            annotation = inspect.signature(target).return_annotation
-        except (TypeError, ValueError):
-            return
-        if annotation is inspect.Signature.empty:
-            return
-        text = str(annotation)
-        returns_awaitable = any(name in text for name in ("Awaitable[", "Coroutine[", "Future["))
-    if returns_awaitable != asynchronous:
+    returns_awaitable = callable_flavor(method)
+    if returns_awaitable is not None and returns_awaitable != asynchronous:
         correct = "AsyncBrowserToolset" if returns_awaitable else "BrowserToolset"
         raise ValueError(f"Browser member {member!r} has the wrong method flavor; use {correct}.")
 
