@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import os
 import ssl
+import time
 import socket
 import asyncio
 import importlib
 import threading
+from types import SimpleNamespace
 from typing import Any, Iterator, AsyncIterator
 from contextlib import aclosing, nullcontext
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
@@ -15,7 +17,7 @@ import anyio
 import httpx2
 import pytest
 
-from openai import OpenAI, AsyncOpenAI, APITimeoutError, APIConnectionError
+from openai import OpenAI, AsyncOpenAI, APITimeoutError, APIConnectionError, DefaultAioHttpClient
 from openai._streaming import Stream, AsyncStream, ServerSentEvent
 
 
@@ -34,9 +36,11 @@ def http_module(request: pytest.FixtureRequest) -> Any:
     return importlib.import_module(request.param)
 
 
-@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
-@pytest.mark.parametrize("ending", ["complete", "truncate", "stall"])
-async def test_done_http11_connection_reuse(sync: bool, ending: str, http_module: Any) -> None:
+@pytest.mark.parametrize("mode", ["sync", "async", "aiohttp"])
+@pytest.mark.parametrize("ending", ["complete", "truncate", "stall", "trickle"])
+async def test_done_http11_connection_reuse(mode: str, ending: str, http_module: Any) -> None:
+    if mode == "aiohttp" and http_module.__name__ == "httpx":
+        pytest.skip("aiohttp uses HTTPX2")
     connections = 0
     requests = 0
     release = threading.Event()
@@ -64,13 +68,27 @@ async def test_done_http11_connection_reuse(sync: bool, ending: str, http_module
                 b'"choices":[{"index":0,"delta":{"content":"hello"}}]}\n\ndata: [DONE]\n\n'
             )
             try:
+                if requests == 2 and ending == "complete":
+                    # A cancelled watchdog must not interrupt the next request
+                    # after the connection has been returned to the pool.
+                    release.wait(timeout=0.15)
                 self.wfile.write(f"{len(payload):x}\r\n".encode() + payload + b"\r\n")
                 if requests == 1:
                     if ending == "truncate":
                         self.close_connection = True
                         return
                     if ending == "stall":
-                        release.wait(timeout=5)
+                        release.wait(timeout=0.6)
+                    if ending == "trickle":
+                        # Trailer bytes do not yield body chunks, but must still
+                        # obey the total cleanup deadline, not a per-read timeout.
+                        self.wfile.write(b"0\r\nX-Synthetic: ")
+                        for _ in range(15):
+                            if release.wait(timeout=0.04):
+                                return
+                            self.wfile.write(b"a")
+                        self.wfile.write(b"\r\n\r\n")
+                        return
                 self.wfile.write(b"0\r\n\r\n")
             except ConnectionError:
                 self.close_connection = True
@@ -86,22 +104,34 @@ async def test_done_http11_connection_reuse(sync: bool, ending: str, http_module
         "api_key": "synthetic",
         "base_url": f"http://127.0.0.1:{server.server_port}/v1",
         "max_retries": 0,
-        "timeout": http_module.Timeout(5, read=0.2),
+        "timeout": http_module.Timeout(5, read=None),
     }
-    transport_options = {"trust_env": False, "limits": http_module.Limits(max_connections=1)}
+    transport_options: dict[str, Any] = {"trust_env": False, "limits": http_module.Limits(max_connections=1)}
     try:
-        if sync:
+        if mode == "sync":
             with OpenAI(**options, http_client=http_module.Client(**transport_options)) as client:
                 for _ in range(2):
                     with client.chat.completions.create(model="synthetic", messages=[], stream=True) as stream:
-                        assert [chunk.choices[0].delta.content for chunk in stream] == ["hello"]
+                        assert next(stream).choices[0].delta.content == "hello"
+                        start = time.monotonic()
+                        assert list(stream) == []
+                        assert time.monotonic() - start < 0.4
+                    assert stream.response.request.extensions["timeout"]["read"] is None
         else:
-            async with AsyncOpenAI(**options, http_client=http_module.AsyncClient(**transport_options)) as async_client:
+            http_client = (
+                DefaultAioHttpClient(**transport_options)
+                if mode == "aiohttp"
+                else http_module.AsyncClient(**transport_options)
+            )
+            async with AsyncOpenAI(**options, http_client=http_client) as async_client:
                 for _ in range(2):
                     async with await async_client.chat.completions.create(
                         model="synthetic", messages=[], stream=True
                     ) as async_stream:
-                        assert [chunk.choices[0].delta.content async for chunk in async_stream] == ["hello"]
+                        assert (await async_stream.__anext__()).choices[0].delta.content == "hello"
+                        start = time.monotonic()
+                        assert [chunk async for chunk in async_stream] == []
+                        assert time.monotonic() - start < 0.4
     finally:
         release.set()
         server.shutdown()
@@ -127,34 +157,68 @@ async def test_done_discards_bytes_only_for_http11(
         read_tail = True
         yield b"\xff\n\n"  # Trailing data must not be decoded as SSE.
 
-    response = http_module.Response(
-        200, content=body() if sync else to_aiter(body()), extensions={"http_version": http_version}
-    )
-    if sync:
-        assert list(Stream(cast_to=object, response=response, client=client)) == []
-    else:
-        assert [event async for event in AsyncStream(cast_to=object, response=response, client=async_client)] == []
+    iterator = body()
+    async_iterator = to_aiter(iterator)
+
+    class Body(http_module.SyncByteStream, http_module.AsyncByteStream):
+        def __iter__(self) -> Iterator[bytes]:
+            return iterator
+
+        def __aiter__(self) -> AsyncIterator[bytes]:
+            return async_iterator
+
+    with socket.socket() as sock:
+
+        def socket_info(_name: str) -> socket.socket:
+            return sock
+
+        response = http_module.Response(
+            200,
+            stream=Body(),
+            request=http_module.Request("GET", "http://example.test"),
+            extensions={
+                "http_version": http_version,
+                "network_stream": SimpleNamespace(get_extra_info=socket_info),
+            },
+        )
+        if sync:
+            assert list(Stream(cast_to=object, response=response, client=client)) == []
+        else:
+            assert [event async for event in AsyncStream(cast_to=object, response=response, client=async_client)] == []
     assert response.is_closed
     assert read_tail == (http_version == b"HTTP/1.1")
 
 
-async def test_cancellation_during_done_drain_closes_response(http_module: Any, async_client: AsyncOpenAI) -> None:
+@pytest.mark.parametrize("cancel", [True, False], ids=["caller-cancel", "deadline"])
+async def test_cancellation_during_done_drain_closes_response(
+    cancel: bool, http_module: Any, async_client: AsyncOpenAI
+) -> None:
     draining = asyncio.Event()
 
-    async def body() -> AsyncIterator[bytes]:
-        yield b"data: [DONE]\n\n"
-        draining.set()
-        await asyncio.Event().wait()
+    class Body(http_module.AsyncByteStream):
+        closed = False
 
-    response = http_module.Response(200, content=body())
+        async def __aiter__(self) -> AsyncIterator[bytes]:
+            yield b"data: [DONE]\n\n"
+            draining.set()
+            await asyncio.Event().wait()
+
+        async def aclose(self) -> None:
+            await anyio.sleep(0)
+            self.closed = True
+
+    body = Body()
+    response = http_module.Response(200, stream=body)
     stream = AsyncStream(cast_to=object, response=response, client=async_client)
     task = asyncio.create_task(stream.__anext__())
     try:
         await asyncio.wait_for(draining.wait(), timeout=5)
-        task.cancel()
-        with pytest.raises(asyncio.CancelledError):
+        if cancel:
+            task.cancel()
+        with pytest.raises(asyncio.CancelledError if cancel else StopAsyncIteration):
             await task
         assert response.is_closed
+        assert body.closed
     finally:
         task.cancel()
         await asyncio.gather(task, return_exceptions=True)
