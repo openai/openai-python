@@ -1,0 +1,9 @@
+{
+  "extends": "../pyproject.toml",
+  "include": [
+    "../examples/computer-daytona/adapter.py",
+    "../examples/computer-daytona/exercise.py"
+  ],
+  "exclude": [],
+  "extraPaths": ["../examples/computer-daytona", "../src"]
+}

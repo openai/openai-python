@@ -987,7 +987,16 @@ def test_dependency_provenance_runs_before_tool_setup() -> None:
 def test_untrusted_provenance_leaves_no_dependency_install_reachable(tmp_path: Path, source: dict[str, str]) -> None:
     jobs = dependency_workflow_jobs()
     installers = dependency_installer_jobs(jobs)
-    assert installers == {"lint", "build", "test", "test-httpx2", "examples", "compatibility"}
+    assert installers == {
+        "lint",
+        "build",
+        "browser-demo-types",
+        "optional-provider-types",
+        "test",
+        "test-httpx2",
+        "examples",
+        "compatibility",
+    }
 
     needs = {name: re.findall(r"^    needs:\s*([^\s#]+)", jobs[name], re.MULTILINE) for name in installers}
     project = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]

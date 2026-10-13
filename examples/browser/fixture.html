@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>SDK browser fixture</title>
+<style>
+body { font: 20px system-ui; max-width: 700px; margin: 48px auto; }
+label { display: block; margin: 18px 0; }
+input, select, button { font: inherit; padding: 8px; }
+#result { margin-top: 28px; }
+</style>
+<h1>Reserve a table</h1>
+<p>This page stores a synthetic reservation in memory.</p>
+<form id="reservation">
+  <label for="name">Name</label><input id="name" name="name" required>
+  <label for="size">Party size</label><select id="size" name="size"><option value="1">One person</option><option value="2">Two people</option><option value="4">Four people</option></select>
+  <label for="time">Time</label><select id="time" name="time"><option value="12:00">12:00</option><option value="18:00">18:00</option></select>
+  <label for="code">Confirmation code</label><input id="code" name="code" required>
+  <button id="reserve">Reserve</button>
+</form>
+<output id="result" aria-live="polite"></output>
+<p><a href="/notes" target="_blank" id="notes">Open reservation notes</a></p>
+<script>
+document.querySelector('#reservation').addEventListener('submit', event => {
+  event.preventDefault();
+  const data = Object.fromEntries(new FormData(event.target));
+  window.reservation = data;
+  document.querySelector('#result').textContent = `${data.name}: table for ${data.size} at ${data.time}, code ${data.code}`;
+});
+</script>
+</html>

@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Browser-use task</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        color: #21332b;
+        background: #f1f4f0;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 40px;
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 34px;
+      }
+      .brand {
+        font-size: 17px;
+        font-weight: 650;
+        letter-spacing: -0.4px;
+      }
+      .badge,
+      .overline {
+        font:
+          11px ui-monospace,
+          monospace;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+      .badge {
+        padding: 8px 12px;
+        border: 1px solid #d2dcd2;
+        border-radius: 20px;
+      }
+      main {
+        max-width: 790px;
+        margin: auto;
+      }
+      h1 {
+        font-size: 32px;
+        letter-spacing: -1px;
+        margin: 10px 0;
+      }
+      .muted {
+        color: #718077;
+        line-height: 1.6;
+      }
+      .card {
+        margin-top: 26px;
+        background: white;
+        border: 1px solid #dce4da;
+        border-radius: 14px;
+        padding: 28px;
+        box-shadow: 0 8px 24px #21332b05;
+      }
+      .item-id {
+        color: #79867b;
+        font:
+          12px ui-monospace,
+          monospace;
+      }
+      h2 {
+        margin: 12px 0;
+        font-size: 23px;
+        letter-spacing: -0.5px;
+      }
+      .description {
+        font-size: 17px;
+        line-height: 1.7;
+      }
+      .buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 26px;
+        flex-wrap: wrap;
+      }
+      button {
+        font: inherit;
+        font-size: 14px;
+        border: 1px solid #c8d4c7;
+        border-radius: 8px;
+        padding: 12px 17px;
+        background: #f7faf6;
+        color: #244632;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #e6eee2;
+      }
+      .primary {
+        background: #285d3e;
+        color: white;
+        border-color: #285d3e;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+      label {
+        font-size: 13px;
+        font-weight: 600;
+      }
+      input,
+      select {
+        width: 100%;
+        font: inherit;
+        font-size: 15px;
+        background: #fff;
+        border: 1px solid #c8d4c7;
+        padding: 12px;
+        margin-top: 8px;
+        border-radius: 7px;
+      }
+      .result {
+        margin-top: 18px;
+        padding: 13px 16px;
+        background: #e9f2e4;
+        border-radius: 8px;
+        font-size: 14px;
+      }
+      ul {
+        padding-left: 20px;
+        line-height: 2;
+      }
+      .complete {
+        font-size: 40px;
+        margin-bottom: 12px;
+      }
+    </style>
+  </head>
+  <body data-revision="0" data-finished="false" data-results="[]">
+    <header><span class="brand">Fieldwork</span><span class="badge">Synthetic workspace</span></header>
+    <main id="app"></main>
+    <script>
+      const task = __TASK__;
+      const app = document.querySelector('#app');
+      const body = document.body;
+      const results = [];
+      const title = document.createElement('section');
+      title.innerHTML = `<div class="overline">${task.kind === 'support' ? 'Customer operations' : task.kind === 'invoices' ? 'Finance operations' : task.kind === 'stock' ? 'Warehouse operations' : task.kind === 'service' ? 'Service operations' : task.kind === 'files' ? 'Receiving desk' : 'The Garden Room'}</div><h1>${task.title}</h1><p class="muted">${task.summary}</p>`;
+      app.append(title);
+      const card = document.createElement('section');
+      card.className = 'card';
+      app.append(card);
+      const history = document.createElement('div');
+      app.append(history);
+      function changed() {
+        body.dataset.revision = String(Number(body.dataset.revision) + 1);
+      }
+      function renderItem() {
+        card.replaceChildren();
+        if (results.length === task.items.length) {
+          delete card.dataset.recordId;
+          body.dataset.finished = 'true';
+          card.innerHTML =
+            '<div class="complete">All done.</div><p class="muted">Every item has been reviewed. The results remain available for verification.</p>';
+          return;
+        }
+        const item = task.items[results.length];
+        const id = item.id;
+        card.dataset.recordId = id;
+        const details = document.createElement('div');
+        details.innerHTML = `<div class="item-id">${item.id} · ${results.length + 1} of ${task.items.length}</div><h2>${item.title}</h2><p class="description">${item.text}</p>`;
+        card.append(details);
+        const buttons = document.createElement('div');
+        buttons.className = 'buttons';
+        for (const choice of task.choices) {
+          const button = document.createElement('button');
+          button.textContent = choice;
+          button.addEventListener('click', () => {
+            results.push({ id, choice });
+            body.dataset.results = JSON.stringify(results);
+            changed();
+            const row = document.createElement('div');
+            row.className = 'result';
+            row.textContent = `${id} → ${choice}`;
+            history.append(row);
+            renderItem();
+          });
+          buttons.append(button);
+        }
+        card.append(buttons);
+      }
+      if (task.kind === 'files') {
+        card.dataset.recordId = 'transfer-case';
+        card.innerHTML = `<div class="item-id">${task.job}</div><h2>Approved fixture document</h2>
+          <p class="muted">View and Stop are available. File selection is controlled by the approved fixture task.</p>
+          <input type="file" aria-label="Controlled fixture attachment"><p id="file-progress">No document selected</p>`;
+        const input = card.querySelector('input');
+        const progress = card.querySelector('#file-progress');
+        input.addEventListener('change', async () => {
+          const file = input.files[0];
+          if (!file) return;
+          progress.textContent = 'Selected locally · awaiting fixture receipt';
+          try {
+            const response = await fetch(task.effectURL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/octet-stream' },
+              body: file,
+            });
+            if (response.ok) {
+              const receipt = await response.json();
+              body.dataset.revision = String(receipt.revision);
+              progress.textContent = 'Received by fixture';
+            } else {
+              progress.textContent = 'Receipt refused';
+            }
+          } catch {
+            progress.textContent = 'Receipt unavailable';
+          }
+        });
+      } else if (task.kind === 'stock') {
+        const guidance = document.createElement('p');
+        guidance.className = 'muted';
+        guidance.textContent =
+          'The agent requests approval for each shipment. After inspecting an order, return control to the agent to ship it.';
+        title.append(guidance);
+        let position = 0;
+        const renderStock = () => {
+          card.replaceChildren();
+          if (position === task.orders.length) {
+            delete card.dataset.recordId;
+            card.innerHTML =
+              '<h2>Shipment requests received</h2><p>The fixture owner checks their receipts.</p>';
+            return;
+          }
+          const order = task.orders[position];
+          const orderId = order.id;
+          card.dataset.recordId = orderId;
+          const heading = document.createElement('h2');
+          heading.textContent = `${orderId} · requested ${order.colour}`;
+          card.append(heading);
+          for (const item of task.stock) {
+            const line = document.createElement('p');
+            line.textContent = `${item.sku} · ${item.colour} · starting stock ${item.quantity}`;
+            const button = document.createElement('button');
+            button.textContent = `Ship ${orderId} with ${item.sku}`;
+            button.addEventListener('click', async () => {
+              const response = await fetch(task.effectURL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ operation: 'ship', order: orderId, sku: item.sku }),
+              });
+              if (response.ok) {
+                const receipt = await response.json();
+                body.dataset.revision = String(receipt.revision);
+                position += 1;
+                renderStock();
+              }
+            });
+            card.append(line, button);
+          }
+        };
+        renderStock();
+      } else if (task.kind === 'service') {
+        const guidance = document.createElement('p');
+        guidance.className = 'muted';
+        guidance.textContent =
+          "You may inspect or fill this form during human control. Saving requires the agent's approval flow.";
+        title.append(guidance);
+        const job = task.job;
+        card.dataset.recordId = job;
+        card.innerHTML = `<h2>${job} · ${task.asset}</h2><p class="muted">${task.instruction}</p><form><div class="grid"><label>Visit date<input type="date" aria-label="Visit date" data-browser-field="visit_date" required /></label><label>Technician<select aria-label="Technician" data-browser-field="technician" required><option value="">Choose specialist</option><option>Sensor specialist</option><option>Mechanical specialist</option></select></label><label>Service note<input aria-label="Service note" data-browser-field="note" required autocomplete="off" /></label></div><div class="buttons"><button class="primary" type="submit">Schedule ${job}</button></div></form><div role="status"></div>`;
+        const form = card.querySelector('form');
+        form.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          const response = await fetch(task.effectURL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              operation: 'schedule',
+              job,
+              date: form.querySelector('[data-browser-field="visit_date"]').value,
+              technician: form.querySelector('[data-browser-field="technician"]').value,
+              note: form.querySelector('[data-browser-field="note"]').value,
+            }),
+          });
+          if (response.ok) {
+            const receipt = await response.json();
+            body.dataset.revision = String(receipt.revision);
+            card.querySelector('[role="status"]').textContent = 'Service request received.';
+            form.querySelector('button').disabled = true;
+          }
+        });
+      } else if (task.kind !== 'reservation') {
+        renderItem();
+      } else {
+        const id = 'TABLE-204';
+        card.dataset.recordId = id;
+        body.dataset.results = '{}';
+        card.innerHTML =
+          '<h2>Your table, your evening.</h2><p class="muted">Choose your details to request a reservation.</p><form><div class="grid"><label>Guest name<input aria-label="Guest name" data-browser-field="guest_name" required autocomplete="off" /></label><label>Party size<select aria-label="Party size" data-browser-field="party_size"><option value="">Choose guests</option><option>2</option><option>4</option><option>6</option></select></label><label>Time<select aria-label="Time" data-browser-field="time"><option value="">Choose a time</option><option>17:00</option><option>18:00</option><option>19:00</option></select></label><label>Seating<select aria-label="Seating" data-browser-field="seating"><option value="">Choose seating</option><option>Indoor</option><option>Outdoor</option></select></label></div><div class="buttons"><button class="primary" type="submit">Reserve table</button></div></form><div role="status"></div>';
+        for (const field of card.querySelectorAll('input,select')) field.addEventListener('input', changed);
+        card.querySelector('form').addEventListener('submit', (event) => {
+          event.preventDefault();
+          body.dataset.results = JSON.stringify({ confirmation: id });
+          body.dataset.finished = 'true';
+          changed();
+          const status = card.querySelector('[role=status]');
+          status.className = 'result';
+          status.textContent = `Confirmed · ${id}`;
+          card.querySelector('button').disabled = true;
+        });
+      }
+    </script>
+  </body>
+</html>

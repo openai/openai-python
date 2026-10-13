@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" />
+  <title>Canvas controls</title>
+  <style>
+    body {
+      margin: 0;
+      font: 16px sans-serif;
+    }
+    canvas {
+      display: block;
+      background: #eaf1e8;
+    }
+    output {
+      display: block;
+      padding: 20px;
+    }
+  </style>
+  <main id="workspace" data-record-id="canvas-controls" aria-label="Canvas controls">
+    <canvas id="board" width="400" height="200" tabindex="0" aria-label="Route board"></canvas>
+    <output>Use the route board to test pointer and keyboard input.</output>
+  </main>
+  <script>
+    const board = document.querySelector('#board');
+    const state = {
+      buttons: [],
+      clickDetails: [],
+      doubleClicks: 0,
+      dragPoints: [],
+      modifierDrag: true,
+      pressed: [],
+      held: 0,
+      trusted: true,
+    };
+    const pressed = new Set();
+    let heldAt = 0;
+    const draw = board.getContext('2d');
+    draw.fillStyle = '#24402b';
+    draw.font = '20px sans-serif';
+    draw.fillText('Route board', 24, 45);
+    window.readCanvasResult = () => ({ ...structuredClone(state), pressed: [...pressed] });
+    board.addEventListener('contextmenu', (event) => event.preventDefault());
+    board.addEventListener('mouseup', (event) => {
+      state.buttons.push(event.button);
+      state.clickDetails.push(event.detail);
+      state.trusted &&= event.isTrusted;
+    });
+    board.addEventListener('dblclick', (event) => {
+      state.doubleClicks += 1;
+      state.trusted &&= event.isTrusted;
+    });
+    board.addEventListener('mousemove', (event) => {
+      if (event.buttons === 1) {
+        state.dragPoints.push([event.clientX, event.clientY]);
+        state.modifierDrag &&= event.shiftKey && event.altKey;
+        state.trusted &&= event.isTrusted;
+      }
+    });
+    board.addEventListener('keydown', (event) => {
+      event.preventDefault();
+      pressed.add(event.key);
+      if (event.key === 'ArrowRight') heldAt = performance.now();
+      state.trusted &&= event.isTrusted;
+    });
+    board.addEventListener('keyup', (event) => {
+      pressed.delete(event.key);
+      if (event.key === 'ArrowRight') state.held = performance.now() - heldAt;
+      state.trusted &&= event.isTrusted;
+    });
+  </script>
+</html>

@@ -1,0 +1,11 @@
+{
+  "extends": "../pyproject.toml",
+  "include": [
+    "../examples/computer-e2b/adapter.py",
+    "../examples/computer-e2b/exercise.py",
+    "../examples/computer-e2b/exercise_cancellation.py",
+    "../examples/computer-e2b/exercise_png.py"
+  ],
+  "exclude": [],
+  "extraPaths": ["../examples/computer-e2b", "../src"]
+}

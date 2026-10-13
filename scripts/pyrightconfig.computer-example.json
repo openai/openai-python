@@ -1,0 +1,13 @@
+{
+  "extends": "../pyproject.toml",
+  "include": [
+    "../examples/computer/playwright_browser.py",
+    "../examples/computer/run.py",
+    "../examples/computer/exercise.py"
+  ],
+  "exclude": [],
+  "extraPaths": [
+    "../examples/computer",
+    "../src"
+  ]
+}

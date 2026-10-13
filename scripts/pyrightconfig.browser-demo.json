@@ -1,0 +1,35 @@
+{
+  "extends": "../pyproject.toml",
+  "include": [
+    "../examples/browser-use-demo",
+    "../examples/browser/exercise_setup.py",
+    "../examples/browser/exercise_approval.py",
+    "../examples/browser/exercise_scoped.py",
+    "../examples/browser/exercise_mixed_startup.py",
+    "../examples/browser/exercise_borrowed_retirement.py",
+    "../examples/browser/exercise_borrowed_read_cancellation.py",
+    "../examples/browser/exercise_read_integrity.py",
+    "../examples/browser/exercise_wait_editable.py",
+    "../examples/browser/exercise_navigation_retirement.py",
+    "../examples/browser/exercise_capabilities.py",
+    "../examples/browser/sensitive_driver.py",
+    "../examples/browser/exercise_sensitive.py",
+    "../examples/browser/exercise_portable_files.py",
+    "../examples/browser/exercise_file_eligibility.py",
+    "../examples/browser/evaluate_workflow.py",
+    "../examples/browser/read_only.py",
+    "../examples/browser/exercise_read_only.py",
+    "../examples/browser/preflight.py",
+    "../examples/browser/driver_inspector.py",
+    "../examples/browser/exercise_coordinates.py",
+    "../examples/browser/exercise_file_cleanup.py",
+    "../examples/browser/exercise_reference_admission.py"
+  ],
+  "exclude": [],
+  "extraPaths": [
+    "../examples/browser-use-demo",
+    "../examples/browser",
+    "../examples/computer-desktop",
+    "../src"
+  ]
+}
