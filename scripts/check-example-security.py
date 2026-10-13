@@ -1,0 +1,73 @@
+"""Run the local-only example regressions supported by one locked provider group."""
+
+from __future__ import annotations
+
+import os
+import sys
+import argparse
+import subprocess
+from pathlib import Path
+
+import openai
+
+ROOT = Path(__file__).resolve().parent.parent
+CASES: dict[str, list[tuple[str, ...]]] = {
+    "browser": [
+        ("examples/browser/exercise_network.py",),
+        ("examples/browser/exercise_navigation.py",),
+        ("examples/browser/exercise_navigation_retirement.py",),
+        ("examples/browser/exercise_pointer.py",),
+        ("examples/browser/exercise_owned.py",),
+        ("examples/browser/exercise_sensitive.py",),
+        ("examples/browser/exercise_read_only.py",),
+        ("examples/browser/exercise_setup.py",),
+        ("examples/browser/exercise_read_integrity.py",),
+        ("examples/browser/exercise_reference_admission.py",),
+        ("examples/browser/exercise_borrowed_read_cancellation.py",),
+        ("examples/browser/exercise_approval.py",),
+        ("examples/browser/exercise_file_eligibility.py",),
+        ("examples/browser/exercise_file_cleanup.py",),
+        ("examples/browser/exercise_upload.py",),
+        ("examples/browser/exercise_download.py",),
+        ("examples/browser/exercise_browserbase.py",),
+        ("examples/browser/exercise_browser_use.py",),
+    ],
+    "computer": [
+        ("examples/computer/exercise.py",),
+        ("examples/computer-desktop/exercise.py", "--check-frames"),
+        ("examples/computer-desktop/exercise_helper_env.py",),
+        ("examples/computer-desktop/guest/test_action_admission.py",),
+        ("examples/computer-desktop/guest/test_receipt.py",),
+    ],
+    "e2b": [
+        ("examples/computer-e2b/exercise.py",),
+        ("examples/computer-e2b/exercise_png.py",),
+        ("examples/computer-e2b/exercise_cancellation.py",),
+    ],
+    "daytona": [("examples/computer-daytona/exercise.py",)],
+}
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("group", choices=CASES)
+    args = parser.parse_args()
+    if Path(openai.__file__).resolve() != ROOT / "src/openai/__init__.py":
+        raise RuntimeError("Example checks replaced this OpenAI checkout.")
+    env = {
+        key: value
+        for key, value in os.environ.items()
+        if key.lower() not in ("http_proxy", "https_proxy", "all_proxy", "no_proxy")
+        and not key.startswith(("OPENAI_", "BROWSERBASE_", "BROWSER_USE_", "E2B_", "DAYTONA_"))
+    }
+    env["PYTHONDONTWRITEBYTECODE"] = "1"
+    for command in CASES[args.group]:
+        script = ROOT / command[0]
+        # Exercises import neighboring example modules and the exact checkout.
+        env["PYTHONPATH"] = os.pathsep.join((str(ROOT / "src"), str(script.parent)))
+        print(f"Running {script.relative_to(ROOT)} {' '.join(command[1:])}", flush=True)
+        subprocess.run([sys.executable, "-B", str(script), *command[1:]], cwd=ROOT, env=env, check=True, timeout=120)
+
+
+if __name__ == "__main__":
+    main()

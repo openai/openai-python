@@ -1,0 +1,42 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>Scoped orders</title>
+<style>
+  section {
+    border: 1px solid #777;
+    padding: 14px;
+    margin: 10px;
+    width: 520px;
+  }
+  button {
+    padding: 8px;
+  }
+</style>
+<section aria-label="Order North">
+  <div data-record-id="north">
+    <button data-browser-field="open">Open</button>
+    <div>
+      Public North
+      <div><span>Deep North</span></div>
+    </div>
+    <div data-browser-private>Secret North</div>
+  </div>
+</section>
+<section aria-label="Order South">
+  <div data-record-id="south">
+    <button data-browser-field="open">Open</button>
+    <div>
+      Public South
+      <div><span>Deep South</span></div>
+    </div>
+    <div data-browser-private>Secret South</div>
+  </div>
+</section>
+<output id="picked">none</output>
+<script>
+  document.querySelectorAll('[data-record-id] button').forEach((button) => {
+    button.addEventListener('click', () => {
+      document.querySelector('#picked').textContent = button.closest('[data-record-id]').dataset.recordId;
+    });
+  });
+</script>
