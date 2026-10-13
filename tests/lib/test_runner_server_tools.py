@@ -41,7 +41,7 @@ from .test_responses_tool_runner import TOOL, FINAL, PARAMS, fn, run, sse, resp,
 async def test_native_mcp_list_metadata_before_sibling(
     lane: str, fields: dict[str, object], valid: bool, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    listed = {
+    listed: dict[str, object] = {
         "type": "mcp_list_tools",
         "id": "listed",
         "server_label": "desk",
@@ -73,10 +73,10 @@ async def test_native_mcp_list_metadata_before_sibling(
         return response
 
     def create(self: Responses, *args: Any, **kwargs: Any) -> Response:
-        return preserve(cast(Response, sync_create(self, *args, **kwargs)))
+        return preserve(sync_create(self, *args, **kwargs))
 
     async def acreate(self: AsyncResponses, *args: Any, **kwargs: Any) -> Response:
-        return preserve(cast(Response, await async_create(self, *args, **kwargs)))
+        return preserve(await async_create(self, *args, **kwargs))
 
     monkeypatch.setattr(Responses, "create", create)
     monkeypatch.setattr(AsyncResponses, "create", acreate)

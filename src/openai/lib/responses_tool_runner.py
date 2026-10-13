@@ -88,7 +88,7 @@ def _ledger_tools(tools: list[ToolParam]) -> list[ToolParam]:
                 policy is not None
                 and policy["type"] == "allowlist"
                 and "domain_secrets" in policy
-                and policy["domain_secrets"] is not None
+                and cast(object, policy["domain_secrets"]) is not None
             ):
                 result.append(
                     {
