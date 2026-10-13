@@ -1,0 +1,2199 @@
+{
+  "iteration": [
+    { "id": "iteration:inspect-before-effect", "stream": false, "eager": false, "scenario": "inspect" },
+    { "id": "iteration:stream-before-effect", "stream": true, "eager": false, "scenario": "inspect" },
+    { "id": "iteration:supplied-mixed", "stream": false, "eager": false, "scenario": "supply" },
+    { "id": "iteration:stream-supplied-mixed", "stream": true, "eager": false, "scenario": "supply" },
+    { "id": "iteration:rejected-result", "stream": false, "eager": false, "scenario": "reject" },
+    { "id": "iteration:eager-inspection", "stream": true, "eager": true, "scenario": "eager" }
+  ],
+  "state": {
+    "tabs": [
+      {
+        "id": "one",
+        "title": "Before",
+        "url": "https://fixture.invalid/",
+        "active": true
+      }
+    ]
+  },
+  "reported_state": {
+    "tabs": [{ "id": "one", "title": "Before", "url": "https://fixture.invalid", "active": true }]
+  },
+  "image": {
+    "type": "input_image",
+    "image_url": "data:image/png;base64,cG5n"
+  },
+  "browser": [
+    {
+      "member": "navigate",
+      "arguments": {
+        "url": "https://fixture.invalid/next",
+        "tab_id": "one"
+      },
+      "change": true,
+      "url": true
+    },
+    {
+      "member": "read_page",
+      "arguments": {
+        "tab_id": "one",
+        "filter": "interactive"
+      },
+      "change": false
+    },
+    {
+      "member": "get_page_text",
+      "arguments": {
+        "tab_id": null
+      },
+      "change": false
+    },
+    {
+      "member": "find",
+      "arguments": {
+        "query": "Invoice",
+        "tab_id": "one"
+      },
+      "change": false
+    },
+    {
+      "member": "click",
+      "arguments": {
+        "target": "r11",
+        "tab_id": "one"
+      },
+      "change": true
+    },
+    {
+      "member": "type",
+      "arguments": {
+        "text": "Ada",
+        "target": "r12",
+        "tab_id": "one"
+      },
+      "change": true
+    },
+    {
+      "member": "key",
+      "arguments": {
+        "keys": ["SHIFT", "TAB"],
+        "tab_id": "one"
+      },
+      "change": true
+    },
+    {
+      "member": "scroll",
+      "arguments": {
+        "direction": "down",
+        "amount": 110,
+        "tab_id": "one"
+      },
+      "change": true
+    },
+    {
+      "member": "select_option",
+      "arguments": {
+        "target": "r13",
+        "values": ["four"],
+        "tab_id": "one"
+      },
+      "change": true
+    },
+    {
+      "member": "hover",
+      "arguments": {
+        "target": "r14",
+        "tab_id": "one"
+      },
+      "change": true
+    },
+    {
+      "member": "screenshot",
+      "arguments": {
+        "tab_id": "one"
+      },
+      "change": false
+    },
+    {
+      "member": "new_tab",
+      "arguments": {
+        "url": "https://fixture.invalid/new"
+      },
+      "change": true,
+      "url": true
+    },
+    {
+      "member": "list_tabs",
+      "arguments": {},
+      "change": false
+    },
+    {
+      "member": "switch_tab",
+      "arguments": {
+        "tab_id": "one"
+      },
+      "change": true
+    },
+    {
+      "member": "close_tab",
+      "arguments": {
+        "tab_id": "one"
+      },
+      "change": true
+    },
+    {
+      "member": "hover_at",
+      "arguments": { "tab_id": null, "x": 20, "y": 30 },
+      "change": true
+    },
+    {
+      "member": "set_checked",
+      "arguments": { "tab_id": "one", "target": "r22", "checked": true },
+      "change": true
+    }
+  ],
+  "invalid_states": [
+    {
+      "id": "null",
+      "value": null
+    },
+    {
+      "id": "missing_tabs",
+      "value": {}
+    },
+    {
+      "id": "tabs_not_array",
+      "value": {
+        "tabs": {}
+      }
+    },
+    {
+      "id": "bad_title",
+      "value": {
+        "tabs": [
+          {
+            "id": "one",
+            "title": 0,
+            "url": "https://fixture.invalid/",
+            "active": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "active_not_bool",
+      "value": {
+        "tabs": [
+          {
+            "id": "one",
+            "title": "Before",
+            "url": "https://fixture.invalid/",
+            "active": "yes"
+          }
+        ]
+      }
+    },
+    {
+      "id": "duplicate_id",
+      "value": {
+        "tabs": [
+          {
+            "id": "one",
+            "title": "A",
+            "url": "https://fixture.invalid/",
+            "active": true
+          },
+          {
+            "id": "one",
+            "title": "B",
+            "url": "https://fixture.invalid/",
+            "active": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "no_active",
+      "value": {
+        "tabs": [
+          {
+            "id": "one",
+            "title": "Before",
+            "url": "https://fixture.invalid/",
+            "active": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "two_active",
+      "value": {
+        "tabs": [
+          {
+            "id": "one",
+            "title": "A",
+            "url": "https://fixture.invalid/",
+            "active": true
+          },
+          {
+            "id": "two",
+            "title": "B",
+            "url": "https://fixture.invalid/",
+            "active": true
+          }
+        ]
+      }
+    }
+  ],
+  "invalid_arguments": [
+    {
+      "id": "invalid_json",
+      "member": "click",
+      "raw": "{"
+    },
+    {
+      "id": "unexpected_key",
+      "member": "click",
+      "raw": "{\"target\":\"r1\",\"tab_id\":null,\"extra\":true}"
+    },
+    {
+      "id": "missing_key",
+      "member": "click",
+      "raw": "{\"target\":\"r1\"}"
+    },
+    {
+      "id": "not_an_object",
+      "member": "click",
+      "raw": "[]"
+    },
+    {
+      "id": "wrong_enum",
+      "member": "read_page",
+      "raw": "{\"tab_id\":null,\"filter\":\"everything\"}"
+    },
+    {
+      "id": "negative_scroll",
+      "member": "scroll",
+      "raw": "{\"tab_id\":null,\"direction\":\"up\",\"amount\":-1}"
+    },
+    {
+      "id": "boolean_number",
+      "member": "scroll",
+      "raw": "{\"tab_id\":null,\"direction\":\"up\",\"amount\":true}"
+    },
+    {
+      "id": "non_string_keys",
+      "member": "key",
+      "raw": "{\"tab_id\":null,\"keys\":[1]}"
+    },
+    {
+      "id": "hover_negative",
+      "member": "hover_at",
+      "raw": "{\"tab_id\":null,\"x\":-1,\"y\":0}"
+    },
+    {
+      "id": "hover_fractional",
+      "member": "hover_at",
+      "raw": "{\"tab_id\":null,\"x\":1.5,\"y\":0}"
+    },
+    {
+      "id": "checked_string",
+      "member": "set_checked",
+      "raw": "{\"tab_id\":null,\"target\":\"r22\",\"checked\":\"true\"}"
+    },
+    {
+      "id": "checked_number",
+      "member": "set_checked",
+      "raw": "{\"tab_id\":null,\"target\":\"r22\",\"checked\":0}"
+    },
+    {
+      "id": "checked_extra",
+      "member": "set_checked",
+      "raw": "{\"tab_id\":null,\"target\":\"r22\",\"checked\":true,\"extra\":true}"
+    }
+  ],
+  "refuse_values": [false, null, 1, "yes", {}, []],
+  "entry_policies": [
+    {
+      "id": "confirm",
+      "member": "click"
+    },
+    {
+      "id": "url_policy",
+      "member": "navigate"
+    }
+  ],
+  "boundary_ids": [
+    "excluded-getter-and-disabled-dispatch",
+    "async-handler-policy-state-snapshots",
+    "policy-captured-before-state-getter",
+    "cancellation-before-effect",
+    "generic-callback-error-not-shared"
+  ],
+  "record_tool": {
+    "type": "function",
+    "name": "record",
+    "strict": true,
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        }
+      },
+      "required": ["text"],
+      "additionalProperties": false
+    }
+  },
+  "native": {
+    "type": "computer_call",
+    "id": "cu_one",
+    "call_id": "native_one",
+    "status": "completed",
+    "actions": [
+      {
+        "type": "type",
+        "text": "Receipt"
+      }
+    ]
+  },
+  "reasoning": {
+    "type": "reasoning",
+    "id": "rs_one",
+    "summary": [],
+    "encrypted_content": "fixture-reasoning"
+  },
+  "final": {
+    "type": "message",
+    "id": "msg_one",
+    "status": "completed",
+    "role": "assistant",
+    "phase": "final_answer",
+    "content": [
+      {
+        "type": "output_text",
+        "text": "Fixture complete",
+        "annotations": []
+      }
+    ]
+  },
+  "v1": {
+    "empty": {
+      "version": 1,
+      "sequence": 0,
+      "dropped_changes": 0,
+      "title_truncated": false,
+      "changes": []
+    },
+    "events": {
+      "version": 1,
+      "sequence": 55,
+      "dropped_changes": 40,
+      "title_truncated": true,
+      "changes": [
+        {
+          "type": "tab_opened",
+          "tab_id": "closed-tab",
+          "sequence": 41
+        },
+        {
+          "type": "tab_closed",
+          "tab_id": "closed-tab",
+          "sequence": 42
+        },
+        {
+          "type": "tab_switched",
+          "tab_id": "one",
+          "sequence": 43
+        },
+        {
+          "type": "navigation",
+          "tab_id": "one",
+          "sequence": 44
+        },
+        {
+          "type": "navigation_refused",
+          "tab_id": null,
+          "reason": "policy",
+          "sequence": 45
+        },
+        {
+          "type": "navigation_refused",
+          "tab_id": "one",
+          "reason": "unsupported",
+          "sequence": 46
+        },
+        {
+          "type": "dialog_dismissed",
+          "tab_id": "one",
+          "kind": "alert",
+          "sequence": 47
+        },
+        {
+          "type": "dialog_dismissed",
+          "tab_id": "one",
+          "kind": "confirm",
+          "sequence": 48
+        },
+        {
+          "type": "dialog_dismissed",
+          "tab_id": "one",
+          "kind": "prompt",
+          "sequence": 49
+        },
+        {
+          "type": "dialog_dismissed",
+          "tab_id": "one",
+          "kind": "beforeunload",
+          "sequence": 50
+        },
+        {
+          "type": "dialog_dismissed",
+          "tab_id": "one",
+          "kind": "other",
+          "sequence": 51
+        },
+        {
+          "type": "download",
+          "tab_id": null,
+          "status": "blocked",
+          "sequence": 52
+        },
+        {
+          "type": "download",
+          "tab_id": "one",
+          "status": "started",
+          "sequence": 53
+        },
+        {
+          "type": "download",
+          "tab_id": "one",
+          "status": "completed",
+          "sequence": 54
+        },
+        {
+          "type": "download",
+          "tab_id": "closed-tab",
+          "status": "failed",
+          "sequence": 55
+        }
+      ]
+    },
+    "invalid_observations": [
+      {
+        "id": "null",
+        "value": null
+      },
+      {
+        "id": "wrong_version",
+        "value": {
+          "version": 2,
+          "sequence": 0,
+          "dropped_changes": 0,
+          "title_truncated": false,
+          "changes": []
+        }
+      },
+      {
+        "id": "bool_version",
+        "value": {
+          "version": true,
+          "sequence": 0,
+          "dropped_changes": 0,
+          "title_truncated": false,
+          "changes": []
+        }
+      },
+      {
+        "id": "negative_sequence",
+        "value": {
+          "version": 1,
+          "sequence": -1,
+          "dropped_changes": 0,
+          "title_truncated": false,
+          "changes": []
+        }
+      },
+      {
+        "id": "bool_sequence",
+        "value": {
+          "version": 1,
+          "sequence": false,
+          "dropped_changes": 0,
+          "title_truncated": false,
+          "changes": []
+        }
+      },
+      {
+        "id": "unsafe_sequence",
+        "value": {
+          "version": 1,
+          "sequence": 9007199254740992,
+          "dropped_changes": 9007199254740992,
+          "title_truncated": false,
+          "changes": []
+        }
+      },
+      {
+        "id": "negative_dropped",
+        "value": {
+          "version": 1,
+          "sequence": 0,
+          "dropped_changes": -1,
+          "title_truncated": false,
+          "changes": []
+        }
+      },
+      {
+        "id": "bool_dropped",
+        "value": {
+          "version": 1,
+          "sequence": 0,
+          "dropped_changes": false,
+          "title_truncated": false,
+          "changes": []
+        }
+      },
+      {
+        "id": "numeric_truncation",
+        "value": {
+          "version": 1,
+          "sequence": 0,
+          "dropped_changes": 0,
+          "title_truncated": 1,
+          "changes": []
+        }
+      },
+      {
+        "id": "fraction_sequence",
+        "value": {
+          "version": 1,
+          "sequence": 0.5,
+          "dropped_changes": 0,
+          "title_truncated": false,
+          "changes": []
+        }
+      },
+      {
+        "id": "not_a_list",
+        "value": {
+          "version": 1,
+          "sequence": 0,
+          "dropped_changes": 0,
+          "title_truncated": false,
+          "changes": {}
+        }
+      },
+      {
+        "id": "late_event_gap",
+        "value": {
+          "version": 1,
+          "sequence": 33,
+          "dropped_changes": 0,
+          "title_truncated": false,
+          "changes": [
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 1
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 2
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 3
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 4
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 5
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 6
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 7
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 8
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 9
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 10
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 11
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 12
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 13
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 14
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 15
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 16
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 17
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 18
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 19
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 20
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 21
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 22
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 23
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 24
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 25
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 26
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 27
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 28
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 29
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 30
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 31
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 32
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 32
+            }
+          ]
+        }
+      },
+      {
+        "id": "counter_gap",
+        "value": {
+          "version": 1,
+          "sequence": 2,
+          "dropped_changes": 0,
+          "title_truncated": false,
+          "changes": [
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 2
+            }
+          ]
+        }
+      },
+      {
+        "id": "event_gap",
+        "value": {
+          "version": 1,
+          "sequence": 1,
+          "dropped_changes": 0,
+          "title_truncated": false,
+          "changes": [
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 2
+            }
+          ]
+        }
+      },
+      {
+        "id": "event_bool",
+        "value": {
+          "version": 1,
+          "sequence": 1,
+          "dropped_changes": 0,
+          "title_truncated": false,
+          "changes": [
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": true
+            }
+          ]
+        }
+      },
+      {
+        "id": "unknown_event",
+        "value": {
+          "version": 1,
+          "sequence": 1,
+          "dropped_changes": 0,
+          "title_truncated": false,
+          "changes": [
+            {
+              "type": "login",
+              "tab_id": "one",
+              "sequence": 1
+            }
+          ]
+        }
+      },
+      {
+        "id": "null_required_tab",
+        "value": {
+          "version": 1,
+          "sequence": 1,
+          "dropped_changes": 0,
+          "title_truncated": false,
+          "changes": [
+            {
+              "type": "navigation",
+              "tab_id": null,
+              "sequence": 1
+            }
+          ]
+        }
+      },
+      {
+        "id": "missing_tab",
+        "value": {
+          "version": 1,
+          "sequence": 1,
+          "dropped_changes": 0,
+          "title_truncated": false,
+          "changes": [
+            {
+              "type": "download",
+              "status": "completed",
+              "sequence": 1
+            }
+          ]
+        }
+      },
+      {
+        "id": "bad_reason",
+        "value": {
+          "version": 1,
+          "sequence": 1,
+          "dropped_changes": 0,
+          "title_truncated": false,
+          "changes": [
+            {
+              "type": "navigation_refused",
+              "tab_id": null,
+              "reason": "SYNTHETIC_PRIVATE",
+              "sequence": 1
+            }
+          ]
+        }
+      },
+      {
+        "id": "bad_dialog",
+        "value": {
+          "version": 1,
+          "sequence": 1,
+          "dropped_changes": 0,
+          "title_truncated": false,
+          "changes": [
+            {
+              "type": "dialog_dismissed",
+              "tab_id": "one",
+              "kind": "SYNTHETIC_PRIVATE",
+              "sequence": 1
+            }
+          ]
+        }
+      },
+      {
+        "id": "bad_download",
+        "value": {
+          "version": 1,
+          "sequence": 1,
+          "dropped_changes": 0,
+          "title_truncated": false,
+          "changes": [
+            {
+              "type": "download",
+              "tab_id": null,
+              "status": "SYNTHETIC_PRIVATE",
+              "sequence": 1
+            }
+          ]
+        }
+      },
+      {
+        "id": "blank_tab",
+        "value": {
+          "version": 1,
+          "sequence": 1,
+          "dropped_changes": 0,
+          "title_truncated": false,
+          "changes": [
+            {
+              "type": "tab_closed",
+              "tab_id": "",
+              "sequence": 1
+            }
+          ]
+        }
+      },
+      {
+        "id": "long_event_id",
+        "value": {
+          "version": 1,
+          "sequence": 1,
+          "dropped_changes": 0,
+          "title_truncated": false,
+          "changes": [
+            {
+              "type": "navigation",
+              "tab_id": "\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48x",
+              "sequence": 1
+            }
+          ]
+        }
+      },
+      {
+        "id": "missing_version",
+        "value": {
+          "sequence": 0,
+          "dropped_changes": 0,
+          "title_truncated": false,
+          "changes": []
+        }
+      },
+      {
+        "id": "missing_sequence",
+        "value": {
+          "version": 1,
+          "dropped_changes": 0,
+          "title_truncated": false,
+          "changes": []
+        }
+      },
+      {
+        "id": "missing_dropped_changes",
+        "value": {
+          "version": 1,
+          "sequence": 0,
+          "title_truncated": false,
+          "changes": []
+        }
+      },
+      {
+        "id": "missing_title_truncated",
+        "value": {
+          "version": 1,
+          "sequence": 0,
+          "dropped_changes": 0,
+          "changes": []
+        }
+      },
+      {
+        "id": "missing_changes",
+        "value": {
+          "version": 1,
+          "sequence": 0,
+          "dropped_changes": 0,
+          "title_truncated": false
+        }
+      }
+    ],
+    "urls": [
+      {
+        "id": "about_blank",
+        "value": "about:blank",
+        "origin": "about:blank"
+      },
+      {
+        "id": "credentials_query",
+        "value": "https://user:pw@Example.COM:443/path?q=SYNTHETIC_PRIVATE#fragment",
+        "origin": "https://example.com"
+      },
+      {
+        "id": "http_default",
+        "value": "HTTP://EXAMPLE.com:80/path",
+        "origin": "http://example.com"
+      },
+      {
+        "id": "nondefault",
+        "value": "https://example.com:8443/path",
+        "origin": "https://example.com:8443"
+      },
+      {
+        "id": "ipv6",
+        "value": "https://[2001:0DB8:0:0:0:0:0:1]:443/path",
+        "origin": "https://[2001:db8::1]"
+      },
+      {
+        "id": "utf8_host",
+        "value": "https://b\u00fccher.example/path",
+        "origin": "https://xn--bcher-kva.example"
+      },
+      {
+        "id": "max_url",
+        "value": "https://example.com/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "origin": "https://example.com"
+      },
+      {
+        "id": "long_url",
+        "value": "https://example.com/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "origin": "https://example.com"
+      },
+      {
+        "id": "other_scheme",
+        "value": "file:///private",
+        "origin": null
+      },
+      {
+        "id": "blank_fragment",
+        "value": "about:blank#secret",
+        "origin": null
+      },
+      {
+        "id": "relative",
+        "value": "/not-absolute",
+        "origin": null
+      },
+      {
+        "id": "no_host",
+        "value": "https://",
+        "origin": null
+      },
+      {
+        "id": "invalid_port",
+        "value": "https://example.com:65536",
+        "origin": null
+      },
+      {
+        "id": "absent_slashes",
+        "value": "https:example.com",
+        "origin": null
+      },
+      {
+        "id": "ipv4_canonical",
+        "value": "http://127.0.0.1:8123/private",
+        "origin": "http://127.0.0.1:8123"
+      },
+      {
+        "id": "percent_userinfo",
+        "value": "https://u%40example:s%2fecret@example.com/path?q=SYNTHETIC_PRIVATE",
+        "origin": "https://example.com"
+      },
+      {
+        "id": "punycode",
+        "value": "https://XN--BCHER-KVA.example/path",
+        "origin": "https://xn--bcher-kva.example"
+      }
+    ],
+    "text": [
+      {
+        "id": "id_128",
+        "field": "id",
+        "value": "\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48",
+        "valid": true
+      },
+      {
+        "id": "id_129",
+        "field": "id",
+        "value": "\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48x",
+        "valid": false
+      },
+      {
+        "id": "empty_id",
+        "field": "id",
+        "value": "",
+        "valid": false
+      },
+      {
+        "id": "unpaired_id",
+        "field": "id",
+        "value": "\ud800",
+        "valid": false
+      },
+      {
+        "id": "title_1024",
+        "field": "title",
+        "value": "\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48",
+        "valid": true
+      },
+      {
+        "id": "title_1025",
+        "field": "title",
+        "value": "\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48x",
+        "valid": true,
+        "expected": "\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48\ud800\udf48",
+        "title_truncated": true
+      },
+      {
+        "id": "empty_title",
+        "field": "title",
+        "value": "",
+        "valid": true
+      },
+      {
+        "id": "unpaired_title",
+        "field": "title",
+        "value": "\udfff",
+        "valid": false
+      }
+    ],
+    "tab_counts": [
+      {
+        "count": 0,
+        "valid": true
+      },
+      {
+        "count": 100,
+        "valid": true
+      },
+      {
+        "count": 101,
+        "valid": true
+      }
+    ],
+    "transitions": [
+      {
+        "id": "downgrade",
+        "before": {
+          "version": 1,
+          "sequence": 55,
+          "dropped_changes": 40,
+          "title_truncated": true,
+          "changes": [
+            {
+              "type": "tab_opened",
+              "tab_id": "closed-tab",
+              "sequence": 41
+            },
+            {
+              "type": "tab_closed",
+              "tab_id": "closed-tab",
+              "sequence": 42
+            },
+            {
+              "type": "tab_switched",
+              "tab_id": "one",
+              "sequence": 43
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 44
+            },
+            {
+              "type": "navigation_refused",
+              "tab_id": null,
+              "reason": "policy",
+              "sequence": 45
+            },
+            {
+              "type": "navigation_refused",
+              "tab_id": "one",
+              "reason": "unsupported",
+              "sequence": 46
+            },
+            {
+              "type": "dialog_dismissed",
+              "tab_id": "one",
+              "kind": "alert",
+              "sequence": 47
+            },
+            {
+              "type": "dialog_dismissed",
+              "tab_id": "one",
+              "kind": "confirm",
+              "sequence": 48
+            },
+            {
+              "type": "dialog_dismissed",
+              "tab_id": "one",
+              "kind": "prompt",
+              "sequence": 49
+            },
+            {
+              "type": "dialog_dismissed",
+              "tab_id": "one",
+              "kind": "beforeunload",
+              "sequence": 50
+            },
+            {
+              "type": "dialog_dismissed",
+              "tab_id": "one",
+              "kind": "other",
+              "sequence": 51
+            },
+            {
+              "type": "download",
+              "tab_id": null,
+              "status": "blocked",
+              "sequence": 52
+            },
+            {
+              "type": "download",
+              "tab_id": "one",
+              "status": "started",
+              "sequence": 53
+            },
+            {
+              "type": "download",
+              "tab_id": "one",
+              "status": "completed",
+              "sequence": 54
+            },
+            {
+              "type": "download",
+              "tab_id": "closed-tab",
+              "status": "failed",
+              "sequence": 55
+            }
+          ]
+        },
+        "after": null,
+        "valid": false
+      },
+      {
+        "id": "sequence_decreases",
+        "before": {
+          "version": 1,
+          "sequence": 55,
+          "dropped_changes": 40,
+          "title_truncated": true,
+          "changes": [
+            {
+              "type": "tab_opened",
+              "tab_id": "closed-tab",
+              "sequence": 41
+            },
+            {
+              "type": "tab_closed",
+              "tab_id": "closed-tab",
+              "sequence": 42
+            },
+            {
+              "type": "tab_switched",
+              "tab_id": "one",
+              "sequence": 43
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 44
+            },
+            {
+              "type": "navigation_refused",
+              "tab_id": null,
+              "reason": "policy",
+              "sequence": 45
+            },
+            {
+              "type": "navigation_refused",
+              "tab_id": "one",
+              "reason": "unsupported",
+              "sequence": 46
+            },
+            {
+              "type": "dialog_dismissed",
+              "tab_id": "one",
+              "kind": "alert",
+              "sequence": 47
+            },
+            {
+              "type": "dialog_dismissed",
+              "tab_id": "one",
+              "kind": "confirm",
+              "sequence": 48
+            },
+            {
+              "type": "dialog_dismissed",
+              "tab_id": "one",
+              "kind": "prompt",
+              "sequence": 49
+            },
+            {
+              "type": "dialog_dismissed",
+              "tab_id": "one",
+              "kind": "beforeunload",
+              "sequence": 50
+            },
+            {
+              "type": "dialog_dismissed",
+              "tab_id": "one",
+              "kind": "other",
+              "sequence": 51
+            },
+            {
+              "type": "download",
+              "tab_id": null,
+              "status": "blocked",
+              "sequence": 52
+            },
+            {
+              "type": "download",
+              "tab_id": "one",
+              "status": "started",
+              "sequence": 53
+            },
+            {
+              "type": "download",
+              "tab_id": "one",
+              "status": "completed",
+              "sequence": 54
+            },
+            {
+              "type": "download",
+              "tab_id": "closed-tab",
+              "status": "failed",
+              "sequence": 55
+            }
+          ]
+        },
+        "after": {
+          "version": 1,
+          "sequence": 0,
+          "dropped_changes": 0,
+          "title_truncated": false,
+          "changes": []
+        },
+        "valid": false
+      },
+      {
+        "id": "dropped_decreases",
+        "before": {
+          "version": 1,
+          "sequence": 32,
+          "dropped_changes": 32,
+          "title_truncated": false,
+          "changes": []
+        },
+        "after": {
+          "version": 1,
+          "sequence": 32,
+          "dropped_changes": 31,
+          "title_truncated": false,
+          "changes": [
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 32
+            }
+          ]
+        },
+        "valid": false
+      },
+      {
+        "id": "upgrade",
+        "before": null,
+        "after": {
+          "version": 1,
+          "sequence": 55,
+          "dropped_changes": 40,
+          "title_truncated": true,
+          "changes": [
+            {
+              "type": "tab_opened",
+              "tab_id": "closed-tab",
+              "sequence": 41
+            },
+            {
+              "type": "tab_closed",
+              "tab_id": "closed-tab",
+              "sequence": 42
+            },
+            {
+              "type": "tab_switched",
+              "tab_id": "one",
+              "sequence": 43
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 44
+            },
+            {
+              "type": "navigation_refused",
+              "tab_id": null,
+              "reason": "policy",
+              "sequence": 45
+            },
+            {
+              "type": "navigation_refused",
+              "tab_id": "one",
+              "reason": "unsupported",
+              "sequence": 46
+            },
+            {
+              "type": "dialog_dismissed",
+              "tab_id": "one",
+              "kind": "alert",
+              "sequence": 47
+            },
+            {
+              "type": "dialog_dismissed",
+              "tab_id": "one",
+              "kind": "confirm",
+              "sequence": 48
+            },
+            {
+              "type": "dialog_dismissed",
+              "tab_id": "one",
+              "kind": "prompt",
+              "sequence": 49
+            },
+            {
+              "type": "dialog_dismissed",
+              "tab_id": "one",
+              "kind": "beforeunload",
+              "sequence": 50
+            },
+            {
+              "type": "dialog_dismissed",
+              "tab_id": "one",
+              "kind": "other",
+              "sequence": 51
+            },
+            {
+              "type": "download",
+              "tab_id": null,
+              "status": "blocked",
+              "sequence": 52
+            },
+            {
+              "type": "download",
+              "tab_id": "one",
+              "status": "started",
+              "sequence": 53
+            },
+            {
+              "type": "download",
+              "tab_id": "one",
+              "status": "completed",
+              "sequence": 54
+            },
+            {
+              "type": "download",
+              "tab_id": "closed-tab",
+              "status": "failed",
+              "sequence": 55
+            }
+          ]
+        },
+        "valid": true
+      },
+      {
+        "id": "repeat",
+        "before": {
+          "version": 1,
+          "sequence": 55,
+          "dropped_changes": 40,
+          "title_truncated": true,
+          "changes": [
+            {
+              "type": "tab_opened",
+              "tab_id": "closed-tab",
+              "sequence": 41
+            },
+            {
+              "type": "tab_closed",
+              "tab_id": "closed-tab",
+              "sequence": 42
+            },
+            {
+              "type": "tab_switched",
+              "tab_id": "one",
+              "sequence": 43
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 44
+            },
+            {
+              "type": "navigation_refused",
+              "tab_id": null,
+              "reason": "policy",
+              "sequence": 45
+            },
+            {
+              "type": "navigation_refused",
+              "tab_id": "one",
+              "reason": "unsupported",
+              "sequence": 46
+            },
+            {
+              "type": "dialog_dismissed",
+              "tab_id": "one",
+              "kind": "alert",
+              "sequence": 47
+            },
+            {
+              "type": "dialog_dismissed",
+              "tab_id": "one",
+              "kind": "confirm",
+              "sequence": 48
+            },
+            {
+              "type": "dialog_dismissed",
+              "tab_id": "one",
+              "kind": "prompt",
+              "sequence": 49
+            },
+            {
+              "type": "dialog_dismissed",
+              "tab_id": "one",
+              "kind": "beforeunload",
+              "sequence": 50
+            },
+            {
+              "type": "dialog_dismissed",
+              "tab_id": "one",
+              "kind": "other",
+              "sequence": 51
+            },
+            {
+              "type": "download",
+              "tab_id": null,
+              "status": "blocked",
+              "sequence": 52
+            },
+            {
+              "type": "download",
+              "tab_id": "one",
+              "status": "started",
+              "sequence": 53
+            },
+            {
+              "type": "download",
+              "tab_id": "one",
+              "status": "completed",
+              "sequence": 54
+            },
+            {
+              "type": "download",
+              "tab_id": "closed-tab",
+              "status": "failed",
+              "sequence": 55
+            }
+          ]
+        },
+        "after": {
+          "version": 1,
+          "sequence": 55,
+          "dropped_changes": 40,
+          "title_truncated": true,
+          "changes": [
+            {
+              "type": "tab_opened",
+              "tab_id": "closed-tab",
+              "sequence": 41
+            },
+            {
+              "type": "tab_closed",
+              "tab_id": "closed-tab",
+              "sequence": 42
+            },
+            {
+              "type": "tab_switched",
+              "tab_id": "one",
+              "sequence": 43
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 44
+            },
+            {
+              "type": "navigation_refused",
+              "tab_id": null,
+              "reason": "policy",
+              "sequence": 45
+            },
+            {
+              "type": "navigation_refused",
+              "tab_id": "one",
+              "reason": "unsupported",
+              "sequence": 46
+            },
+            {
+              "type": "dialog_dismissed",
+              "tab_id": "one",
+              "kind": "alert",
+              "sequence": 47
+            },
+            {
+              "type": "dialog_dismissed",
+              "tab_id": "one",
+              "kind": "confirm",
+              "sequence": 48
+            },
+            {
+              "type": "dialog_dismissed",
+              "tab_id": "one",
+              "kind": "prompt",
+              "sequence": 49
+            },
+            {
+              "type": "dialog_dismissed",
+              "tab_id": "one",
+              "kind": "beforeunload",
+              "sequence": 50
+            },
+            {
+              "type": "dialog_dismissed",
+              "tab_id": "one",
+              "kind": "other",
+              "sequence": 51
+            },
+            {
+              "type": "download",
+              "tab_id": null,
+              "status": "blocked",
+              "sequence": 52
+            },
+            {
+              "type": "download",
+              "tab_id": "one",
+              "status": "started",
+              "sequence": 53
+            },
+            {
+              "type": "download",
+              "tab_id": "one",
+              "status": "completed",
+              "sequence": 54
+            },
+            {
+              "type": "download",
+              "tab_id": "closed-tab",
+              "status": "failed",
+              "sequence": 55
+            }
+          ]
+        },
+        "valid": true
+      },
+      {
+        "id": "advance",
+        "before": {
+          "version": 1,
+          "sequence": 0,
+          "dropped_changes": 0,
+          "title_truncated": false,
+          "changes": []
+        },
+        "after": {
+          "version": 1,
+          "sequence": 55,
+          "dropped_changes": 40,
+          "title_truncated": true,
+          "changes": [
+            {
+              "type": "tab_opened",
+              "tab_id": "closed-tab",
+              "sequence": 41
+            },
+            {
+              "type": "tab_closed",
+              "tab_id": "closed-tab",
+              "sequence": 42
+            },
+            {
+              "type": "tab_switched",
+              "tab_id": "one",
+              "sequence": 43
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 44
+            },
+            {
+              "type": "navigation_refused",
+              "tab_id": null,
+              "reason": "policy",
+              "sequence": 45
+            },
+            {
+              "type": "navigation_refused",
+              "tab_id": "one",
+              "reason": "unsupported",
+              "sequence": 46
+            },
+            {
+              "type": "dialog_dismissed",
+              "tab_id": "one",
+              "kind": "alert",
+              "sequence": 47
+            },
+            {
+              "type": "dialog_dismissed",
+              "tab_id": "one",
+              "kind": "confirm",
+              "sequence": 48
+            },
+            {
+              "type": "dialog_dismissed",
+              "tab_id": "one",
+              "kind": "prompt",
+              "sequence": 49
+            },
+            {
+              "type": "dialog_dismissed",
+              "tab_id": "one",
+              "kind": "beforeunload",
+              "sequence": 50
+            },
+            {
+              "type": "dialog_dismissed",
+              "tab_id": "one",
+              "kind": "other",
+              "sequence": 51
+            },
+            {
+              "type": "download",
+              "tab_id": null,
+              "status": "blocked",
+              "sequence": 52
+            },
+            {
+              "type": "download",
+              "tab_id": "one",
+              "status": "started",
+              "sequence": 53
+            },
+            {
+              "type": "download",
+              "tab_id": "one",
+              "status": "completed",
+              "sequence": 54
+            },
+            {
+              "type": "download",
+              "tab_id": "closed-tab",
+              "status": "failed",
+              "sequence": 55
+            }
+          ]
+        },
+        "valid": true
+      },
+      {
+        "id": "maximum",
+        "before": {
+          "version": 1,
+          "sequence": 0,
+          "dropped_changes": 0,
+          "title_truncated": false,
+          "changes": []
+        },
+        "after": {
+          "version": 1,
+          "sequence": 9007199254740991,
+          "dropped_changes": 9007199254740959,
+          "title_truncated": false,
+          "changes": [
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 9007199254740960
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 9007199254740961
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 9007199254740962
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 9007199254740963
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 9007199254740964
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 9007199254740965
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 9007199254740966
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 9007199254740967
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 9007199254740968
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 9007199254740969
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 9007199254740970
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 9007199254740971
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 9007199254740972
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 9007199254740973
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 9007199254740974
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 9007199254740975
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 9007199254740976
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 9007199254740977
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 9007199254740978
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 9007199254740979
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 9007199254740980
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 9007199254740981
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 9007199254740982
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 9007199254740983
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 9007199254740984
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 9007199254740985
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 9007199254740986
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 9007199254740987
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 9007199254740988
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 9007199254740989
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 9007199254740990
+            },
+            {
+              "type": "navigation",
+              "tab_id": "one",
+              "sequence": 9007199254740991
+            }
+          ]
+        },
+        "valid": true
+      }
+    ],
+    "authority_reads": [
+      {
+        "id": "backslash",
+        "value": "https://foo\\SYNTHETIC_PRIVATE/path",
+        "phase": "policy"
+      },
+      {
+        "id": "backslash_before_userinfo",
+        "value": "https://foo\\SYNTHETIC_PRIVATE@example.com/path",
+        "phase": "final"
+      },
+      {
+        "id": "percent_slash",
+        "value": "https://foo%2fSYNTHETIC_PRIVATE/path",
+        "phase": "final"
+      },
+      {
+        "id": "percent_at",
+        "value": "https://foo%40SYNTHETIC_PRIVATE/path",
+        "phase": "policy"
+      },
+      {
+        "id": "percent_hash",
+        "value": "https://foo%23SYNTHETIC_PRIVATE/path",
+        "phase": "refusal"
+      },
+      {
+        "id": "percent_question",
+        "value": "https://foo%3fSYNTHETIC_PRIVATE/path",
+        "phase": "error"
+      },
+      {
+        "id": "scoped_ipv6",
+        "value": "https://[fe80::1%25SYNTHETIC_PRIVATE]/path",
+        "phase": "list"
+      },
+      {
+        "id": "shorthand_ipv4",
+        "value": "http://127.1:80/path",
+        "phase": "policy"
+      },
+      {
+        "id": "hex_ipv4",
+        "value": "http://0x7f000001/path",
+        "phase": "final"
+      },
+      {
+        "id": "octal_ipv4",
+        "value": "http://0177.0.0.1/path",
+        "phase": "refusal"
+      },
+      {
+        "id": "integer_ipv4",
+        "value": "http://2130706433/path",
+        "phase": "error"
+      },
+      {
+        "id": "dotted_ipv4",
+        "value": "http://127.0.0.1./path",
+        "phase": "list"
+      },
+      {
+        "id": "tab_in_authority",
+        "value": "https://foo\tSYNTHETIC_PRIVATE/path",
+        "phase": "policy"
+      },
+      {
+        "id": "escaped_host",
+        "value": "http://%65xample.com/path",
+        "phase": "final"
+      }
+    ]
+  },
+  "ledger": [
+    {
+      "id": "ledger:function-throw",
+      "scenario": "function-throw"
+    },
+    {
+      "id": "ledger:nested-error",
+      "scenario": "nested-error"
+    },
+    {
+      "id": "ledger:save-before-attempt",
+      "scenario": "save-before-attempt"
+    },
+    {
+      "id": "ledger:save-after-return",
+      "scenario": "save-after-return"
+    },
+    {
+      "id": "ledger:lost-ack",
+      "scenario": "lost-ack"
+    },
+    {
+      "id": "ledger:browser-error",
+      "scenario": "browser-error"
+    },
+    {
+      "id": "ledger:browser-refusal",
+      "scenario": "browser-refusal"
+    },
+    {
+      "id": "ledger:native-partial",
+      "scenario": "native-partial"
+    },
+    {
+      "id": "ledger:resume-boundary",
+      "scenario": "resume-boundary"
+    },
+    {
+      "id": "ledger:inspection",
+      "scenario": "inspection"
+    },
+    {
+      "id": "ledger:eager-interruption",
+      "scenario": "eager-interruption"
+    },
+    {
+      "id": "ledger:invalid-history",
+      "scenario": "invalid-history"
+    },
+    {
+      "id": "ledger:invalid-registry",
+      "scenario": "invalid-registry"
+    },
+    {
+      "id": "ledger:retry-budget",
+      "scenario": "retry-budget"
+    }
+  ],
+  "rich_reads": {
+    "report": {
+      "version": 1,
+      "text": "Visible receipt 47",
+      "elements": [
+        {
+          "ref": "opaque:one",
+          "role": "combobox",
+          "label": "Seating",
+          "value": "patio",
+          "options": [
+            {
+              "label": "Patio",
+              "value": "patio"
+            }
+          ]
+        }
+      ],
+      "omitted": ["unsupported_root", "value"]
+    },
+    "cases": [
+      {
+        "id": "rich-read:read-page-projection",
+        "member": "read_page",
+        "scenario": "projection"
+      },
+      {
+        "id": "rich-read:find-projection",
+        "member": "find",
+        "scenario": "projection"
+      },
+      {
+        "id": "rich-read:legacy-text",
+        "member": "get_page_text",
+        "scenario": "legacy"
+      },
+      {
+        "id": "rich-read:invalid-scalar",
+        "member": "find",
+        "scenario": "scalar"
+      },
+      {
+        "id": "rich-read:text-only-refs",
+        "member": "get_page_text",
+        "scenario": "text-refs"
+      },
+      {
+        "id": "rich-read:aggregate",
+        "member": "get_page_text",
+        "scenario": "aggregate"
+      },
+      {
+        "id": "rich-read:unusable-final-state",
+        "member": "read_page",
+        "scenario": "state"
+      }
+    ]
+  },
+  "selective": [
+    {
+      "id": "selective:prefix-and-suffix",
+      "scenario": "prefix-and-suffix"
+    },
+    {
+      "id": "selective:empty-versus-omitted",
+      "scenario": "empty-versus-omitted"
+    },
+    {
+      "id": "selective:native-names",
+      "scenario": "native-names"
+    },
+    {
+      "id": "selective:pending-ledger",
+      "scenario": "pending-ledger"
+    },
+    {
+      "id": "selective:changed-completion",
+      "scenario": "changed-completion"
+    },
+    {
+      "id": "selective:server-default-override",
+      "scenario": "server-default-override"
+    }
+  ],
+  "budget": [
+    {
+      "id": "budget:bounded-http",
+      "scenario": "bounded",
+      "stream": false
+    },
+    {
+      "id": "budget:bounded-sse",
+      "scenario": "bounded",
+      "stream": true
+    },
+    {
+      "id": "budget:protected-safety",
+      "scenario": "protected",
+      "stream": false
+    },
+    {
+      "id": "budget:invalid-choice",
+      "scenario": "invalid",
+      "stream": false
+    },
+    {
+      "id": "budget:original-id-replay",
+      "scenario": "replay",
+      "stream": true
+    },
+    {
+      "id": "budget:fresh-resume",
+      "scenario": "resume",
+      "stream": false
+    },
+    {
+      "id": "budget:policy-cancel",
+      "scenario": "cancel",
+      "stream": false
+    }
+  ]
+}

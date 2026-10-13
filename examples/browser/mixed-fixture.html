@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dispatch receipts | Host browser</title>
+  <style>
+    :root {
+      font:
+        17px/1.55 system-ui,
+        sans-serif;
+      color: #173034;
+      background: #f4f2eb;
+    }
+    body {
+      max-width: 680px;
+      margin: 72px auto;
+      padding: 0 28px;
+    }
+    header small {
+      color: #52625e;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    section {
+      background: white;
+      border: 1px solid #d9ddd5;
+      padding: 24px;
+      margin: 18px 0;
+    }
+    button {
+      font: inherit;
+      padding: 8px 18px;
+    }
+    #route {
+      color: white;
+      background: #214d42;
+      border: 0;
+    }
+  </style>
+  <header>
+    <small>Workspace 1 · Host browser</small>
+    <h1>Dispatch receipts</h1>
+    <p>This page owns the dispatch case. The isolated desktop is a different workspace.</p>
+  </header>
+  <section data-record-id="D-2201">
+    <h2>Case D-2201</h2>
+    <p>Route this case, then request the approved receipt with the ordinary function.</p>
+    <button id="route" type="button">Route D-2201</button>
+    <p id="status" aria-live="polite">Not routed</p>
+  </section>
+  <section data-record-id="result-case">
+    <h2>Prepared result</h2>
+    <button type="button" data-result disabled>Receipt ready for approval</button>
+  </section>
+  <script>
+    {
+      const caseId = 'D-2201';
+      const route = document.querySelector('#route');
+      const status = document.querySelector('#status');
+      const result = document.querySelector('[data-result]');
+      route.addEventListener('click', async () => {
+        if (route.disabled) return;
+        route.disabled = true;
+        try {
+          const reply = await fetch('/route', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ case_id: caseId, action: 'route' }),
+          });
+          if (!reply.ok) throw new Error('Route was not accepted.');
+          result.disabled = false;
+          status.textContent = 'Routed D-2201';
+        } catch {
+          status.textContent = 'Route outcome unknown. Stop this run; do not retry.';
+        }
+      });
+    }
+  </script>
+</html>

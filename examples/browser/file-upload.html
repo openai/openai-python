@@ -1,0 +1,16 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Approved document fixture</title>
+<section data-record-id="transfer-case">
+  <label>Private document<input type="file" id="document"></label>
+</section>
+<output id="result"></output>
+<script>
+  document.querySelector('input').addEventListener('change', async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    const bytes = await file.arrayBuffer();
+    const reply = await fetch('/uploaded', {method: 'POST', body: bytes});
+    document.querySelector('#result').textContent = reply.ok ? 'Received' : 'Failed';
+  });
+</script>

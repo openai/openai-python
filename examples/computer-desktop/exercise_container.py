@@ -1,0 +1,544 @@
+"""Check local container admission and interrupted creation with in-process Docker responses."""
+
+from __future__ import annotations
+
+import os
+import sys
+import json
+import shutil
+import socket
+import platform
+import subprocess
+from types import SimpleNamespace
+from typing import Any
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from unittest.mock import patch
+
+import container_runtime as runtime
+
+IMAGE = "sha256:" + "a" * 64
+CONTAINER = "b" * 64
+
+
+def prepare(root: Path) -> None:
+    root.mkdir(mode=0o700)
+    (root / "runs").mkdir(mode=0o700)
+    (root / "build").mkdir(mode=0o700)
+    context = root / "build/context"
+    context.mkdir(mode=0o700)
+    for name, source in runtime.FILES.items():
+        shutil.copyfile(source, context / name)
+        (context / name).chmod(0o600)
+    runtime.write_new(
+        root / "setup.json",
+        {
+            "backend": "container",
+            "owner": runtime.identity(root),
+            "image": IMAGE,
+            "recipe": runtime.recipe(),
+            "base": runtime.IMAGE,
+        },
+    )
+    (root / "runs/unrelated").mkdir(mode=0o700)
+    (root / "runs/unrelated/sentinel").write_text("other run")
+
+
+class Docker:
+    def __init__(
+        self,
+        root: Path,
+        *,
+        available: bool,
+        receipt: bool,
+        start_failure: bool = False,
+        foreign_after_start: bool = False,
+        renamed: bool = False,
+    ) -> None:
+        self.root = root
+        self.available = available
+        self.receipt = receipt
+        self.start_failure = start_failure
+        self.foreign_after_start = foreign_after_start
+        self.renamed = renamed
+        self.started = False
+        self.cancelled = False
+        self.removed = False
+        self.directory: Path | None = None
+        self.calls: list[list[str]] = []
+        self.create: subprocess.Popen[bytes] | None = None
+        self.real_popen = subprocess.Popen[bytes]
+
+    @property
+    def drained(self) -> bool:
+        return self.create is not None and self.create.poll() is not None
+
+    def is_cancelled(self) -> bool:
+        return self.cancelled
+
+    def popen(self, args: list[str], **kwargs: Any) -> subprocess.Popen[bytes]:
+        command = args[5:]
+        self.calls.append(command)
+        kind = command[0]
+        response = b""
+        code = 0
+        if kind == "image":
+            code = 0 if self.available else 1
+            response = (IMAGE + "\n").encode()
+        elif kind == "create":
+            cid = Path(command[command.index("--cidfile") + 1])
+            self.directory = cid.parent
+            if self.receipt:
+                cid.write_text(CONTAINER)
+            if self.start_failure:
+                self.create = self.real_popen([sys.executable, "-c", "pass"], **kwargs)
+                return self.create
+            self.create = self.real_popen([sys.executable, "-c", "import time;time.sleep(60)"], **kwargs)
+            self.cancelled = True
+            return self.create
+        elif kind == "ps":
+            assert self.drained, "lookup raced a live create CLI"
+            if not self.removed and self.receipt:
+                response = (CONTAINER + "\n").encode()
+        elif kind == "inspect":
+            assert self.directory is not None
+            intent = json.loads((self.directory / "intent.json").read_text())
+            profile = json.loads((self.root / "build/context/seccomp.json").read_text())
+            response = json.dumps(
+                [
+                    {
+                        "Id": CONTAINER,
+                        "Image": IMAGE,
+                        "Name": "/renamed-owned" if self.renamed else "/" + intent["name"],
+                        "Config": {
+                            "Labels": {
+                                runtime.LABEL: "another-owner"
+                                if self.started and self.foreign_after_start
+                                else intent["nonce"]
+                            },
+                            "User": "1000:1000",
+                            "Cmd": ["python3", "/opt/desktop/start.py"],
+                            "Entrypoint": None,
+                        },
+                        "HostConfig": {
+                            "NetworkMode": "none",
+                            "IpcMode": "private",
+                            "ReadonlyRootfs": True,
+                            "Privileged": False,
+                            "CapDrop": ["ALL"],
+                            "NanoCpus": 2000000000,
+                            "Memory": 2 * 1024**3,
+                            "MemorySwap": 2 * 1024**3,
+                            "ShmSize": 256 * 1024**2,
+                            "PidsLimit": 512,
+                            "Tmpfs": {
+                                "/tmp": "rw,nosuid,nodev,size=256m,mode=1777",
+                                "/run/desktop": "rw,nosuid,nodev,size=64m,uid=1000,gid=1000,mode=0700",
+                                "/home/desktop": "rw,nosuid,nodev,size=768m,uid=1000,gid=1000,mode=0700",
+                            },
+                            "SecurityOpt": ["no-new-privileges", "seccomp=" + json.dumps(profile)],
+                        },
+                    }
+                ]
+            ).encode()
+        elif kind == "start":
+            assert self.start_failure and command == ["start", CONTAINER]
+            self.started = True
+            code = 1
+        elif kind == "rm":
+            assert self.receipt and self.drained and command == ["rm", "-f", CONTAINER]
+            self.removed = True
+        else:
+            raise AssertionError(f"Unplanned Docker call: {command!r}")
+        return self.real_popen(
+            [
+                sys.executable,
+                "-c",
+                "import sys;sys.stdout.buffer.write(bytes.fromhex(sys.argv[1]));sys.exit(int(sys.argv[2]))",
+                response.hex(),
+                str(code),
+            ],
+            **kwargs,
+        )
+
+
+def startup_failure() -> None:
+    for foreign, renamed in ((False, False), (True, False), (False, True), (True, True)):
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary) / "runtime"
+            prepare(root)
+            driver = Docker(
+                root, available=True, receipt=True, start_failure=True, foreign_after_start=foreign, renamed=renamed
+            )
+            with (
+                patch.object(runtime, "local_only", return_value="/unused/local-docker"),
+                patch.object(runtime.subprocess, "Popen", side_effect=driver.popen),
+            ):
+                try:
+                    runtime.start(root)
+                except RuntimeError as error:
+                    assert ("exact image" if foreign else "Local Docker command failed") in str(error)
+                else:
+                    raise AssertionError("A failed Docker start returned a guest")
+            assert driver.started and driver.drained and driver.directory is not None
+            assert driver.removed is not foreign
+            assert driver.directory.exists() is foreign
+            assert (root / "runs/unrelated/sentinel").read_text() == "other run"
+
+
+def startup_deadline(boundary: str | None) -> None:
+    with TemporaryDirectory() as temporary:
+        root = Path(temporary) / "runtime"
+        prepare(root)
+        driver = Docker(root, available=True, receipt=True, start_failure=True)
+        elapsed = 0.0
+        original_docker = runtime.docker
+
+        def popen(args: list[str], **kwargs: Any) -> subprocess.Popen[bytes]:
+            if args[5] == "start":
+                driver.calls.append(args[5:])
+                driver.started = True
+                return driver.real_popen([sys.executable, "-c", "pass"], **kwargs)
+            return driver.popen(args, **kwargs)
+
+        def docker(command_root: Path, args: list[str], **kwargs: Any) -> bytes:
+            nonlocal elapsed
+            result = original_docker(command_root, args, **kwargs)
+            if boundary == "cumulative":
+                elapsed += 25
+            elif args[0] == boundary:
+                elapsed = 60
+            elif boundary == "caller" and args[0] == "start":
+                driver.cancelled = True
+            return result
+
+        with (
+            patch.object(runtime, "local_only", return_value="/unused/local-docker"),
+            patch.object(runtime.subprocess, "Popen", side_effect=popen),
+            patch.object(runtime, "time", SimpleNamespace(monotonic=lambda: elapsed)),
+            patch.object(runtime, "docker", side_effect=docker),
+        ):
+            if boundary is None:
+                id = runtime.start(root, cancelled=driver.is_cancelled)
+                assert driver.started and driver.directory == root / "runs" / id
+                runtime.remove(root, id)
+            else:
+                try:
+                    runtime.start(root, cancelled=driver.is_cancelled)
+                except runtime.StartupCancelled:
+                    pass
+                else:
+                    raise AssertionError(f"Startup returned after {boundary} exceeded its admission window")
+            assert list((root / "runs").iterdir()) == [root / "runs/unrelated"]
+            if boundary == "image":
+                assert driver.directory is None
+            else:
+                assert driver.drained and driver.removed
+            assert (root / "runs/unrelated/sentinel").read_text() == "other run"
+
+
+def output_bounds(stream: str, cap: int) -> None:
+    real_popen = subprocess.Popen[bytes]
+    real_read = os.read
+    with TemporaryDirectory() as temporary:
+        root = Path(temporary) / "runtime"
+        prepare(root)
+        marker = root / "completed-excess"
+        children: list[subprocess.Popen[bytes]] = []
+        output_fds: set[int] = set()
+        consumed = 0
+        largest_read = 0
+
+        def popen(_args: list[str], **kwargs: Any) -> subprocess.Popen[bytes]:
+            target = 2 if stream == "stderr" else 1
+            script = (
+                "import os,sys;from pathlib import Path; "
+                "chunk=b'x'*65536; "
+                "[os.write(int(sys.argv[1]),chunk) for _ in range(int(sys.argv[2]))]; "
+                "Path(sys.argv[3]).write_text('excess finished')"
+            )
+            child = real_popen(
+                [sys.executable, "-c", script, str(target), str((cap * 8) // 65536 + 1), str(marker)], **kwargs
+            )
+            assert child.stdout is not None and child.stderr is not None
+            output_fds.update((child.stdout.fileno(), child.stderr.fileno()))
+            children.append(child)
+            return child
+
+        def bounded_read(fd: int, count: int) -> bytes:
+            nonlocal consumed, largest_read
+            result = real_read(fd, count)
+            if fd in output_fds:
+                consumed += len(result)
+                largest_read = max(largest_read, count)
+            return result
+
+        with (
+            patch.object(runtime, "local_only", return_value="/unused/local-docker"),
+            patch.object(runtime.subprocess, "Popen", side_effect=popen),
+            patch.object(runtime.os, "read", side_effect=bounded_read),
+        ):
+            try:
+                runtime.docker(root, ["controlled-output"], limit=cap if stream != "stderr" else 65536)
+            except RuntimeError as error:
+                assert "exceeded" in str(error)
+            else:
+                raise AssertionError(f"{stream} exceeded its command output cap")
+        assert len(children) == 1 and children[0].poll() is not None, f"{stream} child not reaped"
+        assert not marker.exists(), f"{stream} excess was fully consumed before termination"
+        assert consumed <= cap + 1 and largest_read <= 65536, (stream, consumed, largest_read)
+        assert (root / "runs/unrelated/sentinel").read_text() == "other run"
+
+
+def pipe_lifetimes() -> None:
+    real_popen = subprocess.Popen[bytes]
+    with TemporaryDirectory() as temporary:
+        root = Path(temporary) / "runtime"
+        prepare(root)
+        closed = root / "closed"
+        data = bytes(range(256)) * 2048
+        scripts = {
+            "duplex": (
+                "import sys;sys.stderr.buffer.write(b'warn'*20000);sys.stderr.buffer.flush();"
+                "sys.stdout.buffer.write(b'prefix'*15000);sys.stdout.buffer.flush();"
+                "sys.stdout.buffer.write(sys.stdin.buffer.read())"
+            ),
+            "broken": "import os;os.close(0);os.write(1,b'closed stdin')",
+            "eof": (
+                "import os,sys,time;from pathlib import Path;"
+                "os.close(1);os.close(2);Path(sys.argv[1]).write_text('closed');time.sleep(60)"
+            ),
+        }
+        children: list[subprocess.Popen[bytes]] = []
+
+        def popen(args: list[str], **kwargs: Any) -> subprocess.Popen[bytes]:
+            child = real_popen([sys.executable, "-c", scripts[args[5]], str(closed)], **kwargs)
+            children.append(child)
+            return child
+
+        with (
+            patch.object(runtime, "local_only", return_value="/unused/local-docker"),
+            patch.object(runtime.subprocess, "Popen", side_effect=popen),
+        ):
+            expected = b"prefix" * 15000 + data
+            assert runtime.docker(root, ["duplex"], data=data, limit=len(expected)) == expected
+            assert runtime.docker(root, ["broken"], data=data) == b"closed stdin"
+            try:
+                runtime.docker(root, ["eof"], timeout=2)
+            except subprocess.TimeoutExpired:
+                assert closed.exists()
+            else:
+                raise AssertionError("EOF with a live child skipped the deadline")
+            closed.unlink()
+            try:
+                runtime.docker(root, ["eof"], cancelled=closed.exists)
+            except runtime.StartupCancelled:
+                assert closed.exists()
+            else:
+                raise AssertionError("EOF with a live child skipped cancellation")
+        assert len(children) == 4 and all(child.poll() is not None for child in children)
+        assert (root / "runs/unrelated/sentinel").read_text() == "other run"
+
+
+def preflight_admission() -> None:
+    def path_only_docker(_name: str, path: str | None = None) -> str | None:
+        return "/fixture-only/docker" if path is None else None
+
+    with TemporaryDirectory() as temporary:
+        socket_path = str(Path(temporary) / "docker.sock")
+        with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as daemon:
+            daemon.bind(socket_path)
+            with (
+                patch.object(runtime.sys, "platform", "linux"),
+                patch.object(platform, "machine", return_value="x86_64"),
+                patch.object(runtime, "DOCKER_SOCKET", socket_path),
+                patch.dict(os.environ, {}, clear=True),
+                patch.object(runtime.shutil, "which", return_value="/usr/bin/docker"),
+                patch.object(runtime, "docker", side_effect=AssertionError("Admission must not run Docker")),
+            ):
+                runtime.preflight()
+                for variable in ("DOCKER_HOST", "DOCKER_CONTEXT", "BUILDX_BUILDER"):
+                    with patch.dict(os.environ, {variable: "remote-fixture"}):
+                        try:
+                            runtime.preflight()
+                        except ValueError:
+                            pass
+                        else:
+                            raise AssertionError(f"Remote configuration admitted: {variable}")
+                with patch.object(
+                    runtime.shutil,
+                    "which",
+                    side_effect=path_only_docker,
+                ):
+                    try:
+                        runtime.preflight()
+                    except ValueError:
+                        pass
+                    else:
+                        raise AssertionError("An arbitrary PATH-only Docker executable was admitted")
+
+
+def cancelled_health(boundary: str) -> None:
+    with TemporaryDirectory() as temporary:
+        root = Path(temporary) / "runtime"
+        prepare(root)
+        driver = Docker(root, available=True, receipt=True)
+        id = "e" * 12
+        directory = root / "runs" / id
+        directory.mkdir(mode=0o700)
+        runtime.write_new(
+            directory / "intent.json",
+            {
+                "owner": runtime.identity(directory),
+                "name": "openai-desktop-" + id,
+                "nonce": "f" * 48,
+                "image": IMAGE,
+            },
+        )
+        (directory / "container-id").write_text(CONTAINER)
+        driver.directory = directory
+        # The already completed create is distinct from this held health read.
+        driver.create = driver.real_popen([sys.executable, "-c", "pass"])
+        driver.create.wait()
+        held: subprocess.Popen[bytes] | None = None
+
+        def popen(args: list[str], **kwargs: Any) -> subprocess.Popen[bytes]:
+            nonlocal held
+            if args[5] == boundary and held is None:
+                driver.calls.append(args[5:])
+                held = driver.real_popen([sys.executable, "-c", "import time;time.sleep(60)"], **kwargs)
+                driver.cancelled = True
+                return held
+            return driver.popen(args, **kwargs)
+
+        with (
+            patch.object(runtime, "local_only", return_value="/unused/local-docker"),
+            patch.object(runtime.subprocess, "Popen", side_effect=popen),
+        ):
+            try:
+                runtime.healthy(root, id, cancelled=driver.is_cancelled)
+            except runtime.StartupCancelled:
+                assert held is not None and held.poll() is not None
+            else:
+                raise AssertionError("A stopped health lookup returned a ready guest")
+            before_remove = (directory.exists(), driver.removed)
+            assert before_remove == (True, False)
+            # Remove verifies this exact ID and ignores the Stop that interrupted admission.
+            runtime.remove(root, id)
+        assert driver.removed and not directory.exists()
+        assert (root / "runs/unrelated/sentinel").read_text() == "other run"
+
+
+def setup_snapshot(changed: str | None) -> None:
+    with TemporaryDirectory() as temporary:
+        area = Path(temporary)
+        sources = area / "source"
+        sources.mkdir()
+        inputs: dict[str, Path] = {}
+        for name, source in runtime.FILES.items():
+            inputs[name] = sources / name
+            shutil.copyfile(source, inputs[name])
+        root = area / "runtime"
+        docker_calls: list[list[str]] = []
+        original_copy = shutil.copyfile
+
+        def copying(src: Path, dest: Path) -> str:
+            result = original_copy(src, dest)
+            if changed == "copy-" + dest.name:
+                dest.write_bytes(b"altered synthetic copy")
+            return str(result)
+
+        def docker(_root: Path, args: list[str], **_kwargs: Any) -> bytes:
+            docker_calls.append(args)
+            assert args[0] == "build"
+            context = root / "build/context"
+            assert {name: runtime.digest(context / name) for name in inputs} == initial
+            if changed == "build-context":
+                (context / "Dockerfile").write_bytes(b"changed while mocked build ran")
+            if changed == "build-checkout":
+                inputs["start.py"].write_bytes(b"changed while mocked build ran")
+            Path(args[args.index("--iidfile") + 1]).write_text(IMAGE)
+            return b""
+
+        with (
+            patch.object(runtime, "FILES", inputs),
+            patch.object(runtime, "local_only", return_value="/unused/local-docker"),
+            patch.object(runtime.shutil, "copyfile", side_effect=copying),
+            patch.object(runtime, "docker", side_effect=docker),
+        ):
+            initial = runtime.recipe()
+            if changed is None:
+                runtime.setup(root)
+                assert runtime.runtime(root)["recipe"] == initial
+            else:
+                try:
+                    runtime.setup(root)
+                except ValueError:
+                    pass
+                else:
+                    raise AssertionError("Setup published a receipt for changed provisioning")
+                assert not (root / "setup.json").exists()
+            assert len(docker_calls) == (0 if changed and changed.startswith("copy-") else 1)
+
+
+def main() -> None:
+    preflight_admission()
+    startup_failure()
+    for boundary in (None, "image", "create", "inspect", "start", "cumulative", "caller"):
+        startup_deadline(boundary)
+    for changed in (None, "copy-Dockerfile", "copy-seccomp.json", "build-context", "build-checkout"):
+        setup_snapshot(changed)
+    for boundary in ("ps", "inspect"):
+        cancelled_health(boundary)
+    for stream, cap in (("stdout", 65536), ("build", 4 * 1024 * 1024), ("stderr", 1024 * 1024)):
+        output_bounds(stream, cap)
+    pipe_lifetimes()
+    with patch.object(runtime.sys, "platform", "linux"), patch.object(platform, "machine", return_value="aarch64"):
+        try:
+            runtime.local_only()
+        except ValueError as error:
+            assert "x86-64" in str(error)
+        else:
+            raise AssertionError("Unsupported ARM host reached Docker lookup")
+    for available, receipt in ((False, False), (True, False), (True, True)):
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary) / "runtime"
+            prepare(root)
+            driver = Docker(root, available=available, receipt=receipt)
+            with (
+                patch.object(runtime, "local_only", return_value="/unused/local-docker"),
+                patch.object(runtime.subprocess, "Popen", side_effect=driver.popen),
+            ):
+                if not available:
+                    for operation in (runtime.preflight, runtime.setup, runtime.start):
+                        try:
+                            operation(root)
+                        except RuntimeError:
+                            pass
+                        else:
+                            raise AssertionError("Missing image admitted setup or startup")
+                    assert all(call[0] == "image" for call in driver.calls)
+                    assert list((root / "runs").iterdir()) == [root / "runs/unrelated"]
+                else:
+                    runtime.preflight(root)
+                    assert all(call[0] == "image" for call in driver.calls)
+                    try:
+                        runtime.start(root, cancelled=driver.is_cancelled)
+                    except runtime.StartupCancelled:
+                        assert receipt
+                    except RuntimeError as error:
+                        assert not receipt and "indeterminate" in str(error)
+                    else:
+                        raise AssertionError("Stopped creation returned an active guest")
+                    assert driver.drained and driver.directory is not None
+                    assert driver.removed is receipt
+                    assert driver.directory.exists() is not receipt
+            assert (root / "runs/unrelated/sentinel").read_text() == "other run"
+    print(
+        "PASS bounded stdout/build/stderr reads, duplex and broken stdin, EOF cancellation/deadline, "
+        "Linux ARM guard, missing image, cancelled create reaped, known CID removed, ambiguous intent and sentinel retained"
+    )
+
+
+if __name__ == "__main__":
+    main()
