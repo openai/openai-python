@@ -152,12 +152,12 @@ class UploadOwner:
             result.last = refusal()
             result._state = FileState("upload")
             return result
-        except asyncio.CancelledError:
-            await abandon()
-            raise
         except Exception:
             await abandon()
             raise ValueError("File owner initialization refused.") from None
+        except BaseException:
+            await abandon()
+            raise
 
     def generated_name(self) -> str:
         return "f_" + secrets.token_hex(12)

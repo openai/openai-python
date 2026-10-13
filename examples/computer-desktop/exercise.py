@@ -9,6 +9,7 @@ import struct
 import asyncio
 import argparse
 import threading
+import traceback
 from io import BytesIO
 from typing import Callable, cast
 from pathlib import Path
@@ -328,6 +329,7 @@ def check_frames() -> None:
             self.input_entered = threading.Event()
             self.input_release = threading.Event()
             self.interruption: BaseException | None = None
+            self.raw_reply: bytes | None = None
 
         def healthy(self, *, cancelled: Callable[[], bool] | None = None) -> bool:
             del cancelled
@@ -339,6 +341,8 @@ def check_frames() -> None:
             assert timeout > 0 and limit > 0
             kind = json.loads(data)["type"]
             self.requests.append(kind)
+            if kind != "ready" and self.raw_reply is not None:
+                return self.raw_reply
             if kind == "type" and self.interruption is not None:
                 raise self.interruption
             if kind == self.held_kind:
@@ -363,6 +367,25 @@ def check_frames() -> None:
             self.removed = True
 
     with patch("desktop.Guest", ControlledGuest):
+        for raw in (b'{"ok":invalid,"record":"SYNTHETIC_8738"}', b'{"ok":true,"record":"SYNTHETIC_8738\xff"}'):
+            desktop = Desktop(Path("controlled-fixture"))
+            guest = cast(ControlledGuest, cast(object, desktop._guest))
+            guest.raw_reply = raw
+            try:
+                try:
+                    desktop.verify()
+                except ComputerUseError as error:
+                    assert "Invalid desktop reply" in str(error)
+                    assert "SYNTHETIC_8738" not in repr(error) + "".join(traceback.format_exception(error))
+                    assert error.__cause__ is None and error.__context__ is None, (
+                        "Invalid desktop reply retains a parser exception"
+                    )
+                else:
+                    raise AssertionError("Malformed reply returned a proof")
+                assert guest.removed
+            finally:
+                desktop.stop()
+        print("PASS: malformed JSON and UTF-8 replies retain no exposed parser cause or result")
         for interruption in (KeyboardInterrupt(), SystemExit(), BaseException("Synthetic interruption")):
             desktop = Desktop(Path("controlled-fixture"))
             guest = cast(ControlledGuest, cast(object, desktop._guest))

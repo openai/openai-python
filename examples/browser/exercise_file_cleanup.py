@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import json
 import asyncio
+import tempfile
 from types import SimpleNamespace
 from typing import Any, cast
+from pathlib import Path
 from datetime import timedelta
 from unittest.mock import patch
 
@@ -16,10 +18,17 @@ from playwright.async_api import Page, JSHandle, ElementHandle
 
 class Fixture:
     def __init__(
-        self, *, fail_init: bool = False, hold: bool = False, fail_once: bool = False, held_read: int = 0
+        self,
+        *,
+        fail_init: bool = False,
+        hold: bool = False,
+        fail_once: bool = False,
+        held_read: int = 0,
+        interrupt: BaseException | None = None,
     ) -> None:
         self.fail_init, self.hold, self.fail_once = fail_init, hold, fail_once
         self.captured = False
+        self.interrupt = interrupt
         self.attempts = 0
         self.entered = asyncio.Event()
         self.release = asyncio.Event()
@@ -40,6 +49,8 @@ class Fixture:
 
     @property
     def url(self) -> str:
+        if self.captured and self.interrupt is not None:
+            raise self.interrupt
         return "about:blank#changed" if self.fail_init and self.captured else "about:blank"
 
     async def evaluate_handle(self, _expression: str) -> JSHandle:
@@ -88,6 +99,19 @@ async def main() -> None:
         assert not unavailable.captured
         checks += 1
     for owner_type in (UploadOwner, DownloadOwner):
+        for interruption in (asyncio.CancelledError(), KeyboardInterrupt(), SystemExit()):
+            failed = Fixture(interrupt=interruption)
+            with tempfile.TemporaryDirectory() as scratch:
+                with patch("tempfile.tempdir", scratch):
+                    try:
+                        await owner_type.create(cast(Page, failed), failed.configuration, refuse)
+                    except BaseException as error:
+                        assert error is interruption, "Initialization changed the caller's interruption."
+                    else:
+                        raise AssertionError("Interrupted initialization returned an owner")
+                assert failed.attempts == 1, "Initialization must dispose its captured document"
+                assert not list(Path(scratch).iterdir()), "Interrupted initialization left staging behind"
+            checks += 1
         normal = Fixture()
         owner = await owner_type.create(cast(Page, normal), normal.configuration, refuse)
         await asyncio.gather(owner.stop(), owner.stop())
