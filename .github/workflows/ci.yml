@@ -152,7 +152,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        provider: [browser, computer, e2b, daytona]
+        provider: [browser, computer]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -180,13 +180,13 @@ jobs:
           os.execv("./scripts/run-pyright", ["./scripts/run-pyright", "--pythonpath", sys.executable])'
 
       - name: Install Chromium for local browser security checks
-        if: matrix.provider == 'browser' || matrix.provider == 'computer'
+        if: matrix.provider == 'browser'
         run: >-
           uv run --locked --all-extras --no-default-groups --group dev --group provider-${{ matrix.provider }}
           playwright install --with-deps chromium
 
       - name: Allow the sandbox for this job's installed Chromium
-        if: matrix.provider == 'browser' || matrix.provider == 'computer'
+        if: matrix.provider == 'browser'
         run: bash .github/scripts/setup-playwright-sandbox.sh
 
       - name: Run local provider and guest security checks

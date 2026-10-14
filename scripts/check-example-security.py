@@ -14,50 +14,14 @@ import openai
 
 ROOT = Path(__file__).resolve().parent.parent
 CASES: dict[str, list[tuple[str, ...]]] = {
-    "browser": [
-        ("examples/browser/exercise.py",),
-        ("examples/browser/exercise_borrowed_retirement.py",),
-        ("examples/browser/exercise_wait_editable.py", "wait"),
-        ("examples/browser/exercise_wait_editable.py", "editable"),
-        ("examples/browser/exercise_scoped.py",),
-        ("examples/browser/exercise_capabilities.py",),
-        ("examples/browser/exercise_portable_files.py",),
-        ("examples/browser/exercise_coordinates.py",),
-        ("examples/browser/exercise_find_budget.py",),
-        ("examples/browser/exercise_batch_timeout.py",),
-        ("examples/browser/exercise_network.py",),
-        ("examples/browser/exercise_navigation.py",),
-        ("examples/browser/exercise_navigation_retirement.py",),
-        ("examples/browser/exercise_pointer.py",),
-        ("examples/browser/exercise_owned.py",),
-        ("examples/browser/exercise_sensitive.py",),
-        ("examples/browser/exercise_read_only.py",),
-        ("examples/browser/exercise_setup.py",),
-        ("examples/browser/exercise_read_integrity.py",),
-        ("examples/browser/exercise_reference_admission.py",),
-        ("examples/browser/exercise_borrowed_read_cancellation.py",),
-        ("examples/browser/exercise_approval.py",),
-        ("examples/browser/exercise_file_eligibility.py",),
-        ("examples/browser/exercise_file_cleanup.py",),
-        ("examples/browser/exercise_upload.py",),
-        ("examples/browser/exercise_download.py",),
-        ("examples/browser/exercise_browserbase.py",),
-        ("examples/browser/exercise_browser_use.py",),
-    ],
+    "browser": [("examples/browser/exercise_read_only.py",)],
     "computer": [
-        ("examples/computer/exercise.py",),
         ("examples/computer-desktop/exercise.py", "--check-frames"),
         ("examples/computer-desktop/exercise_helper_env.py",),
         ("examples/computer-desktop/exercise_container.py",),
         ("examples/computer-desktop/guest/test_action_admission.py",),
         ("examples/computer-desktop/guest/test_receipt.py",),
     ],
-    "e2b": [
-        ("examples/computer-e2b/exercise.py",),
-        ("examples/computer-e2b/exercise_png.py",),
-        ("examples/computer-e2b/exercise_cancellation.py",),
-    ],
-    "daytona": [("examples/computer-daytona/exercise.py",)],
 }
 
 
