@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from contextlib import nullcontext
 
 import httpx2
 import pytest
@@ -14,7 +15,10 @@ from openai.lib._parsing._responses import parse_response
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
-@pytest.mark.parametrize("identity", ["same", "changed", "enriched", "dropped", "replacement"])
+@pytest.mark.parametrize(
+    "identity",
+    ["same", "changed", "enriched", "dropped", "replacement", "done-type", "done-id", "done-call", "done-enriched"],
+)
 async def test_retained_completed_call_identity(sync: bool, identity: str) -> None:
     item: dict[str, object] = {
         "type": "function_call",
@@ -22,7 +26,7 @@ async def test_retained_completed_call_identity(sync: bool, identity: str) -> No
         "name": "lookup",
         "arguments": "{}",
         "status": "completed",
-        **({} if identity == "enriched" else {"id": "fc_original"}),
+        **({} if identity in ("enriched", "done-enriched") else {"id": "fc_original"}),
     }
     final_item = {
         **item,
@@ -30,10 +34,18 @@ async def test_retained_completed_call_identity(sync: bool, identity: str) -> No
         "call_id": "call_replacement" if identity == "replacement" else "call_original",
     }
     output = [] if identity == "dropped" else [final_item]
+    done_item: dict[str, object] = item
+    if identity.startswith("done-"):
+        done_item = {**item, "id": "fc_final" if identity in ("done-id", "done-enriched") else "fc_original"}
+        if identity == "done-call":
+            done_item["call_id"] = "different"
+        elif identity == "done-type":
+            done_item = {"id": "msg", "type": "message", "role": "assistant", "status": "completed", "content": []}
+        output = [done_item]
     events: list[dict[str, object]] = [
         {"type": "response.created", "response": {"id": "resp_test", "output": []}},
         {"type": "response.output_item.added", "output_index": 7, "item": item},
-        {"type": "response.output_item.done", "output_index": 7, "item": item},
+        {"type": "response.output_item.done", "output_index": 7, "item": done_item},
         {"type": "response.completed", "response": {"id": "resp_test", "status": "completed", "output": output}},
     ]
     body = "".join(
@@ -45,7 +57,7 @@ async def test_retained_completed_call_identity(sync: bool, identity: str) -> No
     if sync:
         with OpenAI(api_key="fake-test-key", http_client=httpx2.Client(transport=transport)) as client:
             with client.responses.stream(model="test-model", input="test") as stream:
-                if identity == "changed":
+                if identity in ("changed", "dropped", "replacement", "done-type", "done-id", "done-call"):
                     with pytest.raises(RuntimeError, match="identity"):
                         stream.get_final_response()
                 else:
@@ -58,7 +70,7 @@ async def test_retained_completed_call_identity(sync: bool, identity: str) -> No
             api_key="fake-test-key", http_client=httpx2.AsyncClient(transport=transport)
         ) as async_client:
             async with async_client.responses.stream(model="test-model", input="test") as async_stream:
-                if identity == "changed":
+                if identity in ("changed", "dropped", "replacement", "done-type", "done-id", "done-call"):
                     with pytest.raises(RuntimeError, match="identity"):
                         await async_stream.get_final_response()
                 else:
@@ -187,7 +199,6 @@ async def test_stream_recovers_finalized_output(
     if wire_text:
         completed["output_text"] = ""
     if terminal_output != "missing":
-        # A supplied list must win, even when it differs from the streamed items.
         completed["output"] = {"null": None, "empty": [], "present": items[:1]}[terminal_output]
     events.append({"type": "response.completed", "response": completed})
     body = "".join(
@@ -197,20 +208,26 @@ async def test_stream_recovers_finalized_output(
         lambda _request: httpx2.Response(200, content=body, headers={"content-type": "text/event-stream"})
     )
     tools: list[ToolParam] = [{"type": "function", "name": "lookup", "parameters": {}, "strict": True}]
-    if sync:
-        with OpenAI(api_key="fake-test-key", http_client=httpx2.Client(transport=transport)) as client:
-            with client.responses.stream(model="test-model", input="test", text_format=Answer, tools=tools) as stream:
-                emitted = list(stream)
-                final = stream.get_final_response()
-    else:
-        async with AsyncOpenAI(
-            api_key="fake-test-key", http_client=httpx2.AsyncClient(transport=transport)
-        ) as async_client:
-            async with async_client.responses.stream(
-                model="test-model", input="test", text_format=Answer, tools=tools
-            ) as async_stream:
-                emitted = [event async for event in async_stream]
-                final = await async_stream.get_final_response()
+    contradictory = has_items and terminal_output in ("empty", "present")
+    with pytest.raises(RuntimeError, match="identity") if contradictory else nullcontext():
+        if sync:
+            with OpenAI(api_key="fake-test-key", http_client=httpx2.Client(transport=transport)) as client:
+                with client.responses.stream(
+                    model="test-model", input="test", text_format=Answer, tools=tools
+                ) as stream:
+                    emitted = list(stream)
+                    final = stream.get_final_response()
+        else:
+            async with AsyncOpenAI(
+                api_key="fake-test-key", http_client=httpx2.AsyncClient(transport=transport)
+            ) as async_client:
+                async with async_client.responses.stream(
+                    model="test-model", input="test", text_format=Answer, tools=tools
+                ) as async_stream:
+                    emitted = [event async for event in async_stream]
+                    final = await async_stream.get_final_response()
+    if contradictory:
+        return
 
     last_event = emitted[-1]
     assert last_event.type == "response.completed"
@@ -218,13 +235,13 @@ async def test_stream_recovers_finalized_output(
     assert final.id == "resp_test"
     assert final.status == "completed"
     assert final.usage is not None and final.usage.total_tokens == 3
-    if not has_items or terminal_output == "empty":
+    if not has_items:
         assert final.output == []
         assert final.output_text == ""
         return
 
     assert final.output_text == '{"answer": 4}'
-    assert len(final.output) == (1 if terminal_output == "present" else 2)
+    assert len(final.output) == 2
     message = final.output[0]
     assert message.type == "message" and message.status == "completed"
     assert message.id == "msg_test"
@@ -235,11 +252,10 @@ async def test_stream_recovers_finalized_output(
     assert citation.type == "url_citation" and citation.url == "https://example.com"
     refusal = message.content[1]
     assert refusal.type == "refusal" and refusal.refusal == "Final refusal"
-    if terminal_output != "present":
-        tool = final.output[1]
-        assert tool.type == "function_call" and tool.status == "completed"
-        assert tool.id == "fc_test"
-        assert tool.parsed_arguments == {"answer": 4}
+    tool = final.output[1]
+    assert tool.type == "function_call" and tool.status == "completed"
+    assert tool.id == "fc_test"
+    assert tool.parsed_arguments == {"answer": 4}
 
 
 def test_parse_response_with_null_message_content() -> None:

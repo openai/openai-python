@@ -981,6 +981,23 @@ class _Run:
             )
         else:
             params = _snapshot_request(params)
+        extra_body = cast(dict[str, object], params).get("extra_body")
+        if isinstance(extra_body, Mapping):
+            owned = {
+                "stream",
+                "store",
+                "background",
+                "conversation",
+                "previous_response_id",
+                "tools",
+                "input",
+                "include",
+                "tool_choice",
+            }
+            if context_budget is not None:
+                owned.update(("truncation", "context_management"))
+            if owned.intersection(cast(Mapping[str, object], extra_body)):
+                raise ValueError("ResponsesToolRunner extra_body cannot override runner-owned fields.")
         saved = None if ledger is None or ledger.resume_from is None else _plain(ledger.resume_from)
         if saved is not None and type(saved) is not dict:
             raise ValueError("Resume requires a complete checkpoint.")

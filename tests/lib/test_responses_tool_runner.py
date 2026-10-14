@@ -73,6 +73,35 @@ PARAMS: ResponseCreateParamsNonStreaming = {"model": "", "input": "Do the task",
 
 
 @pytest.mark.parametrize("lane", ["sync", "async"])
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("input", "other"),
+        ("tools", []),
+        ("tool_choice", "none"),
+        ("include", []),
+        ("stream", True),
+        ("store", False),
+        ("background", True),
+        ("previous_response_id", "resp_other"),
+        ("conversation", "conv_other"),
+        ("experimental_fixture", "allowed"),
+    ],
+)
+async def test_extra_body_cannot_replace_runner_owned_fields(lane: str, field: str, value: object) -> None:
+    requests: list[dict[str, Any]] = []
+    effects: list[str] = []
+    params = cast(ResponseCreateParamsNonStreaming, {**PARAMS, "extra_body": {field: value}})
+    if field == "experimental_fixture":
+        await run(lane, None, [FINAL], requests, params=params, effects=effects)
+        assert requests[0][field] == value
+    else:
+        with pytest.raises(ValueError, match="extra_body"):
+            await run(lane, None, [FINAL], requests, params=params, effects=effects)
+        assert requests == effects == []
+
+
+@pytest.mark.parametrize("lane", ["sync", "async"])
 @pytest.mark.parametrize("extra", ["json", "discarded", "root", "nested", "parsed-json", "parsed-invalid"])
 @pytest.mark.filterwarnings("ignore:Pydantic serializer warnings:UserWarning")
 @pytest.mark.parametrize(
@@ -4285,7 +4314,7 @@ async def test_reasoning_ciphertext_reconciliation_preserves_terminal_history(la
     ) as rig:
         turns, _desktop, _computer, effects, requests, _closed = rig
         if change != "ciphertext":
-            with pytest.raises(ToolRunnerError, match="differs"):
+            with pytest.raises(ToolRunnerError, match="stopped before completion" if change == "id" else "differs"):
                 await next_turn(turns)
             assert effects == [] and len(requests) == 1
             return

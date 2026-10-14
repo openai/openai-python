@@ -463,6 +463,11 @@ class ResponseStreamState(Generic[TextFormatT]):
             if output.type == "function_call":
                 output.arguments += event.delta
         elif event.type == "response.output_item.done":
+            added = self._output_items.get(event.output_index)
+            if added is not None and (
+                _output_identity(added) != _output_identity(event.item) or not _compatible_output_id(added, event.item)
+            ):
+                raise RuntimeError("Completed output item identity changed.")
             previous = self._completed_output.get(event.output_index)
             if previous is not None:
                 old_identity = _output_identity(previous)
@@ -479,7 +484,9 @@ class ResponseStreamState(Generic[TextFormatT]):
             final_items = {_output_identity(item): item for item in (final_output or [])}
             for completed_item in self._completed_output.values():
                 final_completed_item = final_items.get(_output_identity(completed_item))
-                if final_completed_item is not None and not _compatible_output_id(completed_item, final_completed_item):
+                if final_output is not None and (
+                    final_completed_item is None or not _compatible_output_id(completed_item, final_completed_item)
+                ):
                     raise RuntimeError("Completed response output identity changed.")
             for index, item in self._output_items.items():
                 final_item = final_items.get(_output_identity(item))
