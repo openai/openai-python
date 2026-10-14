@@ -5,7 +5,7 @@ import json
 import asyncio
 import inspect
 from types import SimpleNamespace
-from typing import Any, Callable
+from typing import Any, Callable, cast
 from pathlib import Path
 from contextlib import AsyncExitStack
 
@@ -13,7 +13,7 @@ import httpx2
 
 import openai
 from openai.lib import computer
-from openai.lib.browser import BrowserToolset, AsyncBrowserToolset
+from openai.lib.browser import BrowserDriver, BrowserToolset, AsyncBrowserDriver, AsyncBrowserToolset
 from openai.lib.responses_tool_runner import (
     ToolRunnerError,
     ResponsesToolLedger,
@@ -73,7 +73,7 @@ async def smoke(lane: str) -> None:
     def transport(request: httpx2.Request) -> httpx2.Response:
         bodies.append(json.loads(request.content))
         if resume:
-            output = [
+            output: list[dict[str, Any]] = [
                 {
                     "type": "message",
                     "id": "msg_one",
@@ -134,8 +134,8 @@ async def smoke(lane: str) -> None:
                 )
             )
             runner: Any = ResponsesToolRunner(
-                browser=BrowserToolset(driver, members=["read_page"]),
-                computer=openai.ComputerToolset(native),
+                browser=BrowserToolset(cast(BrowserDriver, driver), members=["read_page"]),
+                computer=openai.ComputerToolset(cast(computer.ComputerDriver, native)),
             )
             ledger: Any = ResponsesToolLedger
         else:
@@ -148,8 +148,8 @@ async def smoke(lane: str) -> None:
                 )
             )
             runner = AsyncResponsesToolRunner(
-                browser=AsyncBrowserToolset(driver, members=["read_page"]),
-                computer=openai.AsyncComputerToolset(native),
+                browser=AsyncBrowserToolset(cast(AsyncBrowserDriver, driver), members=["read_page"]),
+                computer=openai.AsyncComputerToolset(cast(computer.AsyncComputerDriver, native)),
             )
             ledger = AsyncResponsesToolLedger
         params: Any = {"model": "", "input": "Process the receipt", "store": False}

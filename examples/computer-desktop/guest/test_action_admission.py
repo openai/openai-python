@@ -11,7 +11,7 @@ import tempfile
 import unittest
 import subprocess
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
@@ -62,7 +62,7 @@ class ActionAdmissionTests(unittest.TestCase):
                     self.assertEqual(action.reply({"type": "click", "x": 30, "y": 40, "button": name}), {"ok": True})
                     self.assertEqual(
                         xdo.call_args_list,
-                        [unittest.mock.call("mousemove", 30, 40), unittest.mock.call("click", number)],
+                        [call("mousemove", 30, 40), call("click", number)],
                     )
 
     def test_receipt_has_at_most_one_line_terminator(self) -> None:
