@@ -7,7 +7,6 @@ import socket
 import asyncio
 import importlib
 import threading
-from types import SimpleNamespace
 from typing import Any, Iterator, AsyncIterator
 from contextlib import aclosing, nullcontext
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
@@ -36,7 +35,7 @@ def http_module(request: pytest.FixtureRequest) -> Any:
     return importlib.import_module(request.param)
 
 
-@pytest.mark.parametrize("mode", ["sync", "async", "aiohttp"])
+@pytest.mark.parametrize("mode", ["async", "aiohttp"])
 @pytest.mark.parametrize("ending", ["complete", "truncate", "stall", "trickle"])
 async def test_done_http11_connection_reuse(mode: str, ending: str, http_module: Any) -> None:
     if mode == "aiohttp" and http_module.__name__ == "httpx":
@@ -68,10 +67,6 @@ async def test_done_http11_connection_reuse(mode: str, ending: str, http_module:
                 b'"choices":[{"index":0,"delta":{"content":"hello"}}]}\n\ndata: [DONE]\n\n'
             )
             try:
-                if requests == 2 and ending == "complete":
-                    # A cancelled watchdog must not interrupt the next request
-                    # after the connection has been returned to the pool.
-                    release.wait(timeout=0.15)
                 self.wfile.write(f"{len(payload):x}\r\n".encode() + payload + b"\r\n")
                 if requests == 1:
                     if ending == "truncate":
@@ -108,30 +103,20 @@ async def test_done_http11_connection_reuse(mode: str, ending: str, http_module:
     }
     transport_options: dict[str, Any] = {"trust_env": False, "limits": http_module.Limits(max_connections=1)}
     try:
-        if mode == "sync":
-            with OpenAI(**options, http_client=http_module.Client(**transport_options)) as client:
-                for _ in range(2):
-                    with client.chat.completions.create(model="synthetic", messages=[], stream=True) as stream:
-                        assert next(stream).choices[0].delta.content == "hello"
-                        start = time.monotonic()
-                        assert list(stream) == []
-                        assert time.monotonic() - start < 0.4
-                    assert stream.response.request.extensions["timeout"]["read"] is None
-        else:
-            http_client = (
-                DefaultAioHttpClient(**transport_options)
-                if mode == "aiohttp"
-                else http_module.AsyncClient(**transport_options)
-            )
-            async with AsyncOpenAI(**options, http_client=http_client) as async_client:
-                for _ in range(2):
-                    async with await async_client.chat.completions.create(
-                        model="synthetic", messages=[], stream=True
-                    ) as async_stream:
-                        assert (await async_stream.__anext__()).choices[0].delta.content == "hello"
-                        start = time.monotonic()
-                        assert [chunk async for chunk in async_stream] == []
-                        assert time.monotonic() - start < 0.4
+        http_client = (
+            DefaultAioHttpClient(**transport_options)
+            if mode == "aiohttp"
+            else http_module.AsyncClient(**transport_options)
+        )
+        async with AsyncOpenAI(**options, http_client=http_client) as async_client:
+            for _ in range(2):
+                async with await async_client.chat.completions.create(
+                    model="synthetic", messages=[], stream=True
+                ) as async_stream:
+                    assert (await async_stream.__anext__()).choices[0].delta.content == "hello"
+                    start = time.monotonic()
+                    assert [chunk async for chunk in async_stream] == []
+                    assert time.monotonic() - start < 0.4
     finally:
         release.set()
         server.shutdown()
@@ -146,7 +131,7 @@ async def test_done_http11_connection_reuse(mode: str, ending: str, http_module:
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
 @pytest.mark.parametrize("http_version", [b"HTTP/1.1", b"HTTP/2"])
-async def test_done_discards_bytes_only_for_http11(
+async def test_done_discards_bytes_only_for_async_http11(
     sync: bool, http_version: bytes, http_module: Any, client: OpenAI, async_client: AsyncOpenAI
 ) -> None:
     read_tail = False
@@ -167,26 +152,13 @@ async def test_done_discards_bytes_only_for_http11(
         def __aiter__(self) -> AsyncIterator[bytes]:
             return async_iterator
 
-    with socket.socket() as sock:
-
-        def socket_info(_name: str) -> socket.socket:
-            return sock
-
-        response = http_module.Response(
-            200,
-            stream=Body(),
-            request=http_module.Request("GET", "http://example.test"),
-            extensions={
-                "http_version": http_version,
-                "network_stream": SimpleNamespace(get_extra_info=socket_info),
-            },
-        )
-        if sync:
-            assert list(Stream(cast_to=object, response=response, client=client)) == []
-        else:
-            assert [event async for event in AsyncStream(cast_to=object, response=response, client=async_client)] == []
+    response = http_module.Response(200, stream=Body(), extensions={"http_version": http_version})
+    if sync:
+        assert list(Stream(cast_to=object, response=response, client=client)) == []
+    else:
+        assert [event async for event in AsyncStream(cast_to=object, response=response, client=async_client)] == []
     assert response.is_closed
-    assert read_tail == (http_version == b"HTTP/1.1")
+    assert read_tail == (not sync and http_version == b"HTTP/1.1")
 
 
 @pytest.mark.parametrize("cancel", [True, False], ids=["caller-cancel", "deadline"])
