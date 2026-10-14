@@ -90,6 +90,7 @@ class ReceiptTests(unittest.TestCase):
                         try:
                             os.kill(child, signal.SIGKILL)
                         except ProcessLookupError:
+                            # The installer was already reaped by its owner.
                             pass
 
     def test_offline_media_uses_verified_private_copies(self) -> None:
