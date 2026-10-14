@@ -52,6 +52,7 @@ from .streaming.responses._responses import ResponseStream, AsyncResponseStream
 from ..types.responses.response_input_param import ComputerCallOutput, FunctionCallOutput, ResponseInputParam
 from ..types.responses.response_output_item import McpCall, McpApprovalRequest, ResponseOutputItem
 from ..types.responses.response_create_params import ResponseCreateParamsStreaming, ResponseCreateParamsNonStreaming
+from ..types.responses.response_output_message import ResponseOutputMessage
 from ..types.responses.response_input_item_param import McpApprovalResponse
 from ..types.responses.response_function_call_output_item_list_param import ResponseFunctionCallOutputItemListParam
 
@@ -485,6 +486,22 @@ def _plain(value: object, *, allow_omitted: bool = False) -> object:
     raise ValueError("Checkpoint data must be plain JSON values.")
 
 
+def _history_native_ids(history: ResponseInputParam) -> set[str]:
+    defined: set[str] = set()
+    reserved: set[str] = set()
+    for item in cast(list[dict[str, object]], history):
+        item_id = item.get("id")
+        if type(item_id) is str and item_id:
+            if item.get("type") != "item_reference" and not (
+                item.get("type") is None and "role" not in item and "content" not in item
+            ):
+                if item_id in defined:
+                    raise ValueError("Replay history has a duplicate native output item ID.")
+                defined.add(item_id)
+            reserved.add(item_id)
+    return reserved
+
+
 def _history_calls(history: ResponseInputParam, tools: list[ToolParam], *, budget_only: bool = False) -> set[str]:
     # Modern computer calls can omit the legacy checklist; validate these with
     # the same action parser as dispatch, without changing the saved input.
@@ -495,6 +512,7 @@ def _history_calls(history: ResponseInputParam, tools: list[ToolParam], *, budge
         )
     except pydantic.ValidationError:
         raise ValueError("Replay history does not match the Responses input schema.") from None
+    _history_native_ids(history)
     names = {tool["name"] for tool in tools if tool["type"] == "function"}
     computer = any(tool["type"] in ("computer", "computer_use_preview") for tool in tools)
     calls: dict[str, str] = {}
@@ -535,6 +553,8 @@ def _history_calls(history: ResponseInputParam, tools: list[ToolParam], *, budge
             else:
                 if not computer:
                     raise ValueError("Replay history requires a registered computer.")
+                if item.get("status") != "completed":
+                    raise ValueError("Replay history contains an incomplete computer call.")
                 if type(item.get("id")) is not str:
                     raise ValueError("Replay computer call requires its native item ID.")
                 native = construct_type_unchecked(type_=ResponseComputerToolCall, value=item)
@@ -558,6 +578,27 @@ def _history_calls(history: ResponseInputParam, tools: list[ToolParam], *, budge
             if kind == "function_call_output":
                 _supplied_result(item.get("output"))
             else:
+                checks = item.get("acknowledged_safety_checks")
+                if (
+                    (item.get("id") is not None and type(item["id"]) is not str)
+                    or item.get("status") not in (None, "in_progress", "completed", "incomplete")
+                    or (
+                        checks is not None
+                        and (
+                            type(checks) is not list
+                            or any(
+                                type(check) is not dict
+                                or type(check.get("id")) is not str
+                                or any(
+                                    check.get(key) is not None and type(check[key]) is not str
+                                    for key in ("code", "message")
+                                )
+                                for check in cast(list[dict[str, object]], checks)
+                            )
+                        )
+                    )
+                ):
+                    raise ValueError("Replay computer output has invalid native fields.")
                 screenshot = item.get("output")
                 if type(screenshot) is not dict:
                     raise ValueError("Replay computer output requires its native screenshot.")
@@ -625,17 +666,39 @@ def _valid_input_message_history(item: dict[str, object]) -> bool:
         return True
     if type(content) is not list:
         return False
+    if any(
+        type(part) is dict and cast(dict[str, object], part).get("type") in ("output_text", "refusal")
+        for part in cast(list[object], content)
+    ):
+        native = construct_type_unchecked(type_=ResponseOutputMessage, value=item)
+        return _valid_native_message(native) and _same_message_fields(item, native.to_dict())
     for raw in cast(list[object], content):
         if type(raw) is not dict:
             return False
         part = cast(dict[str, object], raw)
-        # Keep earlier native assistant outputs on the existing generated
-        # validation path. This guard owns only the three native input kinds.
-        if part.get("type") in ("output_text", "refusal"):
-            continue
         if not _valid_native_input_part_history(part):
             return False
     return True
+
+
+def _same_message_fields(original: object, parsed: object) -> bool:
+    # A native float score accepts an integer, but strings and booleans must
+    # never be converted into native text, indices, bytes or scores on replay.
+    if type(original) is int and type(parsed) is float:
+        return original == parsed
+    if type(original) is not type(parsed):
+        return False
+    if type(original) is dict:
+        left, right = cast(dict[str, object], original), cast(dict[str, object], parsed)
+        return left.keys() == right.keys() and all(
+            _same_message_fields(value, right[key]) for key, value in left.items()
+        )
+    if type(original) is list:
+        items, values = cast(list[object], original), cast(list[object], parsed)
+        return len(items) == len(values) and all(
+            _same_message_fields(item, value) for item, value in zip(items, values, strict=True)
+        )
+    return original == parsed
 
 
 def _valid_native_input_part_history(part: dict[str, object]) -> bool:
@@ -1416,11 +1479,7 @@ class _Run:
         self.pending_items = None
         self.turn_seen = self._seen.copy()
         self.stream_seen = self.turn_seen.copy()
-        self.turn_native_ids = {
-            cast(str, item["id"])
-            for item in cast(list[dict[str, object]], self.history)
-            if type(item.get("id")) is str and item["id"] != ""
-        }
+        self.turn_native_ids = _history_native_ids(self.history)
         self.stream_native_ids = self.turn_native_ids.copy()
         self.stream_items: dict[int, dict[str, object]] = {}
         self.arguments: dict[str, object] = {}
