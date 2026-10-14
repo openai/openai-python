@@ -450,7 +450,7 @@ def start(root: Path, *, cancelled: Callable[[], bool] | None = None) -> str:
         item = lookup(root, id, cancelled=stopped)
         if item is None:
             raise RuntimeError("New container could not be reconciled; run retained.")
-    except StartupCancelled:
+    except BaseException:
         # Cleanup deliberately ignores the cancelled predicate. Ambiguous creates
         # retain their receipt through remove(), just as explicit cleanup does.
         remove(root, id)

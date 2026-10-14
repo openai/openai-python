@@ -396,6 +396,20 @@ def check_frames() -> None:
         assert guests[0].requests == ["ready"]
         print("PASS: cancelled readiness removes its one guest promptly without any input")
 
+    import container_runtime
+    from desktop import DesktopStartupError
+
+    for error in (container_runtime.StartupCancelled("Cancelled after cleanup"), KeyboardInterrupt(), SystemExit()):
+        with patch("desktop.Guest", side_effect=error):
+            try:
+                Desktop(Path("controlled-fixture"))
+            except DesktopStartupError:
+                assert isinstance(error, container_runtime.StartupCancelled)
+            except BaseException as actual:
+                assert not isinstance(error, container_runtime.StartupCancelled) and actual is error
+            else:
+                raise AssertionError("Interrupted construction returned a desktop")
+
     with patch("desktop.Guest", ControlledGuest):
         for operation in ("verify", "seal"):
             for bad in (
