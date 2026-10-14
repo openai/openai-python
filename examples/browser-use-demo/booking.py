@@ -57,10 +57,18 @@ class BookingBrowser:
         return self.page(None)[1]
 
     async def state(self, *, cancelled: Callable[[], bool] | None = None) -> BrowserState:
+        page = self.check(cancelled)
+        revision = await page.locator("body").evaluate("body => Number(body.dataset.revision)")
         self.check(cancelled)
         return {
             "tabs": [{"id": "task", "url": self.url, "title": "Book a table", "active": True}],
-            "observation": {"version": 1, "sequence": 0, "changes": [], "dropped_changes": 0, "title_truncated": False},
+            "observation": {
+                "version": 1,
+                "sequence": revision,
+                "changes": [],
+                "dropped_changes": 0,
+                "title_truncated": False,
+            },
         }
 
     async def read_page(self, args: ReadPageInput, *, cancelled: Callable[[], bool] | None = None) -> BrowserReadV1:

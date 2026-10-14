@@ -149,10 +149,15 @@ async def run() -> None:
         await post("/api/start", {"taskId": "reservation", "api": "decisions", "mode": "rehearsal"})
         offered = await until(lambda s: s["approval"] is not None)
         await post("/api/take-control", binding(offered))
-        await until(lambda s: s["owner"] == "human" and not s["humanInputBusy"])
+        previous = await until(lambda s: s["owner"] == "human" and not s["humanInputBusy"])
         submitted_run = app.current
         assert submitted_run is not None and submitted_run.task_page is not None
         await submitted_run.task_page.get_by_label("Guest name").fill("Grace")
+        stale = await client.post("/api/input", json={**binding(previous), "action": "type", "text": " stale"})
+        assert stale.status_code == 409, "An old screenshot admitted input after the fixture changed"
+        assert await submitted_run.task_page.get_by_label("Guest name").input_value() == "Grace"
+        fresh = await state()
+        assert binding(fresh)["sequence"] > binding(previous)["sequence"]
         await submitted_run.task_page.get_by_role("button", name="Reserve table").click()
         await submitted_run.task_page.get_by_label("Guest name").fill("Ada")
         receipt = await submitted_run.inspect()

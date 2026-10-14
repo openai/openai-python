@@ -5,13 +5,29 @@ submitting, and verifies both the confirmation and all saved fields. Watch the
 actual browser image, take control, type or click, return control to the agent,
 or stop. References from an older control phase cannot authorize an action.
 
-From the source root, use Python 3.10 or later:
+Use Python 3.10 or later. From the Python SDK checkout or source archive root,
+install this source and the browser dependency:
 
 ```sh
 python3 -m venv .venv-browser
 . .venv-browser/bin/activate
-python -m pip install openai playwright==1.63.0
+python -m pip install -e . playwright==1.63.0
 python -m playwright install chromium
+```
+
+On Linux, if bundled Chromium cannot start with its sandbox enabled, use a
+locally installed Chrome. Set this before starting the server or local checks:
+
+```sh
+export OPENAI_EXAMPLE_BROWSER_CHANNEL=chrome
+```
+
+Leave the variable unset to use Playwright's bundled Chromium. Both choices
+keep the browser sandbox enabled.
+
+Start the server in the same shell:
+
+```sh
 python examples/browser-use-demo/server.py
 ```
 
