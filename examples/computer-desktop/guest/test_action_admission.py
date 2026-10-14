@@ -11,8 +11,10 @@ import tempfile
 import unittest
 import subprocess
 from pathlib import Path
+from unittest.mock import patch
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
 
 
 def wait_for(path: Path, timeout: float = 3) -> bool:
@@ -25,7 +27,6 @@ def wait_for(path: Path, timeout: float = 3) -> bool:
 
 
 def guest_process(root: Path, name: str, descriptor: int) -> None:
-    sys.path.insert(0, str(HERE))
     import action
 
     os.dup2(descriptor, 3, inheritable=True)
@@ -52,6 +53,35 @@ def guest_process(root: Path, name: str, descriptor: int) -> None:
 
 
 class ActionAdmissionTests(unittest.TestCase):
+    def test_native_click_buttons_and_release(self) -> None:
+        import action
+
+        with tempfile.TemporaryDirectory() as directory, patch.object(action, "ROOT", Path(directory)):
+            for name, number in (("left", 1), ("wheel", 2), ("right", 3), ("back", 8), ("forward", 9)):
+                with self.subTest(button=name), patch.object(action, "xdo") as xdo:
+                    self.assertEqual(action.reply({"type": "click", "x": 30, "y": 40, "button": name}), {"ok": True})
+                    self.assertEqual(
+                        xdo.call_args_list,
+                        [unittest.mock.call("mousemove", 30, 40), unittest.mock.call("click", number)],
+                    )
+
+    def test_receipt_has_at_most_one_line_terminator(self) -> None:
+        import action
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "events.jsonl").write_text(json.dumps({"id": "D-2201", "action": "route"}) + "\n")
+            (root / "sealed").touch()
+            with patch.object(action, "ROOT", root):
+                for suffix, matches in (("", True), ("\n", True), ("\n\n", False), ("\n\n\n", False), (" \n", False)):
+                    (root / "result.txt").write_text("Desktop receipt D-2201" + suffix)
+                    for operation in ("verify", "seal"):
+                        with self.subTest(operation=operation, suffix=repr(suffix)):
+                            result = action.reply({"type": operation})
+                            self.assertIs(result["file_matches"], matches)
+                            self.assertIs(result["browser_matches"], True)
+                            self.assertEqual(result["browser_effects"], 1)
+
     def check_release(self, crash: bool) -> None:
         with tempfile.TemporaryDirectory(prefix="guest-admission-") as directory:
             root = Path(directory)

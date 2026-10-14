@@ -59,7 +59,7 @@ def _validate_screenshot(value: object) -> None:
 
 
 class Desktop:
-    """Owns only a fresh guest made from the fixed reviewed local image."""
+    """Owns only a fresh guest made from the recorded local image."""
 
     def __init__(self, runtime_dir: Path, *, cancelled: Callable[[], bool] | None = None) -> None:
         if cancelled is not None and cancelled():
@@ -75,18 +75,26 @@ class Desktop:
         self._id: str | None = self._guest.id
         try:
             end = time.monotonic() + 90
+
+            def startup_stopped() -> bool:
+                return (cancelled is not None and cancelled()) or time.monotonic() >= end
+
             while time.monotonic() < end:
-                if cancelled is not None and cancelled():
+                if startup_stopped():
                     raise ComputerUseError("Desktop startup was stopped.")
-                if not self._guest.healthy(cancelled=cancelled):
+                if not self._guest.healthy(cancelled=startup_stopped):
                     raise ComputerUseError("Guest stopped during startup.")
                 try:
-                    ready = self._exchange({"type": "ready"}, timeout=min(3, max(0.01, end - time.monotonic())))
+                    ready = self._exchange(
+                        {"type": "ready"},
+                        timeout=min(3, max(0.01, end - time.monotonic())),
+                        cancelled=startup_stopped,
+                    )
                 except ComputerUseError:
                     ready = {"ok": False}
+                if startup_stopped():
+                    raise ComputerUseError("Desktop startup was stopped.")
                 if ready.get("ok") is True:
-                    if cancelled is not None and cancelled():
-                        raise ComputerUseError("Desktop startup was stopped.")
                     break
                 time.sleep(0.2)
             else:
@@ -195,6 +203,16 @@ class Desktop:
             fields = cast(dict[str, object], reply)
             if type(fields.get("ok")) is not bool:
                 raise ComputerUseError("Invalid desktop reply.")
+            if value.get("type") in ("verify", "seal") and fields["ok"] is True:
+                effects = fields.get("browser_effects")
+                if (
+                    any(
+                        type(fields.get(name)) is not bool for name in ("file_matches", "browser_matches", "file_empty")
+                    )
+                    or "browser_effects" not in fields
+                    or (effects is not None and (type(effects) is not int or not 0 <= effects <= 2**53 - 1))
+                ):
+                    raise ComputerUseError("Invalid desktop reply.")
             if value.get("type") == "screenshot" and fields["ok"] is True:
                 _validate_screenshot(fields.get("image_url"))
         except BaseException:
@@ -202,7 +220,7 @@ class Desktop:
                 with self._state:
                     self.uncertain_effects = True
                     self._input_pending = False
-            if value.get("type") == "screenshot" and not (cancelled is not None and cancelled()):
+            if value.get("type") in ("screenshot", "verify", "seal") and not (cancelled is not None and cancelled()):
                 with self._state:
                     self._stopped = True
                 self._remove()

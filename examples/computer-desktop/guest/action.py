@@ -41,7 +41,7 @@ KEYS = {
     "PAGEUP": "Page_Up",
     "PAGEDOWN": "Page_Down",
 }
-BUTTONS = {"left": 1, "wheel": 2, "right": 3}
+BUTTONS = {"left": 1, "wheel": 2, "right": 3, "back": 8, "forward": 9}
 FIELDS: dict[str, set[str]] = {
     "click": {"x", "y", "button", "keys"},
     "double_click": {"x", "y", "keys"},
@@ -177,7 +177,7 @@ def reply(request: object) -> dict[str, object]:
         expected = json.dumps({"id": "D-2201", "action": "route"}) + "\n"
         return {
             "ok": True,
-            "file_matches": text.rstrip("\n") == "Desktop receipt D-2201",
+            "file_matches": text in ("Desktop receipt D-2201", "Desktop receipt D-2201\n"),
             "browser_matches": raw == expected,
             "file_empty": not output.is_file() or output.stat().st_size == 0,
             "browser_effects": len(raw.splitlines()) if not events.is_file() or events.stat().st_size <= 8192 else None,
