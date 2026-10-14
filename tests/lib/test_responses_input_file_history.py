@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from copy import deepcopy
 from typing import Any, cast
 
 import pytest
@@ -7,7 +8,7 @@ import pytest
 from openai.lib.responses_tool_runner import ResponsesToolCheckpoint
 from openai.types.responses.response_create_params import ResponseCreateParamsNonStreaming
 
-from .test_responses_tool_runner import FINAL, PARAMS, run
+from .test_responses_tool_runner import FINAL, PARAMS, Driver, fn, run
 
 
 @pytest.mark.parametrize("lane", ["sync", "async"])
@@ -181,3 +182,167 @@ async def test_native_input_message_keeps_easy_strings_and_native_nullable_sourc
     assert final.id == "resp_final" and requests[0]["input"] == [message]
     boundary = next(record for record in records if record["phase"] == "boundary")
     assert boundary["history"] == [message]
+
+
+@pytest.mark.parametrize("lane", ["sync", "async"])
+@pytest.mark.parametrize("restoring", [False, True], ids=["input", "resume"])
+@pytest.mark.parametrize(
+    "case",
+    [
+        "duplicate-id",
+        "missing-status",
+        "null-status",
+        "output-id",
+        "output-status",
+        "output-checks",
+        "output-check-id",
+        "output-check-code",
+        "output-check-message",
+        "numeric-text",
+        "numeric-refusal",
+        "citation-index",
+        "citation-boolean",
+        "logprob-bytes",
+        "logprob-boolean",
+    ],
+)
+async def test_replay_original_native_fields_before_save_or_request(lane: str, restoring: bool, case: str) -> None:
+    call: dict[str, object] = {
+        "id": "cu_prior",
+        "type": "computer_call",
+        "call_id": "before",
+        "status": "completed",
+        "actions": [{"type": "wait"}],
+    }
+    output: dict[str, object] = {
+        "type": "computer_call_output",
+        "call_id": "before",
+        "output": {"type": "computer_screenshot", "file_id": "file_fixture"},
+    }
+    history: list[dict[str, object]] = [call, output]
+    if case == "duplicate-id":
+        history = [
+            fn("record", "a", text="past"),
+            {"type": "function_call_output", "call_id": "a", "output": "past"},
+            {**fn("record", "b", text="past"), "id": "fc_a"},
+            {"type": "function_call_output", "call_id": "b", "output": "past"},
+        ]
+    elif case == "missing-status":
+        del call["status"]
+    elif case == "null-status":
+        call["status"] = None
+    elif case.startswith("output-"):
+        if case == "output-id":
+            output["id"] = 42
+        elif case == "output-status":
+            output["status"] = "failed"
+        elif case == "output-checks":
+            output["acknowledged_safety_checks"] = "not a list"
+        else:
+            key = case.removeprefix("output-check-")
+            output["acknowledged_safety_checks"] = [{**{"id": "check", "code": None, "message": None}, key: 42}]
+    else:
+        part: dict[str, object] = {"type": "output_text", "text": "Earlier", "annotations": []}
+        if case == "numeric-text":
+            part["text"] = 42
+        elif case == "numeric-refusal":
+            part = {"type": "refusal", "refusal": 42}
+        elif case in ("citation-index", "citation-boolean"):
+            part["annotations"] = [
+                {
+                    "type": "url_citation",
+                    "title": "Source",
+                    "url": "https://example.com/",
+                    "start_index": "0" if case == "citation-index" else False,
+                    "end_index": 3,
+                }
+            ]
+        else:
+            part["logprobs"] = [
+                {
+                    "token": "e",
+                    "bytes": ["101" if case == "logprob-bytes" else True],
+                    "logprob": -1.0,
+                    "top_logprobs": [],
+                }
+            ]
+        history = [
+            {"id": "msg_earlier", "type": "message", "role": "assistant", "status": "completed", "content": [part]}
+        ]
+    records: list[ResponsesToolCheckpoint] = []
+    requests: list[dict[str, Any]] = []
+    driver = Driver()
+    effects: list[str] = []
+    params = cast(ResponseCreateParamsNonStreaming, {**PARAMS, "input": history})
+    checkpoint = None
+    if restoring:
+        await run(lane, None, [FINAL], [], computer=Driver(), save=records.append)
+        checkpoint = deepcopy(next(item for item in records if item["phase"] == "boundary"))
+        checkpoint["history"] = cast(Any, history)
+        records.clear()
+        params = PARAMS
+    with pytest.raises(ValueError):
+        await run(
+            lane,
+            None,
+            [FINAL],
+            requests,
+            computer=driver,
+            save=records.append,
+            resume=checkpoint,
+            max_steps=None if restoring else 20,
+            params=params,
+            effects=effects,
+        )
+    assert records == requests == driver.actions == effects == []
+
+
+@pytest.mark.parametrize("lane", ["sync", "async"])
+@pytest.mark.parametrize("output_status", [None, "in_progress", "completed", "incomplete"])
+async def test_native_replay_keeps_nullable_output_and_integer_logprobs(lane: str, output_status: str | None) -> None:
+    history: list[dict[str, object]] = [
+        {"id": "cu", "type": "computer_call", "call_id": "prior", "status": "completed", "actions": [{"type": "wait"}]},
+        {
+            "id": None,
+            "type": "computer_call_output",
+            "call_id": "prior",
+            "status": output_status,
+            "acknowledged_safety_checks": [{"id": "s", "code": None, "message": None}],
+            "output": {"type": "computer_screenshot", "file_id": "file_fixture"},
+            "future": {"opaque": True},
+        },
+        {
+            "id": "earlier",
+            "role": "assistant",
+            "type": "message",
+            "status": "completed",
+            "future": ["kept", True],
+            "content": [
+                {"type": "refusal", "refusal": "Earlier refusal"},
+                {"type": "output_text", "text": "read", "annotations": [], "logprobs": None},
+                {
+                    "type": "output_text",
+                    "text": "again",
+                    "annotations": [],
+                    "logprobs": [
+                        {
+                            "token": "a",
+                            "bytes": [97],
+                            "logprob": 0,
+                            "top_logprobs": [{"token": "a", "bytes": [97], "logprob": -1}],
+                        }
+                    ],
+                },
+            ],
+        },
+    ]
+    records: list[ResponsesToolCheckpoint] = []
+    requests: list[dict[str, Any]] = []
+    driver = Driver()
+    params = cast(ResponseCreateParamsNonStreaming, {**PARAMS, "input": history})
+    await run(lane, None, [FINAL], requests, params=params, computer=driver, save=records.append)
+    assert requests[0]["input"] == history and driver.actions == []
+    boundary = next(record for record in records if record["phase"] == "boundary")
+    requests.clear()
+    await run(lane, None, [FINAL], requests, computer=driver, save=records.append, resume=boundary, max_steps=None)
+    assert requests[0]["input"] == [*history, {"role": "user", "content": PARAMS.get("input")}] and driver.actions == []
