@@ -57,8 +57,9 @@ class Files(SyncAPIResource):
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> EnvironmentFile:
         """
-        Copies inline bytes or a Files API file into a connected execution environment.
-        See
+        Copies inline bytes or a Files API file into a connected execution environment,
+        replacing an existing regular file at the same path. Upload between turns and
+        wait for success before starting the next turn. See
         [environment files](https://developers.openai.com/api/docs/guides/agents-api/environments/files).
 
         Args:
@@ -94,8 +95,9 @@ class Files(SyncAPIResource):
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> EnvironmentFile:
         """
-        Copies inline bytes or a Files API file into a connected execution environment.
-        See
+        Copies inline bytes or a Files API file into a connected execution environment,
+        replacing an existing regular file at the same path. Upload between turns and
+        wait for success before starting the next turn. See
         [environment files](https://developers.openai.com/api/docs/guides/agents-api/environments/files).
 
         Args:
@@ -257,8 +259,9 @@ class AsyncFiles(AsyncAPIResource):
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> EnvironmentFile:
         """
-        Copies inline bytes or a Files API file into a connected execution environment.
-        See
+        Copies inline bytes or a Files API file into a connected execution environment,
+        replacing an existing regular file at the same path. Upload between turns and
+        wait for success before starting the next turn. See
         [environment files](https://developers.openai.com/api/docs/guides/agents-api/environments/files).
 
         Args:
@@ -294,8 +297,9 @@ class AsyncFiles(AsyncAPIResource):
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> EnvironmentFile:
         """
-        Copies inline bytes or a Files API file into a connected execution environment.
-        See
+        Copies inline bytes or a Files API file into a connected execution environment,
+        replacing an existing regular file at the same path. Upload between turns and
+        wait for success before starting the next turn. See
         [environment files](https://developers.openai.com/api/docs/guides/agents-api/environments/files).
 
         Args:
