@@ -7,6 +7,7 @@ import time
 import shutil
 import socket
 import secrets
+import tempfile
 import threading
 import subprocess
 from typing import BinaryIO, Callable
@@ -119,7 +120,7 @@ class Guest:
             )
         except BaseException:
             try:
-                if self.directory.lstat().st_ino == self.original.st_ino:
+                if self._same_run_root(self.directory.lstat()):
                     self.directory.rmdir()
             except OSError:
                 pass
@@ -199,6 +200,15 @@ class Guest:
             return container_runtime.healthy(self.container_root, self.id, cancelled=cancelled)
         return self.failure is None and self.process.poll() is None
 
+    def _same_run_root(self, current: os.stat_result) -> bool:
+        return (
+            stat.S_ISDIR(current.st_mode)
+            and current.st_dev == self.original.st_dev
+            and current.st_ino == self.original.st_ino
+            and current.st_uid == os.getuid()
+            and stat.S_IMODE(current.st_mode) == 0o700
+        )
+
     def remove(self) -> None:
         if self.container_root is not None:
             container_runtime.remove(self.container_root, self.id)
@@ -212,7 +222,27 @@ class Guest:
                 self.process.wait(timeout=5)
         for thread in self.readers:
             thread.join(timeout=1)
-        current = self.directory.lstat()
-        if current.st_ino != self.original.st_ino or current.st_uid != os.getuid():
+        try:
+            current = self.directory.lstat()
+        except FileNotFoundError:
+            if hasattr(self, "_cleanup_root"):
+                self._cleanup_root.rmdir()
+                return
+            raise
+        if not self._same_run_root(current):
             raise ComputerUseError("Run root ownership changed.")
+        if not hasattr(self, "_cleanup_root"):
+            quarantine = Path(tempfile.mkdtemp(prefix=".cleanup-", dir=self.directory.parent))
+            moved = quarantine / "run"
+            try:
+                self.directory.rename(moved)
+            except BaseException:
+                quarantine.rmdir()
+                raise
+            if not self._same_run_root(moved.lstat()):
+                # Never delete or restore a replacement onto the public path.
+                raise ComputerUseError("Run root ownership changed; cleanup incomplete in private .cleanup- directory.")
+            self.directory = moved
+            self._cleanup_root = quarantine
         shutil.rmtree(self.directory)
+        self._cleanup_root.rmdir()

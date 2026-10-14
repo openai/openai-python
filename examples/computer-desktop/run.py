@@ -32,7 +32,8 @@ def main() -> None:
     if not approve("Use only this disposable browser/editor and the fixed local receipt? Type yes to start: "):
         raise SystemExit("Desktop task declined.")
 
-    previous = signal.signal(signal.SIGTERM, interrupt)
+    previous = {name: signal.getsignal(name) for name in (signal.SIGINT, signal.SIGTERM)}
+    signal.signal(signal.SIGTERM, interrupt)
     desktop: Desktop | None = None
     try:
         desktop = Desktop(args.runtime_dir)
@@ -56,19 +57,20 @@ def main() -> None:
                     ),
                 )
             )
-        proof = desktop.verify()
-        if proof["file_matches"] is True and proof["browser_matches"] is True:
-            proof = desktop.seal()
+        proof = desktop.seal()
         verified = proof["file_matches"] is True and proof["browser_matches"] is True
         print(json.dumps({"verified": verified, "uncertainEffects": desktop.uncertain_effects}))
         if not verified:
             raise SystemExit(1)
     finally:
         try:
+            for name in previous:
+                signal.signal(name, signal.SIG_IGN)
             if desktop is not None:
                 desktop.stop()
         finally:
-            signal.signal(signal.SIGTERM, previous)
+            for name, handler in previous.items():
+                signal.signal(name, handler)
 
 
 if __name__ == "__main__":

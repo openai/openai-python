@@ -108,8 +108,14 @@ def docker(
     timeout: float = 30,
     limit: int = 65536,
     cancelled: Callable[[], bool] | None = None,
+    deadline: float | None = None,
 ) -> bytes:
     check_cancelled(cancelled)
+    end = time.monotonic() + timeout
+    if deadline is not None:
+        end = min(end, deadline)
+    if time.monotonic() >= end:
+        raise subprocess.TimeoutExpired(args, timeout)
     binary = local_only()
     owned(root, 0o700, True)
     # A new empty config cannot inherit credentials, contexts or remote builders.
@@ -122,7 +128,6 @@ def docker(
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         ) as child:
-            end = time.monotonic() + timeout
             stdout = bytearray()
             stderr_size = 0
             pending = memoryview(data or b"")
@@ -295,7 +300,9 @@ def run_record(root: Path, id: str) -> tuple[Path, dict[str, Any], dict[str, Any
     return directory, intent, setup_value
 
 
-def lookup(root: Path, id: str, *, cancelled: Callable[[], bool] | None = None) -> dict[str, Any] | None:
+def lookup(
+    root: Path, id: str, *, cancelled: Callable[[], bool] | None = None, deadline: float | None = None
+) -> dict[str, Any] | None:
     directory, intent, setup_value = run_record(root, id)
     name = str(intent["name"])
     cidfile = directory / "container-id"
@@ -313,7 +320,12 @@ def lookup(root: Path, id: str, *, cancelled: Callable[[], bool] | None = None) 
     # Before a CID was captured, absence by name cannot rule out a delayed create.
     selector = "id=" + captured if captured is not None else "name=^/" + name + "$"
     found = (
-        docker(root, ["ps", "-a", "--no-trunc", "--filter", selector, "--format", "{{.ID}}"], cancelled=cancelled)
+        docker(
+            root,
+            ["ps", "-a", "--no-trunc", "--filter", selector, "--format", "{{.ID}}"],
+            cancelled=cancelled,
+            deadline=deadline,
+        )
         .decode()
         .splitlines()
     )
@@ -326,7 +338,7 @@ def lookup(root: Path, id: str, *, cancelled: Callable[[], bool] | None = None) 
     current = found[0]
     if captured is not None and captured != current:
         raise RuntimeError("Container ID changed; retaining the run record.")
-    raw_details: object = json.loads(docker(root, ["inspect", current], cancelled=cancelled))
+    raw_details: object = json.loads(docker(root, ["inspect", current], cancelled=cancelled, deadline=deadline))
     if not isinstance(raw_details, list):
         raise RuntimeError("Could not reconcile the owned container.")
     details = cast(list[object], raw_details)
@@ -485,7 +497,8 @@ def exchange(
     *,
     cancelled: Callable[[], bool] | None = None,
 ) -> bytes:
-    current = lookup(root, id, cancelled=cancelled)
+    deadline = time.monotonic() + timeout
+    current = lookup(root, id, cancelled=cancelled, deadline=deadline)
     if current is None or not current["State"]["Running"]:
         raise RuntimeError("Private container has stopped.")
     # No retry: a failed exec can have delivered input and the Desktop owner will retire.
@@ -496,6 +509,7 @@ def exchange(
         timeout=timeout,
         limit=limit,
         cancelled=cancelled,
+        deadline=deadline,
     )
 
 

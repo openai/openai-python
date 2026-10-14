@@ -108,6 +108,7 @@ class Docker:
                 [
                     {
                         "Id": CONTAINER,
+                        "State": {"Running": True},
                         "Image": IMAGE,
                         "Name": "/renamed-owned" if self.renamed else "/" + intent["name"],
                         "Config": {
@@ -380,7 +381,7 @@ def preflight_admission() -> None:
                         raise AssertionError("An arbitrary PATH-only Docker executable was admitted")
 
 
-def cancelled_health(boundary: str) -> None:
+def cancelled_health(boundary: str, *, exchange: bool = False) -> None:
     with TemporaryDirectory() as temporary:
         root = Path(temporary) / "runtime"
         prepare(root)
@@ -403,24 +404,46 @@ def cancelled_health(boundary: str) -> None:
         driver.create = driver.real_popen([sys.executable, "-c", "pass"])
         driver.create.wait()
         held: subprocess.Popen[bytes] | None = None
+        elapsed = 0.0
+        original_docker = runtime.docker
+
+        def docker(command_root: Path, args: list[str], **kwargs: Any) -> bytes:
+            nonlocal elapsed
+            result = original_docker(command_root, args, **kwargs)
+            if boundary == "cumulative":
+                elapsed += 0.11
+            return result
 
         def popen(args: list[str], **kwargs: Any) -> subprocess.Popen[bytes]:
             nonlocal held
             if args[5] == boundary and held is None:
                 driver.calls.append(args[5:])
                 held = driver.real_popen([sys.executable, "-c", "import time;time.sleep(60)"], **kwargs)
-                driver.cancelled = True
+                driver.cancelled = not exchange
                 return held
             return driver.popen(args, **kwargs)
 
         with (
             patch.object(runtime, "local_only", return_value="/unused/local-docker"),
             patch.object(runtime.subprocess, "Popen", side_effect=popen),
+            patch.object(runtime, "docker", side_effect=docker),
         ):
             try:
-                runtime.healthy(root, id, cancelled=driver.is_cancelled)
+                if boundary == "cumulative":
+                    with patch.object(runtime, "time", SimpleNamespace(monotonic=lambda: elapsed)):
+                        runtime.exchange(root, id, b'{"action":"verify"}\n', timeout=0.2, limit=65536)
+                elif exchange:
+                    runtime.exchange(root, id, b'{"action":"verify"}\n', timeout=0.2, limit=65536)
+                else:
+                    runtime.healthy(root, id, cancelled=driver.is_cancelled)
+            except subprocess.TimeoutExpired:
+                assert exchange
+                if boundary == "cumulative":
+                    assert held is None and all(call[0] != "exec" for call in driver.calls)
+                else:
+                    assert held is not None and held.poll() is not None
             except runtime.StartupCancelled:
-                assert held is not None and held.poll() is not None
+                assert not exchange and held is not None and held.poll() is not None
             else:
                 raise AssertionError("A stopped health lookup returned a ready guest")
             before_remove = (directory.exists(), driver.removed)
@@ -492,6 +515,8 @@ def main() -> None:
         setup_snapshot(changed)
     for boundary in ("ps", "inspect"):
         cancelled_health(boundary)
+        cancelled_health(boundary, exchange=True)
+    cancelled_health("cumulative", exchange=True)
     for stream, cap in (("stdout", 65536), ("build", 4 * 1024 * 1024), ("stderr", 1024 * 1024)):
         output_bounds(stream, cap)
     pipe_lifetimes()
