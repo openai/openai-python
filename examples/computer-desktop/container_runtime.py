@@ -109,6 +109,7 @@ def docker(
     limit: int = 65536,
     cancelled: Callable[[], bool] | None = None,
     deadline: float | None = None,
+    on_dispatch: Callable[[], None] | None = None,
 ) -> bytes:
     check_cancelled(cancelled)
     end = time.monotonic() + timeout
@@ -120,6 +121,11 @@ def docker(
     owned(root, 0o700, True)
     # A new empty config cannot inherit credentials, contexts or remote builders.
     with tempfile.TemporaryDirectory(prefix=".docker-", dir=root) as config:
+        check_cancelled(cancelled)
+        if time.monotonic() >= end:
+            raise subprocess.TimeoutExpired(args, timeout)
+        if on_dispatch is not None:
+            on_dispatch()
         with subprocess.Popen(
             [binary, "--config", config, "--host", "unix://" + DOCKER_SOCKET, *args],
             cwd=config,
@@ -191,7 +197,19 @@ def check_image(root: Path, value: dict[str, Any], *, cancelled: Callable[[], bo
         raise RuntimeError("Recorded desktop image is absent or changed. Rebuild in a new runtime.")
 
 
+def checked_root(root: Path) -> Path:
+    if not root.is_absolute():
+        raise ValueError("Use an absolute runtime directory outside the SDK checkout.")
+    root = root.resolve()
+    for parent in root.parents:
+        info = parent.stat()
+        if info.st_uid not in (0, os.getuid()) or (info.st_mode & 0o022 and not info.st_mode & stat.S_ISVTX):
+            raise ValueError("Runtime ancestors must be trusted and not writable by other users.")
+    return root
+
+
 def runtime(root: Path) -> dict[str, Any]:
+    root = checked_root(root)
     owned(root, 0o700, True)
     owned(root / "runs", 0o700, True)
     owned(root / "build", 0o700, True)
@@ -234,8 +252,7 @@ def is_container(root: Path) -> bool:
 
 
 def setup(root: Path) -> None:
-    if not root.is_absolute():
-        raise ValueError("Use an absolute private runtime outside the checkout.")
+    root = checked_root(root)
     try:
         root.lstat()
     except FileNotFoundError:
@@ -280,6 +297,7 @@ def setup(root: Path) -> None:
 def preflight(root: Path | None = None) -> None:
     local_only()
     if root is not None:
+        root = checked_root(root)
         check_image(root, runtime(root))
 
 
@@ -402,6 +420,7 @@ def start(root: Path, *, cancelled: Callable[[], bool] | None = None) -> str:
         return (cancelled is not None and cancelled()) or time.monotonic() >= deadline
 
     value = runtime(root)
+    root = Path(value["owner"]["path"])
     check_image(root, value, cancelled=stopped)
     check_cancelled(stopped)
     id = secrets.token_hex(6)
@@ -415,6 +434,13 @@ def start(root: Path, *, cancelled: Callable[[], bool] | None = None) -> str:
     }
     receipt = directory / "intent.json"
     created: os.stat_result | None = None
+    dispatched = False
+
+    def dispatch() -> None:
+        nonlocal dispatched
+        # From here, Popen may have reached Docker even if launch is interrupted.
+        dispatched = True
+
     try:
         with receipt.open("x") as output:
             created = os.fstat(output.fileno())
@@ -423,23 +449,6 @@ def start(root: Path, *, cancelled: Callable[[], bool] | None = None) -> str:
             output.write("\n")
             output.flush()
             os.fsync(output.fileno())
-    except BaseException:
-        # No Docker create was sent. Never use a partial receipt to infer
-        # container ownership or remove a replacement directory/file.
-        if identity(directory) != intent["owner"]:
-            raise ValueError("Pre-create directory changed; run retained.") from None
-        if created is not None:
-            current = receipt.lstat()
-            if not stat.S_ISREG(current.st_mode) or (current.st_dev, current.st_ino, current.st_uid) != (
-                created.st_dev,
-                created.st_ino,
-                created.st_uid,
-            ):
-                raise ValueError("Pre-create receipt changed; run retained.") from None
-            receipt.unlink()
-        directory.rmdir()
-        raise
-    try:
         # One create attempt. A cancelled caller cannot retry it.
         docker(
             root,
@@ -489,14 +498,29 @@ def start(root: Path, *, cancelled: Callable[[], bool] | None = None) -> str:
                 str(value["image"]),
             ],
             cancelled=stopped,
+            on_dispatch=dispatch,
         )
         item = lookup(root, id, cancelled=stopped)
         if item is None:
             raise RuntimeError("New container could not be reconciled; run retained.")
     except BaseException:
-        # Cleanup deliberately ignores the cancelled predicate. Ambiguous creates
-        # retain their receipt through remove(), just as explicit cleanup does.
-        remove(root, id)
+        if dispatched:
+            # Ignore the cancelled predicate. An uncertain create keeps its receipt.
+            remove(root, id)
+        else:
+            # No create was dispatched; never infer ownership from a partial receipt.
+            if identity(directory) != intent["owner"]:
+                raise ValueError("Pre-create directory changed; run retained.") from None
+            if created is not None:
+                current = receipt.lstat()
+                if not stat.S_ISREG(current.st_mode) or (current.st_dev, current.st_ino, current.st_uid) != (
+                    created.st_dev,
+                    created.st_ino,
+                    created.st_uid,
+                ):
+                    raise ValueError("Pre-create receipt changed; run retained.") from None
+                receipt.unlink()
+            directory.rmdir()
         raise
     try:
         docker(root, ["start", str(item["Id"])], cancelled=stopped)
@@ -509,6 +533,7 @@ def start(root: Path, *, cancelled: Callable[[], bool] | None = None) -> str:
 
 
 def healthy(root: Path, id: str, *, cancelled: Callable[[], bool] | None = None) -> bool:
+    root = checked_root(root)
     current = lookup(root, id, cancelled=cancelled)
     return current is not None and current["State"]["Running"] is True
 
@@ -523,6 +548,7 @@ def exchange(
     cancelled: Callable[[], bool] | None = None,
 ) -> bytes:
     deadline = time.monotonic() + timeout
+    root = checked_root(root)
     current = lookup(root, id, cancelled=cancelled, deadline=deadline)
     if current is None or not current["State"]["Running"]:
         raise RuntimeError("Private container has stopped.")
@@ -541,6 +567,7 @@ def exchange(
 def remove(root: Path, id: str, *, deadline: float | None = None) -> None:
     if deadline is None:
         deadline = time.monotonic() + 30
+    root = checked_root(root)
     if len(id) != 12 or any(c not in "0123456789abcdef" for c in id):
         raise ValueError("Invalid owned run ID.")
     directory = root / "runs" / id

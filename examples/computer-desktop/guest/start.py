@@ -1,6 +1,7 @@
 """Start only the disposable fixture display. No host bindings or API client."""
 
 import os
+import sys
 import json
 import time
 import signal
@@ -10,11 +11,15 @@ import subprocess
 import http.server
 from pathlib import Path
 
+# Isolated Python deliberately omits the script directory. This directory is
+# installed read-only for the GUI user; never import from its HOME or cwd.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from action import inspect_outputs
+
 ROOT = Path("/run/desktop")
 OWNER = Path("/run/desktop-owner")
 children: list[subprocess.Popen[bytes]] = []
 writers: list[subprocess.Popen[bytes]] = []
-effect_committed = threading.Event()
 
 
 def quiet(self: http.server.BaseHTTPRequestHandler, format: str, *args: object) -> None:
@@ -55,7 +60,6 @@ class Fixture(http.server.BaseHTTPRequestHandler):
             return
         with (OWNER / "events.jsonl").open("a", encoding="utf-8") as file:
             file.write(json.dumps(event) + "\n")
-        effect_committed.set()
         self.send_response(204)
         self.end_headers()
 
@@ -172,10 +176,14 @@ while all(child.poll() is None for child in children if not sealed or child not 
             if request.readline(8) != b"seal\n":
                 continue
         if not sealed:
-            # Guest action admission is held. Give the expected fixture POST
-            # time to commit before closing the browser which dispatched it.
-            # Expiry seals zero effects; action.py still rejects that outcome.
-            effect_committed.wait(timeout=2)
+            # Guest action admission is held. Give both fixed receipts one
+            # shared commit budget; only the post-stop read is authoritative.
+            deadline = time.monotonic() + 2
+            while time.monotonic() < deadline:
+                proof = inspect_outputs()
+                if proof["file_matches"] and proof["browser_matches"]:
+                    break
+                time.sleep(min(0.05, max(0, deadline - time.monotonic())))
             # Keep the owned Popen leaders unreaped until both owned groups
             # have been stopped, so their identities cannot be reused.
             for child in writers:

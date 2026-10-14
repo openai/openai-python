@@ -2,6 +2,7 @@
 
 import os
 import json
+import stat
 import time
 import fcntl
 import base64
@@ -152,6 +153,33 @@ def xdo(*argv: object) -> None:
     cmd("xdotool", *(str(arg) for arg in argv))
 
 
+def inspect_outputs() -> dict[str, object]:
+    """Read only the two fixed receipt files; live writes cannot block or exceed the limit."""
+    contents: list[bytes | None] = []
+    for path in (ROOT / "result.txt", OWNER / "events.jsonl"):
+        try:
+            fd = os.open(path, os.O_RDONLY | os.O_CLOEXEC | os.O_NONBLOCK | os.O_NOFOLLOW)
+            try:
+                info = os.fstat(fd)
+                data = os.read(fd, 8193) if stat.S_ISREG(info.st_mode) and info.st_size <= 8192 else None
+                contents.append(data if data is not None and len(data) <= 8192 else None)
+            finally:
+                os.close(fd)
+        except FileNotFoundError:
+            contents.append(b"")
+        except OSError:
+            contents.append(None)
+    text, raw = contents
+    expected = (json.dumps({"id": "D-2201", "action": "route"}) + "\n").encode("utf-8")
+    return {
+        "ok": True,
+        "file_matches": text in (b"Desktop receipt D-2201", b"Desktop receipt D-2201\n"),
+        "browser_matches": raw == expected,
+        "file_empty": text == b"",
+        "browser_effects": len(raw.splitlines()) if raw is not None else None,
+    }
+
+
 def reply(request: object) -> dict[str, object]:
     action, keys = validate(request)
     kind = action["type"]
@@ -171,21 +199,7 @@ def reply(request: object) -> dict[str, object]:
                     raise Invalid("Fixture did not stop its writers.")
         sealed.touch()
     if kind in ("verify", "seal"):
-        output = ROOT / "result.txt"
-        events = OWNER / "events.jsonl"
-        try:
-            text = output.read_text() if output.is_file() and output.stat().st_size <= 8192 else ""
-        except PermissionError:
-            text = ""
-        raw = events.read_text() if events.is_file() and events.stat().st_size <= 8192 else ""
-        expected = json.dumps({"id": "D-2201", "action": "route"}) + "\n"
-        return {
-            "ok": True,
-            "file_matches": text in ("Desktop receipt D-2201", "Desktop receipt D-2201\n"),
-            "browser_matches": raw == expected,
-            "file_empty": not output.is_file() or output.stat().st_size == 0,
-            "browser_effects": len(raw.splitlines()) if not events.is_file() or events.stat().st_size <= 8192 else None,
-        }
+        return inspect_outputs()
     if kind == "screenshot":
         with tempfile.TemporaryDirectory(prefix="capture-", dir=OWNER) as directory:
             if sealed.is_file():
