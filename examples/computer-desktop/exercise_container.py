@@ -116,8 +116,8 @@ class Docker:
                                 if self.started and self.foreign_after_start
                                 else intent["nonce"]
                             },
-                            "User": "1000:1000",
-                            "Cmd": ["python3", "/opt/desktop/start.py"],
+                            "User": "0:0",
+                            "Cmd": ["python3", "-I", "/opt/desktop/start.py"],
                             "Entrypoint": None,
                         },
                         "HostConfig": {
@@ -126,6 +126,7 @@ class Docker:
                             "ReadonlyRootfs": True,
                             "Privileged": False,
                             "CapDrop": ["ALL"],
+                            "CapAdd": ["CAP_SETUID", "CAP_SETGID", "CAP_KILL"],
                             "NanoCpus": 2000000000,
                             "Memory": 2 * 1024**3,
                             "MemorySwap": 2 * 1024**3,
@@ -133,7 +134,8 @@ class Docker:
                             "PidsLimit": 512,
                             "Tmpfs": {
                                 "/tmp": "rw,nosuid,nodev,size=256m,mode=1777",
-                                "/run/desktop": "rw,nosuid,nodev,size=64m,uid=1000,gid=1000,mode=0700",
+                                "/run/desktop": "rw,nosuid,nodev,size=64m,uid=1000,gid=1000,mode=0755",
+                                "/run/desktop-owner": "rw,nosuid,nodev,size=8m,uid=0,gid=0,mode=0700",
                                 "/home/desktop": "rw,nosuid,nodev,size=768m,uid=1000,gid=1000,mode=0700",
                             },
                             "SecurityOpt": ["no-new-privileges", "seccomp=" + json.dumps(profile)],

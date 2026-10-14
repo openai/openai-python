@@ -11,6 +11,7 @@ import http.server
 from pathlib import Path
 
 ROOT = Path("/run/desktop")
+OWNER = Path("/run/desktop-owner")
 children: list[subprocess.Popen[bytes]] = []
 writers: list[subprocess.Popen[bytes]] = []
 
@@ -51,7 +52,7 @@ class Fixture(http.server.BaseHTTPRequestHandler):
         if event != {"id": "D-2201", "action": "route"}:
             self.send_error(400)
             return
-        with (ROOT / "events.jsonl").open("a", encoding="utf-8") as file:
+        with (OWNER / "events.jsonl").open("a", encoding="utf-8") as file:
             file.write(json.dumps(event) + "\n")
         self.send_response(204)
         self.end_headers()
@@ -64,6 +65,10 @@ def launch(*argv: str, writer: bool = False) -> subprocess.Popen[bytes]:
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
         start_new_session=writer,
+        user=gui.st_uid,
+        group=gui.st_gid,
+        extra_groups=[],
+        umask=0o022,
     )
     children.append(child)
     if writer:
@@ -80,17 +85,20 @@ def stop(_signal: int, _frame: object) -> None:
 
 signal.signal(signal.SIGTERM, stop)
 signal.signal(signal.SIGINT, stop)
-ROOT.mkdir(parents=True, exist_ok=True)
-Path(os.environ["HOME"]).mkdir(parents=True, exist_ok=True)
+gui = Path(os.environ["HOME"]).stat()
+if not ROOT.exists():
+    ROOT.mkdir(mode=0o755)
+    os.chown(ROOT, gui.st_uid, gui.st_gid)
+OWNER.mkdir(mode=0o700, exist_ok=True)
 server = http.server.HTTPServer(("127.0.0.1", 4311), Fixture)
 serving = threading.Thread(target=server.serve_forever, daemon=True)
 serving.start()
 control = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-control.bind(str(ROOT / "owner.sock"))
-os.chmod(ROOT / "owner.sock", 0o600)
+control.bind(str(OWNER / "owner.sock"))
+os.chmod(OWNER / "owner.sock", 0o600)
 control.listen(1)
 control.settimeout(0.2)
-launch("Xvfb", ":1", "-screen", "0", "1024x768x24", "-nolisten", "tcp", "-noreset")
+launch("Xvfb", ":1", "-screen", "0", "1024x768x24", "-nolisten", "tcp", "-noreset", "-ac")
 end = time.monotonic() + 20
 while time.monotonic() < end:
     if children[0].poll() is not None:
@@ -145,7 +153,7 @@ while time.monotonic() < end:
                 capture_output=True,
                 timeout=2,
             )
-        (ROOT / "display-ready").touch()
+        (OWNER / "display-ready").touch()
         break
     time.sleep(0.1)
 else:

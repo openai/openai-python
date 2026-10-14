@@ -11,7 +11,7 @@ if pid == 0:
     os.dup2(right.fileno(), 3, inheritable=True)
     os.environ["LISTEN_PID"] = str(os.getpid())
     os.environ["LISTEN_FDS"] = "1"
-    os.execv(sys.executable, [sys.executable, "/opt/desktop/action.py"])
+    os.execv(sys.executable, [sys.executable, "-I", "/opt/desktop/action.py"])
 
 right.close()
 try:
