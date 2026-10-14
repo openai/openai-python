@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+import json
 import asyncio
 
 from server import serve
 from booking import BookingBrowser
 from read_only import example_browser_channel
 from playwright.async_api import async_playwright
+
+from openai.lib.browser import AsyncBrowserToolset
+from openai.types.responses import ResponseFunctionToolCall
 
 
 async def main() -> None:
@@ -20,6 +24,21 @@ async def main() -> None:
             driver = BookingBrowser(context, app.origin + "/fixture/reservation")
             await context.route("**/*", driver.guard)
             await driver.open()
+            text_tools = AsyncBrowserToolset(driver, members=["get_page_text"])
+            text_result = await text_tools.execute(
+                ResponseFunctionToolCall(
+                    type="function_call",
+                    id="text",
+                    call_id="text",
+                    name=text_tools.tools[0]["name"],
+                    arguments='{"tab_id":null}',
+                )
+            )
+            output = text_result["output"]
+            assert isinstance(output, list)
+            block = output[0]
+            assert block["type"] == "input_text"
+            assert json.loads(block["text"])["ok"] is True
             before = await driver.read_page({"tab_id": None, "filter": "all"})
             assert "TABLE-204" not in before["text"] and "Confirmed" not in before["text"]
             controls = {item["label"]: item for item in before["elements"]}
@@ -28,7 +47,9 @@ async def main() -> None:
             for label, value in (("Party size", "2"), ("Time", "18:00"), ("Seating", "Indoor")):
                 await driver.select_option({"tab_id": None, "target": controls[label]["ref"], "values": [value]})
             await driver.click({"tab_id": None, "target": controls["Reserve table"]["ref"]})
-            after = await driver.get_page_text({"tab_id": None})
+            text = await driver.get_page_text({"tab_id": None})
+            assert text["elements"] == [] and "TABLE-204" in text["text"]
+            after = await driver.read_page({"tab_id": None, "filter": "all"})
             assert "Confirmed" in after["text"] and "TABLE-204" in after["text"]
             assert not any(item["label"] == "Reserve table" for item in after["elements"])
             time = next(item for item in after["elements"] if item["label"] == "Time")

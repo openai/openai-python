@@ -118,7 +118,11 @@ class BookingBrowser:
         }
 
     async def get_page_text(self, args: TabInput, *, cancelled: Callable[[], bool] | None = None) -> BrowserReadV1:
-        return await self.read_page({"tab_id": args["tab_id"], "filter": "all"}, cancelled=cancelled)
+        self.page(args["tab_id"])
+        page = self.check(cancelled)
+        text = await page.locator("[role=status]").inner_text()
+        self.check(cancelled)
+        return {"version": 1, "text": text, "elements": [], "omitted": []}
 
     async def screenshot(
         self, args: TabInput, *, cancelled: Callable[[], bool] | None = None
