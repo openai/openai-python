@@ -12,7 +12,7 @@ from typing_extensions import override
 
 import httpx2 as httpx
 from server import Fieldwork, serve
-from playwright.async_api import ElementHandle
+from playwright.async_api import Locator, ElementHandle
 
 
 def binding(state: dict[str, Any]) -> dict[str, Any]:
@@ -92,6 +92,54 @@ async def check_live_case(
         app.transport = None
 
 
+async def check_state_during_live_close(
+    app: Fieldwork, client: httpx.AsyncClient, post: Callable[[str, dict[str, Any]], Any]
+) -> None:
+    sent, reply = asyncio.Event(), asyncio.Event()
+    entered, finish = asyncio.Event(), asyncio.Event()
+    app.models = {"responses": "local-responses"}
+
+    async def forward(_request: httpx.Request) -> httpx.Response:
+        sent.set()
+        await reply.wait()
+        return httpx.Response(401, json={"error": {"message": "local refusal", "type": "authentication_error"}})
+
+    real_evaluate = Locator.evaluate
+
+    async def delayed(locator: Locator, expression: str, *args: Any, **kwargs: Any) -> Any:
+        result = await real_evaluate(locator, expression, *args, **kwargs)
+        if expression == "body => Number(body.dataset.revision)" and not entered.is_set():
+            entered.set()
+            await asyncio.wait_for(finish.wait(), 8)
+        return result
+
+    app.transport = httpx.MockTransport(forward)
+    try:
+        await post("/api/start", {"taskId": "reservation", "api": "responses", "mode": "live"})
+        await asyncio.wait_for(sent.wait(), 10)
+        with patch.object(Locator, "evaluate", delayed):
+            snapshot = asyncio.create_task(client.get("/api/state"))
+            await asyncio.wait_for(entered.wait(), 5)
+            reply.set()
+            current = app.current
+            assert current and current.agent
+            await asyncio.wait_for(asyncio.shield(current.agent), 5)
+            assert current.owner == "stopped" and current.cleanup
+            await asyncio.wait_for(asyncio.shield(current.cleanup), 5)
+            finish.set()
+            response = await asyncio.wait_for(snapshot, 5)
+            response.raise_for_status()
+            state = response.json()["run"]
+            assert state["owner"] == "stopped" and state["browser"] is None
+            assert state["view"]["status"] == "closed" and state["result"] == "unverified"
+    finally:
+        reply.set()
+        finish.set()
+        await app.transport.aclose()
+        app.transport = None
+    print("PASS final live error during a dashboard state read: no stale binding or HTTP 400.")
+
+
 async def run() -> None:
     async with serve() as app, httpx.AsyncClient(base_url=app.origin, trust_env=False) as client:
         assert (await client.get("/api/state")).status_code == 403
@@ -130,6 +178,7 @@ async def run() -> None:
             for outcome in ("denied", "cancelled"):
                 await check_live_case(app, post, until, api, outcome)
         print("PASS live Responses/Decisions: forwarding, safe denial and cancelled open body.")
+        await check_state_during_live_close(app, client, post)
         await post("/api/start", {"taskId": "reservation", "api": "decisions", "mode": "rehearsal"})
         offered = await until(lambda s: s["approval"] is not None)
         assert offered["requests"] == 0 and offered["result"] != "verified"

@@ -380,8 +380,21 @@ class Run:
             raise BrowserError("Select the target tab and read its current page first.")
 
     async def snapshot(self) -> dict[str, Any]:
-        point = await self.binding()
-        view = self.view if self.owner == "stopped" or await self.matches(self.view_binding) else {"status": "starting"}
+        version = self.version
+        try:
+            point = await self.binding()
+            view = (
+                self.view
+                if self.owner == "stopped" or await self.matches(self.view_binding)
+                else {"status": "starting"}
+            )
+        except (BrowserError, TargetClosedError):
+            if self.version == version:
+                raise
+            point, view = None, {"status": "starting"}
+        if self.version != version or self.owner == "stopped":
+            point = None
+            view = {**self.view, "status": "closed"} if self.owner == "stopped" else {"status": "starting"}
         return {
             "id": self.id,
             "taskId": self.task_id,
