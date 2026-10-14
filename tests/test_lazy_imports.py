@@ -14,6 +14,12 @@ if TYPE_CHECKING:
     from typing_extensions import assert_type
 
     from openai.resources import Chat, AsyncChat
+    from openai.lib.computer import (
+        ComputerDriver as CanonicalComputerDriver,
+        ComputerToolset as CanonicalComputerToolset,
+        AsyncComputerDriver as CanonicalAsyncComputerDriver,
+        AsyncComputerToolset as CanonicalAsyncComputerToolset,
+    )
     from openai.lib.streaming import AssistantEventHandler as StreamingHandler
     from openai.resources.chat import Chat as CanonicalChat, AsyncChat as CanonicalAsyncChat
     from openai.lib.streaming._assistants import (
@@ -26,6 +32,10 @@ if TYPE_CHECKING:
     assert_type(openai.AssistantEventHandler, type[CanonicalHandler])
     assert_type(openai.AsyncAssistantEventHandler, type[CanonicalAsyncHandler])
     assert_type(StreamingHandler, type[CanonicalHandler])
+    assert_type(openai.ComputerToolset, type[CanonicalComputerToolset])
+    assert_type(openai.AsyncComputerToolset, type[CanonicalAsyncComputerToolset])
+    assert_type(openai.ComputerDriver, type[CanonicalComputerDriver])
+    assert_type(openai.AsyncComputerDriver, type[CanonicalAsyncComputerDriver])
 
 
 def _run_python(source: str) -> None:
@@ -84,6 +94,30 @@ assert Chat is CanonicalChat
 assert resources.Chat is Chat
 assert "openai.resources.audio" not in sys.modules
 assert "openai.resources.beta" not in sys.modules
+"""
+    )
+
+
+def test_computer_root_imports_preserve_helper_identity_without_eager_load() -> None:
+    _run_python(
+        """
+import pickle
+import sys
+import openai
+
+names = ("ComputerToolset", "AsyncComputerToolset", "ComputerDriver", "AsyncComputerDriver")
+assert "openai.lib.computer" not in sys.modules
+assert set(names) <= set(dir(openai))
+from openai import ComputerToolset, AsyncComputerToolset, ComputerDriver, AsyncComputerDriver
+from openai.lib import computer
+for name, root in zip(names, (ComputerToolset, AsyncComputerToolset, ComputerDriver, AsyncComputerDriver)):
+    assert root is getattr(computer, name)
+    assert root.__module__ == "openai.lib.computer"
+    assert pickle.loads(pickle.dumps(root)) is root
+namespace = {}
+exec("from openai import *", namespace)
+assert all(namespace[name] is getattr(computer, name) for name in names)
+assert not any(mod in sys.modules for mod in ("playwright", "PIL", "daytona", "e2b_desktop"))
 """
     )
 

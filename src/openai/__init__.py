@@ -114,7 +114,15 @@ from .lib.azure import AzureOpenAI as AzureOpenAI, AsyncAzureOpenAI as AsyncAzur
 from .lib.bedrock import BedrockOpenAI as BedrockOpenAI, AsyncBedrockOpenAI as AsyncBedrockOpenAI
 from .lib._old_api import *
 
+_COMPUTER_EXPORTS = ("ComputerToolset", "AsyncComputerToolset", "ComputerDriver", "AsyncComputerDriver")
+
 if _t.TYPE_CHECKING:
+    from .lib.computer import (
+        ComputerDriver as ComputerDriver,
+        ComputerToolset as ComputerToolset,
+        AsyncComputerDriver as AsyncComputerDriver,
+        AsyncComputerToolset as AsyncComputerToolset,
+    )
     from .lib.streaming import (
         AssistantEventHandler as AssistantEventHandler,
         AsyncAssistantEventHandler as AsyncAssistantEventHandler,
@@ -123,16 +131,17 @@ else:
     _STREAMING_EXPORTS = ("AssistantEventHandler", "AsyncAssistantEventHandler")
 
     def __getattr__(name: str) -> _t.Any:
-        if name in _STREAMING_EXPORTS:
+        if name in _STREAMING_EXPORTS or name in _COMPUTER_EXPORTS:
             from importlib import import_module
 
-            value = getattr(import_module(".lib.streaming", __name__), name)
+            module = ".lib.computer" if name in _COMPUTER_EXPORTS else ".lib.streaming"
+            value = getattr(import_module(module, __name__), name)
             globals()[name] = value
             return value
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
     def __dir__() -> list[str]:
-        return sorted(set(globals()) | set(_STREAMING_EXPORTS))
+        return sorted(set(globals()) | set(_STREAMING_EXPORTS) | set(_COMPUTER_EXPORTS))
 
 
 _setup_logging()
@@ -149,6 +158,8 @@ for __name in __all__:
         except (TypeError, AttributeError):
             # Some of our exported symbols are builtins which we can't set attributes for.
             pass
+
+__all__ += ["ComputerToolset", "AsyncComputerToolset", "ComputerDriver", "AsyncComputerDriver"]
 
 # ------ Module level client ------
 import typing as _t

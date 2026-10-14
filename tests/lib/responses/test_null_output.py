@@ -13,6 +13,124 @@ from openai.types.responses import Response, ToolParam
 from openai.lib._parsing._responses import parse_response
 
 
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+@pytest.mark.parametrize(
+    "identity",
+    ["same", "changed", "enriched", "dropped", "replacement", "done-type", "done-id", "done-call", "done-enriched"],
+)
+async def test_retained_completed_call_identity(sync: bool, identity: str) -> None:
+    item: dict[str, object] = {
+        "type": "function_call",
+        "call_id": "call_original",
+        "name": "lookup",
+        "arguments": "{}",
+        "status": "completed",
+        **({} if identity in ("enriched", "done-enriched") else {"id": "fc_original"}),
+    }
+    final_item = {
+        **item,
+        "id": "fc_final" if identity in ("changed", "enriched") else "fc_original",
+        "call_id": "call_replacement" if identity == "replacement" else "call_original",
+    }
+    output = [] if identity == "dropped" else [final_item]
+    done_item: dict[str, object] = item
+    if identity.startswith("done-"):
+        done_item = {**item, "id": "fc_final" if identity in ("done-id", "done-enriched") else "fc_original"}
+        if identity == "done-call":
+            done_item["call_id"] = "different"
+        elif identity == "done-type":
+            done_item = {"id": "msg", "type": "message", "role": "assistant", "status": "completed", "content": []}
+        output = [done_item]
+    events: list[dict[str, object]] = [
+        {"type": "response.created", "response": {"id": "resp_test", "output": []}},
+        {"type": "response.output_item.added", "output_index": 7, "item": item},
+        {"type": "response.output_item.done", "output_index": 7, "item": done_item},
+        {"type": "response.completed", "response": {"id": "resp_test", "status": "completed", "output": output}},
+    ]
+    body = "".join(
+        f"data: {json.dumps({**event, 'sequence_number': index})}\n\n" for index, event in enumerate(events)
+    ).encode()
+    transport = httpx2.MockTransport(
+        lambda _request: httpx2.Response(200, content=body, headers={"content-type": "text/event-stream"})
+    )
+    if sync:
+        with OpenAI(api_key="fake-test-key", http_client=httpx2.Client(transport=transport)) as client:
+            with client.responses.stream(model="test-model", input="test") as stream:
+                if identity in ("changed", "done-type", "done-id", "done-call"):
+                    with pytest.raises(RuntimeError, match="identity"):
+                        stream.get_final_response()
+                else:
+                    final = stream.get_final_response()
+                    assert [entry.to_dict() for entry in final.output] == [
+                        {**entry, "parsed_arguments": None} for entry in output
+                    ]
+    else:
+        async with AsyncOpenAI(
+            api_key="fake-test-key", http_client=httpx2.AsyncClient(transport=transport)
+        ) as async_client:
+            async with async_client.responses.stream(model="test-model", input="test") as async_stream:
+                if identity in ("changed", "done-type", "done-id", "done-call"):
+                    with pytest.raises(RuntimeError, match="identity"):
+                        await async_stream.get_final_response()
+                else:
+                    final = await async_stream.get_final_response()
+                    assert [entry.to_dict() for entry in final.output] == [
+                        {**entry, "parsed_arguments": None} for entry in output
+                    ]
+
+
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+@pytest.mark.parametrize("terminal", ["failed", "incomplete"])
+@pytest.mark.parametrize("null_output", [False, True])
+async def test_partial_terminal_uses_wire_order(sync: bool, terminal: str, null_output: bool) -> None:
+    early: dict[str, object] = {
+        "type": "function_call",
+        "id": "fc_early",
+        "call_id": "call_early",
+        "name": "lookup",
+        "arguments": "{",
+        "status": "in_progress",
+    }
+    late: dict[str, object] = {
+        "type": "message",
+        "id": "msg_late",
+        "role": "assistant",
+        "status": "completed",
+        "content": [{"type": "output_text", "text": "retained", "annotations": []}],
+    }
+    events: list[dict[str, object]] = [
+        {"type": "response.created", "response": {"id": "resp_test", "output": []}},
+        {"type": "response.output_item.added", "output_index": 7, "item": {**late, "content": []}},
+        {"type": "response.output_item.added", "output_index": 3, "item": early},
+        {"type": "response.output_item.done", "output_index": 7, "item": late},
+        {
+            "type": "response." + terminal,
+            "response": {"id": "resp_test", "status": terminal, **({"output": None} if null_output else {})},
+        },
+    ]
+    body = "".join(
+        f"data: {json.dumps({**event, 'sequence_number': index})}\n\n" for index, event in enumerate(events)
+    ).encode()
+    transport = httpx2.MockTransport(
+        lambda _request: httpx2.Response(200, content=body, headers={"content-type": "text/event-stream"})
+    )
+    if sync:
+        with OpenAI(api_key="fake-test-key", http_client=httpx2.Client(transport=transport)) as client:
+            with client.responses.stream(model="test-model", input="test") as stream:
+                emitted = list(stream)
+    else:
+        async with AsyncOpenAI(
+            api_key="fake-test-key", http_client=httpx2.AsyncClient(transport=transport)
+        ) as async_client:
+            async with async_client.responses.stream(model="test-model", input="test") as async_stream:
+                emitted = [event async for event in async_stream]
+    last = emitted[-1]
+    assert last.type == "response.failed" or last.type == "response.incomplete"
+    assert [item.id for item in last.response.output] == ["fc_early", "msg_late"]
+    assert last.response.output[0].to_dict() == early
+    assert last.response.output[1].to_dict() == late
+
+
 class Answer(BaseModel):
     answer: int
 
@@ -20,7 +138,10 @@ class Answer(BaseModel):
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
 @pytest.mark.parametrize("terminal_output", ["null", "missing", "empty", "present"])
 @pytest.mark.parametrize("has_items", [True, False], ids=["with-items", "without-items"])
-async def test_stream_recovers_finalized_output(sync: bool, terminal_output: str, has_items: bool) -> None:
+@pytest.mark.parametrize("wire_text", [False, True])
+async def test_stream_recovers_finalized_output(
+    sync: bool, terminal_output: str, has_items: bool, wire_text: bool
+) -> None:
     items: list[dict[str, object]] = (
         [
             {
@@ -74,8 +195,9 @@ async def test_stream_recovers_finalized_output(sync: bool, terminal_output: str
         "status": "completed",
         "usage": {"input_tokens": 1, "output_tokens": 2, "total_tokens": 3},
     }
+    if wire_text:
+        completed["output_text"] = ""
     if terminal_output != "missing":
-        # A supplied list must win, even when it differs from the streamed items.
         completed["output"] = {"null": None, "empty": [], "present": items[:1]}[terminal_output]
     events.append({"type": "response.completed", "response": completed})
     body = "".join(
@@ -108,8 +230,10 @@ async def test_stream_recovers_finalized_output(sync: bool, terminal_output: str
     assert final.usage is not None and final.usage.total_tokens == 3
     if not has_items or terminal_output == "empty":
         assert final.output == []
+        assert final.output_text == ""
         return
 
+    assert final.output_text == '{"answer": 4}'
     assert len(final.output) == (1 if terminal_output == "present" else 2)
     message = final.output[0]
     assert message.type == "message" and message.status == "completed"

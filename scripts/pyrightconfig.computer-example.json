@@ -1,0 +1,12 @@
+{
+  "extends": "../pyproject.toml",
+  "include": [
+    "../examples/computer-desktop"
+  ],
+  "exclude": [],
+  "extraPaths": [
+    "../examples/computer-desktop",
+    "../examples/computer-desktop/guest",
+    "../src"
+  ]
+}
