@@ -222,27 +222,28 @@ class Guest:
                 self.process.wait(timeout=5)
         for thread in self.readers:
             thread.join(timeout=1)
+        if not hasattr(self, "_cleanup_root"):
+            if not self._same_run_root(self.directory.lstat()):
+                raise ComputerUseError("Run root ownership changed.")
+            # Record where rename will put the run before rename or lstat can fail.
+            self._cleanup_root = Path(tempfile.mkdtemp(prefix=".cleanup-", dir=self.directory.parent))
+        moved = self._cleanup_root / "run"
         try:
-            current = self.directory.lstat()
+            current = moved.lstat()
         except FileNotFoundError:
-            if hasattr(self, "_cleanup_root"):
+            if self.directory == moved:
+                # Removal finished; only the private parent still needs cleanup.
                 self._cleanup_root.rmdir()
                 return
-            raise
+            current = None
+        if current is None:
+            if not self._same_run_root(self.directory.lstat()):
+                raise ComputerUseError("Run root ownership changed.")
+            self.directory.rename(moved)
+            current = moved.lstat()
         if not self._same_run_root(current):
-            raise ComputerUseError("Run root ownership changed.")
-        if not hasattr(self, "_cleanup_root"):
-            quarantine = Path(tempfile.mkdtemp(prefix=".cleanup-", dir=self.directory.parent))
-            moved = quarantine / "run"
-            try:
-                self.directory.rename(moved)
-            except BaseException:
-                quarantine.rmdir()
-                raise
-            if not self._same_run_root(moved.lstat()):
-                # Never delete or restore a replacement onto the public path.
-                raise ComputerUseError("Run root ownership changed; cleanup incomplete in private .cleanup- directory.")
-            self.directory = moved
-            self._cleanup_root = quarantine
-        shutil.rmtree(self.directory)
+            # Never delete or restore a replacement onto the public path.
+            raise ComputerUseError("Run root ownership changed; cleanup incomplete in private .cleanup- directory.")
+        self.directory = moved
+        shutil.rmtree(moved)
         self._cleanup_root.rmdir()

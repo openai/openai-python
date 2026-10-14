@@ -369,7 +369,7 @@ def build(root: Path, media_dir: Path | None, vfkit_path: Path | None, xorriso_p
     print(f"Ready: {root}. Run the SDK's no-key exercise to check native desktop actions.", flush=True)
 
 
-if __name__ == "__main__":
+def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--runtime-dir", type=Path, required=True)
     parser.add_argument("--backend", choices=("vm", "container"), default="vm")
@@ -380,6 +380,15 @@ if __name__ == "__main__":
     parser.add_argument("--vfkit", type=Path, help="Trusted vfkit executable, if it is not on PATH.")
     parser.add_argument("--xorriso", type=Path, help="Trusted xorriso executable, if it is not on PATH.")
     options = parser.parse_args()
+
+    def stop(_signal: int, _frame: object) -> None:
+        # Let the owned installer reap its VM before another signal can interrupt cleanup.
+        signal.signal(signal.SIGTERM, signal.SIG_IGN)
+        signal.signal(signal.SIGINT, signal.SIG_IGN)
+        raise KeyboardInterrupt
+
+    previous_term = signal.signal(signal.SIGTERM, stop)
+    previous_int = signal.signal(signal.SIGINT, stop)
     try:
         if options.verify_only:
             if options.backend != "vm" or options.media_dir or options.vfkit or options.xorriso:
@@ -396,3 +405,10 @@ if __name__ == "__main__":
             setup(options.runtime_dir, options.media_dir, options.vfkit, options.xorriso)
     except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as exc:
         parser.exit(1, f"Setup failed: {exc}\nExisting files were preserved; use a new path for an incomplete build.\n")
+    finally:
+        signal.signal(signal.SIGTERM, previous_term)
+        signal.signal(signal.SIGINT, previous_int)
+
+
+if __name__ == "__main__":
+    main()

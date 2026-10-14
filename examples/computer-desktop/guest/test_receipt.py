@@ -5,7 +5,9 @@ from __future__ import annotations
 import os
 import sys
 import json
+import select
 import shutil
+import signal
 import hashlib
 import tempfile
 import unittest
@@ -43,6 +45,53 @@ def changed_build(*_args: object) -> None:
 
 
 class ReceiptTests(unittest.TestCase):
+    def test_sigterm_reaps_staged_installer(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            inputs = root / "build/inputs"
+            inputs.mkdir(parents=True)
+            (inputs / "install.py").write_text(
+                "import os,signal,sys\nfrom pathlib import Path\n"
+                "root=Path(sys.argv[2])\n"
+                "def stop(*_):\n (root/'drained').write_text('installer cleanup'); sys.exit(0)\n"
+                "signal.signal(signal.SIGINT,stop)\n"
+                "print(os.getpid(),flush=True)\n"
+                "signal.pause()\n"
+            )
+            code = (
+                "import sys;from pathlib import Path;"
+                "sys.path.insert(0,sys.argv[1]);import setup;"
+                "root=Path(sys.argv[2]);sys.argv=['setup.py','--runtime-dir',str(root)];"
+                "setup.setup=lambda root,*args:setup.run_staged_installer(root);"
+                "setup.main();(root/'unexpected').write_text('completed')"
+            )
+            child = None
+            with subprocess.Popen(
+                [sys.executable, "-E", "-S", "-c", code, str(HERE), str(root)],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            ) as owner:
+                try:
+                    assert owner.stdout is not None
+                    ready, _, _ = select.select([owner.stdout], [], [], 5)
+                    self.assertTrue(ready, "installer did not become ready")
+                    child = int(owner.stdout.readline())
+                    owner.send_signal(signal.SIGTERM)
+                    self.assertNotEqual(owner.wait(timeout=5), 0)
+                    self.assertEqual((root / "drained").read_text(), "installer cleanup")
+                    self.assertFalse((root / "unexpected").exists())
+                    with self.assertRaises(ProcessLookupError):
+                        os.kill(child, 0)
+                finally:
+                    if owner.poll() is None:
+                        owner.kill()
+                        owner.wait()
+                    if child is not None:
+                        try:
+                            os.kill(child, signal.SIGKILL)
+                        except ProcessLookupError:
+                            pass
+
     def test_offline_media_uses_verified_private_copies(self) -> None:
         self.check_offline_media(False)
 
