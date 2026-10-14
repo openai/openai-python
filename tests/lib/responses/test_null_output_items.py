@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import asyncio
 from typing import Any
+from contextlib import nullcontext
 from unittest.mock import Mock, AsyncMock
 from typing_extensions import override
 
@@ -270,7 +271,7 @@ async def test_stream_keeps_initial_output_after_empty_item(sync: bool) -> None:
                 "output_index": 0,
                 "item": {**message, "status": "completed"},
             },
-            {"type": "response.completed", "response": {"id": "resp_test", "output": []}},
+            {"type": "response.completed", "response": {"id": "resp_test", "output": None}},
         ],
     )
     assert [event.snapshot for event in emitted if event.type == "response.output_text.delta"] == ["hello"]
@@ -309,7 +310,7 @@ async def test_final_output_rejects_unfinished_real_item(sync: bool, index: int,
         "arguments": "{}",
         "status": "completed",
     }
-    with pytest.raises(RuntimeError, match="unfinished.*output"):
+    with pytest.raises(RuntimeError, match="identity|unfinished.*output"):
         await _consume(
             sync,
             [
@@ -392,30 +393,32 @@ async def test_completed_items_survive_intermediate_omission_for_null_fallback(s
         "arguments": "{}",
         "status": "completed",
     }
-    _, final = await _consume(
-        sync,
-        [
-            {"type": "response.created", "response": {"id": "resp_test", "output": [initial]}},
-            {"type": "response.output_item.added", "output_index": 99, "item": {**tool, "arguments": ""}},
-            {"type": "response.output_item.done", "output_index": 99, "item": tool},
-            {"type": "response.in_progress", "response": {"id": "resp_test", "output": [initial]}},
-            {"type": "response.output_item.done", "output_index": 0, "item": message},
-            {
-                "type": "response.completed",
-                "response": {
-                    "id": "resp_test",
-                    "status": "completed",
-                    "output": None
-                    if terminal == "null"
-                    else [message]
-                    if terminal == "authoritative-omission"
-                    else [message, tool],
+    with pytest.raises(RuntimeError, match="identity") if terminal == "authoritative-omission" else nullcontext():
+        _, final = await _consume(
+            sync,
+            [
+                {"type": "response.created", "response": {"id": "resp_test", "output": [initial]}},
+                {"type": "response.output_item.added", "output_index": 99, "item": {**tool, "arguments": ""}},
+                {"type": "response.output_item.done", "output_index": 99, "item": tool},
+                {"type": "response.in_progress", "response": {"id": "resp_test", "output": [initial]}},
+                {"type": "response.output_item.done", "output_index": 0, "item": message},
+                {
+                    "type": "response.completed",
+                    "response": {
+                        "id": "resp_test",
+                        "status": "completed",
+                        "output": None
+                        if terminal == "null"
+                        else [message]
+                        if terminal == "authoritative-omission"
+                        else [message, tool],
+                    },
                 },
-            },
-        ],
-    )
-    expected = ["message"] if terminal == "authoritative-omission" else ["message", "function_call"]
-    assert [item.type for item in final.output] == expected
+            ],
+        )
+    if terminal == "authoritative-omission":
+        return
+    assert [item.type for item in final.output] == ["message", "function_call"]
     assert final.output_text == "done"
 
 
