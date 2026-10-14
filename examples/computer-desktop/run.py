@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import json
+import signal
 import argparse
 from pathlib import Path
 
@@ -14,6 +15,10 @@ from openai import OpenAI
 
 def approve(prompt: str) -> bool:
     return input(prompt).strip().lower() == "yes"
+
+
+def interrupt(_signal: int, _frame: object) -> None:
+    raise KeyboardInterrupt
 
 
 def main() -> None:
@@ -27,8 +32,10 @@ def main() -> None:
     if not approve("Use only this disposable browser/editor and the fixed local receipt? Type yes to start: "):
         raise SystemExit("Desktop task declined.")
 
-    desktop = Desktop(args.runtime_dir)
+    previous = signal.signal(signal.SIGTERM, interrupt)
+    desktop: Desktop | None = None
     try:
+        desktop = Desktop(args.runtime_dir)
         with OpenAI(max_retries=0) as client:
             desktop.operation(
                 lambda computer: computer.run(
@@ -57,7 +64,11 @@ def main() -> None:
         if not verified:
             raise SystemExit(1)
     finally:
-        desktop.stop()
+        try:
+            if desktop is not None:
+                desktop.stop()
+        finally:
+            signal.signal(signal.SIGTERM, previous)
 
 
 if __name__ == "__main__":

@@ -12,6 +12,7 @@ from io import BytesIO
 from typing import Union, TypeVar, Callable, Awaitable, cast
 from pathlib import Path
 
+import container_runtime
 from guest import Guest
 
 from openai.lib.computer import (
@@ -71,7 +72,12 @@ class Desktop:
         self._input_pending = False
         self._stopped = False
         self.uncertain_effects = False
-        self._guest = Guest(runtime_dir, cancelled=cancelled)
+        try:
+            self._guest = Guest(runtime_dir, cancelled=cancelled)
+        except container_runtime.StartupCancelled:
+            # start() raises this only before admission or after its owned
+            # cleanup; an indeterminate cleanup raises its own error instead.
+            raise DesktopStartupError("Desktop startup was stopped.") from None
         self._id: str | None = self._guest.id
         try:
             end = time.monotonic() + 90
