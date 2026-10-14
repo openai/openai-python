@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import time
 import base64
+import signal
 import struct
 import asyncio
 import threading
@@ -106,7 +107,20 @@ class Desktop:
             else:
                 raise ComputerUseError("Desktop did not become ready within its restrictions.")
         except BaseException as error:
-            self.stop()
+            # The caller has no Desktop until construction returns. Protect
+            # the cleanup we still own, as the CLI does after assignment.
+            previous = (
+                {name: signal.getsignal(name) for name in (signal.SIGINT, signal.SIGTERM)}
+                if threading.current_thread() is threading.main_thread()
+                else {}
+            )
+            try:
+                for name in previous:
+                    signal.signal(name, signal.SIG_IGN)
+                self.stop()
+            finally:
+                for name, handler in previous.items():
+                    signal.signal(name, handler)
             if isinstance(error, Exception):
                 raise DesktopStartupError("Desktop did not become ready within its restrictions.") from error
             raise

@@ -547,6 +547,18 @@ def remove(root: Path, id: str) -> None:
     else:
         # Another CLI invocation may be finishing an interrupted recursive delete.
         runtime(root)
+        try:
+            owned(marker, 0o600)
+        except FileNotFoundError:
+            # Only an empty, owned cleanup directory can be an interrupted
+            # marker creation or final removal. Never remove unexpected contents.
+            cleanup.rmdir()
+            try:
+                owned(directory, 0o700, True)
+            except FileNotFoundError:
+                return
+            remove(root, id)
+            return
     owned(marker, 0o600)
     expected: dict[str, Any] = json.loads(marker.read_text())
     if expected.get("path") != str(root.resolve() / "runs" / id):

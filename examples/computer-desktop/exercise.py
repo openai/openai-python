@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import time
 import base64
+import signal
 import struct
 import asyncio
 import argparse
@@ -309,7 +310,7 @@ async def run_async(runtime_dir: Path) -> None:
         await asyncio.to_thread(desktop.stop)
 
 
-def check_frames(*, phase_only: bool = False) -> None:
+def check_frames(*, phase_only: bool = False, startup_only: bool = False) -> None:
     from PIL import Image
 
     stream = BytesIO()
@@ -409,6 +410,54 @@ def check_frames(*, phase_only: bool = False) -> None:
                 assert not isinstance(error, container_runtime.StartupCancelled) and actual is error
             else:
                 raise AssertionError("Interrupted construction returned a desktop")
+
+    previous = {name: signal.getsignal(name) for name in (signal.SIGINT, signal.SIGTERM)}
+    try:
+        for first, second in ((signal.SIGINT, signal.SIGTERM), (signal.SIGTERM, signal.SIGINT)):
+            stopped = KeyboardInterrupt(f"original {first.name}")
+            started: list[ControlledGuest] = []
+
+            def interrupt(_signum: int, _frame: object, *, stopped: KeyboardInterrupt = stopped) -> None:
+                raise stopped
+
+            signal.signal(signal.SIGINT, interrupt)
+            signal.signal(signal.SIGTERM, interrupt)
+
+            class RepeatedSignalGuest(ControlledGuest):
+                instances = started
+                startup_signal = first
+                cleanup_signal = second
+
+                @override
+                def healthy(self, *, cancelled: Callable[[], bool] | None = None) -> bool:
+                    self.instances.append(self)
+                    signal.raise_signal(self.startup_signal)
+                    raise AssertionError("Startup signal returned")
+
+                @override
+                def remove(self) -> None:
+                    signal.raise_signal(self.cleanup_signal)
+                    super().remove()
+
+            with patch("desktop.Guest", RepeatedSignalGuest):
+                desktop = None
+                try:
+                    desktop = Desktop(Path("controlled-fixture"))
+                except KeyboardInterrupt as error:
+                    assert error is stopped, "Constructor cleanup replaced the original interruption"
+                else:
+                    raise AssertionError("Interrupted readiness returned a desktop")
+                assert desktop is None and len(started) == 1 and started[0].removed
+                assert signal.getsignal(signal.SIGINT) is interrupt
+                assert signal.getsignal(signal.SIGTERM) is interrupt
+        print(
+            "PASS: repeated SIGINT/SIGTERM during failed constructor cleanup preserve the interruption and remove its guest"
+        )
+    finally:
+        for name, handler in previous.items():
+            signal.signal(name, handler)
+    if startup_only:
+        return
 
     with patch("desktop.Guest", ControlledGuest):
         for asynchronous in (False, True):

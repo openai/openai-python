@@ -17,6 +17,7 @@ from typing_extensions import override
 import httpx2 as httpx
 from booking import BookingBrowser
 from playwright.async_api import Page, BrowserContext, WebSocketRoute, ScreencastFrame
+from playwright._impl._errors import TargetClosedError
 
 from openai import AsyncOpenAI
 from openai.types import DecisionInputPartUnionParam
@@ -253,6 +254,11 @@ class Run:
 
     def set_owner(self, owner: str) -> None:
         if owner != self.owner:
+            if self.owner == "human":
+                if self.expiry:
+                    self.expiry.cancel()
+                    self.expiry = None
+                self.expires_at = None
             self.owner = owner
             self.version += 1
             self.add("control", owner)
@@ -485,7 +491,15 @@ class Run:
 
             await page.screencast.start(size={"width": 1024, "height": 720}, quality=75, on_frame=on_frame)
             if not await self.matches(point) or self.version != version:
-                await self.close_owned(page.screencast.stop)
+
+                async def stop_stale_cast() -> None:
+                    try:
+                        await page.screencast.stop()
+                    except TargetClosedError:
+                        if not page.is_closed():
+                            raise
+
+                await self.close_owned(stop_stale_cast)
                 return
             self.cast_page = page
             self.view_binding = point
@@ -935,9 +949,6 @@ class Run:
             await self.capture(cancelled=transfer.is_set)
             if self.owner != "draining-to-agent" or self.version != version:
                 return
-            if self.expiry:
-                self.expiry.cancel()
-            self.expires_at = None
             self.phase_cancel = asyncio.Event()
             self.status, self.result = "running", None
             self.view_binding = None
