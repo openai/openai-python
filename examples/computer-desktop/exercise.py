@@ -720,13 +720,17 @@ def check_frames(*, phase_only: bool = False, startup_only: bool = False) -> Non
                     guest = cast(ControlledGuest, cast(object, desktop._guest))
                     guest.held_kind = kind
                     stopped = threading.Event()
-                    selected = action.Type(type="type", text="Synthetic note")
+                    selected: action.Type | action.Screenshot = (
+                        action.Type(type="type", text="Synthetic note")
+                        if kind == "type"
+                        else action.Screenshot(type="screenshot")
+                    )
 
                     def execute(
                         *,
                         asynchronous: bool = asynchronous,
                         desktop: Desktop = desktop,
-                        selected: action.Type = selected,
+                        selected: action.Type | action.Screenshot = selected,
                         stopped: threading.Event = stopped,
                     ) -> None:
                         if asynchronous:
@@ -741,6 +745,7 @@ def check_frames(*, phase_only: bool = False, startup_only: bool = False) -> Non
                     with ThreadPoolExecutor(max_workers=2) as pool:
                         active = pool.submit(execute)
                         assert guest.input_entered.wait(timeout=2)
+                        assert guest.requests == ["ready", kind], guest.requests
                         phase_stopping = pool.submit(desktop.stop) if owner_stop else None
                         if not owner_stop:
                             stopped.set()

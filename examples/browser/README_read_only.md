@@ -8,11 +8,12 @@ Responses chooses which pages to read. The driver exposes only page text, tabs
 and navigation to those three pages. It cannot submit a form or change a record.
 Playwright serves the pages from memory and blocks every other browser request.
 
-From the root of a Python SDK source archive, install the SDK and browser dependency:
+From the Python SDK checkout or source archive root, install this source and
+the browser dependency:
 
 ```sh
 python3 -m venv .venv-browser
-.venv-browser/bin/python -m pip install --upgrade openai playwright==1.63.0
+.venv-browser/bin/python -m pip install -e . playwright==1.63.0
 .venv-browser/bin/python -m playwright install chromium
 ```
 

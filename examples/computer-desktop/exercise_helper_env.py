@@ -186,8 +186,10 @@ def main() -> None:
 
         with patch("guest.subprocess.Popen", controlled):
             owner = Guest(root)
+            assert owner.process.stdin is not None
             assert owner.process.wait(timeout=5) == 7
             owner.remove()
+            assert owner.process.stdin.closed, "Stopped owner retained its liveness pipe"
         assert list((root / "runs").iterdir()) == []
     for change in (
         "device",
