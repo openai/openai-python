@@ -560,7 +560,18 @@ def remove(root: Path, id: str) -> None:
             remove(root, id)
             return
     owned(marker, 0o600)
-    expected: dict[str, Any] = json.loads(marker.read_text())
+    try:
+        expected: dict[str, Any] = json.loads(marker.read_text())
+    except json.JSONDecodeError:
+        # An interrupted marker write is recoverable only before the run moved.
+        # Revalidate its original receipt and preserve any unexpected cleanup data.
+        run_record(root, id)
+        if set(cleanup.iterdir()) != {marker}:
+            raise
+        marker.unlink()
+        cleanup.rmdir()
+        remove(root, id)
+        return
     if expected.get("path") != str(root.resolve() / "runs" / id):
         raise RuntimeError("Run directory changed while reaping; cleanup record retained.")
     try:
