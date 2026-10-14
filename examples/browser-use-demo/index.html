@@ -670,7 +670,7 @@
       const token = new URLSearchParams(location.hash.slice(1)).get('token') || '';
       history.replaceState(null, '', location.pathname);
       let current = null;
-      let liveAvailable = false;
+      let liveAvailable = {};
       let busy = false;
       let pictureURL = null;
       let displayed = null;
@@ -704,14 +704,15 @@
       }
       function render() {
         const active = Boolean(current && (current.owner !== 'stopped' || current.closing));
+        const configured = liveAvailable[byId('api').value] === true;
         byId('mode').disabled = active || busy;
         byId('api').disabled = active || busy || byId('mode').value === 'rehearsal';
-        byId('start').disabled = active || busy || (byId('mode').value === 'live' && !liveAvailable);
+        byId('start').disabled = active || busy || (byId('mode').value === 'live' && !configured);
         byId('stop').disabled = !active || busy;
         byId('availability').textContent =
           byId('mode').value === 'rehearsal'
             ? 'Scripted locally. No API key or request.'
-            : liveAvailable
+            : configured
               ? 'Live API configured on the local server.'
               : 'Configure a server key and model, or choose rehearsal.';
         const human = current?.owner === 'human' && !current.humanInputBusy && !current.uncertainEffects;
@@ -842,6 +843,7 @@
         byId('api').value = byId('mode').value === 'rehearsal' ? 'decisions' : 'responses';
         render();
       });
+      byId('api').addEventListener('change', render);
       byId('start').addEventListener('click', async () => {
         if (busy || byId('start').disabled) return;
         busy = true;

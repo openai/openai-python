@@ -27,6 +27,11 @@ async def run() -> None:
             await client.get("/api/state", headers={"Origin": "https://example.org", "X-Demo-Token": app.token})
         ).status_code == 403
         client.headers["X-Demo-Token"] = app.token
+        app.api_key = "test-only"
+        for api in ("responses", "decisions"):
+            app.models = {api: "test-only"}
+            available = (await client.get("/api/state")).json()["liveAvailable"]
+            assert available == {name: name == api for name in ("responses", "decisions")}
 
         async def state() -> dict[str, Any]:
             result = await client.get("/api/state")

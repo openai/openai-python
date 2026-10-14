@@ -11,7 +11,7 @@ from html import escape
 from typing import Any, Literal, TypeVar, cast
 from pathlib import Path
 from contextlib import asynccontextmanager
-from urllib.parse import urljoin, urlsplit
+from urllib.parse import quote, unquote, urljoin, urlsplit
 from collections.abc import Callable, Awaitable, AsyncGenerator
 
 from playwright.async_api import Page, Route, Browser, WebSocketRoute, async_playwright
@@ -185,11 +185,23 @@ async def open_reader(documents: dict[str, Any] | None = None) -> AsyncGenerator
     pages: dict[str, str] = {}
     for pathname, document in source.items():
         url = urlsplit(urljoin(HOME, pathname))
-        if url.scheme != "http" or url.netloc != "reader.invalid" or url.path != pathname or url.query or url.fragment:
+        if (
+            url.scheme != "http"
+            or url.netloc != "reader.invalid"
+            or url.path != pathname
+            or url.query
+            or url.fragment
+            or "\\" in pathname
+            or any(unquote(part) in (".", "..") for part in pathname.split("/"))
+        ):
             raise ValueError("Reader document keys must be paths on the local synthetic reader origin.")
-        if len(url.geturl().encode("utf-8")) > 16_384:
+        # Chromium encodes path text while keeping these legal path characters and existing escapes.
+        destination = url._replace(path=quote(url.path, safe="/!$&'()*+,-.:;=@[]^_|~%")).geturl()
+        if len(destination.encode("utf-8")) > 16_384:
             raise ValueError("Reader page URLs must fit the 16 KiB reader budget.")
-        pages[url.geturl()] = (
+        if destination in pages:
+            raise ValueError("Reader document keys must not alias the same local page.")
+        pages[destination] = (
             '<!doctype html><meta charset="utf-8">'
             f"<title>{escape(document['title'])}</title><main><h1>{escape(document['title'])}</h1>"
             + "".join(f"<p>{escape(text)}</p>" for text in document["paragraphs"])

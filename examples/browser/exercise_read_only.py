@@ -62,6 +62,31 @@ async def main() -> None:
         else:
             assert payload(after)["ok"] is False, "A reader must retire after an uncertain navigation."
     boundary = "/" + "a" * (16_384 - len("http://reader.invalid/".encode()))
+    custom = {
+        "/": {"title": "Index", "paragraphs": [], "links": {"/group hours": "Hours", "/地図": "Map"}},
+        "/group hours": {"title": "Hours", "paragraphs": ["11:15 to 19:00"], "links": {"/地図": "Map"}},
+        "/地図": {"title": "Map", "paragraphs": ["North gate"], "links": {"/guide!v2%20today": "Notes"}},
+        "/guide!v2%20today": {"title": "Notes", "paragraphs": ["Current guide"], "links": {}},
+    }
+    async with open_reader(custom) as reader:
+        for destination, content in (
+            ("http://reader.invalid/group%20hours", "11:15 to 19:00"),
+            ("http://reader.invalid/%E5%9C%B0%E5%9B%B3", "North gate"),
+            ("http://reader.invalid/guide!v2%20today", "Current guide"),
+        ):
+            text = payload(await reader.execute(ResponseFunctionToolCall(**call("get_page_text", {"tab_id": None}))))
+            assert destination in text["result"]
+            moved = payload(
+                await reader.execute(ResponseFunctionToolCall(**call("navigate", {"tab_id": None, "url": destination})))
+            )
+            assert moved["ok"] is True, (destination, moved)
+            text = payload(await reader.execute(ResponseFunctionToolCall(**call("get_page_text", {"tab_id": None}))))
+            assert content in text["result"]
+    try:
+        async with open_reader({**custom, "/group%20hours": custom["/group hours"]}):
+            raise AssertionError("Two document keys resolved to the same route")
+    except ValueError as error:
+        assert "alias" in str(error)
     try:
         async with open_reader({**documents, boundary + "b": documents["/"]}):
             raise AssertionError("A reader URL over 16 KiB was accepted")
@@ -91,6 +116,8 @@ async def main() -> None:
         "/hours#fragment",
         "/hours?view=short",
         "relative",
+        "/group\\hours",
+        "/other/%2e%2e/hours",
     ):
         try:
             async with open_reader({**documents, key: documents["/"]}):

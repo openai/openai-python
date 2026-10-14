@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import os
+import sys
 import json
 import stat
+import shutil
 import tempfile
 import subprocess
 from typing import Any
@@ -14,6 +16,97 @@ from unittest.mock import patch
 from guest import Guest
 
 from openai.lib.computer import ComputerUseError
+
+
+def cleanup(change: str) -> None:
+    with tempfile.TemporaryDirectory(prefix="sdk-cleanup-") as directory:
+        root = Path(directory)
+        public = root / "run"
+        public.mkdir(mode=0o700)
+        saved = root / "saved"
+        guest = Guest.__new__(Guest)
+        guest.container_root = None
+        guest.directory = public
+        guest.original = public.lstat()
+        guest.readers = []
+        with subprocess.Popen([sys.executable, "-c", "pass"], stdout=subprocess.PIPE) as child:
+            child.wait(timeout=5)
+            guest.process = child
+            original_lstat = Path.lstat
+            original_rm = shutil.rmtree
+            injected = False
+            obstructed = False
+
+            def lstat(path: Path) -> os.stat_result:
+                nonlocal injected
+                info = original_lstat(path)
+                if not injected and change == "before-move" and path == public:
+                    injected = True
+                    public.rename(saved)
+                    public.mkdir(mode=0o700)
+                    (public / "sentinel").write_text("stranger")
+                if not injected and change == "after-move" and path.parent.name.startswith(".cleanup-"):
+                    injected = True
+                    public.mkdir(mode=0o700)
+                    (public / "sentinel").write_text("stranger")
+                return info
+
+            def remove(path: Path) -> None:
+                nonlocal injected, obstructed
+                if not injected and change == "remove-retry":
+                    injected = True
+                    raise OSError("fixture removal failure")
+                original_rm(path)
+                if not obstructed and change == "remove-retry":
+                    obstructed = True
+                    (path.parent / "sentinel").write_text("stranger")
+
+            with patch.object(Path, "lstat", lstat), patch("guest.shutil.rmtree", remove):
+                if change == "device":
+                    correct = guest.original
+                    record = list(correct)
+                    record[2] += 1
+                    guest.original = os.stat_result(record)
+                    try:
+                        guest.remove()
+                    except ComputerUseError:
+                        pass
+                    else:
+                        raise AssertionError("Changed device must be rejected")
+                    assert public.is_dir()
+                    guest.original = correct
+                    guest.remove()
+                elif change == "before-move":
+                    try:
+                        guest.remove()
+                    except ComputerUseError:
+                        pass
+                    else:
+                        raise AssertionError("Replaced run must never be deleted")
+                    assert saved.is_dir()
+                    (quarantine,) = root.glob(".cleanup-*")
+                    assert (quarantine / "run/sentinel").read_text() == "stranger"
+                elif change == "after-move":
+                    guest.remove()
+                    assert injected and (public / "sentinel").read_text() == "stranger"
+                else:
+                    try:
+                        guest.remove()
+                    except OSError as exc:
+                        assert str(exc) == "fixture removal failure"
+                    else:
+                        raise AssertionError("Actual removal failure must remain visible")
+                    try:
+                        guest.remove()
+                    except OSError:
+                        pass
+                    else:
+                        raise AssertionError("Nonempty quarantine must not be removed recursively")
+                    extra = guest.directory.parent / "sentinel"
+                    assert extra.read_text() == "stranger"
+                    extra.unlink()
+                    guest.remove()
+                    assert list(root.iterdir()) == []
 
 
 def main() -> None:
@@ -49,7 +142,9 @@ def main() -> None:
         assert env["TMPDIR"] == str(root) and env["LANG"] == "C"
         assert set(env) == {"PATH", "LANG", "TMPDIR"}
         assert not (set(sentinels) & set(env))
-        print(json.dumps({"checks": 1, "api_calls": 0, "vendor_calls": 0, "vm_starts": 0}))
+    for change in ("device", "before-move", "after-move", "remove-retry"):
+        cleanup(change)
+    print(json.dumps({"checks": 5, "api_calls": 0, "vendor_calls": 0, "vm_starts": 0}))
 
 
 if __name__ == "__main__":

@@ -91,9 +91,9 @@ class Fieldwork:
                 run.view_task.add_done_callback(lambda done: done.exception() if not done.cancelled() else None)
             return as_json(
                 {
-                    "liveAvailable": bool(
-                        self.api_key and (self.models.get("responses") or self.models.get("decisions"))
-                    ),
+                    "liveAvailable": {
+                        api: bool(self.api_key and self.models.get(api)) for api in ("responses", "decisions")
+                    },
                     "run": await run.snapshot() if run else None,
                 }
             )
