@@ -148,7 +148,9 @@ def main() -> None:
         "HTTP_PROXY": "fixture-proxy",
         "DOCKER_CONTEXT": "fixture-context",
     }
-    with tempfile.TemporaryDirectory(prefix="sdk-guest-env-") as directory:
+    with tempfile.TemporaryDirectory(
+        dir="/private/tmp" if sys.platform == "darwin" else None, prefix="sge-"
+    ) as directory:
         root = Path(directory)
         root.chmod(stat.S_IRWXU)
         (root / "runs").mkdir(mode=0o700)
@@ -168,9 +170,25 @@ def main() -> None:
         assert len(launches) == 1
         args, env = launches[0]
         assert args[1:3] == ["-I", "-S"]
-        assert env["TMPDIR"] == str(root) and env["LANG"] == "C"
+        assert env["TMPDIR"] == str(root.resolve()) and env["LANG"] == "C"
         assert set(env) == {"PATH", "LANG", "TMPDIR"}
         assert not (set(sentinels) & set(env))
+        (root / "bin").mkdir(mode=0o700)
+        binary = root / "bin/vfkit"
+        binary.write_text("#!/bin/sh\nexit 7\n")
+        binary.chmod(0o700)
+        original_popen = subprocess.Popen
+
+        def controlled(command: list[str], **options: Any) -> subprocess.Popen[bytes]:
+            if "guest/setup.py" in command[3]:
+                return original_popen([sys.executable, "-I", "-S", "-c", "pass"], **options)
+            return original_popen(command, **options)
+
+        with patch("guest.subprocess.Popen", controlled):
+            owner = Guest(root)
+            assert owner.process.wait(timeout=5) == 7
+            owner.remove()
+        assert list((root / "runs").iterdir()) == []
     for change in (
         "device",
         "before-move",

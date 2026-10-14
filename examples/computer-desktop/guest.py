@@ -24,7 +24,7 @@ class Guest:
             raise ComputerUseError("Desktop startup was stopped.")
         if not runtime_dir.is_absolute():
             raise ComputerUseError("Use an absolute owned runtime path.")
-        root = runtime_dir
+        root = runtime_dir.resolve(strict=True)
         info = root.lstat()
         if not stat.S_ISDIR(info.st_mode) or info.st_uid != os.getuid() or stat.S_IMODE(info.st_mode) != 0o700:
             raise ComputerUseError("Invalid owned runtime root.")
@@ -111,10 +111,10 @@ class Guest:
         self.output = {"stdout": 0, "stderr": 0}
         try:
             self.process = subprocess.Popen(
-                args,
+                [sys.executable, "-I", "-S", str(Path(__file__).parent / "guest/vm_owner.py"), "--", *args],
                 cwd=self.directory,
                 env={"PATH": "/usr/bin:/bin:/usr/sbin:/sbin", "LANG": "C", "TMPDIR": str(self.directory)},
-                stdin=subprocess.DEVNULL,
+                stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )

@@ -260,6 +260,24 @@ class ReceiptTests(unittest.TestCase):
         self.prepare_runtime()
         setup.verify(self.root)
 
+    def test_runtime_alias_and_writable_parent(self) -> None:
+        self.prepare_runtime()
+        with tempfile.TemporaryDirectory(
+            dir="/private/tmp" if sys.platform == "darwin" else None, prefix="va-"
+        ) as temporary:
+            parent = Path(temporary)
+            moved = parent / "runtime"
+            self.root.rename(moved)
+            alias = parent / "alias"
+            alias.symlink_to(moved, target_is_directory=True)
+            setup.verify(alias)
+            parent.chmod(0o777)
+            try:
+                with self.assertRaisesRegex(ValueError, "ancestor"):
+                    setup.verify(moved)
+            finally:
+                parent.chmod(0o700)
+
     @unittest.skipUnless(sys.platform == "darwin" and setup.platform.machine() == "arm64", "Mac VM preflight")
     def test_known_legacy_requires_original_build(self) -> None:
         self.prepare_runtime()
