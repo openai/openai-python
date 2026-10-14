@@ -169,7 +169,7 @@ class Docker:
 def startup_failure() -> None:
     for foreign, renamed in ((False, False), (True, False), (False, True), (True, True)):
         with TemporaryDirectory() as temporary:
-            root = Path(temporary) / "runtime"
+            root = Path(temporary).resolve() / "runtime"
             prepare(root)
             driver = Docker(
                 root, available=True, receipt=True, start_failure=True, foreign_after_start=foreign, renamed=renamed
@@ -190,9 +190,42 @@ def startup_failure() -> None:
             assert (root / "runs/unrelated/sentinel").read_text() == "other run"
 
 
+def create_cancelled_before_launch(*, timeout: bool) -> None:
+    with TemporaryDirectory() as temporary:
+        root = Path(temporary).resolve() / "runtime"
+        prepare(root)
+        driver = Docker(root, available=True, receipt=False)
+        elapsed = 0.0
+        real_fsync = os.fsync
+
+        def fsync(fd: int) -> None:
+            nonlocal elapsed
+            real_fsync(fd)
+            if timeout:
+                elapsed = 61
+            else:
+                driver.cancelled = True
+
+        with (
+            patch.object(runtime, "local_only", return_value="/unused/local-docker"),
+            patch.object(runtime.subprocess, "Popen", side_effect=driver.popen),
+            patch.object(runtime, "time", SimpleNamespace(monotonic=lambda: elapsed)),
+            patch.object(runtime.os, "fsync", side_effect=fsync),
+        ):
+            try:
+                runtime.start(root, cancelled=driver.is_cancelled)
+            except runtime.StartupCancelled:
+                pass
+            else:
+                raise AssertionError("Cancellation before launch returned a guest")
+        assert [call[0] for call in driver.calls] == ["image"]
+        assert list((root / "runs").iterdir()) == [root / "runs/unrelated"]
+        assert (root / "runs/unrelated/sentinel").read_text() == "other run"
+
+
 def initial_intent_failure(boundary: str) -> None:
     with TemporaryDirectory() as temporary:
-        root = Path(temporary) / "runtime"
+        root = Path(temporary).resolve() / "runtime"
         prepare(root)
         driver = Docker(root, available=True, receipt=False)
         original_open: Callable[..., Any] = Path.open
@@ -262,7 +295,7 @@ def initial_intent_failure(boundary: str) -> None:
 
 def cleanup_replacement(*, replace: bool, after_move: bool = False, after_open: bool = False) -> None:
     with TemporaryDirectory() as temporary:
-        root = Path(temporary) / "runtime"
+        root = Path(temporary).resolve() / "runtime"
         prepare(root)
         run_id = "123456789abc"
         directory = root / "runs" / run_id
@@ -354,7 +387,7 @@ def cleanup_replacement(*, replace: bool, after_move: bool = False, after_open: 
 
 def cleanup_marker_interruption(*, before_write: bool, foreign: bool = False, partial: bool = False) -> None:
     with TemporaryDirectory() as temporary:
-        root = Path(temporary) / "runtime"
+        root = Path(temporary).resolve() / "runtime"
         prepare(root)
         run_id = "123456789abc"
         directory = root / "runs" / run_id
@@ -434,7 +467,7 @@ def cleanup_marker_interruption(*, before_write: bool, foreign: bool = False, pa
 
 def cleanup_deadline(*, hold_rm: bool) -> None:
     with TemporaryDirectory() as temporary:
-        root = Path(temporary) / "runtime"
+        root = Path(temporary).resolve() / "runtime"
         prepare(root)
         driver = Docker(root, available=True, receipt=True)
         run_id = "e" * 12
@@ -501,7 +534,7 @@ def cleanup_deadline(*, hold_rm: bool) -> None:
 
 def startup_deadline(boundary: str | None) -> None:
     with TemporaryDirectory() as temporary:
-        root = Path(temporary) / "runtime"
+        root = Path(temporary).resolve() / "runtime"
         prepare(root)
         driver = Docker(root, available=True, receipt=True, start_failure=True)
         elapsed = 0.0
@@ -555,7 +588,7 @@ def output_bounds(stream: str, cap: int) -> None:
     real_popen = subprocess.Popen[bytes]
     real_read = os.read
     with TemporaryDirectory() as temporary:
-        root = Path(temporary) / "runtime"
+        root = Path(temporary).resolve() / "runtime"
         prepare(root)
         marker = root / "completed-excess"
         children: list[subprocess.Popen[bytes]] = []
@@ -607,7 +640,7 @@ def output_bounds(stream: str, cap: int) -> None:
 def pipe_lifetimes() -> None:
     real_popen = subprocess.Popen[bytes]
     with TemporaryDirectory() as temporary:
-        root = Path(temporary) / "runtime"
+        root = Path(temporary).resolve() / "runtime"
         prepare(root)
         closed = root / "closed"
         data = bytes(range(256)) * 2048
@@ -694,7 +727,7 @@ def preflight_admission() -> None:
 
 def cancelled_health(boundary: str, *, exchange: bool = False) -> None:
     with TemporaryDirectory() as temporary:
-        root = Path(temporary) / "runtime"
+        root = Path(temporary).resolve() / "runtime"
         prepare(root)
         driver = Docker(root, available=True, receipt=True)
         id = "e" * 12
@@ -817,9 +850,71 @@ def setup_snapshot(changed: str | None) -> None:
             assert len(docker_calls) == (0 if changed and changed.startswith("copy-") else 1)
 
 
+def runtime_paths() -> None:
+    with TemporaryDirectory(prefix="desktop-paths-") as temporary:
+        parent = Path(temporary).resolve()
+        root = parent / "runtime"
+        prepare(root)
+        parent.chmod(0o777)
+        try:
+            with patch.object(runtime, "local_only", side_effect=AssertionError("Untrusted path reached Docker")):
+                for operation, path in (
+                    (runtime.setup, parent / "fresh"),
+                    (runtime.setup, root),
+                    (runtime.start, root),
+                ):
+                    try:
+                        operation(path)
+                    except ValueError as exc:
+                        assert "ancestor" in str(exc)
+                    else:
+                        raise AssertionError("Container admitted a writable runtime ancestor")
+            assert not (parent / "fresh").exists()
+        finally:
+            parent.chmod(0o700)
+        alias = parent / "runtime-link"
+        alias.symlink_to(root, target_is_directory=True)
+        value = runtime.runtime(alias)
+        assert value["owner"]["path"] == str(root)
+        with patch.object(runtime, "check_image") as inspect:
+            runtime.setup(alias)
+            inspect.assert_called_once_with(root, value)
+        with patch.object(runtime, "check_image", side_effect=RuntimeError("stop at checked image")) as inspect:
+            try:
+                runtime.start(alias)
+            except RuntimeError as exc:
+                assert str(exc) == "stop at checked image"
+            else:
+                raise AssertionError("Test image refusal was ignored")
+            assert inspect.call_args.args == (root, value)
+        assert (root / "runs/unrelated/sentinel").read_text() == "other run"
+        foreign = parent / "other"
+        prepare(foreign)
+        id = "0123456789ab"
+        cleanup = ".cleanup-" + id
+        (root / "runs" / cleanup).mkdir(mode=0o700)
+        (foreign / "runs" / cleanup).mkdir(mode=0o700)
+        verify = runtime.runtime
+
+        def swap_after_receipt(path: Path) -> dict[str, Any]:
+            result = verify(path)
+            alias.unlink()
+            alias.symlink_to(foreign, target_is_directory=True)
+            return result
+
+        with patch.object(runtime, "runtime", side_effect=swap_after_receipt):
+            runtime.remove(alias, id)
+        assert not (root / "runs" / cleanup).exists(), "Recovery must finish on the verified root"
+        assert (foreign / "runs" / cleanup).is_dir(), "Alias redirection must not remove another root"
+        assert (foreign / "runs/unrelated/sentinel").read_text() == "other run"
+
+
 def main() -> None:
+    runtime_paths()
     preflight_admission()
     startup_failure()
+    create_cancelled_before_launch(timeout=False)
+    create_cancelled_before_launch(timeout=True)
     for boundary in ("missing", "partial", "sync", "chmod", "directory", "file"):
         initial_intent_failure(boundary)
     cleanup_replacement(replace=True)
@@ -853,7 +948,7 @@ def main() -> None:
             raise AssertionError("Unsupported ARM host reached Docker lookup")
     for available, receipt in ((False, False), (True, False), (True, True)):
         with TemporaryDirectory() as temporary:
-            root = Path(temporary) / "runtime"
+            root = Path(temporary).resolve() / "runtime"
             prepare(root)
             driver = Docker(root, available=available, receipt=receipt)
             with (

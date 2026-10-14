@@ -20,6 +20,10 @@ from typing import NamedTuple
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+# This trusted checkout path also works when the verifier is started with python -I -S.
+sys.path.insert(0, str(HERE.parent))
+from container_runtime import setup as container_setup, checked_root  # noqa: E402
+
 GUEST_FILES = (
     "preseed.cfg",
     "finish-guest.sh",
@@ -146,17 +150,6 @@ def verify_staged(build: Path, expected: dict[str, str]) -> None:
     for destination, name in STAGED_INPUTS.items():
         if digest(build / destination) != expected[name]:
             raise ValueError("Staged guest provisioning differs from the captured recipe.")
-
-
-def checked_root(root: Path) -> Path:
-    if not root.is_absolute():
-        raise ValueError("Use an absolute runtime directory outside the SDK checkout.")
-    root = root.resolve()
-    for parent in root.parents:
-        info = parent.stat()
-        if info.st_uid not in (0, os.getuid()) or (info.st_mode & 0o022 and not info.st_mode & stat.S_ISVTX):
-            raise ValueError("Runtime ancestors must be trusted and not writable by other users.")
-    return root
 
 
 def verify(root: Path) -> None:
@@ -408,9 +401,6 @@ def main() -> None:
         elif options.backend == "container":
             if options.media_dir or options.vfkit or options.xorriso:
                 raise ValueError("VM options cannot be used with the container backend.")
-            sys.path.insert(0, str(HERE.parent))
-            from container_runtime import setup as container_setup
-
             container_setup(options.runtime_dir)
         else:
             setup(options.runtime_dir, options.media_dir, options.vfkit, options.xorriso)
