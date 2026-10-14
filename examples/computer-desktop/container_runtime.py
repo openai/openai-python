@@ -564,9 +564,31 @@ def remove(root: Path, id: str) -> None:
             directory.rename(moved)
             now = owned(moved, 0o700, True)
     if now is not None:
-        if now.st_ino != expected.get("inode") or now.st_dev != expected.get("device"):
-            raise RuntimeError("Run directory changed while reaping; private cleanup directory retained.")
-        shutil.rmtree(moved)
+        fd = os.open(moved, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+        try:
+            now = os.fstat(fd)
+            if (
+                now.st_ino != expected.get("inode")
+                or now.st_dev != expected.get("device")
+                or now.st_uid != os.getuid()
+                or stat.S_IMODE(now.st_mode) != 0o700
+            ):
+                raise RuntimeError("Run directory changed while reaping; private cleanup directory retained.")
+            for _, directories, files, here in os.fwalk(".", topdown=False, follow_symlinks=False, dir_fd=fd):
+                for name in files:
+                    os.unlink(name, dir_fd=here)
+                for name in directories:
+                    info = os.stat(name, dir_fd=here, follow_symlinks=False)
+                    if stat.S_ISLNK(info.st_mode):
+                        os.unlink(name, dir_fd=here)
+                    else:
+                        os.rmdir(name, dir_fd=here)
+            current = owned(moved, 0o700, True)
+            if current.st_ino != now.st_ino or current.st_dev != now.st_dev:
+                raise RuntimeError("Run directory changed while reaping; private cleanup directory retained.")
+            moved.rmdir()
+        finally:
+            os.close(fd)
     marker.unlink()
     cleanup.rmdir()
 
