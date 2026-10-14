@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-from contextlib import nullcontext
 
 import httpx2
 import pytest
@@ -57,7 +56,7 @@ async def test_retained_completed_call_identity(sync: bool, identity: str) -> No
     if sync:
         with OpenAI(api_key="fake-test-key", http_client=httpx2.Client(transport=transport)) as client:
             with client.responses.stream(model="test-model", input="test") as stream:
-                if identity in ("changed", "dropped", "replacement", "done-type", "done-id", "done-call"):
+                if identity in ("changed", "done-type", "done-id", "done-call"):
                     with pytest.raises(RuntimeError, match="identity"):
                         stream.get_final_response()
                 else:
@@ -70,7 +69,7 @@ async def test_retained_completed_call_identity(sync: bool, identity: str) -> No
             api_key="fake-test-key", http_client=httpx2.AsyncClient(transport=transport)
         ) as async_client:
             async with async_client.responses.stream(model="test-model", input="test") as async_stream:
-                if identity in ("changed", "dropped", "replacement", "done-type", "done-id", "done-call"):
+                if identity in ("changed", "done-type", "done-id", "done-call"):
                     with pytest.raises(RuntimeError, match="identity"):
                         await async_stream.get_final_response()
                 else:
@@ -208,26 +207,20 @@ async def test_stream_recovers_finalized_output(
         lambda _request: httpx2.Response(200, content=body, headers={"content-type": "text/event-stream"})
     )
     tools: list[ToolParam] = [{"type": "function", "name": "lookup", "parameters": {}, "strict": True}]
-    contradictory = has_items and terminal_output in ("empty", "present")
-    with pytest.raises(RuntimeError, match="identity") if contradictory else nullcontext():
-        if sync:
-            with OpenAI(api_key="fake-test-key", http_client=httpx2.Client(transport=transport)) as client:
-                with client.responses.stream(
-                    model="test-model", input="test", text_format=Answer, tools=tools
-                ) as stream:
-                    emitted = list(stream)
-                    final = stream.get_final_response()
-        else:
-            async with AsyncOpenAI(
-                api_key="fake-test-key", http_client=httpx2.AsyncClient(transport=transport)
-            ) as async_client:
-                async with async_client.responses.stream(
-                    model="test-model", input="test", text_format=Answer, tools=tools
-                ) as async_stream:
-                    emitted = [event async for event in async_stream]
-                    final = await async_stream.get_final_response()
-    if contradictory:
-        return
+    if sync:
+        with OpenAI(api_key="fake-test-key", http_client=httpx2.Client(transport=transport)) as client:
+            with client.responses.stream(model="test-model", input="test", text_format=Answer, tools=tools) as stream:
+                emitted = list(stream)
+                final = stream.get_final_response()
+    else:
+        async with AsyncOpenAI(
+            api_key="fake-test-key", http_client=httpx2.AsyncClient(transport=transport)
+        ) as async_client:
+            async with async_client.responses.stream(
+                model="test-model", input="test", text_format=Answer, tools=tools
+            ) as async_stream:
+                emitted = [event async for event in async_stream]
+                final = await async_stream.get_final_response()
 
     last_event = emitted[-1]
     assert last_event.type == "response.completed"
@@ -235,13 +228,13 @@ async def test_stream_recovers_finalized_output(
     assert final.id == "resp_test"
     assert final.status == "completed"
     assert final.usage is not None and final.usage.total_tokens == 3
-    if not has_items:
+    if not has_items or terminal_output == "empty":
         assert final.output == []
         assert final.output_text == ""
         return
 
     assert final.output_text == '{"answer": 4}'
-    assert len(final.output) == 2
+    assert len(final.output) == (1 if terminal_output == "present" else 2)
     message = final.output[0]
     assert message.type == "message" and message.status == "completed"
     assert message.id == "msg_test"
@@ -252,10 +245,11 @@ async def test_stream_recovers_finalized_output(
     assert citation.type == "url_citation" and citation.url == "https://example.com"
     refusal = message.content[1]
     assert refusal.type == "refusal" and refusal.refusal == "Final refusal"
-    tool = final.output[1]
-    assert tool.type == "function_call" and tool.status == "completed"
-    assert tool.id == "fc_test"
-    assert tool.parsed_arguments == {"answer": 4}
+    if terminal_output != "present":
+        tool = final.output[1]
+        assert tool.type == "function_call" and tool.status == "completed"
+        assert tool.id == "fc_test"
+        assert tool.parsed_arguments == {"answer": 4}
 
 
 def test_parse_response_with_null_message_content() -> None:

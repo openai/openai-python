@@ -484,9 +484,7 @@ class ResponseStreamState(Generic[TextFormatT]):
             final_items = {_output_identity(item): item for item in (final_output or [])}
             for completed_item in self._completed_output.values():
                 final_completed_item = final_items.get(_output_identity(completed_item))
-                if final_output is not None and (
-                    final_completed_item is None or not _compatible_output_id(completed_item, final_completed_item)
-                ):
+                if final_completed_item is not None and not _compatible_output_id(completed_item, final_completed_item):
                     raise RuntimeError("Completed response output identity changed.")
             for index, item in self._output_items.items():
                 final_item = final_items.get(_output_identity(item))

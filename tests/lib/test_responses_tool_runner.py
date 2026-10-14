@@ -4314,7 +4314,7 @@ async def test_reasoning_ciphertext_reconciliation_preserves_terminal_history(la
     ) as rig:
         turns, _desktop, _computer, effects, requests, _closed = rig
         if change != "ciphertext":
-            with pytest.raises(ToolRunnerError, match="stopped before completion" if change == "id" else "differs"):
+            with pytest.raises(ToolRunnerError, match="differs"):
                 await next_turn(turns)
             assert effects == [] and len(requests) == 1
             return
