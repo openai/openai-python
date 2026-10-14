@@ -22,10 +22,6 @@ def drain_response(response: httpx2.Response) -> None:
     if not isinstance(sock, socket.socket) or response.is_closed:
         return
 
-    saved_timeout = cast("dict[str, float | None] | None", response.request.extensions.get("timeout"))
-    read_timeout = (saved_timeout or {}).get("read")
-    timeout = _DRAIN_TIMEOUT if read_timeout is None else min(_DRAIN_TIMEOUT, read_timeout)
-
     def interrupt_read() -> None:
         try:
             # Interrupt I/O without mutating SSLSocket's TLS state on this thread.
@@ -35,17 +31,16 @@ def drain_response(response: httpx2.Response) -> None:
 
     # A read timeout alone is insufficient: HTTP trailers can trickle in without
     # yielding body chunks. Interrupt the socket when the total budget expires.
-    deadline = time.monotonic() + timeout
-    timer = threading.Timer(timeout, interrupt_read)
+    deadline = time.monotonic() + _DRAIN_TIMEOUT
+    timer = threading.Timer(_DRAIN_TIMEOUT, interrupt_read)
     timer.daemon = True
     try:
         timer.start()
     except RuntimeError:
         return  # Cleanup is optional if a watchdog thread cannot be started.
     try:
-        response.request.extensions["timeout"] = {**(saved_timeout or {}), "read": timeout}
-        # Restart the transport iterator so httpcore picks up the cleanup timeout,
-        # without passing discarded bytes through SSE or decompression again.
+        # Drain below Response.iter_bytes() without decoding discarded bytes.
+        # The watchdog supplies the deadline; the request's read timeout stays intact.
         for _ in cast(Iterable[bytes], response.stream):
             if time.monotonic() >= deadline:
                 break
@@ -56,10 +51,6 @@ def drain_response(response: httpx2.Response) -> None:
         # The watchdog must finish before close() can return this connection to
         # the pool, or it could interrupt a subsequent request on the same socket.
         timer.join()
-        if saved_timeout is None:
-            response.request.extensions.pop("timeout", None)
-        else:
-            response.request.extensions["timeout"] = saved_timeout
 
 
 async def drain_response_async(response: httpx2.Response) -> None:
@@ -71,7 +62,7 @@ async def drain_response_async(response: httpx2.Response) -> None:
                 # Also enforce the deadline on transports yielding buffered data.
                 await checkpoint()
     except request_exceptions() + stream_consumed_exceptions():
-        pass
+        pass  # Cleanup must not turn completed output into a request error.
     finally:
         # Close outside our timeout scope and shield cleanup from caller
         # cancellation. Cancellation still propagates after the response closes.
