@@ -413,7 +413,32 @@ def start(root: Path, *, cancelled: Callable[[], bool] | None = None) -> str:
         "nonce": secrets.token_hex(24),
         "image": value["image"],
     }
-    write_new(directory / "intent.json", intent)
+    receipt = directory / "intent.json"
+    created: os.stat_result | None = None
+    try:
+        with receipt.open("x") as output:
+            created = os.fstat(output.fileno())
+            os.fchmod(output.fileno(), 0o600)
+            json.dump(intent, output)
+            output.write("\n")
+            output.flush()
+            os.fsync(output.fileno())
+    except BaseException:
+        # No Docker create was sent. Never use a partial receipt to infer
+        # container ownership or remove a replacement directory/file.
+        if identity(directory) != intent["owner"]:
+            raise ValueError("Pre-create directory changed; run retained.") from None
+        if created is not None:
+            current = receipt.lstat()
+            if not stat.S_ISREG(current.st_mode) or (current.st_dev, current.st_ino, current.st_uid) != (
+                created.st_dev,
+                created.st_ino,
+                created.st_uid,
+            ):
+                raise ValueError("Pre-create receipt changed; run retained.") from None
+            receipt.unlink()
+        directory.rmdir()
+        raise
     try:
         # One create attempt. A cancelled caller cannot retry it.
         docker(
