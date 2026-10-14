@@ -133,10 +133,12 @@ python examples/computer-desktop/exercise.py --runtime-dir /tmp/desktop-$UID
 ```
 
 Each SDK owner creates one container with no network, published ports, host
-mounts or devices. It runs as a non-root user with normal Chromium sandboxing,
-no extra capabilities, no-new-privileges, private IPC, a read-only root and
-bounded memory, CPU, processes and temporary filesystems. The owner sends the
-existing fixed action protocol through `docker exec`; it opens no VNC port.
+mounts or devices. The control owner and fixed action helper run as root with
+only the SETUID, SETGID and KILL capabilities. The browser, editor and display
+server run as an unprivileged user with Chromium sandboxing enabled. The
+container uses no-new-privileges, private IPC, a read-only root and bounded
+memory, CPU, processes and temporary filesystems. The owner sends the existing
+fixed action protocol through `docker exec`; it opens no VNC port.
 Stop removes only the exact owned container and run directory. It never
 deletes an image from the shared Docker cache.
 

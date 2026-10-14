@@ -84,7 +84,10 @@ async def run() -> None:
         await post("/api/approval", {**binding(offered), "approvalId": offered["approval"]["id"], "approved": True})
         done = await until(lambda s: s["owner"] == "stopped" and not s["closing"])
         assert done["result"] == "verified" and done["requests"] == 0, done
-        assert done["fixture"]["results"] == {"confirmation": "TABLE-204"}, done
+        assert done["fixture"]["results"] == {
+            "confirmation": "TABLE-204",
+            "fields": {"Guest name": "Ada", "Party size": "2", "Time": "18:00", "Seating": "Indoor"},
+        }, done
         assert all(
             done["fixture"]["fields"].get(k) == v
             for k, v in {"Guest name": "Ada", "Party size": "2", "Time": "18:00", "Seating": "Indoor"}.items()
@@ -141,6 +144,21 @@ async def run() -> None:
         finally:
             release.set()
             current.capture = original_capture
+        await post("/api/start", {"taskId": "reservation", "api": "decisions", "mode": "rehearsal"})
+        offered = await until(lambda s: s["approval"] is not None)
+        await post("/api/take-control", binding(offered))
+        await until(lambda s: s["owner"] == "human" and not s["humanInputBusy"])
+        submitted_run = app.current
+        assert submitted_run is not None and submitted_run.task_page is not None
+        await submitted_run.task_page.get_by_label("Guest name").fill("Grace")
+        await submitted_run.task_page.get_by_role("button", name="Reserve table").click()
+        await submitted_run.task_page.get_by_label("Guest name").fill("Ada")
+        receipt = await submitted_run.inspect()
+        assert receipt["verified"] is False, "Editing a confirmed form cannot change the submitted booking"
+        assert receipt["results"]["fields"]["Guest name"] == "Grace"
+        await post("/api/stop", {"runId": submitted_run.id})
+        stopped = await until(lambda s: s["owner"] == "stopped" and not s["closing"])
+        assert stopped["result"] == "unverified"
         print("PASS booking: auth, approval, fresh handoff, pixels, independent result, Stop.")
 
 

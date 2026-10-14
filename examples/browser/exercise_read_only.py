@@ -62,7 +62,7 @@ async def main() -> None:
         else:
             assert payload(after)["ok"] is False, "A reader must retire after an uncertain navigation."
     boundary = "/" + "a" * (16_384 - len("http://reader.invalid/".encode()))
-    custom = {
+    custom: dict[str, Any] = {
         "/": {"title": "Index", "paragraphs": [], "links": {"/group hours": "Hours", "/地図": "Map"}},
         "/group hours": {"title": "Hours", "paragraphs": ["11:15 to 19:00"], "links": {"/地図": "Map"}},
         "/地図": {"title": "Map", "paragraphs": ["North gate"], "links": {"/guide!v2%20today": "Notes"}},

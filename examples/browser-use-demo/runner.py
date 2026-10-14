@@ -520,10 +520,11 @@ class Run:
             })"""),
             cancelled,
         )
-        state["verified"] = (
-            isinstance(state["results"], dict)
-            and cast(dict[str, Any], state["results"]).get("confirmation") == "TABLE-204"
-            and all(state["fields"].get(name) == value for name, value in self.task["fields"].items())
+        results: dict[str, Any] = cast(dict[str, Any], state["results"]) if isinstance(state["results"], dict) else {}
+        submitted: dict[str, Any] = results.get("fields", {})
+        state["verified"] = results.get("confirmation") == "TABLE-204" and all(
+            submitted.get(name) == value and state["fields"].get(name) == value
+            for name, value in self.task["fields"].items()
         )
         return state
 

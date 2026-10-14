@@ -716,12 +716,13 @@
               ? 'Live API configured on the local server.'
               : 'Configure a server key and model, or choose rehearsal.';
         const human = current?.owner === 'human' && !current.humanInputBusy && !current.uncertainEffects;
-        const frameCurrent =
-          !current?.browser ||
-          (displayed?.runId === current.id &&
-            displayed.ownerVersion === current.ownerVersion &&
-            displayed.tabId === current.browser.tabId &&
-            displayed.sequence === current.browser.sequence);
+        const frameCurrent = Boolean(
+          current?.browser &&
+          displayed?.runId === current.id &&
+          displayed.ownerVersion === current.ownerVersion &&
+          displayed.tabId === current.browser.tabId &&
+          displayed.sequence === current.browser.sequence,
+        );
         byId('take-control').disabled =
           busy || current?.owner !== 'agent' || current?.humanInputBusy || !frameCurrent;
         byId('return-control').disabled = busy || !human;

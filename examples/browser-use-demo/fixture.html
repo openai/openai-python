@@ -165,7 +165,13 @@
       for (const field of card.querySelectorAll('input,select')) field.addEventListener('input', changed);
       card.querySelector('form').addEventListener('submit', (event) => {
         event.preventDefault();
-        body.dataset.results = JSON.stringify({ confirmation: id });
+        const fields = Object.fromEntries(
+          [...card.querySelectorAll('input,select')].map((field) => [
+            field.getAttribute('aria-label'),
+            field.value,
+          ]),
+        );
+        body.dataset.results = JSON.stringify({ confirmation: id, fields });
         body.dataset.finished = 'true';
         changed();
         const status = card.querySelector('[role=status]');
