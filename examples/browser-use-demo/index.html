@@ -730,7 +730,7 @@
         byId('human-controls').disabled = busy || !human || !frameCurrent;
         byId('screen').setAttribute('aria-disabled', String(!human || busy || !frameCurrent));
         byId('approval').hidden = !current?.approval;
-        byId('approve').disabled = busy || !current?.approval;
+        byId('approve').disabled = busy || !current?.approval || !frameCurrent;
         byId('refuse').disabled = busy || !current?.approval;
         if (!current) return;
         byId('status').textContent =
@@ -831,12 +831,18 @@
         }
       }
       async function control(path, extra = {}) {
-        if (!current || busy || (path === '/api/input' && byId('human-controls').disabled)) return;
+        const frameControl =
+          path === '/api/input'
+            ? 'human-controls'
+            : path === '/api/approval' && extra.approved === true
+              ? 'approve'
+              : null;
+        if (!current || busy || (frameControl && byId(frameControl).disabled)) return;
         busy = true;
         const run = current;
         render();
         try {
-          await request(path, { ...(path === '/api/input' ? displayed : binding(run)), ...extra });
+          await request(path, { ...(frameControl ? displayed : binding(run)), ...extra });
           byId('message').textContent = '';
         } catch (error) {
           byId('message').textContent = error.message;

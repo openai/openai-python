@@ -57,12 +57,24 @@ async def main() -> None:
             await context.close()
 
             dashboard = await browser.new_page()
+            await dashboard.add_init_script("""const decode = HTMLImageElement.prototype.decode;
+              HTMLImageElement.prototype.decode = async function () {
+                await decode.call(this);
+                if (this.id === 'screen' && !document.getElementById('approval').hidden) {
+                  HTMLImageElement.prototype.decode = decode;
+                  await new Promise(resolve => { window.releaseApprovalFrame = resolve; });
+                }
+              };""")
             await dashboard.goto(app.launch_url)
             await dashboard.wait_for_function("location.hash === ''")
             assert app.token not in await dashboard.content()
             await dashboard.locator("#mode").select_option("rehearsal")
             await dashboard.locator("#start").click()
             await dashboard.locator("#approval").wait_for(state="visible", timeout=25000)
+            await dashboard.wait_for_function("() => typeof window.releaseApprovalFrame === 'function'")
+            approval_disabled = await dashboard.locator("#approve").is_disabled()
+            refusal_enabled = await dashboard.locator("#refuse").is_enabled()
+            await dashboard.evaluate("() => window.releaseApprovalFrame()")
             await dashboard.wait_for_function("""() => {
               const image = document.querySelector('#screen');
               return image.naturalWidth === 1024 && getComputedStyle(image).display !== 'none';
@@ -71,6 +83,7 @@ async def main() -> None:
             await dashboard.wait_for_function(
                 "() => document.querySelector('#status').textContent.toLowerCase().includes('refus')"
             )
+            assert approval_disabled and refusal_enabled
             await dashboard.locator("#start").click()
             await dashboard.locator("#approval").wait_for(state="visible", timeout=25000)
             await dashboard.locator("#take-control").click(timeout=25000)
