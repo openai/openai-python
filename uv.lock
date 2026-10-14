@@ -1685,6 +1685,9 @@ voice-helpers = [
 ]
 
 [package.dev-dependencies]
+browser-demo = [
+    { name = "playwright" },
+]
 build = [
     { name = "hatchling" },
     { name = "packaging" },
@@ -1741,6 +1744,7 @@ requires-dist = [
 provides-extras = ["aiohttp", "realtime", "datalib", "voice-helpers", "bedrock"]
 
 [package.metadata.requires-dev]
+browser-demo = [{ name = "playwright", specifier = "==1.63.0" }]
 build = [
     { name = "hatchling", specifier = "==1.32.4" },
     { name = "packaging", specifier = "==26.3" },

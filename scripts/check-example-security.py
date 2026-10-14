@@ -22,6 +22,10 @@ CASES: dict[str, list[tuple[str, ...]]] = {
         ("examples/computer-desktop/guest/test_action_admission.py",),
         ("examples/computer-desktop/guest/test_receipt.py",),
     ],
+    "demo": [
+        ("examples/browser-use-demo/exercise.py",),
+        ("examples/browser-use-demo/exercise_ui.py",),
+    ],
 }
 
 

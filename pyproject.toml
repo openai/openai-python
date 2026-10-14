@@ -71,6 +71,7 @@ pydantic-v1 = ["pydantic>=1.10.26,<2"]
 pydantic-v2 = ["pydantic>=2,<3"]
 provider-computer = ["Pillow==12.3.0"]
 provider-browser = ["playwright==1.63.0"]
+browser-demo = [{ include-group = "provider-browser" }]
 # Isolated build requirements are exported with hashes by scripts/build.
 build = [
     "hatchling==1.32.4",
@@ -167,6 +168,7 @@ pythonVersion = "3.10"
 
 exclude = [
     "examples/browser/",
+    "examples/browser-use-demo/",
     "examples/computer-desktop/",
     "_dev",
     "node_modules",
@@ -208,6 +210,7 @@ show_error_codes = true
 # which means it can't be type checked
 exclude = [
     'examples/browser/',
+    'examples/browser-use-demo/',
     'examples/computer-desktop/',
   'src/openai/_files.py',
   'node_modules/.*',
