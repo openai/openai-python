@@ -893,7 +893,7 @@ class Run:
             if self.closed or not self.task_page or self.task_page.is_closed():
                 self.stop("handoff_unavailable")
                 return
-            self.status = "paused"
+            self.status, self.result = "paused", None
             self.set_owner("human")
             human_version = self.version
             self.view_binding = None

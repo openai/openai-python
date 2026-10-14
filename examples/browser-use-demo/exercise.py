@@ -92,6 +92,50 @@ async def run() -> None:
         assert (
             await client.post("/api/input", json={**binding(offered), "action": "key", "key": "Enter"})
         ).status_code == 409
+        await post("/api/start", {"taskId": "reservation", "api": "decisions", "mode": "rehearsal"})
+        offered = await until(lambda s: s["approval"] is not None)
+        current = app.current
+        assert current is not None
+        original_capture = current.capture
+        entered, release = asyncio.Event(), asyncio.Event()
+
+        async def hold_verified(*, cancelled: Callable[[], bool] | None = None) -> None:
+            if not entered.is_set() and current.owner == "agent" and current.result == "verified":
+                entered.set()
+                await asyncio.wait_for(release.wait(), timeout=5)
+            await original_capture(cancelled=cancelled)
+
+        current.capture = hold_verified
+        try:
+            await post("/api/approval", {**binding(offered), "approvalId": offered["approval"]["id"], "approved": True})
+            await asyncio.wait_for(entered.wait(), timeout=5)
+            verified = await state()
+            assert verified["result"] == "verified" and verified["owner"] == "agent"
+            await post("/api/take-control", binding(verified))
+            release.set()
+            human = await until(lambda s: s["owner"] == "human" and not s["humanInputBusy"])
+            assert current.task_page is not None
+            bounds = await current.task_page.get_by_label("Guest name").bounding_box()
+            assert bounds is not None
+            await post(
+                "/api/input",
+                {
+                    **binding(human),
+                    "action": "click",
+                    "x": bounds["x"] + bounds["width"] / 2,
+                    "y": bounds["y"] + bounds["height"] / 2,
+                },
+            )
+            human = await state()
+            await post("/api/input", {**binding(human), "action": "type", "text": " changed"})
+            human = await state()
+            assert human["fixture"]["verified"] is False, human["fixture"]
+            await post("/api/stop", {"runId": human["id"]})
+            stopped = await until(lambda s: s["owner"] == "stopped" and not s["closing"])
+            assert stopped["result"] == "unverified", "The old agent result survived human editing and Stop"
+        finally:
+            release.set()
+            current.capture = original_capture
         print("PASS booking: auth, approval, fresh handoff, pixels, independent result, Stop.")
 
 
