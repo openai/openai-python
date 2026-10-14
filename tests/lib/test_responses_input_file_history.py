@@ -8,7 +8,7 @@ import pytest
 from openai.lib.responses_tool_runner import ResponsesToolCheckpoint
 from openai.types.responses.response_create_params import ResponseCreateParamsNonStreaming
 
-from .test_responses_tool_runner import FINAL, PARAMS, Driver, fn, run
+from .test_responses_tool_runner import FINAL, PARAMS, Driver, fn, run, resp
 
 
 @pytest.mark.parametrize("lane", ["sync", "async"])
@@ -346,3 +346,92 @@ async def test_native_replay_keeps_nullable_output_and_integer_logprobs(lane: st
     requests.clear()
     await run(lane, None, [FINAL], requests, computer=driver, save=records.append, resume=boundary, max_steps=None)
     assert requests[0]["input"] == [*history, {"role": "user", "content": PARAMS.get("input")}] and driver.actions == []
+
+
+@pytest.mark.parametrize("lane", ["sync", "async"])
+@pytest.mark.parametrize("restoring", [False, True], ids=["input", "resume"])
+@pytest.mark.parametrize(
+    ("where", "fields", "valid"),
+    [
+        ("call", {"call_id": "approval"}, False),
+        ("output", {"id": 42}, False),
+        ("output", {"name": 42}, False),
+        ("output", {"namespace": 42}, False),
+        ("output", {"caller": {"type": "program", "caller_id": 42}}, False),
+        ("output", {"status": "failed"}, False),
+        ("approval", {"id": 42}, False),
+        ("approval", {"reason": 42}, False),
+        ("output", {"id": None, "name": None, "namespace": None, "caller": None, "status": None}, True),
+        (
+            "output",
+            {"id": "fo", "name": "record", "namespace": "ns", "caller": {"type": "direct"}, "status": "incomplete"},
+            True,
+        ),
+        ("output", {"caller": {"type": "program", "caller_id": "pg"}, "status": "in_progress"}, True),
+        ("approval", {"id": None, "reason": None}, True),
+        ("approval", {"id": "answer", "reason": "Declined"}, True),
+    ],
+)
+async def test_history_original_output_and_approval_metadata(
+    lane: str, restoring: bool, where: str, fields: dict[str, object], valid: bool
+) -> None:
+    history: list[dict[str, object]] = [
+        {"type": "mcp_approval_request", "id": "approval", "server_label": "desk", "name": "read", "arguments": "{}"},
+        {"type": "mcp_approval_response", "approval_request_id": "approval", "approve": False},
+        fn("record", "prior", text="past"),
+        {"type": "function_call_output", "call_id": "prior", "output": "past", "future": {"keep": True}},
+    ]
+    tools: list[dict[str, object]] = [{"type": "mcp", "server_label": "desk", "server_url": "https://fixture.invalid"}]
+    params = cast(ResponseCreateParamsNonStreaming, {**PARAMS, "tools": tools, "input": history})
+    records: list[ResponsesToolCheckpoint] = []
+    requests: list[dict[str, Any]] = []
+    effects: list[str] = []
+    checkpoint = None
+    if restoring:
+        await run(
+            lane,
+            None,
+            [resp([fn("record", "fresh", text="fixture")], "first"), FINAL],
+            [],
+            params=params,
+            save=records.append,
+        )
+        checkpoint = deepcopy(next(item for item in records if item["phase"] == "boundary"))
+        history = cast(list[dict[str, object]], checkpoint["history"])
+        params = cast(ResponseCreateParamsNonStreaming, {**PARAMS, "tools": tools})
+        records.clear()
+    item = history[{"approval": 1, "call": 2, "output": 3}[where]]
+    item.update(fields)
+    if where == "call":
+        history[3]["call_id"] = "approval"
+        if checkpoint is not None:
+            checkpoint["returned_call_ids"] = ["approval", "fresh"]
+    original = deepcopy(history)
+    if valid:
+        await run(
+            lane,
+            None,
+            [FINAL],
+            requests,
+            params=params,
+            effects=effects,
+            save=records.append,
+            resume=checkpoint,
+            max_steps=None if restoring else 20,
+        )
+        assert requests[0]["input"][: len(history)] == original
+        assert records[0]["history"][: len(history)] == original and effects == []
+    else:
+        with pytest.raises(ValueError):
+            await run(
+                lane,
+                None,
+                [FINAL],
+                requests,
+                params=params,
+                effects=effects,
+                save=records.append,
+                resume=checkpoint,
+                max_steps=None if restoring else 20,
+            )
+        assert requests == [] and records == [] and effects == []

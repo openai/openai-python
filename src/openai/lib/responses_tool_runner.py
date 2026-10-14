@@ -535,7 +535,7 @@ def _history_calls(history: ResponseInputParam, tools: list[ToolParam], *, budge
                 continue
         if kind in ("function_call", "computer_call"):
             call_id = item.get("call_id")
-            if type(call_id) is not str or call_id in calls:
+            if type(call_id) is not str or call_id in calls or call_id in approvals:
                 raise ValueError("Replay history has a missing or duplicate call ID.")
             if item.get("status") not in (None, "completed"):
                 raise ValueError("Replay history contains an incomplete call.")
@@ -576,6 +576,8 @@ def _history_calls(history: ResponseInputParam, tools: list[ToolParam], *, budge
             ):
                 raise ValueError("Replay output has no matching original call.")
             if kind == "function_call_output":
+                if not _valid_function_metadata(item, output=True):
+                    raise ValueError("Replay function output has invalid native fields.")
                 _supplied_result(item.get("output"))
             else:
                 checks = item.get("acknowledged_safety_checks")
@@ -618,6 +620,7 @@ def _history_calls(history: ResponseInputParam, tools: list[ToolParam], *, budge
                 or request_id not in approvals
                 or request_id in answered
                 or type(item.get("approve")) is not bool
+                or any(item.get(key) is not None and type(item[key]) is not str for key in ("id", "reason"))
             ):
                 raise ValueError("Replay MCP approval does not match one pending original request.")
             answered.add(request_id)
@@ -928,7 +931,7 @@ def _function_args(call: ResponseFunctionToolCall) -> dict[str, object]:
     return cast(dict[str, object], args)
 
 
-def _valid_function_metadata(item: dict[str, object]) -> bool:
+def _valid_function_metadata(item: dict[str, object], *, output: bool = False) -> bool:
     caller = item.get("caller")
     if caller is not None:
         if not isinstance(caller, dict):
@@ -938,6 +941,10 @@ def _valid_function_metadata(item: dict[str, object]) -> bool:
             source.get("type") != "program" or type(source.get("caller_id")) is not str
         ):
             return False
+    if output:
+        return item.get("status") in (None, "in_progress", "completed", "incomplete") and all(
+            item.get(key) is None or type(item[key]) is str for key in ("id", "name", "namespace")
+        )
     return (
         ("id" not in item or type(item["id"]) is str)
         and ("async" not in item or type(item["async"]) is bool)
