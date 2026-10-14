@@ -189,6 +189,76 @@ def startup_failure() -> None:
             assert (root / "runs/unrelated/sentinel").read_text() == "other run"
 
 
+def initial_intent_failure(boundary: str) -> None:
+    with TemporaryDirectory() as temporary:
+        root = Path(temporary) / "runtime"
+        prepare(root)
+        driver = Docker(root, available=True, receipt=False)
+        original_open = Path.open
+        real_fsync = os.fsync
+        real_fchmod = os.fchmod
+        failure = OSError("controlled receipt failure")
+        attempted: Path | None = None
+
+        def open_receipt(path: Path, *args: Any, **kwargs: Any) -> Any:
+            nonlocal attempted
+            if path.name == "intent.json" and args and args[0] == "x":
+                attempted = path.parent
+                if boundary == "missing":
+                    raise failure
+            return original_open(path, *args, **kwargs)
+
+        def dump(_value: object, output: Any, **_kwargs: Any) -> None:
+            assert attempted is not None
+            output.write('{"owner":')
+            output.flush()
+            if boundary == "directory":
+                attempted.rename(root / "runs/original")
+                attempted.mkdir(mode=0o700)
+                (attempted / "sentinel").write_text("replacement directory")
+            elif boundary == "file":
+                receipt = attempted / "intent.json"
+                receipt.rename(attempted / "original")
+                receipt.write_text("replacement receipt")
+            if boundary != "sync":
+                raise failure
+
+        def fsync(fd: int) -> None:
+            if attempted is not None:
+                raise failure
+            real_fsync(fd)
+
+        def fchmod(fd: int, mode: int) -> None:
+            if attempted is not None and boundary == "chmod":
+                raise failure
+            real_fchmod(fd, mode)
+
+        with (
+            patch.object(runtime, "local_only", return_value="/unused/local-docker"),
+            patch.object(runtime.subprocess, "Popen", side_effect=driver.popen),
+            patch.object(Path, "open", open_receipt),
+            patch.object(runtime.json, "dump", side_effect=dump),
+            patch.object(runtime.os, "fsync", side_effect=fsync),
+            patch.object(runtime.os, "fchmod", side_effect=fchmod),
+        ):
+            try:
+                runtime.start(root)
+            except (OSError, ValueError) as error:
+                if boundary in {"missing", "partial", "sync", "chmod"}:
+                    assert error is failure
+            else:
+                raise AssertionError("Pre-create receipt failure returned a run")
+        assert attempted is not None
+        assert [call[0] for call in driver.calls] == ["image"]
+        assert (root / "runs/unrelated/sentinel").read_text() == "other run"
+        if boundary in {"missing", "partial", "sync", "chmod"}:
+            assert not attempted.exists(), "Pre-create failure retained its fresh directory"
+        elif boundary == "directory":
+            assert (attempted / "sentinel").read_text() == "replacement directory"
+        else:
+            assert (attempted / "intent.json").read_text() == "replacement receipt"
+
+
 def cleanup_replacement(*, replace: bool, after_move: bool = False, after_open: bool = False) -> None:
     with TemporaryDirectory() as temporary:
         root = Path(temporary) / "runtime"
@@ -749,6 +819,8 @@ def setup_snapshot(changed: str | None) -> None:
 def main() -> None:
     preflight_admission()
     startup_failure()
+    for boundary in ("missing", "partial", "sync", "chmod", "directory", "file"):
+        initial_intent_failure(boundary)
     cleanup_replacement(replace=True)
     cleanup_replacement(replace=True, after_move=True)
     cleanup_replacement(replace=True, after_open=True)

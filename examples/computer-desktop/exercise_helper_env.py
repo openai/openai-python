@@ -181,8 +181,8 @@ def main() -> None:
 
         def controlled(command: list[str], **options: Any) -> subprocess.Popen[bytes]:
             if "guest/setup.py" in command[3]:
-                return original_popen([sys.executable, "-I", "-S", "-c", "pass"], **options)
-            return original_popen(command, **options)
+                return original_popen[bytes]([sys.executable, "-I", "-S", "-c", "pass"], **options)
+            return original_popen[bytes](command, **options)
 
         with patch("guest.subprocess.Popen", controlled):
             owner = Guest(root)
