@@ -69,16 +69,9 @@ dev = [
 ]
 pydantic-v1 = ["pydantic>=1.10.26,<2"]
 pydantic-v2 = ["pydantic>=2,<3"]
-provider-computer = ["playwright==1.63.0"]
-provider-browser = [
-    { include-group = "provider-computer" },
-    "browserbase==1.20.0",
-    "browser-use-sdk==3.4.2",
-    "Pillow==12.3.0",
-]
-provider-e2b = ["e2b-desktop==2.6.0", "e2b==2.52.0", "Pillow==12.3.0"]
-provider-daytona = ["daytona==0.220.0", "Pillow==12.3.0", "pydantic==2.13.5"]
-browser-demo = ["playwright==1.63.0"]
+provider-computer = ["Pillow==12.3.0"]
+provider-browser = ["playwright==1.63.0"]
+browser-demo = [{ include-group = "provider-browser" }]
 # Isolated build requirements are exported with hashes by scripts/build.
 build = [
     "hatchling==1.32.4",
@@ -96,9 +89,6 @@ exclude-newer = "8 days"
 default-groups = ["dev", "pydantic-v2"]
 conflicts = [
     [{ group = "pydantic-v1" }, { group = "pydantic-v2" }],
-    [{ group = "pydantic-v1" }, { group = "provider-daytona" }],
-    [{ group = "pydantic-v1" }, { group = "provider-browser" }],
-    [{ group = "pydantic-v2" }, { group = "provider-daytona" }],
 ]
 # Security floors for transitive dependencies. Constraints do not
 # install these packages into the SDK's runtime environment.
@@ -177,6 +167,9 @@ typeCheckingMode = "strict"
 pythonVersion = "3.10"
 
 exclude = [
+    "examples/browser/",
+    "examples/browser-use-demo/",
+    "examples/computer-desktop/",
     "_dev",
     "node_modules",
     ".pnpm-store",
@@ -194,63 +187,6 @@ exclude = [
     # which means it can't be type checked
     "examples/realtime/audio_util.py",
     "examples/realtime/push_to_talk_app.py",
-    # Optional Playwright examples are checked with their separate dependency environment.
-    "examples/browser-use-demo",
-    "examples/browser-workflow",
-    "examples/computer/playwright_browser.py",
-    "examples/computer/run.py",
-    "examples/computer/exercise.py",
-    "examples/browser/browser_driver.py",
-    "examples/browser/run.py",
-    "examples/browser/read_only.py",
-    "examples/browser/exercise_read_only.py",
-    "examples/browser/preflight.py",
-    "examples/browser/driver_inspector.py",
-    "examples/browser/exercise_coordinates.py",
-    "examples/browser/exercise.py",
-    "examples/browser/exercise_setup.py",
-    "examples/browser/exercise_approval.py",
-    "examples/browser/exercise_owned.py",
-    "examples/browser/exercise_borrowed_retirement.py",
-    "examples/browser/exercise_borrowed_read_cancellation.py",
-    "examples/browser/exercise_read_integrity.py",
-    "examples/browser/exercise_wait_editable.py",
-    "examples/browser/exercise_scoped.py",
-    "examples/browser/exercise_capabilities.py",
-    "examples/browser/sensitive_driver.py",
-    "examples/browser/exercise_sensitive.py",
-    "examples/browser/exercise_portable_files.py",
-    "examples/browser/exercise_file_eligibility.py",
-    "examples/browser/exercise_file_cleanup.py",
-    "examples/browser/exercise_reference_admission.py",
-    "examples/browser/exercise_find_budget.py",
-    "examples/browser/evaluate_workflow.py",
-    "examples/browser/exercise_network.py",
-    "examples/browser/exercise_navigation.py",
-    "examples/browser/exercise_navigation_retirement.py",
-    "examples/browser/owned_pointer.py",
-    "examples/browser/exercise_pointer.py",
-    "examples/browser/file_upload.py",
-    "examples/browser/file_state.py",
-    "examples/browser/file_download.py",
-    "examples/browser/exercise_upload.py",
-    "examples/browser/exercise_download.py",
-    "examples/browser/browserbase_session.py",
-    "examples/browser/exercise_browserbase.py",
-    "examples/browser/browser_use_session.py",
-    "examples/browser/exercise_browser_use.py",
-    "examples/browser/mixed_session.py",
-    "examples/browser/run_mixed.py",
-    "examples/browser/exercise_mixed.py",
-    "examples/browser/exercise_mixed_startup.py",
-    # The E2B driver has a separate provider environment and strict check.
-    "examples/computer-e2b/adapter.py",
-    "examples/computer-e2b/exercise.py",
-    "examples/computer-e2b/exercise_cancellation.py",
-    "examples/computer-e2b/exercise_png.py",
-    # The Daytona driver uses the optional provider checker.
-    "examples/computer-daytona/adapter.py",
-    "examples/computer-daytona/exercise.py"
 ]
 
 reportImplicitOverride = true
@@ -273,6 +209,9 @@ show_error_codes = true
 # realtime examples use inline `uv` script dependencies
 # which means it can't be type checked
 exclude = [
+    'examples/browser/',
+    'examples/browser-use-demo/',
+    'examples/computer-desktop/',
   'src/openai/_files.py',
   'node_modules/.*',
   '\.pnpm-store/.*',
@@ -284,62 +223,6 @@ exclude = [
   'examples/realtime/audio_util.py',
   'examples/realtime/push_to_talk_app.py',
   # Optional Playwright examples are checked with their separate dependency environment.
-  'examples/browser-use-demo/.*',
-  'examples/browser-workflow/.*',
-  'examples/computer/playwright_browser.py',
-  'examples/computer/run.py',
-  'examples/computer/exercise.py',
-  'examples/browser/browser_driver.py',
-  'examples/browser/run.py',
-  'examples/browser/read_only.py',
-  'examples/browser/exercise_read_only.py',
-  'examples/browser/preflight.py',
-  'examples/browser/driver_inspector.py',
-  'examples/browser/exercise_coordinates.py',
-  'examples/browser/exercise.py',
-  'examples/browser/exercise_setup.py',
-  'examples/browser/exercise_approval.py',
-  'examples/browser/exercise_owned.py',
-  'examples/browser/exercise_borrowed_retirement.py',
-  'examples/browser/exercise_borrowed_read_cancellation.py',
-  'examples/browser/exercise_read_integrity.py',
-  'examples/browser/exercise_wait_editable.py',
-  'examples/browser/exercise_scoped.py',
-  'examples/browser/exercise_capabilities.py',
-  'examples/browser/sensitive_driver.py',
-  'examples/browser/exercise_sensitive.py',
-  'examples/browser/exercise_portable_files.py',
-  'examples/browser/exercise_file_eligibility.py',
-  'examples/browser/exercise_file_cleanup.py',
-  'examples/browser/exercise_reference_admission.py',
-  'examples/browser/exercise_find_budget.py',
-  'examples/browser/evaluate_workflow.py',
-  'examples/browser/exercise_network.py',
-  'examples/browser/exercise_navigation.py',
-  'examples/browser/exercise_navigation_retirement.py',
-  'examples/browser/owned_pointer.py',
-  'examples/browser/exercise_pointer.py',
-  'examples/browser/file_upload.py',
-  'examples/browser/file_state.py',
-  'examples/browser/file_download.py',
-  'examples/browser/exercise_upload.py',
-  'examples/browser/exercise_download.py',
-  'examples/browser/browserbase_session.py',
-  'examples/browser/exercise_browserbase.py',
-  'examples/browser/browser_use_session.py',
-  'examples/browser/exercise_browser_use.py',
-  'examples/browser/mixed_session.py',
-  'examples/browser/run_mixed.py',
-  'examples/browser/exercise_mixed.py',
-  'examples/browser/exercise_mixed_startup.py',
-  # The E2B driver has a separate provider environment and strict check.
-  'examples/computer-e2b/adapter.py',
-  'examples/computer-e2b/exercise.py',
-  'examples/computer-e2b/exercise_cancellation.py',
-  'examples/computer-e2b/exercise_png.py',
-  # The Daytona driver uses the optional provider checker.
-  'examples/computer-daytona/adapter.py',
-  'examples/computer-daytona/exercise.py',
 ]
 
 strict_equality = true

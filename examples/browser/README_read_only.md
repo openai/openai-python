@@ -1,6 +1,7 @@
 # Ask a question about local pages
 
-For installed Chrome on Linux, see [Choose a local browser](README.md#choose-a-local-browser).
+On Linux, `OPENAI_EXAMPLE_BROWSER_CHANNEL=chrome` selects an installed Chrome.
+Leave it unset to use the Playwright Chromium installed below.
 
 This small example reads a three-page visitor guide and answers your question.
 Responses chooses which pages to read. The driver exposes only page text, tabs
@@ -53,8 +54,7 @@ outside navigation and rejects a disabled click. It does not measure a model's
 answer quality or call an API provider.
 
 The reader scans at most 2,000 DOM nodes and returns at most 16 KiB of UTF-8
-text, the same text budget as the generic browser example. Its three methods
-and string result stay unchanged. If content exceeds either budget, the result
+text. This is the reader's own document budget, not an SDK limit. If content exceeds either budget, the result
 ends with `[Some document content was omitted.]`. Links that do not fit are
 omitted completely so a partial URL cannot be used for navigation. Split large
 documents into linked pages to make the rest accessible.

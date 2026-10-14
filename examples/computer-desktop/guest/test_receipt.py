@@ -212,35 +212,6 @@ class ReceiptTests(unittest.TestCase):
         setup.verify(self.root)
 
     @unittest.skipUnless(sys.platform == "darwin" and setup.platform.machine() == "arm64", "Mac VM preflight")
-    def test_existing_runtime_needs_no_build_tools_on_path(self) -> None:
-        self.prepare_runtime()
-        tools = self.root / "path"
-        tools.mkdir()
-        (tools / "python3").symlink_to(sys.executable)
-        node_script = HERE.parents[1] / "responses/browser/preflight.mjs"
-        if node_script.exists():
-            node = shutil.which("node")
-            self.assertIsNotNone(node)
-            command = [str(node), str(node_script)]
-        else:
-            command = [sys.executable, str(HERE.parents[1] / "browser/preflight.py")]
-        env = {**os.environ, "PATH": str(tools)}
-        for valid in (True, False):
-            if not valid:
-                (self.root / "setup.json").unlink()
-            result = subprocess.run(
-                [*command, "--environment", "desktop-vm", "--runtime-dir", str(self.root)],
-                env=env,
-                capture_output=True,
-                text=True,
-                timeout=30,
-            )
-            report = json.loads(result.stdout)
-            self.assertEqual(report["ready"], valid, report)
-            self.assertEqual(result.returncode, 0 if valid else 1)
-            self.assertNotIn("vfkit", [item["name"] for item in report["checks"]])
-            self.assertNotIn("xorriso", [item["name"] for item in report["checks"]])
-
     def test_known_legacy_requires_original_build(self) -> None:
         self.prepare_runtime()
         current = setup.recipe()

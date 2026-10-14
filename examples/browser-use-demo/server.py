@@ -22,12 +22,11 @@ import httpx2 as httpx
 from playwright.async_api import Page, Browser, Playwright, BrowserContext, async_playwright
 
 sys.path.insert(1, str(Path(__file__).resolve().parents[1] / "browser"))
-from runner import TASKS, Run, Reply, MixedHostInputRefusedError, now, as_json, failure
-from diagnostics import DiagnosticCapture
-from browser_driver import example_browser_channel
+from runner import TASKS, Run, Reply, now, as_json, failure
+from read_only import example_browser_channel
 
 ROOT = Path(__file__).resolve().parent
-TEMPLATES = {name: (ROOT / name).read_text() for name in ("index.html", "fixture.html", "notes.html", "traces.html")}
+TEMPLATES = {name: (ROOT / name).read_text() for name in ("index.html", "fixture.html")}
 
 
 class Fieldwork:
@@ -38,16 +37,12 @@ class Fieldwork:
         api_key: str | None = None,
         models: Mapping[str, str | None] | None = None,
         transport: httpx.AsyncBaseTransport | None = None,
-        desktop_runtime: Path | None = None,
-        diagnostic_capture: DiagnosticCapture | None = None,
     ) -> None:
         self.browser = browser
         self.origin = origin
         self.api_key = api_key
         self.models = models or {}
         self.transport = transport
-        self.desktop_runtime = desktop_runtime
-        self.diagnostic_capture = diagnostic_capture
         self.token = secrets.token_hex(24)
         self.current: Run | None = None
 
@@ -64,11 +59,11 @@ class Fieldwork:
         url = urlsplit(raw_url)
         path = url.path
         query = {name: values[-1] for name, values in parse_qs(url.query).items()}
-        if method == "GET" and path in ("/", "/traces"):
+        if method == "GET" and path == "/":
             nonce = secrets.token_hex(18)
             return Reply(
                 200,
-                TEMPLATES["index.html" if path == "/" else "traces.html"].replace("__NONCE__", nonce).encode(),
+                TEMPLATES["index.html"].replace("__NONCE__", nonce).encode(),
                 {
                     "Content-Type": "text/html; charset=utf-8",
                     "Referrer-Policy": "no-referrer",
@@ -76,97 +71,20 @@ class Fieldwork:
                 },
             )
         run = self.current
-        fixture_task = path.split("/")[2] if path.startswith("/fixture/") else None
-        if fixture_task in ("stock", "service", "files") and (
-            not run
-            or not run.business
-            or run.task_id != fixture_task
-            or not any(
-                cookie.strip() == f"fieldwork_workspace={run.workspace_token}"
-                for cookie in headers.get("Cookie", "").split(";")
+        if method == "GET" and path == "/fixture/reservation":
+            page = TEMPLATES["fixture.html"].replace(
+                "__TASK__", json.dumps({**TASKS["reservation"], "kind": "reservation"})
             )
-        ):
-            return failure(403, "An active workspace capability is required.")
-        if path in ("/dispatch", "/route", "/result") or path.startswith("/result/"):
-            from mixed_workspace import MixedWorkspace
-
-            if not run or not isinstance(run.workspace, MixedWorkspace) or run.owner == "stopped":
-                return failure(403, "No active mixed workspace.")
-            if path in ("/dispatch", "/route") and not any(
-                cookie.strip() == f"fieldwork_workspace={run.workspace_token}"
-                for cookie in headers.get("Cookie", "").split(";")
-            ):
-                return failure(403, "An active workspace capability is required.")
-            return await run.workspace.fixture(method, path, headers, data)
-        if method == "GET" and path.startswith("/fixture/"):
-            parts = path.removeprefix("/fixture/").split("/")
-            task_id = parts[0]
-            if (
-                task_id not in TASKS
-                or len(parts) not in (1, 3)
-                or (len(parts) == 3 and (parts[1] != "notes" or parts[2] not in ("brief", "rules")))
-                or (
-                    task_id in ("stock", "service", "files")
-                    and (not run or run.task_id != task_id or run.owner == "stopped")
-                )
-            ):
-                return failure(404, "Unknown task.")
-            task = TASKS[task_id]
-            if len(parts) == 3:
-                visible = {
-                    "title": task["title"],
-                    "section": "Brief" if parts[2] == "brief" else "Rules",
-                    "text": task["summary"] if parts[2] == "brief" else task["instruction"],
-                }
-                page = TEMPLATES["notes.html"].replace("__NOTES__", json.dumps(visible))
-            else:
-                visible = {key: value for key, value in task.items() if key != "items"}
-                visible["kind"] = task_id
-                if "items" in task:
-                    visible["items"] = [
-                        {key: value for key, value in item.items() if key != "expected"} for item in task["items"]
-                    ]
-                if task_id in ("stock", "service", "files"):
-                    assert run is not None
-                    visible["effectURL"] = f"/fixture/{task_id}/effect?run={run.id}" + (
-                        "&case=INTAKE-501" if task_id == "files" else ""
-                    )
-                page = TEMPLATES["fixture.html"].replace("__TASK__", json.dumps(visible))
-            connection = "connect-src 'self'; " if task_id in ("stock", "service", "files") else ""
             return Reply(
                 200,
                 page.encode(),
                 {
                     "Content-Type": "text/html; charset=utf-8",
-                    "Content-Security-Policy": f"default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; {connection}form-action 'none'; frame-ancestors 'none'",
+                    "Content-Security-Policy": "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; form-action 'none'; frame-ancestors 'none'",
                 },
             )
-        if method == "POST" and path in ("/fixture/stock/effect", "/fixture/service/effect", "/fixture/files/effect"):
-            if (
-                headers.get("Origin") != self.origin
-                or not run
-                or not run.business
-                or path != f"/fixture/{run.task_id}/effect"
-                or query.get("run") != run.id
-                or (run.task_id == "files" and url.query != f"run={run.id}&case=INTAKE-501")
-            ):
-                return failure(403, "No active business workspace.")
-            return await run.business.receive(headers, data)
         if headers.get("X-Demo-Token") != self.token:
             return failure(403, "A dashboard token is required.")
-        if method == "GET" and path in ("/api/traces", "/api/trace", "/api/trace-frame"):
-            capture = self.diagnostic_capture
-            if not capture:
-                return failure(404, "No capture selected. Start with --diagnostics or --diagnostics-reopen ID.")
-            try:
-                if path == "/api/traces":
-                    return as_json({"capture": capture.id, "traces": capture.traces()})
-                if path == "/api/trace":
-                    return as_json(capture.trace(query.get("trace", "")))
-                pixels, mime = capture.frame(query.get("trace", ""), query.get("frame", ""))
-                return Reply(200, pixels, {"Content-Type": mime})
-            except (ValueError, OSError, KeyError, TypeError):
-                return failure(404, "Saved trace or frame unavailable.")
         if method == "GET" and path == "/api/state":
             if run and run.owner != "stopped" and not run.view_task:
                 run.view_task = asyncio.create_task(run.refresh_view())
@@ -176,34 +94,12 @@ class Fieldwork:
                     "liveAvailable": bool(
                         self.api_key and (self.models.get("responses") or self.models.get("decisions"))
                     ),
-                    "desktopAvailable": bool(self.desktop_runtime and self.api_key and self.models.get("responses")),
-                    "mixedAvailable": bool(self.desktop_runtime and self.api_key and self.models.get("responses")),
                     "run": await run.snapshot() if run else None,
                 }
             )
         if method == "GET":
             if not run or query.get("run") != run.id:
                 return failure(404, "This run is no longer current.")
-            if path == "/api/inspector":
-                if run.environment != "browser" or run.task_id == "files" or run.owner != "human" or not run.driver:
-                    return failure(409, "Take control of a browser task to inspect its tools.")
-                helper = run.toolset("human")
-                tools = helper.tools
-                helper.close()
-                return as_json({"tools": tools})
-            if path == "/api/export":
-                return as_json(run.receipt())
-            if path == "/api/checkpoint":
-                point = next(
-                    (item for item in run.checkpoints if str(item["sequence"]) == query.get("checkpoint")), None
-                )
-                if not point:
-                    return failure(404, "Saved checkpoint unavailable.")
-                return Reply(
-                    200,
-                    point["pixels"],
-                    {"Content-Type": "image/jpeg" if run.environment == "browser" else "image/png"},
-                )
             if path in ("/api/view", "/api/screenshot"):
                 live = path == "/api/view"
                 if live and (run.owner == "stopped" or run.closed):
@@ -211,36 +107,15 @@ class Fieldwork:
                 binding = run.view_binding if live else run.screenshot_binding
                 if (
                     not binding
-                    or (
-                        run.environment == "browser"
-                        and (
-                            query.get("tabId") != binding["tabId"] or query.get("sequence") != str(binding["sequence"])
-                        )
-                    )
-                    or (
-                        run.environment != "browser"
-                        and (
-                            query.get("desktopId") != binding["desktopId"]
-                            or query.get("ownerVersion") != str(binding["ownerVersion"])
-                        )
-                    )
-                    or (
-                        run.environment == "mixed"
-                        and (
-                            query.get("view") != binding["view"]
-                            or query.get("tabId") != binding["tabId"]
-                            or query.get("sequence") != str(binding["sequence"])
-                        )
-                    )
+                    or query.get("tabId") != binding["tabId"]
+                    or query.get("sequence") != str(binding["sequence"])
                     or (run.owner != "stopped" and not await run.matches(binding))
                 ):
                     return failure(409, "This page view is no longer current.")
                 pixels = run.frame if live else run.screenshot
                 if not pixels:
                     return failure(409, "The browser view is starting.")
-                return Reply(
-                    200, pixels, {"Content-Type": "image/jpeg" if run.environment == "browser" else "image/png"}
-                )
+                return Reply(200, pixels, {"Content-Type": "image/jpeg"})
             return failure(404, "Unknown route.")
         if method != "POST":
             return failure(404, "Unknown route.")
@@ -254,20 +129,13 @@ class Fieldwork:
         if path == "/api/start":
             if run and run.busy():
                 return failure(409, "Stop the current run before starting another.")
-            environment = body.get("environment", "browser")
             if (
-                environment not in ("browser", "desktop", "mixed")
-                or (body.get("taskId") not in TASKS if environment == "browser" else body.get("taskId") != environment)
+                body.get("taskId") != "reservation"
                 or body.get("api") not in ("responses", "decisions")
                 or body.get("mode") not in ("live", "rehearsal")
+                or set(body) - {"taskId", "api", "mode"}
             ):
-                return failure(400, "Choose an available task, API, and run mode.")
-            if environment != "browser" and (
-                not self.desktop_runtime or body["api"] != "responses" or body["mode"] != "live"
-            ):
-                return failure(400, "The isolated desktop needs a configured runtime and live Responses.")
-            if body["taskId"] == "files" and body.get("allowFileUpload") is not True:
-                return failure(400, "Opt in to the synthetic file upload before starting file intake.")
+                return failure(400, "Choose Book a table, an API, and a run mode.")
             if body["mode"] == "rehearsal" and body["api"] != "decisions":
                 return failure(400, "Rehearsal uses Decisions. Choose Live API for Responses.")
             if body["mode"] == "live" and (not self.api_key or not self.models.get(body["api"])):
@@ -296,14 +164,9 @@ class Fieldwork:
             else:
                 run.settle(True)
             return as_json({"accepted": True})
-        if path in ("/api/take-control", "/api/return-control", "/api/input", "/api/mixed-view", "/api/inspect"):
-            if run.task_id == "files":
-                return failure(
-                    403, "View and Stop are available. File selection is controlled by the approved fixture task."
-                )
+        if path in ("/api/take-control", "/api/return-control", "/api/input"):
             initial = (
                 path == "/api/take-control"
-                and run.environment == "browser"
                 and not run.task_page
                 and body.get("tabId") is None
                 and body.get("sequence") is None
@@ -315,18 +178,6 @@ class Fieldwork:
                 or (not initial and not await run.matches(body))
             ):
                 return failure(409, "This control phase is no longer current.")
-            if path == "/api/mixed-view" and run.environment == "mixed":
-                from mixed_workspace import MixedWorkspace
-
-                assert isinstance(run.workspace, MixedWorkspace)
-                if (
-                    run.owner not in ("agent", "human")
-                    or (run.human and not run.human.done())
-                    or body.get("selected") not in ("host", "guest")
-                ):
-                    return failure(409, "Wait until this mixed workspace can change views.")
-                await run.workspace.select(body["selected"])
-                return as_json({"accepted": True})
             if path == "/api/take-control" and run.owner == "agent":
                 run.set_owner("draining-to-human")
                 run.phase_cancel.set()
@@ -339,44 +190,6 @@ class Fieldwork:
                 run.set_owner("draining-to-agent")
                 run.transfer = asyncio.create_task(run.give_back(run.version))
                 return as_json({"accepted": True})
-            if path == "/api/inspect":
-                if (
-                    run.environment != "browser"
-                    or run.owner != "human"
-                    or (run.human and not run.human.done())
-                    or not run.driver
-                    or run.uncertain
-                    or body.get("consent") is not True
-                    or type(body.get("name")) is not str
-                    or type(body.get("args")) is not dict
-                ):
-                    return failure(409, "Take control and consent to one manual browser call.")
-                from openai.types.responses import ResponseFunctionToolCall
-
-                helper = run.toolset("human")
-                call_id = secrets.token_hex(18)
-                call = ResponseFunctionToolCall(
-                    type="function_call",
-                    status="completed",
-                    id=call_id,
-                    call_id=call_id,
-                    name=body["name"],
-                    arguments=json.dumps(body["args"]),
-                )
-
-                async def invoke() -> None:
-                    output = await helper.execute(call, cancelled=lambda: run.owner != "human")
-                    result.update(output=output)
-
-                result: dict[str, Any] = {}
-                run.human = asyncio.create_task(invoke())
-                try:
-                    await run.human
-                    return as_json(result)
-                except Exception:
-                    return failure(409, "The tool did not finish. Read the current page and check its outcome.")
-                finally:
-                    helper.close()
             if path == "/api/input" and run.owner == "human" and not (run.human and not run.human.done()):
                 if not run.valid_input(body):
                     return failure(400, "Choose a valid bounded browser input.")
@@ -385,10 +198,6 @@ class Fieldwork:
                 try:
                     await input_task
                     return as_json({"accepted": True})
-                except MixedHostInputRefusedError as error:
-                    if run.human is input_task:
-                        run.human = None
-                    return failure(400, str(error))
                 except Exception:
                     return failure(409, "The input outcome is uncertain. No automatic resume.")
             return failure(409, "The browser is not accepting this control action.")
@@ -536,8 +345,6 @@ async def serve(
     api_key: str | None = None,
     models: Mapping[str, str | None] | None = None,
     transport: httpx.AsyncBaseTransport | None = None,
-    desktop_runtime: Path | None = None,
-    diagnostic_capture: DiagnosticCapture | None = None,
 ) -> AsyncGenerator[Fieldwork, None]:
     """Launch with one loop-owned Fieldwork and no mutable run state on HTTP threads."""
     loop = asyncio.get_running_loop()
@@ -588,8 +395,6 @@ async def serve(
                 api_key,
                 models,
                 transport,
-                desktop_runtime,
-                diagnostic_capture,
             )
             thread = threading.Thread(target=server.serve_forever, daemon=True)
             thread.start()
@@ -626,39 +431,19 @@ async def serve(
 async def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--port", type=int, default=int(os.environ.get("DEMO_PORT", 0)))
-    parser.add_argument("--desktop-runtime", type=Path, help="Existing local guest runtime")
-    diagnostic = parser.add_mutually_exclusive_group()
-    diagnostic.add_argument("--diagnostics", action="store_true", help="Save bounded private local diagnostic files")
-    diagnostic.add_argument("--diagnostics-reopen", metavar="ID", help="Reopen a demo-owned capture by its printed ID")
     args = parser.parse_args()
     models = {
         name: os.environ.get(f"OPENAI_{name.upper()}_MODEL", os.environ.get("OPENAI_MODEL"))
         for name in ("responses", "decisions")
     }
     api_key = os.environ.get("OPENAI_API_KEY")
-    diagnostic_capture = (
-        DiagnosticCapture((api_key, *models.values()), args.diagnostics_reopen)
-        if args.diagnostics or args.diagnostics_reopen
-        else None
-    )
-    async with serve(
-        args.port,
-        api_key,
-        models,
-        desktop_runtime=args.desktop_runtime,
-        diagnostic_capture=diagnostic_capture,
-    ) as app:
+    async with serve(args.port, api_key, models) as app:
         print(
             f"Browser-use example (private link): {app.launch_url}"
             if sys.stdout.isatty()
             else f"Browser-use example: {app.origin}\nPrivate link unavailable in redirected output; relaunch in a terminal.",
             flush=True,
         )
-        if diagnostic_capture:
-            print(
-                f"Private diagnostic files: {diagnostic_capture.directory}. Reopen ID: {diagnostic_capture.id}. Inspect them before sharing.",
-                flush=True,
-            )
         await asyncio.Event().wait()
 
 

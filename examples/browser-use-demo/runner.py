@@ -2,25 +2,20 @@
 
 from __future__ import annotations
 
-import os
 import re
 import json
 import time
 import uuid
 import base64
 import asyncio
-import secrets
 from typing import TYPE_CHECKING, Any, TypeVar, cast
 from pathlib import Path
 from dataclasses import dataclass
-from collections.abc import Mapping, Callable, Iterable, Awaitable, AsyncIterator
+from collections.abc import Mapping, Callable, Awaitable, AsyncIterator
 from typing_extensions import override
 
 import httpx2 as httpx
-from file_state import wait_for_decision
-from diagnostics import RunDiagnostics, diagnostic_observation
-from file_upload import UploadOwner
-from browser_driver import PlaywrightBrowser, origin
+from booking import BookingBrowser
 from playwright.async_api import Page, BrowserContext, WebSocketRoute, ScreencastFrame
 
 from openai import AsyncOpenAI
@@ -46,17 +41,13 @@ from openai.lib.decisions_tool_runner import (
     AsyncDecisionsToolRunner,
     AsyncDecisionActionCandidate,
 )
-from openai.lib.responses_tool_runner import AsyncRegisteredFunction, AsyncResponsesToolRunner
+from openai.lib.responses_tool_runner import AsyncResponsesToolRunner
 
 if TYPE_CHECKING:
     from server import Fieldwork
-    from business import Permit
 
 ROOT = Path(__file__).resolve().parent
 TASKS: dict[str, dict[str, Any]] = json.loads((ROOT / "tasks.json").read_text())
-OWNERS = ("agent", "draining-to-human", "human", "draining-to-agent", "stopped")
-CLEANUP = ("not_started", "pending", "completed", "failed")
-FILE_STATUSES = ("ready", "in_progress", "completed", "refused", "interrupted", "unknown", "failed")
 _NetworkResult = TypeVar("_NetworkResult")
 
 
@@ -79,6 +70,42 @@ async def network_read(work: Awaitable[_NetworkResult], phase: asyncio.Event) ->
         if not pending.done():
             pending.cancel()
         await asyncio.gather(pending, stopped, return_exceptions=True)
+
+
+_Decision = TypeVar("_Decision")
+_pending_decisions: set[asyncio.Task[object]] = set()
+
+
+def _finish_decision(task: asyncio.Task[object]) -> None:
+    _pending_decisions.discard(task)
+    if not task.cancelled():
+        task.exception()
+
+
+async def wait_for_decision(
+    work: Callable[[], Awaitable[_Decision]], cancelled: Callable[[], bool] | None
+) -> _Decision:
+    if cancelled is None:
+        return await work()
+    if cancelled():
+        raise ValueError("Browser operation interrupted.")
+
+    async def decide() -> _Decision:
+        if cancelled():
+            raise ValueError("Browser operation interrupted.")
+        return await work()
+
+    pending = asyncio.create_task(decide())
+    # Only this result is abandoned on cancellation; retain and observe the caller's read or approval.
+    _pending_decisions.add(pending)
+    pending.add_done_callback(_finish_decision)
+    while not pending.done():
+        if cancelled():
+            raise ValueError("Browser operation interrupted.")
+        await asyncio.wait({pending}, timeout=0.05)
+    if cancelled():
+        raise ValueError("Browser operation interrupted.")
+    return pending.result()
 
 
 class PhaseStream(httpx.AsyncByteStream):
@@ -124,14 +151,6 @@ class PhaseStream(httpx.AsyncByteStream):
             self.finish("cancelled")
 
 
-def member(value: Any, choices: Iterable[str], fallback: str | None = None) -> str | None:
-    return value if value in choices else fallback
-
-
-def count(value: Any) -> int:
-    return value if type(value) is int and 0 <= value <= 9007199254740991 else 0
-
-
 def now() -> int:
     return int(time.time() * 1000)
 
@@ -151,34 +170,13 @@ def failure(status: int, message: str) -> Reply:
     return as_json({"error": message}, status)
 
 
-class MixedHostInputRefusedError(ValueError):
-    def __init__(self) -> None:
-        super().__init__("Choose Route D-2201 in the host view.")
-
-
 class Run:
     def __init__(self, app: Fieldwork, body: dict[str, Any]) -> None:
         self.app = app
         self.id = str(uuid.uuid4())
         self.task_id = body["taskId"]
-        self.environment = body.get("environment", "browser")
-        self.workspace: DesktopWorkspace | MixedWorkspace | None = None
-        self.task: dict[str, Any]
-        if self.environment == "desktop":
-            from desktop_workspace import TASK, DesktopWorkspace
-
-            self.workspace = DesktopWorkspace(self)
-            self.task = {"title": "Route and save a desktop receipt", "instruction": TASK}
-        elif self.environment == "mixed":
-            from mixed_workspace import INSTRUCTION, MixedWorkspace
-
-            self.workspace = MixedWorkspace(self)
-            self.task = {"title": "Route in Host, save receipt in Guest", "instruction": INSTRUCTION}
-        else:
-            self.task = TASKS[self.task_id]
+        self.task = TASKS[self.task_id]
         self.api, self.mode = body["api"], body["mode"]
-        self.diagnostics = RunDiagnostics(app.diagnostic_capture, self.mode)
-        self.diagnostics.record("run", {"api": self.api, "mode": self.mode, "taskId": self.task_id})
         self.owner, self.version, self.status = "agent", 0, "running"
         self.phase_cancel = asyncio.Event()
         self.transfer_cancel: asyncio.Event | None = None
@@ -193,10 +191,9 @@ class Run:
         self.view_task: asyncio.Task[None] | None = None
         self.cast_task: asyncio.Task[None] | None = None
         self.context: BrowserContext | None = None
-        self.driver: PlaywrightBrowser | None = None
+        self.driver: BookingBrowser | None = None
         self.task_page: Page | None = None
         self.task_tab: str | None = None
-        self.notes_tab: str | None = None
         self.view_binding: dict[str, Any] | None = None
         self.screenshot_binding: dict[str, Any] | None = None
         self.frame: bytes | None = None
@@ -204,13 +201,11 @@ class Run:
         self.cast_page: Page | None = None
         self.view: dict[str, Any] = {"status": "starting", "sequence": 0, "at": 0, "width": 0, "height": 0}
         self.screenshot_at: int | None = None
-        self.checkpoints: list[dict[str, Any]] = []
         self.events: list[dict[str, Any]] = []
         self.events_dropped = 0
         self.receipts: list[dict[str, Any]] = []
-        self.receipts_dropped = self.phase_index = 0
+        self.receipts_dropped = 0
         self.cleanup_status = "not_started"
-        self.checkpoint_sequence = self.checkpoint_dropped = self.checkpoint_bytes = 0
         self.approval: dict[str, Any] | None = None
         self.pending_approval: asyncio.Future[bool] | None = None
         self.expiry: asyncio.TimerHandle | None = None
@@ -218,7 +213,7 @@ class Run:
         self.expires_at: int | None = None
         self.closed, self.uncertain = False, False
         self.turns = self.requests = self.headers_ms = 0
-        self.step_limit = 20 if self.api == "decisions" or self.workspace else 24
+        self.step_limit = 20 if self.api == "decisions" else 24
         self.final_text: str | None = None
         self.api_failure: dict[str, Any] | None = None
         self.fixture: dict[str, Any] | None = None
@@ -227,19 +222,6 @@ class Run:
         self.observed_revision = 0
         self.rehearsal_choice: str | None = None
         self.fixture_url = f"{app.origin}/fixture/{self.task_id}"
-        self.workspace_token = secrets.token_hex(24)
-        self.notes_url = f"{self.fixture_url}/notes/"
-        self.file_owner: UploadOwner | None = None
-        self.file_grant: dict[str, str] | None = None
-        self.file_permit: Permit | None = None
-        self.file_expires_at: int | None = None
-        self.business: Business | None
-        if self.task_id in ("stock", "service", "files"):
-            from business import Business
-
-            self.business = Business(self)
-        else:
-            self.business = None
         self.add(
             "start", ("Scripted rehearsal" if self.mode == "rehearsal" else "Live API") + " · " + self.task["title"]
         )
@@ -271,12 +253,8 @@ class Run:
 
     def set_owner(self, owner: str) -> None:
         if owner != self.owner:
-            if self.business:
-                self.business.revoke(self.business.pending)
             self.owner = owner
             self.version += 1
-            if self.workspace:
-                self.workspace.scroll_target = None
             self.add("control", owner)
             self.record("control", owner=owner)
 
@@ -301,28 +279,18 @@ class Run:
         self.approval_timer = asyncio.get_running_loop().call_later(
             max(0, (deadline - now()) / 1000), self.stop, "approval_expired"
         )
-        started = time.monotonic()
-        try:
-            return await self.pending_approval
-        finally:
-            self.diagnostics.measure("approvalMs", (time.monotonic() - started) * 1000)
+        return await self.pending_approval
 
     def stop(self, reason: str = "stopped") -> None:
         if self.owner != "stopped":
             self.set_owner("stopped")
             self.status = reason
-            self.result = (
-                "verified"
-                if self.result == "verified" or (self.business and self.business.snapshot()["verified"])
-                else "unverified"
-            )
+            self.result = "verified" if self.result == "verified" else "unverified"
             self.add("control", f"Session ended: {reason}")
             self.elapsed = (time.monotonic() - self.started) * 1000
         self.phase_cancel.set()
         if self.transfer_cancel:
             self.transfer_cancel.set()
-        if self.workspace:
-            self.workspace.startup_stop.set()
         self.settle(
             False, "refused" if reason == "refused" else "expired" if reason == "approval_expired" else "cancelled"
         )
@@ -350,17 +318,12 @@ class Run:
 
     async def retire(self) -> None:
         # Closing revokes input before any delayed request can dispatch more work.
-        for close in (
-            self.context.close if self.context else None,
-            self.file_owner.stop if self.file_owner else None,
-            self.workspace.retire if self.workspace else None,
-        ):
-            if close:
-                try:
-                    await self.close_owned(close)
-                except Exception:
-                    # The failed owner stays unavailable; still retire the other resources.
-                    pass
+        if self.context:
+            try:
+                await self.close_owned(self.context.close)
+            except Exception:
+                # Failed cleanup remains visible and blocks reuse.
+                pass
         self.frame = None
         self.view = {**self.view, "status": "closed"}
         admitted = {task for task in (self.agent, self.human, self.transfer, self.view_task, self.cast_task) if task}
@@ -376,19 +339,13 @@ class Run:
             self.closed = True
             self.cleanup_status = "completed"
             self.record("cleanup", outcome="completed")
-        self.diagnostics.record("run", {"status": self.status, "result": self.result, "cleanup": self.cleanup_status})
-        self.diagnostics.close()
 
     async def binding(self, *, cancelled: Callable[[], bool] | None = None) -> dict[str, Any] | None:
-        if self.workspace:
-            return self.workspace.binding()
         if not self.driver or not self.task_page or self.closed or self.owner == "stopped" or self.uncertain:
             return None
         state = await self.driver.state(cancelled=cancelled)
         active = next((tab["id"] for tab in state["tabs"] if tab["active"]), None)
         tabs = [{"id": self.task_tab, "role": "Task"}]
-        if self.notes_tab:
-            tabs.append({"id": self.notes_tab, "role": "Notes"})
         role = next((item["role"] for item in tabs if item["id"] == active), None)
         if not role:
             return None
@@ -397,8 +354,6 @@ class Run:
         return {"tabId": active, "sequence": observation["sequence"], "role": role, "tabs": tabs}
 
     async def matches(self, value: dict[str, Any] | None, *, cancelled: Callable[[], bool] | None = None) -> bool:
-        if self.workspace:
-            return self.workspace.matches(value)
         current = await self.binding(cancelled=cancelled)
         return bool(
             current
@@ -421,31 +376,20 @@ class Run:
     async def snapshot(self) -> dict[str, Any]:
         point = await self.binding()
         view = self.view if self.owner == "stopped" or await self.matches(self.view_binding) else {"status": "starting"}
-        disclosed = False
-        if self.environment == "mixed":
-            from mixed_workspace import MixedWorkspace
-
-            assert isinstance(self.workspace, MixedWorkspace)
-            disclosed = self.workspace.disclosed
         return {
             "id": self.id,
             "taskId": self.task_id,
             "api": self.api,
             "mode": self.mode,
-            "environment": self.environment,
             "status": self.status,
             "owner": self.owner,
             "ownerVersion": self.version,
-            "browser": None if self.workspace else point,
-            "desktop": point if self.workspace else None,
-            "mixedDisclosed": disclosed,
+            "browser": point,
             "screenshotBinding": self.screenshot_binding,
             "humanInputBusy": bool(
                 (self.human and not self.human.done()) or (self.transfer and not self.transfer.done())
             ),
-            "scrollTarget": self.workspace.scroll_target if self.workspace else None,
-            "uncertainEffects": self.uncertain
-            or bool(self.workspace and self.workspace.guest and self.workspace.guest.uncertain_effects),
+            "uncertainEffects": self.uncertain,
             "closing": self.owner == "stopped" and self.busy(),
             "sessionExpiresAt": self.expires_at,
             "turns": self.turns,
@@ -453,144 +397,25 @@ class Run:
             "result": self.result,
             "requests": self.requests,
             "requestHeadersMs": round(self.headers_ms),
-            "diagnostics": self.diagnostics.summary(self.requests),
             "elapsedMs": round(
                 self.elapsed
                 if self.owner == "stopped" and (self.agent is None or self.agent.done())
                 else (time.monotonic() - self.started) * 1000
             ),
             "screenshotAt": self.screenshot_at,
-            "history": {
-                "dropped": self.checkpoint_dropped,
-                "checkpoints": [
-                    {key: value for key, value in item.items() if key != "pixels"} for item in self.checkpoints
-                ],
-            },
             "view": view,
             "events": self.events,
             "eventsDropped": self.events_dropped,
             "approval": self.approval,
-            "fixture": self.business.snapshot() if self.business else self.fixture,
+            "fixture": self.fixture,
             "finalText": self.final_text,
             "apiFailure": self.api_failure,
-        }
-
-    def receipt(self) -> dict[str, Any]:
-        file: dict[str, Any] | None = None
-        owner = self.file_owner
-        if self.environment == "mixed":
-            from mixed_workspace import MixedWorkspace
-
-            assert isinstance(self.workspace, MixedWorkspace)
-            owner = self.workspace.download
-        if owner:
-            state = owner.state()
-            effect = ("none", "completed", "unknown")
-            current = state["current"]
-            file = {
-                "version": 1,
-                "direction": member(state["direction"], ("upload", "download")),
-                "current": {
-                    "status": member(current["status"], FILE_STATUSES),
-                    "effect": member(current["effect"], effect),
-                }
-                if current
-                else None,
-                "cleanup": member(state["cleanup"], CLEANUP),
-                "earlier_omitted": state["earlier_omitted"] is True,
-                "recent": [
-                    {
-                        "phase": member(change["phase"], ("prepare", "transfer", "cleanup")),
-                        "status": member(change["status"], (*FILE_STATUSES, *CLEANUP)),
-                        **({"effect": member(change["effect"], effect)} if "effect" in change else {}),
-                    }
-                    for change in state["recent"][-32:]
-                ],
-            }
-        events: list[dict[str, Any]] = []
-        for event in self.receipts:
-            item: dict[str, Any] = {"kind": event["kind"], "atMs": count(event["atMs"])}
-            if event["kind"] == "request":
-                item.update(
-                    attempt=count(event["attempt"]),
-                    phase=member(event["phase"], ("pending", "headers", "failed", "cancelled")),
-                    status=event["status"] if type(event["status"]) is int and 100 <= event["status"] <= 599 else None,
-                    headersMs=count(event["headersMs"]) if event["headersMs"] is not None else None,
-                    durationMs=count(event["durationMs"]) if event["durationMs"] is not None else None,
-                )
-            elif event["kind"] == "approval":
-                item["outcome"] = member(event["outcome"], ("offered", "approved", "refused", "expired", "cancelled"))
-            elif event["kind"] == "control":
-                item["owner"] = member(event["owner"], OWNERS)
-            elif event["kind"] == "cleanup":
-                item["outcome"] = member(event["outcome"], CLEANUP)
-            elif event["kind"] == "tools":
-                item.update(
-                    phaseIndex=count(event["phaseIndex"]),
-                    phase=member(event["phase"], ("boundary", "pending", "final")),
-                    attempted=count(event["attempted"]),
-                    returned=count(event["returned"]),
-                )
-            else:
-                continue
-            events.append(item)
-        return {
-            "version": 1,
-            "id": self.id if re.fullmatch(r"[a-f0-9-]{36}", self.id) else None,
-            "environment": member(self.environment, ("desktop", "mixed"), "browser"),
-            "taskId": member(self.task_id, (*TASKS, "desktop", "mixed")),
-            "api": member(self.api, ("responses", "decisions")),
-            "mode": member(self.mode, ("live", "rehearsal")),
-            "status": member(
-                self.status,
-                (
-                    "running",
-                    "paused",
-                    "complete",
-                    "unverified",
-                    "refused",
-                    "approval_expired",
-                    "stopped",
-                    "failed",
-                    "expired",
-                    "view_failed",
-                    "input_failed",
-                    "handoff_failed",
-                    "handoff_unavailable",
-                    "uncertain",
-                    "browser_closed",
-                    "cleanup_failed",
-                ),
-                "unknown",
-            ),
-            "owner": member(self.owner, OWNERS),
-            "result": member(self.result, ("verified", "unverified")),
-            "uncertainEffects": self.uncertain
-            or bool(self.workspace and self.workspace.guest and self.workspace.guest.uncertain_effects)
-            or bool(file and file["current"] and file["current"]["effect"] == "unknown"),
-            "cleanup": member(self.cleanup_status, CLEANUP, "not_started"),
-            "requests": count(self.requests),
-            "turns": count(self.turns),
-            "stepLimit": count(self.step_limit),
-            "elapsedMs": count(
-                round(
-                    self.elapsed
-                    if self.owner == "stopped" and (self.agent is None or self.agent.done())
-                    else (time.monotonic() - self.started) * 1000
-                )
-            ),
-            "requestHeadersMs": count(round(self.headers_ms)),
-            "diagnostics": self.diagnostics.summary(self.requests),
-            "droppedEvents": count(self.receipts_dropped),
-            "events": events,
-            "file": file,
         }
 
     async def refresh_view(self, *, cancelled: Callable[[], bool] | None = None) -> None:
         phase = self.phase_cancel if self.owner == "agent" else None
         transfer = self.transfer_cancel
         version = self.version
-        point = self.workspace.binding() if self.workspace else None
 
         def interrupted() -> bool:
             return (
@@ -602,9 +427,6 @@ class Run:
             )
 
         try:
-            if self.workspace:
-                await self.workspace.frame(cancelled=interrupted)
-                return
             while self.cast_task:
                 previous_task = self.cast_task
                 await wait_for_decision(lambda previous_task=previous_task: asyncio.shield(previous_task), interrupted)
@@ -616,18 +438,8 @@ class Run:
             task.add_done_callback(lambda done: done.exception() if not done.cancelled() else None)
             await wait_for_decision(lambda: asyncio.shield(task), interrupted)
         except Exception:
-            if (
-                self.workspace
-                and point is not None
-                and self.version == version
-                and self.workspace.binding() is not None
-                and not self.workspace.matches(point)
-            ):
-                return
             if self.version == version:
                 self.view_binding = self.frame = None
-            if self.workspace and not interrupted():
-                self.stop("view_failed")
             if interrupted():
                 raise
         finally:
@@ -687,59 +499,16 @@ class Run:
         point = await self.binding(cancelled=cancelled)
         if not point:
             return
-        if self.workspace:
-            await self.refresh_view(cancelled=cancelled)
-            if not self.frame or not await self.matches(self.view_binding, cancelled=cancelled):
-                raise RuntimeError("No current desktop frame is available.")
-            pixels = self.frame
-            fixture = self.fixture
-        else:
-            assert self.driver is not None
-            _, page = self.driver.page(None)
-            pixels = await wait_for_decision(lambda: page.screenshot(type="jpeg", quality=80), cancelled)
-            fixture = await self.inspect(cancelled=cancelled)
+        assert self.driver is not None
+        _, page = self.driver.page(None)
+        pixels = await wait_for_decision(lambda: page.screenshot(type="jpeg", quality=80), cancelled)
+        fixture = await self.inspect(cancelled=cancelled)
         if not await self.matches(point, cancelled=cancelled):
             return
         self.screenshot, self.screenshot_at = pixels, now()
         self.screenshot_binding, self.fixture = point, fixture
-        self.checkpoint_sequence += 1
-        role = (
-            ("Host browser" if point["view"] == "host" else "Guest editor")
-            if self.environment == "mixed"
-            else ("Desktop" if self.workspace else point["role"])
-        )
-        self.diagnostics.frame(
-            {
-                "sequence": self.checkpoint_sequence,
-                "owner": self.owner,
-                "role": role,
-                "mime": "image/jpeg" if self.environment == "browser" else "image/png",
-            },
-            pixels,
-        )
-        if len(pixels) > 1024 * 1024:
-            self.checkpoint_dropped += 1
-            return
-        self.checkpoints.append(
-            {
-                "sequence": self.checkpoint_sequence,
-                "at": self.screenshot_at,
-                "atMs": round((time.monotonic() - self.started) * 1000),
-                "owner": self.owner,
-                "role": role,
-                "pixels": pixels,
-            }
-        )
-        self.checkpoint_bytes += len(pixels)
-        while len(self.checkpoints) > 12 or self.checkpoint_bytes > 8 * 1024 * 1024:
-            self.checkpoint_bytes -= len(self.checkpoints.pop(0)["pixels"])
-            self.checkpoint_dropped += 1
 
     async def inspect(self, *, cancelled: Callable[[], bool] | None = None) -> dict[str, Any]:
-        if self.workspace:
-            return await self.workspace.proof(cancelled=cancelled)
-        if self.business:
-            return self.business.snapshot()
         assert self.task_page is not None
         body = self.task_page.locator("body")
         state: dict[str, Any] = await wait_for_decision(
@@ -751,15 +520,11 @@ class Run:
             })"""),
             cancelled,
         )
-        if self.task_id == "reservation":
-            state["verified"] = (
-                isinstance(state["results"], dict)
-                and cast(dict[str, Any], state["results"]).get("confirmation") == "TABLE-204"
-                and all(state["fields"].get(name) == value for name, value in self.task["fields"].items())
-            )
-        else:
-            expected = [{"id": item["id"], "choice": item["expected"]} for item in self.task["items"]]
-            state["verified"] = state["results"] == expected
+        state["verified"] = (
+            isinstance(state["results"], dict)
+            and cast(dict[str, Any], state["results"]).get("confirmation") == "TABLE-204"
+            and all(state["fields"].get(name) == value for name, value in self.task["fields"].items())
+        )
         return state
 
     def toolset(self, owner: str) -> AsyncBrowserToolset:
@@ -772,11 +537,7 @@ class Run:
 
         return AsyncBrowserToolset(
             cast(AsyncBrowserDriver, BrowserActions(self, owner, version)),
-            members=(
-                ("list_tabs", "read_page", "get_page_text", "switch_tab", "click", "type", "select_option")
-                if self.task_id in ("reservation", "service", "files")
-                else None
-            ),
+            members=("list_tabs", "read_page", "get_page_text", "click", "type", "select_option"),
             confirm=confirm,
         )
 
@@ -807,11 +568,6 @@ class Run:
         assert not isinstance(result, str)
         if not point or not await self.matches(point, cancelled=cancelled):
             raise BrowserError("The page changed during observation.")
-        if self.business:
-            if point["tabId"] == self.task_tab:
-                await self.business.bind_read(result["elements"], cancelled=cancelled)
-            else:
-                self.business.bindings = {}
         revision = (await self.inspect(cancelled=cancelled))["revision"]
         await self.capture(cancelled=cancelled)
         if not await self.matches(point, cancelled=cancelled) or not await self.matches(
@@ -836,29 +592,13 @@ class Run:
         cancelled = cancelled or (self.phase_cancel.is_set if owner == "agent" else None)
         await self.check_target(args, member == "switch_tab", cancelled=cancelled)
         before = await self.ensure_current(owner, version, cancelled=cancelled)
-        operation = self.business.bindings.get(args.get("target", "")) if self.business and member == "click" else None
-        if self.business and member == "click" and not operation:
-            raise BrowserError("Read an unambiguous business control and its current fields before approval.")
-        if member == "click" and (operation or label in ("Reserve table", "Approve")):
-            prompt = label
-            if operation and operation["operation"] == "schedule":
-                prompt = f"{label} · {operation['date']} · {operation['technician']} · {operation['note']}"
-            if not await self.ask(prompt, owner=owner):
+        if member == "click" and label == "Reserve table":
+            if not await self.ask(label, owner=owner):
                 raise BrowserError("The operator refused the action.")
             await self.ensure_current(owner, version, cancelled=cancelled)
         self.add("action", label or member)
-        permit = self.business.authorize(operation) if operation and self.business else None
-        started = time.monotonic()
-        try:
-            await getattr(self.driver, member)(args, cancelled=cancelled)
-            if permit and self.business:
-                await self.business.finish(permit)
-        finally:
-            self.diagnostics.measure("actionMs", (time.monotonic() - started) * 1000)
-            if permit and self.business:
-                self.business.revoke(permit)
+        await getattr(self.driver, member)(args, cancelled=cancelled)
         state = await self.inspect(cancelled=cancelled)
-        self.diagnostics.record("effect", {"member": member, "state": state})
         self.observed_revision = state["revision"]
         if before["results"] != state["results"]:
             self.observed_binding = None
@@ -874,8 +614,6 @@ class Run:
                 "image_url": "data:image/jpeg;base64," + base64.b64encode(self.screenshot).decode(),
             },
         ]
-        if self.api == "decisions":
-            self.diagnostics.record("observation", diagnostic_observation(result))
         return result
 
     async def candidates(self, _observation: DecisionObservation) -> list[AsyncDecisionCandidate]:
@@ -888,43 +626,13 @@ class Run:
         if state["finished"]:
             return [done]
         assert self.observed_binding is not None and self.observation is not None
-        if self.observed_binding["tabId"] != self.task_tab:
-
-            async def switch() -> None:
-                await self.act("switch_tab", {"tab_id": self.task_tab}, "Switch to Task")
-
-            self.rehearsal_choice = "switch_to_task"
-            return [{"id": "switch_to_task", "description": "Switch to the Task tab", "execute": switch}, done]
-        if self.task_id == "files":
-            self.rehearsal_choice = "attach_intake_note"
-            return [
-                {
-                    "id": "attach_intake_note",
-                    "description": "Attach approved fixture document; operator approval required",
-                    "execute": self.attach_file,
-                },
-                done,
-            ]
-        if self.task_id == "service":
-            fields: dict[str, Any] = {item["label"]: item.get("value") for item in self.observation["elements"]}
-        else:
-            fields = state.get("fields", {})
+        fields = state["fields"]
         actions: list[AsyncDecisionActionCandidate] = []
         for element in self.observation["elements"]:
             args: dict[str, Any] = {"tab_id": None, "target": element["ref"]}
             label = element["label"]
             if element["role"] == "button":
-                if "fields" in self.task and (
-                    (
-                        self.task_id == "service"
-                        and self.business is not None
-                        and element["ref"] not in self.business.bindings
-                    )
-                    or (
-                        self.task_id != "service"
-                        and not all(fields.get(name) == value for name, value in self.task["fields"].items())
-                    )
-                ):
+                if not all(fields.get(name) == value for name, value in self.task["fields"].items()):
                     continue
                 member = "click"
                 description = f"Click {label}"
@@ -945,34 +653,15 @@ class Run:
 
             actions.append({"id": element["ref"], "description": description, "execute": execute})
         if self.mode == "rehearsal":
-            expected = (
-                f"Click {self.task['items'][len(state['results'])]['expected']}" if "items" in self.task else None
-            )
-            if self.task_id == "stock":
-                order = self.task["orders"][len(state["results"])]
-                stock = next(item for item in self.task["stock"] if item["colour"] == order["colour"])
-                expected = f"Click Ship {order['id']} with {stock['sku']}"
-            choice = next((item for item in actions if expected is None or item["description"] == expected), None)
+            choice = next(iter(actions), None)
             if not choice:
                 raise BrowserError("No current fixture action is eligible.")
             self.rehearsal_choice = choice["id"]
         return [*actions, done]
 
-    async def traced_candidates(self, observation: DecisionObservation) -> list[AsyncDecisionCandidate]:
-        choices = await self.candidates(observation)
-        self.diagnostics.record(
-            "choices",
-            [
-                {"id": item["id"], "description": item["description"], "done": item.get("done") is True}
-                for item in choices
-            ],
-        )
-        return choices
-
     async def verify(self, _observation: DecisionObservation) -> bool:
         phase = self.phase_cancel
         state = await self.inspect(cancelled=phase.is_set)
-        self.diagnostics.record("verification", state)
         return state["verified"]
 
     def redact(self, text: str) -> str:
@@ -1055,9 +744,6 @@ class Run:
         return response
 
     async def initialize(self) -> None:
-        if self.workspace:
-            await self.workspace.initialize()
-            return
         context = await self.app.browser.new_context(
             run=self, viewport={"width": 1024, "height": 720}, service_workers="block", accept_downloads=False
         )
@@ -1065,55 +751,7 @@ class Run:
             await self.close_owned(context.close)
             return
         self.context = context
-        if self.business:
-            adding = asyncio.create_task(
-                context.add_cookies(
-                    [
-                        {
-                            "name": "fieldwork_workspace",
-                            "value": self.workspace_token,
-                            "domain": "127.0.0.1",
-                            "path": f"/fixture/{self.task_id}",
-                            "httpOnly": True,
-                            "sameSite": "Strict",
-                        }
-                    ]
-                )
-            )
-            stopped = asyncio.create_task(self.phase_cancel.wait())
-            try:
-                await asyncio.wait({adding, stopped}, return_when=asyncio.FIRST_COMPLETED)
-                if self.owner != "agent" or self.phase_cancel.is_set():
-                    return
-                adding.result()
-            finally:
-                stopped.cancel()
-                if not adding.done():
-                    adding.cancel()
-                adding.add_done_callback(lambda done: done.exception() if not done.cancelled() else None)
-                await asyncio.gather(stopped, return_exceptions=True)
-        urls = {self.fixture_url, self.notes_url + "brief", self.notes_url + "rules"}
-        public_viewports = frozenset(urls)
-        public_values: frozenset[tuple[str, str, str]] = frozenset()
-        if self.task_id == "reservation":
-            public_values = frozenset(
-                (self.fixture_url, "TABLE-204", name) for name in ("guest_name", "party_size", "time", "seating")
-            )
-        elif self.task_id == "service":
-            public_values = frozenset(
-                (self.fixture_url, "SERVICE-401", name) for name in ("visit_date", "technician", "note")
-            )
-        if self.business:
-            urls.add(
-                f"{self.fixture_url}/effect?run={self.id}" + ("&case=INTAKE-501" if self.task_id == "files" else "")
-            )
-        self.driver = PlaywrightBrowser(
-            context,
-            {origin(self.fixture_url)},
-            owned_fixture_urls=frozenset(urls),
-            public_values=public_values,
-            public_viewports=public_viewports,
-        )
+        self.driver = BookingBrowser(context, self.fixture_url)
         await context.route("**/*", self.driver.guard)
 
         async def refuse_socket(route: WebSocketRoute) -> None:
@@ -1126,89 +764,15 @@ class Run:
                 self.stop("browser_closed")
 
         context.once("close", closed)
-        await self.driver.new_tab({"url": self.fixture_url})
+        await self.driver.open()
         self.task_tab, self.task_page = self.driver.page(None)
         self.task_page.once("close", closed)
-        if self.task_id == "files":
-
-            async def approve_file(transfer: Mapping[str, object]) -> bool:
-                assert self.business is not None and self.task_page is not None
-                point = await self.binding()
-                revision = self.business.snapshot()["revision"]
-                if (
-                    not point
-                    or point["tabId"] != self.task_tab
-                    or self.owner != "agent"
-                    or not await self.ask("Attach Approved fixture document to INTAKE-501", self.file_expires_at)
-                    or not await self.matches(point)
-                    or self.task_page.url != self.fixture_url
-                    or self.business.snapshot()["revision"] != revision
-                    or self.phase_cancel.is_set()
-                ):
-                    return False
-                self.file_permit = self.business.authorize(
-                    {
-                        "operation": "attach",
-                        "job": self.task["job"],
-                        "count": transfer["count"],
-                        "sha256": transfer["sha256"],
-                    }
-                )
-                return True
-
-            created = await UploadOwner.create(
-                self.task_page,
-                {
-                    "allow_upload": True,
-                    "record": await self.task_page.locator('[data-record-id="transfer-case"]').element_handle(),
-                    "control": await self.task_page.locator("input[type=file]").element_handle(),
-                    "record_id": "transfer-case",
-                },
-                approve_file,
-            )
-            if self.closed or self.owner != "agent" or self.phase_cancel.is_set():
-                await self.close_owned(created.stop)
-                raise BrowserError("File task setup ended.")
-            self.file_owner = created
         await self.refresh_view()
-
-    async def attach_file(self, arguments: dict[str, Any] | None = None) -> str:
-        from business import INTAKE
-
-        await self.check_target({"tab_id": self.task_tab})
-        if (
-            arguments
-            or not self.file_owner
-            or not self.business
-            or self.owner != "agent"
-            or self.phase_cancel.is_set()
-            or self.file_permit
-        ):
-            raise BrowserError("No active file task.")
-        if not self.file_grant:
-            name = self.file_owner.generated_name()
-            with (self.file_owner.upload_root / name).open("xb") as stream:
-                os.chmod(stream.fileno(), 0o600)
-                stream.write(INTAKE)
-            self.file_expires_at = now() + 30000
-            self.file_grant = await self.file_owner.prepare(self.file_owner.upload_root, name, self.file_expires_at)
-        try:
-            result = json.loads(await self.file_owner.upload({"grant_id": self.file_grant["grant_id"]}))
-            if not result.get("completed") or not self.file_permit:
-                raise BrowserError("File selection was refused or its outcome is unknown.")
-            await self.business.finish(self.file_permit)
-            self.add("action", "Received by fixture · INTAKE-501")
-            await self.capture()
-            return json.dumps(self.file_owner.state())
-        finally:
-            if self.file_permit:
-                self.business.revoke(self.file_permit)
-                self.file_permit = None
 
     async def execute(self) -> None:
         phase = self.phase_cancel
         try:
-            if not self.context and not (self.workspace and self.workspace.guest):
+            if not self.context:
                 await self.initialize()
             if self.phase_cancel.is_set() or self.owner != "agent":
                 return
@@ -1216,8 +780,6 @@ class Run:
             if self.phase_cancel.is_set() or self.owner != "agent":
                 return
             state = await self.inspect(cancelled=phase.is_set)
-            if state["verified"] and self.workspace:
-                state = await self.workspace.proof(cancelled=phase.is_set, finalize=True)
             if self.phase_cancel.is_set() or self.owner != "agent":
                 return
             if state["finished"]:
@@ -1237,52 +799,21 @@ class Run:
                             "Do not ask for approval in a final answer. " + self.task["instruction"]
                         )
                         remaining = self.step_limit - self.turns
-                        if self.workspace:
-                            self.result = await self.workspace.execute(client)
-                            self.fixture = await self.inspect(cancelled=phase.is_set)
-                        elif self.api == "decisions":
+                        if self.api == "decisions":
                             runner = AsyncDecisionsToolRunner(
-                                observe=self.observe, candidates=self.traced_candidates, verify=self.verify
+                                observe=self.observe, candidates=self.candidates, verify=self.verify
                             )
                             result = await runner.run(
                                 client,
                                 {"model": self.app.models.get(self.api) or "", "input": instruction},
                                 max_steps=remaining,
                                 cancelled=self.phase_cancel.is_set,
-                                on_diagnostic=self.diagnostics.event,
                             )
-                            self.result = (
-                                "verified"
-                                if result["status"] == "verified"
-                                or (self.business and self.business.snapshot()["verified"])
-                                else "unverified"
-                            )
+                            self.result = "verified" if result["status"] == "verified" else "unverified"
                             if result["status"] == "refused":
                                 self.status = "refused"
                         else:
-                            functions: list[AsyncRegisteredFunction] = []
-                            if self.task_id == "files":
-                                functions.append(
-                                    AsyncRegisteredFunction(
-                                        tool={
-                                            "type": "function",
-                                            "name": "attach_intake_note",
-                                            "strict": True,
-                                            "description": "Attach the approved fixture document to INTAKE-501. Requires operator approval.",
-                                            "parameters": {
-                                                "type": "object",
-                                                "properties": {},
-                                                "required": [],
-                                                "additionalProperties": False,
-                                            },
-                                        },
-                                        execute=self.attach_file,
-                                    )
-                                )
-                            runner = AsyncResponsesToolRunner(
-                                browser=self.toolset("agent"),
-                                functions=functions,
-                            )
+                            runner = AsyncResponsesToolRunner(browser=self.toolset("agent"))
                             await self.read_page({"tab_id": None, "filter": "all"}, cancelled=self.phase_cancel.is_set)
                             assert self.screenshot is not None
                             model = self.app.models[self.api]
@@ -1311,7 +842,6 @@ class Run:
                                 max_steps=remaining,
                                 stream=True,
                                 cancelled=self.phase_cancel.is_set,
-                                on_diagnostic=self.diagnostics.event,
                             )
                             self.final_text = self.redact(result.output_text)
                             self.result = (
@@ -1330,11 +860,7 @@ class Run:
         except (Exception, asyncio.CancelledError):
             if self.owner == "agent":
                 self.status = "failed"
-                self.result = (
-                    "verified"
-                    if self.result == "verified" or (self.business and self.business.snapshot()["verified"])
-                    else "unverified"
-                )
+                self.result = "verified" if self.result == "verified" else "unverified"
                 self.add("result", "Request or action failed. Inspect the browser before retrying.")
         finally:
             self.settle(False)
@@ -1357,14 +883,14 @@ class Run:
                 return
             if self.owner != "draining-to-human" or self.version != version:
                 return
-            if not self.workspace and (self.closed or not self.task_page or self.task_page.is_closed()):
+            if self.closed or not self.task_page or self.task_page.is_closed():
                 self.stop("handoff_unavailable")
                 return
             if self.driver:
                 await wait_for_decision(self.driver.invalidate_references, transfer.is_set)
             if self.owner != "draining-to-human" or self.version != version:
                 return
-            if not self.workspace and (self.closed or not self.task_page or self.task_page.is_closed()):
+            if self.closed or not self.task_page or self.task_page.is_closed():
                 self.stop("handoff_unavailable")
                 return
             self.status = "paused"
@@ -1426,24 +952,12 @@ class Run:
                 self.transfer_cancel = None
 
     def valid_input(self, body: dict[str, Any]) -> bool:
-        if self.environment == "mixed":
-            from mixed_workspace import MixedWorkspace
-
-            assert isinstance(self.workspace, MixedWorkspace)
-            return self.workspace.valid_input(body)
-        if self.workspace:
-            from desktop_workspace import input_action
-
-            return input_action(body, self.workspace.scroll_target) is not None
         action = body.get("action")
         fields: dict[str, set[str]] = {
             "click": {"x", "y"},
             "type": {"text"},
             "key": {"key"},
             "scroll": {"direction", "amount"},
-            "open_notes": set(),
-            "close_notes": set(),
-            "switch_tab": {"tab_id"},
         }
         if action not in fields or set(body) - (
             {"runId", "ownerVersion", "tabId", "sequence", "action"} | fields[action]
@@ -1483,18 +997,10 @@ class Run:
                 and type(body.get("amount")) is int
                 and 1 <= body["amount"] <= 2048
             )
-        if action == "open_notes":
-            return self.notes_tab is None
-        if action == "close_notes":
-            return self.notes_tab is not None
-        return body.get("tab_id") in (self.task_tab, self.notes_tab) and body.get("tab_id") is not None
+        return False
 
     async def human_input(self, body: dict[str, Any]) -> None:
         try:
-            if self.workspace:
-                await self.workspace.human_input(body)
-                self.add("human", f"Human {body['action']} completed; desktop state captured.")
-                return
             assert self.driver is not None
             _, page = self.driver.page(None)
             action = body["action"]
@@ -1512,19 +1018,9 @@ class Run:
                     "right": (body["amount"], 0),
                 }
                 await page.mouse.wheel(*deltas[body["direction"]])
-            elif action == "open_notes":
-                await self.driver.new_tab({"url": self.notes_url + "brief"})
-                self.notes_tab, _ = self.driver.page(None)
-            elif action == "close_notes":
-                await self.driver.close_tab({"tab_id": self.notes_tab})
-                self.notes_tab = None
-            elif action == "switch_tab":
-                await self.driver.switch_tab({"tab_id": body["tab_id"]})
             await self.refresh_view()
             await self.capture()
             self.add("human", f"Human {action} completed; browser state captured.")
-        except MixedHostInputRefusedError:
-            raise
         except Exception:
             self.uncertain = True
             self.stop("uncertain")
@@ -1557,9 +1053,6 @@ class BrowserActions:
         await self.run.check_target(args, cancelled=cancelled)
         assert self.run.driver is not None
         return await self.run.driver.screenshot(args, cancelled=cancelled)
-
-    async def switch_tab(self, args: TabInput, *, cancelled: Callable[[], bool] | None = None) -> None:
-        await self.run.act("switch_tab", args, "Switch tab", self.owner, self.version, cancelled=cancelled)
 
     async def click(self, args: ClickInput, *, cancelled: Callable[[], bool] | None = None) -> None:
         if self.run.observation is None:

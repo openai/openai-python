@@ -146,7 +146,6 @@
       const task = __TASK__;
       const app = document.querySelector('#app');
       const body = document.body;
-      const results = [];
       const title = document.createElement('section');
       title.innerHTML = `<div class="overline">${task.kind === 'support' ? 'Customer operations' : task.kind === 'invoices' ? 'Finance operations' : task.kind === 'stock' ? 'Warehouse operations' : task.kind === 'service' ? 'Service operations' : task.kind === 'files' ? 'Receiving desk' : 'The Garden Room'}</div><h1>${task.title}</h1><p class="muted">${task.summary}</p>`;
       app.append(title);
@@ -158,145 +157,7 @@
       function changed() {
         body.dataset.revision = String(Number(body.dataset.revision) + 1);
       }
-      function renderItem() {
-        card.replaceChildren();
-        if (results.length === task.items.length) {
-          delete card.dataset.recordId;
-          body.dataset.finished = 'true';
-          card.innerHTML =
-            '<div class="complete">All done.</div><p class="muted">Every item has been reviewed. The results remain available for verification.</p>';
-          return;
-        }
-        const item = task.items[results.length];
-        const id = item.id;
-        card.dataset.recordId = id;
-        const details = document.createElement('div');
-        details.innerHTML = `<div class="item-id">${item.id} · ${results.length + 1} of ${task.items.length}</div><h2>${item.title}</h2><p class="description">${item.text}</p>`;
-        card.append(details);
-        const buttons = document.createElement('div');
-        buttons.className = 'buttons';
-        for (const choice of task.choices) {
-          const button = document.createElement('button');
-          button.textContent = choice;
-          button.addEventListener('click', () => {
-            results.push({ id, choice });
-            body.dataset.results = JSON.stringify(results);
-            changed();
-            const row = document.createElement('div');
-            row.className = 'result';
-            row.textContent = `${id} → ${choice}`;
-            history.append(row);
-            renderItem();
-          });
-          buttons.append(button);
-        }
-        card.append(buttons);
-      }
-      if (task.kind === 'files') {
-        card.dataset.recordId = 'transfer-case';
-        card.innerHTML = `<div class="item-id">${task.job}</div><h2>Approved fixture document</h2>
-          <p class="muted">View and Stop are available. File selection is controlled by the approved fixture task.</p>
-          <input type="file" aria-label="Controlled fixture attachment"><p id="file-progress">No document selected</p>`;
-        const input = card.querySelector('input');
-        const progress = card.querySelector('#file-progress');
-        input.addEventListener('change', async () => {
-          const file = input.files[0];
-          if (!file) return;
-          progress.textContent = 'Selected locally · awaiting fixture receipt';
-          try {
-            const response = await fetch(task.effectURL, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/octet-stream' },
-              body: file,
-            });
-            if (response.ok) {
-              const receipt = await response.json();
-              body.dataset.revision = String(receipt.revision);
-              progress.textContent = 'Received by fixture';
-            } else {
-              progress.textContent = 'Receipt refused';
-            }
-          } catch {
-            progress.textContent = 'Receipt unavailable';
-          }
-        });
-      } else if (task.kind === 'stock') {
-        const guidance = document.createElement('p');
-        guidance.className = 'muted';
-        guidance.textContent =
-          'The agent requests approval for each shipment. After inspecting an order, return control to the agent to ship it.';
-        title.append(guidance);
-        let position = 0;
-        const renderStock = () => {
-          card.replaceChildren();
-          if (position === task.orders.length) {
-            delete card.dataset.recordId;
-            card.innerHTML =
-              '<h2>Shipment requests received</h2><p>The fixture owner checks their receipts.</p>';
-            return;
-          }
-          const order = task.orders[position];
-          const orderId = order.id;
-          card.dataset.recordId = orderId;
-          const heading = document.createElement('h2');
-          heading.textContent = `${orderId} · requested ${order.colour}`;
-          card.append(heading);
-          for (const item of task.stock) {
-            const line = document.createElement('p');
-            line.textContent = `${item.sku} · ${item.colour} · starting stock ${item.quantity}`;
-            const button = document.createElement('button');
-            button.textContent = `Ship ${orderId} with ${item.sku}`;
-            button.addEventListener('click', async () => {
-              const response = await fetch(task.effectURL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ operation: 'ship', order: orderId, sku: item.sku }),
-              });
-              if (response.ok) {
-                const receipt = await response.json();
-                body.dataset.revision = String(receipt.revision);
-                position += 1;
-                renderStock();
-              }
-            });
-            card.append(line, button);
-          }
-        };
-        renderStock();
-      } else if (task.kind === 'service') {
-        const guidance = document.createElement('p');
-        guidance.className = 'muted';
-        guidance.textContent =
-          "You may inspect or fill this form during human control. Saving requires the agent's approval flow.";
-        title.append(guidance);
-        const job = task.job;
-        card.dataset.recordId = job;
-        card.innerHTML = `<h2>${job} · ${task.asset}</h2><p class="muted">${task.instruction}</p><form><div class="grid"><label>Visit date<input type="date" aria-label="Visit date" data-browser-field="visit_date" required /></label><label>Technician<select aria-label="Technician" data-browser-field="technician" required><option value="">Choose specialist</option><option>Sensor specialist</option><option>Mechanical specialist</option></select></label><label>Service note<input aria-label="Service note" data-browser-field="note" required autocomplete="off" /></label></div><div class="buttons"><button class="primary" type="submit">Schedule ${job}</button></div></form><div role="status"></div>`;
-        const form = card.querySelector('form');
-        form.addEventListener('submit', async (event) => {
-          event.preventDefault();
-          const response = await fetch(task.effectURL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              operation: 'schedule',
-              job,
-              date: form.querySelector('[data-browser-field="visit_date"]').value,
-              technician: form.querySelector('[data-browser-field="technician"]').value,
-              note: form.querySelector('[data-browser-field="note"]').value,
-            }),
-          });
-          if (response.ok) {
-            const receipt = await response.json();
-            body.dataset.revision = String(receipt.revision);
-            card.querySelector('[role="status"]').textContent = 'Service request received.';
-            form.querySelector('button').disabled = true;
-          }
-        });
-      } else if (task.kind !== 'reservation') {
-        renderItem();
-      } else {
-        const id = 'TABLE-204';
+      const id = 'TABLE-204';
         card.dataset.recordId = id;
         body.dataset.results = '{}';
         card.innerHTML =
@@ -312,7 +173,6 @@
           status.textContent = `Confirmed · ${id}`;
           card.querySelector('button').disabled = true;
         });
-      }
     </script>
   </body>
 </html>

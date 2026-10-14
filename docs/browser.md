@@ -5,8 +5,9 @@ It does not add a native browser tool type to the Responses API. The model
 must support function tools. Screenshots are sent as native `input_image`
 parts in `function_call_output`, with an `input_text` state report.
 The SDK does not install a browser, access browser profiles, or manage a
-driver's session. See [the browser example](../examples/browser/) for a
-Playwright driver using a separate, user-owned context.
+driver's session. See [the read-only quickstart](../examples/browser/README_read_only.md)
+for a local Playwright reader, or [Fieldwork](../examples/browser-use-demo/README.md)
+for an owned reservation form.
 
 ## Start with an async driver
 
@@ -212,7 +213,7 @@ from frame and shadow limits.
 
 Return a `BrowserScopedReadV1` dictionary, exported from `openai.lib.browser`. It has
 the existing `version`, `text`, `elements`, and `omitted` fields plus `scopes`, a list
-of `{"ref": ..., "label": ...}` entries. The list can contain at most 100 scopes. Each ref
+of `{"ref": ..., "label": ...}` entries. The SDK imposes no fixed scope count. Each ref
 and label must be nonempty, valid Unicode and at most 256 UTF-8 bytes. Scope refs must be
 unique and cannot equal any element ref. The whole projected report, including scopes,
 has no SDK byte limit. This method rejects string and `None` results. The SDK
@@ -222,10 +223,6 @@ and its seven action roles remain unchanged.
 Scope refs can select a read root, but cannot authorize an element mutation. Give them the
 same tab, document, generation and visibility invalidation as element refs. Element actions
 must reject scope refs. Keep field privacy and work limits in the driver.
-
-See the [owned capability examples](../examples/browser/README_capabilities.md) for the
-local scoped reader and guarded pointer factory. The examples have narrower frame and
-canvas support than a general custom driver might provide.
 
 ## Opt in to diagnostics, scripts, and file transfers
 
@@ -253,12 +250,6 @@ Scripts run with the page's privileges. Use a fresh session without
 credentials, restrict its network access, and retire it if execution becomes
 uncertain. Stopping the local waiter does not prove that a page script stopped.
 
-The local sensitive-driver example uses an empty, owned context and an exact
-loopback fixture URL. It limits script results to 16384 UTF-8 bytes as an application policy.
-It reports only console levels and network status summaries.
-It closes the context after a script timeout or cancellation. This example does
-not claim to filter arbitrary scripts or make signed-in pages safe.
-
 File methods accept only a caller-issued `grant_id`: nonempty, valid Unicode,
 and at most 256 UTF-8 bytes. The grant identifies one approved, task-scoped file;
 it is not a path or URL. The file owner must get separate file approval. It must recheck expiry and
@@ -282,16 +273,9 @@ that response. Check the actual file and application state before retrying an
 unknown transfer. A file result does not prove that a later form submission or
 business action succeeded.
 
-The file examples use private temporary staging and original page/control handles.
-Downloads use a trusted source URL, expected size, and hash supplied by the app.
-The model receives only the grant. These examples do not collect arbitrary
-browser downloads. Keep the file owner's state separate from browser `state()`.
-
 `run_script`, `upload_file`, `download_file`, and diagnostic reads may declare
 the same `cancelled` keyword as other browser methods. Python exports `RunScriptInput`,
-`ReadDiagnosticsInput`, `BrowserFileInput`, and `BrowserFileOutcome`. See the
-[sensitive example](../examples/browser/README_capabilities.md) and
-[file examples](../examples/browser/README_files.md).
+`ReadDiagnosticsInput`, `BrowserFileInput`, and `BrowserFileOutcome`.
 
 ## Return a structured page read
 
@@ -317,7 +301,7 @@ A `None` result supplies only the updated browser state. Return an empty string
 when the read completes with no text.
 Checkbox and radio elements may report Boolean `checked`; listbox options
 may report Boolean `selected`. The SDK omits those fields on other roles.
-See [native browser forms](browser-forms.md) for the owned example.
+See [native browser forms](browser-forms.md) for driver field requirements.
 
 The SDK copies known fields before reading final state. It rejects invalid
 reports and stops the run. Unknown fields are omitted without being read.
@@ -328,15 +312,10 @@ values. Omission codes must be unique members of the `BrowserReadV1` type;
 use them to report incomplete coverage.
 
 The driver owns visibility, field privacy and ref validity. Size checks do not
-make arbitrary page data safe. The owned Playwright example reads supported
-same-origin frames and open shadow roots, and provides read-only remote-frame
-summaries without action refs. It omits form values unless the launcher explicitly
-permits the exact owned field. Its work and frame limits can leave content unread.
-
-The borrowed Playwright driver reads at most 2000 document nodes and limits the complete report
-to 64 KiB. A normal read returns at most 100 controls. `find` applies the query before the
-100-result limit, so it can return a matching control later in the document. Work and report
-limits still apply; check `omitted` before treating a search as complete.
+make arbitrary page data safe. Limit driver work to the document and fields
+your application permits, and report incomplete coverage in `omitted`.
+Fieldwork implements only its own fixed reservation page; it does not claim
+general browsing, arbitrary DOM filtering, or frame and shadow-root support.
 
 ## Confirmation, navigation, and recovery
 
@@ -376,7 +355,7 @@ on the document or focused control. A page can navigate or change focus while a 
 For consent tied to a specific page or control, the driver must check the original target at execution.
 Disable `key` and refuse `type` with a `None` target in that flow; both use current focus.
 Apply equivalent target binding to other actions that depend on the current browser state.
-The [local example](../examples/browser/run.py) applies these refusals before its human prompt.
+
 
 For an expected, safe-to-share failure, a driver may raise
 `BrowserError("Element no longer exists.")`. Choose that message yourself;
@@ -737,8 +716,7 @@ For a task with several steps, include the last completed action and bounded pag
 Capture that text from the same validated read used to create the action. Save it only after the
 tool reports success, and reset it for a new task. Keep browser handles inside the executor and
 use separate choice IDs. If a tool refuses or fails, stop the executor with an error.
-The [local workflow example](../examples/browser/long-workflow.md) shows this pattern with two tabs,
-including a local rehearsal and an independent check of saved results.
+The Fieldwork demo uses a local rehearsal and independently checks the saved reservation.
 
 ```python
 from openai import AsyncOpenAI
@@ -798,5 +776,5 @@ Decisions access or model errors never fall back to Responses automatically.
 
 ## Hosted environments
 
-See [provider connections](browser-providers.md) for the browser and desktop
-adapters, ownership rules, and local connection checks.
+See [provider connections](browser-providers.md) for browser and desktop
+driver integration and ownership rules.

@@ -1,4 +1,0 @@
-{
-  "A": { "LARK": "Release", "MOSS": "Hold", "WREN": "Investigate", "PINE": "Hold" },
-  "B": { "WREN": "Hold", "PINE": "Release", "LARK": "Investigate", "MOSS": "Hold" }
-}

@@ -7,13 +7,12 @@ import json
 import asyncio
 import argparse
 from html import escape
-from typing import Any, TypeVar, cast
+from typing import Any, Literal, TypeVar, cast
 from pathlib import Path
 from contextlib import asynccontextmanager
 from urllib.parse import urljoin, urlsplit
 from collections.abc import Callable, Awaitable, AsyncGenerator
 
-from browser_driver import example_browser_channel
 from playwright.async_api import Page, Route, Browser, WebSocketRoute, async_playwright
 
 from openai import AsyncOpenAI
@@ -86,6 +85,15 @@ _READ_DOCUMENT = r"""function readDocument() {
   }
   return text.trim() + heading + links + (omitted ? ending : '');
 }"""
+
+
+def example_browser_channel() -> Literal["chrome"] | None:
+    channel = os.environ.get("OPENAI_EXAMPLE_BROWSER_CHANNEL")
+    if channel is None:
+        return None
+    if channel != "chrome":
+        raise ValueError("OPENAI_EXAMPLE_BROWSER_CHANNEL must be unset or chrome.")
+    return "chrome"
 
 
 class ReadOnlyBrowser:

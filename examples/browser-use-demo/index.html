@@ -218,6 +218,9 @@
         height: auto;
         display: none;
       }
+      #screen[src] {
+        display: block;
+      }
       #screen[aria-disabled='false'] {
         cursor: crosshair;
         outline: 2px solid #527d43;
@@ -532,147 +535,53 @@
   </head>
   <body>
     <header>
-      <span class="wordmark">OpenAI <span style="color: #9ba68f; font-weight: 400">/ Computer use</span></span
-      ><span class="eyebrow">SDK example</span>
+      <span class="wordmark">OpenAI <span style="color:#9ba68f;font-weight:400">/ Fieldwork</span></span>
+      <span class="eyebrow">SDK example</span>
     </header>
     <main>
       <section class="intro">
         <div>
-          <div class="eyebrow" id="workspace-kicker">A working browser. A visible result.</div>
-          <h1 id="workspace-heading">Browser work, made visible.</h1>
-          <p class="lead">Pick a task. Watch the actions. Approve what matters.</p>
+          <div class="eyebrow">A working browser. A visible result.</div>
+          <h1>Book a table.</h1>
+          <p class="lead">Watch the agent fill a local reservation. Approve its submission or take control.</p>
         </div>
         <span class="pill">Isolated · Synthetic · Local</span>
       </section>
-      <section class="tasks" id="browser-tasks" aria-label="Choose a task">
-        <button class="task" data-task="support" aria-pressed="true">
-          <span class="number">01 / ROUTE</span><strong>Triage a support inbox</strong>
-          <p>Read three tickets and route each to the right team.</p>
-        </button>
-        <button class="task" data-task="reservation" aria-pressed="false">
-          <span class="number">02 / FILL</span><strong>Book a table</strong>
-          <p>Fill a reservation and ask before submitting it.</p>
-        </button>
-        <button class="task" data-task="invoices" aria-pressed="false">
-          <span class="number">03 / REVIEW</span><strong>Review an invoice queue</strong>
-          <p>Match receipts, catch a duplicate, and approve an invoice.</p>
-        </button>
-        <button class="task" data-task="stock" aria-pressed="false">
-          <span class="number">04 / SHIP</span><strong>Ship substitute stock</strong>
-          <p>Match available colours and approve each recorded shipment.</p>
-        </button>
-        <button class="task" data-task="service" aria-pressed="false">
-          <span class="number">05 / SERVICE</span><strong>Schedule a service visit</strong>
-          <p>Fill a visit request and approve its exact saved details.</p>
-        </button>
-        <button class="task" data-task="files" aria-pressed="false">
-          <span class="number">06 / INTAKE</span><strong>Attach an intake note</strong>
-          <p>Verify a synthetic document actually reached the local fixture.</p>
-        </button>
-      </section>
-      <section id="mixed-task" class="handoff" hidden>
-        <strong>Route D-2201, approve its fixed receipt, and save it in the guest editor</strong>
-        <p>
-          The host owns Dispatch. The separate guest owns the editor only. Choose a view, take control, and
-          return the same task with its remaining request budget. Stop closes both.
-        </p>
-      </section>
-      <section id="desktop-task" class="handoff" hidden>
-        <strong>Route a dispatch ticket and save its receipt</strong>
-        <p>
-          Watch a real isolated Linux desktop. The agent uses the browser on the left and editor on the right.
-          You can take control, make a correction, and return the current screen to the agent.
-        </p>
-      </section>
       <div class="controls">
-        <label
-          >Workspace<select id="environment">
-            <option value="browser">Browser</option>
-            <option value="desktop" disabled>Isolated desktop</option>
-            <option value="mixed" disabled>Mixed · Host browser and guest editor</option>
-          </select></label
-        >
-        <label
-          >API<select id="api">
-            <option value="responses">Responses · Open-ended (default)</option>
-            <option value="decisions">Decisions · Known candidates</option>
-          </select></label
-        >
-        <label
-          >Run mode<select id="mode">
-            <option value="live">Live API</option>
-            <option value="rehearsal">Local rehearsal · Decisions, no API</option>
-          </select></label
-        >
-        <button id="start" class="button primary">Start task →</button
-        ><button id="stop" class="button" disabled>Stop</button>
-        <label id="files-opt-in" hidden>
-          <input type="checkbox" id="allow-file-upload" />
-          Prepare the synthetic intake note. Ask me before uploading it.
-        </label>
+        <label>API<select id="api">
+          <option value="responses">Responses · Open-ended (default)</option>
+          <option value="decisions">Decisions · Known candidates</option>
+        </select></label>
+        <label>Run mode<select id="mode">
+          <option value="live">Live API</option>
+          <option value="rehearsal">Local rehearsal · Decisions, no API</option>
+        </select></label>
+        <button id="start" class="button primary">Start task →</button>
+        <button id="stop" class="button" disabled>Stop</button>
         <span class="availability" id="availability"></span>
       </div>
       <div class="workspace">
         <section class="viewer" aria-label="Actual workspace view">
-          <div class="bar">
-            <span class="dots"><i></i><i></i><i></i></span
-            ><span id="address">Choose a task to open its workspace</span
-            ><span id="dimensions">1024 × 720</span>
-          </div>
+          <div class="bar"><span class="dots"><i></i><i></i><i></i></span>
+            <span id="address">Local reservation</span><span>1024 × 720</span></div>
           <div class="view">
             <div class="empty" id="empty">
-              <div class="symbol">⌘</div>
-              <strong id="empty-title">Your browser is ready.</strong>
-              <p id="empty-detail">Start a task to see the actual browser screen.</p>
+              <div class="symbol">⌘</div><strong>Your browser is ready.</strong>
+              <p>Start a task to see the actual browser screen.</p>
             </div>
-            <img id="screen" alt="Current pixels from the isolated task browser" aria-disabled="true" />
-          </div>
-          <div class="history" id="browser-tabs" aria-label="Task browser tabs">
-            <label
-              >Workspace tab<select id="browser-tab" disabled>
-                <option>Task</option>
-              </select></label
-            >
-            <button id="open-notes" class="button" disabled>Open task notes</button>
-            <button id="close-notes" class="button" disabled>Close notes</button>
-          </div>
-          <div class="history" id="mixed-views" aria-label="Mixed workspace" hidden>
-            <label
-              >View<select id="mixed-view" disabled>
-                <option value="host">Host browser</option>
-                <option value="guest">Guest editor</option>
-              </select></label
-            >
-            <span id="mixed-hint" class="availability">One task, two separate workspaces.</span>
+            <img id="screen" alt="Current pixels from the isolated task browser" aria-disabled="true"/>
           </div>
           <div class="viewer-footer">
-            <span id="view-kind">Actual browser · view only</span><span id="snapshot-time">No run yet</span>
-          </div>
-          <div class="history" aria-label="Saved browser checkpoints">
-            <label
-              >Saved checkpoints<select id="checkpoint" disabled>
-                <option value="">Current view</option>
-              </select></label
-            >
-            <button id="return-current" class="button" disabled>Return to current view</button>
-            <span id="history-note">No saved checkpoints yet.</span>
+            <span id="view-kind">Actual browser · view only</span>
+            <span id="snapshot-time">No run yet</span>
           </div>
         </section>
         <aside class="sidebar">
-          <div class="status-row">
-            <span class="eyebrow">Run activity</span><span id="status" role="status">Ready</span>
-          </div>
+          <div class="status-row"><span class="eyebrow">Run activity</span><span id="status" role="status">Ready</span></div>
           <div class="metrics">
             <div class="metric"><strong id="elapsed">—</strong><span>elapsed time</span></div>
             <div class="metric"><strong id="requests">—</strong><span>API attempts</span></div>
           </div>
-          <details class="handoff">
-            <summary>Usage and diagnostics</summary>
-            <p><a href="/traces">Open saved trace viewer (view only)</a></p>
-            <p id="usage-summary">No API usage recorded.</p>
-            <p id="timing-summary">Timing is available after a request or action finishes.</p>
-            <p id="capture-summary">Private diagnostic capture is off.</p>
-          </details>
           <section class="handoff" aria-label="Browser control">
             <strong id="owner-status" role="status">No active browser</strong>
             <span id="session-expiry"></span>
@@ -682,1044 +591,220 @@
             </div>
             <fieldset id="human-controls" disabled hidden>
               <legend class="section-label">Your input</legend>
-              <label
-                >Text to type<textarea
-                  id="human-text"
-                  rows="3"
-                  maxlength="2000"
-                  autocomplete="off"
-                ></textarea>
-              </label>
+              <label>Text to type<textarea id="human-text" rows="2" maxlength="2000" autocomplete="off"></textarea></label>
               <button id="send-text" class="button">Type text</button>
-              <label
-                >Key<select id="human-key">
-                  <option>Enter</option>
-                  <option>Tab</option>
-                  <option>Backspace</option>
-                  <option>Delete</option>
-                  <option>Escape</option>
-                  <option>ArrowUp</option>
-                  <option>ArrowDown</option>
-                  <option>ArrowLeft</option>
-                  <option>ArrowRight</option>
-                  <option>Home</option>
-                  <option>End</option>
-                  <option>PageUp</option>
-                  <option>PageDown</option>
-                  <option>Space</option>
-                  <option>ControlOrMeta+A</option>
-                  <option id="desktop-save" hidden disabled>ControlOrMeta+S</option>
-                </select></label
-              >
+              <label>Key<select id="human-key">
+                <option>Enter</option><option>Tab</option><option>Backspace</option><option>Delete</option>
+                <option>Escape</option><option>ArrowUp</option><option>ArrowDown</option>
+                <option>ArrowLeft</option><option>ArrowRight</option><option>Home</option><option>End</option>
+                <option>PageUp</option><option>PageDown</option><option>Space</option><option>ControlOrMeta+A</option>
+              </select></label>
               <button id="send-key" class="button">Send key</button>
               <div class="scroll-fields">
-                <label
-                  >Scroll<select id="scroll-direction">
-                    <option value="down">Down</option>
-                    <option value="up">Up</option>
-                    <option value="left">Left</option>
-                    <option value="right">Right</option>
-                  </select></label
-                >
-                <label>Pixels<input id="scroll-amount" type="number" min="1" max="2048" value="512" /></label>
+                <label>Scroll<select id="scroll-direction">
+                  <option value="down">Down</option><option value="up">Up</option>
+                  <option value="left">Left</option><option value="right">Right</option>
+                </select></label>
+                <label>Pixels<input id="scroll-amount" type="number" min="1" max="2048" value="512"/></label>
               </div>
               <button id="send-scroll" class="button">Scroll</button>
-              <p id="scroll-hint" class="availability" hidden>
-                Click inside the pane you want to scroll first.
-              </p>
             </fieldset>
           </section>
           <div class="section-label">Action timeline</div>
-          <p id="timeline-dropped" class="muted"></p>
-          <ol id="timeline">
-            <li>Actions will appear here.<small>Start a task to begin</small></li>
-          </ol>
-          <details id="tool-inspector">
-            <summary>Manual browser tool inspector</summary>
-            <p>
-              Take control of a browser task, then inspect the same tools the SDK exposes. Each call needs
-              your consent. Sensitive actions still ask for approval.
-            </p>
-            <fieldset id="tool-controls" disabled>
-              <legend>Live human controls</legend>
-              <button class="button" id="tool-load" type="button">Load current tools</button>
-              <label
-                >Tool
-                <select id="tool-name">
-                  <option value="">Load tools first</option>
-                </select></label
-              >
-              <p id="tool-description"></p>
-              <form id="tool-form">
-                <div id="tool-fields"></div>
-                <label
-                  ><input type="checkbox" id="tool-consent" required /> I consent to this one call in the
-                  current synthetic workspace.</label
-                >
-                <button class="button" id="tool-send" type="submit">Run selected tool</button>
-              </form>
-            </fieldset>
-            <p id="tool-notice" role="status" aria-live="polite">
-              Available while you control a browser task.
-            </p>
-            <pre id="tool-result" aria-label="Latest manual result"></pre>
-          </details>
+          <ol id="timeline"><li>Actions will appear here.<small>Start a task to begin</small></li></ol>
           <section class="approval" id="approval" hidden>
-            <strong>Approval needed</strong>
-            <p id="approval-text"></p>
+            <strong>Approval needed</strong><p id="approval-text"></p>
             <div class="buttons">
-              <button id="approve" class="button primary">Approve action</button
-              ><button id="refuse" class="button">Refuse</button>
+              <button id="approve" class="button primary">Approve action</button>
+              <button id="refuse" class="button">Refuse</button>
             </div>
           </section>
         </aside>
       </div>
       <p id="message" role="alert"></p>
       <footer>
-        <span
-          >Decisions chooses among actions supplied by this example. Responses generates browser or computer
-          actions. Both APIs use independent result checks. The desktop task uses Responses.</span
-        ><span
-          >Rehearsal is scripted and makes no API call. Its timing is not a live benchmark.
-          <a id="export" href="#" hidden>Export run JSON</a></span
-        >
+        <span>The page checks the four fields and the final confirmation. No real booking is made.</span>
+        <span>Rehearsal makes no API request; it is not a live benchmark.</span>
       </footer>
     </main>
-    <script nonce="__NONCE__">
-      const token = new URLSearchParams(location.hash.slice(1)).get('token') || '';
-      history.replaceState(null, '', location.pathname + location.search);
-      // Reopening the private link may change only the fragment of this same document.
-      addEventListener('hashchange', () => {
-        if (new URLSearchParams(location.hash.slice(1)).has('token')) location.reload();
-      });
-      if (token) document.querySelector('a[href="/traces"]').hash = new URLSearchParams({ token }).toString();
-      let taskId = 'support';
-      let desktopAvailable = false;
-      let current;
-      let currentApproval;
-      let screenshotURL;
-      let tools = [],
-        inspectInFlight = false;
-      let selectedCheckpoint = null;
-      let renderVersion = 0;
-      let startInFlight = false;
-      let controlInFlight = false;
-      let connected = false;
+    <script type="module" nonce="__NONCE__">
       const byId = (id) => document.getElementById(id);
-      const binding = (run) =>
-        run?.environment && run.environment !== 'browser'
-          ? (run.desktop ?? { desktopId: null, ownerVersion: null })
-          : { tabId: run?.browser?.tabId ?? null, sequence: run?.browser?.sequence ?? null };
-      const samePage = (a, b) =>
-        (a?.environment ?? 'browser') === (b?.environment ?? 'browser') &&
-        JSON.stringify(binding(a)) === JSON.stringify(binding(b));
-      const imageParams = (pair) =>
-        pair?.desktopId
-          ? `&desktopId=${encodeURIComponent(pair.desktopId)}&ownerVersion=${pair.ownerVersion}${
-              pair.view
-                ? `&view=${encodeURIComponent(pair.view)}&tabId=${encodeURIComponent(pair.tabId)}&sequence=${pair.sequence}`
-                : ''
-            }`
-          : `&tabId=${encodeURIComponent(pair?.tabId ?? '')}&sequence=${encodeURIComponent(pair?.sequence ?? '')}`;
-      function workspaceControls(busy = false) {
-        const mixed = byId('environment').value === 'mixed';
-        const desktop = byId('environment').value !== 'browser';
-        byId('workspace-heading').textContent = mixed
-          ? 'One dispatch, two workspaces.'
-          : desktop
-            ? 'Desktop work, made visible.'
-            : 'Browser work, made visible.';
-        byId('workspace-kicker').textContent = mixed
-          ? 'Route in the host. Approve one receipt. Save in the guest.'
-          : desktop
-            ? 'A working desktop. A visible result.'
-            : 'A working browser. A visible result.';
-        document.title = byId('workspace-heading').textContent;
-        byId('environment').disabled = busy;
-        byId('browser-tasks').hidden = desktop;
-        byId('desktop-task').hidden = !desktop || mixed;
-        byId('mixed-task').hidden = !mixed;
-        byId('browser-tabs').hidden = desktop;
-        byId('mixed-views').hidden = !mixed;
-        byId('dimensions').textContent = desktop ? '1024 × 768' : '1024 × 720';
-        byId('files-opt-in').hidden = desktop || taskId !== 'files';
-        byId('desktop-save').hidden = !desktop;
-        byId('desktop-save').disabled = !desktop;
-        if (!current) {
-          byId('owner-status').textContent = mixed
-            ? 'No active mixed task'
-            : desktop
-              ? 'No active desktop'
-              : 'No active browser';
-          byId('view-kind').textContent = mixed
-            ? 'Host browser and guest editor · view only'
-            : desktop
-              ? 'Actual desktop · view only'
-              : 'Actual browser · view only';
-          byId('empty-title').textContent = mixed
-            ? 'Your workspaces are ready.'
-            : desktop
-              ? 'Your desktop is ready.'
-              : 'Your browser is ready.';
-          byId('empty-detail').textContent = mixed
-            ? 'Start the task to open its host browser and isolated desktop.'
-            : desktop
-              ? 'Start the task to open its isolated desktop.'
-              : 'Start a task to see the actual browser screen.';
-        }
-        if (!desktop && byId('human-key').value === 'ControlOrMeta+S') byId('human-key').value = 'Enter';
-        if (desktop) {
-          byId('api').value = 'responses';
-          byId('mode').value = 'live';
-          byId('api').disabled = true;
-          byId('mode').disabled = true;
-          byId('start').disabled = busy || !desktopAvailable;
-        }
-      }
+      const token = new URLSearchParams(location.hash.slice(1)).get('token') || '';
+      history.replaceState(null, '', location.pathname);
+      let current = null;
+      let liveAvailable = false;
+      let busy = false;
+      let pictureURL = null;
+      let displayed = null;
+      let polling = false;
+      const binding = (run) => ({
+        runId: run.id,
+        ownerVersion: run.ownerVersion,
+        tabId: run.browser?.tabId ?? null,
+        sequence: run.browser?.sequence ?? null,
+      });
       async function request(path, body) {
         const response = await fetch(path, {
-          method: body ? 'POST' : 'GET',
-          headers: { 'X-Demo-Token': token, ...(body ? { 'Content-Type': 'application/json' } : {}) },
-          body: body ? JSON.stringify(body) : undefined,
-          signal: body ? undefined : AbortSignal.timeout(5000),
+          method: body === undefined ? 'GET' : 'POST',
+          headers: { 'X-Demo-Token': token, ...(body === undefined ? {} : {'Content-Type': 'application/json'}) },
+          ...(body === undefined ? {} : {body: JSON.stringify(body)}),
+          cache: 'no-store',
         });
-        const value = await response.json();
-        if (!response.ok) throw new Error(value.error || 'The request failed.');
-        return value;
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'The request did not finish.');
+        return result;
       }
-      function clearScreen(
-        title = 'Your browser is ready.',
-        detail = 'Start a task to see the actual browser screen.',
-      ) {
-        if (screenshotURL) URL.revokeObjectURL(screenshotURL);
-        screenshotURL = undefined;
+      function discardFrame() {
         byId('screen').removeAttribute('src');
-        byId('screen').style.display = 'none';
+        if (pictureURL) URL.revokeObjectURL(pictureURL);
+        pictureURL = null;
+        displayed = null;
         byId('empty').hidden = false;
-        byId('empty-title').textContent = title;
-        byId('empty-detail').textContent = detail;
-        byId('snapshot-time').textContent = '';
-        byId('human-controls').disabled = true;
-        byId('tool-controls').disabled = true;
-        byId('return-control').disabled = true;
-        currentApproval = undefined;
-        byId('approval').hidden = true;
-        byId('approval-text').textContent = '';
-        byId('browser-tab').disabled = true;
-        byId('mixed-view').disabled = true;
-        byId('open-notes').disabled = true;
-        byId('close-notes').disabled = true;
-        byId('screen').setAttribute('aria-disabled', 'true');
       }
-      function lockHandoff() {
-        byId('take-control').disabled = true;
-        byId('return-control').disabled = true;
-        byId('human-controls').disabled = true;
-        byId('tool-controls').disabled = true;
-        byId('browser-tab').disabled = true;
-        byId('mixed-view').disabled = true;
-        byId('open-notes').disabled = true;
-        byId('close-notes').disabled = true;
-        byId('screen').setAttribute('aria-disabled', 'true');
-      }
-      function selectCheckpoint(sequence) {
-        selectedCheckpoint = sequence;
-        ++renderVersion;
-        clearScreen(
-          sequence === null ? 'Updating current view…' : `Loading saved checkpoint ${sequence}…`,
-          'Waiting for the next current session update.',
-        );
-        lockHandoff();
-        currentApproval = undefined;
-        byId('approval').hidden = true;
-        byId('approval-text').textContent = '';
-        byId('view-kind').textContent =
-          sequence === null ? 'Updating current view…' : `Saved checkpoint ${sequence} · view only · loading`;
-        byId('checkpoint').value = sequence === null ? '' : String(sequence);
-        byId('return-current').disabled = sequence === null;
-      }
-      async function render(run, version = renderVersion) {
-        if (version !== renderVersion) return;
-        if (!run) {
-          current = undefined;
-          currentApproval = undefined;
-          selectedCheckpoint = null;
-          byId('checkpoint').value = '';
-          byId('checkpoint').disabled = true;
-          byId('return-current').disabled = true;
-          byId('history-note').textContent = 'No saved checkpoints yet.';
-          clearScreen();
-          lockHandoff();
-          byId('human-controls').hidden = true;
-          byId('owner-status').textContent = 'No active browser';
-          byId('session-expiry').textContent = '';
-          byId('approval').hidden = true;
-          byId('approval-text').textContent = '';
-          byId('status').textContent = 'Ready';
-          byId('status').removeAttribute('data-tone');
-          byId('elapsed').textContent = '0.0s';
-          byId('requests').textContent = '0';
-          byId('usage-summary').textContent = 'No API usage recorded.';
-          byId('timing-summary').textContent = 'Timing is available after a request or action finishes.';
-          byId('capture-summary').textContent = 'Private diagnostic capture is off.';
-          byId('view-kind').textContent = 'Actual browser · view only';
-          byId('snapshot-time').textContent = 'No run yet';
-          byId('allow-file-upload').disabled = startInFlight || controlInFlight;
-          byId('start').disabled =
-            startInFlight || controlInFlight || (taskId === 'files' && !byId('allow-file-upload').checked);
-          byId('stop').disabled = true;
-          byId('api').disabled = startInFlight || controlInFlight;
-          byId('mode').disabled = startInFlight || controlInFlight;
-          document.querySelectorAll('.task').forEach((button) => {
-            button.disabled = startInFlight || controlInFlight;
-          });
-          byId('export').hidden = true;
-          byId('message').textContent = '';
-          byId('timeline').replaceChildren();
-          byId('timeline-dropped').textContent = '';
-          workspaceControls(startInFlight || controlInFlight);
-          return;
-        }
-        const kind =
-          run.environment === 'mixed'
-            ? 'mixed workspace'
-            : run.environment === 'desktop'
-              ? 'desktop'
-              : 'browser';
-        const changedRun = current?.id !== run.id;
-        const changedOwner = changedRun || current?.ownerVersion !== run.ownerVersion;
-        const changedPage = !samePage(current, run);
-        if (changedRun) {
-          clearScreen(`Opening the ${kind}…`, `The task ${kind} will appear here.`);
-          if (!startInFlight) {
-            if (run.environment === 'browser') taskId = run.taskId;
-            byId('environment').value = run.environment ?? 'browser';
-            byId('api').value = run.api;
-            byId('mode').value = run.mode;
-            document.querySelectorAll('[data-task]').forEach((button) => {
-              button.setAttribute('aria-pressed', String(button.dataset.task === taskId));
-            });
-            byId('files-opt-in').hidden = taskId !== 'files';
-          }
-        }
-        if (changedOwner) {
-          selectedCheckpoint = null;
-          clearScreen(`Updating ${kind} control…`, 'Waiting for a fresh frame from this session.');
-          lockHandoff();
-        }
-        if (changedPage) {
-          clearScreen('Updating workspace tab…', 'Waiting for the current page.');
-          lockHandoff();
-        }
-        const previousScreenshot = changedOwner || changedPage ? undefined : current?.screenshotAt;
-        const previousView = changedOwner || changedPage ? undefined : current?.view;
-        current = run;
-        const active = run.owner !== 'stopped' || Boolean(run.closing);
-        const live = run.view?.status === 'live';
-        const starting = run.view?.status === 'starting';
-        const checkpointSequence = selectedCheckpoint;
-        const browsing = checkpointSequence !== null;
-        byId('screen').alt = browsing
-          ? 'Saved checkpoint from the isolated workspace'
-          : 'Current pixels from the isolated workspace';
-        const checkpoints = run.history?.checkpoints ?? [];
-        const tabs = run.browser?.tabs ?? [];
-        byId('browser-tab').replaceChildren(
-          ...tabs.map((tab) => {
-            const option = document.createElement('option');
-            option.value = tab.id;
-            option.textContent = tab.role;
-            return option;
-          }),
-        );
-        byId('browser-tab').value = run.browser?.tabId ?? '';
-        const checkpoint = checkpoints.find((item) => item.sequence === checkpointSequence);
-        const viewOption = document.createElement('option');
-        viewOption.value = '';
-        viewOption.textContent = 'Current view';
-        const options = checkpoints.map((item) => {
-          const option = document.createElement('option');
-          option.value = String(item.sequence);
-          option.textContent = `Checkpoint ${item.sequence} · ${(item.atMs / 1000).toFixed(1)}s · ${item.owner}${item.role ? ` · ${item.role}` : ''}`;
-          return option;
-        });
-        if (browsing && !checkpoint) {
-          const unavailable = document.createElement('option');
-          unavailable.value = String(checkpointSequence);
-          unavailable.textContent = `Checkpoint ${checkpointSequence} · unavailable`;
-          options.push(unavailable);
-        }
-        byId('checkpoint').replaceChildren(viewOption, ...options);
-        byId('checkpoint').value = browsing ? String(checkpointSequence) : '';
-        byId('checkpoint').disabled = startInFlight || controlInFlight || (!checkpoints.length && !browsing);
-        byId('return-current').disabled = !browsing;
-        const dropped = run.history?.dropped ?? 0;
-        byId('history-note').textContent =
-          `${checkpoints.length} saved · ${dropped} omitted. Saved images are view only.`;
-        const ownerLabels = {
-          agent: `Agent controls the ${kind}`,
-          'draining-to-human': 'Waiting for the agent to finish',
-          human: `You control the ${kind}`,
-          'draining-to-agent': 'Finishing your input before returning',
-          stopped:
-            run.environment === 'mixed'
-              ? 'Mixed session ended'
-              : kind === 'desktop'
-                ? 'Desktop session ended'
-                : 'Browser session ended',
-        };
-        byId('owner-status').textContent = ownerLabels[run.owner];
-        byId('session-expiry').textContent = run.sessionExpiresAt
-          ? `Session expires ${new Date(run.sessionExpiresAt).toLocaleTimeString()}`
-          : '';
-        byId('human-controls').hidden = !['human', 'draining-to-human', 'draining-to-agent'].includes(
-          run.owner,
-        );
-        const sameVisibleFrame = !changedOwner && !changedPage && !browsing && live && Boolean(screenshotURL);
-        const keepHuman =
-          sameVisibleFrame &&
-          run.owner === 'human' &&
-          !run.humanInputBusy &&
-          !startInFlight &&
-          !controlInFlight &&
-          !byId('human-controls').disabled;
-        const keepApproval =
-          sameVisibleFrame &&
-          ['agent', 'human'].includes(run.owner) &&
-          !startInFlight &&
-          !controlInFlight &&
-          currentApproval?.id === run.approval?.id &&
-          Boolean(currentApproval);
-        if (!keepHuman && !keepApproval) lockHandoff();
-        if (!keepApproval) {
-          currentApproval = undefined;
-          byId('approval').hidden = true;
-          byId('approval-text').textContent = '';
-        }
-        if (!browsing && !startInFlight && !controlInFlight) {
-          byId('take-control').disabled =
-            run.owner !== 'agent' || run.taskId === 'files' || (kind === 'desktop' && !run.desktop);
-          byId('take-control').title =
-            run.taskId === 'files'
-              ? 'View and Stop are available. File selection is controlled by the approved fixture task.'
-              : '';
-        }
-        if (browsing && !checkpoint) {
-          clearScreen('Checkpoint unavailable', 'It is no longer retained. Return to current view.');
-        }
-        if (
-          !browsing &&
-          !live &&
-          (previousView?.status === 'live' || !run.screenshotAt || run.screenshotAt !== previousScreenshot)
-        ) {
-          clearScreen(
-            starting
-              ? `Opening ${kind} view…`
-              : run.screenshotAt
-                ? 'Loading saved screenshot…'
-                : 'Saved screenshot unavailable',
-            run.screenshotAt ? 'Waiting for the saved image.' : 'No saved image is available yet.',
-          );
-        }
-        const completedWorkspace = run.status === 'complete' && run.environment !== 'browser';
-        const savedViewLabel = completedWorkspace
-          ? 'Completed workspace · saved view. Start a new task to make changes.'
-          : 'Saved screenshot · live view ended';
-        byId('view-kind').textContent = browsing
-          ? checkpoint
-            ? `Saved checkpoint ${checkpointSequence} · view only`
-            : 'Checkpoint unavailable'
-          : completedWorkspace
-            ? savedViewLabel
-            : live
-              ? `Live ${kind} view · view only`
-              : starting
-                ? `Opening ${kind} view…`
-                : screenshotURL
-                  ? savedViewLabel
-                  : run.screenshotAt
-                    ? 'Loading saved screenshot…'
-                    : 'Saved screenshot unavailable';
-        byId('status').textContent =
-          run.status === 'complete'
-            ? completedWorkspace
-              ? 'Verified · read-only'
-              : 'Verified'
-            : run.status === 'handoff_unavailable'
-              ? 'Control unavailable'
-              : run.status;
-        byId('status').setAttribute(
-          'data-tone',
-          run.status === 'failed' ? 'failed' : run.result === 'unverified' ? 'unverified' : '',
-        );
-        byId('elapsed').textContent = `${(run.elapsedMs / 1000).toFixed(1)}s`;
-        byId('requests').textContent = String(run.requests);
-        const diagnostics = run.diagnostics;
-        const usage = diagnostics?.usage;
-        byId('usage-summary').textContent =
-          run.mode === 'rehearsal'
-            ? 'Scripted local answers. No API usage.'
-            : usage?.inputTokens === null || !usage
-              ? 'API usage is unavailable. No estimate is shown.'
-              : `${usage.inputTokens} input tokens · ${usage.outputTokens} output tokens` +
-                (usage.missingRequests ? ` · Usage missing for ${usage.missingRequests} API attempts.` : '');
-        const seconds = (value) =>
-          value === null || value === undefined ? 'not recorded' : `${(value / 1000).toFixed(1)}s`;
-        byId('timing-summary').textContent =
-          `API time: ${seconds(diagnostics?.timing.apiMs)}. ` +
-          `Browser action time: ${seconds(diagnostics?.timing.actionMs)}. ` +
-          `Approval wait: ${seconds(diagnostics?.timing.approvalMs)}.`;
-        byId('capture-summary').textContent = diagnostics?.capture.enabled
-          ? `Private capture: ${diagnostics.capture.status}. Files stay on local disk. Inspect page values before sharing.`
-          : 'Private diagnostic capture is off.';
-        byId('allow-file-upload').disabled = active || startInFlight || controlInFlight;
-        byId('start').disabled =
-          active ||
-          startInFlight ||
-          controlInFlight ||
-          (taskId === 'files' && !byId('allow-file-upload').checked);
-        byId('stop').disabled = run.owner === 'stopped' || startInFlight;
-        byId('api').disabled = active || startInFlight || controlInFlight;
-        byId('mode').disabled = active || startInFlight || controlInFlight;
-        document.querySelectorAll('.task').forEach((button) => {
-          button.disabled = active || startInFlight || controlInFlight;
-        });
-        workspaceControls(active || startInFlight || controlInFlight);
-        byId('dimensions').textContent = run.environment !== 'browser' ? '1024 × 768' : '1024 × 720';
-        byId('address').textContent =
-          `Fieldwork / ${run.taskId} · ${run.environment === 'mixed' ? (checkpoint?.role ?? ((run.desktop?.view ?? run.screenshotBinding?.view) === 'guest' ? 'Guest editor' : 'Host browser')) : (run.browser?.role ?? run.screenshotBinding?.role ?? 'Task')} · ${run.api} · ${run.mode}`;
-        if (
-          (browsing && checkpoint && !screenshotURL) ||
-          (!browsing &&
-            ((live && (!screenshotURL || run.view.sequence !== previousView?.sequence)) ||
-              (!live && !starting && run.screenshotAt && !screenshotURL)))
-        ) {
-          try {
-            const path = browsing
-              ? `/api/checkpoint?run=${run.id}&checkpoint=${checkpointSequence}`
-              : `/api/${live ? 'view' : 'screenshot'}?run=${run.id}${imageParams(live ? (run.environment !== 'browser' ? run.desktop : run.browser) : run.screenshotBinding)}`;
-            const imageResponse = await fetch(path, {
-              headers: { 'X-Demo-Token': token },
-              signal: AbortSignal.timeout(5000),
-            });
-            if (!imageResponse.ok) throw new Error('Image unavailable.');
-            const pixels = await imageResponse.blob();
-            if (
-              current?.id !== run.id ||
-              current.ownerVersion !== run.ownerVersion ||
-              !samePage(current, run) ||
-              selectedCheckpoint !== checkpointSequence ||
-              version !== renderVersion
-            )
-              return;
-            const nextURL = URL.createObjectURL(pixels);
-            const decoded = new Image();
-            decoded.src = nextURL;
-            try {
-              await decoded.decode();
-              if (
-                run.environment !== 'browser' &&
-                (decoded.naturalWidth !== 1024 || decoded.naturalHeight !== 768)
-              )
-                throw new Error('Unexpected desktop frame.');
-              if (
-                current?.id !== run.id ||
-                current.ownerVersion !== run.ownerVersion ||
-                !samePage(current, run) ||
-                selectedCheckpoint !== checkpointSequence ||
-                version !== renderVersion
-              ) {
-                URL.revokeObjectURL(nextURL);
-                return;
-              }
-            } catch (error) {
-              URL.revokeObjectURL(nextURL);
-              throw error;
-            }
-            if (screenshotURL) URL.revokeObjectURL(screenshotURL);
-            screenshotURL = nextURL;
-            byId('screen').src = nextURL;
-            byId('screen').style.display = 'block';
-            byId('empty').hidden = true;
-            if (!browsing && (!live || completedWorkspace)) byId('view-kind').textContent = savedViewLabel;
-          } catch {
-            if (
-              current?.id !== run.id ||
-              current.ownerVersion !== run.ownerVersion ||
-              !samePage(current, run) ||
-              selectedCheckpoint !== checkpointSequence ||
-              version !== renderVersion
-            )
-              return;
-            const title = browsing
-              ? 'Checkpoint unavailable'
-              : live
-                ? kind === 'desktop'
-                  ? 'Desktop view unavailable'
-                  : 'Browser view unavailable'
-                : 'Saved screenshot unavailable';
-            clearScreen(
-              title,
-              browsing
-                ? 'The saved image cannot be read. Return to current view, or wait for it to become available.'
-                : 'Retrying automatically. If the view stays unavailable, open the current private link from the server terminal.',
-            );
-            byId('view-kind').textContent = title;
-          }
-        }
-        if (
-          current?.id !== run.id ||
-          current.ownerVersion !== run.ownerVersion ||
-          !samePage(current, run) ||
-          selectedCheckpoint !== checkpointSequence ||
-          version !== renderVersion
-        )
-          return;
-        if (!browsing && !startInFlight && !controlInFlight && live && screenshotURL) {
-          currentApproval = ['agent', 'human'].includes(run.owner) ? run.approval : undefined;
-          byId('approval').hidden = !currentApproval;
-          byId('approval-text').textContent = currentApproval
-            ? `${currentApproval.label} in the synthetic ${run.taskId} workspace?${
-                currentApproval.expiresAt === undefined
-                  ? ''
-                  : ` This request expires in ${Math.max(0, Math.ceil((currentApproval.expiresAt - Date.now()) / 1000))}s.`
-              }`
-            : '';
-          const canInput =
-            run.owner === 'human' && live && !!screenshotURL && !run.humanInputBusy && !inspectInFlight;
-          byId('return-control').disabled = !canInput;
-          byId('human-controls').disabled = !canInput;
-          byId('tool-controls').disabled =
-            !canInput || run.environment !== 'browser' || run.taskId === 'files' || inspectInFlight;
-          byId('send-scroll').disabled =
-            !canInput || run.environment === 'mixed' || (run.environment === 'desktop' && !run.scrollTarget);
-          byId('send-text').disabled = !canInput || (run.environment === 'mixed' && !run.mixedDisclosed);
-          byId('send-key').disabled = !canInput || (run.environment === 'mixed' && !run.mixedDisclosed);
-          byId('mixed-view').disabled =
-            !live ||
-            !screenshotURL ||
-            run.humanInputBusy ||
-            !['agent', 'human'].includes(run.owner) ||
-            controlInFlight;
-          byId('mixed-view').value = run.desktop?.view ?? 'host';
-          byId('mixed-hint').textContent =
-            run.desktop?.view === 'guest'
-              ? run.mixedDisclosed
-                ? 'Editor only: type the approved receipt exactly, Ctrl+A or Ctrl+S.'
-                : 'Editor gestures only. Return to the agent to approve the receipt before typing.'
-              : 'Only the original Route D-2201 button accepts human input.';
-          byId('scroll-hint').hidden = kind !== 'desktop' || Boolean(run.scrollTarget);
-          byId('send-scroll').title =
-            run.environment === 'desktop'
-              ? run.scrollTarget
-                ? `Scroll at ${run.scrollTarget.x}, ${run.scrollTarget.y}`
-                : 'Click inside the desktop pane you want to scroll first.'
-              : '';
-          byId('browser-tab').disabled = !canInput || run.environment !== 'browser';
-          byId('open-notes').disabled =
-            !canInput || run.environment !== 'browser' || tabs.some((tab) => tab.role === 'Notes');
-          byId('close-notes').disabled =
-            !canInput || run.environment !== 'browser' || !tabs.some((tab) => tab.role === 'Notes');
-          byId('screen').setAttribute('aria-disabled', String(!canInput));
-          if (canInput)
-            byId('view-kind').textContent =
-              run.environment === 'mixed'
-                ? run.desktop.view === 'guest'
-                  ? 'Live guest editor · fixed receipt inputs only'
-                  : 'Live host browser · click Route D-2201 only'
-                : run.environment === 'desktop'
-                  ? 'Live desktop view · click to interact'
-                  : 'Live browser view · click to interact';
-        }
-        byId('snapshot-time').textContent = !screenshotURL
-          ? ''
-          : browsing
-            ? `Captured ${new Date(checkpoint.at).toLocaleTimeString()} · ${(checkpoint.atMs / 1000).toFixed(1)}s`
-            : live
-              ? `Last frame ${Math.max(0, (Date.now() - run.view.at) / 1000).toFixed(1)}s ago`
-              : `Captured ${new Date(run.screenshotAt).toLocaleTimeString()}`;
-        byId('timeline-dropped').textContent = run.eventsDropped
-          ? `${run.eventsDropped} earlier events omitted. Showing the most recent 256.`
-          : '';
-        byId('timeline').replaceChildren(
-          ...run.events.map((event) => {
-            const item = document.createElement('li');
-            item.textContent = event.text;
-            const time = document.createElement('small');
-            time.textContent = `${event.kind} · ${(event.atMs / 1000).toFixed(1)}s`;
-            item.append(time);
-            return item;
-          }),
-        );
-        byId('message').textContent =
-          run.status === 'handoff_unavailable'
-            ? run.closing
-              ? 'Browser control is unavailable. Controls are disabled until cleanup finishes.'
-              : 'Browser control is unavailable. The session ended. Start a new run.'
-            : run.result === 'verified'
-              ? `${run.mode === 'live' ? 'Live API' : 'Scripted rehearsal'}: the fixture outcome passed independent verification.${
-                  completedWorkspace ? ' The desktop is read-only. Start a new task to make changes.' : ''
-                }`
-              : run.status === 'failed'
-                ? 'This run failed. Check the timeline. It was not replaced with another API or rehearsal.'
-                : run.status === 'unverified'
-                  ? `The fixture outcome did not pass verification.${run.finalText ? ` Responses: ${run.finalText}` : ''}`
-                  : '';
-        byId('export').hidden = active;
-      }
-      document.querySelectorAll('.task').forEach((button) =>
-        button.addEventListener('click', () => {
-          taskId = button.dataset.task;
-          byId('files-opt-in').hidden = taskId !== 'files';
-          byId('allow-file-upload').checked = false;
-          if (!byId('allow-file-upload').disabled) byId('start').disabled = taskId === 'files';
-          document
-            .querySelectorAll('.task')
-            .forEach((item) => item.setAttribute('aria-pressed', String(item === button)));
-        }),
-      );
-      byId('allow-file-upload').addEventListener('change', () => {
-        if (!byId('allow-file-upload').disabled)
-          byId('start').disabled = taskId === 'files' && !byId('allow-file-upload').checked;
-      });
-      byId('environment').addEventListener('change', () => {
-        if (
-          !connected ||
-          byId('environment').disabled ||
-          startInFlight ||
-          controlInFlight ||
-          (current && (current.owner !== 'stopped' || current.closing))
-        )
-          return;
-        byId('api').disabled = false;
-        byId('mode').disabled = false;
-        byId('start').disabled = taskId === 'files' && !byId('allow-file-upload').checked;
-        workspaceControls();
-      });
-      byId('mode').addEventListener('change', () => {
-        if (byId('mode').value === 'rehearsal') byId('api').value = 'decisions';
-      });
-      byId('api').addEventListener('change', () => {
-        if (byId('api').value === 'responses') byId('mode').value = 'live';
-      });
-      byId('checkpoint').addEventListener('change', () => {
-        if (byId('checkpoint').disabled) return;
-        const value = byId('checkpoint').value;
-        selectCheckpoint(value === '' ? null : Number(value));
-      });
-      byId('return-current').addEventListener('click', () => {
-        if (!byId('return-current').disabled) selectCheckpoint(null);
-      });
-      byId('browser-tab').addEventListener('change', () =>
-        sendControl('/api/input', { action: 'switch_tab', tab_id: byId('browser-tab').value }),
-      );
-      byId('open-notes').addEventListener('click', () => {
-        if (!byId('open-notes').disabled) return sendControl('/api/input', { action: 'open_notes' });
-      });
-      byId('close-notes').addEventListener('click', () => {
-        if (!byId('close-notes').disabled) return sendControl('/api/input', { action: 'close_notes' });
-      });
-      byId('start').addEventListener('click', async () => {
-        if (!connected || byId('start').disabled || startInFlight || controlInFlight) return;
-        ++renderVersion;
-        startInFlight = true;
-        lockHandoff();
-        byId('start').disabled = true;
-        byId('allow-file-upload').disabled = true;
-        byId('stop').disabled = true;
-        byId('api').disabled = true;
-        byId('mode').disabled = true;
-        byId('environment').disabled = true;
-        document.querySelectorAll('.task').forEach((button) => {
-          button.disabled = true;
-        });
-        byId('message').textContent = '';
-        try {
-          await request('/api/start', {
-            taskId: byId('environment').value !== 'browser' ? byId('environment').value : taskId,
-            environment: byId('environment').value,
-            api: byId('api').value,
-            mode: byId('mode').value,
-            ...(byId('environment').value === 'browser' && taskId === 'files'
-              ? { allowFileUpload: byId('allow-file-upload').checked }
-              : {}),
-          });
-        } catch (error) {
-          byId('message').textContent = error.message;
-        } finally {
-          startInFlight = false;
-          ++renderVersion;
-        }
-      });
-      byId('stop').addEventListener('click', async () => {
-        if (current) await request('/api/stop', { runId: current.id });
-      });
-      async function sendControl(path, action) {
-        const control =
-          path === '/api/mixed-view'
-            ? byId('mixed-view')
-            : path === '/api/take-control'
-              ? byId('take-control')
-              : path === '/api/return-control'
-                ? byId('return-control')
-                : byId('human-controls');
-        if (!current || control.disabled || startInFlight || controlInFlight) return;
-        const runId = current.id;
-        const ownerVersion = current.ownerVersion;
-        const pair = binding(current);
-        const version = ++renderVersion;
-        controlInFlight = true;
-        lockHandoff();
-        if (
-          path === '/api/mixed-view' ||
-          ['open_notes', 'switch_tab', 'close_notes'].includes(action?.action)
-        ) {
-          clearScreen('Updating workspace tab…', 'Waiting for the current page.');
-        }
-        currentApproval = undefined;
-        byId('approval').hidden = true;
-        byId('approval-text').textContent = '';
-        try {
-          await request(path, { runId, ownerVersion, ...pair, ...action });
-        } catch (error) {
-          if (version === renderVersion && current?.id === runId && current.ownerVersion === ownerVersion) {
-            byId('message').textContent = error.message;
-          }
-        } finally {
-          controlInFlight = false;
-          ++renderVersion;
-        }
-      }
-      byId('mixed-view').addEventListener('change', () =>
-        sendControl('/api/mixed-view', { selected: byId('mixed-view').value }),
-      );
-      byId('take-control').addEventListener('click', () => sendControl('/api/take-control'));
-      byId('return-control').addEventListener('click', () => sendControl('/api/return-control'));
-      byId('screen').addEventListener('click', (event) => {
-        if (byId('human-controls').disabled) return;
-        const screen = byId('screen');
-        const rect = screen.getBoundingClientRect();
-        if (!screen.naturalWidth || !screen.naturalHeight || !rect.width || !rect.height) return;
-        const x = Math.floor(((event.clientX - rect.left) * screen.naturalWidth) / rect.width);
-        const y = Math.floor(((event.clientY - rect.top) * screen.naturalHeight) / rect.height);
-        if (x < 0 || y < 0 || x >= screen.naturalWidth || y >= screen.naturalHeight) return;
-        return sendControl('/api/input', { action: 'click', x, y });
-      });
-      byId('send-text').addEventListener('click', () => {
-        const text = byId('human-text').value;
-        if (!text || text.length > 2000) return;
-        return sendControl('/api/input', { action: 'type', text });
-      });
-      byId('send-key').addEventListener('click', () =>
-        sendControl('/api/input', { action: 'key', key: byId('human-key').value }),
-      );
-      byId('send-scroll').addEventListener('click', () => {
-        const amount = Number(byId('scroll-amount').value);
-        if (!Number.isInteger(amount) || amount < 1 || amount > 2048) return;
-        return sendControl('/api/input', {
-          action: 'scroll',
-          direction: byId('scroll-direction').value,
-          amount,
-        });
-      });
-      function describeTool() {
-        const tool = tools.find((entry) => entry.name === byId('tool-name').value);
-        byId('tool-consent').checked = false;
-        byId('tool-description').textContent = tool?.description ?? '';
-        const properties = tool?.parameters?.properties ?? {};
-        byId('tool-fields').replaceChildren(
-          ...Object.entries(properties).map(([name, schema]) => {
-            const label = document.createElement('label');
-            label.append(document.createTextNode(name));
-            const types = Array.isArray(schema.type) ? schema.type : [schema.type];
-            const options =
-              schema.enum ??
-              schema.anyOf?.find((entry) => entry.enum)?.enum ??
-              (types.includes('boolean') ? [true, false] : undefined);
-            const structured = types.includes('array') || types.includes('object');
-            const field = document.createElement(options ? 'select' : structured ? 'textarea' : 'input');
-            field.name = name;
-            field.dataset.types = JSON.stringify(types);
-            if (options) {
-              field.replaceChildren(
-                ...options.map((value) => new Option(String(value), JSON.stringify(value))),
-              );
-              if (types.includes('null')) field.prepend(new Option('null', 'null'));
-            } else {
-              field.placeholder = types.includes('null')
-                ? 'Leave blank for null'
-                : structured
-                  ? types.includes('array')
-                    ? 'JSON list, for example ["2"]'
-                    : 'JSON object, for example {}'
-                  : (schema.description ?? name);
-              if (types.includes('integer') || types.includes('number')) field.type = 'number';
-              if (schema.minimum !== undefined) field.min = String(schema.minimum);
-              if (schema.maximum !== undefined) field.max = String(schema.maximum);
-            }
-            label.append(field);
-            return label;
-          }),
-        );
-      }
-      byId('tool-load').addEventListener('click', async () => {
-        if (!current || byId('tool-controls').disabled) return;
-        const id = current.id;
-        try {
-          const result = await request(`/api/inspector?run=${encodeURIComponent(id)}`);
-          if (current?.id !== id || byId('tool-controls').disabled) return;
-          tools = result.tools;
-          byId('tool-name').replaceChildren(...tools.map((tool) => new Option(tool.name, tool.name)));
-          describeTool();
-          byId('tool-notice').textContent =
-            `${tools.length} current tools. Read the page before using references.`;
-        } catch (error) {
-          byId('tool-notice').textContent = error.message;
-        }
-      });
-      byId('tool-name').addEventListener('change', describeTool);
-      byId('tool-form').addEventListener('submit', async (event) => {
-        event.preventDefault();
-        if (
-          !current ||
-          !byId('tool-consent').checked ||
-          byId('tool-controls').disabled ||
-          !byId('tool-name').value
-        )
-          return;
-        const args = {};
-        try {
-          for (const field of byId('tool-fields').querySelectorAll('input,select,textarea')) {
-            const types = JSON.parse(field.dataset.types);
-            args[field.name] =
-              field.value === '' && types.includes('null')
-                ? null
-                : ['SELECT', 'TEXTAREA'].includes(field.tagName)
-                  ? JSON.parse(field.value)
-                  : types.includes('integer') || types.includes('number')
-                    ? Number(field.value)
-                    : field.value;
-          }
-        } catch {
-          byId('tool-notice').textContent = 'Enter a valid JSON list or object in the labeled field.';
-          return;
-        }
-        const body = {
-          runId: current.id,
-          ownerVersion: current.ownerVersion,
-          ...binding(current),
-          consent: true,
-          name: byId('tool-name').value,
-          args,
-        };
-        inspectInFlight = true;
-        byId('tool-consent').checked = false;
-        byId('return-control').disabled = true;
-        byId('human-controls').disabled = true;
-        byId('tool-controls').disabled = true;
-        byId('tool-notice').textContent =
-          'Tool running. Check the approval card if an action needs permission.';
-        byId('tool-result').textContent = '';
-        try {
-          const result = await request('/api/inspect', body);
-          byId('tool-result').textContent = JSON.stringify(result.output, null, 2);
-          byId('tool-notice').textContent = 'Call returned. Inspect the result before the next call.';
-        } catch (error) {
-          byId('tool-notice').textContent = error.message;
-        } finally {
-          inspectInFlight = false;
-        }
-      });
-      async function respond(approved) {
-        if (!current || !currentApproval) return;
-        const runId = current.id;
-        const approvalId = currentApproval.id;
-        byId('approval').hidden = true;
-        try {
-          await request('/api/approval', {
-            runId,
-            ownerVersion: current.ownerVersion,
-            ...binding(current),
-            approvalId,
-            approved,
-          });
-        } catch (error) {
-          byId('message').textContent = error.message;
-        }
-      }
-      byId('approve').addEventListener('click', () => respond(true));
-      byId('refuse').addEventListener('click', () => respond(false));
-      byId('export').addEventListener('click', async (event) => {
-        event.preventDefault();
+      function render() {
+        const active = Boolean(current && (current.owner !== 'stopped' || current.closing));
+        byId('mode').disabled = active || busy;
+        byId('api').disabled = active || busy || byId('mode').value === 'rehearsal';
+        byId('start').disabled = active || busy || (byId('mode').value === 'live' && !liveAvailable);
+        byId('stop').disabled = !active || busy;
+        byId('availability').textContent = byId('mode').value === 'rehearsal'
+          ? 'Scripted locally. No API key or request.' : liveAvailable
+            ? 'Live API configured on the local server.' : 'Configure a server key and model, or choose rehearsal.';
+        const human = current?.owner === 'human' && !current.humanInputBusy && !current.uncertainEffects;
+        const frameCurrent = !current?.browser || (displayed?.runId === current.id &&
+          displayed.ownerVersion === current.ownerVersion &&
+          displayed.tabId === current.browser.tabId && displayed.sequence === current.browser.sequence);
+        byId('take-control').disabled = busy || current?.owner !== 'agent' || current?.humanInputBusy || !frameCurrent;
+        byId('return-control').disabled = busy || !human;
+        byId('human-controls').hidden = !human;
+        byId('human-controls').disabled = busy || !human;
+        byId('screen').setAttribute('aria-disabled', String(!human || busy || !displayed));
+        byId('approval').hidden = !current?.approval;
+        byId('approve').disabled = busy || !current?.approval;
+        byId('refuse').disabled = busy || !current?.approval;
         if (!current) return;
-        try {
-          const receipt = await request(`/api/export?run=${encodeURIComponent(current.id)}`);
-          const blob = new Blob([JSON.stringify(receipt, null, 2)], { type: 'application/json' });
-          const link = document.createElement('a');
-          link.href = URL.createObjectURL(blob);
-          link.download = `${receipt.environment}-run.json`;
-          link.click();
-          URL.revokeObjectURL(link.href);
-        } catch {
-          byId('message').textContent = 'The run receipt is unavailable. Try again.';
+        byId('status').textContent = current.result === 'verified' ? 'Verified' : current.status;
+        byId('elapsed').textContent = `${(current.elapsedMs / 1000).toFixed(1)}s`;
+        byId('requests').textContent = String(current.requests);
+        byId('owner-status').textContent = ({
+          agent:'Agent working', human:'You control the browser',
+          'draining-to-human':'Waiting for agent work to finish…',
+          'draining-to-agent':'Reading the current page…', stopped:'Session ended',
+        })[current.owner];
+        byId('session-expiry').textContent = current.sessionExpiresAt
+          ? `Human control expires at ${new Date(current.sessionExpiresAt).toLocaleTimeString()}.` : '';
+        byId('view-kind').textContent = human ? 'Live browser · click to interact' : current.owner === 'stopped'
+          ? 'Final checked browser image' : 'Live browser · view only';
+        byId('snapshot-time').textContent = current.screenshotAt ? new Date(current.screenshotAt).toLocaleTimeString() : '';
+        byId('approval-text').textContent = current.approval ? `Approve “${current.approval.label}” for this synthetic reservation?` : '';
+        byId('timeline').replaceChildren(...current.events.map((event) => {
+          const line = document.createElement('li');
+          const at = document.createElement('small');
+          line.textContent = event.text;
+          at.textContent = `${event.kind} · ${(event.atMs / 1000).toFixed(1)}s`;
+          line.append(at);
+          return line;
+        }));
+      }
+      async function refreshFrame(run) {
+        const pair = run.owner === 'stopped' ? run.screenshotBinding : run.browser;
+        if (!pair) { discardFrame(); return; }
+        const endpoint = run.owner === 'stopped' ? 'screenshot' : 'view';
+        const response = await fetch(`/api/${endpoint}?run=${encodeURIComponent(run.id)}&tabId=${encodeURIComponent(pair.tabId)}&sequence=${pair.sequence}`,
+          {headers:{'X-Demo-Token': token},cache:'no-store'});
+        if (!response.ok) {
+          if (current?.id === run.id) discardFrame();
+          return;
         }
-      });
+        const image = await response.blob();
+        if (current?.id !== run.id || current.ownerVersion !== run.ownerVersion ||
+            (current.owner !== 'stopped' && (current.browser?.tabId !== pair.tabId || current.browser?.sequence !== pair.sequence))) return;
+        const previous = pictureURL;
+        pictureURL = URL.createObjectURL(image);
+        byId('screen').src = pictureURL;
+        displayed = binding(run);
+        byId('empty').hidden = true;
+        if (previous) URL.revokeObjectURL(previous);
+        render();
+      }
       async function poll() {
-        const version = renderVersion;
+        if (polling) return;
+        polling = true;
         try {
           const state = await request('/api/state');
-          if (version === renderVersion) connected = true;
-          desktopAvailable = state.desktopAvailable === true;
-          byId('environment').querySelector('[value="desktop"]').disabled = !desktopAvailable;
-          byId('environment').querySelector('[value="mixed"]').disabled = !(
-            state.mixedAvailable ?? desktopAvailable
-          );
-          byId('availability').textContent = state.liveAvailable
-            ? 'Live credentials stay on the server'
-            : 'Live API needs a server key and a model. Choose Local rehearsal to try Decisions without them.';
-          await render(state.run, version);
-        } catch {
-          if (version === renderVersion) {
-            connected = false;
-            ++renderVersion;
-            currentApproval = undefined;
-            clearScreen(
-              'Connection lost',
-              'Retrying automatically. If the server restarted, open its current private link from the terminal.',
-            );
-            lockHandoff();
-            byId('owner-status').textContent = 'Connection lost';
-            byId('checkpoint').disabled = true;
-            byId('return-current').disabled = true;
-            byId('session-expiry').textContent = '';
-            byId('approval').hidden = true;
-            byId('approval-text').textContent = '';
-            byId('start').disabled = true;
-            byId('environment').disabled = true;
-            byId('api').disabled = true;
-            byId('mode').disabled = true;
-            byId('allow-file-upload').disabled = true;
-            byId('stop').disabled = true;
-            byId('status').textContent = 'Connection lost';
-            byId('view-kind').textContent = 'Connection lost';
-            byId('snapshot-time').textContent = '';
-            byId('message').textContent =
-              'Connection lost. Retrying automatically. If the server restarted, open its current private link from the terminal.';
-          }
+          liveAvailable = state.liveAvailable;
+          const previous = current;
+          current = state.run;
+          if (!current || previous?.id !== current.id || previous.ownerVersion !== current.ownerVersion) discardFrame();
+          render();
+          if (current) await refreshFrame(current);
+        } catch (error) {
+          byId('message').textContent = error.message;
+          discardFrame();
+        } finally {
+          polling = false;
         }
-        setTimeout(poll, current && current.owner !== 'stopped' ? 250 : 750);
       }
-      if (token) {
-        poll();
-      } else {
-        clearScreen('Private link required', 'Open the link shown in the server terminal.');
-        lockHandoff();
-        for (const id of ['start', 'environment', 'api', 'mode', 'allow-file-upload', 'stop']) {
-          byId(id).disabled = true;
+      async function control(path, extra={}) {
+        if (!current || busy) return;
+        busy = true;
+        const run = current;
+        render();
+        try {
+          await request(path, {...binding(run), ...extra});
+          byId('message').textContent = '';
+        } catch (error) {
+          byId('message').textContent = error.message;
+        } finally {
+          busy = false;
+          await poll();
+          render();
         }
-        byId('status').textContent = 'Private link required';
-        byId('message').textContent =
-          'Open the private link shown in the server terminal. After reload, reopen that link.';
+      }
+      byId('mode').addEventListener('change', () => {
+        byId('api').value = byId('mode').value === 'rehearsal' ? 'decisions' : 'responses';
+        render();
+      });
+      byId('start').addEventListener('click', async () => {
+        if (busy || byId('start').disabled) return;
+        busy = true;
+        render();
+        try {
+          current = await request('/api/start', {taskId:'reservation', api:byId('api').value, mode:byId('mode').value});
+          byId('message').textContent = '';
+        } catch (error) {
+          byId('message').textContent = error.message;
+        } finally {
+          busy = false;
+          await poll();
+          render();
+        }
+      });
+      byId('stop').addEventListener('click', () => control('/api/stop'));
+      byId('take-control').addEventListener('click', () => control('/api/take-control'));
+      byId('return-control').addEventListener('click', () => control('/api/return-control'));
+      byId('approve').addEventListener('click', () => control('/api/approval', {approvalId:current.approval.id,approved:true}));
+      byId('refuse').addEventListener('click', () => control('/api/approval', {approvalId:current.approval.id,approved:false}));
+      byId('screen').addEventListener('click', (event) => {
+        if (byId('screen').getAttribute('aria-disabled') !== 'false') return;
+        const rect = byId('screen').getBoundingClientRect();
+        return control('/api/input', {
+          action:'click', x:Math.floor((event.clientX-rect.left)*1024/rect.width), y:Math.floor((event.clientY-rect.top)*720/rect.height),
+          ...displayed,
+        });
+      });
+      byId('send-text').addEventListener('click', () => control('/api/input',{action:'type', text:byId('human-text').value}));
+      byId('send-key').addEventListener('click', () => control('/api/input',{action:'key',key:byId('human-key').value}));
+      byId('send-scroll').addEventListener('click', () => control('/api/input',{
+        action:'scroll',direction:byId('scroll-direction').value,amount:Number(byId('scroll-amount').value),
+      }));
+      addEventListener('pagehide', discardFrame);
+      if (!token) {
+        byId('message').textContent = 'Open the private link printed in your server terminal.';
+        for (const id of ['start','mode','api']) byId(id).disabled = true;
+      } else {
+        await poll();
+        setInterval(poll, 300);
       }
     </script>
   </body>

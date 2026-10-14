@@ -1,54 +1,37 @@
-# Connect a hosted browser or desktop
+# Connect a browser or desktop
 
-Keep the OpenAI client, driver policies, and result checks in your application.
-A provider supplies the browser or desktop. Its client does not replace the
-OpenAI SDK or decide whether an action is approved.
+A provider supplies an environment. Your application keeps the OpenAI client,
+approval policy and result checks. Configure the provider's network and
+recording settings before handing its driver to a toolset. SDK navigation
+policy does not control provider billing, retention, redirects or recordings.
 
-## Choose an adapter
+## BrowserDriver
 
-| Provider    | Environment                 | Ownership                                                                                                             | Example                                                                         |
-| ----------- | --------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| Browserbase | Browser over CDP            | Create a session, or borrow a browser. Close only the session and context the example creates.                        | [Setup and local exercise](../examples/browser/README_browserbase.md) |
-| Browser Use | Standalone browser over CDP | Create a standalone browser and close its owned context. Sharing an active Browser Use engine session is unsupported. | [Setup and local exercise](../examples/browser/README_browser_use.md) |
-| Daytona     | Existing desktop            | Borrow a running sandbox. Leave the sandbox running after the task.                                                   | [Setup and local exercise](../examples/computer-daytona/README.md)              |
-| E2B         | Existing desktop            | Borrow a running sandbox. Remove the example's screenshot files and leave the sandbox running.                        | [Setup and local exercise](../examples/computer-e2b/README.md)                  |
+Implement `state()` and only the browser methods your application needs.
+Wrap them in `BrowserToolset`, or implement async methods and use
+`AsyncBrowserToolset`. Pass `members` to expose a smaller set of tools.
+Mutating methods require `confirm`; navigation also requires `url_policy`.
+Use current tab/document references and recheck them after approval. The
+complete input and output contract is in [Browser tools](browser.md).
 
-Each linked guide contains the package versions, imports, connection code,
-and a local exercise. Those exercises use synthetic provider responses and
-test the adapter without starting a hosted session.
+## ComputerDriver
 
-## Keep the connection boundary clear
+Implement `screenshot()` and the input methods needed by your application
+(such as `click`, `move`, `type`, `keypress`, and `scroll`).
+Screenshots must be valid images whose dimensions match the display used for
+input coordinates. Use `ComputerToolset` for synchronous methods or
+`AsyncComputerToolset` for asynchronous methods, and pass a confirmation
+callback. Keep safety decisions and task-level approvals in your application.
+Inspect the result before retrying an uncertain effect. For a native local
+example, see [the isolated desktop](../examples/computer-desktop/README.md).
 
-Before giving a driver to the runner, configure the provider's network access
-and session recording for your application. Keep provider credentials on the
-server. A navigation policy in the SDK does not control the provider's network,
-recordings, billing, or retention.
+For either protocol, give each task a fresh isolated environment when possible.
+For borrowed resources, agree who owns cleanup and what may remain afterward;
+close only what your application created. Await started work before releasing
+it. A cancelled waiter does not prove that a remote action stopped. Keep
+provider credentials on the server, and bound screenshots before decoding them.
 
-Use a fresh, isolated environment for each task. For borrowed environments,
-confirm who owns cleanup and what may remain after the task. Await all started
-work before releasing the environment. A stopped waiter does not prove that a
-remote action stopped.
-
-Check these parts of your connection:
-
-- The screenshot and its dimensions describe the same display used by input actions.
-- A browser action reaches the named tab and uses a current reference.
-- The driver reports failures and uncertain outcomes instead of claiming success.
-- Cleanup closes only owned resources and reports when release is unverified.
-- File transfers have explicit approval and limits. A remote path is not a local file.
-
-The browser adapters expose a smaller set of operations than the complete
-browser helper. They do not automatically add file-transfer grants or desktop
-control. The desktop adapters do not provide DOM references or browser tabs.
-
-## Keep the same task logic
-
-Pass the resulting driver to `BrowserToolset` or `ComputerToolset`, then keep
-your normal approval callbacks and saved-result checks. Start with Responses
-for open-ended tasks. Use Decisions only when your application can provide
-the complete choices and arguments.
-
-For the runner contract, see [browser tools](browser.md) and
-[computer tools](../examples/computer/README.md). The provider-specific guide owns connection
-details; the SDK guide owns tool dispatch. Successful local adapter tests
-do not establish hosted account access or task success.
+No provider package or hosted account is required by the SDK. The SDK does not
+include a vendor connection adapter or make claims about hosted account access.
+Use Responses for open-ended tasks, or Decisions when the application supplies
+all eligible choices and their arguments.
