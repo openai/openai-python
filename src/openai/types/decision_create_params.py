@@ -29,8 +29,14 @@ class DecisionCreateParams(TypedDict, total=False):
     """
 
     model: Required[str]
+    """The model to use. Only `gpt-6-luna` is supported."""
 
     questions: Required[Iterable[Question]]
+    """Ask 1–200 questions about the input.
+
+    Each question can be a predicate, choice, or score. Answers come back in the
+    same order.
+    """
 
     safety_identifier: Optional[str]
     """Opaque caller-provided end-user identifier, scoped by the verified org.
