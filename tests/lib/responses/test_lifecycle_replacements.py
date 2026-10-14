@@ -147,3 +147,66 @@ async def test_assigned_id_survives_final_replacement_without_done(sync: bool, t
         assert item.type == "function_call"
         assert item.id == "fc_other"
         assert item.arguments == '{"answer":5}'
+
+
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+@pytest.mark.parametrize("position", ["same-index", "different-index", "reuse-previous"])
+async def test_completed_identity_belongs_to_one_sparse_position(sync: bool, position: str) -> None:
+    tool: dict[str, object] = {
+        "type": "function_call",
+        "call_id": "call_fixture",
+        "name": "lookup",
+        "arguments": '{"answer":4}',
+        "status": "completed",
+    }
+    updated = {**tool, "id": "fc_fixture", "arguments": '{"answer":5}'}
+    events: list[dict[str, object]] = [
+        {"type": "response.created", "response": {"id": "resp_fixture", "output": []}},
+        {"type": "response.output_item.done", "output_index": 7, "item": tool},
+        *(
+            [{"type": "response.output_item.done", "output_index": 7, "item": {**tool, "call_id": "call_other"}}]
+            if position == "reuse-previous"
+            else []
+        ),
+        {
+            "type": "response.output_item.done",
+            "output_index": 7 if position == "same-index" else 19,
+            "item": tool,
+        },
+        {"type": "response.in_progress", "response": {"id": "resp_fixture", "output": [updated]}},
+        {"type": "response.completed", "response": {"id": "resp_fixture", "status": "completed", "output": None}},
+    ]
+    body = "".join(f"data: {json.dumps({**event, 'sequence_number': index})}\n\n" for index, event in enumerate(events))
+    transport = httpx2.MockTransport(
+        lambda _: httpx2.Response(200, text=body, headers={"content-type": "text/event-stream"})
+    )
+    completed: list[int] = []
+    with (
+        pytest.raises(RuntimeError, match="conflicting output identities")
+        if position == "different-index"
+        else nullcontext()
+    ):
+        if sync:
+            with OpenAI(api_key="synthetic-key", http_client=httpx2.Client(transport=transport)) as client:
+                with client.responses.stream(model="fixture", input="Read the stream.") as stream:
+                    for event in stream:
+                        if event.type == "response.output_item.done":
+                            completed.append(event.output_index)
+                    result = stream.get_final_response()
+        else:
+            async with AsyncOpenAI(
+                api_key="synthetic-key", http_client=httpx2.AsyncClient(transport=transport)
+            ) as client_async:
+                async with client_async.responses.stream(model="fixture", input="Read the stream.") as stream_async:
+                    async for event in stream_async:
+                        if event.type == "response.output_item.done":
+                            completed.append(event.output_index)
+                    result = await stream_async.get_final_response()
+    if position == "different-index":
+        assert completed == [7], "Do not emit the duplicate or process its lifecycle snapshot."
+    else:
+        assert completed == ([7, 7, 19] if position == "reuse-previous" else [7, 7])
+        assert len(result.output) == (2 if position == "reuse-previous" else 1)
+        last = result.output[-1]
+        assert last.type == "function_call" and last.call_id == "call_fixture"
+        assert last.id == "fc_fixture" and last.arguments == '{"answer":5}'

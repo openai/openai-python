@@ -267,7 +267,7 @@ class ResponseStreamState(Generic[TextFormatT]):
         self.__current_snapshot: ParsedResponseSnapshot | None = None
         self._completed_response: ParsedResponse[TextFormatT] | None = None
         self._completed_output: dict[int, ResponseOutputItem] = {}
-        self._completed_positions: dict[tuple[str, str | None, str | None], set[int]] = {}
+        self._completed_positions: dict[tuple[str, str | None, str | None], int] = {}
         self._output_items: dict[int, ParsedResponseOutputItem[object]] = {}
         self._input_tools = [tool for tool in input_tools] if is_given(input_tools) else []
         self._text_format = text_format
@@ -423,7 +423,8 @@ class ResponseStreamState(Generic[TextFormatT]):
                     raise RuntimeError("Response snapshot has conflicting output identities.")
                 replacements[identity] = replacement_item
             for updated_identity, replacement in replacements.items():
-                for index in self._completed_positions.get(updated_identity, ()):
+                index = self._completed_positions.get(updated_identity)
+                if index is not None:
                     if not _compatible_output_id(self._completed_output[index], replacement):
                         raise RuntimeError("Response snapshot has conflicting output identities.")
                     self._completed_output[index] = model_copy(replacement, deep=True)
@@ -468,16 +469,15 @@ class ResponseStreamState(Generic[TextFormatT]):
                 _output_identity(added) != _output_identity(event.item) or not _compatible_output_id(added, event.item)
             ):
                 raise RuntimeError("Completed output item identity changed.")
+            identity = _output_identity(event.item)
+            position = self._completed_positions.get(identity)
+            if position is not None and position != event.output_index:
+                raise RuntimeError("Response snapshot has conflicting output identities.")
             previous = self._completed_output.get(event.output_index)
             if previous is not None:
-                old_identity = _output_identity(previous)
-                positions = self._completed_positions[old_identity]
-                positions.discard(event.output_index)
-                if not positions:
-                    del self._completed_positions[old_identity]
+                del self._completed_positions[_output_identity(previous)]
             self._completed_output[event.output_index] = event.item
-            identity = _output_identity(event.item)
-            self._completed_positions.setdefault(identity, set()).add(event.output_index)
+            self._completed_positions[identity] = event.output_index
         elif event.type == "response.completed":
             response = event.response
             final_output = cast("list[ResponseOutputItem] | None", getattr(response, "output", None))
