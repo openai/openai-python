@@ -26,7 +26,7 @@ from runner import TASKS, Run, Reply, now, as_json, failure
 from read_only import example_browser_channel
 
 ROOT = Path(__file__).resolve().parent
-TEMPLATES = {name: (ROOT / name).read_text() for name in ("index.html", "fixture.html")}
+TEMPLATES = {name: (ROOT / name).read_text(encoding="utf-8") for name in ("index.html", "fixture.html")}
 
 
 class Fieldwork:

@@ -2,14 +2,16 @@
 
 from __future__ import annotations
 
+import json
 import time
 import asyncio
 from typing import Any
 from unittest.mock import patch
 from collections.abc import Callable
+from typing_extensions import override
 
 import httpx2 as httpx
-from server import serve
+from server import Fieldwork, serve
 from playwright.async_api import ElementHandle
 
 
@@ -20,6 +22,74 @@ def binding(state: dict[str, Any]) -> dict[str, Any]:
         "tabId": state["browser"]["tabId"],
         "sequence": state["browser"]["sequence"],
     }
+
+
+async def check_live_case(
+    app: Fieldwork,
+    post: Callable[[str, dict[str, Any]], Any],
+    until: Callable[[Callable[[dict[str, Any]], bool]], Any],
+    api: str,
+    outcome: str,
+) -> None:
+    app.models = {api: f"local-{api}"}
+    entered, cancelled = asyncio.Event(), asyncio.Event()
+    requests: list[httpx.Request] = []
+
+    class PendingBody(httpx.AsyncByteStream):
+        @override
+        async def __aiter__(self):
+            try:
+                entered.set()
+                yield b"event: response.created\ndata: " if api == "responses" else b'{"id":'
+                await asyncio.Event().wait()
+            finally:
+                cancelled.set()
+
+    async def forward(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        if outcome == "cancelled":
+            return httpx.Response(
+                200,
+                headers={"content-type": "text/event-stream" if api == "responses" else "application/json"},
+                stream=PendingBody(),
+            )
+        entered.set()
+        return httpx.Response(
+            401,
+            headers={"x-request-id": "sk-local-marker"},
+            json={"error": {"message": "sk-local-marker test-only", "type": "authentication_error"}},
+        )
+
+    app.transport = httpx.MockTransport(forward)
+    try:
+        started = await post("/api/start", {"taskId": "reservation", "api": api, "mode": "live"})
+        observed = await until(lambda s: entered.is_set() or (s["owner"] == "stopped" and not s["closing"]))
+        assert entered.is_set(), (api, outcome, observed)
+        assert len(requests) == 1
+        request = requests[0]
+        body = json.loads(request.content)
+        assert request.method == "POST" and request.url.path == f"/v1/{api}"
+        assert request.headers["authorization"] == "Bearer test-only"
+        assert body["model"] == f"local-{api}" and body["input"]
+        if api == "responses":
+            assert body["stream"] is True and body["tools"]
+        else:
+            assert body["questions"]
+        if outcome == "cancelled":
+            await post("/api/stop", {"runId": started["id"]})
+            await asyncio.wait_for(cancelled.wait(), timeout=5)
+        stopped = await until(lambda s: s["owner"] == "stopped" and not s["closing"])
+        assert len(requests) == stopped["requests"] == 1
+        assert stopped["result"] == "unverified" and stopped["fixture"]["results"] == {}
+        assert not stopped["uncertainEffects"] and "sk-local-marker" not in json.dumps(stopped)
+        if outcome == "denied":
+            assert stopped["status"] == "failed" and stopped["apiFailure"]["status"] == 401
+            assert "test-only" not in json.dumps(stopped["apiFailure"])
+        else:
+            assert stopped["status"] == "stopped" and stopped["apiFailure"] is None
+    finally:
+        await app.transport.aclose()
+        app.transport = None
 
 
 async def run() -> None:
@@ -56,6 +126,10 @@ async def run() -> None:
                 await asyncio.sleep(0.03)
             raise TimeoutError("Booking exercise timed out.")
 
+        for api in ("responses", "decisions"):
+            for outcome in ("denied", "cancelled"):
+                await check_live_case(app, post, until, api, outcome)
+        print("PASS live Responses/Decisions: forwarding, safe denial and cancelled open body.")
         await post("/api/start", {"taskId": "reservation", "api": "decisions", "mode": "rehearsal"})
         offered = await until(lambda s: s["approval"] is not None)
         assert offered["requests"] == 0 and offered["result"] != "verified"
@@ -79,8 +153,17 @@ async def run() -> None:
             },
         )
         assert frame.status_code == 200 and frame.content[:2] == b"\xff\xd8"
+        current = app.current
+        assert current is not None and current.task_page is not None
+        revision = await current.task_page.locator("body").get_attribute("data-revision")
+        previous = binding(human)
         await post("/api/input", {**binding(human), "action": "key", "key": "Tab"})
+        assert await current.task_page.locator("body").get_attribute("data-revision") == revision
+        assert (await client.post("/api/input", json={**previous, "action": "key", "key": "Tab"})).status_code == 409, (
+            "Focus changed even though the form revision did not"
+        )
         human = await state()
+        assert binding(human)["sequence"] > previous["sequence"]
         await post("/api/return-control", binding(human))
         offered = await until(lambda s: s["approval"] is not None)
         await post("/api/approval", {**binding(offered), "approvalId": offered["approval"]["id"], "approved": True})

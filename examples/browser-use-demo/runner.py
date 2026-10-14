@@ -1035,6 +1035,7 @@ class Run:
                     "right": (body["amount"], 0),
                 }
                 await page.mouse.wheel(*deltas[body["direction"]])
+            await self.driver.invalidate_references()
             await self.refresh_view()
             await self.capture()
             self.add("human", f"Human {action} completed; browser state captured.")

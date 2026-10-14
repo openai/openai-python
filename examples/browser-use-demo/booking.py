@@ -46,8 +46,11 @@ class BookingBrowser:
         return "task", page
 
     async def invalidate_references(self) -> None:
-        held, self.refs = self.refs, {}
         self.generation += 1
+        await self.clear_references()
+
+    async def clear_references(self) -> None:
+        held, self.refs = self.refs, {}
         for _, handle in held.values():
             await handle.dispose()
 
@@ -64,7 +67,7 @@ class BookingBrowser:
             "tabs": [{"id": "task", "url": self.url, "title": "Book a table", "active": True}],
             "observation": {
                 "version": 1,
-                "sequence": revision,
+                "sequence": revision + self.generation,
                 "changes": [],
                 "dropped_changes": 0,
                 "title_truncated": False,
@@ -74,7 +77,7 @@ class BookingBrowser:
     async def read_page(self, args: ReadPageInput, *, cancelled: Callable[[], bool] | None = None) -> BrowserReadV1:
         page = self.check(cancelled)
         self.page(args["tab_id"])
-        await self.invalidate_references()
+        await self.clear_references()
         elements: list[BrowserReadElement] = []
         controls = (
             ("Guest name", "textbox"),

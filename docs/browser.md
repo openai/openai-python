@@ -20,6 +20,16 @@ python3 -m venv .venv
 .venv/bin/python -m playwright install chromium
 ```
 
+On Linux, if bundled Chromium cannot start with its sandbox enabled, select
+a locally installed Chrome before running the quickstart:
+
+```sh
+export OPENAI_EXAMPLE_BROWSER_CHANNEL=chrome
+```
+
+Leave the variable unset to use Playwright's bundled Chromium. Both choices
+keep the browser sandbox enabled.
+
 On Windows, use `.venv\Scripts\python.exe` in place of `.venv/bin/python`.
 Set `OPENAI_API_KEY` and `OPENAI_MODEL` in your shell. Use a model available
 to your project that supports Responses function tools. Save this as
@@ -52,8 +62,13 @@ class Reader:
 
 
 async def main() -> None:
+    channel = os.environ.get("OPENAI_EXAMPLE_BROWSER_CHANNEL")
+    if channel not in (None, "chrome"):
+        raise ValueError("OPENAI_EXAMPLE_BROWSER_CHANNEL must be unset or chrome.")
     async with async_playwright() as playwright, AsyncOpenAI() as client:
-        session = await playwright.chromium.launch(chromium_sandbox=True, env={"PATH": os.environ["PATH"]})
+        session = await playwright.chromium.launch(
+            channel=channel, chromium_sandbox=True, env={"PATH": os.environ["PATH"]}
+        )
         try:
             page = await session.new_page()
             await page.set_content("<title>Cafe</title><p>Cafe hours: 08:00-16:00.</p>")
