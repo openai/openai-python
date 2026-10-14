@@ -89,6 +89,13 @@ def run_case(
             test_environment.pop(name, None)
         if legacy:
             test_environment["OPENAI_TEST_LEGACY_HTTPX"] = "1"
+        if extra is None and not legacy:
+            subprocess.run(
+                [str(python), "-I", "-B", str(ROOT / "scripts/fixtures/computer_use_smoke.py")],
+                cwd=directory,
+                env=test_environment,
+                check=True,
+            )
         subprocess.run(
             [str(python), "-m", "pytest", "-o", "addopts=", *(str(test) for test in tests)],
             cwd=directory,

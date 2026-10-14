@@ -40,7 +40,6 @@ until the run finishes and closes it on exit.
 For your application, replace the documents and the exact allowed URLs. Keep the
 operation list explicit. Add an editing method only when you also have a current
 target check, an approval policy and an independent check of the saved result.
-See the [interactive dashboard](../browser-use-demo/README.md) for that path.
 
 ## Check it without a key
 

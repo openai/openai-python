@@ -366,7 +366,70 @@ def check_frames() -> None:
         def remove(self) -> None:
             self.removed = True
 
+    interrupted = threading.Event()
+    guests: list[ControlledGuest] = []
+
+    class StartingGuest(ControlledGuest):
+        def __init__(self, runtime_dir: Path, *, cancelled: Callable[[], bool] | None = None) -> None:
+            super().__init__(runtime_dir, cancelled=cancelled)
+            self.held_kind = "ready"
+            guests.append(self)
+
+        def exchange(
+            self, data: bytes, *, timeout: float, limit: int, cancelled: Callable[[], bool] | None = None
+        ) -> bytes:
+            interrupted.set()
+            return super().exchange(data, timeout=timeout, limit=limit, cancelled=cancelled)
+
+    with patch("desktop.Guest", StartingGuest):
+        before = time.monotonic()
+        try:
+            Desktop(Path("controlled-fixture"), cancelled=interrupted.is_set)
+        except ComputerUseError:
+            pass
+        else:
+            raise AssertionError("Stopped startup returned a usable desktop")
+        assert time.monotonic() - before < 1.5, "Stopped readiness waited for the exchange timeout"
+        assert len(guests) == 1 and guests[0].removed
+        assert guests[0].requests == ["ready"]
+        print("PASS: cancelled readiness removes its one guest promptly without any input")
+
     with patch("desktop.Guest", ControlledGuest):
+        for operation in ("verify", "seal"):
+            for bad in (
+                {"file_matches": "false", "browser_matches": "false"},
+                {"file_empty": None},
+                {"browser_effects": True},
+                {"browser_effects": -1},
+                {"browser_effects": 2**53},
+            ):
+                desktop = Desktop(Path("controlled-fixture"))
+                guest = cast(ControlledGuest, cast(object, desktop._guest))
+                guest.raw_reply = json.dumps({"ok": True, **COMPLETE, **bad}).encode()
+                try:
+                    getattr(desktop, operation)()
+                except ComputerUseError:
+                    pass
+                else:
+                    raise AssertionError("Invalid proof was exposed")
+                assert guest.removed and not desktop.uncertain_effects
+                try:
+                    desktop.verify()
+                except ComputerUseError:
+                    pass
+                else:
+                    raise AssertionError("Malformed proof permitted reuse")
+            desktop = Desktop(Path("controlled-fixture"))
+            guest = cast(ControlledGuest, cast(object, desktop._guest))
+            guest.raw_reply = json.dumps(
+                {"ok": True, **COMPLETE, "browser_effects": None, "browser_matches": False}
+            ).encode()
+            try:
+                result = getattr(desktop, operation)()
+                assert result["browser_effects"] is None and result["browser_matches"] is False
+            finally:
+                desktop.stop()
+        print("PASS: verify/seal reject malformed proof; null oversize count never verifies")
         for raw in (b'{"ok":invalid,"record":"SYNTHETIC_8738"}', b'{"ok":true,"record":"SYNTHETIC_8738\xff"}'):
             desktop = Desktop(Path("controlled-fixture"))
             guest = cast(ControlledGuest, cast(object, desktop._guest))

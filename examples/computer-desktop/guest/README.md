@@ -119,7 +119,10 @@ builder overrides before running; remote endpoints are refused. Every
 command uses a fresh empty private Docker config and the local Unix socket.
 
 Setup builds locally from a pinned Playwright base plus signed Ubuntu desktop
-packages. It copies only the fixed guest fixture and its Dockerfile to a
+packages from the current Ubuntu archive. Separate fresh builds can resolve
+different package versions. Setup records and fixes the resulting local image
+ID for that runtime; it does not claim reproducible builds across machines.
+It copies only the fixed guest fixture and its Dockerfile to a
 private allowlisted context. SDK source, host home files, keys, and credentials
 never enter the build or runtime container. The immutable local image ID and
 fixture recipe go in `setup.json`. Rerun the same command to validate them.
