@@ -453,7 +453,9 @@ async def main(args: argparse.Namespace) -> None:
     try:
         with serve(args.data) as server:
             if args.mode == "serve":
-                print(f"Open {server[0]}/inbox?fixture={quote(args.fixture)}. Press Ctrl+C to stop.", flush=True)
+                print(
+                    f"Open {server[0]}/inbox?fixture={quote(args.fixture, safe='')}. Press Ctrl+C to stop.", flush=True
+                )
                 await asyncio.Event().wait()
                 return
             model = os.environ.get("OPENAI_MODEL")

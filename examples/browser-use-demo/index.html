@@ -1262,7 +1262,7 @@
               title,
               browsing
                 ? 'The saved image cannot be read. Return to current view, or wait for it to become available.'
-                : 'Retrying. Reload the page if the view does not return.',
+                : 'Retrying automatically. If the view stays unavailable, open the current private link from the server terminal.',
             );
             byId('view-kind').textContent = title;
           }
@@ -1683,7 +1683,10 @@
             connected = false;
             ++renderVersion;
             currentApproval = undefined;
-            clearScreen('Connection lost', 'Retrying. Reload this page if the server restarted.');
+            clearScreen(
+              'Connection lost',
+              'Retrying automatically. If the server restarted, open its current private link from the terminal.',
+            );
             lockHandoff();
             byId('owner-status').textContent = 'Connection lost';
             byId('checkpoint').disabled = true;
@@ -1700,7 +1703,8 @@
             byId('status').textContent = 'Connection lost';
             byId('view-kind').textContent = 'Connection lost';
             byId('snapshot-time').textContent = '';
-            byId('message').textContent = 'Connection lost. Retrying; reload this page to reconnect.';
+            byId('message').textContent =
+              'Connection lost. Retrying automatically. If the server restarted, open its current private link from the terminal.';
           }
         }
         setTimeout(poll, current && current.owner !== 'stopped' ? 250 : 750);

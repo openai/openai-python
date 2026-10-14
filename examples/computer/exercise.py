@@ -12,7 +12,7 @@ import traceback
 from types import SimpleNamespace
 from typing import Any
 from pathlib import Path
-from unittest.mock import Mock, AsyncMock, patch
+from unittest.mock import Mock, AsyncMock, PropertyMock, patch
 
 import httpx2
 from run import open_browser
@@ -83,6 +83,7 @@ async def check_guard() -> None:
 
 async def check_borrowed_key_release() -> None:
     page = Mock(spec=Page)
+    page.context.pages = [page]
     page.keyboard = AsyncMock()
     page.mouse = AsyncMock()
     page.close = AsyncMock()
@@ -115,6 +116,7 @@ async def check_borrowed_key_release() -> None:
 
     for failure in (Error("Synthetic press failure"), asyncio.CancelledError()):
         page = Mock(spec=Page)
+        page.context.pages = [page]
         page.keyboard = AsyncMock()
         page.mouse = AsyncMock()
         page.close = AsyncMock()
@@ -147,6 +149,7 @@ async def check_borrowed_key_release() -> None:
 async def check_borrowed_mouse_release() -> None:
     for failure in (Error("Synthetic release failure"), asyncio.CancelledError()):
         page = Mock(spec=Page)
+        page.context.pages = [page]
         page.keyboard = AsyncMock()
         page.mouse = AsyncMock()
         page.close = AsyncMock()
@@ -189,6 +192,7 @@ async def check_input_outcome() -> None:
     for member in ("click", "type"):
         for failure in (Error("synthetic-private-page-marker"), asyncio.CancelledError(), InterruptedInput()):
             page = Mock(spec=Page)
+            page.context.pages = [page]
             page.keyboard = AsyncMock()
             page.mouse = AsyncMock()
             page.close = AsyncMock()
@@ -229,6 +233,7 @@ async def check_input_outcome() -> None:
             page.close.assert_not_awaited()
 
     page = Mock(spec=Page)
+    page.context.pages = [page]
     page.screenshot = AsyncMock(side_effect=Error("synthetic-private-page-marker"))
     page.close = AsyncMock()
     driver = PlaywrightBrowser(page, set())
@@ -245,6 +250,7 @@ async def check_cancelled_input_release() -> None:
     for member in ("keypress", "click", "drag"):
         for release_failure in (Error("Synthetic release failure"), asyncio.CancelledError("second cancellation")):
             page = Mock(spec=Page)
+            page.context.pages = [page]
             page.keyboard = AsyncMock()
             page.mouse = AsyncMock()
             page.close = AsyncMock()
@@ -308,6 +314,7 @@ async def check_cancelled_input_release() -> None:
 
     for release in ("key", "mouse"):
         page = Mock(spec=Page)
+        page.context.pages = [page]
         page.keyboard = AsyncMock()
         page.mouse = AsyncMock()
         page.close = AsyncMock()
@@ -383,6 +390,7 @@ async def check_launch_policy() -> None:
     }
     for headless in (True, False):
         page = Mock(spec=Page)
+        page.context.pages = [page]
         page.set_content = AsyncMock()
         context = AsyncMock()
         context.new_page.return_value = page
@@ -406,6 +414,61 @@ async def check_launch_policy() -> None:
         browser.close.assert_awaited_once_with()
 
 
+async def check_page_budget() -> None:
+    # Only two actual pages; project the documented boundary without opening
+    # a hundred processes. The native page, input and caller cleanup stay real.
+    async with open_browser(None, [], headless=True) as driver:
+        page = driver.page
+        context = page.context
+        async with context.expect_page() as opened:
+            await page.evaluate("window.open('about:blank')")
+        popup = await opened.value
+        with patch.object(type(context), "pages", new_callable=PropertyMock) as pages:
+            pages.return_value = [page] * 99 + [popup]
+            await driver.screenshot()
+            pages.return_value = [page] * 100 + [popup]
+            try:
+                await driver.type(actions.Type(type="type", text="not admitted"))
+            except ComputerUseError:
+                pass
+            else:
+                raise AssertionError("The example admitted computer input above its page budget")
+            assert not page.is_closed() and not popup.is_closed(), "The driver must leave borrowed pages to the owner"
+            pages.return_value = [page, popup]
+            try:
+                await driver.screenshot()
+            except ComputerUseError:
+                pass
+            else:
+                raise AssertionError("A page-budget retirement must not revive when pages disappear")
+    assert page.is_closed() and popup.is_closed(), "open_browser must close the browser it owns on exit"
+
+    async with open_browser(None, [], headless=True) as driver:
+        page = driver.page
+        context = page.context
+        native_click = page.mouse.click
+        with patch.object(type(context), "pages", new_callable=PropertyMock) as pages:
+            pages.return_value = [page] * 100
+
+            async def click_then_cross(x: float, y: float, **kwargs: Any) -> None:
+                await native_click(x, y, **kwargs)
+                pages.return_value = [page] * 101
+
+            with (
+                patch.object(page.mouse, "click", side_effect=click_then_cross),
+                patch.object(page.keyboard, "up", wraps=page.keyboard.up) as release,
+            ):
+                try:
+                    await driver.click(actions.Click(type="click", x=20, y=20, button="left", keys=["ALT", "SHIFT"]))
+                except ComputerUseError:
+                    pass
+                else:
+                    raise AssertionError("An admitted click that crosses the page budget must stop the batch")
+                assert [call.args[0] for call in release.await_args_list] == ["Shift", "Alt"]
+                assert not page.is_closed()
+    print("PASS: page budget stops computer admission, borrowed pages stay open until their owner exits.")
+
+
 async def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--screenshot", type=Path, help="Optionally save the final scripted PNG")
@@ -416,6 +479,7 @@ async def main() -> None:
     await check_input_outcome()
     await check_cancelled_input_release()
     await check_launch_policy()
+    await check_page_budget()
     for scheme, port in (("http", 80), ("https", 443)):
         assert origin(f"{scheme}://example.com:0") != origin(f"{scheme}://example.com/")
         assert origin(f"{scheme}://example.com:{port}") == origin(f"{scheme}://example.com/")

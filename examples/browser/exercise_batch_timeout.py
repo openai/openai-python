@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import ssl
 import sys
 import json
 import time
@@ -27,6 +28,16 @@ def check_child_environment(batch: Path) -> None:
         preload = root / "preload"
         preload.mkdir()
         marker = root / "preload-ran"
+        keylog = root / "tls-keys.log"
+        trusted_environment = {
+            "PATH": os.environ["PATH"],
+            "SSL_CERT_FILE": ssl.get_default_verify_paths().cafile or "",
+            "SSL_CERT_DIR": str(root / "operator-certificates"),
+            "HTTPS_PROXY": "http://127.0.0.1:1",
+            "HTTP_PROXY": "http://127.0.0.1:1",
+            "NO_PROXY": "localhost,127.0.0.1",
+        }
+        Path(trusted_environment["SSL_CERT_DIR"]).mkdir()
         (preload / "sitecustomize.py").write_text(f"from pathlib import Path\nPath({str(marker)!r}).touch()\n")
         hook = preload / "hook.cjs"
         hook.write_text(f"require('node:fs').writeFileSync({json.dumps(str(marker))}, 'loaded');\n")
@@ -41,15 +52,18 @@ def check_child_environment(batch: Path) -> None:
         }
         python = root / "trial.py"
         python.write_text(
-            "import json, os, sys\nfrom pathlib import Path\n"
+            "import json, os, ssl, sys\nfrom pathlib import Path\n"
             f"receipt = json.loads({json.dumps(receipt)!r})\n"
-            "receipt['inherited'] = [key for key in ('PYTHONPATH', 'NODE_OPTIONS', 'NODE_PATH') if key in os.environ]\n"
+            "receipt['inherited'] = [key for key in ('PYTHONPATH', 'NODE_OPTIONS', 'NODE_PATH', 'SSLKEYLOGFILE') if key in os.environ]\n"
+            "receipt['tls_keylog'] = ssl.create_default_context().keylog_filename\n"
+            f"receipt['trusted_environment'] = {{key: os.environ.get(key) for key in {list(trusted_environment)!r}}}\n"
             "Path(sys.argv[sys.argv.index('--output') + 1]).write_text(json.dumps(receipt))\n"
         )
         node = root / "trial.cjs"
         node.write_text(
             f"const receipt = {json.dumps(receipt)};\n"
-            "receipt.inherited = ['PYTHONPATH', 'NODE_OPTIONS', 'NODE_PATH'].filter(key => key in process.env);\n"
+            "receipt.inherited = ['PYTHONPATH', 'NODE_OPTIONS', 'NODE_PATH', 'SSLKEYLOGFILE'].filter(key => key in process.env);\n"
+            f"receipt.trusted_environment = Object.fromEntries({json.dumps(list(trusted_environment))}.map(key => [key, process.env[key]]));\n"
             "require('node:fs').writeFileSync(process.argv[process.argv.indexOf('--output') + 1], JSON.stringify(receipt));\n"
         )
         manifest = root / "manifest.json"
@@ -74,7 +88,14 @@ def check_child_environment(batch: Path) -> None:
         (root / "manifest-sha256.json").write_text(
             json.dumps({"sha256": hashlib.sha256(manifest.read_bytes()).hexdigest()})
         )
-        env = {**os.environ, "PYTHONPATH": str(preload), "NODE_OPTIONS": f"--require={hook}", "NODE_PATH": str(preload)}
+        env = {
+            **os.environ,
+            **trusted_environment,
+            "PYTHONPATH": str(preload),
+            "NODE_OPTIONS": f"--require={hook}",
+            "NODE_PATH": str(preload),
+            "SSLKEYLOGFILE": str(keylog),
+        }
         result = subprocess.run(
             [sys.executable, "-I", "-B", str(batch), "run", "--directory", str(root)],
             env=env,
@@ -85,9 +106,16 @@ def check_child_environment(batch: Path) -> None:
         )
         assert result.returncode == 0, result.stderr
         assert not marker.exists(), "A child loaded code from the inherited interpreter environment"
+        assert not keylog.exists(), "A child enabled inherited TLS key logging"
         for index in (1, 2):
-            assert json.loads((root / f"trial-{index:02d}.json").read_text())["inherited"] == []
-        print("PASS: Python and Node trials ignore inherited preload and import paths")
+            observed = json.loads((root / f"trial-{index:02d}.json").read_text())
+            assert observed["inherited"] == []
+            assert observed["trusted_environment"] == trusted_environment
+            if index == 1:
+                assert observed["tls_keylog"] is None
+        print(
+            "PASS: trials disable preload paths and TLS key logging, preserving operator TLS, proxy and PATH settings"
+        )
 
 
 def main() -> None:

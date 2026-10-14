@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 from server import Fieldwork, serve
 from exercise_controls import main as check_browser_controls
-from playwright.async_api import Request
+from playwright.async_api import Route, Request
 
 
 async def main() -> None:
@@ -42,6 +42,19 @@ async def main() -> None:
         await page.wait_for_function("document.querySelector('#availability').textContent.includes('rehearsal')")
         assert page.url == app.origin + "/"
         assert authorized
+
+        async def disconnect(route: Route) -> None:
+            await route.abort("connectionfailed")
+
+        await page.route("**/api/state", disconnect)
+        await page.locator("#status").get_by_text("Connection lost", exact=True).wait_for()
+        lost = await page.locator("#message").inner_text()
+        assert "private link" in lost and "terminal" in lost and "reload" not in lost.lower(), lost
+        before_recovery = len(authorized)
+        await page.unroute("**/api/state", disconnect)
+        await page.wait_for_function("() => !document.querySelector('#start').disabled")
+        assert len(authorized) > before_recovery
+        assert page.url == app.origin + "/"
         await page.get_by_text("Usage and diagnostics", exact=True).click()
         await page.get_by_role("link", name="Open saved trace viewer (view only)").click()
         await page.wait_for_function("document.querySelector('#status').textContent.includes('No capture')")

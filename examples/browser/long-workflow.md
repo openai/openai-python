@@ -102,6 +102,11 @@ variant A. The script checks the frozen files before every trial. Outputs are
 exclusive and failures are retained. It never retries a trial. A cleanup or
 unexplained effect failure stops the batch and marks later trials not started.
 
+Run both commands in a trusted environment. The manifest checks the listed files.
+It does not verify your Node or Python installation, executable search path,
+certificates, or proxy settings. Keep those settings under your control when
+running live trials.
+
 ```sh
 python3 long-workflow-batch.py freeze --mode rehearsal --directory /new/path/rehearsal --node-entry /path/to/node-consumer/evaluate-workflow.mjs --python-entry /path/to/examples/browser/evaluate_workflow.py --python /path/to/python-consumer/bin/python --node-package /path/to/openai-node.tgz --python-package /path/to/openai-python.whl
 python3 long-workflow-batch.py run --directory /new/path/rehearsal

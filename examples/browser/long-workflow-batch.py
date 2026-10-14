@@ -40,7 +40,7 @@ def evaluation_environment() -> dict[str, str]:
         key: value
         for key, value in os.environ.items()
         if not key.startswith(("OPENAI_", "PYTHON", "LD_", "DYLD_"))
-        and key not in ("LONG_WORKFLOW_MODEL", "NODE_OPTIONS", "NODE_PATH")
+        and key not in ("LONG_WORKFLOW_MODEL", "NODE_OPTIONS", "NODE_PATH", "SSLKEYLOGFILE")
     }
     environment["PYTHONNOUSERSITE"] = "1"
     environment["PYTHONDONTWRITEBYTECODE"] = "1"

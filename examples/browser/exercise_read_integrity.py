@@ -139,6 +139,61 @@ async def main() -> None:
                     raise AssertionError("Borrowed registration exceeded the owned bookkeeping budget")
                 context.close.assert_not_awaited()
                 checks += 3
+                leaked: list[str] = []
+                for member in ("state", "read_page", "get_page_text", "find"):
+                    fixture = await browser.new_context()
+                    borrowed = PlaywrightBrowser(fixture, {origin})
+                    try:
+                        target = await fixture.new_page()
+                        await target.goto(url)
+                        selected = (await borrowed.state())["tabs"][0]["id"]
+                        await target.evaluate(
+                            """(operation) => {
+                              if (operation === 'state') {
+                                Object.defineProperty(document, 'title', { get() {
+                                  throw new Error('SYNTHETIC_PAGE_OBSERVATION_4360');
+                                }});
+                              } else if (operation === 'get_page_text') {
+                                window.getComputedStyle = function() {
+                                  throw new Error('SYNTHETIC_PAGE_OBSERVATION_4360');
+                                };
+                              } else {
+                                Element.prototype.matches = function() {
+                                  throw new Error('SYNTHETIC_PAGE_OBSERVATION_4360');
+                                };
+                              }
+                            }""",
+                            member,
+                        )
+                        try:
+                            if member == "state":
+                                await borrowed.state()
+                            elif member == "read_page":
+                                await borrowed.read_page({"tab_id": selected, "filter": "all"})
+                            elif member == "find":
+                                await borrowed.find({"tab_id": selected, "query": "Allowed"})
+                            else:
+                                await borrowed.get_page_text({"tab_id": selected})
+                        except Exception as error:
+                            if (
+                                not isinstance(error, BrowserError)
+                                or str(error) != "Browser observation failed. Read the page again."
+                                or error.__cause__ is not None
+                                or error.__context__ is not None
+                                or "SYNTHETIC_PAGE_OBSERVATION_4360" in "".join(traceback.format_exception(error))
+                            ):
+                                leaked.append(member)
+                        else:
+                            leaked.append(member)
+                        assert not target.is_closed()
+                        await target.reload()
+                        assert (await borrowed.state())["tabs"][0]["id"] == selected
+                        report = await borrowed.read_page({"tab_id": selected, "filter": "all"})
+                        assert isinstance(report, dict) and report["elements"]
+                        checks += 3
+                    finally:
+                        await fixture.close()
+                assert not leaked, f"Page-controlled observation errors escaped in: {leaked}"
                 for replaced in ("options", "encoder"):
                     fixture = await browser.new_context()
                     borrowed = PlaywrightBrowser(fixture, {origin})

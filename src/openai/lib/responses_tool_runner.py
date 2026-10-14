@@ -2191,19 +2191,27 @@ class ResponsesToolRunner:
                 member=item.name,
             )
             raise
-        emit_tool_diagnostic(
-            run.on_diagnostic, "responses", "action", "completed", started, call_id=item.call_id, member=item.name
-        )
-        started = monotonic()
+        output_started = monotonic()
         try:
-            result = _supplied_result(raw_result)
+            try:
+                result = _supplied_result(raw_result)
+            finally:
+                emit_tool_diagnostic(
+                    run.on_diagnostic,
+                    "responses",
+                    "action",
+                    "completed",
+                    started,
+                    call_id=item.call_id,
+                    member=item.name,
+                )
         except Exception:
             emit_tool_diagnostic(
                 run.on_diagnostic,
                 "responses",
                 "output",
                 "invalid_output",
-                started,
+                output_started,
                 call_id=item.call_id,
                 member=item.name,
             )
@@ -2654,19 +2662,27 @@ class AsyncResponsesToolRunner:
                 member=item.name,
             )
             raise
-        emit_tool_diagnostic(
-            run.on_diagnostic, "responses", "action", "completed", started, call_id=item.call_id, member=item.name
-        )
-        started = monotonic()
+        output_started = monotonic()
         try:
-            result = _supplied_result(result)
+            try:
+                result = _supplied_result(result)
+            finally:
+                emit_tool_diagnostic(
+                    run.on_diagnostic,
+                    "responses",
+                    "action",
+                    "completed",
+                    started,
+                    call_id=item.call_id,
+                    member=item.name,
+                )
         except Exception:
             emit_tool_diagnostic(
                 run.on_diagnostic,
                 "responses",
                 "output",
                 "invalid_output",
-                started,
+                output_started,
                 call_id=item.call_id,
                 member=item.name,
             )

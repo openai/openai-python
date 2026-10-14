@@ -59,6 +59,7 @@ CASES: dict[str, list[tuple[str, ...]]] = {
     ],
     "daytona": [("examples/computer-daytona/exercise.py",)],
     "demo": [
+        ("examples/browser-use-demo/exercise_ui.py",),
         ("examples/browser-use-demo/exercise_controls.py",),
         ("examples/browser-use-demo/exercise_diagnostics.py",),
         ("examples/browser-use-demo/exercise_wire.py",),

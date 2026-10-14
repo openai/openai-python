@@ -50,8 +50,10 @@ from openai.types.responses.response_input_param import FunctionCallOutput
 from openai.types.responses.response_output_item import McpApprovalRequest
 from openai.types.responses.response_create_params import ResponseCreateParamsNonStreaming
 from openai.types.responses.tool_choice_allowed_param import ToolChoiceAllowedParam
+from openai.types.responses.response_input_text_content_param import ResponseInputTextContentParam
 from openai.types.responses.response_input_image_content_param import ResponseInputImageContentParam
 from openai.types.responses.response_code_interpreter_tool_call_param import ResponseCodeInterpreterToolCallParam
+from openai.types.responses.response_function_call_output_item_list_param import ResponseFunctionCallOutputItemListParam
 
 from .test_browser import Desktop, AsyncDesktop
 from .test_computer import Driver, AsyncDriver, call as computer_call
@@ -2714,6 +2716,53 @@ async def test_ledger_completed_boundary_replays_outputs_once_with_original_budg
     with pytest.raises(ToolRunnerError, match="max_steps"):
         await run(lane, Desktop(), [FINAL], no_requests, save=records.append, resume=exhausted, max_steps=None)
     assert no_requests == []
+
+
+@pytest.mark.parametrize("lane", ["sync", "async"])
+@pytest.mark.parametrize("mutation", ["text", "shape"])
+async def test_function_output_snapshot_precedes_diagnostic(lane: str, mutation: str) -> None:
+    block: ResponseInputTextContentParam = {"type": "input_text", "text": "captured"}
+    requests: list[dict[str, Any]] = []
+    observed: list[ToolDiagnostic] = []
+
+    def transport(req: httpx2.Request) -> httpx2.Response:
+        requests.append(json.loads(req.content))
+        return httpx2.Response(
+            200, json=resp([fn("record", "one", text="first")], "r") if len(requests) == 1 else FINAL
+        )
+
+    def execute(_args: dict[str, object]) -> ResponseFunctionCallOutputItemListParam:
+        return [block]
+
+    async def async_execute(args: dict[str, object]) -> ResponseFunctionCallOutputItemListParam:
+        return execute(args)
+
+    def diagnostic(event: ToolDiagnostic) -> None:
+        if event["stage"] == "action" and event["reason"] == "completed":
+            observed.append(event)
+            if mutation == "text":
+                block["text"] = "changed"
+            else:
+                cast(dict[str, object], block)["extra"] = True
+
+    if lane == "sync":
+        with OpenAI(api_key="fake", http_client=httpx2.Client(transport=httpx2.MockTransport(transport))) as client:
+            ResponsesToolRunner(functions=[RegisteredFunction(TOOL, execute)]).run(
+                client, PARAMS, on_diagnostic=diagnostic
+            )
+    else:
+        async with AsyncOpenAI(
+            api_key="fake", http_client=httpx2.AsyncClient(transport=httpx2.MockTransport(transport))
+        ) as async_client:
+            await AsyncResponsesToolRunner(functions=[AsyncRegisteredFunction(TOOL, async_execute)]).run(
+                async_client, PARAMS, on_diagnostic=diagnostic
+            )
+    assert len(observed) == 1
+    assert {
+        "type": "function_call_output",
+        "call_id": "one",
+        "output": [{"type": "input_text", "text": "captured"}],
+    } in requests[1]["input"]
 
 
 @pytest.mark.parametrize("kind", ["coroutine", "future"])

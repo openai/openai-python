@@ -1,5 +1,9 @@
 const variant = new URL(location.href).searchParams.get('fixture') || 'A';
-const link = (route) => `/${route}?fixture=${encodeURIComponent(variant)}`;
+const link = (route) =>
+  `/${route}?fixture=${encodeURIComponent(variant).replaceAll(
+    /[!'()*]/gu,
+    (character) => `%${character.codePointAt(0).toString(16).toUpperCase()}`,
+  )}`;
 const esc = (s) =>
   String(s).replaceAll(
     /[&<>"']/gu,

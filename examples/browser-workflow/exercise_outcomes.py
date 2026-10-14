@@ -51,6 +51,7 @@ async def main(mode: str) -> None:
                 assert str(error).startswith("Fixture IDs must be nonempty strings"), error
             fixture = copy.deepcopy(original)
             variant = 'C\0\r " & Ω 🌕'
+            variant += " !'()* /"
             request_id = 'REQ " & Ω 🌕\nline'
             slot_id = 'ROOM " & Ω 🌕\nline'
             fixture["requestId"] = request_id
