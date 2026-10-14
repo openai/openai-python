@@ -4,8 +4,8 @@ Requires=desktop.service
 After=desktop.service
 
 [Service]
-User=desktop
-Group=desktop
+User=root
+Group=root
 Environment=DISPLAY=:1 HOME=/home/desktop
 ExecStart=/usr/bin/python3 -I /opt/desktop/action.py
 StandardInput=null

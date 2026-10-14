@@ -33,6 +33,7 @@ def guest_process(root: Path, name: str, descriptor: int) -> None:
     os.environ["LISTEN_PID"] = str(os.getpid())
     os.environ["LISTEN_FDS"] = "1"
     action.ROOT = root
+    action.OWNER = root
     validate = action.validate
 
     def recorded_validate(raw: object) -> tuple[dict[str, object], list[str]]:
@@ -56,7 +57,11 @@ class ActionAdmissionTests(unittest.TestCase):
     def test_native_click_buttons_and_release(self) -> None:
         import action
 
-        with tempfile.TemporaryDirectory() as directory, patch.object(action, "ROOT", Path(directory)):
+        with (
+            tempfile.TemporaryDirectory() as directory,
+            patch.object(action, "ROOT", Path(directory)),
+            patch.object(action, "OWNER", Path(directory)),
+        ):
             for name, number in (("left", 1), ("wheel", 2), ("right", 3), ("back", 8), ("forward", 9)):
                 with self.subTest(button=name), patch.object(action, "xdo") as xdo:
                     self.assertEqual(action.reply({"type": "click", "x": 30, "y": 40, "button": name}), {"ok": True})
@@ -72,7 +77,7 @@ class ActionAdmissionTests(unittest.TestCase):
             root = Path(directory)
             (root / "events.jsonl").write_text(json.dumps({"id": "D-2201", "action": "route"}) + "\n")
             (root / "sealed").touch()
-            with patch.object(action, "ROOT", root):
+            with patch.object(action, "ROOT", root), patch.object(action, "OWNER", root):
                 for suffix, matches in (("", True), ("\n", True), ("\n\n", False), ("\n\n\n", False), (" \n", False)):
                     (root / "result.txt").write_text("Desktop receipt D-2201" + suffix)
                     for operation in ("verify", "seal"):

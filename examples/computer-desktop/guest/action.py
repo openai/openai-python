@@ -13,6 +13,7 @@ from typing import cast
 from pathlib import Path
 
 ROOT = Path("/run/desktop")
+OWNER = Path("/run/desktop-owner")
 WIDTH, HEIGHT = 1024, 768
 MODS = {
     "CTRL": "Control_L",
@@ -155,15 +156,15 @@ def reply(request: object) -> dict[str, object]:
     action, keys = validate(request)
     kind = action["type"]
     if kind == "ready":
-        return {"ok": (ROOT / "display-ready").is_file()}
-    sealed = ROOT / "sealed"
+        return {"ok": (OWNER / "display-ready").is_file()}
+    sealed = OWNER / "sealed"
     if sealed.is_file() and kind not in ("seal", "verify", "screenshot"):
         return {"ok": False, "uncertain": False, "error": "Completed desktop is read-only."}
     if kind == "seal" and not sealed.is_file():
-        cmd("scrot", "--overwrite", str(ROOT / "final-frame.png"))
+        cmd("scrot", "--overwrite", str(OWNER / "final-frame.png"))
         with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as owner:
             owner.settimeout(7)
-            owner.connect(str(ROOT / "owner.sock"))
+            owner.connect(str(OWNER / "owner.sock"))
             owner.sendall(b"seal\n")
             with owner.makefile("rb") as response:
                 if response.readline(9) != b"sealed\n":
@@ -171,8 +172,11 @@ def reply(request: object) -> dict[str, object]:
         sealed.touch()
     if kind in ("verify", "seal"):
         output = ROOT / "result.txt"
-        events = ROOT / "events.jsonl"
-        text = output.read_text() if output.is_file() and output.stat().st_size <= 8192 else ""
+        events = OWNER / "events.jsonl"
+        try:
+            text = output.read_text() if output.is_file() and output.stat().st_size <= 8192 else ""
+        except PermissionError:
+            text = ""
         raw = events.read_text() if events.is_file() and events.stat().st_size <= 8192 else ""
         expected = json.dumps({"id": "D-2201", "action": "route"}) + "\n"
         return {
@@ -183,9 +187,9 @@ def reply(request: object) -> dict[str, object]:
             "browser_effects": len(raw.splitlines()) if not events.is_file() or events.stat().st_size <= 8192 else None,
         }
     if kind == "screenshot":
-        with tempfile.TemporaryDirectory(prefix="capture-", dir=ROOT) as directory:
+        with tempfile.TemporaryDirectory(prefix="capture-", dir=OWNER) as directory:
             if sealed.is_file():
-                path = ROOT / "final-frame.png"
+                path = OWNER / "final-frame.png"
             else:
                 path = Path(directory) / "frame.png"
                 cmd("scrot", "--overwrite", str(path))
@@ -272,7 +276,11 @@ def main() -> None:
     with socket.socket(fileno=3) as connection:
         if connection.type != socket.SOCK_STREAM:
             raise RuntimeError("A stream connection is required.")
-        connection.getpeername()
+        peer = connection.getpeername()
+        if connection.family == getattr(socket, "AF_VSOCK", None) and peer[0] != getattr(
+            socket, "VMADDR_CID_HOST", None
+        ):
+            raise RuntimeError("Only the host may request desktop actions.")
         connection.settimeout(10)
         with connection.makefile("rb") as stream:
             try:
@@ -291,7 +299,7 @@ def main() -> None:
             else:
                 try:
                     # The private runtime inode is shared by this guest's action processes.
-                    descriptor = os.open(ROOT, os.O_RDONLY | os.O_DIRECTORY | os.O_CLOEXEC)
+                    descriptor = os.open(OWNER, os.O_RDONLY | os.O_DIRECTORY | os.O_CLOEXEC)
                     try:
                         fcntl.flock(descriptor, fcntl.LOCK_EX)
                         result = reply(request)
