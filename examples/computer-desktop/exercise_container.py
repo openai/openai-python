@@ -14,6 +14,7 @@ from typing import Any
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
+from collections.abc import Callable
 
 import container_runtime as runtime
 
@@ -194,7 +195,7 @@ def initial_intent_failure(boundary: str) -> None:
         root = Path(temporary) / "runtime"
         prepare(root)
         driver = Docker(root, available=True, receipt=False)
-        original_open = Path.open
+        original_open: Callable[..., Any] = Path.open
         real_fsync = os.fsync
         real_fchmod = os.fchmod
         failure = OSError("controlled receipt failure")
