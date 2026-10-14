@@ -381,6 +381,124 @@ async def test_only_declared_tab_fields_cross_confirmation_and_output(lane: str,
     assert [report["tabs"][0]["title"] for report in desktop.reports] == ["Before", "After", "After", "After"]
 
 
+valid_observation: dict[str, object] = {
+    "version": 1,
+    "sequence": 0,
+    "dropped_changes": 0,
+    "title_truncated": False,
+    "changes": [],
+}
+
+
+@pytest.mark.parametrize("lane", ["sync", "async"])
+@pytest.mark.parametrize(
+    "case,observation",
+    [
+        ("null", None),
+        ("wrong_version", {**valid_observation, "version": 2}),
+        ("bool_version", {**valid_observation, "version": True}),
+        ("negative_sequence", {**valid_observation, "sequence": -1}),
+        ("bool_sequence", {**valid_observation, "sequence": False}),
+        ("unsafe_sequence", {**valid_observation, "sequence": 9007199254740992, "dropped_changes": 9007199254740992}),
+        ("negative_dropped", {**valid_observation, "dropped_changes": -1}),
+        ("bool_dropped", {**valid_observation, "dropped_changes": False}),
+        ("numeric_truncation", {**valid_observation, "title_truncated": 1}),
+        ("fraction_sequence", {**valid_observation, "sequence": 0.5}),
+        ("not_a_list", {**valid_observation, "changes": {}}),
+        (
+            "late_event_gap",
+            {
+                **valid_observation,
+                "sequence": 33,
+                "changes": [{"type": "navigation", "tab_id": "one", "sequence": min(i, 32)} for i in range(1, 34)],
+            },
+        ),
+        (
+            "counter_gap",
+            {**valid_observation, "sequence": 2, "changes": [{"type": "navigation", "tab_id": "one", "sequence": 2}]},
+        ),
+        (
+            "event_gap",
+            {**valid_observation, "sequence": 1, "changes": [{"type": "navigation", "tab_id": "one", "sequence": 2}]},
+        ),
+        (
+            "event_bool",
+            {
+                **valid_observation,
+                "sequence": 1,
+                "changes": [{"type": "navigation", "tab_id": "one", "sequence": True}],
+            },
+        ),
+        (
+            "unknown_event",
+            {**valid_observation, "sequence": 1, "changes": [{"type": "login", "tab_id": "one", "sequence": 1}]},
+        ),
+        (
+            "null_required_tab",
+            {**valid_observation, "sequence": 1, "changes": [{"type": "navigation", "tab_id": None, "sequence": 1}]},
+        ),
+        (
+            "bad_reason",
+            {
+                **valid_observation,
+                "sequence": 1,
+                "changes": [
+                    {"type": "navigation_refused", "tab_id": None, "reason": "SYNTHETIC_PRIVATE", "sequence": 1}
+                ],
+            },
+        ),
+        (
+            "bad_dialog",
+            {
+                **valid_observation,
+                "sequence": 1,
+                "changes": [{"type": "dialog_dismissed", "tab_id": "one", "kind": "SYNTHETIC_PRIVATE", "sequence": 1}],
+            },
+        ),
+        (
+            "bad_download",
+            {
+                **valid_observation,
+                "sequence": 1,
+                "changes": [{"type": "download", "tab_id": None, "status": "SYNTHETIC_PRIVATE", "sequence": 1}],
+            },
+        ),
+        (
+            "blank_tab",
+            {**valid_observation, "sequence": 1, "changes": [{"type": "tab_closed", "tab_id": "", "sequence": 1}]},
+        ),
+        (
+            "long_event_id",
+            {
+                **valid_observation,
+                "sequence": 1,
+                "changes": [{"type": "navigation", "tab_id": "𐍈" * 32 + "x", "sequence": 1}],
+            },
+        ),
+        *[(f"missing_{key}", {k: v for k, v in valid_observation.items() if k != key}) for key in valid_observation],
+    ],
+)
+async def test_malformed_observation_refuses_before_effect(lane: str, case: str, observation: object) -> None:
+    class Reported(Desktop):
+        @override
+        def state(self) -> BrowserState:
+            value = super().state()
+            # A customer driver's returned value need not obey its annotation.
+            value["observation"] = cast(BrowserObservationV1, observation)
+            return value
+
+    desktop = Reported()
+    with pytest.raises(RuntimeError, match=r"^Browser state report failed\.$"):
+        await execute(
+            lane,
+            desktop,
+            call("click", {"target": "button", "tab_id": None}),
+            lambda _ctx: True,
+            lambda _ctx, _url: True,
+        )
+    assert not desktop.clicked, case
+
+
 @pytest.mark.parametrize("lane", ["sync", "async"])
 @pytest.mark.parametrize("at", [1, 2])
 @pytest.mark.parametrize("counter", [float("nan"), float("inf"), -float("inf")])
@@ -913,6 +1031,38 @@ async def test_v1_driver_selected_collection_sizes(lane: str, count: int) -> Non
     }
     report["elements"] = elements
     assert payload(await execute_read(lane, RichReads(report), "read_page"))["result"] == report
+
+
+@pytest.mark.parametrize("lane", ["sync", "async"])
+@pytest.mark.parametrize("transition", ["sequence", "dropped_changes", "downgrade"])
+async def test_invalid_observation_transition_refuses_final_read(lane: str, transition: str) -> None:
+    class Observed(RichReads):
+        @override
+        def state(self) -> BrowserState:
+            self.reads += 1
+            value: dict[str, object] = {"tabs": []}
+            if transition == "sequence":
+                sequence = 2 if self.reads == 1 else 1
+                value["observation"] = {
+                    **valid_observation,
+                    "sequence": sequence,
+                    "changes": [{"type": "navigation", "tab_id": "one", "sequence": n} for n in range(1, sequence + 1)],
+                }
+            elif self.reads == 1:
+                value["observation"] = {**valid_observation, "sequence": 2, "dropped_changes": 2}
+            elif transition == "dropped_changes":
+                value["observation"] = {
+                    **valid_observation,
+                    "sequence": 3,
+                    "dropped_changes": 1,
+                    "changes": [{"type": "navigation", "tab_id": "one", "sequence": n} for n in (2, 3)],
+                }
+            return cast(BrowserState, value)
+
+    driver = Observed("read")
+    with pytest.raises(RuntimeError, match="Browser state"):
+        await execute_read(lane, driver, "read_page")
+    assert driver.reads == 2
 
 
 @pytest.mark.parametrize("lane", ["sync", "async"])
