@@ -69,6 +69,9 @@ class Stream(Generic[_T]):
         try:
             for sse in iterator:
                 if sse.data.startswith("[DONE]"):
+                    # HTTP/1.1 needs the remaining body consumed for connection reuse.
+                    # HTTP/2 can close this stream and keep the connection, so draining
+                    # it would add unnecessary latency after [DONE].
                     if response.http_version == "HTTP/1.1":
                         drain_response(response)
                     break
@@ -186,6 +189,9 @@ class AsyncStream(Generic[_T]):
         try:
             async for sse in iterator:
                 if sse.data.startswith("[DONE]"):
+                    # HTTP/1.1 needs the remaining body consumed for connection reuse.
+                    # HTTP/2 can close this stream and keep the connection, so draining
+                    # it would add unnecessary latency after [DONE].
                     if response.http_version == "HTTP/1.1":
                         await drain_response_async(response)
                     break
