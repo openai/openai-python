@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import json
+import signal
 import asyncio
 import argparse
 from html import escape
@@ -278,9 +279,25 @@ async def main() -> None:
     model = os.environ.get("OPENAI_MODEL")
     if not model:
         parser.error("Set OPENAI_API_KEY and OPENAI_MODEL before running this example.")
-    async with open_reader() as reader, AsyncOpenAI(max_retries=0) as client:
-        result = await answer_question(client, reader, model=model, question=args.question)
-        print(result.output_text)
+    task = asyncio.current_task()
+    assert task is not None
+    previous = {name: signal.getsignal(name) for name in (signal.SIGINT, signal.SIGTERM)}
+
+    def stop(_signal: int, _frame: object) -> None:
+        # Repeated signals must not interrupt cleanup of the owned browser.
+        signal.signal(signal.SIGINT, signal.SIG_IGN)
+        signal.signal(signal.SIGTERM, signal.SIG_IGN)
+        task.cancel()
+
+    for name in previous:
+        signal.signal(name, stop)
+    try:
+        async with open_reader() as reader, AsyncOpenAI(max_retries=0) as client:
+            result = await answer_question(client, reader, model=model, question=args.question)
+            print(result.output_text)
+    finally:
+        for name, handler in previous.items():
+            signal.signal(name, handler)
 
 
 if __name__ == "__main__":
