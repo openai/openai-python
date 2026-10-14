@@ -67,7 +67,7 @@ class Desktop:
             raise DesktopStartupError("Desktop startup was stopped.")
         self._state = threading.Condition()
         self._removal = threading.Lock()
-        self._active = False
+        self._active: object | None = None
         self._viewers = 0
         self._input_pending = False
         self._stopped = False
@@ -111,18 +111,26 @@ class Desktop:
                 raise DesktopStartupError("Desktop did not become ready within its restrictions.") from error
             raise
 
-    def _begin(self) -> None:
+    def _begin(self) -> object:
         with self._state:
             if self._stopped or self._id is None:
                 raise ComputerUseError("Desktop is stopped.")
             if self._active:
                 raise ComputerUseError("Desktop already has an active operation.")
-            self._active = True
+            self._active = object()
+            return self._active
 
     def _end(self) -> None:
         with self._state:
-            self._active = False
+            # The callback may have started input without owning its completion.
+            retire = self._input_pending and not self._stopped
+            if retire:
+                self.uncertain_effects = True
+                self._stopped = True
+            self._active = None
             self._state.notify_all()
+        if retire:
+            self._remove()
 
     def _result(self, value: T) -> T:
         with self._state:
@@ -132,16 +140,16 @@ class Desktop:
 
     def operation(self, work: Callable[[ComputerToolset], T]) -> T:
         """Keep approvals, driver actions and the final capture in one admitted unit."""
-        self._begin()
+        phase = self._begin()
         try:
-            return self._result(work(ComputerToolset(self)))
+            return self._result(work(ComputerToolset(SyncDesktop(self, phase))))
         finally:
             self._end()
 
     async def operation_async(self, work: Callable[[AsyncComputerToolset], Awaitable[T]]) -> T:
-        self._begin()
+        phase = self._begin()
         try:
-            return self._result(await work(AsyncComputerToolset(AsyncDesktop(self))))
+            return self._result(await work(AsyncComputerToolset(AsyncDesktop(SyncDesktop(self, phase)))))
         except asyncio.CancelledError:
             # A cancelled to_thread can still be sending input. Revoke now: this
             # operation cannot drain itself. Repeated cancellation cannot skip
@@ -177,7 +185,12 @@ class Desktop:
                 self._id = None
 
     def _exchange(
-        self, value: dict[str, object], *, timeout: float = 10, cancelled: Callable[[], bool] | None = None
+        self,
+        value: dict[str, object],
+        *,
+        phase: object | None = None,
+        timeout: float = 10,
+        cancelled: Callable[[], bool] | None = None,
     ) -> dict[str, object]:
         guest_id = self._id
         if guest_id is None:
@@ -186,8 +199,10 @@ class Desktop:
         if len(data) > 16384:
             return {"ok": False, "uncertain": False}
         is_input = value.get("type") in _EFFECT_TYPES
-        if is_input:
-            with self._state:
+        with self._state:
+            if phase is not None and (self._stopped or self._active is not phase):
+                return {"ok": False, "uncertain": False}
+            if is_input:
                 # Cancellation before the transport starts must not become
                 # an uncertain input merely because a worker thread was queued.
                 if self._stopped or not self._active:
@@ -239,19 +254,28 @@ class Desktop:
         return fields
 
     def _request(
-        self, value: dict[str, object], *, timeout: float = 10, cancelled: Callable[[], bool] | None = None
+        self,
+        value: dict[str, object],
+        *,
+        phase: object,
+        timeout: float = 10,
+        cancelled: Callable[[], bool] | None = None,
     ) -> dict[str, object]:
         with self._state:
-            if self._stopped or not self._active:
+            if self._stopped or self._active is not phase:
                 raise ComputerUseError("Use desktop.operation() for the complete SDK call.")
 
         def stopped() -> bool:
             with self._state:
-                return self._stopped or (cancelled is not None and cancelled())
+                return self._stopped or self._active is not phase or (cancelled is not None and cancelled())
 
         try:
-            reply = self._exchange(value, timeout=timeout, cancelled=stopped)
+            reply = self._exchange(value, phase=phase, timeout=timeout, cancelled=stopped)
         except BaseException:
+            with self._state:
+                if self._active is not phase and not self._stopped:
+                    # A lost read lease must not retire another admitted phase.
+                    raise
             if stopped():
                 # An interrupted input has no confirmed receipt; do not reuse
                 # its guest. Read-only verification can still be repeated.
@@ -273,10 +297,13 @@ class Desktop:
             raise ComputerUseError("Desktop refused the action or its result is uncertain.")
         # A confirmed receipt is still confirmed after Stop. Do not reuse the
         # stale result, and do not relabel the confirmed action as uncertain.
+        with self._state:
+            if self._active is not phase:
+                raise ComputerUseError("Desktop no longer owns this operation.")
         return self._result(reply)
 
-    def _action(self, action: ComputerActionInput, cancelled: Callable[[], bool] | None) -> None:
-        self._request(action.to_dict(), cancelled=cancelled)
+    def _action(self, phase: object, action: ComputerActionInput, cancelled: Callable[[], bool] | None) -> None:
+        self._request(action.to_dict(), phase=phase, cancelled=cancelled)
         if cancelled is not None and cancelled():
             # The input receipt is confirmed, but this phase was cancelled
             # after dispatch. Do not let a future run reuse its changed guest.
@@ -289,9 +316,9 @@ class Desktop:
         """Only check the fixed fixture effect and fixed output file; return no contents."""
         if cancelled is not None and cancelled():
             raise ComputerUseError("Desktop verification was cancelled.")
-        self._begin()
+        phase = self._begin()
         try:
-            reply = self._request({"type": "verify"}, cancelled=cancelled)
+            reply = self._request({"type": "verify"}, phase=phase, cancelled=cancelled)
             if cancelled is not None and cancelled():
                 raise ComputerUseError("Desktop verification was cancelled.")
             return self._result(
@@ -304,9 +331,9 @@ class Desktop:
         """Stop fixture writers before returning terminal, persisted-state proof."""
         if cancelled is not None and cancelled():
             raise ComputerUseError("Desktop sealing was cancelled.")
-        self._begin()
+        phase = self._begin()
         try:
-            reply = self._request({"type": "seal"}, timeout=15, cancelled=cancelled)
+            reply = self._request({"type": "seal"}, phase=phase, timeout=15, cancelled=cancelled)
             if cancelled is not None and cancelled():
                 with self._state:
                     self._stopped = True
@@ -342,10 +369,18 @@ class Desktop:
                 self._viewers -= 1
                 self._state.notify_all()
 
+
+class SyncDesktop:
+    """Computer driver limited to the Desktop operation that created it."""
+
+    def __init__(self, owner: Desktop, phase: object) -> None:
+        self.owner = owner
+        self.phase = phase
+
     def click(
         self, action: Union[modern.Click, legacy.ActionClick], *, cancelled: Callable[[], bool] | None = None
     ) -> None:
-        self._action(action, cancelled)
+        self.owner._action(self.phase, action, cancelled)
 
     def double_click(
         self,
@@ -353,40 +388,40 @@ class Desktop:
         *,
         cancelled: Callable[[], bool] | None = None,
     ) -> None:
-        self._action(action, cancelled)
+        self.owner._action(self.phase, action, cancelled)
 
     def drag(
         self, action: Union[modern.Drag, legacy.ActionDrag], *, cancelled: Callable[[], bool] | None = None
     ) -> None:
-        self._action(action, cancelled)
+        self.owner._action(self.phase, action, cancelled)
 
     def keypress(
         self, action: Union[modern.Keypress, legacy.ActionKeypress], *, cancelled: Callable[[], bool] | None = None
     ) -> None:
-        self._action(action, cancelled)
+        self.owner._action(self.phase, action, cancelled)
 
     def move(
         self, action: Union[modern.Move, legacy.ActionMove], *, cancelled: Callable[[], bool] | None = None
     ) -> None:
-        self._action(action, cancelled)
+        self.owner._action(self.phase, action, cancelled)
 
     def scroll(
         self, action: Union[modern.Scroll, legacy.ActionScroll], *, cancelled: Callable[[], bool] | None = None
     ) -> None:
-        self._action(action, cancelled)
+        self.owner._action(self.phase, action, cancelled)
 
     def type(
         self, action: Union[modern.Type, legacy.ActionType], *, cancelled: Callable[[], bool] | None = None
     ) -> None:
-        self._action(action, cancelled)
+        self.owner._action(self.phase, action, cancelled)
 
     def wait(
         self, action: Union[modern.Wait, legacy.ActionWait], *, cancelled: Callable[[], bool] | None = None
     ) -> None:
-        self._action(action, cancelled)
+        self.owner._action(self.phase, action, cancelled)
 
     def screenshot(self, *, cancelled: Callable[[], bool] | None = None) -> Screenshot:
-        reply = self._request({"type": "screenshot"}, cancelled=cancelled)
+        reply = self.owner._request({"type": "screenshot"}, phase=self.phase, cancelled=cancelled)
         image = reply.get("image_url")
         if not isinstance(image, str) or not image.startswith("data:image/png;base64,"):
             raise ComputerUseError("Desktop returned no PNG.")
@@ -396,7 +431,7 @@ class Desktop:
 class AsyncDesktop:
     """Use the same fixed owner without blocking the event loop on guest I/O."""
 
-    def __init__(self, owner: Desktop) -> None:
+    def __init__(self, owner: SyncDesktop) -> None:
         self.owner = owner
 
     async def click(

@@ -514,30 +514,61 @@ def exchange(
 
 
 def remove(root: Path, id: str) -> None:
-    directory, _, _ = run_record(root, id)
-    identity = directory.lstat()
-    current = lookup(root, id)
-    if current is not None:
-        # Persist a positively reconciled CID before mutation when the original
-        # create reply never wrote one. Later absence can then be proven by ID.
-        cidfile = directory / "container-id"
+    if len(id) != 12 or any(c not in "0123456789abcdef" for c in id):
+        raise ValueError("Invalid owned run ID.")
+    directory = root / "runs" / id
+    cleanup = root / "runs" / (".cleanup-" + id)
+    moved = cleanup / "run"
+    marker = cleanup / "owner.json"
+    try:
+        owned(cleanup, 0o700, True)
+    except FileNotFoundError:
+        directory, intent, _ = run_record(root, id)
+        current = lookup(root, id)
+        if current is not None:
+            # Persist a positively reconciled CID before mutation when the original
+            # create reply never wrote one. Later absence can then be proven by ID.
+            cidfile = directory / "container-id"
+            try:
+                with cidfile.open("x") as output:
+                    os.fchmod(output.fileno(), 0o600)
+                    output.write(str(current["Id"]))
+                    output.flush()
+                    os.fsync(output.fileno())
+            except FileExistsError:
+                recorded = lookup(root, id)
+                if recorded is None or recorded["Id"] != current["Id"]:
+                    raise RuntimeError("Container changed while recording ownership; run retained.") from None
+            docker(root, ["rm", "-f", str(current["Id"])])
+            if lookup(root, id) is not None:
+                raise RuntimeError("Could not confirm stopped container; run retained.") from None
+        cleanup.mkdir(mode=0o700)
+        write_new(marker, intent["owner"])
+    else:
+        # Another CLI invocation may be finishing an interrupted recursive delete.
+        runtime(root)
+    owned(marker, 0o600)
+    expected: dict[str, Any] = json.loads(marker.read_text())
+    if expected.get("path") != str(root.resolve() / "runs" / id):
+        raise RuntimeError("Run directory changed while reaping; cleanup record retained.")
+    try:
+        now = owned(moved, 0o700, True)
+    except FileNotFoundError:
         try:
-            with cidfile.open("x") as output:
-                os.fchmod(output.fileno(), 0o600)
-                output.write(str(current["Id"]))
-                output.flush()
-                os.fsync(output.fileno())
-        except FileExistsError:
-            recorded = lookup(root, id)
-            if recorded is None or recorded["Id"] != current["Id"]:
-                raise RuntimeError("Container changed while recording ownership; run retained.") from None
-        docker(root, ["rm", "-f", str(current["Id"])])
-        if lookup(root, id) is not None:
-            raise RuntimeError("Could not confirm stopped container; run retained.")
-    now = owned(directory, 0o700, True)
-    if now.st_ino != identity.st_ino or now.st_dev != identity.st_dev:
-        raise RuntimeError("Run directory changed while reaping.")
-    shutil.rmtree(directory)
+            now = owned(directory, 0o700, True)
+        except FileNotFoundError:
+            now = None
+        if now is not None:
+            if now.st_ino != expected.get("inode") or now.st_dev != expected.get("device"):
+                raise RuntimeError("Run directory changed while reaping; cleanup record retained.") from None
+            directory.rename(moved)
+            now = owned(moved, 0o700, True)
+    if now is not None:
+        if now.st_ino != expected.get("inode") or now.st_dev != expected.get("device"):
+            raise RuntimeError("Run directory changed while reaping; private cleanup directory retained.")
+        shutil.rmtree(moved)
+    marker.unlink()
+    cleanup.rmdir()
 
 
 if __name__ == "__main__":
