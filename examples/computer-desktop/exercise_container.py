@@ -361,6 +361,73 @@ def cleanup_marker_interruption(*, before_write: bool, foreign: bool = False, pa
             assert (root / "runs/unrelated/sentinel").read_text() == "other run"
 
 
+def cleanup_deadline(*, hold_rm: bool) -> None:
+    with TemporaryDirectory() as temporary:
+        root = Path(temporary) / "runtime"
+        prepare(root)
+        driver = Docker(root, available=True, receipt=True)
+        run_id = "e" * 12
+        directory = root / "runs" / run_id
+        directory.mkdir(mode=0o700)
+        runtime.write_new(
+            directory / "intent.json",
+            {
+                "owner": runtime.identity(directory),
+                "name": "openai-desktop-" + run_id,
+                "nonce": "f" * 48,
+                "image": IMAGE,
+            },
+        )
+        (directory / "container-id").write_text(CONTAINER)
+        driver.directory = directory
+        driver.create = driver.real_popen([sys.executable, "-c", "pass"])
+        driver.create.wait()
+        elapsed = 0.0
+        held: subprocess.Popen[bytes] | None = None
+        original_docker = runtime.docker
+
+        def docker(command_root: Path, args: list[str], **kwargs: Any) -> bytes:
+            nonlocal elapsed
+            result = original_docker(command_root, args, **kwargs)
+            elapsed += 6
+            return result
+
+        def popen(args: list[str], **kwargs: Any) -> subprocess.Popen[bytes]:
+            nonlocal elapsed, held
+            if hold_rm and args[5] == "rm" and held is None:
+                driver.calls.append(args[5:])
+                held = driver.real_popen([sys.executable, "-c", "import time;time.sleep(60)"], **kwargs)
+                elapsed = 31
+                return held
+            return driver.popen(args, **kwargs)
+
+        with (
+            patch.object(runtime, "local_only", return_value="/unused/local-docker"),
+            patch.object(runtime.subprocess, "Popen", side_effect=popen),
+            patch.object(runtime, "time", SimpleNamespace(monotonic=lambda: elapsed)),
+            patch.object(runtime, "docker", side_effect=docker),
+        ):
+            try:
+                runtime.remove(root, run_id)
+            except subprocess.TimeoutExpired:
+                pass
+            else:
+                raise AssertionError("Cleanup ignored its aggregate budget")
+            assert directory.is_dir() and (directory / "container-id").read_text() == CONTAINER
+            assert [call[0] for call in driver.calls] == ["ps", "inspect", "ps", "inspect", "rm"]
+            assert driver.removed is not hold_rm
+            if hold_rm:
+                assert held is not None and held.poll() is not None
+        # A separate retry revalidates the receipt; it is not bound to the expired operation.
+        with (
+            patch.object(runtime, "local_only", return_value="/unused/local-docker"),
+            patch.object(runtime.subprocess, "Popen", side_effect=driver.popen),
+        ):
+            runtime.remove(root, run_id)
+        assert not directory.exists()
+        assert (root / "runs/unrelated/sentinel").read_text() == "other run"
+
+
 def startup_deadline(boundary: str | None) -> None:
     with TemporaryDirectory() as temporary:
         root = Path(temporary) / "runtime"
@@ -379,12 +446,13 @@ def startup_deadline(boundary: str | None) -> None:
         def docker(command_root: Path, args: list[str], **kwargs: Any) -> bytes:
             nonlocal elapsed
             result = original_docker(command_root, args, **kwargs)
-            if boundary == "cumulative":
-                elapsed += 25
-            elif args[0] == boundary:
-                elapsed = 60
-            elif boundary == "caller" and args[0] == "start":
-                driver.cancelled = True
+            if kwargs.get("cancelled") is not None:
+                if boundary == "cumulative":
+                    elapsed += 25
+                elif args[0] == boundary:
+                    elapsed = 60
+                elif boundary == "caller" and args[0] == "start":
+                    driver.cancelled = True
             return result
 
         with (
@@ -690,6 +758,8 @@ def main() -> None:
     cleanup_marker_interruption(before_write=True, foreign=True)
     cleanup_marker_interruption(before_write=True, partial=True)
     cleanup_marker_interruption(before_write=True, partial=True, foreign=True)
+    cleanup_deadline(hold_rm=False)
+    cleanup_deadline(hold_rm=True)
     for boundary in (None, "image", "create", "inspect", "start", "cumulative", "caller"):
         startup_deadline(boundary)
     for changed in (None, "copy-Dockerfile", "copy-seccomp.json", "build-context", "build-checkout"):

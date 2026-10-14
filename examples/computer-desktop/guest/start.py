@@ -14,6 +14,7 @@ ROOT = Path("/run/desktop")
 OWNER = Path("/run/desktop-owner")
 children: list[subprocess.Popen[bytes]] = []
 writers: list[subprocess.Popen[bytes]] = []
+effect_committed = threading.Event()
 
 
 def quiet(self: http.server.BaseHTTPRequestHandler, format: str, *args: object) -> None:
@@ -54,6 +55,7 @@ class Fixture(http.server.BaseHTTPRequestHandler):
             return
         with (OWNER / "events.jsonl").open("a", encoding="utf-8") as file:
             file.write(json.dumps(event) + "\n")
+        effect_committed.set()
         self.send_response(204)
         self.end_headers()
 
@@ -170,6 +172,10 @@ while all(child.poll() is None for child in children if not sealed or child not 
             if request.readline(8) != b"seal\n":
                 continue
         if not sealed:
+            # Guest action admission is held. Give the expected fixture POST
+            # time to commit before closing the browser which dispatched it.
+            # Expiry seals zero effects; action.py still rejects that outcome.
+            effect_committed.wait(timeout=2)
             # Keep the owned Popen leaders unreaped until both owned groups
             # have been stopped, so their identities cannot be reused.
             for child in writers:

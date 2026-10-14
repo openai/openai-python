@@ -513,7 +513,9 @@ def exchange(
     )
 
 
-def remove(root: Path, id: str) -> None:
+def remove(root: Path, id: str, *, deadline: float | None = None) -> None:
+    if deadline is None:
+        deadline = time.monotonic() + 30
     if len(id) != 12 or any(c not in "0123456789abcdef" for c in id):
         raise ValueError("Invalid owned run ID.")
     directory = root / "runs" / id
@@ -524,7 +526,7 @@ def remove(root: Path, id: str) -> None:
         owned(cleanup, 0o700, True)
     except FileNotFoundError:
         directory, intent, _ = run_record(root, id)
-        current = lookup(root, id)
+        current = lookup(root, id, deadline=deadline)
         if current is not None:
             # Persist a positively reconciled CID before mutation when the original
             # create reply never wrote one. Later absence can then be proven by ID.
@@ -536,11 +538,11 @@ def remove(root: Path, id: str) -> None:
                     output.flush()
                     os.fsync(output.fileno())
             except FileExistsError:
-                recorded = lookup(root, id)
+                recorded = lookup(root, id, deadline=deadline)
                 if recorded is None or recorded["Id"] != current["Id"]:
                     raise RuntimeError("Container changed while recording ownership; run retained.") from None
-            docker(root, ["rm", "-f", str(current["Id"])])
-            if lookup(root, id) is not None:
+            docker(root, ["rm", "-f", str(current["Id"])], deadline=deadline)
+            if lookup(root, id, deadline=deadline) is not None:
                 raise RuntimeError("Could not confirm stopped container; run retained.") from None
         cleanup.mkdir(mode=0o700)
         write_new(marker, intent["owner"])
@@ -557,7 +559,7 @@ def remove(root: Path, id: str) -> None:
                 owned(directory, 0o700, True)
             except FileNotFoundError:
                 return
-            remove(root, id)
+            remove(root, id, deadline=deadline)
             return
     owned(marker, 0o600)
     try:
@@ -570,7 +572,7 @@ def remove(root: Path, id: str) -> None:
             raise
         marker.unlink()
         cleanup.rmdir()
-        remove(root, id)
+        remove(root, id, deadline=deadline)
         return
     if expected.get("path") != str(root.resolve() / "runs" / id):
         raise RuntimeError("Run directory changed while reaping; cleanup record retained.")
@@ -654,6 +656,6 @@ if __name__ == "__main__":
                 )
             )
         else:
-            remove(args.runtime_dir, args.id)
+            remove(args.runtime_dir, args.id, deadline=time.monotonic() + args.timeout)
     except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as exc:
         parser.exit(1, f"{exc}\n")

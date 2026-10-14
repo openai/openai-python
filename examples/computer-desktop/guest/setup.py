@@ -148,7 +148,19 @@ def verify_staged(build: Path, expected: dict[str, str]) -> None:
             raise ValueError("Staged guest provisioning differs from the captured recipe.")
 
 
+def checked_root(root: Path) -> Path:
+    if not root.is_absolute():
+        raise ValueError("Use an absolute runtime directory outside the SDK checkout.")
+    root = root.resolve()
+    for parent in root.parents:
+        info = parent.stat()
+        if info.st_uid not in (0, os.getuid()) or (info.st_mode & 0o022 and not info.st_mode & stat.S_ISVTX):
+            raise ValueError("Runtime ancestors must be trusted and not writable by other users.")
+    return root
+
+
 def verify(root: Path) -> None:
+    root = checked_root(root)
     owned(root, 0o700, directory=True)
     owned(root / "runs", 0o700, directory=True)
     owned(root / "bin", 0o700, directory=True)
@@ -241,8 +253,7 @@ def run_staged_installer(root: Path) -> None:
 
 
 def setup(root: Path, media_dir: Path | None, vfkit_path: Path | None, xorriso_path: Path | None) -> None:
-    if not root.is_absolute():
-        raise ValueError("Use an absolute runtime directory outside the SDK checkout.")
+    root = checked_root(root)
     socket = str(root / "runs" / "0123456789ab" / "a.sock")
     if len(socket.encode()) >= 104 or any(c in socket for c in "% ,"):
         raise ValueError("Runtime path must fit a 104-byte Unix socket and contain no spaces, commas or percent signs.")
