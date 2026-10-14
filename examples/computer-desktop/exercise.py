@@ -14,6 +14,7 @@ from io import BytesIO
 from typing import Callable, cast
 from pathlib import Path
 from unittest.mock import patch
+from typing_extensions import override
 from concurrent.futures import TimeoutError as FutureTimeoutError, ThreadPoolExecutor
 
 from desktop import Desktop
@@ -375,6 +376,7 @@ def check_frames() -> None:
             self.held_kind = "ready"
             guests.append(self)
 
+        @override
         def exchange(
             self, data: bytes, *, timeout: float, limit: int, cancelled: Callable[[], bool] | None = None
         ) -> bytes:
