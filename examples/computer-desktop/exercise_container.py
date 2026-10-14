@@ -281,7 +281,7 @@ def cleanup_replacement(*, replace: bool, after_move: bool = False, after_open: 
         assert (root / "runs/unrelated/sentinel").read_text() == "other run"
 
 
-def cleanup_marker_interruption(*, before_write: bool, foreign: bool = False) -> None:
+def cleanup_marker_interruption(*, before_write: bool, foreign: bool = False, partial: bool = False) -> None:
     with TemporaryDirectory() as temporary:
         root = Path(temporary) / "runtime"
         prepare(root)
@@ -315,6 +315,11 @@ def cleanup_marker_interruption(*, before_write: bool, foreign: bool = False) ->
             nonlocal interrupted
             if before_write and path == marker and not interrupted:
                 interrupted = True
+                if partial:
+                    with marker.open("x") as output:
+                        os.fchmod(output.fileno(), 0o600)
+                        output.write('{"path":')
+                        output.flush()
                 raise OSError("controlled marker interruption")
             real_write(path, value)
 
@@ -336,7 +341,7 @@ def cleanup_marker_interruption(*, before_write: bool, foreign: bool = False) ->
                 assert "controlled marker interruption" in str(error)
             else:
                 raise AssertionError("The controlled interruption was not reached")
-            assert interrupted and not marker.exists() and directory.exists() is before_write
+            assert interrupted and marker.exists() is partial and directory.exists() is before_write
             if foreign:
                 (cleanup / "sentinel").write_text("unexpected data")
                 try:
@@ -347,6 +352,8 @@ def cleanup_marker_interruption(*, before_write: bool, foreign: bool = False) ->
                     raise AssertionError("Nonempty markerless cleanup must remain unreconciled")
                 assert (cleanup / "sentinel").read_text() == "unexpected data"
                 assert lookups == 1 and directory.exists() is before_write
+                if partial:
+                    assert marker.read_text() == '{"path":'
             else:
                 runtime.remove(root, run_id)
                 assert lookups == (2 if before_write else 1)
@@ -681,6 +688,8 @@ def main() -> None:
     cleanup_marker_interruption(before_write=True)
     cleanup_marker_interruption(before_write=False)
     cleanup_marker_interruption(before_write=True, foreign=True)
+    cleanup_marker_interruption(before_write=True, partial=True)
+    cleanup_marker_interruption(before_write=True, partial=True, foreign=True)
     for boundary in (None, "image", "create", "inspect", "start", "cumulative", "caller"):
         startup_deadline(boundary)
     for changed in (None, "copy-Dockerfile", "copy-seccomp.json", "build-context", "build-checkout"):
