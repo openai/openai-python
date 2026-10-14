@@ -67,7 +67,6 @@ def workflow(separator: str = "\n") -> ResponseComputerToolCall:
         action.Wait(type="wait"),
         action.Scroll(type="scroll", x=100, y=400, scroll_x=0, scroll_y=120),
         action.Scroll(type="scroll", x=140, y=400, scroll_x=0, scroll_y=-120),
-        route(),
         action.Click(type="click", button="left", x=700, y=180),
         action.Type(type="type", text="scratch"),
         action.DoubleClick(type="double_click", x=700, y=180),
@@ -79,6 +78,8 @@ def workflow(separator: str = "\n") -> ResponseComputerToolCall:
         action.Type(type="type", text=" "),
         action.Keypress(type="keypress", keys=["CTRL", "S"]),
         action.Wait(type="wait"),
+        # Complete the browser ticket last, after all editor work.
+        route(),
         action.Screenshot(type="screenshot"),
     )
 
@@ -139,6 +140,13 @@ def run_sync(runtime_dir: Path) -> None:
 
         screenshot(desktop.operation(lambda tools: tools.execute(workflow(), before_action=lambda _: True)))
         assert desktop.verify() == COMPLETE, "Browser route or editor save did not reach the fixed fixture"
+        try:
+            desktop.operation(lambda tools: tools.execute(call(action.Type(type="type", text="Late edit"))))
+        except ComputerUseError:
+            pass
+        else:
+            raise AssertionError("Input reached an already completed workspace")
+        assert desktop.verify() == COMPLETE
         assert not desktop.uncertain_effects
         assert desktop.seal() == COMPLETE
         final_frame = screenshot(
