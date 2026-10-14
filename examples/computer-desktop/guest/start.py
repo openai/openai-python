@@ -193,6 +193,7 @@ while all(child.poll() is None for child in children if not sealed or child not 
                 try:
                     os.killpg(child.pid, signal.SIGKILL)
                 except ProcessLookupError:
+                    # The owned process group has already exited.
                     pass
             deadline = time.monotonic() + 1
             for child in writers:

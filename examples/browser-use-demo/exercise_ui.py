@@ -8,7 +8,7 @@ import asyncio
 from server import serve
 from booking import BookingBrowser
 from read_only import example_browser_channel
-from playwright.async_api import async_playwright
+from playwright.async_api import Route, async_playwright
 
 from openai.lib.browser import AsyncBrowserToolset
 from openai.types.responses import ResponseFunctionToolCall
@@ -71,6 +71,69 @@ async def main() -> None:
             await dashboard.wait_for_function(
                 "() => document.querySelector('#status').textContent.toLowerCase().includes('refus')"
             )
+            await dashboard.locator("#start").click()
+            await dashboard.locator("#approval").wait_for(state="visible", timeout=25000)
+            await dashboard.locator("#take-control").click(timeout=25000)
+            await dashboard.wait_for_function(
+                "() => !document.querySelector('#human-controls').disabled", timeout=15000
+            )
+            second = await browser.new_page()
+            await second.goto(app.launch_url)
+            await second.wait_for_function("() => !document.querySelector('#human-controls').disabled")
+            assert app.current is not None
+            initial = await app.current.binding()
+            assert initial is not None
+            state_held, state_release = asyncio.Event(), asyncio.Event()
+            frame_held, frame_release = asyncio.Event(), asyncio.Event()
+
+            async def held_state(route: Route) -> None:
+                state_held.set()
+                await state_release.wait()
+                await route.continue_()
+
+            async def held_frame(route: Route) -> None:
+                frame_held.set()
+                await frame_release.wait()
+                await route.continue_()
+
+            sent: list[str] = []
+            dashboard.on("request", lambda request: sent.append(request.url) if "/api/input" in request.url else None)
+            await dashboard.route("**/api/state", held_state)
+            try:
+                await asyncio.wait_for(state_held.wait(), 5)
+                await dashboard.route("**/api/view?*", held_frame)
+                await second.locator("#human-key").select_option("Tab")
+                await second.locator("#send-key").click()
+                await second.wait_for_function("() => !document.querySelector('#human-controls').disabled")
+                current = await app.current.binding()
+                assert current is not None and current["sequence"] != initial["sequence"]
+                state_release.set()
+                await asyncio.wait_for(frame_held.wait(), 5)
+                controls = await dashboard.evaluate("""() => {
+                  const ids = ['send-text', 'send-key', 'send-scroll'];
+                  return {
+                    disabled: ids.every(id => document.getElementById(id).matches(':disabled')),
+                    screen: document.getElementById('screen').getAttribute('aria-disabled'),
+                  };
+                }""")
+                assert controls == {"disabled": True, "screen": "true"}, controls
+                await dashboard.evaluate("""() => {
+                  for (const id of ['send-text', 'send-key', 'send-scroll'])
+                    document.getElementById(id).click();
+                }""")
+                assert not sent, sent
+                frame_release.set()
+                await dashboard.wait_for_function(
+                    "() => !document.querySelector('#human-controls').disabled", timeout=10000
+                )
+                print("PASS manual input waits for the displayed frame after another dashboard changes focus.")
+            finally:
+                state_release.set()
+                frame_release.set()
+                await dashboard.unroute("**/api/state", held_state)
+                await dashboard.unroute("**/api/view?*", held_frame)
+                await second.close()
+            await dashboard.locator("#stop").click()
             print("PASS UI: private link, real pixels, refusal; report has actual status and options.")
         finally:
             await browser.close()

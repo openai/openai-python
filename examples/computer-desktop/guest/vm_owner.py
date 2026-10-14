@@ -39,6 +39,7 @@ def main() -> int:
                 status = child.wait(timeout=0.1)
                 return status if status >= 0 else 128 - status
             except subprocess.TimeoutExpired:
+                # Poll again so a parent shutdown can stop the child.
                 pass
         return 0
     finally:
@@ -46,6 +47,7 @@ def main() -> int:
             try:
                 child.terminate()
             except ProcessLookupError:
+                # The child exited between poll() and terminate().
                 pass
             try:
                 child.wait(timeout=4)

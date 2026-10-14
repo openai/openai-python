@@ -727,8 +727,8 @@
           busy || current?.owner !== 'agent' || current?.humanInputBusy || !frameCurrent;
         byId('return-control').disabled = busy || !human;
         byId('human-controls').hidden = !human;
-        byId('human-controls').disabled = busy || !human;
-        byId('screen').setAttribute('aria-disabled', String(!human || busy || !displayed));
+        byId('human-controls').disabled = busy || !human || !frameCurrent;
+        byId('screen').setAttribute('aria-disabled', String(!human || busy || !frameCurrent));
         byId('approval').hidden = !current?.approval;
         byId('approve').disabled = busy || !current?.approval;
         byId('refuse').disabled = busy || !current?.approval;
@@ -825,12 +825,12 @@
         }
       }
       async function control(path, extra = {}) {
-        if (!current || busy) return;
+        if (!current || busy || (path === '/api/input' && byId('human-controls').disabled)) return;
         busy = true;
         const run = current;
         render();
         try {
-          await request(path, { ...binding(run), ...extra });
+          await request(path, { ...(path === '/api/input' ? displayed : binding(run)), ...extra });
           byId('message').textContent = '';
         } catch (error) {
           byId('message').textContent = error.message;
@@ -880,7 +880,6 @@
           action: 'click',
           x: Math.floor(((event.clientX - rect.left) * 1024) / rect.width),
           y: Math.floor(((event.clientY - rect.top) * 720) / rect.height),
-          ...displayed,
         });
       });
       byId('send-text').addEventListener('click', () =>
