@@ -5,10 +5,12 @@ from __future__ import annotations
 import time
 import asyncio
 from typing import Any
+from unittest.mock import patch
 from collections.abc import Callable
 
 import httpx2 as httpx
 from server import serve
+from playwright.async_api import ElementHandle
 
 
 def binding(state: dict[str, Any]) -> dict[str, Any]:
@@ -159,6 +161,29 @@ async def run() -> None:
         await post("/api/stop", {"runId": submitted_run.id})
         stopped = await until(lambda s: s["owner"] == "stopped" and not s["closing"])
         assert stopped["result"] == "unverified"
+        input_entered, input_release = asyncio.Event(), asyncio.Event()
+        original_fill = ElementHandle.fill
+
+        async def held_fill(element: ElementHandle, value: str, **kwargs: Any) -> None:
+            await original_fill(element, value, **kwargs)
+            if not input_entered.is_set():
+                input_entered.set()
+                await asyncio.wait_for(input_release.wait(), timeout=5)
+
+        with patch.object(ElementHandle, "fill", held_fill):
+            try:
+                await post("/api/start", {"taskId": "reservation", "api": "decisions", "mode": "rehearsal"})
+                await asyncio.wait_for(input_entered.wait(), timeout=5)
+                before_input = await state()
+                assert before_input["owner"] == "agent"
+                await post("/api/take-control", binding(before_input))
+                input_release.set()
+                handoff = await until(lambda s: s["owner"] == "human" or (s["owner"] == "stopped" and not s["closing"]))
+                assert handoff["owner"] == "stopped", "An uncertain action must not be handed to the human"
+                assert handoff["status"] == "handoff_unavailable"
+                assert handoff["uncertainEffects"] is True
+            finally:
+                input_release.set()
         print("PASS booking: auth, approval, fresh handoff, pixels, independent result, Stop.")
 
 

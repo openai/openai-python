@@ -612,7 +612,12 @@ class Run:
                 raise BrowserError("The operator refused the action.")
             await self.ensure_current(owner, version, cancelled=cancelled)
         self.add("action", label or member)
-        await getattr(self.driver, member)(args, cancelled=cancelled)
+        try:
+            await getattr(self.driver, member)(args, cancelled=cancelled)
+        except (Exception, asyncio.CancelledError):
+            if cancelled and cancelled():
+                self.uncertain = True
+            raise
         state = await self.inspect(cancelled=cancelled)
         self.observed_revision = state["revision"]
         if before["results"] != state["results"]:
@@ -898,14 +903,14 @@ class Run:
                 return
             if self.owner != "draining-to-human" or self.version != version:
                 return
-            if self.closed or not self.task_page or self.task_page.is_closed():
+            if self.uncertain or self.closed or not self.task_page or self.task_page.is_closed():
                 self.stop("handoff_unavailable")
                 return
             if self.driver:
                 await wait_for_decision(self.driver.invalidate_references, transfer.is_set)
             if self.owner != "draining-to-human" or self.version != version:
                 return
-            if self.closed or not self.task_page or self.task_page.is_closed():
+            if self.uncertain or self.closed or not self.task_page or self.task_page.is_closed():
                 self.stop("handoff_unavailable")
                 return
             self.status, self.result = "paused", None
