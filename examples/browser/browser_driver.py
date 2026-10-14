@@ -1650,7 +1650,10 @@ class PlaywrightBrowser:
 
     async def state(self, *, cancelled: Callable[[], bool] | None = None) -> BrowserState:
         return await self._observation(
-            self._observe_state, cancelled, timeout=None if self.owned_fixture_urls is not None else 5
+            self._observe_state,
+            cancelled,
+            timeout=None if self.owned_fixture_urls is not None else 5,
+            sanitize_borrowed=self.owned_fixture_urls is None,
         )
 
     async def _observe_state(self) -> BrowserState:
@@ -2112,12 +2115,19 @@ class PlaywrightBrowser:
         cancelled: Callable[[], bool] | None,
         *,
         timeout: float | None = None,
+        sanitize_borrowed: bool = False,
     ) -> _Observation:
         if cancelled is not None and cancelled():
             raise BrowserCancelledError()
 
         async def observe() -> _Observation:
-            return await work()
+            try:
+                return await work()
+            except Error:
+                if not sanitize_borrowed or self.owned_fixture_urls is not None:
+                    raise
+            # Leave the provider exception's scope so it is not retained as __context__.
+            raise BrowserError("Browser observation failed. Read the page again.")
 
         reading = asyncio.create_task(observe())
         deadline = None if timeout is None else time.monotonic() + timeout
@@ -2162,7 +2172,10 @@ class PlaywrightBrowser:
                 lambda: self._read_owned(action["tab_id"], full=action["filter"] == "all"), cancelled
             )
         return await self._observation(
-            lambda: self._read_borrowed(action["tab_id"], full=action["filter"] == "all"), cancelled, timeout=5
+            lambda: self._read_borrowed(action["tab_id"], full=action["filter"] == "all"),
+            cancelled,
+            timeout=5,
+            sanitize_borrowed=True,
         )
 
     async def get_page_text(
@@ -2173,7 +2186,10 @@ class PlaywrightBrowser:
                 lambda: self._read_owned(action["tab_id"], full=True, text_only=True), cancelled
             )
         report = await self._observation(
-            lambda: self._read_borrowed(action["tab_id"], full=True, text_only=True), cancelled, timeout=5
+            lambda: self._read_borrowed(action["tab_id"], full=True, text_only=True),
+            cancelled,
+            timeout=5,
+            sanitize_borrowed=True,
         )
         return report["text"]
 
@@ -2188,6 +2204,7 @@ class PlaywrightBrowser:
             ),
             cancelled,
             timeout=5,
+            sanitize_borrowed=True,
         )
 
     async def _target(

@@ -99,7 +99,11 @@ def key_name(value: str) -> str:
 
 
 class PlaywrightBrowser:
-    """Implements AsyncComputerDriver with one fixed-size page and no persistent profile."""
+    """Drive one page while its caller context has at most 100 pages.
+
+    This example stops admitting work at that budget. The caller remains
+    responsible for popups and for closing its pages and browser.
+    """
 
     def __init__(self, page: Page, allowed_origins: set[str]) -> None:
         self.page = page
@@ -108,7 +112,10 @@ class PlaywrightBrowser:
 
     def _check(self) -> None:
         if self._unusable:
-            raise ComputerUseError("Input outcome was uncertain; this borrowed driver cannot be reused.")
+            raise ComputerUseError("This borrowed driver was retired and cannot be reused.")
+        if len(self.page.context.pages) > 100:
+            self._unusable = True
+            raise ComputerUseError("Browser page limit reached; this borrowed driver cannot be reused.")
 
     async def guard(self, route: Route) -> None:
         # Only exact opted-in origins; even other localhost ports are blocked.
@@ -152,6 +159,7 @@ class PlaywrightBrowser:
                 pressed.append(name)
                 await self.page.keyboard.down(name)
             yield
+            self._check()
         except BaseException as error:
             interrupted = not isinstance(error, Exception)
             self._unusable = True
@@ -245,6 +253,7 @@ class PlaywrightBrowser:
         self._check()
         # The API wait action has no duration. Give the page at most one second.
         await asyncio.sleep(1)
+        self._check()
 
     async def screenshot(self) -> Screenshot:
         self._check()
@@ -252,4 +261,5 @@ class PlaywrightBrowser:
             png = await self.page.screenshot(type="png", full_page=False, timeout=5_000)
         except Error:
             raise ComputerUseError("Browser screenshot failed.") from None
+        self._check()
         return {"type": "computer_screenshot", "image_url": "data:image/png;base64," + base64.b64encode(png).decode()}
