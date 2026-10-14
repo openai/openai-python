@@ -34,6 +34,7 @@ def cleanup(change: str) -> None:
             guest.process = child
             original_lstat = Path.lstat
             original_rm = shutil.rmtree
+            original_rename = Path.rename
             injected = False
             obstructed = False
 
@@ -45,11 +46,25 @@ def cleanup(change: str) -> None:
                     public.rename(saved)
                     public.mkdir(mode=0o700)
                     (public / "sentinel").write_text("stranger")
+                if not injected and change == "lstat-retry" and path.parent.name.startswith(".cleanup-"):
+                    injected = True
+                    raise KeyboardInterrupt("fixture lstat interruption")
                 if not injected and change == "after-move" and path.parent.name.startswith(".cleanup-"):
                     injected = True
                     public.mkdir(mode=0o700)
                     (public / "sentinel").write_text("stranger")
                 return info
+
+            def rename(path: Path, target: Path) -> Path:
+                nonlocal injected
+                if path == public and change == "before-rename-retry" and not injected:
+                    injected = True
+                    raise KeyboardInterrupt("fixture before-rename interruption")
+                result = original_rename(path, target)
+                if path == public and change == "rename-retry" and not injected:
+                    injected = True
+                    raise KeyboardInterrupt("fixture post-rename interruption")
+                return result
 
             def remove(path: Path) -> None:
                 nonlocal injected, obstructed
@@ -61,8 +76,23 @@ def cleanup(change: str) -> None:
                     obstructed = True
                     (path.parent / "sentinel").write_text("stranger")
 
-            with patch.object(Path, "lstat", lstat), patch("guest.shutil.rmtree", remove):
-                if change == "device":
+            with (
+                patch.object(Path, "lstat", lstat),
+                patch.object(Path, "rename", rename),
+                patch("guest.shutil.rmtree", remove),
+            ):
+                if change in ("rename-retry", "lstat-retry", "before-rename-retry"):
+                    (public / "owned").write_text("owned original")
+                    try:
+                        guest.remove()
+                    except KeyboardInterrupt:
+                        pass
+                    else:
+                        raise AssertionError("Injected interruption was swallowed")
+                    assert injected
+                    guest.remove()
+                    assert list(root.iterdir()) == [], "Retry stranded its run after interruption"
+                elif change == "device":
                     correct = guest.original
                     record = list(correct)
                     record[2] += 1
@@ -84,8 +114,7 @@ def cleanup(change: str) -> None:
                     else:
                         raise AssertionError("Replaced run must never be deleted")
                     assert saved.is_dir()
-                    (quarantine,) = root.glob(".cleanup-*")
-                    assert (quarantine / "run/sentinel").read_text() == "stranger"
+                    assert (public / "sentinel").read_text() == "stranger"
                 elif change == "after-move":
                     guest.remove()
                     assert injected and (public / "sentinel").read_text() == "stranger"
@@ -142,9 +171,17 @@ def main() -> None:
         assert env["TMPDIR"] == str(root) and env["LANG"] == "C"
         assert set(env) == {"PATH", "LANG", "TMPDIR"}
         assert not (set(sentinels) & set(env))
-    for change in ("device", "before-move", "after-move", "remove-retry"):
+    for change in (
+        "device",
+        "before-move",
+        "after-move",
+        "remove-retry",
+        "rename-retry",
+        "lstat-retry",
+        "before-rename-retry",
+    ):
         cleanup(change)
-    print(json.dumps({"checks": 5, "api_calls": 0, "vendor_calls": 0, "vm_starts": 0}))
+    print(json.dumps({"checks": 8, "api_calls": 0, "vendor_calls": 0, "vm_starts": 0}))
 
 
 if __name__ == "__main__":
