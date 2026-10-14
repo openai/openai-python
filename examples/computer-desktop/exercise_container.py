@@ -755,7 +755,7 @@ def cancelled_health(boundary: str, *, exchange: bool = False) -> None:
             nonlocal elapsed
             result = original_docker(command_root, args, **kwargs)
             if boundary == "cumulative":
-                elapsed += 0.11
+                elapsed += 0.11 if exchange else 31
             return result
 
         def popen(args: list[str], **kwargs: Any) -> subprocess.Popen[bytes]:
@@ -775,15 +775,20 @@ def cancelled_health(boundary: str, *, exchange: bool = False) -> None:
             try:
                 if boundary == "cumulative":
                     with patch.object(runtime, "time", SimpleNamespace(monotonic=lambda: elapsed)):
-                        runtime.exchange(root, id, b'{"action":"verify"}\n', timeout=0.2, limit=65536)
+                        if exchange:
+                            runtime.exchange(root, id, b'{"action":"verify"}\n', timeout=0.2, limit=65536)
+                        else:
+                            runtime.healthy(root, id, cancelled=driver.is_cancelled)
                 elif exchange:
                     runtime.exchange(root, id, b'{"action":"verify"}\n', timeout=0.2, limit=65536)
                 else:
                     runtime.healthy(root, id, cancelled=driver.is_cancelled)
             except subprocess.TimeoutExpired:
-                assert exchange
+                assert exchange or boundary == "cumulative"
                 if boundary == "cumulative":
                     assert held is None and all(call[0] != "exec" for call in driver.calls)
+                    if not exchange:
+                        assert all(call[0] != "inspect" for call in driver.calls)
                 else:
                     assert held is not None and held.poll() is not None
             except runtime.StartupCancelled:
@@ -936,6 +941,7 @@ def main() -> None:
         cancelled_health(boundary)
         cancelled_health(boundary, exchange=True)
     cancelled_health("cumulative", exchange=True)
+    cancelled_health("cumulative")
     for stream, cap in (("stdout", 65536), ("build", 4 * 1024 * 1024), ("stderr", 1024 * 1024)):
         output_bounds(stream, cap)
     pipe_lifetimes()

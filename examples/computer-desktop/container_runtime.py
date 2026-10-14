@@ -532,9 +532,11 @@ def start(root: Path, *, cancelled: Callable[[], bool] | None = None) -> str:
     return id
 
 
-def healthy(root: Path, id: str, *, cancelled: Callable[[], bool] | None = None) -> bool:
+def healthy(root: Path, id: str, *, cancelled: Callable[[], bool] | None = None, deadline: float | None = None) -> bool:
+    if deadline is None:
+        deadline = time.monotonic() + 30
     root = checked_root(root)
-    current = lookup(root, id, cancelled=cancelled)
+    current = lookup(root, id, cancelled=cancelled, deadline=deadline)
     return current is not None and current["State"]["Running"] is True
 
 
@@ -695,7 +697,16 @@ if __name__ == "__main__":
         elif args.operation == "start":
             print(start(args.runtime_dir, cancelled=lambda: startup_stopped))
         elif args.operation == "health":
-            print("ready" if healthy(args.runtime_dir, args.id, cancelled=lambda: startup_stopped) else "stopped")
+            print(
+                "ready"
+                if healthy(
+                    args.runtime_dir,
+                    args.id,
+                    cancelled=lambda: startup_stopped,
+                    deadline=time.monotonic() + args.timeout,
+                )
+                else "stopped"
+            )
         elif args.operation == "exchange":
             sys.stdout.buffer.write(
                 exchange(
