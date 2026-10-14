@@ -4,22 +4,37 @@ Run a browser and a native editor inside a private Debian guest. The sample
 routes a synthetic ticket and saves its receipt in Mousepad. It never controls
 your personal desktop. It verifies the two resulting records independently.
 
-Use an Apple-silicon Mac with vfkit and xorriso, or an ARM64 Linux host with
+Use an Apple-silicon Mac with vfkit and xorriso, or x86-64 Linux with local
 Docker that supports user namespaces and Chromium's sandbox. See the
 [guest setup instructions](guest/README.md) for prerequisites and checked media.
-From the SDK source root:
+From the Python SDK checkout or source archive root, install this source:
 
 ```sh
 python3 -m venv .venv-desktop
 . .venv-desktop/bin/activate
-python -m pip install openai Pillow==12.3.0
-python examples/computer-desktop/guest/setup.py --runtime-dir /tmp/desktop-$USER
-python examples/computer-desktop/exercise.py --runtime-dir /tmp/desktop-$USER
+python -m pip install -e . Pillow==12.3.0
 ```
 
-Setup selects the supported platform, verifies its media and records the built
-runtime. It reuses a matching runtime. The exercise uses no API key and starts
-and removes its own guests.
+On an Apple-silicon Mac, set up the VM:
+
+```sh
+python examples/computer-desktop/guest/setup.py --runtime-dir "/tmp/desktop-$(id -u)"
+```
+
+On x86-64 Linux, select the local container explicitly:
+
+```sh
+python examples/computer-desktop/guest/setup.py --backend container --runtime-dir "/tmp/desktop-$(id -u)"
+```
+
+Setup verifies and records the selected runtime, and reuses a matching one.
+Run the no-key exercise in the same shell:
+
+```sh
+python examples/computer-desktop/exercise.py --runtime-dir "/tmp/desktop-$(id -u)"
+```
+
+The exercise starts and removes its own guests.
 
 VM setup and launch resolve the runtime to its canonical path. Each ancestor must
 belong to root or the current user and must not be writable by other users
@@ -37,7 +52,7 @@ After it passes, set `OPENAI_API_KEY` and `OPENAI_MODEL` on the host. Use a
 model that supports the computer tool:
 
 ```sh
-python examples/computer-desktop/run.py --live --runtime-dir /tmp/desktop-$USER
+python examples/computer-desktop/run.py --live --runtime-dir "/tmp/desktop-$(id -u)"
 ```
 
 This uses the Responses API and can spend API credits. Approve the local task

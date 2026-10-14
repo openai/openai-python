@@ -220,6 +220,8 @@ class Guest:
             except subprocess.TimeoutExpired:
                 self.process.kill()
                 self.process.wait(timeout=5)
+        if self.process.stdin is not None:
+            self.process.stdin.close()
         for thread in self.readers:
             thread.join(timeout=1)
         if not hasattr(self, "_cleanup_root"):
