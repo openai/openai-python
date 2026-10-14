@@ -731,7 +731,13 @@
         byId('approve').disabled = busy || !current?.approval;
         byId('refuse').disabled = busy || !current?.approval;
         if (!current) return;
-        byId('status').textContent = current.result === 'verified' ? 'Verified' : current.status;
+        byId('status').textContent =
+          current.status === 'complete' &&
+          current.owner === 'stopped' &&
+          !current.closing &&
+          current.result === 'verified'
+            ? 'Verified'
+            : current.status;
         byId('elapsed').textContent = `${(current.elapsedMs / 1000).toFixed(1)}s`;
         byId('requests').textContent = String(current.requests);
         byId('owner-status').textContent = {
