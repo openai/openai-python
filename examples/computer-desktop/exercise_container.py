@@ -189,7 +189,7 @@ def startup_failure() -> None:
             assert (root / "runs/unrelated/sentinel").read_text() == "other run"
 
 
-def cleanup_replacement(*, replace: bool) -> None:
+def cleanup_replacement(*, replace: bool, after_move: bool = False, after_open: bool = False) -> None:
     with TemporaryDirectory() as temporary:
         root = Path(temporary) / "runtime"
         prepare(root)
@@ -207,8 +207,13 @@ def cleanup_replacement(*, replace: bool) -> None:
         )
         (directory / "container-id").write_text(CONTAINER)
         (directory / "original").write_text("keep this run")
+        (directory / "nested").mkdir()
+        (directory / "nested/detail").write_text("owned")
+        (directory / "external").symlink_to(root / "runs/unrelated", target_is_directory=True)
         original_owned = runtime.owned
-        original_rmtree = shutil.rmtree
+        original_unlink = os.unlink
+        original_fstat = os.fstat
+        original = directory.stat()
         looked_up = False
         changed = False
         attempts = 0
@@ -222,24 +227,38 @@ def cleanup_replacement(*, replace: bool) -> None:
         def owned(path: Path, mode: int, is_directory: bool = False) -> os.stat_result:
             nonlocal changed
             result = original_owned(path, mode, is_directory)
-            if replace and path == directory and looked_up and not changed:
-                directory.rename(root / "runs" / "original")
-                directory.mkdir(mode=0o700)
-                (directory / "sentinel").write_text("unexpected replacement")
+            target = root / "runs" / (".cleanup-" + run_id) / "run" if after_move else directory
+            if replace and not after_open and path == target and looked_up and not changed:
+                target.rename(root / "runs" / "original")
+                target.mkdir(mode=0o700)
+                (target / "sentinel").write_text("unexpected replacement")
                 changed = True
             return result
 
-        def rmtree(path: Path, *args: Any, **kwargs: Any) -> None:
+        def fstat(fd: int) -> os.stat_result:
+            nonlocal changed
+            result = original_fstat(fd)
+            if after_open and not changed and result.st_ino == original.st_ino and result.st_dev == original.st_dev:
+                target = root / "runs" / (".cleanup-" + run_id) / "run"
+                target.rename(root / "runs" / "original")
+                target.mkdir(mode=0o700)
+                (target / "sentinel").write_text("unexpected replacement")
+                changed = True
+            return result
+
+        def unlink(path: str | bytes | os.PathLike[str], *args: Any, **kwargs: Any) -> None:
             nonlocal attempts
-            attempts += 1
-            if not replace and attempts == 1:
-                raise OSError("controlled cleanup interruption")
-            original_rmtree(path, *args, **kwargs)
+            if path == "original" and kwargs.get("dir_fd") is not None:
+                attempts += 1
+                if not replace and attempts == 1:
+                    raise OSError("controlled cleanup interruption")
+            original_unlink(path, *args, **kwargs)
 
         with (
             patch.object(runtime, "docker", side_effect=docker),
             patch.object(runtime, "owned", side_effect=owned),
-            patch.object(runtime.shutil, "rmtree", side_effect=rmtree),
+            patch.object(runtime.os, "unlink", side_effect=unlink),
+            patch.object(runtime.os, "fstat", side_effect=fstat),
         ):
             try:
                 runtime.remove(root, run_id)
@@ -251,8 +270,9 @@ def cleanup_replacement(*, replace: bool) -> None:
             else:
                 raise AssertionError("Expected replacement refusal or the controlled cleanup interruption")
         if replace:
-            assert changed and attempts == 0
-            assert (root / "runs/original/original").read_text() == "keep this run"
+            assert changed and attempts == (1 if after_open else 0)
+            if not after_open:
+                assert (root / "runs/original/original").read_text() == "keep this run"
             matches = list((root / "runs").rglob("sentinel"))
             assert sorted(path.read_text() for path in matches) == ["other run", "unexpected replacement"]
         else:
@@ -582,6 +602,8 @@ def main() -> None:
     preflight_admission()
     startup_failure()
     cleanup_replacement(replace=True)
+    cleanup_replacement(replace=True, after_move=True)
+    cleanup_replacement(replace=True, after_open=True)
     cleanup_replacement(replace=False)
     for boundary in (None, "image", "create", "inspect", "start", "cumulative", "caller"):
         startup_deadline(boundary)
