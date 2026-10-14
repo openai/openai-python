@@ -189,6 +189,78 @@ def startup_failure() -> None:
             assert (root / "runs/unrelated/sentinel").read_text() == "other run"
 
 
+def cleanup_replacement(*, replace: bool) -> None:
+    with TemporaryDirectory() as temporary:
+        root = Path(temporary) / "runtime"
+        prepare(root)
+        run_id = "123456789abc"
+        directory = root / "runs" / run_id
+        directory.mkdir(mode=0o700)
+        runtime.write_new(
+            directory / "intent.json",
+            {
+                "owner": runtime.identity(directory),
+                "name": "openai-desktop-" + run_id,
+                "nonce": "fixture",
+                "image": IMAGE,
+            },
+        )
+        (directory / "container-id").write_text(CONTAINER)
+        (directory / "original").write_text("keep this run")
+        original_owned = runtime.owned
+        original_rmtree = shutil.rmtree
+        looked_up = False
+        changed = False
+        attempts = 0
+
+        def docker(_root: Path, args: list[str], **_kwargs: Any) -> bytes:
+            nonlocal looked_up
+            assert args[0] == "ps"
+            looked_up = True
+            return b""
+
+        def owned(path: Path, mode: int, is_directory: bool = False) -> os.stat_result:
+            nonlocal changed
+            result = original_owned(path, mode, is_directory)
+            if replace and path == directory and looked_up and not changed:
+                directory.rename(root / "runs" / "original")
+                directory.mkdir(mode=0o700)
+                (directory / "sentinel").write_text("unexpected replacement")
+                changed = True
+            return result
+
+        def rmtree(path: Path, *args: Any, **kwargs: Any) -> None:
+            nonlocal attempts
+            attempts += 1
+            if not replace and attempts == 1:
+                raise OSError("controlled cleanup interruption")
+            original_rmtree(path, *args, **kwargs)
+
+        with (
+            patch.object(runtime, "docker", side_effect=docker),
+            patch.object(runtime, "owned", side_effect=owned),
+            patch.object(runtime.shutil, "rmtree", side_effect=rmtree),
+        ):
+            try:
+                runtime.remove(root, run_id)
+            except (RuntimeError, ValueError) as error:
+                assert replace and "changed" in str(error)
+            except OSError as error:
+                assert not replace and "controlled cleanup interruption" in str(error)
+                runtime.remove(root, run_id)
+            else:
+                raise AssertionError("Expected replacement refusal or the controlled cleanup interruption")
+        if replace:
+            assert changed and attempts == 0
+            assert (root / "runs/original/original").read_text() == "keep this run"
+            matches = list((root / "runs").rglob("sentinel"))
+            assert sorted(path.read_text() for path in matches) == ["other run", "unexpected replacement"]
+        else:
+            assert attempts == 2 and not directory.exists()
+            assert list((root / "runs").iterdir()) == [root / "runs/unrelated"]
+        assert (root / "runs/unrelated/sentinel").read_text() == "other run"
+
+
 def startup_deadline(boundary: str | None) -> None:
     with TemporaryDirectory() as temporary:
         root = Path(temporary) / "runtime"
@@ -509,6 +581,8 @@ def setup_snapshot(changed: str | None) -> None:
 def main() -> None:
     preflight_admission()
     startup_failure()
+    cleanup_replacement(replace=True)
+    cleanup_replacement(replace=False)
     for boundary in (None, "image", "create", "inspect", "start", "cumulative", "caller"):
         startup_deadline(boundary)
     for changed in (None, "copy-Dockerfile", "copy-seccomp.json", "build-context", "build-checkout"):

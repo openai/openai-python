@@ -309,7 +309,7 @@ async def run_async(runtime_dir: Path) -> None:
         await asyncio.to_thread(desktop.stop)
 
 
-def check_frames() -> None:
+def check_frames(*, phase_only: bool = False) -> None:
     from PIL import Image
 
     stream = BytesIO()
@@ -411,6 +411,88 @@ def check_frames() -> None:
                 raise AssertionError("Interrupted construction returned a desktop")
 
     with patch("desktop.Guest", ControlledGuest):
+        for asynchronous in (False, True):
+            for kind in ("verify", "seal", "operation"):
+                desktop = Desktop(Path("controlled-fixture"))
+                guest = cast(ControlledGuest, cast(object, desktop._guest))
+                phase_call = call(action.Type(type="type", text="stale phase"))
+
+                async def exercise_phase(
+                    *,
+                    asynchronous: bool = asynchronous,
+                    kind: str = kind,
+                    desktop: Desktop = desktop,
+                    guest: ControlledGuest = guest,
+                    selected: ResponseComputerToolCall = phase_call,
+                ) -> None:
+                    consent = asyncio.Event()
+                    reached = asyncio.Event()
+                    pending: asyncio.Task[ComputerCallOutput] | None = None
+                    escaped: ComputerToolset | AsyncComputerToolset
+
+                    async def hold(_action: ComputerActionInput) -> bool:
+                        reached.set()
+                        await consent.wait()
+                        return True
+
+                    if asynchronous:
+
+                        async def start(tools: AsyncComputerToolset) -> AsyncComputerToolset:
+                            nonlocal pending
+                            pending = asyncio.create_task(tools.execute(selected, before_action=hold))
+                            return tools
+
+                        escaped = await desktop.operation_async(start)
+                        await reached.wait()
+                    else:
+                        escaped = desktop.operation(lambda tools: tools)
+
+                    with ThreadPoolExecutor(max_workers=1) as pool:
+                        released = threading.Event()
+                        entered = threading.Event()
+                        if kind == "operation":
+
+                            def later(tools: ComputerToolset) -> ComputerCallOutput:
+                                entered.set()
+                                assert released.wait(timeout=2)
+                                return tools.execute(selected)
+
+                            running = pool.submit(desktop.operation, later)
+                            assert await asyncio.to_thread(entered.wait, 2)
+                        else:
+                            guest.held_kind = kind
+                            running = pool.submit(getattr(desktop, kind))
+                            assert await asyncio.to_thread(guest.input_entered.wait, 2)
+                        try:
+                            consent.set()
+                            try:
+                                if asynchronous:
+                                    assert pending is not None
+                                    await asyncio.wait_for(pending, timeout=0.6)
+                                else:
+                                    assert isinstance(escaped, ComputerToolset)
+                                    escaped.execute(selected)
+                            except ComputerUseError:
+                                pass
+                            else:
+                                raise AssertionError("Stale computer dispatched during another operation")
+                            assert guest.requests.count("type") == 0 and not guest.removed
+                        finally:
+                            consent.set()
+                            released.set()
+                            guest.input_release.set()
+                            running.result(timeout=2)
+                    assert guest.requests.count("type") == (1 if kind == "operation" else 0)
+                    assert not desktop.uncertain_effects
+
+                try:
+                    asyncio.run(exercise_phase())
+                finally:
+                    desktop.stop()
+                assert guest.removed
+        print("PASS: old sync/async tools refuse verify, seal and later input phases; current operations remain usable")
+        if phase_only:
+            return
         for operation in ("verify", "seal"):
             for bad in (
                 {"file_matches": "false", "browser_matches": "false"},
