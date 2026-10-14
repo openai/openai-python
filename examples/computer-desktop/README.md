@@ -60,7 +60,11 @@ in the terminal; Ctrl-C stops and removes its guest. Credentials stay in the
 host SDK client. The host does not mount a personal profile or send a general
 shell command to the guest.
 
-`verify()` observes intermediate records. `seal()` stops the guest writers
+`verify()` observes the current fixed records. When both records match,
+the example refuses further input; verification and screenshots remain available.
+Seal the result or start a new desktop. This protects already completed records;
+it does not acknowledge GUI work queued before they first matched.
+`seal()` stops the guest writers
 before returning final records; the runner checks those again. The last image
 is the frame captured before shutdown. A sealed workspace refuses further
 input. Stop still removes it.

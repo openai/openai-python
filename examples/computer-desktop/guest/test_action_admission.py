@@ -54,6 +54,38 @@ def guest_process(root: Path, name: str, descriptor: int) -> None:
 
 
 class ActionAdmissionTests(unittest.TestCase):
+    def test_completed_workspace_refuses_new_input_before_dispatch(self) -> None:
+        import action
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            with (
+                patch.object(action, "ROOT", root),
+                patch.object(action, "OWNER", root),
+                patch.object(action, "xdo") as xdo,
+            ):
+                # The fresh workspace still permits the ordinary first workflow.
+                self.assertEqual(action.reply({"type": "type", "text": "Desktop receipt D-2201"}), {"ok": True})
+                self.assertTrue(xdo.called)
+                xdo.reset_mock()
+                (root / "events.jsonl").write_text(json.dumps({"id": "D-2201", "action": "route"}) + "\n")
+                (root / "result.txt").write_text("Desktop receipt D-2201")
+                self.assertTrue(action.reply({"type": "verify"})["file_matches"])
+                for request in (
+                    {"type": "type", "text": "Later edit"},
+                    {"type": "keypress", "keys": ["CTRL", "S"]},
+                    {"type": "click", "x": 160, "y": 150, "button": "left"},
+                ):
+                    with self.subTest(request=request["type"]):
+                        result = action.reply(request)
+                        self.assertIs(result["ok"], False)
+                        self.assertIs(result["uncertain"], False)
+                        xdo.assert_not_called()
+                # Observations and final inspection retain the matching receipts.
+                (root / "sealed").touch()
+                self.assertTrue(action.reply({"type": "seal"})["file_matches"])
+                self.assertTrue(action.reply({"type": "verify"})["browser_matches"])
+
     def test_native_click_buttons_and_release(self) -> None:
         import action
 

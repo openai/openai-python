@@ -220,6 +220,16 @@ def reply(request: object) -> dict[str, object]:
                 "ok": True,
                 "image_url": "data:image/png;base64," + base64.b64encode(png).decode("ascii"),
             }
+    if kind != "wait":
+        # Once this fixed task has both committed receipts, later input needs
+        # a fresh workspace. Refuse before xdotool can queue a new edit.
+        proof = inspect_outputs()
+        if proof["file_matches"] and proof["browser_matches"]:
+            return {
+                "ok": False,
+                "uncertain": False,
+                "error": "Completed desktop is read-only; seal it or start a new workspace.",
+            }
     down: list[str] = []
     mouse_down = False
     try:
