@@ -84,16 +84,10 @@ async def main() -> None:
             initial = await app.current.binding()
             assert initial is not None
             state_held, state_release = asyncio.Event(), asyncio.Event()
-            frame_held, frame_release = asyncio.Event(), asyncio.Event()
 
             async def held_state(route: Route) -> None:
                 state_held.set()
                 await state_release.wait()
-                await route.continue_()
-
-            async def held_frame(route: Route) -> None:
-                frame_held.set()
-                await frame_release.wait()
                 await route.continue_()
 
             sent: list[str] = []
@@ -101,14 +95,24 @@ async def main() -> None:
             await dashboard.route("**/api/state", held_state)
             try:
                 await asyncio.wait_for(state_held.wait(), 5)
-                await dashboard.route("**/api/view?*", held_frame)
+                await dashboard.evaluate("""() => {
+                  const screen = document.getElementById('screen');
+                  const decode = screen.decode.bind(screen);
+                  screen.decode = async () => {
+                    await decode();
+                    await new Promise(resolve => { window.releaseFrameDecode = resolve; });
+                  };
+                }""")
                 await second.locator("#human-key").select_option("Tab")
                 await second.locator("#send-key").click()
                 await second.wait_for_function("() => !document.querySelector('#human-controls').disabled")
                 current = await app.current.binding()
                 assert current is not None and current["sequence"] != initial["sequence"]
+                previous_frame = await dashboard.locator("#screen").get_attribute("src")
                 state_release.set()
-                await asyncio.wait_for(frame_held.wait(), 5)
+                await dashboard.wait_for_function(
+                    "previous => document.getElementById('screen').src !== previous", arg=previous_frame
+                )
                 controls = await dashboard.evaluate("""() => {
                   const ids = ['send-text', 'send-key', 'send-scroll'];
                   return {
@@ -122,18 +126,18 @@ async def main() -> None:
                     document.getElementById(id).click();
                 }""")
                 assert not sent, sent
-                frame_release.set()
+                await dashboard.wait_for_function("() => typeof window.releaseFrameDecode === 'function'")
+                await dashboard.evaluate("() => window.releaseFrameDecode?.()")
                 await dashboard.wait_for_function(
                     "() => !document.querySelector('#human-controls').disabled", timeout=10000
                 )
                 print("PASS manual input waits for the displayed frame after another dashboard changes focus.")
             finally:
                 state_release.set()
-                frame_release.set()
+                await dashboard.evaluate("() => window.releaseFrameDecode?.()")
                 await dashboard.unroute("**/api/state", held_state)
-                await dashboard.unroute("**/api/view?*", held_frame)
                 await second.close()
-            await dashboard.locator("#stop").click()
+                await dashboard.locator("#stop").click()
             print("PASS UI: private link, real pixels, refusal; report has actual status and options.")
         finally:
             await browser.close()

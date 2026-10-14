@@ -798,11 +798,17 @@
         )
           return;
         const previous = pictureURL;
-        pictureURL = URL.createObjectURL(image);
-        byId('screen').src = pictureURL;
+        const next = URL.createObjectURL(image);
+        const screen = byId('screen');
+        displayed = null;
+        render();
+        pictureURL = next;
+        screen.src = next;
+        if (previous) URL.revokeObjectURL(previous);
+        await screen.decode();
+        if (current !== run || pictureURL !== next) return;
         displayed = binding(run);
         byId('empty').hidden = true;
-        if (previous) URL.revokeObjectURL(previous);
         render();
       }
       async function poll() {
