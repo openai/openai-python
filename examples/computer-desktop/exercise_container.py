@@ -281,6 +281,79 @@ def cleanup_replacement(*, replace: bool, after_move: bool = False, after_open: 
         assert (root / "runs/unrelated/sentinel").read_text() == "other run"
 
 
+def cleanup_marker_interruption(*, before_write: bool, foreign: bool = False) -> None:
+    with TemporaryDirectory() as temporary:
+        root = Path(temporary) / "runtime"
+        prepare(root)
+        run_id = "123456789abc"
+        directory = root / "runs" / run_id
+        directory.mkdir(mode=0o700)
+        runtime.write_new(
+            directory / "intent.json",
+            {
+                "owner": runtime.identity(directory),
+                "name": "openai-desktop-" + run_id,
+                "nonce": "fixture",
+                "image": IMAGE,
+            },
+        )
+        (directory / "container-id").write_text(CONTAINER)
+        cleanup = root / "runs" / (".cleanup-" + run_id)
+        marker = cleanup / "owner.json"
+        real_write = runtime.write_new
+        real_rmdir = Path.rmdir
+        interrupted = False
+        lookups = 0
+
+        def docker(_root: Path, args: list[str], **_kwargs: Any) -> bytes:
+            nonlocal lookups
+            assert args[0] == "ps"
+            lookups += 1
+            return b""
+
+        def write(path: Path, value: object) -> None:
+            nonlocal interrupted
+            if before_write and path == marker and not interrupted:
+                interrupted = True
+                raise OSError("controlled marker interruption")
+            real_write(path, value)
+
+        def rmdir(path: Path) -> None:
+            nonlocal interrupted
+            if not before_write and path == cleanup and not interrupted:
+                interrupted = True
+                raise OSError("controlled marker interruption")
+            real_rmdir(path)
+
+        with (
+            patch.object(runtime, "docker", side_effect=docker),
+            patch.object(runtime, "write_new", side_effect=write),
+            patch.object(Path, "rmdir", rmdir),
+        ):
+            try:
+                runtime.remove(root, run_id)
+            except OSError as error:
+                assert "controlled marker interruption" in str(error)
+            else:
+                raise AssertionError("The controlled interruption was not reached")
+            assert interrupted and not marker.exists() and directory.exists() is before_write
+            if foreign:
+                (cleanup / "sentinel").write_text("unexpected data")
+                try:
+                    runtime.remove(root, run_id)
+                except (OSError, RuntimeError, ValueError):
+                    pass
+                else:
+                    raise AssertionError("Nonempty markerless cleanup must remain unreconciled")
+                assert (cleanup / "sentinel").read_text() == "unexpected data"
+                assert lookups == 1 and directory.exists() is before_write
+            else:
+                runtime.remove(root, run_id)
+                assert lookups == (2 if before_write else 1)
+                assert list((root / "runs").iterdir()) == [root / "runs/unrelated"]
+            assert (root / "runs/unrelated/sentinel").read_text() == "other run"
+
+
 def startup_deadline(boundary: str | None) -> None:
     with TemporaryDirectory() as temporary:
         root = Path(temporary) / "runtime"
@@ -605,6 +678,9 @@ def main() -> None:
     cleanup_replacement(replace=True, after_move=True)
     cleanup_replacement(replace=True, after_open=True)
     cleanup_replacement(replace=False)
+    cleanup_marker_interruption(before_write=True)
+    cleanup_marker_interruption(before_write=False)
+    cleanup_marker_interruption(before_write=True, foreign=True)
     for boundary in (None, "image", "create", "inspect", "start", "cumulative", "caller"):
         startup_deadline(boundary)
     for changed in (None, "copy-Dockerfile", "copy-seccomp.json", "build-context", "build-checkout"):
