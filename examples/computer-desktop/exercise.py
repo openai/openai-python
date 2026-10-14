@@ -448,14 +448,13 @@ def check_frames(*, phase_only: bool = False, startup_only: bool = False) -> Non
                     super().remove()
 
             with patch("desktop.Guest", RepeatedSignalGuest):
-                desktop = None
                 try:
-                    desktop = Desktop(Path("controlled-fixture"))
+                    Desktop(Path("controlled-fixture"))
                 except KeyboardInterrupt as error:
                     assert error is stopped, "Constructor cleanup replaced the original interruption"
                 else:
                     raise AssertionError("Interrupted readiness returned a desktop")
-                assert desktop is None and len(started) == 1 and started[0].removed
+                assert len(started) == 1 and started[0].removed
                 assert signal.getsignal(signal.SIGINT) is interrupt
                 assert signal.getsignal(signal.SIGTERM) is interrupt
         print(
