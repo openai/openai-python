@@ -158,21 +158,21 @@
         body.dataset.revision = String(Number(body.dataset.revision) + 1);
       }
       const id = 'TABLE-204';
-        card.dataset.recordId = id;
-        body.dataset.results = '{}';
-        card.innerHTML =
-          '<h2>Your table, your evening.</h2><p class="muted">Choose your details to request a reservation.</p><form><div class="grid"><label>Guest name<input aria-label="Guest name" data-browser-field="guest_name" required autocomplete="off" /></label><label>Party size<select aria-label="Party size" data-browser-field="party_size"><option value="">Choose guests</option><option>2</option><option>4</option><option>6</option></select></label><label>Time<select aria-label="Time" data-browser-field="time"><option value="">Choose a time</option><option>17:00</option><option>18:00</option><option>19:00</option></select></label><label>Seating<select aria-label="Seating" data-browser-field="seating"><option value="">Choose seating</option><option>Indoor</option><option>Outdoor</option></select></label></div><div class="buttons"><button class="primary" type="submit">Reserve table</button></div></form><div role="status"></div>';
-        for (const field of card.querySelectorAll('input,select')) field.addEventListener('input', changed);
-        card.querySelector('form').addEventListener('submit', (event) => {
-          event.preventDefault();
-          body.dataset.results = JSON.stringify({ confirmation: id });
-          body.dataset.finished = 'true';
-          changed();
-          const status = card.querySelector('[role=status]');
-          status.className = 'result';
-          status.textContent = `Confirmed · ${id}`;
-          card.querySelector('button').disabled = true;
-        });
+      card.dataset.recordId = id;
+      body.dataset.results = '{}';
+      card.innerHTML =
+        '<h2>Your table, your evening.</h2><p class="muted">Choose your details to request a reservation.</p><form><div class="grid"><label>Guest name<input aria-label="Guest name" data-browser-field="guest_name" required autocomplete="off" /></label><label>Party size<select aria-label="Party size" data-browser-field="party_size"><option value="">Choose guests</option><option>2</option><option>4</option><option>6</option></select></label><label>Time<select aria-label="Time" data-browser-field="time"><option value="">Choose a time</option><option>17:00</option><option>18:00</option><option>19:00</option></select></label><label>Seating<select aria-label="Seating" data-browser-field="seating"><option value="">Choose seating</option><option>Indoor</option><option>Outdoor</option></select></label></div><div class="buttons"><button class="primary" type="submit">Reserve table</button></div></form><div role="status"></div>';
+      for (const field of card.querySelectorAll('input,select')) field.addEventListener('input', changed);
+      card.querySelector('form').addEventListener('submit', (event) => {
+        event.preventDefault();
+        body.dataset.results = JSON.stringify({ confirmation: id });
+        body.dataset.finished = 'true';
+        changed();
+        const status = card.querySelector('[role=status]');
+        status.className = 'result';
+        status.textContent = `Confirmed · ${id}`;
+        card.querySelector('button').disabled = true;
+      });
     </script>
   </body>
 </html>

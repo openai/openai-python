@@ -535,7 +535,7 @@
   </head>
   <body>
     <header>
-      <span class="wordmark">OpenAI <span style="color:#9ba68f;font-weight:400">/ Fieldwork</span></span>
+      <span class="wordmark">OpenAI <span style="color: #9ba68f; font-weight: 400">/ Fieldwork</span></span>
       <span class="eyebrow">SDK example</span>
     </header>
     <main>
@@ -543,33 +543,42 @@
         <div>
           <div class="eyebrow">A working browser. A visible result.</div>
           <h1>Book a table.</h1>
-          <p class="lead">Watch the agent fill a local reservation. Approve its submission or take control.</p>
+          <p class="lead">
+            Watch the agent fill a local reservation. Approve its submission or take control.
+          </p>
         </div>
         <span class="pill">Isolated · Synthetic · Local</span>
       </section>
       <div class="controls">
-        <label>API<select id="api">
-          <option value="responses">Responses · Open-ended (default)</option>
-          <option value="decisions">Decisions · Known candidates</option>
-        </select></label>
-        <label>Run mode<select id="mode">
-          <option value="live">Live API</option>
-          <option value="rehearsal">Local rehearsal · Decisions, no API</option>
-        </select></label>
+        <label
+          >API<select id="api">
+            <option value="responses">Responses · Open-ended (default)</option>
+            <option value="decisions">Decisions · Known candidates</option>
+          </select></label
+        >
+        <label
+          >Run mode<select id="mode">
+            <option value="live">Live API</option>
+            <option value="rehearsal">Local rehearsal · Decisions, no API</option>
+          </select></label
+        >
         <button id="start" class="button primary">Start task →</button>
         <button id="stop" class="button" disabled>Stop</button>
         <span class="availability" id="availability"></span>
       </div>
       <div class="workspace">
         <section class="viewer" aria-label="Actual workspace view">
-          <div class="bar"><span class="dots"><i></i><i></i><i></i></span>
-            <span id="address">Local reservation</span><span>1024 × 720</span></div>
+          <div class="bar">
+            <span class="dots"><i></i><i></i><i></i></span> <span id="address">Local reservation</span
+            ><span>1024 × 720</span>
+          </div>
           <div class="view">
             <div class="empty" id="empty">
-              <div class="symbol">⌘</div><strong>Your browser is ready.</strong>
+              <div class="symbol">⌘</div>
+              <strong>Your browser is ready.</strong>
               <p>Start a task to see the actual browser screen.</p>
             </div>
-            <img id="screen" alt="Current pixels from the isolated task browser" aria-disabled="true"/>
+            <img id="screen" alt="Current pixels from the isolated task browser" aria-disabled="true" />
           </div>
           <div class="viewer-footer">
             <span id="view-kind">Actual browser · view only</span>
@@ -577,7 +586,9 @@
           </div>
         </section>
         <aside class="sidebar">
-          <div class="status-row"><span class="eyebrow">Run activity</span><span id="status" role="status">Ready</span></div>
+          <div class="status-row">
+            <span class="eyebrow">Run activity</span><span id="status" role="status">Ready</span>
+          </div>
           <div class="metrics">
             <div class="metric"><strong id="elapsed">—</strong><span>elapsed time</span></div>
             <div class="metric"><strong id="requests">—</strong><span>API attempts</span></div>
@@ -591,29 +602,56 @@
             </div>
             <fieldset id="human-controls" disabled hidden>
               <legend class="section-label">Your input</legend>
-              <label>Text to type<textarea id="human-text" rows="2" maxlength="2000" autocomplete="off"></textarea></label>
+              <label
+                >Text to type<textarea
+                  id="human-text"
+                  rows="2"
+                  maxlength="2000"
+                  autocomplete="off"
+                ></textarea>
+              </label>
               <button id="send-text" class="button">Type text</button>
-              <label>Key<select id="human-key">
-                <option>Enter</option><option>Tab</option><option>Backspace</option><option>Delete</option>
-                <option>Escape</option><option>ArrowUp</option><option>ArrowDown</option>
-                <option>ArrowLeft</option><option>ArrowRight</option><option>Home</option><option>End</option>
-                <option>PageUp</option><option>PageDown</option><option>Space</option><option>ControlOrMeta+A</option>
-              </select></label>
+              <label
+                >Key<select id="human-key">
+                  <option>Enter</option>
+                  <option>Tab</option>
+                  <option>Backspace</option>
+                  <option>Delete</option>
+                  <option>Escape</option>
+                  <option>ArrowUp</option>
+                  <option>ArrowDown</option>
+                  <option>ArrowLeft</option>
+                  <option>ArrowRight</option>
+                  <option>Home</option>
+                  <option>End</option>
+                  <option>PageUp</option>
+                  <option>PageDown</option>
+                  <option>Space</option>
+                  <option>ControlOrMeta+A</option>
+                </select></label
+              >
               <button id="send-key" class="button">Send key</button>
               <div class="scroll-fields">
-                <label>Scroll<select id="scroll-direction">
-                  <option value="down">Down</option><option value="up">Up</option>
-                  <option value="left">Left</option><option value="right">Right</option>
-                </select></label>
-                <label>Pixels<input id="scroll-amount" type="number" min="1" max="2048" value="512"/></label>
+                <label
+                  >Scroll<select id="scroll-direction">
+                    <option value="down">Down</option>
+                    <option value="up">Up</option>
+                    <option value="left">Left</option>
+                    <option value="right">Right</option>
+                  </select></label
+                >
+                <label>Pixels<input id="scroll-amount" type="number" min="1" max="2048" value="512" /></label>
               </div>
               <button id="send-scroll" class="button">Scroll</button>
             </fieldset>
           </section>
           <div class="section-label">Action timeline</div>
-          <ol id="timeline"><li>Actions will appear here.<small>Start a task to begin</small></li></ol>
+          <ol id="timeline">
+            <li>Actions will appear here.<small>Start a task to begin</small></li>
+          </ol>
           <section class="approval" id="approval" hidden>
-            <strong>Approval needed</strong><p id="approval-text"></p>
+            <strong>Approval needed</strong>
+            <p id="approval-text"></p>
             <div class="buttons">
               <button id="approve" class="button primary">Approve action</button>
               <button id="refuse" class="button">Refuse</button>
@@ -646,8 +684,11 @@
       async function request(path, body) {
         const response = await fetch(path, {
           method: body === undefined ? 'GET' : 'POST',
-          headers: { 'X-Demo-Token': token, ...(body === undefined ? {} : {'Content-Type': 'application/json'}) },
-          ...(body === undefined ? {} : {body: JSON.stringify(body)}),
+          headers: {
+            'X-Demo-Token': token,
+            ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
+          },
+          ...(body === undefined ? {} : { body: JSON.stringify(body) }),
           cache: 'no-store',
         });
         const result = await response.json();
@@ -667,14 +708,21 @@
         byId('api').disabled = active || busy || byId('mode').value === 'rehearsal';
         byId('start').disabled = active || busy || (byId('mode').value === 'live' && !liveAvailable);
         byId('stop').disabled = !active || busy;
-        byId('availability').textContent = byId('mode').value === 'rehearsal'
-          ? 'Scripted locally. No API key or request.' : liveAvailable
-            ? 'Live API configured on the local server.' : 'Configure a server key and model, or choose rehearsal.';
+        byId('availability').textContent =
+          byId('mode').value === 'rehearsal'
+            ? 'Scripted locally. No API key or request.'
+            : liveAvailable
+              ? 'Live API configured on the local server.'
+              : 'Configure a server key and model, or choose rehearsal.';
         const human = current?.owner === 'human' && !current.humanInputBusy && !current.uncertainEffects;
-        const frameCurrent = !current?.browser || (displayed?.runId === current.id &&
-          displayed.ownerVersion === current.ownerVersion &&
-          displayed.tabId === current.browser.tabId && displayed.sequence === current.browser.sequence);
-        byId('take-control').disabled = busy || current?.owner !== 'agent' || current?.humanInputBusy || !frameCurrent;
+        const frameCurrent =
+          !current?.browser ||
+          (displayed?.runId === current.id &&
+            displayed.ownerVersion === current.ownerVersion &&
+            displayed.tabId === current.browser.tabId &&
+            displayed.sequence === current.browser.sequence);
+        byId('take-control').disabled =
+          busy || current?.owner !== 'agent' || current?.humanInputBusy || !frameCurrent;
         byId('return-control').disabled = busy || !human;
         byId('human-controls').hidden = !human;
         byId('human-controls').disabled = busy || !human;
@@ -686,39 +734,61 @@
         byId('status').textContent = current.result === 'verified' ? 'Verified' : current.status;
         byId('elapsed').textContent = `${(current.elapsedMs / 1000).toFixed(1)}s`;
         byId('requests').textContent = String(current.requests);
-        byId('owner-status').textContent = ({
-          agent:'Agent working', human:'You control the browser',
-          'draining-to-human':'Waiting for agent work to finish…',
-          'draining-to-agent':'Reading the current page…', stopped:'Session ended',
-        })[current.owner];
+        byId('owner-status').textContent = {
+          agent: 'Agent working',
+          human: 'You control the browser',
+          'draining-to-human': 'Waiting for agent work to finish…',
+          'draining-to-agent': 'Reading the current page…',
+          stopped: 'Session ended',
+        }[current.owner];
         byId('session-expiry').textContent = current.sessionExpiresAt
-          ? `Human control expires at ${new Date(current.sessionExpiresAt).toLocaleTimeString()}.` : '';
-        byId('view-kind').textContent = human ? 'Live browser · click to interact' : current.owner === 'stopped'
-          ? 'Final checked browser image' : 'Live browser · view only';
-        byId('snapshot-time').textContent = current.screenshotAt ? new Date(current.screenshotAt).toLocaleTimeString() : '';
-        byId('approval-text').textContent = current.approval ? `Approve “${current.approval.label}” for this synthetic reservation?` : '';
-        byId('timeline').replaceChildren(...current.events.map((event) => {
-          const line = document.createElement('li');
-          const at = document.createElement('small');
-          line.textContent = event.text;
-          at.textContent = `${event.kind} · ${(event.atMs / 1000).toFixed(1)}s`;
-          line.append(at);
-          return line;
-        }));
+          ? `Human control expires at ${new Date(current.sessionExpiresAt).toLocaleTimeString()}.`
+          : '';
+        byId('view-kind').textContent = human
+          ? 'Live browser · click to interact'
+          : current.owner === 'stopped'
+            ? 'Final checked browser image'
+            : 'Live browser · view only';
+        byId('snapshot-time').textContent = current.screenshotAt
+          ? new Date(current.screenshotAt).toLocaleTimeString()
+          : '';
+        byId('approval-text').textContent = current.approval
+          ? `Approve “${current.approval.label}” for this synthetic reservation?`
+          : '';
+        byId('timeline').replaceChildren(
+          ...current.events.map((event) => {
+            const line = document.createElement('li');
+            const at = document.createElement('small');
+            line.textContent = event.text;
+            at.textContent = `${event.kind} · ${(event.atMs / 1000).toFixed(1)}s`;
+            line.append(at);
+            return line;
+          }),
+        );
       }
       async function refreshFrame(run) {
         const pair = run.owner === 'stopped' ? run.screenshotBinding : run.browser;
-        if (!pair) { discardFrame(); return; }
+        if (!pair) {
+          discardFrame();
+          return;
+        }
         const endpoint = run.owner === 'stopped' ? 'screenshot' : 'view';
-        const response = await fetch(`/api/${endpoint}?run=${encodeURIComponent(run.id)}&tabId=${encodeURIComponent(pair.tabId)}&sequence=${pair.sequence}`,
-          {headers:{'X-Demo-Token': token},cache:'no-store'});
+        const response = await fetch(
+          `/api/${endpoint}?run=${encodeURIComponent(run.id)}&tabId=${encodeURIComponent(pair.tabId)}&sequence=${pair.sequence}`,
+          { headers: { 'X-Demo-Token': token }, cache: 'no-store' },
+        );
         if (!response.ok) {
           if (current?.id === run.id) discardFrame();
           return;
         }
         const image = await response.blob();
-        if (current?.id !== run.id || current.ownerVersion !== run.ownerVersion ||
-            (current.owner !== 'stopped' && (current.browser?.tabId !== pair.tabId || current.browser?.sequence !== pair.sequence))) return;
+        if (
+          current?.id !== run.id ||
+          current.ownerVersion !== run.ownerVersion ||
+          (current.owner !== 'stopped' &&
+            (current.browser?.tabId !== pair.tabId || current.browser?.sequence !== pair.sequence))
+        )
+          return;
         const previous = pictureURL;
         pictureURL = URL.createObjectURL(image);
         byId('screen').src = pictureURL;
@@ -735,7 +805,8 @@
           liveAvailable = state.liveAvailable;
           const previous = current;
           current = state.run;
-          if (!current || previous?.id !== current.id || previous.ownerVersion !== current.ownerVersion) discardFrame();
+          if (!current || previous?.id !== current.id || previous.ownerVersion !== current.ownerVersion)
+            discardFrame();
           render();
           if (current) await refreshFrame(current);
         } catch (error) {
@@ -745,13 +816,13 @@
           polling = false;
         }
       }
-      async function control(path, extra={}) {
+      async function control(path, extra = {}) {
         if (!current || busy) return;
         busy = true;
         const run = current;
         render();
         try {
-          await request(path, {...binding(run), ...extra});
+          await request(path, { ...binding(run), ...extra });
           byId('message').textContent = '';
         } catch (error) {
           byId('message').textContent = error.message;
@@ -770,7 +841,11 @@
         busy = true;
         render();
         try {
-          current = await request('/api/start', {taskId:'reservation', api:byId('api').value, mode:byId('mode').value});
+          current = await request('/api/start', {
+            taskId: 'reservation',
+            api: byId('api').value,
+            mode: byId('mode').value,
+          });
           byId('message').textContent = '';
         } catch (error) {
           byId('message').textContent = error.message;
@@ -783,25 +858,39 @@
       byId('stop').addEventListener('click', () => control('/api/stop'));
       byId('take-control').addEventListener('click', () => control('/api/take-control'));
       byId('return-control').addEventListener('click', () => control('/api/return-control'));
-      byId('approve').addEventListener('click', () => control('/api/approval', {approvalId:current.approval.id,approved:true}));
-      byId('refuse').addEventListener('click', () => control('/api/approval', {approvalId:current.approval.id,approved:false}));
+      byId('approve').addEventListener('click', () =>
+        control('/api/approval', { approvalId: current.approval.id, approved: true }),
+      );
+      byId('refuse').addEventListener('click', () =>
+        control('/api/approval', { approvalId: current.approval.id, approved: false }),
+      );
       byId('screen').addEventListener('click', (event) => {
         if (byId('screen').getAttribute('aria-disabled') !== 'false') return;
         const rect = byId('screen').getBoundingClientRect();
         return control('/api/input', {
-          action:'click', x:Math.floor((event.clientX-rect.left)*1024/rect.width), y:Math.floor((event.clientY-rect.top)*720/rect.height),
+          action: 'click',
+          x: Math.floor(((event.clientX - rect.left) * 1024) / rect.width),
+          y: Math.floor(((event.clientY - rect.top) * 720) / rect.height),
           ...displayed,
         });
       });
-      byId('send-text').addEventListener('click', () => control('/api/input',{action:'type', text:byId('human-text').value}));
-      byId('send-key').addEventListener('click', () => control('/api/input',{action:'key',key:byId('human-key').value}));
-      byId('send-scroll').addEventListener('click', () => control('/api/input',{
-        action:'scroll',direction:byId('scroll-direction').value,amount:Number(byId('scroll-amount').value),
-      }));
+      byId('send-text').addEventListener('click', () =>
+        control('/api/input', { action: 'type', text: byId('human-text').value }),
+      );
+      byId('send-key').addEventListener('click', () =>
+        control('/api/input', { action: 'key', key: byId('human-key').value }),
+      );
+      byId('send-scroll').addEventListener('click', () =>
+        control('/api/input', {
+          action: 'scroll',
+          direction: byId('scroll-direction').value,
+          amount: Number(byId('scroll-amount').value),
+        }),
+      );
       addEventListener('pagehide', discardFrame);
       if (!token) {
         byId('message').textContent = 'Open the private link printed in your server terminal.';
-        for (const id of ['start','mode','api']) byId(id).disabled = true;
+        for (const id of ['start', 'mode', 'api']) byId(id).disabled = true;
       } else {
         await poll();
         setInterval(poll, 300);
