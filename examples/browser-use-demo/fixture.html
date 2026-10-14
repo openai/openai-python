@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Browser-use task</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        color: #21332b;
+        background: #f1f4f0;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 40px;
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 34px;
+      }
+      .brand {
+        font-size: 17px;
+        font-weight: 650;
+        letter-spacing: -0.4px;
+      }
+      .badge,
+      .overline {
+        font:
+          11px ui-monospace,
+          monospace;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+      .badge {
+        padding: 8px 12px;
+        border: 1px solid #d2dcd2;
+        border-radius: 20px;
+      }
+      main {
+        max-width: 790px;
+        margin: auto;
+      }
+      h1 {
+        font-size: 32px;
+        letter-spacing: -1px;
+        margin: 10px 0;
+      }
+      .muted {
+        color: #718077;
+        line-height: 1.6;
+      }
+      .card {
+        margin-top: 26px;
+        background: white;
+        border: 1px solid #dce4da;
+        border-radius: 14px;
+        padding: 28px;
+        box-shadow: 0 8px 24px #21332b05;
+      }
+      .item-id {
+        color: #79867b;
+        font:
+          12px ui-monospace,
+          monospace;
+      }
+      h2 {
+        margin: 12px 0;
+        font-size: 23px;
+        letter-spacing: -0.5px;
+      }
+      .description {
+        font-size: 17px;
+        line-height: 1.7;
+      }
+      .buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 26px;
+        flex-wrap: wrap;
+      }
+      button {
+        font: inherit;
+        font-size: 14px;
+        border: 1px solid #c8d4c7;
+        border-radius: 8px;
+        padding: 12px 17px;
+        background: #f7faf6;
+        color: #244632;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #e6eee2;
+      }
+      .primary {
+        background: #285d3e;
+        color: white;
+        border-color: #285d3e;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+      label {
+        font-size: 13px;
+        font-weight: 600;
+      }
+      input,
+      select {
+        width: 100%;
+        font: inherit;
+        font-size: 15px;
+        background: #fff;
+        border: 1px solid #c8d4c7;
+        padding: 12px;
+        margin-top: 8px;
+        border-radius: 7px;
+      }
+      .result {
+        margin-top: 18px;
+        padding: 13px 16px;
+        background: #e9f2e4;
+        border-radius: 8px;
+        font-size: 14px;
+      }
+      ul {
+        padding-left: 20px;
+        line-height: 2;
+      }
+      .complete {
+        font-size: 40px;
+        margin-bottom: 12px;
+      }
+    </style>
+  </head>
+  <body data-revision="0" data-finished="false" data-results="[]">
+    <header><span class="brand">Fieldwork</span><span class="badge">Synthetic workspace</span></header>
+    <main id="app"></main>
+    <script>
+      const task = __TASK__;
+      const app = document.querySelector('#app');
+      const body = document.body;
+      const title = document.createElement('section');
+      title.innerHTML = `<div class="overline">${task.kind === 'support' ? 'Customer operations' : task.kind === 'invoices' ? 'Finance operations' : task.kind === 'stock' ? 'Warehouse operations' : task.kind === 'service' ? 'Service operations' : task.kind === 'files' ? 'Receiving desk' : 'The Garden Room'}</div><h1>${task.title}</h1><p class="muted">${task.summary}</p>`;
+      app.append(title);
+      const card = document.createElement('section');
+      card.className = 'card';
+      app.append(card);
+      const history = document.createElement('div');
+      app.append(history);
+      function changed() {
+        body.dataset.revision = String(Number(body.dataset.revision) + 1);
+      }
+      const id = 'TABLE-204';
+      card.dataset.recordId = id;
+      body.dataset.results = '{}';
+      card.innerHTML =
+        '<h2>Your table, your evening.</h2><p class="muted">Choose your details to request a reservation.</p><form><div class="grid"><label>Guest name<input aria-label="Guest name" data-browser-field="guest_name" required autocomplete="off" /></label><label>Party size<select aria-label="Party size" data-browser-field="party_size"><option value="">Choose guests</option><option>2</option><option>4</option><option>6</option></select></label><label>Time<select aria-label="Time" data-browser-field="time"><option value="">Choose a time</option><option>17:00</option><option>18:00</option><option>19:00</option></select></label><label>Seating<select aria-label="Seating" data-browser-field="seating"><option value="">Choose seating</option><option>Indoor</option><option>Outdoor</option></select></label></div><div class="buttons"><button class="primary" type="submit">Reserve table</button></div></form><div role="status"></div>';
+      for (const field of card.querySelectorAll('input,select')) field.addEventListener('input', changed);
+      card.querySelector('form').addEventListener('submit', (event) => {
+        event.preventDefault();
+        const fields = Object.fromEntries(
+          [...card.querySelectorAll('input,select')].map((field) => [
+            field.getAttribute('aria-label'),
+            field.value,
+          ]),
+        );
+        body.dataset.results = JSON.stringify({ confirmation: id, fields });
+        body.dataset.finished = 'true';
+        changed();
+        const status = card.querySelector('[role=status]');
+        status.className = 'result';
+        status.textContent = `Confirmed · ${id}`;
+        card.querySelector('button').disabled = true;
+      });
+    </script>
+  </body>
+</html>
