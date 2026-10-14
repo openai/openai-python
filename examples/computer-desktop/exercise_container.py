@@ -6,6 +6,7 @@ import os
 import sys
 import json
 import shutil
+import signal
 import socket
 import platform
 import subprocess
@@ -231,8 +232,11 @@ def initial_intent_failure(boundary: str) -> None:
         original_open: Callable[..., Any] = Path.open
         real_fsync = os.fsync
         real_fchmod = os.fchmod
+        real_fstat = os.fstat
         failure = OSError("controlled receipt failure")
         attempted: Path | None = None
+        interrupted = False
+        prior_mask = signal.pthread_sigmask(signal.SIG_BLOCK, set())
 
         def open_receipt(path: Path, *args: Any, **kwargs: Any) -> Any:
             nonlocal attempted
@@ -267,6 +271,13 @@ def initial_intent_failure(boundary: str) -> None:
                 raise failure
             real_fchmod(fd, mode)
 
+        def fstat(fd: int) -> os.stat_result:
+            nonlocal interrupted
+            if attempted is not None and boundary == "signal" and not interrupted:
+                interrupted = True
+                os.kill(os.getpid(), signal.SIGINT)
+            return real_fstat(fd)
+
         with (
             patch.object(runtime, "local_only", return_value="/unused/local-docker"),
             patch.object(runtime.subprocess, "Popen", side_effect=driver.popen),
@@ -274,18 +285,22 @@ def initial_intent_failure(boundary: str) -> None:
             patch.object(runtime.json, "dump", side_effect=dump),
             patch.object(runtime.os, "fsync", side_effect=fsync),
             patch.object(runtime.os, "fchmod", side_effect=fchmod),
+            patch.object(runtime.os, "fstat", side_effect=fstat),
         ):
             try:
                 runtime.start(root)
-            except (OSError, ValueError) as error:
+            except (OSError, ValueError, KeyboardInterrupt) as error:
+                if boundary == "signal":
+                    assert isinstance(error, KeyboardInterrupt), "Cleanup replaced the initial SIGINT"
                 if boundary in {"missing", "partial", "sync", "chmod"}:
                     assert error is failure
             else:
                 raise AssertionError("Pre-create receipt failure returned a run")
         assert attempted is not None
+        assert signal.pthread_sigmask(signal.SIG_BLOCK, set()) == prior_mask
         assert [call[0] for call in driver.calls] == ["image"]
         assert (root / "runs/unrelated/sentinel").read_text() == "other run"
-        if boundary in {"missing", "partial", "sync", "chmod"}:
+        if boundary in {"missing", "partial", "sync", "chmod", "signal"}:
             assert not attempted.exists(), "Pre-create failure retained its fresh directory"
         elif boundary == "directory":
             assert (attempted / "sentinel").read_text() == "replacement directory"
@@ -920,7 +935,7 @@ def main() -> None:
     startup_failure()
     create_cancelled_before_launch(timeout=False)
     create_cancelled_before_launch(timeout=True)
-    for boundary in ("missing", "partial", "sync", "chmod", "directory", "file"):
+    for boundary in ("missing", "partial", "sync", "chmod", "signal", "directory", "file"):
         initial_intent_failure(boundary)
     cleanup_replacement(replace=True)
     cleanup_replacement(replace=True, after_move=True)

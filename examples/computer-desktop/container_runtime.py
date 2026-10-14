@@ -442,13 +442,20 @@ def start(root: Path, *, cancelled: Callable[[], bool] | None = None) -> str:
         dispatched = True
 
     try:
-        with receipt.open("x") as output:
-            created = os.fstat(output.fileno())
-            os.fchmod(output.fileno(), 0o600)
-            json.dump(intent, output)
-            output.write("\n")
-            output.flush()
-            os.fsync(output.fileno())
+        # Keep a stop pending only until the exclusively created file is identified.
+        # Otherwise interruption between open and fstat strands an unclaimed receipt.
+        previous_mask = signal.pthread_sigmask(signal.SIG_BLOCK, {signal.SIGINT, signal.SIGTERM})
+        try:
+            with receipt.open("x") as output:
+                created = os.fstat(output.fileno())
+                signal.pthread_sigmask(signal.SIG_SETMASK, previous_mask)
+                os.fchmod(output.fileno(), 0o600)
+                json.dump(intent, output)
+                output.write("\n")
+                output.flush()
+                os.fsync(output.fileno())
+        finally:
+            signal.pthread_sigmask(signal.SIG_SETMASK, previous_mask)
         # One create attempt. A cancelled caller cannot retry it.
         docker(
             root,
