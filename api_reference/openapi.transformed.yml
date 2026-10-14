@@ -30375,12 +30375,7 @@ paths:
     post:
       operationId: createDecision
       summary: Create a decision
-      description: |-
-        Use this endpoint to ask classification or scoring questions about the same input. You’ll get the answers back in the order you asked the questions.
-
-        For text, you can pass a string. You can also send user messages containing `input_text` and `input_image` parts, with up to 128 images per request. Images can be base64 data URLs or publicly accessible HTTP(S) URLs. File IDs aren’t accepted. Other message roles, function calls, files, audio, and item references aren’t supported.
-
-        Sometimes a question returns a refusal instead of an answer. The result has type `refusal` and includes the question’s name, or `null` if you didn’t give it one.
+      description: Use this endpoint to quickly answer classification or scoring questions about some input. You can ask multiple questions in one request.
       tags:
       - Decisions
       requestBody:
@@ -82052,12 +82047,14 @@ components:
       type: object
       properties:
         model:
+          description: The model to use. Only `gpt-6-luna` is supported.
           type: string
           minLength: 0
           maxLength: 1048576
         input:
           $ref: '#/components/schemas/DecisionInput'
         questions:
+          description: Ask 1–200 questions about the input. Each question can be a predicate, choice, or score. Answers come back in the same order.
           type: array
           items:
             $ref: '#/components/schemas/QuestionParam'
@@ -82294,15 +82291,18 @@ components:
       type: object
       properties:
         model:
+          description: The model used.
           type: string
           minLength: 0
         answers:
+          description: 'Answers in question order. Any question can return a refusal instead of an answer; other questions can still receive answers. A refusal has `type: "refusal"` and the question''s `name`, or `null` if it was unnamed.'
           type: array
           items:
             $ref: '#/components/schemas/AnswerResource'
           minItems: 0
           maxItems: 2000
         usage:
+          description: Token usage for the request.
           $ref: '#/components/schemas/ResponseUsageResource'
       required:
       - model
