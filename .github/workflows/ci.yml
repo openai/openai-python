@@ -143,6 +143,96 @@ jobs:
       - name: Validate HTTPX2 wheel on Python 3.14
         run: python scripts/utils/validate-httpx2-wheel.py
 
+  browser-demo-types:
+    timeout-minutes: 10
+    name: browser demo types
+    runs-on: ubuntu-latest
+    needs: dependency-locks
+    if: github.event_name == 'push' || github.event_name == 'merge_group' || github.event.pull_request.head.repo.fork
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Use this job's Playwright installation
+        run: printf 'PLAYWRIGHT_BROWSERS_PATH=%s/openai-python-playwright\n' "$RUNNER_TEMP" >> "$GITHUB_ENV"
+
+      - uses: ./.github/actions/setup-node-tooling
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          version: '0.12.5'
+          python-version: '3.10'
+          enable-cache: true
+
+      - name: Check the optional Playwright demo
+        env:
+          PYRIGHT_PROJECT: scripts/pyrightconfig.browser-demo.json
+        run: >-
+          uv run --locked --all-extras --group browser-demo python -c
+          'import os, sys; os.execv("./scripts/run-pyright", ["./scripts/run-pyright", "--pythonpath", sys.executable])'
+
+      - name: Install Chromium for local demo security checks
+        run: uv run --locked --all-extras --group browser-demo playwright install --with-deps chromium
+
+      - name: Allow the sandbox for this job's installed Chromium
+        run: bash .github/scripts/setup-playwright-sandbox.sh
+
+      - name: Run local demo security checks
+        run: uv run --locked --all-extras --group browser-demo python scripts/check-example-security.py demo
+
+  optional-provider-types:
+    timeout-minutes: 10
+    name: optional provider types (${{ matrix.provider }})
+    runs-on: ubuntu-latest
+    needs: dependency-locks
+    if: github.event_name == 'push' || github.event_name == 'merge_group' || github.event.pull_request.head.repo.fork
+    strategy:
+      fail-fast: false
+      matrix:
+        provider: [browser, computer]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Use this job's Playwright installation
+        run: printf 'PLAYWRIGHT_BROWSERS_PATH=%s/openai-python-playwright\n' "$RUNNER_TEMP" >> "$GITHUB_ENV"
+
+      - uses: ./.github/actions/setup-node-tooling
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          version: '0.12.5'
+          python-version: '3.10'
+          enable-cache: true
+
+      - name: Check optional provider types against this checkout
+        env:
+          PYRIGHT_PROJECT: scripts/pyrightconfig.${{ matrix.provider }}-example.json
+        run: >-
+          uv run --locked --all-extras --no-default-groups --group dev --group provider-${{ matrix.provider }} python -c
+          'import os, pathlib, sys; import openai;
+          assert pathlib.Path(openai.__file__).resolve() == pathlib.Path("src/openai/__init__.py").resolve(), "Provider check replaced this OpenAI checkout";
+          os.execv("./scripts/run-pyright", ["./scripts/run-pyright", "--pythonpath", sys.executable])'
+
+      - name: Install Chromium for local browser security checks
+        if: matrix.provider == 'browser'
+        run: >-
+          uv run --locked --all-extras --no-default-groups --group dev --group provider-${{ matrix.provider }}
+          playwright install --with-deps chromium
+
+      - name: Allow the sandbox for this job's installed Chromium
+        if: matrix.provider == 'browser'
+        run: bash .github/scripts/setup-playwright-sandbox.sh
+
+      - name: Run local provider and guest security checks
+        run: >-
+          uv run --locked --all-extras --no-default-groups --group dev --group provider-${{ matrix.provider }}
+          python scripts/check-example-security.py ${{ matrix.provider }}
+
   test:
     timeout-minutes: 15
     name: test (Python ${{ matrix.python-version }})
