@@ -63814,6 +63814,16 @@ components:
               A human-readable description of the error.
           misalignment:
             $ref: '#/components/schemas/MisalignmentErrorDetailsResource'
+          param:
+            anyOf:
+            - type: string
+            - type: 'null'
+            description: The request parameter associated with the error, or null if none was recorded.
+          type:
+            anyOf:
+            - type: string
+            - type: 'null'
+            description: The original error type, or null if it was not recorded.
         required:
         - code
         - message
@@ -79918,6 +79928,16 @@ components:
           x-oaiTypeLabel: map
         misalignment:
           $ref: '#/components/schemas/MisalignmentErrorDetailsResource'
+        param:
+          anyOf:
+          - type: string
+            description: The request parameter associated with the error, or null if none was recorded.
+          - type: 'null'
+        type:
+          anyOf:
+          - type: string
+            description: The original error type, or null if it was not recorded.
+          - type: 'null'
       type: object
       required:
       - code
@@ -101051,6 +101071,16 @@ components:
               A human-readable description of the error.
           misalignment:
             $ref: '#/components/schemas/BetaMisalignmentErrorDetailsResource'
+          param:
+            anyOf:
+            - type: string
+            - type: 'null'
+            description: The request parameter associated with the error, or null if none was recorded.
+          type:
+            anyOf:
+            - type: string
+            - type: 'null'
+            description: The original error type, or null if it was not recorded.
         required:
         - code
         - message
@@ -106551,6 +106581,20 @@ components:
           message: 'Announced shutdown date: 2027-01-20. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
         gpt-5.1-mini:
           message: Not a supported model ID. Retained for SDK compatibility.
+        gpt-4.1-2025-04-14:
+          message: 'Announced shutdown date: 2027-01-14. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4.1-mini-2025-04-14:
+          message: 'Announced shutdown date: 2027-01-14. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4o-2024-08-06:
+          message: 'Announced shutdown date: 2027-01-14. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4o-2024-11-20:
+          message: 'Announced shutdown date: 2027-01-14. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4o-mini-2024-07-18:
+          message: 'Announced shutdown date: 2027-01-14. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-5.1:
+          message: 'Announced shutdown date: 2027-04-01. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-5.4-nano:
+          message: 'Announced shutdown date: 2027-04-01. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
       x-stainless-nominal: false
     LiveBuiltInVoice:
       type: string
