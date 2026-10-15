@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 import json
-import random
 import logging
-import threading
 from copy import copy
 from types import TracebackType
 from typing import (
@@ -64,6 +62,7 @@ from ...types.responses import (
     response_retrieve_params,
     responses_client_event_param,
 )
+from ..._websocket_connection import WebSocketConnectionBase, AsyncWebSocketConnectionBase
 from ...lib._parsing._responses import (
     TextFormatT,
     parse_response,
@@ -73,7 +72,7 @@ from ...types.responses.response import Response
 from ...types.responses.tool_param import ToolParam, ParseableToolParam
 from ...types.responses.service_tier import ServiceTier
 from ...types.shared_params.metadata import Metadata
-from ...types.websocket_reconnection import ReconnectingEvent, ReconnectingOverrides, is_recoverable_close
+from ...types.websocket_reconnection import ReconnectingEvent, ReconnectingOverrides
 from ...types.shared_params.reasoning import Reasoning
 from ...types.responses.parsed_response import ParsedResponse
 from ...lib.streaming.responses._responses import ResponseStreamManager, AsyncResponseStreamManager
@@ -4089,7 +4088,7 @@ def _make_tools(tools: Iterable[ParseableToolParam] | Omit) -> List[ToolParam] |
     return converted_tools
 
 
-class AsyncResponsesConnection:
+class AsyncResponsesConnection(AsyncWebSocketConnectionBase):
     """Represents a live WebSocket connection to the Responses API"""
 
     response: AsyncResponsesResponseResource
@@ -4109,18 +4108,18 @@ class AsyncResponsesConnection:
         extra_headers: Headers = {},
         send_queue: SendQueue | None = None,
     ) -> None:
-        self._connection = connection
-        self._make_ws = make_ws
-        self._on_reconnecting = on_reconnecting
-        self._max_retries = max_retries
-        self._reconnect_attempt = 0
-        self._initial_delay = initial_delay
-        self._max_delay = max_delay
-        self._extra_query = extra_query
-        self._extra_headers = extra_headers
-        self._intentionally_closed = False
-        self._is_reconnecting = False
-        self._send_queue = send_queue if send_queue is not None else SendQueue()
+        super().__init__(
+            connection,
+            make_ws=make_ws,
+            on_reconnecting=on_reconnecting,
+            max_retries=max_retries,
+            initial_delay=initial_delay,
+            max_delay=max_delay,
+            extra_query=extra_query,
+            extra_headers=extra_headers,
+            send_queue=send_queue,
+            logger=log,
+        )
         self._event_handler_registry = EventHandlerRegistry(use_lock=False)
 
         self.response = AsyncResponsesResponseResource(self)
@@ -4197,17 +4196,6 @@ class AsyncResponsesConnection:
             return
         await self._connection.send(data)
 
-    async def send_raw(self, data: bytes | str) -> None:
-        if self._is_reconnecting:
-            raw = data if isinstance(data, str) else data.decode("utf-8")
-            self._send_queue.enqueue(raw)
-            return
-        await self._connection.send(data)
-
-    async def close(self, *, code: int = 1000, reason: str = "") -> None:
-        self._intentionally_closed = True
-        await self._connection.close(code=code, reason=reason)
-
     def parse_event(self, data: str | bytes) -> ResponsesServerEvent:
         """
         Converts a raw `str` or `bytes` message into a `ResponsesServerEvent` object.
@@ -4218,94 +4206,6 @@ class AsyncResponsesConnection:
             ResponsesServerEvent,
             construct_type_unchecked(value=json.loads(data), type_=cast(Any, ResponsesServerEvent)),
         )
-
-    async def _reconnect(self, exc: Exception) -> bool:
-        """Attempt to reconnect after a connection failure.
-
-        Returns ``True`` if a new connection was established, ``False`` if the
-        caller should re-raise the original exception.
-        """
-        import asyncio
-
-        if self._on_reconnecting is None or self._make_ws is None:
-            return False
-
-        from websockets.exceptions import ConnectionClosedError
-
-        close_code = 1006
-        if isinstance(exc, ConnectionClosedError) and exc.rcvd is not None:
-            close_code = exc.rcvd.code
-
-        if not is_recoverable_close(close_code):
-            return False
-
-        self._is_reconnecting = True
-
-        for attempt in range(self._reconnect_attempt + 1, self._max_retries + 1):
-            self._reconnect_attempt = attempt
-            base_delay = min(self._initial_delay * (2 ** (attempt - 1)), self._max_delay)
-            jitter = 0.75 + random.random() * 0.25
-            delay = base_delay * jitter
-
-            event = ReconnectingEvent(
-                attempt=attempt,
-                max_attempts=self._max_retries,
-                delay=delay,
-                close_code=close_code,
-                extra_query=self._extra_query,
-                extra_headers=self._extra_headers,
-            )
-
-            try:
-                result = self._on_reconnecting(event)
-            except Exception:
-                self._is_reconnecting = False
-                return False
-
-            if result is not None and result.get("abort"):
-                self._is_reconnecting = False
-                return False
-
-            if result is not None:
-                if "extra_query" in result:
-                    self._extra_query = result["extra_query"]
-                if "extra_headers" in result:
-                    self._extra_headers = result["extra_headers"]
-
-            log.info(
-                "Reconnecting to WebSocket API (attempt %d/%d) after %.1fs delay",
-                attempt,
-                self._max_retries,
-                delay,
-            )
-            await asyncio.sleep(delay)
-
-            if self._intentionally_closed:
-                self._is_reconnecting = False
-                return False
-
-            try:
-                self._connection = await self._make_ws(self._extra_query, self._extra_headers)
-                log.info("Reconnected to WebSocket API")
-                self._is_reconnecting = False
-                await self._flush_send_queue()
-                return True
-            except Exception:
-                pass
-
-        self._is_reconnecting = False
-        return False
-
-    async def _flush_send_queue(self) -> None:
-        """Send all queued messages over the current connection."""
-
-        async def _send(data: str) -> None:
-            await self._connection.send(data)
-
-        try:
-            await self._send_queue.flush_async(_send, requeue_failed=False)
-        except Exception:
-            log.warning("Failed to flush send queue after reconnect")
 
     def on(
         self, event_type: str, handler: Callable[..., Any] | None = None
@@ -4582,7 +4482,7 @@ class AsyncResponsesConnectionManager:
             await self.__connection.close()
 
 
-class ResponsesConnection:
+class ResponsesConnection(WebSocketConnectionBase):
     """Represents a live WebSocket connection to the Responses API"""
 
     response: ResponsesResponseResource
@@ -4602,20 +4502,19 @@ class ResponsesConnection:
         extra_headers: Headers = {},
         send_queue: SendQueue | None = None,
     ) -> None:
-        self._connection = connection
-        self._make_ws = make_ws
-        self._on_reconnecting = on_reconnecting
-        self._max_retries = max_retries
-        self._reconnect_attempt = 0
-        self._initial_delay = initial_delay
-        self._max_delay = max_delay
-        self._extra_query = extra_query
-        self._extra_headers = extra_headers
-        self._intentionally_closed = False
-        self._close_event = threading.Event()
-        self._connection_lock = threading.Lock()
-        self._is_reconnecting = False
-        self._send_queue = send_queue if send_queue is not None else SendQueue()
+        super().__init__(
+            connection,
+            make_ws=make_ws,
+            on_reconnecting=on_reconnecting,
+            max_retries=max_retries,
+            initial_delay=initial_delay,
+            max_delay=max_delay,
+            extra_query=extra_query,
+            extra_headers=extra_headers,
+            send_queue=send_queue,
+            logger=log,
+            interruptible_reconnect=True,
+        )
         self._event_handler_registry = EventHandlerRegistry(use_lock=True)
 
         self.response = ResponsesResponseResource(self)
@@ -4694,20 +4593,6 @@ class ResponsesConnection:
             return
         self._connection.send(data)
 
-    def send_raw(self, data: bytes | str) -> None:
-        if self._is_reconnecting:
-            raw = data if isinstance(data, str) else data.decode("utf-8")
-            self._send_queue.enqueue(raw)
-            return
-        self._connection.send(data)
-
-    def close(self, *, code: int = 1000, reason: str = "") -> None:
-        self._intentionally_closed = True
-        self._close_event.set()
-        with self._connection_lock:
-            connection = self._connection
-        connection.close(code=code, reason=reason)
-
     def parse_event(self, data: str | bytes) -> ResponsesServerEvent:
         """
         Converts a raw `str` or `bytes` message into a `ResponsesServerEvent` object.
@@ -4718,95 +4603,6 @@ class ResponsesConnection:
             ResponsesServerEvent,
             construct_type_unchecked(value=json.loads(data), type_=cast(Any, ResponsesServerEvent)),
         )
-
-    def _reconnect(self, exc: Exception) -> bool:
-        """Attempt to reconnect after a connection failure.
-
-        Returns ``True`` if a new connection was established, ``False`` if the
-        caller should re-raise the original exception.
-        """
-        if self._on_reconnecting is None or self._make_ws is None or self._close_event.is_set():
-            return False
-
-        from websockets.exceptions import ConnectionClosedError
-
-        close_code = 1006
-        if isinstance(exc, ConnectionClosedError) and exc.rcvd is not None:
-            close_code = exc.rcvd.code
-
-        if not is_recoverable_close(close_code):
-            return False
-
-        with self._connection_lock:
-            self._is_reconnecting = True
-
-        for attempt in range(self._reconnect_attempt + 1, self._max_retries + 1):
-            self._reconnect_attempt = attempt
-            base_delay = min(self._initial_delay * (2 ** (attempt - 1)), self._max_delay)
-            jitter = 0.75 + random.random() * 0.25
-            delay = base_delay * jitter
-
-            event = ReconnectingEvent(
-                attempt=attempt,
-                max_attempts=self._max_retries,
-                delay=delay,
-                close_code=close_code,
-                extra_query=self._extra_query,
-                extra_headers=self._extra_headers,
-            )
-
-            try:
-                result = self._on_reconnecting(event)
-            except Exception:
-                self._is_reconnecting = False
-                return False
-
-            if result is not None and result.get("abort"):
-                self._is_reconnecting = False
-                return False
-
-            if result is not None:
-                if "extra_query" in result:
-                    self._extra_query = result["extra_query"]
-                if "extra_headers" in result:
-                    self._extra_headers = result["extra_headers"]
-
-            log.info(
-                "Reconnecting to WebSocket API (attempt %d/%d) after %.1fs delay",
-                attempt,
-                self._max_retries,
-                delay,
-            )
-            if self._close_event.wait(delay):
-                self._is_reconnecting = False
-                return False
-
-            try:
-                connection = self._make_ws(self._extra_query, self._extra_headers)
-                with self._connection_lock:
-                    closed = self._intentionally_closed
-                    if not closed:
-                        self._connection = connection
-                if closed:
-                    connection.close()
-                    self._is_reconnecting = False
-                    return False
-                log.info("Reconnected to WebSocket API")
-                self._is_reconnecting = False
-                self._flush_send_queue()
-                return True
-            except Exception:
-                pass
-
-        self._is_reconnecting = False
-        return False
-
-    def _flush_send_queue(self) -> None:
-        """Send all queued messages over the current connection."""
-        try:
-            self._send_queue.flush_sync(lambda data: self._connection.send(data), requeue_failed=False)
-        except Exception:
-            log.warning("Failed to flush send queue after reconnect")
 
     def on(
         self, event_type: str, handler: Callable[..., Any] | None = None
