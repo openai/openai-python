@@ -16,6 +16,7 @@ from ..._utils import is_given, path_template, maybe_transform, strip_not_given,
 from ..._compat import cached_property
 from ..._models import FinalRequestOptions, construct_type_unchecked
 from ..._resource import SyncAPIResource, AsyncAPIResource
+from ..._constants import DEFAULT_LIVE_SEND_QUEUE_MAX_BYTES
 from ..._exceptions import OpenAIError, WebSocketConnectionClosedError
 from ..._send_queue import SendQueue
 from ..._base_client import _merge_mappings
@@ -54,7 +55,7 @@ class Sideband(SyncAPIResource):
         max_retries: int = 5,
         initial_delay: float = 0.5,
         max_delay: float = 8.0,
-        max_queue_size: int = 1_048_576,
+        max_queue_size: int = DEFAULT_LIVE_SEND_QUEUE_MAX_BYTES,
     ) -> SidebandConnectionManager:
         """Attach to an existing Live session.
 
@@ -88,7 +89,7 @@ class AsyncSideband(AsyncAPIResource):
         max_retries: int = 5,
         initial_delay: float = 0.5,
         max_delay: float = 8.0,
-        max_queue_size: int = 1_048_576,
+        max_queue_size: int = DEFAULT_LIVE_SEND_QUEUE_MAX_BYTES,
     ) -> AsyncSidebandConnectionManager:
         """Attach to an existing Live session.
 
@@ -139,7 +140,9 @@ class AsyncSidebandConnection(AsyncWebSocketConnectionBase):
             max_delay=max_delay,
             extra_query=extra_query,
             extra_headers=extra_headers,
-            send_queue=send_queue,
+            send_queue=(
+                send_queue if send_queue is not None else SendQueue(max_bytes=DEFAULT_LIVE_SEND_QUEUE_MAX_BYTES)
+            ),
             logger=log,
         )
         self._event_handler_registry = EventHandlerRegistry(use_lock=False)
@@ -343,7 +346,7 @@ class AsyncSidebandConnectionManager:
         max_retries: int = 5,
         initial_delay: float = 0.5,
         max_delay: float = 8.0,
-        max_queue_size: int = 1_048_576,
+        max_queue_size: int = DEFAULT_LIVE_SEND_QUEUE_MAX_BYTES,
     ) -> None:
         self.__client = client
         self.__session_id = session_id
@@ -547,7 +550,9 @@ class SidebandConnection(WebSocketConnectionBase):
             max_delay=max_delay,
             extra_query=extra_query,
             extra_headers=extra_headers,
-            send_queue=send_queue,
+            send_queue=(
+                send_queue if send_queue is not None else SendQueue(max_bytes=DEFAULT_LIVE_SEND_QUEUE_MAX_BYTES)
+            ),
             logger=log,
         )
         self._event_handler_registry = EventHandlerRegistry(use_lock=True)
@@ -745,7 +750,7 @@ class SidebandConnectionManager:
         max_retries: int = 5,
         initial_delay: float = 0.5,
         max_delay: float = 8.0,
-        max_queue_size: int = 1_048_576,
+        max_queue_size: int = DEFAULT_LIVE_SEND_QUEUE_MAX_BYTES,
     ) -> None:
         self.__client = client
         self.__session_id = session_id
@@ -938,6 +943,10 @@ class SidebandSessionResource(BaseSidebandConnectionResource):
         return SidebandSessionInstructionsResource(self._connection)
 
     @cached_property
+    def output_audio(self) -> SidebandSessionOutputAudioResource:
+        return SidebandSessionOutputAudioResource(self._connection)
+
+    @cached_property
     def thinking(self) -> SidebandSessionThinkingResource:
         return SidebandSessionThinkingResource(self._connection)
 
@@ -1023,6 +1032,12 @@ class SidebandSessionInstructionsResource(BaseSidebandConnectionResource):
         )
 
 
+class SidebandSessionOutputAudioResource(BaseSidebandConnectionResource):
+    @cached_property
+    def fixture(self) -> SidebandSessionOutputAudioFixtureResource:
+        return SidebandSessionOutputAudioFixtureResource(self._connection)
+
+
 class SidebandSessionThinkingResource(BaseSidebandConnectionResource):
     def append(self, *, content: str, delegation_id: Optional[str], event_id: Optional[str] | Omit = omit) -> None:
         """
@@ -1039,6 +1054,20 @@ class SidebandSessionThinkingResource(BaseSidebandConnectionResource):
                         "event_id": event_id,
                     }
                 ),
+            )
+        )
+
+
+class SidebandSessionOutputAudioFixtureResource(BaseSidebandConnectionResource):
+    def play(self, *, audio: str, event_id: Optional[str] | Omit = omit) -> None:
+        """Play one complete audio fixture through the session output.
+
+        Send this event over the primary WebSocket or a server sideband. Audio must be raw mono PCM16 little-endian at 24 kHz, regardless of the session audio format, and at most 30 seconds. The entire payload is validated before model speech is interrupted and input is muted. Only one fixture can be active. fixture.playing acknowledges acceptance and fixture.played reports server mixer drain. These notifications are not exact transport-media boundaries. Input arriving during playback is dropped and not replayed.
+        """
+        self._connection.send(
+            cast(
+                ConnectClientEventParam,
+                strip_not_given({"type": "session.output_audio.fixture.play", "audio": audio, "event_id": event_id}),
             )
         )
 
@@ -1091,6 +1120,10 @@ class AsyncSidebandSessionResource(BaseAsyncSidebandConnectionResource):
     @cached_property
     def instructions(self) -> AsyncSidebandSessionInstructionsResource:
         return AsyncSidebandSessionInstructionsResource(self._connection)
+
+    @cached_property
+    def output_audio(self) -> AsyncSidebandSessionOutputAudioResource:
+        return AsyncSidebandSessionOutputAudioResource(self._connection)
 
     @cached_property
     def thinking(self) -> AsyncSidebandSessionThinkingResource:
@@ -1182,6 +1215,12 @@ class AsyncSidebandSessionInstructionsResource(BaseAsyncSidebandConnectionResour
         )
 
 
+class AsyncSidebandSessionOutputAudioResource(BaseAsyncSidebandConnectionResource):
+    @cached_property
+    def fixture(self) -> AsyncSidebandSessionOutputAudioFixtureResource:
+        return AsyncSidebandSessionOutputAudioFixtureResource(self._connection)
+
+
 class AsyncSidebandSessionThinkingResource(BaseAsyncSidebandConnectionResource):
     async def append(
         self, *, content: str, delegation_id: Optional[str], event_id: Optional[str] | Omit = omit
@@ -1200,6 +1239,20 @@ class AsyncSidebandSessionThinkingResource(BaseAsyncSidebandConnectionResource):
                         "event_id": event_id,
                     }
                 ),
+            )
+        )
+
+
+class AsyncSidebandSessionOutputAudioFixtureResource(BaseAsyncSidebandConnectionResource):
+    async def play(self, *, audio: str, event_id: Optional[str] | Omit = omit) -> None:
+        """Play one complete audio fixture through the session output.
+
+        Send this event over the primary WebSocket or a server sideband. Audio must be raw mono PCM16 little-endian at 24 kHz, regardless of the session audio format, and at most 30 seconds. The entire payload is validated before model speech is interrupted and input is muted. Only one fixture can be active. fixture.playing acknowledges acceptance and fixture.played reports server mixer drain. These notifications are not exact transport-media boundaries. Input arriving during playback is dropped and not replayed.
+        """
+        await self._connection.send(
+            cast(
+                ConnectClientEventParam,
+                strip_not_given({"type": "session.output_audio.fixture.play", "audio": audio, "event_id": event_id}),
             )
         )
 

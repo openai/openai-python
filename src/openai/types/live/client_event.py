@@ -15,6 +15,7 @@ from .input_audio_append_event import InputAudioAppendEvent
 from .input_audio_unmute_event import InputAudioUnmuteEvent
 from .instructions_append_event import InstructionsAppendEvent
 from .response_item_create_event import ResponseItemCreateEvent
+from .output_audio_fixture_play_event import OutputAudioFixturePlayEvent
 
 __all__ = ["ClientEvent"]
 
@@ -25,6 +26,7 @@ ClientEvent: TypeAlias = Annotated[
         InputAudioAppendEvent,
         InputAudioMuteEvent,
         InputAudioUnmuteEvent,
+        OutputAudioFixturePlayEvent,
         InstructionsAppendEvent,
         ThinkingAppendEvent,
         CommentaryAppendEvent,
