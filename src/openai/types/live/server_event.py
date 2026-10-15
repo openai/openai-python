@@ -21,6 +21,8 @@ from .instructions_appended_event import InstructionsAppendedEvent
 from .session_usage_updated_event import SessionUsageUpdatedEvent
 from .input_transcript_delta_event import InputTranscriptDeltaEvent
 from .output_transcript_delta_event import OutputTranscriptDeltaEvent
+from .output_audio_fixture_played_event import OutputAudioFixturePlayedEvent
+from .output_audio_fixture_playing_event import OutputAudioFixturePlayingEvent
 
 __all__ = [
     "ServerEvent",
@@ -141,6 +143,8 @@ ServerEvent: TypeAlias = Annotated[
         SessionUpdatedEvent,
         InputAudioMutedEvent,
         InputAudioUnmutedEvent,
+        OutputAudioFixturePlayingEvent,
+        OutputAudioFixturePlayedEvent,
         InstructionsAppendedEvent,
         ThinkingAppendedEvent,
         CommentaryAppendedEvent,

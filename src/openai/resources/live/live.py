@@ -1298,6 +1298,10 @@ class LiveSessionResource(BaseLiveConnectionResource):
         return LiveSessionInstructionsResource(self._connection)
 
     @cached_property
+    def output_audio(self) -> LiveSessionOutputAudioResource:
+        return LiveSessionOutputAudioResource(self._connection)
+
+    @cached_property
     def thinking(self) -> LiveSessionThinkingResource:
         return LiveSessionThinkingResource(self._connection)
 
@@ -1401,6 +1405,12 @@ class LiveSessionInstructionsResource(BaseLiveConnectionResource):
         )
 
 
+class LiveSessionOutputAudioResource(BaseLiveConnectionResource):
+    @cached_property
+    def fixture(self) -> LiveSessionOutputAudioFixtureResource:
+        return LiveSessionOutputAudioFixtureResource(self._connection)
+
+
 class LiveSessionThinkingResource(BaseLiveConnectionResource):
     def append(self, *, content: str, delegation_id: Optional[str], event_id: Optional[str] | Omit = omit) -> None:
         """
@@ -1417,6 +1427,20 @@ class LiveSessionThinkingResource(BaseLiveConnectionResource):
                         "event_id": event_id,
                     }
                 ),
+            )
+        )
+
+
+class LiveSessionOutputAudioFixtureResource(BaseLiveConnectionResource):
+    def play(self, *, audio: str, event_id: Optional[str] | Omit = omit) -> None:
+        """Play one complete audio fixture through the session output.
+
+        Send this event over the primary WebSocket or a server sideband. Audio must be raw mono PCM16 little-endian at 24 kHz, regardless of the session audio format, and at most 30 seconds. The entire payload is validated before model speech is interrupted and input is muted. Only one fixture can be active. fixture.playing acknowledges acceptance and fixture.played reports server mixer drain. These notifications are not exact transport-media boundaries. Input arriving during playback is dropped and not replayed.
+        """
+        self._connection.send(
+            cast(
+                ClientEventParam,
+                strip_not_given({"type": "session.output_audio.fixture.play", "audio": audio, "event_id": event_id}),
             )
         )
 
@@ -1468,6 +1492,10 @@ class AsyncLiveSessionResource(BaseAsyncLiveConnectionResource):
     @cached_property
     def instructions(self) -> AsyncLiveSessionInstructionsResource:
         return AsyncLiveSessionInstructionsResource(self._connection)
+
+    @cached_property
+    def output_audio(self) -> AsyncLiveSessionOutputAudioResource:
+        return AsyncLiveSessionOutputAudioResource(self._connection)
 
     @cached_property
     def thinking(self) -> AsyncLiveSessionThinkingResource:
@@ -1579,6 +1607,12 @@ class AsyncLiveSessionInstructionsResource(BaseAsyncLiveConnectionResource):
         )
 
 
+class AsyncLiveSessionOutputAudioResource(BaseAsyncLiveConnectionResource):
+    @cached_property
+    def fixture(self) -> AsyncLiveSessionOutputAudioFixtureResource:
+        return AsyncLiveSessionOutputAudioFixtureResource(self._connection)
+
+
 class AsyncLiveSessionThinkingResource(BaseAsyncLiveConnectionResource):
     async def append(
         self, *, content: str, delegation_id: Optional[str], event_id: Optional[str] | Omit = omit
@@ -1597,6 +1631,20 @@ class AsyncLiveSessionThinkingResource(BaseAsyncLiveConnectionResource):
                         "event_id": event_id,
                     }
                 ),
+            )
+        )
+
+
+class AsyncLiveSessionOutputAudioFixtureResource(BaseAsyncLiveConnectionResource):
+    async def play(self, *, audio: str, event_id: Optional[str] | Omit = omit) -> None:
+        """Play one complete audio fixture through the session output.
+
+        Send this event over the primary WebSocket or a server sideband. Audio must be raw mono PCM16 little-endian at 24 kHz, regardless of the session audio format, and at most 30 seconds. The entire payload is validated before model speech is interrupted and input is muted. Only one fixture can be active. fixture.playing acknowledges acceptance and fixture.played reports server mixer drain. These notifications are not exact transport-media boundaries. Input arriving during playback is dropped and not replayed.
+        """
+        await self._connection.send(
+            cast(
+                ClientEventParam,
+                strip_not_given({"type": "session.output_audio.fixture.play", "audio": audio, "event_id": event_id}),
             )
         )
 

@@ -16,6 +16,7 @@ from .input_audio_append_event_param import InputAudioAppendEventParam
 from .input_audio_unmute_event_param import InputAudioUnmuteEventParam
 from .instructions_append_event_param import InstructionsAppendEventParam
 from .response_item_create_event_param import ResponseItemCreateEventParam
+from .output_audio_fixture_play_event_param import OutputAudioFixturePlayEventParam
 
 __all__ = ["ClientEventParam"]
 
@@ -25,6 +26,7 @@ ClientEventParam: TypeAlias = Union[
     InputAudioAppendEventParam,
     InputAudioMuteEventParam,
     InputAudioUnmuteEventParam,
+    OutputAudioFixturePlayEventParam,
     InstructionsAppendEventParam,
     ThinkingAppendEventParam,
     CommentaryAppendEventParam,

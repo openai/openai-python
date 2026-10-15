@@ -1105,6 +1105,10 @@ class SidebandSessionResource(BaseSidebandConnectionResource):
         return SidebandSessionInstructionsResource(self._connection)
 
     @cached_property
+    def output_audio(self) -> SidebandSessionOutputAudioResource:
+        return SidebandSessionOutputAudioResource(self._connection)
+
+    @cached_property
     def thinking(self) -> SidebandSessionThinkingResource:
         return SidebandSessionThinkingResource(self._connection)
 
@@ -1190,6 +1194,12 @@ class SidebandSessionInstructionsResource(BaseSidebandConnectionResource):
         )
 
 
+class SidebandSessionOutputAudioResource(BaseSidebandConnectionResource):
+    @cached_property
+    def fixture(self) -> SidebandSessionOutputAudioFixtureResource:
+        return SidebandSessionOutputAudioFixtureResource(self._connection)
+
+
 class SidebandSessionThinkingResource(BaseSidebandConnectionResource):
     def append(self, *, content: str, delegation_id: Optional[str], event_id: Optional[str] | Omit = omit) -> None:
         """
@@ -1206,6 +1216,20 @@ class SidebandSessionThinkingResource(BaseSidebandConnectionResource):
                         "event_id": event_id,
                     }
                 ),
+            )
+        )
+
+
+class SidebandSessionOutputAudioFixtureResource(BaseSidebandConnectionResource):
+    def play(self, *, audio: str, event_id: Optional[str] | Omit = omit) -> None:
+        """Play one complete audio fixture through the session output.
+
+        Send this event over the primary WebSocket or a server sideband. Audio must be raw mono PCM16 little-endian at 24 kHz, regardless of the session audio format, and at most 30 seconds. The entire payload is validated before model speech is interrupted and input is muted. Only one fixture can be active. fixture.playing acknowledges acceptance and fixture.played reports server mixer drain. These notifications are not exact transport-media boundaries. Input arriving during playback is dropped and not replayed.
+        """
+        self._connection.send(
+            cast(
+                ConnectClientEventParam,
+                strip_not_given({"type": "session.output_audio.fixture.play", "audio": audio, "event_id": event_id}),
             )
         )
 
@@ -1258,6 +1282,10 @@ class AsyncSidebandSessionResource(BaseAsyncSidebandConnectionResource):
     @cached_property
     def instructions(self) -> AsyncSidebandSessionInstructionsResource:
         return AsyncSidebandSessionInstructionsResource(self._connection)
+
+    @cached_property
+    def output_audio(self) -> AsyncSidebandSessionOutputAudioResource:
+        return AsyncSidebandSessionOutputAudioResource(self._connection)
 
     @cached_property
     def thinking(self) -> AsyncSidebandSessionThinkingResource:
@@ -1349,6 +1377,12 @@ class AsyncSidebandSessionInstructionsResource(BaseAsyncSidebandConnectionResour
         )
 
 
+class AsyncSidebandSessionOutputAudioResource(BaseAsyncSidebandConnectionResource):
+    @cached_property
+    def fixture(self) -> AsyncSidebandSessionOutputAudioFixtureResource:
+        return AsyncSidebandSessionOutputAudioFixtureResource(self._connection)
+
+
 class AsyncSidebandSessionThinkingResource(BaseAsyncSidebandConnectionResource):
     async def append(
         self, *, content: str, delegation_id: Optional[str], event_id: Optional[str] | Omit = omit
@@ -1367,6 +1401,20 @@ class AsyncSidebandSessionThinkingResource(BaseAsyncSidebandConnectionResource):
                         "event_id": event_id,
                     }
                 ),
+            )
+        )
+
+
+class AsyncSidebandSessionOutputAudioFixtureResource(BaseAsyncSidebandConnectionResource):
+    async def play(self, *, audio: str, event_id: Optional[str] | Omit = omit) -> None:
+        """Play one complete audio fixture through the session output.
+
+        Send this event over the primary WebSocket or a server sideband. Audio must be raw mono PCM16 little-endian at 24 kHz, regardless of the session audio format, and at most 30 seconds. The entire payload is validated before model speech is interrupted and input is muted. Only one fixture can be active. fixture.playing acknowledges acceptance and fixture.played reports server mixer drain. These notifications are not exact transport-media boundaries. Input arriving during playback is dropped and not replayed.
+        """
+        await self._connection.send(
+            cast(
+                ConnectClientEventParam,
+                strip_not_given({"type": "session.output_audio.fixture.play", "audio": audio, "event_id": event_id}),
             )
         )
 
