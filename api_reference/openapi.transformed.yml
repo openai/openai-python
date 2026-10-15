@@ -50637,6 +50637,7 @@ components:
       - $ref: '#/components/schemas/LiveInputAudioAppendEvent'
       - $ref: '#/components/schemas/LiveInputAudioMuteParam'
       - $ref: '#/components/schemas/LiveInputAudioUnmuteParam'
+      - $ref: '#/components/schemas/LiveOutputAudioFixturePlayParam'
       - $ref: '#/components/schemas/LiveInstructionsAppendParam'
       - $ref: '#/components/schemas/LiveThinkingAppendParam'
       - $ref: '#/components/schemas/LiveCommentaryAppendParam'
@@ -50694,6 +50695,7 @@ components:
       - $ref: '#/components/schemas/LiveInputAudioAppendEvent'
       - $ref: '#/components/schemas/LiveInputAudioMuteParam'
       - $ref: '#/components/schemas/LiveInputAudioUnmuteParam'
+      - $ref: '#/components/schemas/LiveOutputAudioFixturePlayParam'
       - $ref: '#/components/schemas/LiveInstructionsAppendParam'
       - $ref: '#/components/schemas/LiveThinkingAppendParam'
       - $ref: '#/components/schemas/LiveCommentaryAppendParam'
@@ -50881,13 +50883,14 @@ components:
       - session
       - transport
     LiveSidebandClientEvent:
-      description: Client events accepted by an attached Live sideband WebSocket. The session is already started; send audio over the primary connection.
+      description: Client events accepted by an attached Live sideband WebSocket. The session has already started. Send input audio over the primary connection.
       discriminator:
         propertyName: type
       anyOf:
       - $ref: '#/components/schemas/LiveSessionUpdateParam'
       - $ref: '#/components/schemas/LiveInputAudioMuteParam'
       - $ref: '#/components/schemas/LiveInputAudioUnmuteParam'
+      - $ref: '#/components/schemas/LiveOutputAudioFixturePlayParam'
       - $ref: '#/components/schemas/LiveInstructionsAppendParam'
       - $ref: '#/components/schemas/LiveThinkingAppendParam'
       - $ref: '#/components/schemas/LiveCommentaryAppendParam'
@@ -50920,6 +50923,8 @@ components:
       - $ref: '#/components/schemas/LiveSessionUpdated'
       - $ref: '#/components/schemas/LiveInputAudioMuted'
       - $ref: '#/components/schemas/LiveInputAudioUnmuted'
+      - $ref: '#/components/schemas/LiveOutputAudioFixturePlaying'
+      - $ref: '#/components/schemas/LiveOutputAudioFixturePlayed'
       - $ref: '#/components/schemas/LiveInstructionsAppended'
       - $ref: '#/components/schemas/LiveThinkingAppended'
       - $ref: '#/components/schemas/LiveCommentaryAppended'
@@ -92107,6 +92112,39 @@ components:
         example:
           type: session.input_audio.unmute
           event_id: evt_unmute_001
+    LiveOutputAudioFixturePlayParam:
+      description: Play one complete audio fixture through the session output. Send this event over the primary WebSocket or a server sideband. Audio must be raw mono PCM16 little-endian at 24 kHz, regardless of the session audio format, and at most 30 seconds. The entire payload is validated before model speech is interrupted and input is muted. Only one fixture can be active. fixture.playing acknowledges acceptance and fixture.played reports server mixer drain. These notifications are not exact transport-media boundaries. Input arriving during playback is dropped and not replayed.
+      example:
+        type: session.output_audio.fixture.play
+        event_id: evt_play_001
+        audio: AAAAAA==
+      type: object
+      properties:
+        event_id:
+          anyOf:
+          - description: Optional client identifier for correlating this command with a server event's client_event_id or error.client_event_id.
+            type: string
+            maxLength: 512
+          - type: 'null'
+        type:
+          default: session.output_audio.fixture.play
+          x-stainless-const: true
+          type: string
+          enum:
+          - session.output_audio.fixture.play
+        audio:
+          description: Base64-encoded raw mono PCM16 audio, little-endian, at 24 kHz. Do not include a WAV or other container header.
+          type: string
+          minLength: 1
+          maxLength: 1920000
+      required:
+      - type
+      - audio
+      x-oaiMeta:
+        example:
+          type: session.output_audio.fixture.play
+          event_id: evt_play_001
+          audio: AAAAAA==
     LiveInstructionsAppendParam:
       description: Append instructions to the Live conversation while it is running, optionally associating them with an existing client delegation.
       example:
@@ -92624,6 +92662,62 @@ components:
           type: session.input_audio.unmuted
           event_id: evt_unmuted_001
           client_event_id: evt_unmute_001
+    LiveOutputAudioFixturePlaying:
+      description: The existing playback path has accepted the validated audio fixture. This acknowledgment does not identify when the listener receives the first sample. The optional client_event_id echoes the play command.
+      example:
+        type: session.output_audio.fixture.playing
+        event_id: evt_playing_001
+        client_event_id: evt_play_001
+      type: object
+      properties:
+        event_id:
+          description: The unique ID of the Live server event.
+          type: string
+        client_event_id:
+          description: The event_id of the client command associated with this server event, when supplied.
+          type: string
+        type:
+          default: session.output_audio.fixture.playing
+          x-stainless-const: true
+          type: string
+          enum:
+          - session.output_audio.fixture.playing
+      required:
+      - event_id
+      - type
+      x-oaiMeta:
+        example:
+          type: session.output_audio.fixture.playing
+          event_id: evt_playing_001
+          client_event_id: evt_play_001
+    LiveOutputAudioFixturePlayed:
+      description: The complete audio fixture has drained from the server mixer and normal inference has resumed. Transport buffers may still contain audio; this event does not prove listener-side completion. The optional client_event_id echoes the play command. This event is not emitted for canceled or failed playback.
+      example:
+        type: session.output_audio.fixture.played
+        event_id: evt_played_001
+        client_event_id: evt_play_001
+      type: object
+      properties:
+        event_id:
+          description: The unique ID of the Live server event.
+          type: string
+        client_event_id:
+          description: The event_id of the client command associated with this server event, when supplied.
+          type: string
+        type:
+          default: session.output_audio.fixture.played
+          x-stainless-const: true
+          type: string
+          enum:
+          - session.output_audio.fixture.played
+      required:
+      - event_id
+      - type
+      x-oaiMeta:
+        example:
+          type: session.output_audio.fixture.played
+          event_id: evt_played_001
+          client_event_id: evt_play_001
     LiveInstructionsAppended:
       description: Returned when a session.instructions.append command is accepted into the Live session timeline. Acknowledges the appended instructions without guaranteeing that the model has acted on them.
       example:
@@ -93487,6 +93581,8 @@ components:
       - $ref: '#/components/schemas/LiveSessionUpdated'
       - $ref: '#/components/schemas/LiveInputAudioMuted'
       - $ref: '#/components/schemas/LiveInputAudioUnmuted'
+      - $ref: '#/components/schemas/LiveOutputAudioFixturePlaying'
+      - $ref: '#/components/schemas/LiveOutputAudioFixturePlayed'
       - $ref: '#/components/schemas/LiveInstructionsAppended'
       - $ref: '#/components/schemas/LiveThinkingAppended'
       - $ref: '#/components/schemas/LiveCommentaryAppended'
@@ -107961,6 +108057,9 @@ x-oaiMeta:
       key: LiveInputAudioUnmuteParam
       path: <auto>
     - type: object
+      key: LiveOutputAudioFixturePlayParam
+      path: <auto>
+    - type: object
       key: LiveInstructionsAppendParam
       path: <auto>
     - type: object
@@ -108003,6 +108102,12 @@ x-oaiMeta:
       path: <auto>
     - type: object
       key: LiveInputAudioUnmuted
+      path: <auto>
+    - type: object
+      key: LiveOutputAudioFixturePlaying
+      path: <auto>
+    - type: object
+      key: LiveOutputAudioFixturePlayed
       path: <auto>
     - type: object
       key: LiveInstructionsAppended
