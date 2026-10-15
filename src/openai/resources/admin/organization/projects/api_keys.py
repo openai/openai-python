@@ -7,7 +7,7 @@ from typing_extensions import Literal
 import httpx2
 
 from ..... import _legacy_response
-from ....._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
+from ....._types import Body, Omit, Query, Headers, NotGiven, SequenceNotStr, omit, not_given
 from ....._utils import path_template, maybe_transform, async_maybe_transform
 from ....._compat import cached_property
 from ....._resource import SyncAPIResource, AsyncAPIResource
@@ -90,7 +90,8 @@ class APIKeys(SyncAPIResource):
         api_key_id: str,
         *,
         project_id: str,
-        expires_in_seconds: int,
+        expires_in_seconds: int | Omit = omit,
+        scopes: SequenceNotStr[str] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -99,8 +100,20 @@ class APIKeys(SyncAPIResource):
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ProjectAPIKey:
         """
-        Updates the expiration of an existing API key in the project, including a
-        service-account-owned key. Requires permission to write project API keys.
+        Updates the scopes and/or expiration of an existing API key in the project,
+        including a service-account-owned key. Requires permission to write project API
+        keys.
+
+        Provide at least one of `scopes` or `expires_in_seconds`. Omitted fields stay
+        unchanged; neither field accepts `null`. Both changes are saved together.
+
+        `scopes` replaces the key's scope restrictions using the same scope identifiers
+        as the dashboard. An empty array means All permissions, subject to the owner's
+        effective access; it does not mean no access. Use `["api.all.read"]` for
+        read-only access or specific scopes such as `["api.files.read"]` for restricted
+        access. This does not change user or service-account roles or grant admin
+        permissions. Scope changes follow the same authentication-cache propagation as
+        dashboard edits.
 
         Provide `expires_in_seconds` to set the expiration relative to this request.
         The value must satisfy the organization's and project's expiry policies.
@@ -110,7 +123,13 @@ class APIKeys(SyncAPIResource):
         Args:
           expires_in_seconds: Number of seconds from this request until the API key expires. Must comply with
               the organization and project expiry policies. Expired keys cannot be updated.
-              Retrying resets the expiry relative to the new request.
+              Retrying resets the expiry relative to the new request. Omit to keep the current
+              expiration.
+
+          scopes: Replace the API key scope restrictions. Omit to leave scopes unchanged. An empty
+              array removes key restrictions (All permissions), subject to the owner's
+              effective permissions. Use ["api.all.read"] for read-only access. Scopes do not
+              change the owner's roles or grant administrative permissions.
 
           extra_headers: Send extra headers
 
@@ -130,7 +149,13 @@ class APIKeys(SyncAPIResource):
                 project_id=project_id,
                 api_key_id=api_key_id,
             ),
-            body=maybe_transform({"expires_in_seconds": expires_in_seconds}, api_key_update_params.APIKeyUpdateParams),
+            body=maybe_transform(
+                {
+                    "expires_in_seconds": expires_in_seconds,
+                    "scopes": scopes,
+                },
+                api_key_update_params.APIKeyUpdateParams,
+            ),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -321,7 +346,8 @@ class AsyncAPIKeys(AsyncAPIResource):
         api_key_id: str,
         *,
         project_id: str,
-        expires_in_seconds: int,
+        expires_in_seconds: int | Omit = omit,
+        scopes: SequenceNotStr[str] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -330,8 +356,20 @@ class AsyncAPIKeys(AsyncAPIResource):
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ProjectAPIKey:
         """
-        Updates the expiration of an existing API key in the project, including a
-        service-account-owned key. Requires permission to write project API keys.
+        Updates the scopes and/or expiration of an existing API key in the project,
+        including a service-account-owned key. Requires permission to write project API
+        keys.
+
+        Provide at least one of `scopes` or `expires_in_seconds`. Omitted fields stay
+        unchanged; neither field accepts `null`. Both changes are saved together.
+
+        `scopes` replaces the key's scope restrictions using the same scope identifiers
+        as the dashboard. An empty array means All permissions, subject to the owner's
+        effective access; it does not mean no access. Use `["api.all.read"]` for
+        read-only access or specific scopes such as `["api.files.read"]` for restricted
+        access. This does not change user or service-account roles or grant admin
+        permissions. Scope changes follow the same authentication-cache propagation as
+        dashboard edits.
 
         Provide `expires_in_seconds` to set the expiration relative to this request.
         The value must satisfy the organization's and project's expiry policies.
@@ -341,7 +379,13 @@ class AsyncAPIKeys(AsyncAPIResource):
         Args:
           expires_in_seconds: Number of seconds from this request until the API key expires. Must comply with
               the organization and project expiry policies. Expired keys cannot be updated.
-              Retrying resets the expiry relative to the new request.
+              Retrying resets the expiry relative to the new request. Omit to keep the current
+              expiration.
+
+          scopes: Replace the API key scope restrictions. Omit to leave scopes unchanged. An empty
+              array removes key restrictions (All permissions), subject to the owner's
+              effective permissions. Use ["api.all.read"] for read-only access. Scopes do not
+              change the owner's roles or grant administrative permissions.
 
           extra_headers: Send extra headers
 
@@ -362,7 +406,11 @@ class AsyncAPIKeys(AsyncAPIResource):
                 api_key_id=api_key_id,
             ),
             body=await async_maybe_transform(
-                {"expires_in_seconds": expires_in_seconds}, api_key_update_params.APIKeyUpdateParams
+                {
+                    "expires_in_seconds": expires_in_seconds,
+                    "scopes": scopes,
+                },
+                api_key_update_params.APIKeyUpdateParams,
             ),
             options=make_request_options(
                 extra_headers=extra_headers,
