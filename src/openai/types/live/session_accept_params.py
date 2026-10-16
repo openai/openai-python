@@ -8,7 +8,9 @@ from typing_extensions import Literal, Required, TypeAlias, TypedDict
 from .built_in_voice import BuiltInVoice
 from .custom_voice_param import CustomVoiceParam
 from .initial_item_param import InitialItemParam
+from .decision_trigger_param import DecisionTriggerParam
 from .client_delegation_param import ClientDelegationParam
+from .decisions_delegation_config_param import DecisionsDelegationConfigParam
 from .responses_delegation_config_param import ResponsesDelegationConfigParam
 
 __all__ = [
@@ -19,6 +21,7 @@ __all__ = [
     "SessionAudioOutputVoice",
     "SessionDelegation",
     "SessionDelegationResponses",
+    "SessionDelegationDecisions",
 ]
 
 
@@ -75,7 +78,13 @@ class SessionDelegationResponses(TypedDict, total=False):
     """
 
 
-SessionDelegation: TypeAlias = Union[ClientDelegationParam, SessionDelegationResponses]
+class SessionDelegationDecisions(TypedDict, total=False):
+    decisions: Required[DecisionsDelegationConfigParam]
+
+    type: Required[Literal["decisions"]]
+
+
+SessionDelegation: TypeAlias = Union[ClientDelegationParam, SessionDelegationResponses, SessionDelegationDecisions]
 
 
 class Session(TypedDict, total=False):
@@ -99,8 +108,8 @@ class Session(TypedDict, total=False):
     delegation: Optional[SessionDelegation]
     """Who handles tasks delegated by the Live model.
 
-    Omitted or null selects your application; use `responses` to let the API manage
-    a Responses backend.
+    Omitted or null selects your application; use `responses` or `decisions` to
+    delegate to the corresponding API.
     """
 
     input: Iterable[InitialItemParam]
@@ -125,4 +134,12 @@ class Session(TypedDict, total=False):
     """Whether to store the session for later forking and recording download.
 
     Defaults to false for new sessions.
+    """
+
+    triggers: Iterable[DecisionTriggerParam]
+    """At most one Decisions trigger per transcript event type.
+
+    Triggers run independently of delegation. On update, omit triggers to keep the
+    current configuration, send a list to replace it, or send an empty list to
+    disable triggers.
     """

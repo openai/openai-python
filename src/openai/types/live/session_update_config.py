@@ -1,14 +1,16 @@
 # File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
-from typing import Union, Optional
+from typing import List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
 
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
+from .decision_trigger import DecisionTrigger
 from .client_delegation import ClientDelegation
+from .decisions_delegation_update_config import DecisionsDelegationUpdateConfig
 from .responses_delegation_update_config import ResponsesDelegationUpdateConfig
 
-__all__ = ["SessionUpdateConfig", "Delegation", "DelegationResponses"]
+__all__ = ["SessionUpdateConfig", "Delegation", "DelegationResponses", "DelegationDecisions"]
 
 
 class DelegationResponses(BaseModel):
@@ -29,15 +31,20 @@ class DelegationResponses(BaseModel):
     """
 
 
+class DelegationDecisions(BaseModel):
+    type: Literal["decisions"]
+
+    decisions: Optional[DecisionsDelegationUpdateConfig] = None
+
+
 Delegation: TypeAlias = Annotated[
-    Union[ClientDelegation, DelegationResponses, None], PropertyInfo(discriminator="type")
+    Union[ClientDelegation, DelegationResponses, DelegationDecisions, None], PropertyInfo(discriminator="type")
 ]
 
 
 class SessionUpdateConfig(BaseModel):
-    """Changes to an active Live session.
-
-    Only delegation backend settings can be updated after startup.
+    """
+    Changes to an active Live session's delegation settings and transcript triggers.
     """
 
     delegation: Optional[Delegation] = None
@@ -45,4 +52,12 @@ class SessionUpdateConfig(BaseModel):
 
     The delegation type must match the current session; omitted settings retain
     their values.
+    """
+
+    triggers: Optional[List[DecisionTrigger]] = None
+    """At most one Decisions trigger per transcript event type.
+
+    Triggers run independently of delegation. On update, omit triggers to keep the
+    current configuration, send a list to replace it, or send an empty list to
+    disable triggers.
     """
