@@ -16,6 +16,7 @@ from ..._utils import is_given, path_template, maybe_transform, strip_not_given,
 from ..._compat import cached_property
 from ..._models import FinalRequestOptions, construct_type_unchecked
 from ..._resource import SyncAPIResource, AsyncAPIResource
+from ...types.live import decision_item_create_event_param
 from ..._exceptions import OpenAIError, WebSocketConnectionClosedError
 from ..._send_queue import SendQueue
 from ..._base_client import _merge_mappings
@@ -110,6 +111,7 @@ class AsyncForksConnection(AsyncWebSocketConnectionBase):
     """Represents a live WebSocket connection to the Forks API"""
 
     session: AsyncForksSessionResource
+    decision: AsyncForksDecisionResource
     response: AsyncForksResponseResource
 
     _connection: AsyncWebSocketConnection
@@ -142,6 +144,7 @@ class AsyncForksConnection(AsyncWebSocketConnectionBase):
         self._event_handler_registry = EventHandlerRegistry(use_lock=False)
 
         self.session = AsyncForksSessionResource(self)
+        self.decision = AsyncForksDecisionResource(self)
         self.response = AsyncForksResponseResource(self)
 
     async def __aiter__(self) -> AsyncIterator[ForkServerEvent]:
@@ -510,6 +513,7 @@ class ForksConnection(WebSocketConnectionBase):
     """Represents a live WebSocket connection to the Forks API"""
 
     session: ForksSessionResource
+    decision: ForksDecisionResource
     response: ForksResponseResource
 
     _connection: WebSocketConnection
@@ -542,6 +546,7 @@ class ForksConnection(WebSocketConnectionBase):
         self._event_handler_registry = EventHandlerRegistry(use_lock=True)
 
         self.session = ForksSessionResource(self)
+        self.decision = ForksDecisionResource(self)
         self.response = ForksResponseResource(self)
 
     def __iter__(self) -> Iterator[ForkServerEvent]:
@@ -949,7 +954,8 @@ class ForksSessionResource(BaseForksConnectionResource):
         )
 
     def update(self, *, session: SessionUpdateConfigParam, event_id: Optional[str] | Omit = omit) -> None:
-        """Update the delegation settings of an active Live session.
+        """
+        Update the delegation settings or transcript triggers of an active Live session.
 
         The server acknowledges accepted changes with `session.updated`.
         """
@@ -1081,6 +1087,21 @@ class ForksSessionOutputAudioFixtureResource(BaseForksConnectionResource):
         )
 
 
+class ForksDecisionResource(BaseForksConnectionResource):
+    @cached_property
+    def item(self) -> ForksDecisionItemResource:
+        return ForksDecisionItemResource(self._connection)
+
+    def create(self, *, event_id: str) -> None:
+        """
+        Evaluate the configured questions using the current conversation and Decision
+        inputs.
+
+        Reusing an event_id is rejected for the lifetime of the session.
+        """
+        self._connection.send({"type": "decision.create", "event_id": event_id})
+
+
 class ForksResponseResource(BaseForksConnectionResource):
     @cached_property
     def item(self) -> ForksResponseItemResource:
@@ -1095,6 +1116,30 @@ class ForksResponseResource(BaseForksConnectionResource):
         """
         self._connection.send(
             cast(ForkClientEventParam, strip_not_given({"type": "response.create", "event_id": event_id}))
+        )
+
+
+class ForksDecisionItemResource(BaseForksConnectionResource):
+    def delete(self, *, item_id: str, event_id: Optional[str] | Omit = omit) -> None:
+        """
+        Delete an input item from future decisions without starting an evaluation or changing Live voice context.
+        """
+        self._connection.send(
+            cast(
+                ForkClientEventParam,
+                strip_not_given({"type": "decision.item.delete", "item_id": item_id, "event_id": event_id}),
+            )
+        )
+
+    def create(self, *, item: decision_item_create_event_param.Item, event_id: Optional[str] | Omit = omit) -> None:
+        """
+        Append an input item for future decisions without starting an evaluation or changing Live voice context.
+        """
+        self._connection.send(
+            cast(
+                ForkClientEventParam,
+                strip_not_given({"type": "decision.item.create", "item": item, "event_id": event_id}),
+            )
         )
 
 
@@ -1161,7 +1206,8 @@ class AsyncForksSessionResource(BaseAsyncForksConnectionResource):
         )
 
     async def update(self, *, session: SessionUpdateConfigParam, event_id: Optional[str] | Omit = omit) -> None:
-        """Update the delegation settings of an active Live session.
+        """
+        Update the delegation settings or transcript triggers of an active Live session.
 
         The server acknowledges accepted changes with `session.updated`.
         """
@@ -1299,6 +1345,21 @@ class AsyncForksSessionOutputAudioFixtureResource(BaseAsyncForksConnectionResour
         )
 
 
+class AsyncForksDecisionResource(BaseAsyncForksConnectionResource):
+    @cached_property
+    def item(self) -> AsyncForksDecisionItemResource:
+        return AsyncForksDecisionItemResource(self._connection)
+
+    async def create(self, *, event_id: str) -> None:
+        """
+        Evaluate the configured questions using the current conversation and Decision
+        inputs.
+
+        Reusing an event_id is rejected for the lifetime of the session.
+        """
+        await self._connection.send({"type": "decision.create", "event_id": event_id})
+
+
 class AsyncForksResponseResource(BaseAsyncForksConnectionResource):
     @cached_property
     def item(self) -> AsyncForksResponseItemResource:
@@ -1313,6 +1374,32 @@ class AsyncForksResponseResource(BaseAsyncForksConnectionResource):
         """
         await self._connection.send(
             cast(ForkClientEventParam, strip_not_given({"type": "response.create", "event_id": event_id}))
+        )
+
+
+class AsyncForksDecisionItemResource(BaseAsyncForksConnectionResource):
+    async def delete(self, *, item_id: str, event_id: Optional[str] | Omit = omit) -> None:
+        """
+        Delete an input item from future decisions without starting an evaluation or changing Live voice context.
+        """
+        await self._connection.send(
+            cast(
+                ForkClientEventParam,
+                strip_not_given({"type": "decision.item.delete", "item_id": item_id, "event_id": event_id}),
+            )
+        )
+
+    async def create(
+        self, *, item: decision_item_create_event_param.Item, event_id: Optional[str] | Omit = omit
+    ) -> None:
+        """
+        Append an input item for future decisions without starting an evaluation or changing Live voice context.
+        """
+        await self._connection.send(
+            cast(
+                ForkClientEventParam,
+                strip_not_given({"type": "decision.item.create", "item": item, "event_id": event_id}),
+            )
         )
 
 

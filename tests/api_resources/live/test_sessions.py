@@ -60,6 +60,21 @@ class TestSessions:
                 ],
                 "instructions": "instructions",
                 "store": True,
+                "triggers": [
+                    {
+                        "decisions": {
+                            "questions": [
+                                {
+                                    "instructions": "instructions",
+                                    "type": "predicate",
+                                    "name": "name",
+                                }
+                            ]
+                        },
+                        "event_type": "session.input_transcript.delta",
+                        "type": "decisions",
+                    }
+                ],
             },
         )
         assert session is None
@@ -417,6 +432,21 @@ class TestAsyncSessions:
                 ],
                 "instructions": "instructions",
                 "store": True,
+                "triggers": [
+                    {
+                        "decisions": {
+                            "questions": [
+                                {
+                                    "instructions": "instructions",
+                                    "type": "predicate",
+                                    "name": "name",
+                                }
+                            ]
+                        },
+                        "event_type": "session.input_transcript.delta",
+                        "type": "decisions",
+                    }
+                ],
             },
         )
         assert session is None

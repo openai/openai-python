@@ -16,6 +16,7 @@ from ..._utils import is_given, path_template, maybe_transform, strip_not_given,
 from ..._compat import cached_property
 from ..._models import FinalRequestOptions, construct_type_unchecked
 from ..._resource import SyncAPIResource, AsyncAPIResource
+from ...types.live import decision_item_create_event_param
 from ..._exceptions import OpenAIError, WebSocketConnectionClosedError
 from ..._send_queue import SendQueue
 from ..._base_client import _merge_mappings
@@ -113,6 +114,7 @@ class AsyncSidebandConnection(AsyncWebSocketConnectionBase):
     """Represents a live WebSocket connection to the Sideband API"""
 
     session: AsyncSidebandSessionResource
+    decision: AsyncSidebandDecisionResource
     response: AsyncSidebandResponseResource
 
     _connection: AsyncWebSocketConnection
@@ -145,6 +147,7 @@ class AsyncSidebandConnection(AsyncWebSocketConnectionBase):
         self._event_handler_registry = EventHandlerRegistry(use_lock=False)
 
         self.session = AsyncSidebandSessionResource(self)
+        self.decision = AsyncSidebandDecisionResource(self)
         self.response = AsyncSidebandResponseResource(self)
 
     async def __aiter__(self) -> AsyncIterator[ConnectServerEvent]:
@@ -525,6 +528,7 @@ class SidebandConnection(WebSocketConnectionBase):
     """Represents a live WebSocket connection to the Sideband API"""
 
     session: SidebandSessionResource
+    decision: SidebandDecisionResource
     response: SidebandResponseResource
 
     _connection: WebSocketConnection
@@ -557,6 +561,7 @@ class SidebandConnection(WebSocketConnectionBase):
         self._event_handler_registry = EventHandlerRegistry(use_lock=True)
 
         self.session = SidebandSessionResource(self)
+        self.decision = SidebandDecisionResource(self)
         self.response = SidebandResponseResource(self)
 
     def __iter__(self) -> Iterator[ConnectServerEvent]:
@@ -963,7 +968,8 @@ class SidebandSessionResource(BaseSidebandConnectionResource):
         )
 
     def update(self, *, session: SessionUpdateConfigParam, event_id: Optional[str] | Omit = omit) -> None:
-        """Update the delegation settings of an active Live session.
+        """
+        Update the delegation settings or transcript triggers of an active Live session.
 
         The server acknowledges accepted changes with `session.updated`.
         """
@@ -1083,6 +1089,45 @@ class SidebandSessionOutputAudioFixtureResource(BaseSidebandConnectionResource):
         )
 
 
+class SidebandDecisionResource(BaseSidebandConnectionResource):
+    @cached_property
+    def item(self) -> SidebandDecisionItemResource:
+        return SidebandDecisionItemResource(self._connection)
+
+    def create(self, *, event_id: str) -> None:
+        """
+        Evaluate the configured questions using the current conversation and Decision
+        inputs.
+
+        Reusing an event_id is rejected for the lifetime of the session.
+        """
+        self._connection.send({"type": "decision.create", "event_id": event_id})
+
+
+class SidebandDecisionItemResource(BaseSidebandConnectionResource):
+    def delete(self, *, item_id: str, event_id: Optional[str] | Omit = omit) -> None:
+        """
+        Delete an input item from future decisions without starting an evaluation or changing Live voice context.
+        """
+        self._connection.send(
+            cast(
+                ConnectClientEventParam,
+                strip_not_given({"type": "decision.item.delete", "item_id": item_id, "event_id": event_id}),
+            )
+        )
+
+    def create(self, *, item: decision_item_create_event_param.Item, event_id: Optional[str] | Omit = omit) -> None:
+        """
+        Append an input item for future decisions without starting an evaluation or changing Live voice context.
+        """
+        self._connection.send(
+            cast(
+                ConnectClientEventParam,
+                strip_not_given({"type": "decision.item.create", "item": item, "event_id": event_id}),
+            )
+        )
+
+
 class SidebandResponseResource(BaseSidebandConnectionResource):
     @cached_property
     def item(self) -> SidebandResponseItemResource:
@@ -1150,7 +1195,8 @@ class AsyncSidebandSessionResource(BaseAsyncSidebandConnectionResource):
         )
 
     async def update(self, *, session: SessionUpdateConfigParam, event_id: Optional[str] | Omit = omit) -> None:
-        """Update the delegation settings of an active Live session.
+        """
+        Update the delegation settings or transcript triggers of an active Live session.
 
         The server acknowledges accepted changes with `session.updated`.
         """
@@ -1272,6 +1318,47 @@ class AsyncSidebandSessionOutputAudioFixtureResource(BaseAsyncSidebandConnection
             cast(
                 ConnectClientEventParam,
                 strip_not_given({"type": "session.output_audio.fixture.play", "audio": audio, "event_id": event_id}),
+            )
+        )
+
+
+class AsyncSidebandDecisionResource(BaseAsyncSidebandConnectionResource):
+    @cached_property
+    def item(self) -> AsyncSidebandDecisionItemResource:
+        return AsyncSidebandDecisionItemResource(self._connection)
+
+    async def create(self, *, event_id: str) -> None:
+        """
+        Evaluate the configured questions using the current conversation and Decision
+        inputs.
+
+        Reusing an event_id is rejected for the lifetime of the session.
+        """
+        await self._connection.send({"type": "decision.create", "event_id": event_id})
+
+
+class AsyncSidebandDecisionItemResource(BaseAsyncSidebandConnectionResource):
+    async def delete(self, *, item_id: str, event_id: Optional[str] | Omit = omit) -> None:
+        """
+        Delete an input item from future decisions without starting an evaluation or changing Live voice context.
+        """
+        await self._connection.send(
+            cast(
+                ConnectClientEventParam,
+                strip_not_given({"type": "decision.item.delete", "item_id": item_id, "event_id": event_id}),
+            )
+        )
+
+    async def create(
+        self, *, item: decision_item_create_event_param.Item, event_id: Optional[str] | Omit = omit
+    ) -> None:
+        """
+        Append an input item for future decisions without starting an evaluation or changing Live voice context.
+        """
+        await self._connection.send(
+            cast(
+                ConnectClientEventParam,
+                strip_not_given({"type": "decision.item.create", "item": item, "event_id": event_id}),
             )
         )
 

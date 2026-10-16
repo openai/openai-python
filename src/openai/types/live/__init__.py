@@ -14,8 +14,10 @@ from .client_config import ClientConfig as ClientConfig
 from .function_tool import FunctionTool as FunctionTool
 from .session_usage import SessionUsage as SessionUsage
 from .built_in_voice import BuiltInVoice as BuiltInVoice
+from .decision_event import DecisionEvent as DecisionEvent
 from .response_event import ResponseEvent as ResponseEvent
 from .session_config import SessionConfig as SessionConfig
+from .decision_trigger import DecisionTrigger as DecisionTrigger
 from .session_resource import SessionResource as SessionResource
 from .client_delegation import ClientDelegation as ClientDelegation
 from .fork_client_event import ForkClientEvent as ForkClientEvent
@@ -39,6 +41,7 @@ from .session_closed_event import SessionClosedEvent as SessionClosedEvent
 from .session_config_param import SessionConfigParam as SessionConfigParam
 from .session_refer_params import SessionReferParams as SessionReferParams
 from .session_update_event import SessionUpdateEvent as SessionUpdateEvent
+from .decision_create_event import DecisionCreateEvent as DecisionCreateEvent
 from .response_create_event import ResponseCreateEvent as ResponseCreateEvent
 from .server_event_selector import ServerEventSelector as ServerEventSelector
 from .session_accept_params import SessionAcceptParams as SessionAcceptParams
@@ -48,6 +51,7 @@ from .session_started_event import SessionStartedEvent as SessionStartedEvent
 from .session_update_config import SessionUpdateConfig as SessionUpdateConfig
 from .session_updated_event import SessionUpdatedEvent as SessionUpdatedEvent
 from .thinking_append_event import ThinkingAppendEvent as ThinkingAppendEvent
+from .decision_trigger_param import DecisionTriggerParam as DecisionTriggerParam
 from .input_audio_mute_event import InputAudioMuteEvent as InputAudioMuteEvent
 from .client_delegation_param import ClientDelegationParam as ClientDelegationParam
 from .commentary_append_event import CommentaryAppendEvent as CommentaryAppendEvent
@@ -68,9 +72,15 @@ from .instructions_append_event import InstructionsAppendEvent as InstructionsAp
 from .session_close_event_param import SessionCloseEventParam as SessionCloseEventParam
 from .session_start_event_param import SessionStartEventParam as SessionStartEventParam
 from .connect_client_event_param import ConnectClientEventParam as ConnectClientEventParam
+from .decision_item_create_event import DecisionItemCreateEvent as DecisionItemCreateEvent
+from .decision_item_delete_event import DecisionItemDeleteEvent as DecisionItemDeleteEvent
 from .media_session_config_param import MediaSessionConfigParam as MediaSessionConfigParam
 from .response_item_create_event import ResponseItemCreateEvent as ResponseItemCreateEvent
 from .session_update_event_param import SessionUpdateEventParam as SessionUpdateEventParam
+from .decision_create_event_param import DecisionCreateEventParam as DecisionCreateEventParam
+from .decision_item_created_event import DecisionItemCreatedEvent as DecisionItemCreatedEvent
+from .decision_item_deleted_event import DecisionItemDeletedEvent as DecisionItemDeletedEvent
+from .decisions_delegation_config import DecisionsDelegationConfig as DecisionsDelegationConfig
 from .instructions_appended_event import InstructionsAppendedEvent as InstructionsAppendedEvent
 from .response_create_event_param import ResponseCreateEventParam as ResponseCreateEventParam
 from .responses_delegation_config import ResponsesDelegationConfig as ResponsesDelegationConfig
@@ -88,12 +98,19 @@ from .input_audio_unmute_event_param import InputAudioUnmuteEventParam as InputA
 from .instructions_append_event_param import InstructionsAppendEventParam as InstructionsAppendEventParam
 from .media_session_fork_config_param import MediaSessionForkConfigParam as MediaSessionForkConfigParam
 from .output_audio_fixture_play_event import OutputAudioFixturePlayEvent as OutputAudioFixturePlayEvent
+from .decision_item_create_event_param import DecisionItemCreateEventParam as DecisionItemCreateEventParam
+from .decision_item_delete_event_param import DecisionItemDeleteEventParam as DecisionItemDeleteEventParam
 from .response_item_create_event_param import ResponseItemCreateEventParam as ResponseItemCreateEventParam
+from .decisions_delegation_config_param import DecisionsDelegationConfigParam as DecisionsDelegationConfigParam
 from .output_audio_fixture_played_event import OutputAudioFixturePlayedEvent as OutputAudioFixturePlayedEvent
 from .responses_delegation_config_param import ResponsesDelegationConfigParam as ResponsesDelegationConfigParam
+from .decisions_delegation_update_config import DecisionsDelegationUpdateConfig as DecisionsDelegationUpdateConfig
 from .output_audio_fixture_playing_event import OutputAudioFixturePlayingEvent as OutputAudioFixturePlayingEvent
 from .responses_delegation_update_config import ResponsesDelegationUpdateConfig as ResponsesDelegationUpdateConfig
 from .output_audio_fixture_play_event_param import OutputAudioFixturePlayEventParam as OutputAudioFixturePlayEventParam
+from .decisions_delegation_update_config_param import (
+    DecisionsDelegationUpdateConfigParam as DecisionsDelegationUpdateConfigParam,
+)
 from .responses_delegation_update_config_param import (
     ResponsesDelegationUpdateConfigParam as ResponsesDelegationUpdateConfigParam,
 )
