@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
+# Native WebSocket options are maintained by the SDK.
 
 from __future__ import annotations
 

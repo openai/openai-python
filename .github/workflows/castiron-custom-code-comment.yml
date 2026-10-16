@@ -27,20 +27,22 @@ jobs:
       number: ${{ steps.report.outputs.number }}
       artifact-id: ${{ steps.artifact.outputs.artifact-id }}
       artifact-run-attempt: ${{ github.run_attempt }}
+      target-branch: ${{ steps.budget.outputs.target_branch }}
+      policy-sha: ${{ steps.budget.outputs.policy_sha }}
       base-sha: ${{ steps.budget.outputs.base_sha }}
       head-sha: ${{ steps.budget.outputs.head_sha }}
       isolation: ${{ steps.budget.outputs.isolation }}
       budget: ${{ steps.budget.outputs.budget }}
     steps:
-      # Selecting main here pins both the executable checker and PR policy base.
-      # Subsequent steps use this checkout's SHA even if main advances.
+      # Selecting main here pins executable checker code and budget policy.
+      # The reporter separately captures the live main/next target baseline.
       - name: Check out the trusted reporter
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: main
           persist-credentials: false
 
-      - name: Compute from the selected main and pull request Git objects
+      - name: Compute from trusted main and target branch Git objects
         id: report
         if: github.event.workflow_run.event == 'pull_request'
         env:
@@ -133,6 +135,8 @@ jobs:
       - name: Publish exact-head statuses after checking freshness
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
+          TARGET_BRANCH: ${{ needs.compute.outputs.target-branch }}
+          POLICY_SHA: ${{ needs.compute.outputs.policy-sha }}
           BASE_SHA: ${{ needs.compute.outputs.base-sha }}
           HEAD_SHA: ${{ needs.compute.outputs.head-sha }}
           ISOLATION_RESULT: ${{ needs.compute.outputs.isolation }}
@@ -148,7 +152,10 @@ jobs:
             const head = run.head_sha;
             if (!/^[0-9a-f]{40}$/.test(head)) throw new Error('Invalid candidate SHA');
             const base = process.env.BASE_SHA;
-            let fresh = /^[0-9a-f]{40}$/.test(base) && head === process.env.HEAD_SHA;
+            const policy = process.env.POLICY_SHA;
+            const evaluatedBranch = process.env.TARGET_BRANCH;
+            let branch, number;
+            let fresh = /^[0-9a-f]{40}$/.test(base) && /^[0-9a-f]{40}$/.test(policy) && head === process.env.HEAD_SHA;
             if (run.event === 'pull_request') {
               let pulls = run.pull_requests.length ? run.pull_requests : await github.paginate(
                 github.rest.repos.listPullRequestsAssociatedWithCommit, {...context.repo, commit_sha: head});
@@ -159,15 +166,20 @@ jobs:
               for (const pull of pulls) {
                 const {data: pr} = await github.rest.pulls.get({...context.repo, pull_number: pull.number});
                 if (pr.state === 'open' && pr.head.sha === head &&
-                    pr.base.ref === 'main' && pr.base.repo.full_name === `${context.repo.owner}/${context.repo.repo}`) current.push(pr);
+                    ['main', 'next'].includes(pr.base.ref) && pr.base.repo.full_name === `${context.repo.owner}/${context.repo.repo}`) current.push(pr);
               }
               if (current.length !== 1) return;
-            } else if (run.event !== 'merge_group' || !run.head_branch.startsWith('gh-readonly-queue/main/')) {
-              return;
+              branch = current[0].base.ref;
+              number = current[0].number;
             } else {
-              const {data: main} = await github.rest.git.getRef({...context.repo, ref: 'heads/main'});
-              fresh = fresh && base === main.object.sha;
+              const match = run.head_branch.match(/^gh-readonly-queue\/(main|next)\//);
+              if (run.event !== 'merge_group' || !match) return;
+              branch = match[1];
             }
+            // These required contexts belong to main. Next reports are advisory:
+            // GitHub does not rebuild its queue when main's policy changes.
+            if (branch !== 'main') return;
+            fresh = fresh && evaluatedBranch === branch;
             const url = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
             // Concurrency serializes writes, but does not order runs or retries.
             // Keep an older evaluation from overwriting a newer result for this head.
@@ -183,13 +195,42 @@ jobs:
               const different = previous.findIndex((value, index) => value !== order[index]);
               if (different !== -1 && previous[different] > order[different]) return;
             }
+            // Recheck after pagination, immediately before attaching statuses.
+            if (run.event === 'pull_request') {
+              const {data: pr} = await github.rest.pulls.get({...context.repo, pull_number: number});
+              if (pr.state !== 'open' || pr.head.sha !== head || pr.base.ref !== branch ||
+                  pr.base.repo.full_name !== `${context.repo.owner}/${context.repo.repo}`) return;
+            } else {
+              // A removed/rebuilt queue entry must not receive a passing result.
+              let cursor = null, member = false;
+              do {
+                const response = await github.graphql(`query($owner:String!,$name:String!,$branch:String!,$cursor:String) {
+                  repository(owner:$owner,name:$name) { mergeQueue(branch:$branch) {
+                    entries(first:100,after:$cursor) {
+                      nodes { headCommit { oid } }
+                      pageInfo { hasNextPage endCursor }
+                    }
+                  } }
+                }`, {owner: context.repo.owner, name: context.repo.repo, branch, cursor});
+                const entries = response.repository.mergeQueue?.entries;
+                if (!entries) break;
+                member = entries.nodes.some(entry => entry.headCommit?.oid === head);
+                if (member || !entries.pageInfo.hasNextPage) break;
+                const next = entries.pageInfo.endCursor;
+                if (!next || next === cursor) throw new Error('Invalid queue pagination');
+                cursor = next;
+              } while (true);
+              const {data: target} = await github.rest.git.getRef({...context.repo, ref: `heads/${branch}`});
+              fresh = fresh && base === target.object.sha && policy === target.object.sha;
+              fresh = fresh && member;
+            }
             for (const [name, result] of [
               ['Castiron / budget-only change', process.env.ISOLATION_RESULT],
               ['Castiron / custom-code budget', process.env.BUDGET_RESULT],
             ]) {
               const state = fresh && result === 'success' ? 'success' : 'failure';
               const description = !fresh ? 'Evaluation unavailable or queue base changed; inspect the trusted run and rerun.'
-                : `${state === 'success' ? 'Passed' : 'Failed'} against main ${base.slice(0, 12)}. See the trusted run summary.`;
+                : `${state === 'success' ? 'Passed' : 'Failed'}: ${branch} ${base.slice(0, 12)}, policy ${policy.slice(0, 12)}.`;
               await github.rest.repos.createCommitStatus({...context.repo, sha: head, context: name,
                 state, description: `${description} ${marker}`, target_url: url});
             }

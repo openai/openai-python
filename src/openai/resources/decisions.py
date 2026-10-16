@@ -46,6 +46,8 @@ class Decisions(SyncAPIResource):
         input: Union[str, Iterable[DecisionInputMessageParam]],
         model: str,
         questions: Iterable[decision_create_params.Question],
+        prompt_cache_key: Optional[str] | Omit = omit,
+        prompt_cache_options: Optional[decision_create_params.PromptCacheOptions] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -69,6 +71,18 @@ class Decisions(SyncAPIResource):
           questions: Ask 1–200 questions about the input. Each question can be a predicate, choice,
               or score. Answers come back in the same order.
 
+          prompt_cache_key: Partition prompt cache reuse by caller-provided key.
+
+          prompt_cache_options: Options for prompt caching. Supported for `gpt-5.6` and later models. By
+              default, OpenAI automatically chooses one implicit cache breakpoint. You can add
+              explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each
+              request can write up to four breakpoints. For cache matching, OpenAI considers
+              up to the latest 80 breakpoints in the conversation, without a content-block
+              lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The
+              `ttl` defaults to `30m`, which is currently the only supported value. See the
+              [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching)
+              for current details.
+
           safety_identifier: Opaque caller-provided end-user identifier, scoped by the verified org. Match
               Responses' limit; this is never the authenticated user identity.
 
@@ -87,6 +101,8 @@ class Decisions(SyncAPIResource):
                     "model": model,
                     "input": input,
                     "questions": questions,
+                    "prompt_cache_key": prompt_cache_key,
+                    "prompt_cache_options": prompt_cache_options,
                     "safety_identifier": safety_identifier,
                 },
                 decision_create_params.DecisionCreateParams,
@@ -128,6 +144,8 @@ class AsyncDecisions(AsyncAPIResource):
         input: Union[str, Iterable[DecisionInputMessageParam]],
         model: str,
         questions: Iterable[decision_create_params.Question],
+        prompt_cache_key: Optional[str] | Omit = omit,
+        prompt_cache_options: Optional[decision_create_params.PromptCacheOptions] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -151,6 +169,18 @@ class AsyncDecisions(AsyncAPIResource):
           questions: Ask 1–200 questions about the input. Each question can be a predicate, choice,
               or score. Answers come back in the same order.
 
+          prompt_cache_key: Partition prompt cache reuse by caller-provided key.
+
+          prompt_cache_options: Options for prompt caching. Supported for `gpt-5.6` and later models. By
+              default, OpenAI automatically chooses one implicit cache breakpoint. You can add
+              explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each
+              request can write up to four breakpoints. For cache matching, OpenAI considers
+              up to the latest 80 breakpoints in the conversation, without a content-block
+              lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The
+              `ttl` defaults to `30m`, which is currently the only supported value. See the
+              [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching)
+              for current details.
+
           safety_identifier: Opaque caller-provided end-user identifier, scoped by the verified org. Match
               Responses' limit; this is never the authenticated user identity.
 
@@ -169,6 +199,8 @@ class AsyncDecisions(AsyncAPIResource):
                     "model": model,
                     "input": input,
                     "questions": questions,
+                    "prompt_cache_key": prompt_cache_key,
+                    "prompt_cache_options": prompt_cache_options,
                     "safety_identifier": safety_identifier,
                 },
                 decision_create_params.DecisionCreateParams,

@@ -43,6 +43,11 @@ class TestDecisions:
                     "name": "name",
                 }
             ],
+            prompt_cache_key="prompt_cache_key",
+            prompt_cache_options={
+                "mode": "implicit",
+                "ttl": "30m",
+            },
             safety_identifier="safety_identifier",
         )
         assert_matches_type(Decision, decision, path=["response"])
@@ -117,6 +122,11 @@ class TestAsyncDecisions:
                     "name": "name",
                 }
             ],
+            prompt_cache_key="prompt_cache_key",
+            prompt_cache_options={
+                "mode": "implicit",
+                "ttl": "30m",
+            },
             safety_identifier="safety_identifier",
         )
         assert_matches_type(Decision, decision, path=["response"])

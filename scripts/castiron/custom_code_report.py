@@ -33,6 +33,7 @@ RUN_MARKER = re.compile(r"<!-- castiron:run:v1:(\d+):(\d+) -->")
 SHA = re.compile(r"[0-9a-f]{40}\Z")
 HASH = re.compile(r"[0-9a-f]{64}\Z")
 REPOSITORY = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\Z")
+TARGET_BRANCHES = ("main", "next")
 EXCLUDED = (b".github/actions/", b".github/workflows/")
 PUBLIC_BLOCKED_PATHS = {
     b".castiron",
@@ -101,14 +102,14 @@ def included(path: bytes) -> bool:
     return not path.startswith(EXCLUDED)
 
 
-def tree_entries(repo: Path, commit: str) -> dict[bytes, Entry]:
+def tree_entries(repo: Path, commit: str, *, include_workflows: bool = False) -> dict[bytes, Entry]:
     result: dict[bytes, Entry] = {}
     for record in git(repo, "ls-tree", "-r", "-z", require_sha(commit)).split(b"\0"):
         if not record:
             continue
         metadata, path = record.split(b"\t", 1)
         mode, kind, oid = metadata.split(b" ")
-        if not included(path):
+        if not include_workflows and not included(path):
             continue
         if kind != b"blob" or mode not in {b"100644", b"100755", b"120000"}:
             raise ReportError(f"unsupported Git entry: {path!r}")
@@ -419,6 +420,7 @@ def prepare_public_snapshot(
     git(destination, "add", "--", ".castiron.stats.yml")
     return {
         "commit": snapshot,
+        "base_commit": base_snapshot,
         "branch": codegen_branch,
         "previous": previous,
         "hash": baseline["hash"],
@@ -604,7 +606,12 @@ def render_report(
 ) -> str:
     head = require_sha(report["head_sha"])
     lines = [MARKER, "", "## Castiron custom code", ""]
-    lines.extend([f"Evaluated main: `{require_sha(report['target_base_sha'])}`.", ""])
+    branch = report.get("target_branch", "main")
+    if branch not in TARGET_BRANCHES:
+        raise ReportError("unsupported report target")
+    lines.extend([f"Evaluated {branch}: `{require_sha(report['target_base_sha'])}`.", ""])
+    if "policy_sha" in report:
+        lines.extend([f"Trusted main policy: `{require_sha(report['policy_sha'])}`.", ""])
     if report.get("status") != "ok":
         reason = html.escape(str(report.get("error", "Report could not be computed")))
         lines.extend([f"⚠️ Report unavailable for `{head[:12]}`.", "", reason])
@@ -786,6 +793,25 @@ def associated_pulls(repository: str, run: dict[str, Any]) -> list[dict[str, Any
     raise ReportError("too many pull requests for source branch")
 
 
+def current_pull(repository: str, run: dict[str, Any]) -> tuple[int, str] | None:
+    """Resolve one live supported target; association metadata is discovery only."""
+    current: list[tuple[int, str]] = []
+    for number in sorted({int(pr["number"]) for pr in associated_pulls(repository, run)}):
+        if number <= 0:
+            raise ReportError("invalid associated pull request")
+        pull = api("GET", f"repos/{repository}/pulls/{number}")
+        if (
+            pull["state"] == "open"
+            and pull["head"]["sha"] == run["head_sha"]
+            and pull["base"]["repo"]["full_name"] == repository
+            and pull["base"]["ref"] in TARGET_BRANCHES
+        ):
+            current.append((number, pull["base"]["ref"]))
+    if len(current) > 1:
+        raise ReportError("workflow run has multiple current pull requests")
+    return current[0] if current else None
+
+
 def publish_comment(
     report: dict[str, Any],
     repository: str,
@@ -803,7 +829,8 @@ def publish_comment(
     if (
         pull["state"] != "open"
         or pull["head"]["sha"] != report["head_sha"]
-        or pull["base"]["ref"] != "main"
+        or pull["base"]["ref"] != report.get("target_branch", "main")
+        or pull["base"]["ref"] not in TARGET_BRANCHES
         or pull["base"]["repo"]["full_name"] != repository
     ):
         return "Skipped stale report"
@@ -851,7 +878,8 @@ def publish_comment(
     if (
         pull["state"] != "open"
         or pull["head"]["sha"] != report["head_sha"]
-        or pull["base"]["ref"] != "main"
+        or pull["base"]["ref"] != report.get("target_branch", "main")
+        or pull["base"]["ref"] not in TARGET_BRANCHES
         or pull["base"]["repo"]["full_name"] != repository
     ):
         return "Skipped stale report"
@@ -871,6 +899,8 @@ def write_report(
     fetch: bool,
     require_head_hash: bool,
     public: bool,
+    target_branch: str = "main",
+    policy_sha: str | None = None,
 ) -> dict[str, Any]:
     out.mkdir(parents=True, exist_ok=True)
     try:
@@ -886,6 +916,9 @@ def write_report(
             "error": str(exc),
         }
         patch = b""
+    report["target_branch"] = target_branch
+    if policy_sha is not None:
+        report["policy_sha"] = require_sha(policy_sha)
     (out / "report.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
     (out / "custom-code.patch").write_bytes(patch)
     summary = render_report(report)
@@ -898,9 +931,9 @@ def trusted_report(
     repo: Path, repository: str, run_id: int, run_attempt: int, out: Path, *, base: str
 ) -> None:
     """Recompute from GitHub-associated Git objects, never from PR-produced artifacts."""
-    # The caller pins this to the trusted checkout selected from main. PR base
-    # metadata may lag behind main, and main may move again during computation.
-    base = require_sha(base)
+    # Executable code and policy always come from the pinned main checkout.
+    # The target branch is independently resolved from live GitHub metadata.
+    policy_sha = require_sha(base)
     if not REPOSITORY.fullmatch(repository) or min(run_id, run_attempt) <= 0:
         raise ReportError("invalid GitHub report target")
     root = f"repos/{repository}"
@@ -914,32 +947,36 @@ def trusted_report(
     if run["run_attempt"] != run_attempt:
         return
     head = require_sha(run["head_sha"])
-    associated = associated_pulls(repository, run)
-    current: list[int] = []
-    for number in sorted({int(pr["number"]) for pr in associated}):
-        if number <= 0:
-            raise ReportError("invalid associated pull request")
-        pull = api("GET", f"{root}/pulls/{number}")
-        if (
-            pull["state"] == "open"
-            and pull["head"]["sha"] == head
-            and pull["base"]["repo"]["full_name"] == repository
-            and pull["base"]["ref"] == "main"
-        ):
-            current.append(number)
-    if not current:
+    current = current_pull(repository, run)
+    if current is None:
         return
-    if len(current) != 1:
-        raise ReportError("workflow run has multiple current pull requests")
-    number = current[0]
-    public = not api("GET", root)["private"]
+    number, branch = current
+    metadata = api("GET", root)
+    if metadata["default_branch"] != "main" or run["repository"]["full_name"] != repository:
+        raise ReportError("trusted reports require the repository's main default branch")
+    public = not metadata["private"]
+    base = (
+        policy_sha
+        if branch == "main"
+        else require_sha(api("GET", f"{root}/git/ref/heads/{branch}")["object"]["sha"])
+    )
     # This must be a new, bare repository: no PR worktree, hooks, configuration,
     # submodules, or Python imports can affect the trusted reporter.
     repo.mkdir()
     git(repo, "init", "--quiet", "--bare")
     git(repo, "remote", "add", "origin", f"https://github.com/{repository}.git")
-    git(repo, "fetch", "--quiet", "--no-tags", "origin", base, head)
-    write_report(repo, base, head, out, fetch=True, require_head_hash=True, public=public)
+    git(repo, "fetch", "--quiet", "--no-tags", "origin", *dict.fromkeys((base, head, policy_sha)))
+    write_report(
+        repo,
+        base,
+        head,
+        out,
+        fetch=True,
+        require_head_hash=True,
+        public=public,
+        target_branch=branch,
+        policy_sha=policy_sha,
+    )
     (out / "context.json").write_text(
         json.dumps({"pr": number, "repository": repository, "run": run_id, "attempt": run_attempt})
         + "\n"
