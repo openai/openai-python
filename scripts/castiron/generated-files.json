@@ -579,7 +579,7 @@
     },
     "src/openai/resources/images.py": {
       "mode": "100644",
-      "sha256": "f487a91fa0a826fb25249ae85d9357350253ee79c40e09ea7c6820be8e23d171"
+      "sha256": "dfbe5ceeda53fd272b99583eaa1f684adf46183b71529c78324e3f2c926fb971"
     },
     "src/openai/resources/live/__init__.py": {
       "mode": "100644",
@@ -4459,11 +4459,11 @@
     },
     "src/openai/types/image_edit_completed_event.py": {
       "mode": "100644",
-      "sha256": "bd2f2d492c1db3bd37cea445b9cd1122181e3bcb60a74201962348f1fef36325"
+      "sha256": "8d288f7293dadacb3617c3dd90e3edfba15a04604910318ae4e4cab1f788ddb1"
     },
     "src/openai/types/image_edit_params.py": {
       "mode": "100644",
-      "sha256": "c790b739d4c387faf43ea11576b33fcc3d382d914115f33fa14ec3077012df66"
+      "sha256": "f3182c188012e2905ef4e2f192ee368d7ad1199e930698eb6ee1c2e69c5b2887"
     },
     "src/openai/types/image_edit_partial_image_event.py": {
       "mode": "100644",
@@ -4475,7 +4475,7 @@
     },
     "src/openai/types/image_gen_completed_event.py": {
       "mode": "100644",
-      "sha256": "88fc97c451571487171d858a0fc4a73fd6420051df424638fa0d01ac039c9e60"
+      "sha256": "422fc133a90e049156c0bc20fdbdfc9010e5ac5a861ae38f27f6ba988c0250ac"
     },
     "src/openai/types/image_gen_partial_image_event.py": {
       "mode": "100644",
@@ -4487,7 +4487,7 @@
     },
     "src/openai/types/image_generate_params.py": {
       "mode": "100644",
-      "sha256": "919da351f49bd9e944334efd6b0d44d014c64649d5afdcaad9eccb407bfe271f"
+      "sha256": "ce11e6fc1ad113d96c6d3a275a1906da43d7ea4718fb72d9804559bd9ef60709"
     },
     "src/openai/types/image_input_reference_param.py": {
       "mode": "100644",
@@ -4499,7 +4499,7 @@
     },
     "src/openai/types/images_response.py": {
       "mode": "100644",
-      "sha256": "45543776df980cb2b4ce5d0dfa1800959af88641a4a915bf19e665fedccbb422"
+      "sha256": "07b223269f452e7e06d7d037b3c4cb867f52d3f4f3a32d7cfe1160ceea0a2c1b"
     },
     "src/openai/types/live/__init__.py": {
       "mode": "100644",
@@ -7695,7 +7695,7 @@
     },
     "tests/api_resources/test_images.py": {
       "mode": "100644",
-      "sha256": "cb12a050f0b1aef0e444813b75f503914f64a4280011de339e8a6bb739c9693e"
+      "sha256": "39b8d0e03206abc79df8eb4c3fe5c6a928dfb22d2ccaa2423e0a0db011e2b049"
     },
     "tests/api_resources/test_live.py": {
       "mode": "100644",
