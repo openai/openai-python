@@ -23,8 +23,9 @@ generation ownership remain visible in the report; do not change exclusions or
 checkpoints to hide customization. Non-text custom patches fail as uncountable.
 
 The ceiling is defined in [`.castiron-ratchet.json`](../../.castiron-ratchet.json).
-The policy file contains only an integer `schema_version` (currently 1) and a
-nonnegative integer `max_custom_patch_lines`. Missing, deleted, renamed, executable, symlinked,
+Migration policy contains an integer `schema_version` of 1 and a
+nonnegative integer `max_custom_patch_lines`. Strict schema v2 is described below.
+Missing, deleted, renamed, executable, symlinked,
 malformed, or unsupported policy files fail closed. There is no disable flag or
 automatic budget update command.
 
@@ -35,40 +36,82 @@ review, not an automated claim that GitHub can identify who operated an account.
 
 ## Trusted CI
 
+### Strict generated-file ownership
+
+Schema v1 remains migration mode with its existing patch budget. An SDK with
+zero customizations can opt into schema v2 through a policy-only PR:
+
+```json
+{ "schema_version": 2, "generated_files": "strict", "max_custom_patch_lines": 0 }
+```
+
+First land shared compiler/verifier support and regenerate the SDK, including
+`scripts/castiron/generated-files.json`. Then activate strict policy. Both the
+main policy and a proposed activation are enforced; strict policy cannot be
+downgraded. A policy change cannot be combined with SDK or generated-source edits.
+SDK promotion rejects policy-file changes; submit the policy-only PR directly
+in the SDK repository.
+
+Strict mode compares generated paths, final file bytes, and Git modes against
+the manifest in the verified generated snapshot. The candidate's manifest is
+also checked exactly. Header removal, deletion, renaming, symlink substitution,
+or manifest edits cannot exempt a generated file. Generated workflow/action
+hashes are covered by the manifest even though the legacy patch counter and
+public snapshot publication continue to exclude those subtrees. Handwritten
+files and repository-owned governance remain outside generated ownership.
+Private checkpoints retain SDK-owned CI workflows and actions from their parent;
+the generated ownership inventory does not claim those inherited files.
+
+The existing required `Castiron / custom-code budget` status fails on any strict
+violation. Its trusted-main execution and merge-queue checks remain mandatory.
+Local generation validates before integration and publication using compiler-owned
+code. New generated snapshots still require the existing generation/promotion
+provenance and review controls; a self-computed hash is not approval to publish.
+
+Agents must fix inputs/compiler code or handwritten extensions, regenerate, and
+verify. Never patch generated files or the manifest, disable strict mode, change
+ownership exclusions, or rewrite provenance to get a passing result. Verification
+failure must preserve edits for inspection rather than overwrite them.
+
 The custom-code workflow pair separates candidate execution from trusted checks:
 
 - `castiron-custom-code.yml` runs proposed offline tests and the advisory report
   on `pull_request` with read-only permissions.
 - `castiron-custom-code-comment.yml` handles `workflow_run` from **main**. Its
-  read-only compute job captures the main checkout SHA and the source run's PR
-  head as one immutable evaluation pair. It runs that main reporter against Git objects in a
-  new bare repository, then reuses that verified report to check main's budget.
-  It never checks out, imports, installs, or executes candidate code.
-- An unprivileged `merge_group` job in the first workflow only signals that a candidate
-  needs checking. A `workflow_run` handler whose **workflow definition is on
-  main** then uses the same trusted checkout. It ignores the signal's conclusion
-  and artifacts, verifies the run and queue membership through GitHub and commit
-  ancestry, checks isolation per constituent PR, and measures the complete merged
-  candidate against actual main. A budget PR queued in the same group cannot
-  grant the SDK PR a higher limit.
+  read-only compute job pins executable checker code and budget policy to main.
+  It independently resolves the live PR target (`main` or `next`) and captures
+  the target baseline and candidate SHA. For main, the target baseline is the
+  pinned main checkout; for next, it is the live next ref, not stale PR metadata.
+  It reads only Git objects in a fresh bare repository, never candidate code.
+- An unprivileged `merge_group` job in the first workflow signals that a candidate
+  needs checking. The trusted handler resolves the target from the queue ref,
+  requires an effective merge-queue rule on that target, and verifies current
+  queue membership and target ancestry. It checks isolation against the target
+  per constituent PR and budgets the complete candidate using trusted main policy.
+  A policy increase in next or the same group cannot grant a higher limit.
 
-A separate publisher with no checkout attaches these statuses to the exact PR
-head or merge-group SHA, after rechecking the PR head/target or queue base freshness:
+A separate publisher with no checkout attaches these statuses only to PRs and
+merge groups targeting `main`, after rechecking the PR head/target or queue base freshness:
 
 - `Castiron / budget-only change`
 - `Castiron / custom-code budget`
 
-The policy is read from the captured main commit, not the PR or its merge base.
-Reporter changes in a PR cannot change the checker executing on that PR. Missing
-snapshots, invalid hashes, unavailable queue membership, and policy errors fail
-closed. PR base metadata may lag main; it does not select the evaluation base.
-If main moves during a PR evaluation, the result still publishes for the captured
-pair, with the evaluated base recorded in the report and status. Merge-group checks
-still require current main and independently evaluate the combined candidate.
-PR-head statuses are feedback at a point in time: a main update alone
-does not rerun them. The checker therefore fails unless main has an effective
-**require merge queue** rule. The queue must recheck combined usage against current
-main before merging; do not replace that protection with PR-head statuses alone.
+These contexts are reserved for `main`. Reports for `next` are advisory and
+never write required statuses, even when both targets use the same commit.
+GitHub does not rebuild the `next` queue when policy on `main` changes, so a
+captured `next` result cannot safely authorize a merge against current policy.
+
+The policy is read from the captured main commit, not next, the PR, or its merge
+base. Target baseline, trusted policy, and candidate identities are recorded
+separately in the report and budget result. Reusing a report requires matching
+branch, policy, and head identities; retargeted PRs fail closed.
+
+PR results describe a captured snapshot even if a branch moves during computation.
+They do not authorize merging without queue validation. Queue checks require
+current main policy and current target baseline. Immediately before publishing,
+the handler rechecks the PR head/target or queue membership, target baseline,
+and main policy. A stale queue evaluation cannot publish success. Missing
+snapshots, invalid hashes, unavailable membership, and policy errors fail closed.
 
 The queue signal cannot supply a passing result, and removing it leaves required
 statuses missing. No write-capable job executes from the candidate's workflow
@@ -101,8 +144,9 @@ python3 -I scripts/castiron/custom_code_budget.py check \
 ```
 
 The inspected repo's `origin` must match its snapshot source. Omit `--public`
-for the private SDK repository's checkpoints. Local checks are diagnostic; CI
-independently binds main and the candidate to live GitHub metadata.
+for the private SDK repository's checkpoints. Local checks are diagnostic and
+use the supplied base as policy; CI independently binds the target, main policy,
+and candidate to live GitHub metadata.
 
 ## Activation order
 
@@ -123,3 +167,16 @@ Workflow definitions and ruleset changes still have the normal repository review
 and administrator controls; GitHub Actions status names alone are not a unique
 workflow identity. Stronger organization-required workflow enforcement can be
 added later.
+
+## Activating next
+
+Land shared tooling in Castiron first, then generate and review its SDK update
+onto main. Keep required status activation separate until hosted tests have
+exercised main and next PRs, forks, retargeting, policy changes, and both merge
+queues. Do not require the `main` status contexts on `next`. Authoritative next
+checks need separate contexts and a mechanism that keeps queue authorization
+bound to current main policy, including changes after a result is published.
+Until that mechanism is implemented and reviewed, next reports remain advisory.
+Preserve its reviews, CODEOWNERS, merge queue, and all existing main protections.
+This checker support does not enable generation or promotion to next, or releases
+from next. Those require separate reviewed implementation.

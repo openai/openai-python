@@ -98,7 +98,7 @@ class MediaSessionConfigParam(TypedDict, total=False):
     """Ordered text-only history supplied before startup.
 
     Supports developer, user, and assistant messages with one text part each; at
-    most 128 messages and 8,192 rendered tokens in total.
+    most 128 messages and a configured rendered-token limit (8,192 by default).
     """
 
     instructions: Optional[str]

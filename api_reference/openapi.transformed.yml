@@ -12959,8 +12959,18 @@ paths:
       - AdminApiKeyAuth: []
       summary: Update project API key
       description: |
-        Updates the expiration of an existing API key in the project, including a
+        Updates the scopes and/or expiration of an existing API key in the project, including a
         service-account-owned key. Requires permission to write project API keys.
+
+        Provide at least one of `scopes` or `expires_in_seconds`. Omitted fields stay
+        unchanged; neither field accepts `null`. Both changes are saved together.
+
+        `scopes` replaces the key's scope restrictions using the same scope identifiers
+        as the dashboard. An empty array means All permissions, subject to the owner's
+        effective access; it does not mean no access. Use `["api.all.read"]` for read-only
+        access or specific scopes such as `["api.files.read"]` for restricted access.
+        This does not change user or service-account roles or grant admin permissions.
+        Scope changes follow the same authentication-cache propagation as dashboard edits.
 
         Provide `expires_in_seconds` to set the expiration relative to this request.
         The value must satisfy the organization's and project's expiry policies.
@@ -12988,15 +12998,18 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/UpdateProjectApiKeyBody'
+            example:
+              scopes:
+              - api.all.read
       responses:
         '200':
-          description: Project API key expiration updated successfully.
+          description: Project API key updated successfully.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProjectApiKey'
         '400':
-          description: The project is archived, the key is expired, or the requested expiration is invalid.
+          description: The project is archived, the key is expired, or the requested scopes or expiration are invalid.
           content:
             application/json:
               schema:
@@ -13027,7 +13040,7 @@ paths:
               curl -X POST https://api.openai.com/v1/organization/projects/proj_abc/api_keys/key_abc \
                 -H "Authorization: Bearer $OPENAI_ADMIN_KEY" \
                 -H "Content-Type: application/json" \
-                -d '{"expires_in_seconds": 86400}'
+                -d '{"scopes": ["api.all.read"], "expires_in_seconds": 86400}'
           response: |
             {
                 "object": "organization.project.api_key",
@@ -37001,96 +37014,6 @@ webhooks:
           description: Return any 2xx status code to acknowledge receipt. A 410 Gone response also stops retries; other non-2xx responses are retried.
 components:
   schemas:
-    ImageGenToolCallError:
-      properties:
-        code:
-          anyOf:
-          - type: string
-            description: The error code.
-          - type: 'null'
-        type:
-          type: string
-          description: The error type.
-        message:
-          type: string
-          description: A description of the error.
-        param:
-          anyOf:
-          - type: string
-            description: The related request parameter.
-          - type: 'null'
-        moderation_details:
-          $ref: '#/components/schemas/ImageGenToolCallModerationDetails'
-          description: Public details for a `moderation_blocked` error, when available.
-      type: object
-      required:
-      - code
-      - type
-      - message
-      - param
-    ImageGenToolCallModerationDetails:
-      properties:
-        moderation_stage:
-          type: string
-          enum:
-          - input
-          - output
-          - unknown
-          description: The stage where moderation blocked the image generation call.
-        categories:
-          items:
-            type: string
-          type: array
-          description: Public moderation categories. New category values may be added over time.
-      type: object
-      required:
-      - moderation_stage
-      - categories
-    BetaImageGenToolCallError:
-      properties:
-        code:
-          anyOf:
-          - type: string
-            description: The error code.
-          - type: 'null'
-        type:
-          type: string
-          description: The error type.
-        message:
-          type: string
-          description: A description of the error.
-        param:
-          anyOf:
-          - type: string
-            description: The related request parameter.
-          - type: 'null'
-        moderation_details:
-          $ref: '#/components/schemas/BetaImageGenToolCallModerationDetails'
-          description: Public details for a `moderation_blocked` error, when available.
-      type: object
-      required:
-      - code
-      - type
-      - message
-      - param
-    BetaImageGenToolCallModerationDetails:
-      properties:
-        moderation_stage:
-          type: string
-          enum:
-          - input
-          - output
-          - unknown
-          description: The stage where moderation blocked the image generation call.
-        categories:
-          items:
-            type: string
-          type: array
-          description: Public moderation categories. New category values may be added over time.
-      type: object
-      required:
-      - moderation_stage
-      - categories
     AddUploadPartRequest:
       type: object
       additionalProperties: false
@@ -41498,6 +41421,7 @@ components:
             anyOf:
             - $ref: '#/components/schemas/ResponseFormatText'
             - $ref: '#/components/schemas/ResponseFormatJsonSchema'
+              x-openai-ruby-json-schema-input: true
             - $ref: '#/components/schemas/ResponseFormatJsonObject'
           audio:
             type:
@@ -41650,6 +41574,7 @@ components:
                 propertyName: type
               x-stainless-go-variant-constructor:
                 naming: chat_completion_{variant}_tool
+            x-openai-ruby-json-schema-input: true
           tool_choice:
             $ref: '#/components/schemas/ChatCompletionToolChoiceOption'
           parallel_tool_calls:
@@ -63811,6 +63736,16 @@ components:
         description: |
           An error object returned when the model fails to generate a Response.
         properties:
+          type:
+            anyOf:
+            - type: string
+            - type: 'null'
+            description: The original error type, or null if it was not recorded.
+          param:
+            anyOf:
+            - type: string
+            - type: 'null'
+            description: The request parameter associated with the error, or null if none was recorded.
           code:
             $ref: '#/components/schemas/ResponseErrorCode'
           message:
@@ -63819,16 +63754,6 @@ components:
               A human-readable description of the error.
           misalignment:
             $ref: '#/components/schemas/MisalignmentErrorDetailsResource'
-          param:
-            anyOf:
-            - type: string
-            - type: 'null'
-            description: The request parameter associated with the error, or null if none was recorded.
-          type:
-            anyOf:
-            - type: string
-            - type: 'null'
-            description: The original error type, or null if it was not recorded.
         required:
         - code
         - message
@@ -69135,6 +69060,7 @@ components:
       anyOf:
       - $ref: '#/components/schemas/ResponseFormatText'
       - $ref: '#/components/schemas/TextResponseFormatJsonSchema'
+        x-openai-ruby-json-schema-input: true
       - $ref: '#/components/schemas/ResponseFormatJsonObject'
       discriminator:
         propertyName: type
@@ -69286,6 +69212,7 @@ components:
         propertyName: type
       anyOf:
       - $ref: '#/components/schemas/FunctionTool'
+        x-openai-ruby-json-schema-input: true
       - $ref: '#/components/schemas/FileSearchTool'
       - $ref: '#/components/schemas/ComputerTool'
       - $ref: '#/components/schemas/ComputerUsePreviewTool'
@@ -74442,6 +74369,51 @@ components:
       - completed
       - failed
       - incomplete
+    ImageGenToolCallModerationDetails:
+      properties:
+        moderation_stage:
+          type: string
+          enum:
+          - input
+          - output
+          - unknown
+          description: The stage where moderation blocked the image generation call.
+        categories:
+          items:
+            type: string
+          type: array
+          description: Public moderation categories. New category values may be added over time.
+      type: object
+      required:
+      - moderation_stage
+      - categories
+    ImageGenToolCallError:
+      properties:
+        code:
+          anyOf:
+          - type: string
+            description: The error code.
+          - type: 'null'
+        type:
+          type: string
+          description: The error type.
+        message:
+          type: string
+          description: A description of the error.
+        param:
+          anyOf:
+          - type: string
+            description: The related request parameter.
+          - type: 'null'
+        moderation_details:
+          $ref: '#/components/schemas/ImageGenToolCallModerationDetails'
+          description: Public details for a `moderation_blocked` error, when available.
+      type: object
+      required:
+      - code
+      - type
+      - message
+      - param
     ImageGenActionEnum:
       type: string
       enum:
@@ -74462,9 +74434,6 @@ components:
       - jpeg
     ImageGenToolCall:
       properties:
-        error:
-          $ref: '#/components/schemas/ImageGenToolCallError'
-          description: Details of a moderation failure, when available.
         type:
           type: string
           enum:
@@ -74487,6 +74456,10 @@ components:
           - type: string
             description: The generated image encoded in base64.
           - type: 'null'
+        error:
+          $ref: '#/components/schemas/ImageGenToolCallError'
+          description: Details of a moderation failure, when available.
+          x-openai-go-skip-union-projection: true
         size:
           anyOf:
           - anyOf:
@@ -78220,7 +78193,7 @@ components:
       - $ref: '#/components/schemas/LiveInitialUserMessageItemParam'
       - $ref: '#/components/schemas/LiveInitialAssistantMessageItemParam'
     input:
-      description: Ordered text-only history supplied before startup. Supports developer, user, and assistant messages with one text part each; at most 128 messages and 8,192 rendered tokens in total.
+      description: Ordered text-only history supplied before startup. Supports developer, user, and assistant messages with one text part each; at most 128 messages and a configured rendered-token limit (8,192 by default).
       type: array
       items:
         $ref: '#/components/schemas/LiveInitialItem'
@@ -78515,10 +78488,14 @@ components:
           type: integer
           maximum: 31536000
           minimum: 1
-          description: Number of seconds from this request until the API key expires. Must comply with the organization and project expiry policies. Expired keys cannot be updated. Retrying resets the expiry relative to the new request.
+          description: Number of seconds from this request until the API key expires. Must comply with the organization and project expiry policies. Expired keys cannot be updated. Retrying resets the expiry relative to the new request. Omit to keep the current expiration.
+        scopes:
+          items:
+            type: string
+          type: array
+          description: Replace the API key scope restrictions. Omit to leave scopes unchanged. An empty array removes key restrictions (All permissions), subject to the owner's effective permissions. Use ["api.all.read"] for read-only access. Scopes do not change the owner's roles or grant administrative permissions.
       type: object
-      required:
-      - expires_in_seconds
+      required: []
     SpecificProgrammaticToolCallingParam:
       properties:
         type:
@@ -79921,6 +79898,16 @@ components:
         code:
           type: string
           description: A machine-readable error code that was returned.
+        type:
+          anyOf:
+          - type: string
+            description: The original error type, or null if it was not recorded.
+          - type: 'null'
+        param:
+          anyOf:
+          - type: string
+            description: The request parameter associated with the error, or null if none was recorded.
+          - type: 'null'
         message:
           type: string
           description: A human-readable description of the error that was returned.
@@ -79933,16 +79920,6 @@ components:
           x-oaiTypeLabel: map
         misalignment:
           $ref: '#/components/schemas/MisalignmentErrorDetailsResource'
-        param:
-          anyOf:
-          - type: string
-            description: The request parameter associated with the error, or null if none was recorded.
-          - type: 'null'
-        type:
-          anyOf:
-          - type: string
-            description: The original error type, or null if it was not recorded.
-          - type: 'null'
       type: object
       required:
       - code
@@ -81842,6 +81819,23 @@ components:
           type: string
           minLength: 0
           maxLength: 10485760
+        prompt_cache_breakpoint:
+          type:
+          - object
+          - 'null'
+          properties:
+            mode:
+              type: string
+              enum:
+              - explicit
+              default: explicit
+              x-stainless-const: true
+              description: The breakpoint mode. Always `explicit`.
+          required:
+          - mode
+          additionalProperties: false
+          title: Prompt cache breakpoint
+          description: Marks the exact end of a reusable prompt prefix. The breakpoint inherits its TTL from the request's `prompt_cache_options.ttl`; the boundary is not rounded to a token block.
       required:
       - type
       - text
@@ -81868,6 +81862,23 @@ components:
           - type: 'null'
           description: The image detail level, using the selected model's image profile. Defaults to auto.
           default: auto
+        prompt_cache_breakpoint:
+          type:
+          - object
+          - 'null'
+          properties:
+            mode:
+              type: string
+              enum:
+              - explicit
+              default: explicit
+              x-stainless-const: true
+              description: The breakpoint mode. Always `explicit`.
+          required:
+          - mode
+          additionalProperties: false
+          title: Prompt cache breakpoint
+          description: Marks the exact end of a reusable prompt prefix. The breakpoint inherits its TTL from the request's `prompt_cache_options.ttl`; the boundary is not rounded to a token block.
         type:
           type: string
           enum:
@@ -81879,20 +81890,54 @@ components:
       - type
       additionalProperties: false
       description: An image provided as a base64 data URL or a publicly accessible HTTP(S) URL. File IDs are not supported.
+    DecisionInputOutputText:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+          - output_text
+          default: output_text
+          x-stainless-const: true
+        text:
+          type: string
+          minLength: 0
+          maxLength: 10485760
+      required:
+      - type
+      - text
+      additionalProperties: false
+    DecisionInputRefusal:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+          - refusal
+          default: refusal
+          x-stainless-const: true
+        refusal:
+          type: string
+          minLength: 0
+          maxLength: 10485760
+      required:
+      - type
+      - refusal
+      additionalProperties: false
     DecisionInputContentParts:
       type: array
       items:
-        x-oai-discriminator-values:
-        - input_text
-        - input_image
+        oneOf:
+        - $ref: '#/components/schemas/DecisionInputText'
+        - $ref: '#/components/schemas/DecisionInputImage'
         discriminator:
           propertyName: type
           mapping:
             input_text: '#/components/schemas/DecisionInputText'
             input_image: '#/components/schemas/DecisionInputImage'
-        anyOf:
-        - $ref: '#/components/schemas/DecisionInputText'
-        - $ref: '#/components/schemas/DecisionInputImage'
+        x-oai-discriminator-values:
+        - input_text
+        - input_image
       minItems: 0
       maxItems: 16384
     DecisionInputContent:
@@ -81903,6 +81948,11 @@ components:
         maxLength: 10485760
       - $ref: '#/components/schemas/DecisionInputContentParts'
         title: Parts
+    MessagePhaseParam:
+      type: string
+      enum:
+      - commentary
+      - final_answer
     DecisionInputMessage:
       type: object
       properties:
@@ -81925,25 +81975,205 @@ components:
       - content
       additionalProperties: false
       description: A user message containing text or images.
-    DecisionInput:
-      description: The text or images to evaluate for every question. Provide a text string or user messages containing text and images. Images can be base64 data URLs or publicly accessible HTTP(S) URLs; at most 128 images are allowed across all messages in one request. Files, audio, tools, and item references are not supported.
+    FunctionCallStatusParam:
+      type: string
+      enum:
+      - in_progress
+      - completed
+      - incomplete
+    DecisionInputFunctionCall:
+      type: object
+      properties:
+        id:
+          type:
+          - string
+          - 'null'
+          minLength: 0
+          maxLength: 1048576
+        call_id:
+          type: string
+          minLength: 1
+          maxLength: 64
+        namespace:
+          type:
+          - string
+          - 'null'
+          minLength: 1
+          maxLength: 64
+          pattern: ^[a-zA-Z0-9_-]+$
+        name:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: ^[a-zA-Z0-9_.-]+$
+        arguments:
+          type: string
+          minLength: 0
+          maxLength: 1048576
+        status:
+          anyOf:
+          - $ref: '#/components/schemas/FunctionCallStatusParam'
+          - type: 'null'
+        type:
+          type: string
+          enum:
+          - function_call
+          default: function_call
+          x-stainless-const: true
+      required:
+      - call_id
+      - name
+      - arguments
+      - type
+      additionalProperties: false
+    DecisionInputToolOutputContentParts:
+      type: array
+      items:
+        x-oai-discriminator-values:
+        - input_text
+        - input_image
+        discriminator:
+          propertyName: type
+          mapping:
+            input_text: '#/components/schemas/DecisionInputText'
+            input_image: '#/components/schemas/DecisionInputImage'
+        anyOf:
+        - $ref: '#/components/schemas/DecisionInputText'
+        - $ref: '#/components/schemas/DecisionInputImage'
+      minItems: 0
+      maxItems: 16384
+    DecisionInputToolOutputContent:
+      description: Text evidence or an ordered list of text and image parts.
       anyOf:
+      - type: string
+        minLength: 0
+        maxLength: 10485760
+      - $ref: '#/components/schemas/DecisionInputToolOutputContentParts'
+        title: Parts
+    DecisionInputFunctionCallOutput:
+      type: object
+      properties:
+        id:
+          type:
+          - string
+          - 'null'
+          minLength: 0
+          maxLength: 1048576
+        call_id:
+          type: string
+          minLength: 1
+          maxLength: 64
+        output:
+          $ref: '#/components/schemas/DecisionInputToolOutputContent'
+        status:
+          anyOf:
+          - $ref: '#/components/schemas/FunctionCallStatusParam'
+          - type: 'null'
+        type:
+          type: string
+          enum:
+          - function_call_output
+          default: function_call_output
+          x-stainless-const: true
+      required:
+      - call_id
+      - output
+      - type
+      additionalProperties: false
+    DecisionInputCustomToolCall:
+      type: object
+      properties:
+        id:
+          type:
+          - string
+          - 'null'
+          minLength: 0
+          maxLength: 1048576
+        call_id:
+          type: string
+          minLength: 1
+          maxLength: 64
+        namespace:
+          type:
+          - string
+          - 'null'
+          minLength: 1
+          maxLength: 64
+          pattern: ^[a-zA-Z0-9_-]+$
+        name:
+          type: string
+          minLength: 1
+          maxLength: 64
+          pattern: ^[a-zA-Z0-9_-]+$
+        input:
+          type: string
+          minLength: 0
+          maxLength: 1048576
+        status:
+          anyOf:
+          - $ref: '#/components/schemas/FunctionCallStatusParam'
+          - type: 'null'
+        type:
+          type: string
+          enum:
+          - custom_tool_call
+          default: custom_tool_call
+          x-stainless-const: true
+      required:
+      - call_id
+      - name
+      - input
+      - type
+      additionalProperties: false
+    DecisionInputCustomToolCallOutput:
+      type: object
+      properties:
+        id:
+          type:
+          - string
+          - 'null'
+          minLength: 0
+          maxLength: 1048576
+        call_id:
+          type: string
+          minLength: 1
+          maxLength: 64
+        output:
+          $ref: '#/components/schemas/DecisionInputToolOutputContent'
+        status:
+          anyOf:
+          - $ref: '#/components/schemas/FunctionCallStatusParam'
+          - type: 'null'
+        type:
+          type: string
+          enum:
+          - custom_tool_call_output
+          default: custom_tool_call_output
+          x-stainless-const: true
+      required:
+      - call_id
+      - output
+      - type
+      additionalProperties: false
+    DecisionInput:
+      oneOf:
       - type: string
         minLength: 0
         maxLength: 10485760
       - type: array
         items:
-          x-oai-default-discriminator-value: message
+          oneOf:
+          - $ref: '#/components/schemas/DecisionInputMessage'
           discriminator:
             propertyName: type
             mapping:
               message: '#/components/schemas/DecisionInputMessage'
           x-oai-discriminator-values:
           - message
-          anyOf:
-          - $ref: '#/components/schemas/DecisionInputMessage'
+          x-oai-default-discriminator-value: message
         minItems: 0
         maxItems: 131072
+      description: The text or images to evaluate for every question. Provide a text string or user messages containing text and images. Images can be base64 data URLs or publicly accessible HTTP(S) URLs; at most 128 images are allowed across all messages in one request. Files, audio, tools, and item references are not supported.
     QuestionParamPredicate:
       type: object
       properties:
@@ -82081,19 +82311,19 @@ components:
       type: object
       properties:
         model:
-          description: The model to use. Only `gpt-6-luna` is supported.
           type: string
           minLength: 0
           maxLength: 1048576
+          description: The model to use. Only `gpt-6-luna` is supported.
         input:
           $ref: '#/components/schemas/DecisionInput'
         questions:
-          description: Ask 1–200 questions about the input. Each question can be a predicate, choice, or score. Answers come back in the same order.
           type: array
           items:
             $ref: '#/components/schemas/QuestionParam'
           minItems: 1
           maxItems: 200
+          description: Ask 1–200 questions about the input. Each question can be a predicate, choice, or score. Answers come back in the same order.
         safety_identifier:
           type:
           - string
@@ -82101,6 +82331,37 @@ components:
           minLength: 0
           maxLength: 128
           description: Opaque caller-provided end-user identifier, scoped by the verified org. Match Responses' limit; this is never the authenticated user identity.
+        prompt_cache_key:
+          type:
+          - string
+          - 'null'
+          minLength: 0
+          maxLength: 64
+          description: Partition prompt cache reuse by caller-provided key.
+        prompt_cache_options:
+          type:
+          - object
+          - 'null'
+          properties:
+            ttl:
+              type: string
+              enum:
+              - 30m
+              default: 30m
+              x-stainless-const: true
+              description: The minimum lifetime applied to every implicit and explicit cache breakpoint written by the request. Defaults to `30m`, which is currently the only supported value. The backend may retain cache entries for longer.
+            mode:
+              type:
+              - string
+              - 'null'
+              enum:
+              - implicit
+              - explicit
+              - null
+              description: Controls whether OpenAI automatically creates an implicit cache breakpoint. Defaults to `implicit`. With `implicit`, OpenAI creates one implicit breakpoint and writes up to the latest three explicit breakpoints in the request. With `explicit`, OpenAI does not create an implicit breakpoint and writes up to the latest four explicit breakpoints. If there are no explicit breakpoints, the request does not use prompt caching.
+          additionalProperties: false
+          title: Prompt cache options
+          description: Options for prompt caching. Supported for `gpt-5.6` and later models. By default, OpenAI automatically chooses one implicit cache breakpoint. You can add explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each request can write up to four breakpoints. For cache matching, OpenAI considers up to the latest 80 breakpoints in the conversation, without a content-block lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The `ttl` defaults to `30m`, which is currently the only supported value. See the [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching) for current details.
       required:
       - model
       - input
@@ -82325,19 +82586,19 @@ components:
       type: object
       properties:
         model:
-          description: The model used.
           type: string
           minLength: 0
+          description: The model used.
         answers:
-          description: 'Answers in question order. Any question can return a refusal instead of an answer; other questions can still receive answers. A refusal has `type: "refusal"` and the question''s `name`, or `null` if it was unnamed.'
           type: array
           items:
             $ref: '#/components/schemas/AnswerResource'
           minItems: 0
           maxItems: 2000
+          description: 'Answers in question order. Any question can return a refusal instead of an answer; other questions can still receive answers. A refusal has `type: "refusal"` and the question''s `name`, or `null` if it was unnamed.'
         usage:
-          description: Token usage for the request.
           $ref: '#/components/schemas/ResponseUsageResource'
+          description: Token usage for the request.
       required:
       - model
       - answers
@@ -91896,7 +92157,7 @@ components:
             type: string
           - type: 'null'
         input:
-          description: Ordered text-only history supplied before startup. Supports developer, user, and assistant messages with one text part each; at most 128 messages and 8,192 rendered tokens in total.
+          description: Ordered text-only history supplied before startup. Supports developer, user, and assistant messages with one text part each; at most 128 messages and a configured rendered-token limit (8,192 by default).
           type: array
           items:
             $ref: '#/components/schemas/LiveInitialItem'
@@ -92087,7 +92348,7 @@ components:
           type: session.input_audio.mute
           event_id: evt_mute_001
     LiveInputAudioUnmuteParam:
-      description: Resume audio input to a Live model after muting it. The server acknowledges with `session.input_audio.unmuted`.
+      description: Resume audio input to a Live model after muting it. The server acknowledges with `session.input_audio.unmuted`. An active audio fixture still pauses inference until playback finishes.
       example:
         type: session.input_audio.unmute
         event_id: evt_unmute_001
@@ -92146,7 +92407,7 @@ components:
           event_id: evt_play_001
           audio: AAAAAA==
     LiveInstructionsAppendParam:
-      description: Append instructions to the Live conversation while it is running, optionally associating them with an existing client delegation.
+      description: Append developer instructions to the Live conversation while it is running, optionally associating them with an existing client delegation. Rejected while an audio fixture is active. These instructions remain in conversation history through compaction and are included in future backend delegations. For external audio, describe content already delivered so the assistant does not repeat it.
       example:
         type: session.instructions.append
         event_id: evt_instructions_001
@@ -92187,7 +92448,7 @@ components:
           delegation_id: null
           content: The caller prefers outdoor seating.
     LiveThinkingAppendParam:
-      description: Provide silent reasoning or progress context to the Live model, optionally for an existing client delegation.
+      description: Provide silent reasoning or progress context to the Live model, optionally for an existing client delegation. Rejected while an audio fixture is active.
       example:
         type: session.thinking.append
         event_id: evt_thinking_001
@@ -92228,7 +92489,7 @@ components:
           delegation_id: del_abc123
           content: Checking availability for two guests at 7 PM.
     LiveCommentaryAppendParam:
-      description: Provide context the Live model can communicate to the user, optionally for an existing client delegation.
+      description: Provide context the Live model can communicate to the user, optionally for an existing client delegation. Rejected while an audio fixture is active.
       example:
         type: session.commentary.append
         event_id: evt_commentary_001
@@ -92429,7 +92690,7 @@ components:
             type: string
           - type: 'null'
         input:
-          description: Ordered text-only history supplied before startup. Supports developer, user, and assistant messages with one text part each; at most 128 messages and 8,192 rendered tokens in total.
+          description: Ordered text-only history supplied before startup. Supports developer, user, and assistant messages with one text part each; at most 128 messages and a configured rendered-token limit (8,192 by default).
           type: array
           items:
             $ref: '#/components/schemas/LiveInitialItem'
@@ -92605,7 +92866,7 @@ components:
                 max_output_tokens: 1024
                 tools: []
     LiveInputAudioMuted:
-      description: Returned when a session.input_audio.mute command is accepted. Input audio is no longer sent to the model; sideband audio reflection continues.
+      description: Acknowledges a session.input_audio.mute command. An independent input mute sends silence to the model and preserves sideband audio reflection. Fixture playback does not emit this event.
       example:
         type: session.input_audio.muted
         event_id: evt_muted_001
@@ -92634,7 +92895,7 @@ components:
           event_id: evt_muted_001
           client_event_id: evt_mute_001
     LiveInputAudioUnmuted:
-      description: Returned when a session.input_audio.unmute command is accepted. Input audio is sent to the model again.
+      description: Acknowledges a session.input_audio.unmute command, removing the independent input mute. An active audio fixture still pauses inference until playback finishes. Fixture playback does not emit this event.
       example:
         type: session.input_audio.unmuted
         event_id: evt_unmuted_001
@@ -96912,9 +97173,6 @@ components:
       description: The logs output from the code interpreter.
     BetaImageGenToolCall:
       properties:
-        error:
-          $ref: '#/components/schemas/BetaImageGenToolCallError'
-          description: Details of a moderation failure, when available.
         agent:
           anyOf:
           - $ref: '#/components/schemas/BetaAgentTag'
@@ -96942,6 +97200,10 @@ components:
           - type: string
             description: The generated image encoded in base64.
           - type: 'null'
+        error:
+          $ref: '#/components/schemas/BetaImageGenToolCallError'
+          description: Details of a moderation failure, when available.
+          x-openai-go-skip-union-projection: true
         size:
           anyOf:
           - anyOf:
@@ -97008,6 +97270,51 @@ components:
       - transparent
       - opaque
       - auto
+    BetaImageGenToolCallError:
+      properties:
+        code:
+          anyOf:
+          - type: string
+            description: The error code.
+          - type: 'null'
+        type:
+          type: string
+          description: The error type.
+        message:
+          type: string
+          description: A description of the error.
+        param:
+          anyOf:
+          - type: string
+            description: The related request parameter.
+          - type: 'null'
+        moderation_details:
+          $ref: '#/components/schemas/BetaImageGenToolCallModerationDetails'
+          description: Public details for a `moderation_blocked` error, when available.
+      type: object
+      required:
+      - code
+      - type
+      - message
+      - param
+    BetaImageGenToolCallModerationDetails:
+      properties:
+        moderation_stage:
+          type: string
+          enum:
+          - input
+          - output
+          - unknown
+          description: The stage where moderation blocked the image generation call.
+        categories:
+          items:
+            type: string
+          type: array
+          description: Public moderation categories. New category values may be added over time.
+      type: object
+      required:
+      - moderation_stage
+      - categories
     BetaCompactionSummaryItemParam:
       properties:
         agent:
@@ -101159,6 +101466,16 @@ components:
         description: |
           An error object returned when the model fails to generate a Response.
         properties:
+          type:
+            anyOf:
+            - type: string
+            - type: 'null'
+            description: The original error type, or null if it was not recorded.
+          param:
+            anyOf:
+            - type: string
+            - type: 'null'
+            description: The request parameter associated with the error, or null if none was recorded.
           code:
             $ref: '#/components/schemas/BetaResponseErrorCode'
           message:
@@ -101167,16 +101484,6 @@ components:
               A human-readable description of the error.
           misalignment:
             $ref: '#/components/schemas/BetaMisalignmentErrorDetailsResource'
-          param:
-            anyOf:
-            - type: string
-            - type: 'null'
-            description: The request parameter associated with the error, or null if none was recorded.
-          type:
-            anyOf:
-            - type: string
-            - type: 'null'
-            description: The original error type, or null if it was not recorded.
         required:
         - code
         - message
@@ -106557,6 +106864,28 @@ components:
       - gpt-3.5-turbo-0125
       - gpt-3.5-turbo-16k-0613
       x-openai-enum-deprecations:
+        gpt-5.4-nano:
+          message: 'Announced shutdown date: 2027-04-01. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-5.1:
+          message: 'Announced shutdown date: 2027-04-01. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4.1-2025-04-14:
+          message: 'Announced shutdown date: 2027-01-14. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4.1:
+          message: 'Announced shutdown date: 2027-01-14. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4.1-mini:
+          message: 'Announced shutdown date: 2027-01-14. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4.1-mini-2025-04-14:
+          message: 'Announced shutdown date: 2027-01-14. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4o:
+          message: 'Announced shutdown date: 2027-01-14. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4o-2024-08-06:
+          message: 'Announced shutdown date: 2027-01-14. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4o-2024-11-20:
+          message: 'Announced shutdown date: 2027-01-14. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4o-mini:
+          message: 'Announced shutdown date: 2027-01-14. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4o-mini-2024-07-18:
+          message: 'Announced shutdown date: 2027-01-14. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
         gpt-5.3-chat-latest:
           message: 'Announced shutdown date: 2026-08-10. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
         gpt-5.2-chat-latest:
@@ -106677,20 +107006,6 @@ components:
           message: 'Announced shutdown date: 2027-01-20. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
         gpt-5.1-mini:
           message: Not a supported model ID. Retained for SDK compatibility.
-        gpt-4.1-2025-04-14:
-          message: 'Announced shutdown date: 2027-01-14. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
-        gpt-4.1-mini-2025-04-14:
-          message: 'Announced shutdown date: 2027-01-14. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
-        gpt-4o-2024-08-06:
-          message: 'Announced shutdown date: 2027-01-14. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
-        gpt-4o-2024-11-20:
-          message: 'Announced shutdown date: 2027-01-14. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
-        gpt-4o-mini-2024-07-18:
-          message: 'Announced shutdown date: 2027-01-14. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
-        gpt-5.1:
-          message: 'Announced shutdown date: 2027-04-01. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
-        gpt-5.4-nano:
-          message: 'Announced shutdown date: 2027-04-01. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
       x-stainless-nominal: false
     LiveBuiltInVoice:
       type: string

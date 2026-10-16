@@ -975,7 +975,10 @@ class SidebandSessionResource(BaseSidebandConnectionResource):
 class SidebandSessionCommentaryResource(BaseSidebandConnectionResource):
     def append(self, *, content: str, delegation_id: Optional[str], event_id: Optional[str] | Omit = omit) -> None:
         """
-        Provide context the Live model can communicate to the user, optionally for an existing client delegation.
+        Provide context the Live model can communicate to the user, optionally for an
+        existing client delegation.
+
+        Rejected while an audio fixture is active.
         """
         self._connection.send(
             cast(
@@ -1005,7 +1008,7 @@ class SidebandSessionInputAudioResource(BaseSidebandConnectionResource):
     def unmute(self, *, event_id: Optional[str] | Omit = omit) -> None:
         """Resume audio input to a Live model after muting it.
 
-        The server acknowledges with `session.input_audio.unmuted`.
+        The server acknowledges with `session.input_audio.unmuted`. An active audio fixture still pauses inference until playback finishes.
         """
         self._connection.send(
             cast(ConnectClientEventParam, strip_not_given({"type": "session.input_audio.unmute", "event_id": event_id}))
@@ -1014,8 +1017,10 @@ class SidebandSessionInputAudioResource(BaseSidebandConnectionResource):
 
 class SidebandSessionInstructionsResource(BaseSidebandConnectionResource):
     def append(self, *, content: str, delegation_id: Optional[str], event_id: Optional[str] | Omit = omit) -> None:
-        """
-        Append instructions to the Live conversation while it is running, optionally associating them with an existing client delegation.
+        """Append developer instructions to the Live conversation while it is running,
+        optionally associating them with an existing client delegation.
+
+        Rejected while an audio fixture is active. These instructions remain in conversation history through compaction and are included in future backend delegations. For external audio, describe content already delivered so the assistant does not repeat it.
         """
         self._connection.send(
             cast(
@@ -1041,7 +1046,10 @@ class SidebandSessionOutputAudioResource(BaseSidebandConnectionResource):
 class SidebandSessionThinkingResource(BaseSidebandConnectionResource):
     def append(self, *, content: str, delegation_id: Optional[str], event_id: Optional[str] | Omit = omit) -> None:
         """
-        Provide silent reasoning or progress context to the Live model, optionally for an existing client delegation.
+        Provide silent reasoning or progress context to the Live model, optionally for
+        an existing client delegation.
+
+        Rejected while an audio fixture is active.
         """
         self._connection.send(
             cast(
@@ -1156,7 +1164,10 @@ class AsyncSidebandSessionCommentaryResource(BaseAsyncSidebandConnectionResource
         self, *, content: str, delegation_id: Optional[str], event_id: Optional[str] | Omit = omit
     ) -> None:
         """
-        Provide context the Live model can communicate to the user, optionally for an existing client delegation.
+        Provide context the Live model can communicate to the user, optionally for an
+        existing client delegation.
+
+        Rejected while an audio fixture is active.
         """
         await self._connection.send(
             cast(
@@ -1186,7 +1197,7 @@ class AsyncSidebandSessionInputAudioResource(BaseAsyncSidebandConnectionResource
     async def unmute(self, *, event_id: Optional[str] | Omit = omit) -> None:
         """Resume audio input to a Live model after muting it.
 
-        The server acknowledges with `session.input_audio.unmuted`.
+        The server acknowledges with `session.input_audio.unmuted`. An active audio fixture still pauses inference until playback finishes.
         """
         await self._connection.send(
             cast(ConnectClientEventParam, strip_not_given({"type": "session.input_audio.unmute", "event_id": event_id}))
@@ -1197,8 +1208,10 @@ class AsyncSidebandSessionInstructionsResource(BaseAsyncSidebandConnectionResour
     async def append(
         self, *, content: str, delegation_id: Optional[str], event_id: Optional[str] | Omit = omit
     ) -> None:
-        """
-        Append instructions to the Live conversation while it is running, optionally associating them with an existing client delegation.
+        """Append developer instructions to the Live conversation while it is running,
+        optionally associating them with an existing client delegation.
+
+        Rejected while an audio fixture is active. These instructions remain in conversation history through compaction and are included in future backend delegations. For external audio, describe content already delivered so the assistant does not repeat it.
         """
         await self._connection.send(
             cast(
@@ -1226,7 +1239,10 @@ class AsyncSidebandSessionThinkingResource(BaseAsyncSidebandConnectionResource):
         self, *, content: str, delegation_id: Optional[str], event_id: Optional[str] | Omit = omit
     ) -> None:
         """
-        Provide silent reasoning or progress context to the Live model, optionally for an existing client delegation.
+        Provide silent reasoning or progress context to the Live model, optionally for
+        an existing client delegation.
+
+        Rejected while an audio fixture is active.
         """
         await self._connection.send(
             cast(
