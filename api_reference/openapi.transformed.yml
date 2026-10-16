@@ -3573,6 +3573,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CreateCompletionResponse'
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/CreateCompletionResponse'
         '400':
           description: Invalid completion request or incompatible request parameters.
           content:
@@ -21290,6 +21293,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Response'
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/ResponseStreamEvent'
         '404':
           description: The response was not found.
           content:
@@ -21783,6 +21789,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RunObject'
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/AssistantStreamEvent'
         '429':
           $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
@@ -23067,6 +23076,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RunObject'
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/AssistantStreamEvent'
         '429':
           $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
@@ -24007,6 +24019,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RunObject'
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/AssistantStreamEvent'
         '429':
           $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
@@ -35889,6 +35904,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BetaResponse'
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/BetaResponseStreamEvent'
         '404':
           description: The response was not found.
           content:
