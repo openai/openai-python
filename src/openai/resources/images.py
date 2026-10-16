@@ -145,6 +145,7 @@ class Images(SyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         size: Union[str, Literal["1024x1024", "1536x1024", "1024x1536", "auto", "256x256", "512x512"], None]
         | Omit = omit,
         stream: Optional[Literal[False]] | Omit = omit,
@@ -225,6 +226,13 @@ class Images(SyncAPIResource):
           response_format: Legacy response format parameter for retired image models. Unsupported for GPT
               image models, which always return base64-encoded images.
 
+          safety_identifier: A stable identifier for an end user in your organization, used for safety
+              monitoring and abuse detection. Hash a username or email address to avoid
+              sending identifying information. A non-empty value takes precedence over the
+              deprecated `user` parameter. If omitted, null, or empty, the API uses `user`
+              when available.
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
+
           size: The size of the generated images. Defaults to `auto`. For `gpt-image-2`,
               `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
               `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and
@@ -241,8 +249,9 @@ class Images(SyncAPIResource):
               [Image generation guide](https://developers.openai.com/api/docs/guides/image-generation)
               for more information.
 
-          user: A unique identifier representing your end-user, which can help OpenAI to monitor
-              and detect abuse.
+          user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
+              backward compatibility and is used when `safety_identifier` is omitted, null, or
+              empty.
               [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           extra_headers: Send extra headers
@@ -272,6 +281,7 @@ class Images(SyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         size: Union[str, Literal["1024x1024", "1536x1024", "1024x1536", "auto", "256x256", "512x512"], None]
         | Omit = omit,
         user: str | Omit = omit,
@@ -355,6 +365,13 @@ class Images(SyncAPIResource):
           response_format: Legacy response format parameter for retired image models. Unsupported for GPT
               image models, which always return base64-encoded images.
 
+          safety_identifier: A stable identifier for an end user in your organization, used for safety
+              monitoring and abuse detection. Hash a username or email address to avoid
+              sending identifying information. A non-empty value takes precedence over the
+              deprecated `user` parameter. If omitted, null, or empty, the API uses `user`
+              when available.
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
+
           size: The size of the generated images. Defaults to `auto`. For `gpt-image-2`,
               `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
               `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and
@@ -367,8 +384,9 @@ class Images(SyncAPIResource):
               `1024x1536` are supported by the GPT image models; `auto` is supported for
               models that allow automatic sizing.
 
-          user: A unique identifier representing your end-user, which can help OpenAI to monitor
-              and detect abuse.
+          user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
+              backward compatibility and is used when `safety_identifier` is omitted, null, or
+              empty.
               [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           extra_headers: Send extra headers
@@ -398,6 +416,7 @@ class Images(SyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         size: Union[str, Literal["1024x1024", "1536x1024", "1024x1536", "auto", "256x256", "512x512"], None]
         | Omit = omit,
         user: str | Omit = omit,
@@ -481,6 +500,13 @@ class Images(SyncAPIResource):
           response_format: Legacy response format parameter for retired image models. Unsupported for GPT
               image models, which always return base64-encoded images.
 
+          safety_identifier: A stable identifier for an end user in your organization, used for safety
+              monitoring and abuse detection. Hash a username or email address to avoid
+              sending identifying information. A non-empty value takes precedence over the
+              deprecated `user` parameter. If omitted, null, or empty, the API uses `user`
+              when available.
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
+
           size: The size of the generated images. Defaults to `auto`. For `gpt-image-2`,
               `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
               `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and
@@ -493,8 +519,9 @@ class Images(SyncAPIResource):
               `1024x1536` are supported by the GPT image models; `auto` is supported for
               models that allow automatic sizing.
 
-          user: A unique identifier representing your end-user, which can help OpenAI to monitor
-              and detect abuse.
+          user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
+              backward compatibility and is used when `safety_identifier` is omitted, null, or
+              empty.
               [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           extra_headers: Send extra headers
@@ -523,6 +550,7 @@ class Images(SyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         size: Union[str, Literal["1024x1024", "1536x1024", "1024x1536", "auto", "256x256", "512x512"], None]
         | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
@@ -548,6 +576,7 @@ class Images(SyncAPIResource):
                 "partial_images": partial_images,
                 "quality": quality,
                 "response_format": response_format,
+                "safety_identifier": safety_identifier,
                 "size": size,
                 "stream": stream,
                 "user": user,
@@ -592,6 +621,7 @@ class Images(SyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard", "hd"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         size: Union[
             str,
             Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"],
@@ -663,6 +693,13 @@ class Images(SyncAPIResource):
           response_format: Legacy response format parameter for retired image models. Unsupported for GPT
               image models, which always return base64-encoded images.
 
+          safety_identifier: A stable identifier for an end user in your organization, used for safety
+              monitoring and abuse detection. Hash a username or email address to avoid
+              sending identifying information. A non-empty value takes precedence over the
+              deprecated `user` parameter. If omitted, null, or empty, the API uses `user`
+              when available.
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
+
           size: The size of the generated images. For `gpt-image-2`, `gpt-image-2-2026-04-21`,
               `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`,
               `gpt-image-2.5-flare`, and `gpt-image-2.5-flare-2026-09-08`, arbitrary
@@ -681,8 +718,9 @@ class Images(SyncAPIResource):
           style: Legacy style parameter for retired image models. Unsupported for GPT image
               models; describe the desired style in the prompt instead.
 
-          user: A unique identifier representing your end-user, which can help OpenAI to monitor
-              and detect abuse.
+          user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
+              backward compatibility and is used when `safety_identifier` is omitted, null, or
+              empty.
               [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           extra_headers: Send extra headers
@@ -710,6 +748,7 @@ class Images(SyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard", "hd"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         size: Union[
             str,
             Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"],
@@ -784,6 +823,13 @@ class Images(SyncAPIResource):
           response_format: Legacy response format parameter for retired image models. Unsupported for GPT
               image models, which always return base64-encoded images.
 
+          safety_identifier: A stable identifier for an end user in your organization, used for safety
+              monitoring and abuse detection. Hash a username or email address to avoid
+              sending identifying information. A non-empty value takes precedence over the
+              deprecated `user` parameter. If omitted, null, or empty, the API uses `user`
+              when available.
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
+
           size: The size of the generated images. For `gpt-image-2`, `gpt-image-2-2026-04-21`,
               `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`,
               `gpt-image-2.5-flare`, and `gpt-image-2.5-flare-2026-09-08`, arbitrary
@@ -798,8 +844,9 @@ class Images(SyncAPIResource):
           style: Legacy style parameter for retired image models. Unsupported for GPT image
               models; describe the desired style in the prompt instead.
 
-          user: A unique identifier representing your end-user, which can help OpenAI to monitor
-              and detect abuse.
+          user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
+              backward compatibility and is used when `safety_identifier` is omitted, null, or
+              empty.
               [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           extra_headers: Send extra headers
@@ -827,6 +874,7 @@ class Images(SyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard", "hd"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         size: Union[
             str,
             Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"],
@@ -901,6 +949,13 @@ class Images(SyncAPIResource):
           response_format: Legacy response format parameter for retired image models. Unsupported for GPT
               image models, which always return base64-encoded images.
 
+          safety_identifier: A stable identifier for an end user in your organization, used for safety
+              monitoring and abuse detection. Hash a username or email address to avoid
+              sending identifying information. A non-empty value takes precedence over the
+              deprecated `user` parameter. If omitted, null, or empty, the API uses `user`
+              when available.
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
+
           size: The size of the generated images. For `gpt-image-2`, `gpt-image-2-2026-04-21`,
               `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`,
               `gpt-image-2.5-flare`, and `gpt-image-2.5-flare-2026-09-08`, arbitrary
@@ -915,8 +970,9 @@ class Images(SyncAPIResource):
           style: Legacy style parameter for retired image models. Unsupported for GPT image
               models; describe the desired style in the prompt instead.
 
-          user: A unique identifier representing your end-user, which can help OpenAI to monitor
-              and detect abuse.
+          user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
+              backward compatibility and is used when `safety_identifier` is omitted, null, or
+              empty.
               [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           extra_headers: Send extra headers
@@ -943,6 +999,7 @@ class Images(SyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard", "hd"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         size: Union[
             str,
             Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"],
@@ -974,6 +1031,7 @@ class Images(SyncAPIResource):
                     "partial_images": partial_images,
                     "quality": quality,
                     "response_format": response_format,
+                    "safety_identifier": safety_identifier,
                     "size": size,
                     "style": style,
                     "user": user,
@@ -1114,6 +1172,7 @@ class AsyncImages(AsyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         size: Union[str, Literal["1024x1024", "1536x1024", "1024x1536", "auto", "256x256", "512x512"], None]
         | Omit = omit,
         stream: Optional[Literal[False]] | Omit = omit,
@@ -1194,6 +1253,13 @@ class AsyncImages(AsyncAPIResource):
           response_format: Legacy response format parameter for retired image models. Unsupported for GPT
               image models, which always return base64-encoded images.
 
+          safety_identifier: A stable identifier for an end user in your organization, used for safety
+              monitoring and abuse detection. Hash a username or email address to avoid
+              sending identifying information. A non-empty value takes precedence over the
+              deprecated `user` parameter. If omitted, null, or empty, the API uses `user`
+              when available.
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
+
           size: The size of the generated images. Defaults to `auto`. For `gpt-image-2`,
               `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
               `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and
@@ -1210,8 +1276,9 @@ class AsyncImages(AsyncAPIResource):
               [Image generation guide](https://developers.openai.com/api/docs/guides/image-generation)
               for more information.
 
-          user: A unique identifier representing your end-user, which can help OpenAI to monitor
-              and detect abuse.
+          user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
+              backward compatibility and is used when `safety_identifier` is omitted, null, or
+              empty.
               [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           extra_headers: Send extra headers
@@ -1241,6 +1308,7 @@ class AsyncImages(AsyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         size: Union[str, Literal["1024x1024", "1536x1024", "1024x1536", "auto", "256x256", "512x512"], None]
         | Omit = omit,
         user: str | Omit = omit,
@@ -1324,6 +1392,13 @@ class AsyncImages(AsyncAPIResource):
           response_format: Legacy response format parameter for retired image models. Unsupported for GPT
               image models, which always return base64-encoded images.
 
+          safety_identifier: A stable identifier for an end user in your organization, used for safety
+              monitoring and abuse detection. Hash a username or email address to avoid
+              sending identifying information. A non-empty value takes precedence over the
+              deprecated `user` parameter. If omitted, null, or empty, the API uses `user`
+              when available.
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
+
           size: The size of the generated images. Defaults to `auto`. For `gpt-image-2`,
               `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
               `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and
@@ -1336,8 +1411,9 @@ class AsyncImages(AsyncAPIResource):
               `1024x1536` are supported by the GPT image models; `auto` is supported for
               models that allow automatic sizing.
 
-          user: A unique identifier representing your end-user, which can help OpenAI to monitor
-              and detect abuse.
+          user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
+              backward compatibility and is used when `safety_identifier` is omitted, null, or
+              empty.
               [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           extra_headers: Send extra headers
@@ -1367,6 +1443,7 @@ class AsyncImages(AsyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         size: Union[str, Literal["1024x1024", "1536x1024", "1024x1536", "auto", "256x256", "512x512"], None]
         | Omit = omit,
         user: str | Omit = omit,
@@ -1450,6 +1527,13 @@ class AsyncImages(AsyncAPIResource):
           response_format: Legacy response format parameter for retired image models. Unsupported for GPT
               image models, which always return base64-encoded images.
 
+          safety_identifier: A stable identifier for an end user in your organization, used for safety
+              monitoring and abuse detection. Hash a username or email address to avoid
+              sending identifying information. A non-empty value takes precedence over the
+              deprecated `user` parameter. If omitted, null, or empty, the API uses `user`
+              when available.
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
+
           size: The size of the generated images. Defaults to `auto`. For `gpt-image-2`,
               `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
               `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and
@@ -1462,8 +1546,9 @@ class AsyncImages(AsyncAPIResource):
               `1024x1536` are supported by the GPT image models; `auto` is supported for
               models that allow automatic sizing.
 
-          user: A unique identifier representing your end-user, which can help OpenAI to monitor
-              and detect abuse.
+          user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
+              backward compatibility and is used when `safety_identifier` is omitted, null, or
+              empty.
               [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           extra_headers: Send extra headers
@@ -1492,6 +1577,7 @@ class AsyncImages(AsyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         size: Union[str, Literal["1024x1024", "1536x1024", "1024x1536", "auto", "256x256", "512x512"], None]
         | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
@@ -1517,6 +1603,7 @@ class AsyncImages(AsyncAPIResource):
                 "partial_images": partial_images,
                 "quality": quality,
                 "response_format": response_format,
+                "safety_identifier": safety_identifier,
                 "size": size,
                 "stream": stream,
                 "user": user,
@@ -1561,6 +1648,7 @@ class AsyncImages(AsyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard", "hd"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         size: Union[
             str,
             Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"],
@@ -1632,6 +1720,13 @@ class AsyncImages(AsyncAPIResource):
           response_format: Legacy response format parameter for retired image models. Unsupported for GPT
               image models, which always return base64-encoded images.
 
+          safety_identifier: A stable identifier for an end user in your organization, used for safety
+              monitoring and abuse detection. Hash a username or email address to avoid
+              sending identifying information. A non-empty value takes precedence over the
+              deprecated `user` parameter. If omitted, null, or empty, the API uses `user`
+              when available.
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
+
           size: The size of the generated images. For `gpt-image-2`, `gpt-image-2-2026-04-21`,
               `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`,
               `gpt-image-2.5-flare`, and `gpt-image-2.5-flare-2026-09-08`, arbitrary
@@ -1650,8 +1745,9 @@ class AsyncImages(AsyncAPIResource):
           style: Legacy style parameter for retired image models. Unsupported for GPT image
               models; describe the desired style in the prompt instead.
 
-          user: A unique identifier representing your end-user, which can help OpenAI to monitor
-              and detect abuse.
+          user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
+              backward compatibility and is used when `safety_identifier` is omitted, null, or
+              empty.
               [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           extra_headers: Send extra headers
@@ -1679,6 +1775,7 @@ class AsyncImages(AsyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard", "hd"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         size: Union[
             str,
             Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"],
@@ -1753,6 +1850,13 @@ class AsyncImages(AsyncAPIResource):
           response_format: Legacy response format parameter for retired image models. Unsupported for GPT
               image models, which always return base64-encoded images.
 
+          safety_identifier: A stable identifier for an end user in your organization, used for safety
+              monitoring and abuse detection. Hash a username or email address to avoid
+              sending identifying information. A non-empty value takes precedence over the
+              deprecated `user` parameter. If omitted, null, or empty, the API uses `user`
+              when available.
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
+
           size: The size of the generated images. For `gpt-image-2`, `gpt-image-2-2026-04-21`,
               `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`,
               `gpt-image-2.5-flare`, and `gpt-image-2.5-flare-2026-09-08`, arbitrary
@@ -1767,8 +1871,9 @@ class AsyncImages(AsyncAPIResource):
           style: Legacy style parameter for retired image models. Unsupported for GPT image
               models; describe the desired style in the prompt instead.
 
-          user: A unique identifier representing your end-user, which can help OpenAI to monitor
-              and detect abuse.
+          user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
+              backward compatibility and is used when `safety_identifier` is omitted, null, or
+              empty.
               [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           extra_headers: Send extra headers
@@ -1796,6 +1901,7 @@ class AsyncImages(AsyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard", "hd"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         size: Union[
             str,
             Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"],
@@ -1870,6 +1976,13 @@ class AsyncImages(AsyncAPIResource):
           response_format: Legacy response format parameter for retired image models. Unsupported for GPT
               image models, which always return base64-encoded images.
 
+          safety_identifier: A stable identifier for an end user in your organization, used for safety
+              monitoring and abuse detection. Hash a username or email address to avoid
+              sending identifying information. A non-empty value takes precedence over the
+              deprecated `user` parameter. If omitted, null, or empty, the API uses `user`
+              when available.
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
+
           size: The size of the generated images. For `gpt-image-2`, `gpt-image-2-2026-04-21`,
               `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`,
               `gpt-image-2.5-flare`, and `gpt-image-2.5-flare-2026-09-08`, arbitrary
@@ -1884,8 +1997,9 @@ class AsyncImages(AsyncAPIResource):
           style: Legacy style parameter for retired image models. Unsupported for GPT image
               models; describe the desired style in the prompt instead.
 
-          user: A unique identifier representing your end-user, which can help OpenAI to monitor
-              and detect abuse.
+          user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
+              backward compatibility and is used when `safety_identifier` is omitted, null, or
+              empty.
               [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           extra_headers: Send extra headers
@@ -1912,6 +2026,7 @@ class AsyncImages(AsyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard", "hd"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         size: Union[
             str,
             Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"],
@@ -1943,6 +2058,7 @@ class AsyncImages(AsyncAPIResource):
                     "partial_images": partial_images,
                     "quality": quality,
                     "response_format": response_format,
+                    "safety_identifier": safety_identifier,
                     "size": size,
                     "style": style,
                     "user": user,

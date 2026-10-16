@@ -43282,8 +43282,8 @@ components:
         user:
           type: string
           example: user-1234
-          description: |
-            A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse. [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
+          description: 'Deprecated: use `safety_identifier` instead. This parameter remains accepted for backward compatibility and is used when `safety_identifier` is omitted, null, or empty. [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).'
+          deprecated: true
         input_fidelity:
           anyOf:
           - $ref: '#/components/schemas/InputFidelity'
@@ -43318,6 +43318,13 @@ components:
           example: high
           description: |
             The quality of the image that will be generated for GPT image models. The GPT image models support `low`, `medium`, and `high`. `gpt-image-2.5-sunburst` and `gpt-image-2.5-flare`, including their `2026-09-08` snapshots, also support `xhigh` and `max`. Defaults to `auto`.
+        safety_identifier:
+          type:
+          - string
+          - 'null'
+          maxLength: 128
+          example: user-1234
+          description: A stable identifier for an end user in your organization, used for safety monitoring and abuse detection. Hash a username or email address to avoid sending identifying information. A non-empty value takes precedence over the deprecated `user` parameter. If omitted, null, or empty, the API uses `user` when available. [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
       required:
       - prompt
       - image
@@ -43502,8 +43509,15 @@ components:
         user:
           type: string
           example: user-1234
-          description: |
-            A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse. [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
+          description: 'Deprecated: use `safety_identifier` instead. This parameter remains accepted for backward compatibility and is used when `safety_identifier` is omitted, null, or empty. [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).'
+          deprecated: true
+        safety_identifier:
+          type:
+          - string
+          - 'null'
+          maxLength: 128
+          example: user-1234
+          description: A stable identifier for an end user in your organization, used for safety monitoring and abuse detection. Hash a username or email address to avoid sending identifying information. A non-empty value takes precedence over the deprecated `user` parameter. If omitted, null, or empty, the API uses `user` when available. [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
       required:
       - prompt
     CreateImageVariationRequest:
@@ -45727,9 +45741,8 @@ components:
         user:
           type: string
           example: user-1234
-          description: |
-            A unique identifier representing your end-user, which can help OpenAI
-            monitor and detect abuse.
+          description: 'Deprecated: use `safety_identifier` instead. This parameter remains accepted for backward compatibility and is used when `safety_identifier` is omitted, null, or empty. [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).'
+          deprecated: true
         output_format:
           anyOf:
           - type: string
@@ -45779,6 +45792,13 @@ components:
           description: Stream partial image results as events.
         partial_images:
           $ref: '#/components/schemas/PartialImages'
+        safety_identifier:
+          type:
+          - string
+          - 'null'
+          maxLength: 128
+          example: user-1234
+          description: A stable identifier for an end user in your organization, used for safety monitoring and abuse detection. Hash a username or email address to avoid sending identifying information. A non-empty value takes precedence over the deprecated `user` parameter. If omitted, null, or empty, the API uses `user` when available. [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
       required:
       - images
       - prompt
@@ -49074,6 +49094,11 @@ components:
           - jpeg
         usage:
           $ref: '#/components/schemas/ImagesUsage'
+        safety_identifier:
+          type:
+          - string
+          - 'null'
+          description: The effective safety identifier used for safety monitoring and abuse detection. This is the non-empty `safety_identifier` from the request, or the deprecated `user` value when `safety_identifier` is omitted, null, or empty.
       required:
       - type
       - b64_json
@@ -49258,6 +49283,11 @@ components:
           - jpeg
         usage:
           $ref: '#/components/schemas/ImagesUsage'
+        safety_identifier:
+          type:
+          - string
+          - 'null'
+          description: The effective safety identifier used for safety monitoring and abuse detection. This is the non-empty `safety_identifier` from the request, or the deprecated `user` value when `safety_identifier` is omitted, null, or empty.
       required:
       - type
       - b64_json
@@ -49593,6 +49623,11 @@ components:
           - max
         usage:
           $ref: '#/components/schemas/ImageGenUsage'
+        safety_identifier:
+          type:
+          - string
+          - 'null'
+          description: The effective safety identifier used for safety monitoring and abuse detection. This is the non-empty `safety_identifier` from the request, or the deprecated `user` value when `safety_identifier` is omitted, null, or empty.
       required:
       - created
       x-oaiMeta:
