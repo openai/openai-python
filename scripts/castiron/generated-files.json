@@ -11,7 +11,7 @@
     },
     "api.md": {
       "mode": "100644",
-      "sha256": "f0d379b2373527bc8541d45b4f7297a3cebcf996d73da40cbc2b891f6f9af5eb"
+      "sha256": "cb21d922f4599e1d2d05cd937ac10072d3b3dbcbac4e73c9903cea2125944cef"
     },
     "scripts/castiron/CUSTOM_CODE.md": {
       "mode": "100644",
@@ -755,7 +755,7 @@
     },
     "src/openai/types/__init__.py": {
       "mode": "100644",
-      "sha256": "d9737e5373f40a8eae97a51a3ad158bcbd2cda4bb4d3e6f7b53b4ea21065e43d"
+      "sha256": "5caaa29a79510a0a3e4a92f7b59d3ccb3f8f6651706f658738cb5e2a22b91481"
     },
     "src/openai/types/admin/__init__.py": {
       "mode": "100644",
@@ -4067,7 +4067,7 @@
     },
     "src/openai/types/decision_input_image_param.py": {
       "mode": "100644",
-      "sha256": "2a823bb0b630ac1c1d3572eda41023686b15cb515e990b43a5892119daf55440"
+      "sha256": "ea10f5cc6ca0126d19b4f5a0b2acd06386d09fe44515ceda473fe920bdc0211d"
     },
     "src/openai/types/decision_input_message_param.py": {
       "mode": "100644",
@@ -4079,7 +4079,11 @@
     },
     "src/openai/types/decision_input_text_param.py": {
       "mode": "100644",
-      "sha256": "4555a371d1a82cadc4076b9c08b2d45ec4c31162a112aee319e1912243d6acf2"
+      "sha256": "96810356758e0082d22d20bc76e9dab61360ca37be3f2f9ad15ae01c473b470f"
+    },
+    "src/openai/types/decision_prompt_cache_breakpoint_param.py": {
+      "mode": "100644",
+      "sha256": "5317301f25465c321182e02dfe32b7ab5718e3ddf51d4ae5fccf01cbc7380a68"
     },
     "src/openai/types/deleted_skill.py": {
       "mode": "100644",

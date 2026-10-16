@@ -34,6 +34,7 @@ from openai.types import (
     DecisionInputMessageParam,
     DecisionInputPartUnionParam,
     DecisionInputTextParam,
+    DecisionPromptCacheBreakpointParam,
 )
 ```
 
