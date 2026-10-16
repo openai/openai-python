@@ -81847,22 +81847,9 @@ components:
           minLength: 0
           maxLength: 10485760
         prompt_cache_breakpoint:
-          type:
-          - object
-          - 'null'
-          properties:
-            mode:
-              type: string
-              enum:
-              - explicit
-              default: explicit
-              x-stainless-const: true
-              description: The breakpoint mode. Always `explicit`.
-          required:
-          - mode
-          additionalProperties: false
-          title: Prompt cache breakpoint
-          description: Marks the exact end of a reusable prompt prefix. The breakpoint inherits its TTL from the request's `prompt_cache_options.ttl`; the boundary is not rounded to a token block.
+          anyOf:
+          - $ref: '#/components/schemas/DecisionPromptCacheBreakpoint'
+          - type: 'null'
       required:
       - type
       - text
@@ -81890,22 +81877,9 @@ components:
           description: The image detail level, using the selected model's image profile. Defaults to auto.
           default: auto
         prompt_cache_breakpoint:
-          type:
-          - object
-          - 'null'
-          properties:
-            mode:
-              type: string
-              enum:
-              - explicit
-              default: explicit
-              x-stainless-const: true
-              description: The breakpoint mode. Always `explicit`.
-          required:
-          - mode
-          additionalProperties: false
-          title: Prompt cache breakpoint
-          description: Marks the exact end of a reusable prompt prefix. The breakpoint inherits its TTL from the request's `prompt_cache_options.ttl`; the boundary is not rounded to a token block.
+          anyOf:
+          - $ref: '#/components/schemas/DecisionPromptCacheBreakpoint'
+          - type: 'null'
         type:
           type: string
           enum:
@@ -107370,6 +107344,21 @@ components:
       - type
       - name
       - prompt
+    DecisionPromptCacheBreakpoint:
+      type: object
+      properties:
+        mode:
+          type: string
+          enum:
+          - explicit
+          default: explicit
+          x-stainless-const: true
+          description: The breakpoint mode. Always `explicit`.
+      required:
+      - mode
+      additionalProperties: false
+      title: Prompt cache breakpoint
+      description: Marks the exact end of a reusable prompt prefix. The breakpoint inherits its TTL from the request's `prompt_cache_options.ttl`; the boundary is not rounded to a token block.
     OAuthErrorCode:
       anyOf:
       - enum:

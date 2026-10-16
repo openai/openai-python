@@ -138,6 +138,9 @@ from .static_file_chunking_strategy_object import StaticFileChunkingStrategyObje
 from .content_provenance_check_create_params import (
     ContentProvenanceCheckCreateParams as ContentProvenanceCheckCreateParams,
 )
+from .decision_prompt_cache_breakpoint_param import (
+    DecisionPromptCacheBreakpointParam as DecisionPromptCacheBreakpointParam,
+)
 from .eval_stored_completions_data_source_config import (
     EvalStoredCompletionsDataSourceConfig as EvalStoredCompletionsDataSourceConfig,
 )

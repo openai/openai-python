@@ -5,6 +5,8 @@ from __future__ import annotations
 from typing import Optional
 from typing_extensions import Literal, Required, TypedDict
 
+from .decision_prompt_cache_breakpoint_param import DecisionPromptCacheBreakpointParam
+
 __all__ = ["DecisionInputTextParam", "PromptCacheBreakpoint"]
 
 
@@ -23,7 +25,7 @@ class DecisionInputTextParam(TypedDict, total=False):
 
     type: Required[Literal["input_text"]]
 
-    prompt_cache_breakpoint: Optional[PromptCacheBreakpoint]
+    prompt_cache_breakpoint: Optional[DecisionPromptCacheBreakpointParam]
     """Marks the exact end of a reusable prompt prefix.
 
     The breakpoint inherits its TTL from the request's `prompt_cache_options.ttl`;
