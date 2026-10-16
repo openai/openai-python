@@ -15,6 +15,7 @@ __all__ = [
     "QuestionQuestionParamChoiceChoice",
     "QuestionQuestionParamScore",
     "QuestionQuestionParamScoreLevel",
+    "PromptCacheOptions",
 ]
 
 
@@ -36,6 +37,23 @@ class DecisionCreateParams(TypedDict, total=False):
 
     Each question can be a predicate, choice, or score. Answers come back in the
     same order.
+    """
+
+    prompt_cache_key: Optional[str]
+    """Partition prompt cache reuse by caller-provided key."""
+
+    prompt_cache_options: Optional[PromptCacheOptions]
+    """Options for prompt caching.
+
+    Supported for `gpt-5.6` and later models. By default, OpenAI automatically
+    chooses one implicit cache breakpoint. You can add explicit breakpoints to
+    content blocks with `prompt_cache_breakpoint`. Each request can write up to four
+    breakpoints. For cache matching, OpenAI considers up to the latest 80
+    breakpoints in the conversation, without a content-block lookback limit. Set
+    `mode` to `explicit` to disable the implicit breakpoint. The `ttl` defaults to
+    `30m`, which is currently the only supported value. See the
+    [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching)
+    for current details.
     """
 
     safety_identifier: Optional[str]
@@ -99,3 +117,27 @@ class QuestionQuestionParamScore(TypedDict, total=False):
 
 
 Question: TypeAlias = Union[QuestionQuestionParamPredicate, QuestionQuestionParamChoice, QuestionQuestionParamScore]
+
+
+class PromptCacheOptions(TypedDict, total=False):
+    """Options for prompt caching.
+
+    Supported for `gpt-5.6` and later models. By default, OpenAI automatically chooses one implicit cache breakpoint. You can add explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each request can write up to four breakpoints. For cache matching, OpenAI considers up to the latest 80 breakpoints in the conversation, without a content-block lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The `ttl` defaults to `30m`, which is currently the only supported value. See the [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching) for current details.
+    """
+
+    mode: Optional[Literal["implicit", "explicit"]]
+    """Controls whether OpenAI automatically creates an implicit cache breakpoint.
+
+    Defaults to `implicit`. With `implicit`, OpenAI creates one implicit breakpoint
+    and writes up to the latest three explicit breakpoints in the request. With
+    `explicit`, OpenAI does not create an implicit breakpoint and writes up to the
+    latest four explicit breakpoints. If there are no explicit breakpoints, the
+    request does not use prompt caching.
+    """
+
+    ttl: Literal["30m"]
+    """
+    The minimum lifetime applied to every implicit and explicit cache breakpoint
+    written by the request. Defaults to `30m`, which is currently the only supported
+    value. The backend may retain cache entries for longer.
+    """
