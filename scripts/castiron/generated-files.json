@@ -23,7 +23,7 @@
     },
     "scripts/castiron/custom_code_budget.py": {
       "mode": "100755",
-      "sha256": "deeb0d41058fbc311d53c2bbaba11de5737cab3a91a643023a256f61fcf7cd4c"
+      "sha256": "e6f19706c26f9b996f7d6d5f8a654e54fbc8c49a5d2fce045c1996b119feee33"
     },
     "scripts/castiron/custom_code_report.py": {
       "mode": "100755",
@@ -255,7 +255,7 @@
     },
     "src/openai/resources/audio/speech.py": {
       "mode": "100644",
-      "sha256": "f8bda37036dd08f86554916b516d952171d7dce276adb79bffc233ade927f0ba"
+      "sha256": "5654e4105ba0118d6467eb42aaad6dcf62b7e57123512423d9b72bb1e77aad69"
     },
     "src/openai/resources/audio/transcriptions.py": {
       "mode": "100644",
@@ -267,7 +267,7 @@
     },
     "src/openai/resources/audio/voices.py": {
       "mode": "100644",
-      "sha256": "7b897d9ead4531bf47d2c1b41c05d03d1d837189495604a9731535533218af74"
+      "sha256": "85243d3a08489a2bd66c58d317190e867e8441d1ccf9ceebe9adb81e2e3be919"
     },
     "src/openai/resources/batches.py": {
       "mode": "100644",
@@ -1455,7 +1455,7 @@
     },
     "src/openai/types/audio/speech_create_params.py": {
       "mode": "100644",
-      "sha256": "06581082c44e97a09ba13040a3cf571b647f2adcc7299b5b670a7805665c3d2a"
+      "sha256": "d7fe69e980d62c53974dd4762b41fdf0b0d945d673706197c522d8e12dc26d7d"
     },
     "src/openai/types/audio/speech_model.py": {
       "mode": "100644",
@@ -1535,11 +1535,11 @@
     },
     "src/openai/types/audio/voice.py": {
       "mode": "100644",
-      "sha256": "7f6f9175e42ad35183b346494c27e037357d3966294c0073e2d43f515fd7e6ac"
+      "sha256": "ed71fb7590405ac01f5664486c6f3c8b23f5eaf39f5ce8ca9a6a3a0aba981cc5"
     },
     "src/openai/types/audio/voice_create_params.py": {
       "mode": "100644",
-      "sha256": "bc5db6a745e71bd7d016b47c02999e4e1742a252719d47777e7d43b478105f54"
+      "sha256": "4ac1fa687ed2615dbcf1a16324b56bb2e85e13d7d901f00b47987defed0e59d3"
     },
     "src/openai/types/audio_model.py": {
       "mode": "100644",
@@ -3711,7 +3711,7 @@
     },
     "src/openai/types/chat/chat_completion_audio_param.py": {
       "mode": "100644",
-      "sha256": "238483cd0cf50aab29a57a10118c55e5851ea7c586f4d999c474888e0d7992c7"
+      "sha256": "925003600e01042fd1f8d0b17c151d7a5e58ee58bf9316cbe6bbd2fbcb43ee6b"
     },
     "src/openai/types/chat/chat_completion_chunk.py": {
       "mode": "100644",
@@ -5183,11 +5183,11 @@
     },
     "src/openai/types/realtime/realtime_audio_config_output.py": {
       "mode": "100644",
-      "sha256": "1509f8bbb6bb55386b4418c0cdcd8534fd7394efce8495623c8f9a7a9d7fcd6f"
+      "sha256": "271a4e82393688f9079fe2dcb72d018a9cd271239204b02d3d307dd504c10c09"
     },
     "src/openai/types/realtime/realtime_audio_config_output_param.py": {
       "mode": "100644",
-      "sha256": "cc64b720c390497ea22467dc9f7458fb6a767a24d63ca75218fea6af428d37c6"
+      "sha256": "082bda27e70fe2d270a1ab186e6f58f7bddc0e09cec6d25ced02666ad96a764c"
     },
     "src/openai/types/realtime/realtime_audio_config_param.py": {
       "mode": "100644",
@@ -5351,11 +5351,11 @@
     },
     "src/openai/types/realtime/realtime_response_create_audio_output.py": {
       "mode": "100644",
-      "sha256": "817774615b497670952376f081e3538fd9ad7eb477ac2d199753f43d2aa395fb"
+      "sha256": "bbdf96287fd50ae77de19d832aa30329026076c84be5dae767fbd1823cb1ad6c"
     },
     "src/openai/types/realtime/realtime_response_create_audio_output_param.py": {
       "mode": "100644",
-      "sha256": "d9c3a89e18d7036fffa507597f2dc395ecd6c3fabc5a4ddf19caf414506aff01"
+      "sha256": "12e3a42c84e037a73b603d28be8c4e3bf886ef31d300fe7cf2fc9ca2cacd59e8"
     },
     "src/openai/types/realtime/realtime_response_create_mcp_tool.py": {
       "mode": "100644",
@@ -7327,7 +7327,7 @@
     },
     "tests/api_resources/audio/test_voices.py": {
       "mode": "100644",
-      "sha256": "426b3547b1c1f3dd80402f4b233e3432a732321733feb87b6a3a311a73d1a5e2"
+      "sha256": "5d9074a59cc739f26b38a4b6c3716d03bdd1ef369ecc9e734d82d8d8e2512e2f"
     },
     "tests/api_resources/beta/__init__.py": {
       "mode": "100644",
