@@ -57,6 +57,21 @@ class TestLive:
                 ],
                 "instructions": "instructions",
                 "store": True,
+                "triggers": [
+                    {
+                        "decisions": {
+                            "questions": [
+                                {
+                                    "instructions": "instructions",
+                                    "type": "predicate",
+                                    "name": "name",
+                                }
+                            ]
+                        },
+                        "event_type": "session.input_transcript.delta",
+                        "type": "decisions",
+                    }
+                ],
             },
             transport={
                 "sdp": "x",
@@ -143,6 +158,21 @@ class TestAsyncLive:
                 ],
                 "instructions": "instructions",
                 "store": True,
+                "triggers": [
+                    {
+                        "decisions": {
+                            "questions": [
+                                {
+                                    "instructions": "instructions",
+                                    "type": "predicate",
+                                    "name": "name",
+                                }
+                            ]
+                        },
+                        "event_type": "session.input_transcript.delta",
+                        "type": "decisions",
+                    }
+                ],
             },
             transport={
                 "sdp": "x",

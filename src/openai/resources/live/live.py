@@ -29,7 +29,7 @@ from ..._models import FinalRequestOptions, construct_type_unchecked
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ..._constants import DEFAULT_LIVE_SEND_QUEUE_MAX_BYTES
-from ...types.live import live_create_params
+from ...types.live import live_create_params, decision_item_create_event_param
 from ..._exceptions import OpenAIError, WebSocketConnectionClosedError
 from ..._send_queue import SendQueue
 from ..._base_client import _merge_mappings, make_request_options
@@ -332,6 +332,7 @@ class AsyncLiveConnection(AsyncWebSocketConnectionBase):
     """Represents a live WebSocket connection to the Live API"""
 
     session: AsyncLiveSessionResource
+    decision: AsyncLiveDecisionResource
     response: AsyncLiveResponseResource
 
     _connection: AsyncWebSocketConnection
@@ -366,6 +367,7 @@ class AsyncLiveConnection(AsyncWebSocketConnectionBase):
         self._event_handler_registry = EventHandlerRegistry(use_lock=False)
 
         self.session = AsyncLiveSessionResource(self)
+        self.decision = AsyncLiveDecisionResource(self)
         self.response = AsyncLiveResponseResource(self)
 
     async def __aiter__(self) -> AsyncIterator[ServerEvent]:
@@ -727,6 +729,7 @@ class LiveConnection(WebSocketConnectionBase):
     """Represents a live WebSocket connection to the Live API"""
 
     session: LiveSessionResource
+    decision: LiveDecisionResource
     response: LiveResponseResource
 
     _connection: WebSocketConnection
@@ -761,6 +764,7 @@ class LiveConnection(WebSocketConnectionBase):
         self._event_handler_registry = EventHandlerRegistry(use_lock=True)
 
         self.session = LiveSessionResource(self)
+        self.decision = LiveDecisionResource(self)
         self.response = LiveResponseResource(self)
 
     def __iter__(self) -> Iterator[ServerEvent]:
@@ -1145,7 +1149,8 @@ class LiveSessionResource(BaseLiveConnectionResource):
         self._connection.send(cast(ClientEventParam, strip_not_given({"type": "session.close", "event_id": event_id})))
 
     def update(self, *, session: SessionUpdateConfigParam, event_id: Optional[str] | Omit = omit) -> None:
-        """Update the delegation settings of an active Live session.
+        """
+        Update the delegation settings or transcript triggers of an active Live session.
 
         The server acknowledges accepted changes with `session.updated`.
         """
@@ -1285,6 +1290,44 @@ class LiveSessionOutputAudioFixtureResource(BaseLiveConnectionResource):
         )
 
 
+class LiveDecisionResource(BaseLiveConnectionResource):
+    @cached_property
+    def item(self) -> LiveDecisionItemResource:
+        return LiveDecisionItemResource(self._connection)
+
+    def create(self, *, event_id: str) -> None:
+        """
+        Evaluate the configured questions using the current conversation and Decision
+        inputs.
+
+        Reusing an event_id is rejected for the lifetime of the session.
+        """
+        self._connection.send({"type": "decision.create", "event_id": event_id})
+
+
+class LiveDecisionItemResource(BaseLiveConnectionResource):
+    def delete(self, *, item_id: str, event_id: Optional[str] | Omit = omit) -> None:
+        """
+        Delete an input item from future decisions without starting an evaluation or changing Live voice context.
+        """
+        self._connection.send(
+            cast(
+                ClientEventParam,
+                strip_not_given({"type": "decision.item.delete", "item_id": item_id, "event_id": event_id}),
+            )
+        )
+
+    def create(self, *, item: decision_item_create_event_param.Item, event_id: Optional[str] | Omit = omit) -> None:
+        """
+        Append an input item for future decisions without starting an evaluation or changing Live voice context.
+        """
+        self._connection.send(
+            cast(
+                ClientEventParam, strip_not_given({"type": "decision.item.create", "item": item, "event_id": event_id})
+            )
+        )
+
+
 class LiveResponseResource(BaseLiveConnectionResource):
     @cached_property
     def item(self) -> LiveResponseItemResource:
@@ -1351,7 +1394,8 @@ class AsyncLiveSessionResource(BaseAsyncLiveConnectionResource):
         )
 
     async def update(self, *, session: SessionUpdateConfigParam, event_id: Optional[str] | Omit = omit) -> None:
-        """Update the delegation settings of an active Live session.
+        """
+        Update the delegation settings or transcript triggers of an active Live session.
 
         The server acknowledges accepted changes with `session.updated`.
         """
@@ -1493,6 +1537,46 @@ class AsyncLiveSessionOutputAudioFixtureResource(BaseAsyncLiveConnectionResource
             cast(
                 ClientEventParam,
                 strip_not_given({"type": "session.output_audio.fixture.play", "audio": audio, "event_id": event_id}),
+            )
+        )
+
+
+class AsyncLiveDecisionResource(BaseAsyncLiveConnectionResource):
+    @cached_property
+    def item(self) -> AsyncLiveDecisionItemResource:
+        return AsyncLiveDecisionItemResource(self._connection)
+
+    async def create(self, *, event_id: str) -> None:
+        """
+        Evaluate the configured questions using the current conversation and Decision
+        inputs.
+
+        Reusing an event_id is rejected for the lifetime of the session.
+        """
+        await self._connection.send({"type": "decision.create", "event_id": event_id})
+
+
+class AsyncLiveDecisionItemResource(BaseAsyncLiveConnectionResource):
+    async def delete(self, *, item_id: str, event_id: Optional[str] | Omit = omit) -> None:
+        """
+        Delete an input item from future decisions without starting an evaluation or changing Live voice context.
+        """
+        await self._connection.send(
+            cast(
+                ClientEventParam,
+                strip_not_given({"type": "decision.item.delete", "item_id": item_id, "event_id": event_id}),
+            )
+        )
+
+    async def create(
+        self, *, item: decision_item_create_event_param.Item, event_id: Optional[str] | Omit = omit
+    ) -> None:
+        """
+        Append an input item for future decisions without starting an evaluation or changing Live voice context.
+        """
+        await self._connection.send(
+            cast(
+                ClientEventParam, strip_not_given({"type": "decision.item.create", "item": item, "event_id": event_id})
             )
         )
 

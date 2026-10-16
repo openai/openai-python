@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
-from typing import Union, Optional
+from typing import Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
+from .decision_trigger_param import DecisionTriggerParam
 from .client_delegation_param import ClientDelegationParam
+from .decisions_delegation_update_config_param import DecisionsDelegationUpdateConfigParam
 from .responses_delegation_update_config_param import ResponsesDelegationUpdateConfigParam
 
-__all__ = ["SessionUpdateConfigParam", "Delegation", "DelegationResponses"]
+__all__ = ["SessionUpdateConfigParam", "Delegation", "DelegationResponses", "DelegationDecisions"]
 
 
 class DelegationResponses(TypedDict, total=False):
@@ -29,13 +31,18 @@ class DelegationResponses(TypedDict, total=False):
     """
 
 
-Delegation: TypeAlias = Union[ClientDelegationParam, DelegationResponses]
+class DelegationDecisions(TypedDict, total=False):
+    type: Required[Literal["decisions"]]
+
+    decisions: DecisionsDelegationUpdateConfigParam
+
+
+Delegation: TypeAlias = Union[ClientDelegationParam, DelegationResponses, DelegationDecisions]
 
 
 class SessionUpdateConfigParam(TypedDict, total=False):
-    """Changes to an active Live session.
-
-    Only delegation backend settings can be updated after startup.
+    """
+    Changes to an active Live session's delegation settings and transcript triggers.
     """
 
     delegation: Optional[Delegation]
@@ -43,4 +50,12 @@ class SessionUpdateConfigParam(TypedDict, total=False):
 
     The delegation type must match the current session; omitted settings retain
     their values.
+    """
+
+    triggers: Iterable[DecisionTriggerParam]
+    """At most one Decisions trigger per transcript event type.
+
+    Triggers run independently of delegation. On update, omit triggers to keep the
+    current configuration, send a list to replace it, or send an empty list to
+    disable triggers.
     """
