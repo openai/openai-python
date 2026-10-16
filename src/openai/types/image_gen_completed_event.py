@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
-from typing import Union
+from typing import Union, Optional
 from typing_extensions import Literal
 
 from .._models import BaseModel
@@ -64,4 +64,11 @@ class ImageGenCompletedEvent(BaseModel):
     """
     For the GPT image models only, the token usage information for the image
     generation.
+    """
+
+    safety_identifier: Optional[str] = None
+    """The effective safety identifier used for safety monitoring and abuse detection.
+
+    This is the non-empty `safety_identifier` from the request, or the deprecated
+    `user` value when `safety_identifier` is omitted, null, or empty.
     """

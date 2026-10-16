@@ -110,6 +110,16 @@ class ImageEditParamsBase(TypedDict, total=False):
     Unsupported for GPT image models, which always return base64-encoded images.
     """
 
+    safety_identifier: Optional[str]
+    """
+    A stable identifier for an end user in your organization, used for safety
+    monitoring and abuse detection. Hash a username or email address to avoid
+    sending identifying information. A non-empty value takes precedence over the
+    deprecated `user` parameter. If omitted, null, or empty, the API uses `user`
+    when available.
+    [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
+    """
+
     size: Union[str, Literal["1024x1024", "1536x1024", "1024x1536", "auto", "256x256", "512x512"], None]
     """The size of the generated images.
 
@@ -126,9 +136,10 @@ class ImageEditParamsBase(TypedDict, total=False):
     """
 
     user: str
-    """
-    A unique identifier representing your end-user, which can help OpenAI to monitor
-    and detect abuse.
+    """Deprecated: use `safety_identifier` instead.
+
+    This parameter remains accepted for backward compatibility and is used when
+    `safety_identifier` is omitted, null, or empty.
     [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
     """
 
