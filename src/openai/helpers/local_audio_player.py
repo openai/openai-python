@@ -153,13 +153,26 @@ class LocalAudioPlayer:
         buffer_pos = 0
 
         producer_task = asyncio.create_task(buffer_producer())
+        playback_task = asyncio.create_task(event.wait())
 
-        with sd.OutputStream(
-            samplerate=SAMPLE_RATE,
-            channels=self.channels,
-            dtype=self.dtype,
-            callback=callback,
-        ):
-            await event.wait()
+        try:
+            with sd.OutputStream(
+                samplerate=SAMPLE_RATE,
+                channels=self.channels,
+                dtype=self.dtype,
+                callback=callback,
+            ):
+                done, _ = await asyncio.wait(
+                    (producer_task, playback_task),
+                    return_when=asyncio.FIRST_COMPLETED,
+                )
+                if producer_task in done:
+                    producer_task.result()
+                await playback_task
 
-        await producer_task
+            await producer_task
+        finally:
+            for task in (producer_task, playback_task):
+                if not task.done():
+                    task.cancel()
+            await asyncio.gather(producer_task, playback_task, return_exceptions=True)
