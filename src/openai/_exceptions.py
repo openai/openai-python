@@ -11,6 +11,7 @@ from .types.shared.oauth_error_code import OAuthErrorCode
 
 if TYPE_CHECKING:
     from .types.chat import ChatCompletion
+    from .types.responses.response import Response
 
 __all__ = [
     "BadRequestError",
@@ -24,6 +25,9 @@ __all__ = [
     "InternalServerError",
     "LengthFinishReasonError",
     "ContentFilterFinishReasonError",
+    "ResponseNotCompletedError",
+    "ResponseFailedError",
+    "ResponseIncompleteError",
     "InvalidWebhookSignatureError",
     "SubjectTokenProviderError",
     "WebSocketConnectionClosedError",
@@ -191,6 +195,56 @@ class ContentFilterFinishReasonError(OpenAIError):
             "Could not parse response content as the request was rejected by the content filter",
         )
         self.completion = completion
+
+
+class ResponseNotCompletedError(OpenAIError):
+    """A Response reached a final state other than `completed`.
+
+    Carries no HTTP status code: the request that surfaced the failure succeeded.
+    """
+
+    response: Response
+
+    retryable: bool
+    """Whether submitting a new `create()` call is worth trying.
+
+    Never means re-`retrieve()`ing this id, which is immutable once terminal.
+    """
+
+    def __init__(self, message: str, *, response: Response, retryable: bool) -> None:
+        super().__init__(message)
+        self.response = response
+        self.retryable = retryable
+
+    @property
+    def request_id(self) -> str | None:
+        return getattr(self.response, "_request_id", None)
+
+
+class ResponseFailedError(ResponseNotCompletedError):
+    """A Response finished with `status="failed"`."""
+
+    code: Optional[str]
+    """`response.error.code`, or `None` when the API reported no error object."""
+
+    def __init__(self, message: str, *, response: Response, code: Optional[str], retryable: bool) -> None:
+        super().__init__(message, response=response, retryable=retryable)
+        self.code = code
+
+
+class ResponseIncompleteError(ResponseNotCompletedError):
+    """A Response finished with `status="incomplete"`.
+
+    Not necessarily a failure: a run that stopped at `max_output_tokens` still
+    produced output on `.response.output`.
+    """
+
+    reason: Optional[str]
+    """`response.incomplete_details.reason`, or `None` when the API reported no reason."""
+
+    def __init__(self, message: str, *, response: Response, reason: Optional[str], retryable: bool) -> None:
+        super().__init__(message, response=response, retryable=retryable)
+        self.reason = reason
 
 
 class InvalidWebhookSignatureError(ValueError):
