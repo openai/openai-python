@@ -1,5 +1,18 @@
 # Changelog
 
+## [3.35.0](https://github.com/openai/openai-python/compare/v3.34.0...v3.35.0) (2026-10-17)
+
+
+### Features
+
+* **api:** add typed Live sideband events ([#4099](https://github.com/openai/openai-python/issues/4099)) ([8d5cbf0](https://github.com/openai/openai-python/commit/8d5cbf07916b8f2409d940156135ce3c11ac1552))
+* **api:** add ultrafast service tier for Agents ([#4101](https://github.com/openai/openai-python/issues/4101)) ([100bf8f](https://github.com/openai/openai-python/commit/100bf8f7ab8409594258572fbf64bbde140c1c5f))
+
+
+### Bug Fixes
+
+* **realtime:** preserve byte receives with websockets 13 ([#4098](https://github.com/openai/openai-python/issues/4098)) ([309916e](https://github.com/openai/openai-python/commit/309916eb877132359ca2e37b0340a060580e39ee))
+
 ## [3.34.0](https://github.com/openai/openai-python/compare/v3.33.0...v3.34.0) (2026-10-17)
 
 
