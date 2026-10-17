@@ -15,6 +15,7 @@ from .session_updated_event import SessionUpdatedEvent
 from .input_audio_muted_event import InputAudioMutedEvent
 from .thinking_appended_event import ThinkingAppendedEvent
 from .delegation_created_event import DelegationCreatedEvent
+from .output_audio_delta_event import OutputAudioDeltaEvent
 from .commentary_appended_event import CommentaryAppendedEvent
 from .input_audio_unmuted_event import InputAudioUnmutedEvent
 from .decision_item_created_event import DecisionItemCreatedEvent
@@ -162,6 +163,7 @@ ConnectServerEvent: TypeAlias = Annotated[
         ErrorEvent,
         InfoEvent,
         SessionInputAudioAppend,
+        OutputAudioDeltaEvent,
         TransportDtmfReceived,
         TransportDtmfSend,
         TransportRinging,
