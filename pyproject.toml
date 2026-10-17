@@ -10,7 +10,7 @@ authors = [
 
 dependencies = [
   "httpx2>=2.12.0, <3",
-  "pydantic>=1.10.13, <3, !=2.0.*, !=2.1.*, !=2.2.*, !=2.3.*",
+  "pydantic!=2.0.*,!=2.1.*,!=2.2.*,!=2.3.*,<3,>=1.10.13",
   "typing-extensions>=4.14, <5",
   "anyio>=4.10.0, <5",
   "sniffio",
@@ -67,8 +67,8 @@ dev = [
     "pytest-xdist>=3.6.1",
     "griffe>=1",
 ]
-pydantic-v1 = ["pydantic>=1.10.26,<2"]
-pydantic-v2 = ["pydantic>=2,<3"]
+pydantic-v1 = ["pydantic>=1.10.26,<3"]
+pydantic-v2 = ["pydantic<3,>=2"]
 provider-computer = ["Pillow==12.3.0"]
 provider-browser = ["playwright==1.63.0"]
 browser-demo = [{ include-group = "provider-browser" }]
