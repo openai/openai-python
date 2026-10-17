@@ -4563,7 +4563,7 @@
     },
     "src/openai/types/live/connect_server_event.py": {
       "mode": "100644",
-      "sha256": "7ff8ae66fd7995a50e5bb00091435b266f50fa842f5da0414b1ca68bb1af5b9b"
+      "sha256": "f1762b5ae9f57faaf5bc12d24497b6736a454d9c9b0a92bea8556ec5e191c948"
     },
     "src/openai/types/live/custom_voice.py": {
       "mode": "100644",
