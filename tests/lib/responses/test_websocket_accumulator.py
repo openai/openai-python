@@ -728,7 +728,9 @@ async def test_invalid_response_id_cannot_commit_lifecycle_output(mode: str, pha
             )
         )
         socket.send(json.dumps(response_event(phase, id=bad_id, output=[])))
-        if phase in {"created", "in_progress"}:
+        # The Pydantic-v1 numeric-ID case finishes after checking coercion.
+        # Do not race its socket close by sending an unused terminal frame.
+        if phase in {"created", "in_progress"} and not (PYDANTIC_V1 and bad_id == 42):
             socket.send(json.dumps(response_event("completed", id="valid", output=None)))
 
     with script_server(script) as url:
