@@ -50894,7 +50894,7 @@ components:
           type: string
           description: The ID of the existing Live session to attach to.
     LiveSidebandServerEvent:
-      description: Server events received by an attached Live sideband WebSocket. Audio deltas are delivered over the primary connection.
+      description: Server events received by an attached Live sideband WebSocket, including reflected input and output audio and transport notifications.
       discriminator:
         propertyName: type
       anyOf:
@@ -50918,6 +50918,13 @@ components:
       - $ref: '#/components/schemas/LiveSessionClosed'
       - $ref: '#/components/schemas/LiveErrorEvent'
       - $ref: '#/components/schemas/LiveInfoEvent'
+      - $ref: '#/components/schemas/LiveInputAudioAppend'
+      - $ref: '#/components/schemas/LiveOutputAudioDelta'
+      - $ref: '#/components/schemas/LiveTransportDTMFReceived'
+      - $ref: '#/components/schemas/LiveTransportDTMFSend'
+      - $ref: '#/components/schemas/LiveTransportRinging'
+      - $ref: '#/components/schemas/LiveTransportAnswered'
+      - $ref: '#/components/schemas/LiveTransportFailed'
     LiveWebRTCTransport:
       type: object
       description: WebRTC transport carrying the offer SDP in a creation request or answer SDP in its response.
