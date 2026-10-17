@@ -49,6 +49,7 @@ from .realtime_reasoning_effort import RealtimeReasoningEffort as RealtimeReason
 from .realtime_truncation_param import RealtimeTruncationParam as RealtimeTruncationParam
 from .response_audio_done_event import ResponseAudioDoneEvent as ResponseAudioDoneEvent
 from .response_text_delta_event import ResponseTextDeltaEvent as ResponseTextDeltaEvent
+from .connect_client_event_param import ConnectClientEventParam as ConnectClientEventParam
 from .conversation_created_event import ConversationCreatedEvent as ConversationCreatedEvent
 from .mcp_list_tools_in_progress import McpListToolsInProgress as McpListToolsInProgress
 from .response_audio_delta_event import ResponseAudioDeltaEvent as ResponseAudioDeltaEvent
@@ -101,6 +102,8 @@ from .realtime_mcp_tool_execution_error import RealtimeMcpToolExecutionError as 
 from .realtime_response_create_mcp_tool import RealtimeResponseCreateMcpTool as RealtimeResponseCreateMcpTool
 from .realtime_tool_choice_config_param import RealtimeToolChoiceConfigParam as RealtimeToolChoiceConfigParam
 from .realtime_tools_config_union_param import RealtimeToolsConfigUnionParam as RealtimeToolsConfigUnionParam
+from .realtime_translation_client_event import RealtimeTranslationClientEvent as RealtimeTranslationClientEvent
+from .realtime_translation_server_event import RealtimeTranslationServerEvent as RealtimeTranslationServerEvent
 from .response_content_part_added_event import ResponseContentPartAddedEvent as ResponseContentPartAddedEvent
 from .response_mcp_call_arguments_delta import ResponseMcpCallArgumentsDelta as ResponseMcpCallArgumentsDelta
 from .input_audio_buffer_committed_event import InputAudioBufferCommittedEvent as InputAudioBufferCommittedEvent
@@ -151,14 +154,26 @@ from .realtime_mcp_tool_execution_error_param import (
 from .realtime_response_create_mcp_tool_param import (
     RealtimeResponseCreateMcpToolParam as RealtimeResponseCreateMcpToolParam,
 )
+from .realtime_translation_client_event_param import (
+    RealtimeTranslationClientEventParam as RealtimeTranslationClientEventParam,
+)
 from .realtime_conversation_item_function_call import (
     RealtimeConversationItemFunctionCall as RealtimeConversationItemFunctionCall,
+)
+from .realtime_translation_session_close_event import (
+    RealtimeTranslationSessionCloseEvent as RealtimeTranslationSessionCloseEvent,
 )
 from .realtime_audio_input_turn_detection_param import (
     RealtimeAudioInputTurnDetectionParam as RealtimeAudioInputTurnDetectionParam,
 )
 from .realtime_conversation_item_system_message import (
     RealtimeConversationItemSystemMessage as RealtimeConversationItemSystemMessage,
+)
+from .realtime_translation_session_closed_event import (
+    RealtimeTranslationSessionClosedEvent as RealtimeTranslationSessionClosedEvent,
+)
+from .realtime_translation_session_update_event import (
+    RealtimeTranslationSessionUpdateEvent as RealtimeTranslationSessionUpdateEvent,
 )
 from .realtime_truncation_retention_ratio_param import (
     RealtimeTruncationRetentionRatioParam as RealtimeTruncationRetentionRatioParam,
@@ -169,11 +184,20 @@ from .realtime_transcription_session_audio_input import (
 from .realtime_transcription_session_audio_param import (
     RealtimeTranscriptionSessionAudioParam as RealtimeTranscriptionSessionAudioParam,
 )
+from .realtime_translation_session_created_event import (
+    RealtimeTranslationSessionCreatedEvent as RealtimeTranslationSessionCreatedEvent,
+)
+from .realtime_translation_session_updated_event import (
+    RealtimeTranslationSessionUpdatedEvent as RealtimeTranslationSessionUpdatedEvent,
+)
 from .realtime_response_create_audio_output_param import (
     RealtimeResponseCreateAudioOutputParam as RealtimeResponseCreateAudioOutputParam,
 )
 from .realtime_response_usage_input_token_details import (
     RealtimeResponseUsageInputTokenDetails as RealtimeResponseUsageInputTokenDetails,
+)
+from .realtime_translation_session_update_request import (
+    RealtimeTranslationSessionUpdateRequest as RealtimeTranslationSessionUpdateRequest,
 )
 from .response_function_call_arguments_done_event import (
     ResponseFunctionCallArgumentsDoneEvent as ResponseFunctionCallArgumentsDoneEvent,
@@ -199,11 +223,17 @@ from .realtime_transcription_session_create_request import (
 from .realtime_transcription_session_turn_detection import (
     RealtimeTranscriptionSessionTurnDetection as RealtimeTranscriptionSessionTurnDetection,
 )
+from .realtime_translation_output_audio_delta_event import (
+    RealtimeTranslationOutputAudioDeltaEvent as RealtimeTranslationOutputAudioDeltaEvent,
+)
 from .realtime_conversation_item_function_call_param import (
     RealtimeConversationItemFunctionCallParam as RealtimeConversationItemFunctionCallParam,
 )
 from .realtime_transcription_session_create_response import (
     RealtimeTranscriptionSessionCreateResponse as RealtimeTranscriptionSessionCreateResponse,
+)
+from .realtime_translation_session_close_event_param import (
+    RealtimeTranslationSessionCloseEventParam as RealtimeTranslationSessionCloseEventParam,
 )
 from .realtime_conversation_item_function_call_output import (
     RealtimeConversationItemFunctionCallOutput as RealtimeConversationItemFunctionCallOutput,
@@ -211,11 +241,20 @@ from .realtime_conversation_item_function_call_output import (
 from .realtime_conversation_item_system_message_param import (
     RealtimeConversationItemSystemMessageParam as RealtimeConversationItemSystemMessageParam,
 )
+from .realtime_translation_session_update_event_param import (
+    RealtimeTranslationSessionUpdateEventParam as RealtimeTranslationSessionUpdateEventParam,
+)
 from .realtime_transcription_session_audio_input_param import (
     RealtimeTranscriptionSessionAudioInputParam as RealtimeTranscriptionSessionAudioInputParam,
 )
+from .realtime_translation_input_transcript_delta_event import (
+    RealtimeTranslationInputTranscriptDeltaEvent as RealtimeTranslationInputTranscriptDeltaEvent,
+)
 from .realtime_translation_session_create_request_param import (
     RealtimeTranslationSessionCreateRequestParam as RealtimeTranslationSessionCreateRequestParam,
+)
+from .realtime_translation_session_update_request_param import (
+    RealtimeTranslationSessionUpdateRequestParam as RealtimeTranslationSessionUpdateRequestParam,
 )
 from .realtime_conversation_item_assistant_message_param import (
     RealtimeConversationItemAssistantMessageParam as RealtimeConversationItemAssistantMessageParam,
@@ -223,11 +262,17 @@ from .realtime_conversation_item_assistant_message_param import (
 from .realtime_translation_client_secret_create_response import (
     RealtimeTranslationClientSecretCreateResponse as RealtimeTranslationClientSecretCreateResponse,
 )
+from .realtime_translation_output_transcript_delta_event import (
+    RealtimeTranslationOutputTranscriptDeltaEvent as RealtimeTranslationOutputTranscriptDeltaEvent,
+)
 from .conversation_item_input_audio_transcription_segment import (
     ConversationItemInputAudioTranscriptionSegment as ConversationItemInputAudioTranscriptionSegment,
 )
 from .realtime_transcription_session_create_request_param import (
     RealtimeTranscriptionSessionCreateRequestParam as RealtimeTranscriptionSessionCreateRequestParam,
+)
+from .realtime_translation_input_audio_buffer_append_event import (
+    RealtimeTranslationInputAudioBufferAppendEvent as RealtimeTranslationInputAudioBufferAppendEvent,
 )
 from .realtime_conversation_item_function_call_output_param import (
     RealtimeConversationItemFunctionCallOutputParam as RealtimeConversationItemFunctionCallOutputParam,
@@ -240,6 +285,9 @@ from .conversation_item_input_audio_transcription_failed_event import (
 )
 from .realtime_transcription_session_audio_input_turn_detection import (
     RealtimeTranscriptionSessionAudioInputTurnDetection as RealtimeTranscriptionSessionAudioInputTurnDetection,
+)
+from .realtime_translation_input_audio_buffer_append_event_param import (
+    RealtimeTranslationInputAudioBufferAppendEventParam as RealtimeTranslationInputAudioBufferAppendEventParam,
 )
 from .conversation_item_input_audio_transcription_completed_event import (
     ConversationItemInputAudioTranscriptionCompletedEvent as ConversationItemInputAudioTranscriptionCompletedEvent,
