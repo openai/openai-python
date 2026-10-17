@@ -42,7 +42,7 @@ class Agent(TypedDict, total=False):
     reasoning: AgentReasoning
     """Reasoning settings to update. Omit to keep the current effort."""
 
-    service_tier: Optional[Literal["auto", "default", "flex", "priority", "fast"]]
+    service_tier: Optional[Literal["auto", "default", "flex", "priority", "fast", "ultrafast"]]
     """Omit to keep the current tier. Null resets it to auto.
 
     - `auto` - Selects the service tier automatically.
@@ -50,6 +50,7 @@ class Agent(TypedDict, total=False):
     - `flex` - Uses the flex service tier.
     - `priority` - Uses the priority service tier.
     - `fast` - Uses the fast service tier.
+    - `ultrafast` - Uses the ultrafast service tier.
     """
 
 
