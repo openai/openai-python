@@ -155,6 +155,13 @@ Methods:
 
 ## Translations
 
+Types:
+
+```python
+from openai.types.realtime import ConnectClientEventParam
+```
+
+
 ### ClientSecrets
 
 Methods:
