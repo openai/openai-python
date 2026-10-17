@@ -85,10 +85,13 @@ class Querystring:
         if isinstance(value, (list, tuple)):
             array_format = opts.array_format
             if array_format == "comma":
+                values = [item for item in value if item is not None]
+                if not values:
+                    return []
                 return [
                     (
                         key,
-                        ",".join(self._primitive_value_to_str(item) for item in value if item is not None),
+                        ",".join(self._primitive_value_to_str(item) for item in values),
                     ),
                 ]
             elif array_format == "repeat":
