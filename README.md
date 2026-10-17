@@ -449,6 +449,8 @@ async with client.realtime.connect(model="gpt-realtime-2") as connection:
             print(event.error.message)
 ```
 
+Use the [Translation session helper](docs/realtime-translation.md) to send audio, finish input, and receive final events.
+
 ## Using types
 
 Nested request parameters are [TypedDicts](https://docs.python.org/3/library/typing.html#typing.TypedDict). Responses are [Pydantic models](https://docs.pydantic.dev) which also provide helper methods for things like:

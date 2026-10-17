@@ -815,7 +815,9 @@ class LiveConnection(WebSocketConnectionBase):
         If you want to parse the message into a `ServerEvent` object like `.recv()` does,
         then you can call `.parse_event(data)`.
         """
-        message = self._connection.recv(decode=False)
+        from ...lib._websocket import _recv_bytes
+
+        message = _recv_bytes(self._connection)
         log.debug("Received WebSocket message: %i bytes", len(message))
         if self._reconnect_attempt:
             # Account for raw application progress without changing frame delivery.
