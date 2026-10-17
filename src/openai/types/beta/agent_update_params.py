@@ -43,7 +43,7 @@ class AgentUpdateParams(TypedDict, total=False):
     effort.
     """
 
-    service_tier: Optional[Literal["auto", "default", "flex", "priority", "fast"]]
+    service_tier: Optional[Literal["auto", "default", "flex", "priority", "fast", "ultrafast"]]
     """The service tier used for model requests.
 
     - `auto` - Selects the service tier automatically.
@@ -51,6 +51,7 @@ class AgentUpdateParams(TypedDict, total=False):
     - `flex` - Uses the flex service tier.
     - `priority` - Uses the priority service tier.
     - `fast` - Uses the fast service tier.
+    - `ultrafast` - Uses the ultrafast service tier.
     """
 
     text: Optional[AgentTextParam]
