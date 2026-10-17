@@ -33,4 +33,4 @@ class ExternalStorageConfiguration(BaseModel):
 
     provider: Provider
 
-    status: Literal["pending", "validated", "unhealthy"]
+    status: Literal["pending", "validated", "degraded", "unhealthy"]

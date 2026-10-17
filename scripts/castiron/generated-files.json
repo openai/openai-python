@@ -855,7 +855,7 @@
     },
     "src/openai/types/admin/organization/external_storage_configuration.py": {
       "mode": "100644",
-      "sha256": "f770a23af67429382de544f074d4703ec33cd2b5bb954a874818db3fa84f5744"
+      "sha256": "41a80b65975edd5db91e15a65df4ce24b1ce68f5ee0c6bf6f2023e7649c65553"
     },
     "src/openai/types/admin/organization/external_storage_create_params.py": {
       "mode": "100644",
