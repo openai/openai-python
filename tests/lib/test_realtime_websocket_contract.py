@@ -139,8 +139,11 @@ async def test_realtime_error_keeps_connection_open(mode: str, base_query: str) 
                     }
 
 
+@pytest.mark.parametrize("beta", [False, True], ids=["realtime", "beta-realtime"])
 @pytest.mark.parametrize("legacy_recv", [False, True], ids=["native", "websockets-13-signature"])
-def test_realtime_recv_bytes_preserves_text_and_binary(monkeypatch: pytest.MonkeyPatch, legacy_recv: bool) -> None:
+def test_realtime_recv_bytes_preserves_text_and_binary(
+    monkeypatch: pytest.MonkeyPatch, legacy_recv: bool, beta: bool
+) -> None:
     if legacy_recv:
         original_recv = ClientConnection.recv
 
@@ -158,8 +161,14 @@ def test_realtime_recv_bytes_preserves_text_and_binary(monkeypatch: pytest.Monke
             socket.send(frame)
 
     with script_server(script) as url:
-        with OpenAI(api_key="synthetic", base_url=url, http_client=httpx2.Client(trust_env=False)) as client:
-            with client.realtime.connect(model="gpt-realtime") as connection:
+        with OpenAI(
+            api_key="synthetic",
+            base_url=url,
+            websocket_base_url=url.replace("http://", "ws://"),
+            http_client=httpx2.Client(trust_env=False),
+        ) as client:
+            resource = client.beta.realtime if beta else client.realtime
+            with resource.connect(model="gpt-realtime") as connection:
                 for frame in frames:
                     expected = frame.encode("utf-8") if isinstance(frame, str) else frame
                     received = connection.recv_bytes()
