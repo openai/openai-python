@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.35.1](https://github.com/openai/openai-python/compare/v3.35.0...v3.35.1) (2026-10-18)
+
+
+### Bug Fixes
+
+* preserve beta Realtime byte reads on websockets 13 ([#4102](https://github.com/openai/openai-python/issues/4102)) ([5766349](https://github.com/openai/openai-python/commit/5766349b2eda3ef63389fe8a30b6a9a1082b33e9))
+
 ## [3.35.0](https://github.com/openai/openai-python/compare/v3.34.0...v3.35.0) (2026-10-17)
 
 
