@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import inspect
 from queue import Queue
-from typing import Any, Callable, Iterator
+from typing import Any, Callable, Generator
 from contextlib import AbstractContextManager
 from unittest.mock import Mock, AsyncMock
 
@@ -257,7 +257,7 @@ def wire_peer(monkeypatch: pytest.MonkeyPatch) -> WirePeer:
     monkeypatch.setenv("no_proxy", "*")
 
     @contextmanager
-    def start(redirect: str | None = None) -> Iterator[tuple[str, list[Request], Queue[bool]]]:
+    def start(redirect: str | None = None) -> Generator[tuple[str, list[Request], Queue[bool]], None, None]:
         requests: list[Request] = []
         closed: Queue[bool] = Queue()
 
