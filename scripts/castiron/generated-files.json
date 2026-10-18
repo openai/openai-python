@@ -7783,7 +7783,7 @@
     },
     "tests/api_resources/test_moderations.py": {
       "mode": "100644",
-      "sha256": "7fc53147d634a25ae16dfc80fb3d21fb260acccc97c8f2a50ab4137f0b1b71c9"
+      "sha256": "adcca3e2545f71c66c5036f263995261928b13b06ee359f6aa2dbfee0a966abf"
     },
     "tests/api_resources/test_realtime.py": {
       "mode": "100644",

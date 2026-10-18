@@ -9617,7 +9617,7 @@ paths:
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
                   "model": "omni-moderation-latest",
-                  "input": "I want to kill them."
+                  "input": "...text to classify goes here..."
                 }'
             python: |
               from openai import OpenAI
@@ -9625,7 +9625,7 @@ paths:
 
               moderation = client.moderations.create(
                   model="omni-moderation-latest",
-                  input="I want to kill them.",
+                  input="...text to classify goes here...",
               )
               print(moderation)
             javascript: |
@@ -9636,7 +9636,7 @@ paths:
               async function main() {
                 const moderation = await openai.moderations.create({
                   model: "omni-moderation-latest",
-                  input: "I want to kill them.",
+                  input: "...text to classify goes here...",
                 });
 
                 console.log(moderation);
@@ -9653,88 +9653,7 @@ paths:
                   apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
               );
 
-              ClientResult<ModerationResult> moderation = client.ClassifyText("I want to kill them.");
-          response: |
-            {
-              "id": "modr-AB8CjOTu2jiq12hp1AQPfeqFWaORR",
-              "model": "omni-moderation-latest",
-              "results": [
-                {
-                  "flagged": true,
-                  "categories": {
-                    "sexual": false,
-                    "hate": false,
-                    "harassment": true,
-                    "self-harm": false,
-                    "sexual/minors": false,
-                    "hate/threatening": false,
-                    "violence/graphic": false,
-                    "self-harm/intent": false,
-                    "self-harm/instructions": false,
-                    "harassment/threatening": true,
-                    "violence": true,
-                    "illicit": false,
-                    "illicit/violent": false
-                  },
-                  "category_scores": {
-                    "sexual": 1.1726012417057063e-05,
-                    "hate": 0.22706663608551025,
-                    "harassment": 0.5215635299682617,
-                    "self-harm": 2.227119921371923e-06,
-                    "sexual/minors": 7.107352217872176e-08,
-                    "hate/threatening": 0.023547329008579254,
-                    "violence/graphic": 3.391829886822961e-05,
-                    "self-harm/intent": 1.646940972932498e-06,
-                    "self-harm/instructions": 1.1198755256458526e-09,
-                    "harassment/threatening": 0.5694745779037476,
-                    "violence": 0.9971134662628174,
-                    "illicit": 0.001,
-                    "illicit/violent": 0.001
-                  },
-                  "category_applied_input_types": {
-                    "sexual": [
-                      "text"
-                    ],
-                    "hate": [
-                      "text"
-                    ],
-                    "harassment": [
-                      "text"
-                    ],
-                    "self-harm": [
-                      "text"
-                    ],
-                    "sexual/minors": [
-                      "text"
-                    ],
-                    "hate/threatening": [
-                      "text"
-                    ],
-                    "violence/graphic": [
-                      "text"
-                    ],
-                    "self-harm/intent": [
-                      "text"
-                    ],
-                    "self-harm/instructions": [
-                      "text"
-                    ],
-                    "harassment/threatening": [
-                      "text"
-                    ],
-                    "violence": [
-                      "text"
-                    ],
-                    "illicit": [
-                      "text"
-                    ],
-                    "illicit/violent": [
-                      "text"
-                    ]
-                  }
-                }
-              ]
-            }
+              ClientResult<ModerationResult> moderation = client.ClassifyText("...text to classify goes here...");
         - title: Image and text
           request:
             curl: |
@@ -43664,13 +43583,13 @@ components:
           - type: string
             description: A string of text to classify for moderation.
             default: ''
-            example: I want to kill them.
+            example: '...text to classify goes here...'
           - type: array
             description: An array of strings to classify for moderation.
             items:
               type: string
               default: ''
-              example: I want to kill them.
+              example: '...text to classify goes here...'
           - type: array
             description: An array of multi-modal inputs to the moderation model.
             items:
@@ -107471,7 +107390,7 @@ components:
         text:
           description: A string of text to classify.
           type: string
-          example: I want to kill them
+          example: '...text to classify goes here...'
       required:
       - type
       - text
