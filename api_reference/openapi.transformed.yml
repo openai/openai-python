@@ -70237,6 +70237,11 @@ components:
           - type: string
             description: When `group_by=service_tier`, this field provides the service tier of the grouped usage result.
           - type: 'null'
+        input_cache_write_30m_tokens:
+          anyOf:
+          - type: integer
+            description: The aggregated number of input tokens written to the cache with a 30-minute retention period. May be absent or null for older responses.
+          - type: 'null'
       required:
       - object
       - input_tokens
@@ -79226,6 +79231,11 @@ components:
           anyOf:
           - type: string
             description: When `group_by=service_tier`, this field provides the service tier of the grouped usage result.
+          - type: 'null'
+        input_cache_write_30m_tokens:
+          anyOf:
+          - type: integer
+            description: The aggregated number of input tokens written to the cache with a 30-minute retention period.
           - type: 'null'
       type: object
       required:
