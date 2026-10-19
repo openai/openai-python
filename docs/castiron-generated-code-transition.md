@@ -241,6 +241,26 @@ The user authorizes implementation, publication of independent PRs/Deltas, and a
 
 Use ordinary review/check/queue controls; never approve through a human identity, bypass a gate, weaken CODEOWNERS/counting/fixtures/security, force-push shared work, or promote unmerged compiler output. Required SDK CODEOWNER or compiler maintainer approvals remain real prerequisites. Distinguish approved, queued, and actually merged. Scope follow-up to the PRs/Deltas in this transition, preserve dependencies, and suppress unchanged status.
 
+### Automatic advancement after merges
+
+A confirmed merge must trigger the next eligible work during the same Conductor wake-up, without another user prompt. Advance each dependency independently; do not wait for every PR or Delta in a batch. An approval, green PR checks, or queue enrollment does not count as a merge. First verify the merge commit and its presence on the authoritative target branch.
+
+| Confirmed merge | Required next action |
+| --- | --- |
+| Reporting cleanup #4113 | Measure actual SDK main against its verified snapshot, record the merged reduction, and choose the next ready track. Keep compiler-dependent work independent of this cleanup. |
+| Upload compatibility tests #4112 | Start T8 typed upload delegation and runtime extraction, retaining all merged tests and existing signatures/defaults. Coordinate shared compiler binding work with T14. |
+| Transition plan #4114 | Continue the recorded dependency graph; keep the ledger updated in subsequent focused PRs. Merging the plan is not a prerequisite for independent implementation. |
+| Live queue compiler change | Verify the merged compiler revision and actual binary provenance, regenerate the affected SDK output, run Live/WebSocket contracts and the authoritative custom-code report, then publish the SDK reduction PR. |
+| File-processing delegate compiler change | Verify the merged compiler and binary, regenerate the Files resource, rerun the 13 public file-processing contracts and typing/import checks, and publish its SDK reduction PR. Reuse the reviewed typed boundary for the next compatible helper. |
+| Authored Realtime schema wording change | Regenerate from the merged input through the normal pipeline and publish the two-file documentation reduction, independently of compiler changes. |
+| Any SDK reduction PR | Verify the merged behavior and actual remaining patch/file counts; mark the track complete only with evidence, then start the next ready tracks. |
+
+Prefer T9 file/artifact delegates, T7 vector-store helpers, and T8 uploads after the shared typed helper boundary is reviewed and merged; pursue independent T1 compatibility, T11 Realtime, T13 embedding hooks and T15 alias work where their prerequisites permit. Preserve the richer audio, Chat, Responses, Assistants and client contracts before tackling those tracks. Derive readiness from actual reviewed compiler capabilities rather than forcing unrelated helpers into a polling-only abstraction.
+
+On each merge, reconcile existing branches/PRs first to avoid duplicate work, refresh only affected dependencies, run the focused compatibility checks, and publish the next small PRs/Deltas. Record merge commits, measured reductions, active successors and exact tested heads in the ledger. Link successor compiler Deltas to this coordinating chat so Conductor can route their updates here. Parallelize independent file groups in isolated checkouts; serialize changes to shared compiler/configuration mechanisms when needed.
+
+If one successor needs a human review, CI repair, or another merged prerequisite, record that blocker and continue unrelated ready tracks. Retain all required CODEOWNER, compliance, security, provenance and normal merge gates. Continue until the verified generated-owned tree reaches zero mixed files and zero patch lines; no developer-facing breaking changes are permitted.
+
 ## Execution ledger
 
 | Work | State | Evidence / next action |
