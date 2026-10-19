@@ -112,7 +112,7 @@ Track totals partition the entire inventory; proposed reductions are upper bound
 
 ## Compiler changes
 
-The maintained compiler is `api/castiron` in the OpenAI monorepo; the standalone Castiron repository is archived. Do not implement compiler fixes in that archived checkout. Compiler paths below are design targets, not a claim that all capabilities are absent. Current OpenAI-profile generation already has some helper documentation, audio, native websocket, extended union, and lazy-export support; compare current merged output before adding a second mechanism.
+The maintained compiler is `api/castiron` in the OpenAI monorepo; the standalone Castiron repository is archived. Do not implement compiler fixes in that archived checkout. Compiler paths below are design targets, not a claim that all capabilities are absent. Current OpenAI-profile generation already has some helper documentation, audio, native websocket, extended union, and lazy-export support, also present in the pinned snapshot; compare current merged output before adding a second mechanism. Helper-documentation and compatibility-export configuration already lives in `crates/castiron-oas-transform/src/config/{python_helper_docs.rs,python_compatibility.rs}`, with corresponding typed IR and renderer modules. Documentation facts alone do not generate runtime delegates.
 
 ### Typed extension declarations and delegates
 
@@ -146,7 +146,7 @@ The budget-checker delta is a local variable rename (`policy` to `policy_sha`); 
 - `responses/tool_param.py` exposes `ParseableToolParam = Union[ToolParam, ChatCompletionFunctionToolParam]`; preserve static imports and both tool shapes. Deduplicate the extra `WebSearchTool` import in `tool.py` while preserving explicit re-export and `__all__` behavior.
 - `fine_tuning_job_integration.py` removes `__all__`; restoring the generated restriction would narrow current wildcard imports, including `FineTuningJobWandbIntegrationObject`. Preserve those exports.
 - Preserve `LiveCallIncomingWebhookEvent` static deprecation with `category=None`, legacy discriminator parsing, and internal import suppression. Do not introduce runtime warnings or remove its union branch.
-- Preserve the two Realtime schema doc corrections in authoritative input.
+- Preserve the two Realtime schema doc corrections in authoritative input: authored `RealtimeServerEventError` (implementers) and `RealtimeServerEventConversationItemInputAudioTranscriptionDelta` (configuring). These are documentation-only changes; do not modify the Beta schema or unrelated grammar.
 
 Acceptance: import/identity/wildcard-export assertions and type-checking fixtures pass; type files match regenerated output without alias substitutions that alter identities.
 
@@ -160,7 +160,7 @@ Verify `tests/test_client.py`, `tests/test_module_client.py`, `tests/test_lazy_i
 
 Generate overloads and response-class selection from response-format/stream facts. Preserve transcription JSON/verbose JSON/diarized JSON model classes, translation JSON/verbose JSON classes, text/SRT/VTT strings, streaming event types, and default model behavior for omitted/legacy `None`. Unknown values retain historical warning and fallback behavior. Preserve compatibility helpers/logger names. Most deleted lines are overload or layout churn, not code safe to discard.
 
-Verify `tests/lib/test_audio.py`, `tests/lib/test_audio_response_format.py`, generated sync/async resource cases, and static overload selection. Compare the existing OpenAI-profile audio implementation first.
+Verify `tests/lib/test_audio.py`, `tests/lib/test_audio_response_format.py`, generated sync/async resource cases, and static overload selection. The pinned generated snapshot already contains response-format overloads and parser selection. The retained patch replaces overload groups/signatures/doc placement and preserves parser aliases, logging and a legacy `_get_response_format_type` shim. Extend compatibility generation around the existing feature rather than adding another response-format engine. Reuse `crates/castiron-oas-transform/src/config/python_response_format.rs`, `crates/castiron-compiler/src/sdk_compiler/castiron_facts/python_response_format.rs`, and `crates/castiron-render-python/src/resources/response_format.rs`; preserve the existing SDK parser in `lib/_parsing/_audio.py`.
 
 ### T4 — Assistants (1,868 lines, two files)
 
@@ -247,8 +247,10 @@ Use ordinary review/check/queue controls; never approve through a human identity
 | --- | --- | --- |
 | Baseline audit and plan | Published with this PR | 41 files / 7,368 patch lines at the pinned baseline; authoritative reporter, content hash, physical counts and track totals verified independently. |
 | T0 generated reporting restoration | PR open; review/CI pending | [#4113](https://github.com/openai/openai-python/pull/4113), `886eb8079e65cfc0509fc945c17d7578b3459bfb`; 94 offline tests passed, one compiler-binary contract test skipped (binary unset); generated-byte/AST comparison and assertion mutation passed. Trusted local budget/isolation checks measured 39 files / 7,351 lines. |
-| T8 upload helper contract coverage | PR open; review/CI pending | [#4112](https://github.com/openai/openai-python/pull/4112), `aaeb397228a526335879cf0c603d697dcc237b44`; 16 sync/async tests, Ruff and targeted mypy pass; reversing part IDs failed six tests as expected. CI lint failed; repair in progress. Default 64 MiB boundary is not exercised by this slice. |
-| T11 Live queue generation | In progress | Isolated compiler implementation; profile/parity tests and merged-compiler prerequisite. |
+| T8 upload helper contract coverage | PR open; review/CI pending | [#4112](https://github.com/openai/openai-python/pull/4112), `0e81c0e88c57cd5939b03779ccb10e6dda717c5b`; 16 sync/async tests, Ruff, targeted mypy and pinned Pyright pass; reversing part IDs failed six tests as expected. Initial CI typing findings repaired; current-head CI pending. Default 64 MiB boundary is not exercised by this slice. |
+| T11 Live queue generation | Submitted for compiler review; CI pending | 679 Python renderer unit tests, six generated WebSocket runtime tests, Clippy and Ruff pass; independent review found no blockers. Raw parent comparison verified identical StainlessParity bytes across 21 files and unchanged OpenAI output for unconfigured resources. The complete published patch also passes the repository debug-code guard. Canonical monorepo CI and compiler merge remain required before SDK promotion. |
+| T1 authored schema documentation | Submitted for source review | Two authored description fixes; parsed schemas identical outside descriptions, exact intended substitutions and normal YAML/push checks pass. Potential reduction two files / four patch lines after verified regeneration. |
+| T14 file-processing delegate | Submitted for compiler review; CI pending | Typed helper binding validated and submitted with normal push hooks enabled. 73 configuration and 679 renderer tests pass; raw parent comparison is byte-identical across 11 files. Generated methods retain AST/signature/doc/module/qualname/defaults/override/await behavior and pass all 13 existing public file-processing tests with the unchanged SDK runtime. Canonical monorepo CI and compiler merge remain required. |
 
 The ledger reports observed work; projected reductions are not merged reductions. Refresh it with PR/Delta links and exact tested heads as publication completes.
 
