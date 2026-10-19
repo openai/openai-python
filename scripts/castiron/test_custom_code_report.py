@@ -95,6 +95,11 @@ class CustomCodeTests(GitTestCase):
         self.write(".github/actions/test/action.yml", "ignored\n")
         second = self.commit()
         self.assertEqual(report.hash_codegen_commit(self.repo, second), expected)
+        self.assertEqual(set(report.tree_entries(self.repo, second)), {b"a"})
+        self.assertEqual(
+            set(report.tree_entries(self.repo, second, include_workflows=True)),
+            {b"a", b".github/workflows/test.yml", b".github/actions/test/action.yml"},
+        )
         os.chmod(self.repo / "a", 0o755)
         self.assertNotEqual(report.hash_codegen_commit(self.repo, self.commit()), expected)
         self.write(".github/CODEOWNERS", "not ignored\n")
@@ -284,6 +289,7 @@ class CustomCodeTests(GitTestCase):
         )
         self.assertEqual(snapshot["base_commit"], snapshot["commit"])
         self.assertNotEqual(snapshot["commit"], generated)
+        self.assertEqual(snapshot["base_commit"], snapshot["commit"])
         self.assertEqual(report.git(public, "rev-list", "--count", snapshot["commit"]), b"1\n")
         self.assertEqual(report.hash_codegen_commit(public, snapshot["commit"]), snapshot["hash"])
         with self.assertRaises(report.ReportError):
@@ -310,6 +316,7 @@ class CustomCodeTests(GitTestCase):
         )
         self.assertEqual(again["base_commit"], snapshot["base_commit"])
         self.assertEqual(again["commit"], snapshot["commit"])
+        self.assertEqual(again["base_commit"], snapshot["base_commit"])
         tree = report.git(public, "rev-parse", f"{snapshot['commit']}^{{tree}}").decode().strip()
         message = report.git(public, "show", "-s", "--format=%B", snapshot["commit"])
         chained = (
