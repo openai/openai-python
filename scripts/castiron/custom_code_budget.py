@@ -344,17 +344,17 @@ def evaluate(
 ) -> tuple[dict[str, Any], bytes]:
     """In a queue, isolate each PR but budget the complete merged candidate."""
     base, head = report.require_sha(base), report.require_sha(head)
-    policy_sha = cast(str, report.require_sha(policy_sha or base))
+    policy = cast(str, report.require_sha(policy_sha or base))
     result: dict[str, Any] = {
         "base_sha": base,
-        "policy_sha": policy_sha,
+        "policy_sha": policy,
         "head_sha": head,
         "checks": {},
     }
     checks = result["checks"]
     proposed_limits: list[int] = []
     try:
-        read_budget(repo, policy_sha)
+        read_budget(repo, policy)
         read_budget(repo, base)
         read_budget(repo, head)
         if pull_heads is not None and not pull_heads:
@@ -371,7 +371,7 @@ def evaluate(
 
     patch = b""
     try:
-        limit = read_budget(repo, policy_sha)
+        limit = read_budget(repo, policy)
         result["limit"] = limit
         measured, patch = (
             measurement
@@ -403,7 +403,7 @@ def evaluate(
         # Main's strict policy applies even if the candidate tries to remove it.
         # A proposed activation must itself satisfy the stricter contract.
         if (
-            strict_policy(repo, policy_sha)
+            strict_policy(repo, policy)
             or strict_policy(repo, base)
             or strict_policy(repo, head)
         ):
