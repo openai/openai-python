@@ -3,7 +3,7 @@ from __future__ import annotations
 import io
 import json
 from email import policy
-from typing import Any, Callable, AsyncIterator, cast
+from typing import Any, Literal, Callable, AsyncGenerator, cast
 from pathlib import Path
 from contextlib import asynccontextmanager
 from email.parser import BytesParser
@@ -25,7 +25,7 @@ def asynchronous(request: pytest.FixtureRequest) -> bool:
 @asynccontextmanager
 async def upload_client(
     asynchronous: bool, handler: Callable[[httpx2.Request], httpx2.Response]
-) -> AsyncIterator[OpenAI | AsyncOpenAI]:
+) -> AsyncGenerator[OpenAI | AsyncOpenAI, None]:
     options: dict[str, Any] = {
         "api_key": "synthetic-test-key",
         "base_url": "https://example.test/v1",
@@ -172,8 +172,8 @@ async def test_path_handle_closes_and_failure_skips_completion(
     if asynchronous:
         original_open = anyio.Path.open
 
-        async def track_async_open(self: anyio.Path, *args: Any, **kwargs: Any) -> Any:
-            handle = await original_open(self, *args, **kwargs)
+        async def track_async_open(self: anyio.Path, mode: Literal["rb"]) -> anyio.AsyncFile[bytes]:
+            handle = await original_open(self, mode)
             handles.append(handle)
             return handle
 
