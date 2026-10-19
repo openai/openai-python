@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import threading
 from typing import Any
+from typing_extensions import override
 
 import pytest
 from websockets.exceptions import ConnectionClosedError
@@ -13,7 +14,10 @@ PRODUCTS = ["realtime", "transcription", "sideband", "responses", "live"]
 
 
 def manager(client: Any, product: str) -> Any:
-    options = {"on_reconnecting": lambda _event: None, "initial_delay": 0}
+    def on_reconnecting(_event: Any) -> None:
+        pass
+
+    options = {"on_reconnecting": on_reconnecting, "initial_delay": 0}
     if product == "realtime":
         return client.realtime.connect(model="test-model", **options)
     if product == "transcription":
@@ -163,6 +167,7 @@ async def test_cancel_during_discard_still_closes_replacement(monkeypatch: pytes
     opens = 0
 
     class ReplacementSocket(AsyncSocket):
+        @override
         async def close(self, **kwargs: Any) -> None:
             cleanup_started.set()
             await release_cleanup.wait()
