@@ -25,17 +25,17 @@ from .lib.test_websocket_redirects import options, resource, reconnect, unexpect
 
 
 @pytest.mark.parametrize(
-    ("connection_type", "recovers"),
+    "connection_type",
     [
-        (ResponsesConnection, False),
-        (RealtimeConnection, True),
-        (LiveConnection, True),
-        (ForksConnection, True),
-        (SidebandConnection, True),
-        (BetaResponsesConnection, True),
+        ResponsesConnection,
+        RealtimeConnection,
+        LiveConnection,
+        ForksConnection,
+        SidebandConnection,
+        BetaResponsesConnection,
     ],
 )
-def test_close_during_replacement_preserves_connection_behavior(connection_type: type[Any], recovers: bool) -> None:
+def test_close_during_replacement_retires_the_new_socket(connection_type: type[Any]) -> None:
     original, replacement = MagicMock(), MagicMock()
 
     def open_replacement(*_args: Any) -> MagicMock:
@@ -43,12 +43,9 @@ def test_close_during_replacement_preserves_connection_behavior(connection_type:
         return replacement
 
     connection = connection_type(original, make_ws=open_replacement, on_reconnecting=reconnect, initial_delay=0)
-    assert connection._reconnect(RuntimeError("fake disconnect")) is recovers
+    assert not connection._reconnect(RuntimeError("fake disconnect"))
     original.close.assert_called_once_with(code=1000, reason="")
-    if recovers:
-        replacement.close.assert_not_called()
-    else:
-        replacement.close.assert_called_once_with()
+    replacement.close.assert_called_once_with()
 
 
 @pytest.mark.parametrize("name", ["realtime", "responses", "beta.responses"])
