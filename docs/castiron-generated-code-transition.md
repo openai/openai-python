@@ -245,8 +245,8 @@ Use ordinary review/check/queue controls; never approve through a human identity
 
 | Work | State | Evidence / next action |
 | --- | --- | --- |
-| Baseline audit and plan | In progress | 41 files / 7,368 patch lines at the pinned baseline; inventory and plan PR being prepared. |
-| T0 generated reporting restoration | Draft PR; validation running | [#4113](https://github.com/openai/openai-python/pull/4113), `886eb8079e65cfc0509fc945c17d7578b3459bfb`; exact generated-byte/AST comparison and assertion mutation passed; complete offline suite pending. |
+| Baseline audit and plan | Published with this PR | 41 files / 7,368 patch lines at the pinned baseline; authoritative reporter, content hash, physical counts and track totals verified independently. |
+| T0 generated reporting restoration | PR open; review/CI pending | [#4113](https://github.com/openai/openai-python/pull/4113), `886eb8079e65cfc0509fc945c17d7578b3459bfb`; 94 offline tests passed, one compiler-binary contract test skipped (binary unset); generated-byte/AST comparison and assertion mutation passed. Expected 39 files / 7,351 lines. |
 | T8 upload helper contract coverage | PR open; review/CI pending | [#4112](https://github.com/openai/openai-python/pull/4112), `aaeb397228a526335879cf0c603d697dcc237b44`; 16 sync/async tests, Ruff and targeted mypy pass; reversing part IDs failed six tests as expected. Default 64 MiB boundary is not exercised by this slice. |
 | T11 Live queue generation | In progress | Isolated compiler implementation; profile/parity tests and merged-compiler prerequisite. |
 
