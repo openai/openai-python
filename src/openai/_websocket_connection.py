@@ -29,7 +29,7 @@ class WebSocketConnectionBase:
         extra_headers: Headers = {},
         send_queue: SendQueue | None = None,
         logger: logging.Logger,
-        interruptible_reconnect: bool = False,
+        interruptible_reconnect: bool = True,
     ) -> None:
         self._connection = connection
         self._make_ws = make_ws
@@ -61,8 +61,10 @@ class WebSocketConnectionBase:
         if self._interruptible_reconnect:
             self._close_event.set()
             with self._connection_lock:
+                self._is_reconnecting = False
                 connection = self._connection
         else:
+            self._is_reconnecting = False
             connection = self._connection
         connection.close(code=code, reason=reason)
 
@@ -90,6 +92,8 @@ class WebSocketConnectionBase:
 
         if self._interruptible_reconnect:
             with self._connection_lock:
+                if self._close_event.is_set():
+                    return False
                 self._is_reconnecting = True
         else:
             self._is_reconnecting = True
@@ -209,6 +213,7 @@ class AsyncWebSocketConnectionBase:
 
     async def close(self, *, code: int = 1000, reason: str = "") -> None:
         self._intentionally_closed = True
+        self._is_reconnecting = False
         await self._connection.close(code=code, reason=reason)
 
     async def _reconnect(self, exc: Exception) -> bool:
@@ -217,9 +222,7 @@ class AsyncWebSocketConnectionBase:
         Returns ``True`` if a new connection was established, ``False`` if the
         caller should re-raise the original exception.
         """
-        import asyncio
-
-        if self._on_reconnecting is None or self._make_ws is None:
+        if self._on_reconnecting is None or self._make_ws is None or self._intentionally_closed:
             return False
 
         from websockets.exceptions import ConnectionClosedError
@@ -232,7 +235,16 @@ class AsyncWebSocketConnectionBase:
             return False
 
         self._is_reconnecting = True
+        try:
+            return await self._attempt_reconnect(close_code)
+        finally:
+            self._is_reconnecting = False
 
+    async def _attempt_reconnect(self, close_code: int) -> bool:
+        import asyncio
+
+        assert self._on_reconnecting is not None
+        assert self._make_ws is not None
         for attempt in range(self._reconnect_attempt + 1, self._max_retries + 1):
             self._reconnect_attempt = attempt
             base_delay = min(self._initial_delay * (2 ** (attempt - 1)), self._max_delay)
@@ -251,11 +263,9 @@ class AsyncWebSocketConnectionBase:
             try:
                 result = self._on_reconnecting(event)
             except Exception:
-                self._is_reconnecting = False
                 return False
 
             if result is not None and result.get("abort"):
-                self._is_reconnecting = False
                 return False
 
             if result is not None:
@@ -272,12 +282,18 @@ class AsyncWebSocketConnectionBase:
             )
             await asyncio.sleep(delay)
 
-            if self._intentionally_closed:
-                self._is_reconnecting = False
+            # The flag may change again while the following handshake awaits.
+            if bool(self._intentionally_closed):
                 return False
 
             try:
-                self._connection = await self._make_ws(self._extra_query, self._extra_headers)
+                connection = await self._make_ws(self._extra_query, self._extra_headers)
+                if self._intentionally_closed:
+                    # A close that completed during the handshake owns the
+                    # lifetime. Keep disposal running if its reader is canceled.
+                    await asyncio.shield(connection.close())
+                    return False
+                self._connection = connection
                 self._logger.info("Reconnected to WebSocket API")
                 self._is_reconnecting = False
                 await self._flush_send_queue()
@@ -285,7 +301,6 @@ class AsyncWebSocketConnectionBase:
             except Exception:
                 pass
 
-        self._is_reconnecting = False
         return False
 
     async def _flush_send_queue(self) -> None:
