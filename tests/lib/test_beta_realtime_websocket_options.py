@@ -26,6 +26,7 @@ def realtime_peer(payload_size: int) -> Iterator[tuple[str, bytes]]:
         try:
             socket.recv()
         except ConnectionClosed:
+            # The client closes after consuming or rejecting the test event.
             pass
 
     with serve(accept, "127.0.0.1", 0) as server:
