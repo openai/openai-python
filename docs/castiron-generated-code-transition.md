@@ -120,7 +120,7 @@ Extend the compiler model with typed resource helper declarations: method name a
 
 Generate exact signatures rather than `*args, **kwargs` facades. Derive shared parameters from canonical endpoint facts so future schema changes reach helper methods, overloads, and docs together. Existing tests comparing helper and endpoint signatures are part of the contract. Keep orchestration in the existing handwritten modules where possible: polling/deadlines, file preparation, parsing, streaming accumulation, authentication/provider integration, and upload lifecycle. Generated delegates are the stable boundary.
 
-Likely implementation areas are `crates/castiron-config`, `crates/castiron-compiler` fact projection, `crates/castiron-render-python/src/resources.rs`, its `resources/` modules, `src/collect_views_timed.rs`, and `src/templates/resource.py.askama`, plus API-reference/config inputs. Locate and read current modules before each change. Add focused compiler tests and generation-level tests for each capability.
+Concrete implementation areas are `crates/castiron-oas-transform/src/config.rs`, `crates/castiron-ir/src/castiron_facts/resource.rs`, `crates/castiron-compiler/src/sdk_compiler/castiron_facts.rs`, and `crates/castiron-render-python/src/{resources.rs,resources/collect_views_timed.rs,resources/websocket.rs,templates/resource.py.askama}`, plus API-reference/config inputs. Locate and read current modules before each change. Add focused compiler tests and generation-level tests for each capability.
 
 ### Client and package integration facts
 
@@ -246,8 +246,8 @@ Use ordinary review/check/queue controls; never approve through a human identity
 | Work | State | Evidence / next action |
 | --- | --- | --- |
 | Baseline audit and plan | Published with this PR | 41 files / 7,368 patch lines at the pinned baseline; authoritative reporter, content hash, physical counts and track totals verified independently. |
-| T0 generated reporting restoration | PR open; review/CI pending | [#4113](https://github.com/openai/openai-python/pull/4113), `886eb8079e65cfc0509fc945c17d7578b3459bfb`; 94 offline tests passed, one compiler-binary contract test skipped (binary unset); generated-byte/AST comparison and assertion mutation passed. Expected 39 files / 7,351 lines. |
-| T8 upload helper contract coverage | PR open; review/CI pending | [#4112](https://github.com/openai/openai-python/pull/4112), `aaeb397228a526335879cf0c603d697dcc237b44`; 16 sync/async tests, Ruff and targeted mypy pass; reversing part IDs failed six tests as expected. Default 64 MiB boundary is not exercised by this slice. |
+| T0 generated reporting restoration | PR open; review/CI pending | [#4113](https://github.com/openai/openai-python/pull/4113), `886eb8079e65cfc0509fc945c17d7578b3459bfb`; 94 offline tests passed, one compiler-binary contract test skipped (binary unset); generated-byte/AST comparison and assertion mutation passed. Trusted local budget/isolation checks measured 39 files / 7,351 lines. |
+| T8 upload helper contract coverage | PR open; review/CI pending | [#4112](https://github.com/openai/openai-python/pull/4112), `aaeb397228a526335879cf0c603d697dcc237b44`; 16 sync/async tests, Ruff and targeted mypy pass; reversing part IDs failed six tests as expected. CI lint failed; repair in progress. Default 64 MiB boundary is not exercised by this slice. |
 | T11 Live queue generation | In progress | Isolated compiler implementation; profile/parity tests and merged-compiler prerequisite. |
 
 The ledger reports observed work; projected reductions are not merged reductions. Refresh it with PR/Delta links and exact tested heads as publication completes.
