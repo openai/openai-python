@@ -144,7 +144,7 @@ async def test_cancelled_recovery_cannot_queue_after_close(monkeypatch: pytest.M
                 await asyncio.wait_for(started.wait(), timeout=10)
                 receiving.cancel()
                 with pytest.raises(asyncio.CancelledError):
-                    await receiving
+                    await asyncio.wait_for(receiving, timeout=10)
                 with pytest.raises(ConnectionClosedError):
                     await connection.send_raw('{"type":"synthetic.after_cancel"}')
                 await connection.close()
@@ -239,7 +239,7 @@ def test_sync_recovery_keeps_close_authoritative(
             def receive() -> None:
                 try:
                     result.append(next(iterator))
-                except BaseException as exc:
+                except Exception as exc:
                     result.append(exc)
 
             worker = threading.Thread(target=receive)
