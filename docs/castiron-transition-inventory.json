@@ -424,5 +424,33 @@
       "generated_lines": 25,
       "track": "T1"
     }
+  ],
+  "merged_progress": [
+    {
+      "date": "2026-10-19",
+      "pull_request": "https://github.com/openai/openai-python/pull/4113",
+      "head_commit": "886eb8079e65cfc0509fc945c17d7578b3459bfb",
+      "merge_commit": "9d12b565554c08bcee6287c0d8f671b8c97ed911",
+      "public_codegen_commit": "12578924cd37047e1bff02ea0e6f90114b363d15",
+      "codegen_hash": "b5dab72c84981b6bbd1709863e017a16f1902b9aa11cd721143186487fd2787b",
+      "verification": "Exact trusted-main reporter source with temporary-file stdin adapter for Git batch I/O; snapshot ancestry/hash and counting unchanged. Both restored modes/blobs match generated output; remaining 39 customized blobs unchanged.",
+      "totals": {
+        "mixed_files": 39,
+        "added_lines": 6076,
+        "deleted_lines": 1275,
+        "custom_patch_lines": 7351,
+        "current_physical_lines": 44289,
+        "generated_physical_lines": 39488
+      },
+      "restored_files": [
+        "scripts/castiron/custom_code_budget.py",
+        "scripts/castiron/test_custom_code_report.py"
+      ],
+      "post_merge_checks": {
+        "state": "successful",
+        "commit": "9d12b565554c08bcee6287c0d8f671b8c97ed911",
+        "evidence": "https://github.com/openai/openai-python/actions/runs/39315896992"
+      }
+    }
   ]
 }

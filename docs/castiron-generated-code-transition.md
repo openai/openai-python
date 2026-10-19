@@ -37,7 +37,23 @@ python3 -I scripts/castiron/custom_code_report.py report \
 
 Read `.castiron.stats.yml` at the inspected revision. Validate public snapshot generation metadata, snapshot-branch ancestry, and content hash through the existing reporter. For physical sizes, read each integrated/generated blob and use `len(blob.splitlines())`; do not count the entire SDK diff because it also contains handwritten-only files. Regenerate this inventory after each promoted generation and record before/after measurements in its PR.
 
-## Complete file inventory
+## Merged progress
+
+[#4113](https://github.com/openai/openai-python/pull/4113) merged on 2026-10-19 at `9d12b565554c08bcee6287c0d8f671b8c97ed911`, verified on `origin/main`. Both reporting files now match the pinned generated snapshot byte for byte; the merge changes only those files. Conductor separately verified all post-merge push checks successful on this merge commit, including [run 39315896992](https://github.com/openai/openai-python/actions/runs/39315896992).
+
+The post-merge report verifies **39 mixed files; 6,076 additions + 1,275 deletions = 7,351 patch lines**. This is a merged reduction of two files and 17 patch lines. The remaining mixed files contain 44,289 integrated lines versus 39,488 generated lines; all 39 customized blobs are unchanged from the original audit. The generated snapshot, generation ID and content hash remain unchanged. The 10,000-line budget now has 2,649 lines of headroom; no budget change is included.
+
+The original inventory below remains the fixed 41-file audit at `5589146d`; the JSON inventory adds a separate `merged_progress` record rather than overwriting its baseline totals or per-file sizes. No compiler-dependent SDK reduction is claimed until its source has merged and its verified generation lands.
+
+Local verification used the exact reporter source from main `9d12b565` (SHA-256 `157ed30ac9d54d20fe5f7e625dc8ee5958beb91cc7e30aaa97cfba8fb3e06e21`). Its duplex Git batch I/O stalled in this environment, so a local adapter supplied the same object-ID input through a temporary stdin file for `git cat-file --batch`. Source, returned Git bytes, snapshot ancestry/hash validation and counting logic were unchanged. This is local I/O-adapted evidence; trusted hosted CI remains authoritative.
+
+Reproduce with the existing reporter using `--base 5589146d738e0c38758e117b8383a02c2e4e2ee7 --head 9d12b565554c08bcee6287c0d8f671b8c97ed911 --public --fetch --require-head-hash` and the same repository/output arguments shown above.
+
+[#4114](https://github.com/openai/openai-python/pull/4114) also merged as `6a52987f2da5c3bc9b700a7094c0cf14fe7e78dc`, verified on main. It adds only the two handwritten plan/inventory documents, leaving the generated-owned tree and measured counts unchanged. Conductor separately verified post-merge push CI, CodeQL and release checks successful on that merge commit, including [run 39316813847](https://github.com/openai/openai-python/actions/runs/39316813847).
+
+The confirmed T0 merge immediately started two independent successors: T10 handwritten video polling compatibility coverage and T15 compiler generation of the existing Beta resource aliases. Neither waits for the pending upload-test PR. Review requests and updates belong in root `#sdk-reviews` posts, deduplicated against existing requests.
+
+## Complete file inventory (fixed baseline)
 
 `+` and `-` are the remaining customization against the generated snapshot. The table is ordered by patch size.
 
@@ -96,14 +112,14 @@ Track totals partition the entire inventory; proposed reductions are upper bound
 | T1 | Type and import compatibility | 10 | 47 | Typed compatibility declarations, export deduplication, static deprecation; schema documentation fixes | Independent of resource helpers |
 | T2 | Client and module entrypoint | 2 | 1,005 | Typed client hooks, provider adapter factories, root lazy-export/module-client declarations | Separate client and root-entrypoint PRs; high compatibility risk |
 | T3 | Audio overloads and response formats | 2 | 1,003 | Response-discriminated overloads, runtime selection/parser hooks | Independent; compare existing OpenAI-profile support first |
-| T4 | Assistants threads/runs helpers | 2 | 1,868 | Generic delegated helpers, polling, stream managers, legacy method names | After helper declarations; split runs vs threads |
+| T4 | Assistants threads/runs helpers | 2 | 1,868 | Generic delegated helpers, polling, stream managers, legacy method names | After helper declarations; batch the family, splitting if review complexity requires |
 | T5 | Responses helpers and beta class layout | 2 | 1,104 | Generic parse/stream hooks, exact overloads, websocket class partitioning | Split main Responses and beta class layout |
 | T6 | Chat parsing and streaming | 1 | 604 | Generic parse/stream declarations and request validation hooks | After shared helper representation |
-| T7 | Vector store helpers | 2 | 466 | Generated typed delegates to polling/runtime helpers | Split files vs batches; independent of uploads |
+| T7 | Vector store helpers | 2 | 466 | Generated typed delegates to polling/runtime helpers | Group files and batches with compatible polling consumers |
 | T8 | Chunked uploads | 1 | 221 | Typed overloads/delegates and handwritten orchestration | Compatibility-test PR first; independent |
-| T9 | Hosted Agents helpers | 3 | 261 | Typed delegates, output binding, custom event streams | Files/artifacts independently; sessions later |
+| T9 | Hosted Agents helpers | 3 | 261 | Typed delegates, output binding, custom event streams | Group files/artifacts with compatible upload work; sessions later |
 | T10 | Video polling and generated tests | 2 | 243 | Generated helper declarations, deprecation-aware test emission | Compatibility coverage first; independent |
-| T11 | Live and Realtime websocket contracts | 5 | 115 | Resource-specific queue default facts, constructor policy, translation/calls hooks | Live and Realtime separate compiler PRs |
+| T11 | Live and Realtime websocket contracts | 5 | 115 | Resource-specific queue default facts, constructor policy, translation/calls hooks | Preserve submitted Live work; batch compatible remaining WebSocket changes |
 | T12 | Webhook facade and resource exports | 2 | 172 | Generated verification delegates; exact sync facade and wrapper identity | Maintainer/CODEOWNER review; independent |
 | T13 | Embedding decoding hooks | 1 | 48 | Default parameter and post-parser generation facts | Independent; existing runtime remains handwritten |
 | T14 | File processing helper | 1 | 26 | Generate exact wait_for_processing delegate | Small initial helper-declaration consumer |
@@ -166,7 +182,7 @@ Verify `tests/lib/test_audio.py`, `tests/lib/test_audio_response_format.py`, gen
 
 Generate runs create/poll/stream and submit-tool-output helpers, threads create-and-run/poll/stream, and old `create_and_stream` names. Preserve custom handler generic types, deprecated APIs/warnings, sync/async context managers, all endpoint parameters, request options/security, path validation, helper/Beta headers and caller precedence. Polling keeps terminal states including `requires_action`, negotiated server intervals, 1-second fallback, and `stream=False`.
 
-`tests/lib/test_assistants.py` signature synchronization is necessary but insufficient. Add sync/async HTTP and stream-lifecycle contract tests before relocating helper implementations; then split runs and threads changes.
+`tests/lib/test_assistants.py` signature synchronization is necessary but insufficient. Include sync/async HTTP and stream-lifecycle contract tests before relocating helper implementations. Batch the runs/threads helper family when reviewable; split by contract or review complexity when needed.
 
 ### T5 and T6 — Responses and Chat helpers (1,598 lines plus 110 beta-layout lines)
 
@@ -223,6 +239,25 @@ Keep verification in `lib/_webhooks.py` and generate exact verifying facades: st
 
 ## Execution order and merge gates
 
+### Batch size and publication policy
+
+The user prefers larger, cohesive PRs to reduce review and merge overhead. The default unit is a complete shared capability with its related resource consumers. Aim for a few hundred authored lines, roughly 300–800 when the work fits naturally; this is a guide, not a new line limit. Exact generated output can be larger when per-file measurements and compatibility evidence make it reviewable.
+
+Include focused contract/security tests, typing fixtures, relevant API-reference changes, and ledger updates with the implementation or SDK regeneration. Existing coverage PRs and submitted compiler Deltas remain valid prerequisites; preserve their current review progress. Future work should normally cover a related family instead of publishing one method, one resource, or one status update per PR.
+
+| Next batch | Scope and boundary |
+| --- | --- |
+| Polling helpers | T14 Files, T10 Videos and T7 vector-store files/batches: extend the shared typed helper capability across compatible consumers, then regenerate and verify the family together. Preserve each resource's distinct deadlines, options, warnings and terminal-state behavior. |
+| Upload helpers | T8 chunked uploads and T9 Hosted Agents files/artifacts: group compatible declarations, extraction and lifecycle coverage. Every affected SDK PR still needs explicit SDK CODEOWNER approval and applicable focused sync/async security regressions. Sessions keep their separate streaming/output contracts. |
+| Compatibility and exports | T1 type/import compatibility and T15 Beta aliases: collect related ready compatibility output in a reviewed generation, preserving identities, wildcard exports, static typing and warning behavior. |
+| WebSockets | T11 Live and Realtime: batch related constructor/queue/transport policy work where the compiler boundary fits; preserve resource-specific defaults and contracts. |
+| Parsing and streaming | T3, T5, T6 and T13: implement shared typed hooks with complete consumer families and their tests; retain focused review boundaries for the richer audio, Chat and Responses contracts. |
+| Webhooks, client and Assistants | Deliver each coherent facade/client/helper family with its full compatibility and security coverage. T16 reference changes accompany the corresponding generated features. |
+
+Reconcile and reuse existing branches/Deltas before starting a batch. Implement independent families in parallel. Publish a coherent ready family while unrelated work is blocked; sibling reviews must not stall all progress. A compiler capability and its dependent SDK regeneration remain separate repository changes, and compiler source must merge before SDK output is promoted. Budget adjustments remain separate ratchet-only PRs. Larger batches do not relax zero-breaking-change, provenance, CODEOWNER, compliance, security, test or protected-merge gates.
+
+### Dependency order
+
 1. Publish this plan/inventory separately from runtime changes. Publish T0 independently and compatibility tests for T8 in parallel.
 2. Implement T11 Live facts and T1 compatibility facts independently; compare current merged compiler output for already-supported cases. Small helper declarations for T14 and T9 file/artifact delegates are the next shared boundary.
 3. In parallel after their prerequisites, tackle T7 vector stores, T8 uploads, T10 videos, T12 webhooks, T13 embeddings, T15 aliases, and the independent Realtime portion of T11. Each PR states the exact compatibility surface and expected count reduction.
@@ -259,13 +294,13 @@ A confirmed merge must trigger the next eligible work during the same Conductor 
 | Upload compatibility tests #4112 | Start T8 typed upload delegation and runtime extraction, retaining all merged tests and existing signatures/defaults. Coordinate shared compiler binding work with T14. |
 | Transition plan #4114 | Continue the recorded dependency graph; keep the ledger updated in subsequent focused PRs. Merging the plan is not a prerequisite for independent implementation. |
 | Live queue compiler change | Verify the merged compiler revision and actual binary provenance, regenerate the affected SDK output, run Live/WebSocket contracts and the authoritative custom-code report, then publish the SDK reduction PR. |
-| File-processing delegate compiler change | Verify the merged compiler and binary, regenerate the Files resource, rerun the 13 public file-processing contracts and typing/import checks, and publish its SDK reduction PR. Reuse the reviewed typed boundary for the next compatible helper. |
+| File-processing delegate compiler change | Verify the merged compiler and binary, reuse/extend its reviewed typed boundary for eligible polling-family consumers, and publish a coherent ready SDK generation after all corresponding compiler inputs merge. Retain all 13 Files contracts plus each additional consumer's focused checks and typing/import coverage. |
 | Authored Realtime schema wording change | Regenerate from the merged input through the normal pipeline and publish the two-file documentation reduction, independently of compiler changes. |
 | Any SDK reduction PR | Verify the merged behavior and actual remaining patch/file counts; mark the track complete only with evidence, then start the next ready tracks. |
 
 Prefer T9 file/artifact delegates, T7 vector-store helpers, and T8 uploads after the shared typed helper boundary is reviewed and merged; pursue independent T1 compatibility, T11 Realtime, T13 embedding hooks and T15 alias work where their prerequisites permit. Preserve the richer audio, Chat, Responses, Assistants and client contracts before tackling those tracks. Derive readiness from actual reviewed compiler capabilities rather than forcing unrelated helpers into a polling-only abstraction.
 
-On each merge, reconcile existing branches/PRs first to avoid duplicate work, refresh only affected dependencies, run the focused compatibility checks, and publish the next small PRs/Deltas. Record merge commits, measured reductions, active successors and exact tested heads in the ledger. Link successor compiler Deltas to this coordinating chat so Conductor can route their updates here. Parallelize independent file groups in isolated checkouts; serialize changes to shared compiler/configuration mechanisms when needed.
+On each merge, reconcile existing branches/PRs first to avoid duplicate work, refresh only affected dependencies, run the focused compatibility checks, and publish the next coherent family batches under the publication policy above. Record merge commits, measured reductions, active successors and exact tested heads in the ledger with the related implementation or regeneration; batch routine status updates instead of creating a separate PR for each event. Link successor compiler Deltas to this coordinating chat so Conductor can route their updates here. Parallelize independent file groups in isolated checkouts; serialize changes to shared compiler/configuration mechanisms when needed.
 
 If one successor needs a human review, CI repair, or another merged prerequisite, record that blocker and continue unrelated ready tracks. T7/T8/T9 successors that change file uploads require explicit SDK CODEOWNER approval and focused synchronous/asynchronous security regression coverage as applicable before merge; a predecessor's approval or a green compiler change cannot substitute. Retain all required CODEOWNER, compliance, security, provenance and normal merge gates. Continue until the verified generated-owned tree reaches zero mixed files and zero patch lines; no developer-facing breaking changes are permitted.
 
@@ -273,9 +308,11 @@ If one successor needs a human review, CI repair, or another merged prerequisite
 
 | Work | State | Evidence / next action |
 | --- | --- | --- |
-| Baseline audit and plan | Published with this PR | 41 files / 7,368 patch lines at the pinned baseline; authoritative reporter, content hash, physical counts and track totals verified independently. |
-| T0 generated reporting restoration | PR open; review/CI pending | [#4113](https://github.com/openai/openai-python/pull/4113), `886eb8079e65cfc0509fc945c17d7578b3459bfb`; 94 offline tests passed, one compiler-binary contract test skipped (binary unset); generated-byte/AST comparison and assertion mutation passed. Trusted local budget/isolation checks measured 39 files / 7,351 lines. |
-| T8 upload helper contract coverage | PR open; review/CI pending | [#4112](https://github.com/openai/openai-python/pull/4112), `0e81c0e88c57cd5939b03779ccb10e6dda717c5b`; 16 sync/async tests, Ruff, targeted mypy and pinned Pyright pass; reversing part IDs failed six tests as expected. Initial CI typing findings repaired; current-head CI pending. Default 64 MiB boundary is not exercised by this slice. |
+| Baseline audit and plan | Merged; post-merge checks green / complete | [#4114](https://github.com/openai/openai-python/pull/4114), head `7eea9bf1beb552f4db8c456105b6a28bfe9bebe3`, merged as `6a52987f2da5c3bc9b700a7094c0cf14fe7e78dc` on main. Frozen audit: 41 files / 7,368 patch lines at `5589146d`; current merged reduction recorded separately. Explicit current-head human approval and protected merge gates were satisfied. Post-merge push CI, CodeQL and release checks are green on the merge commit, including [run 39316813847](https://github.com/openai/openai-python/actions/runs/39316813847). |
+| T0 generated reporting restoration | Merged; post-merge checks green / complete | [#4113](https://github.com/openai/openai-python/pull/4113), head `886eb8079e65cfc0509fc945c17d7578b3459bfb`, merged as `9d12b565554c08bcee6287c0d8f671b8c97ed911` on main. Both files match the verified generated snapshot byte for byte; post-merge measurement is 39 mixed files / 7,351 patch lines, with all other customizations unchanged. Prior validation: 94 offline tests passed, one compiler-binary contract test skipped (binary unset); AST comparison and assertion mutation passed. Conductor verified every post-merge push check successful on the merge commit, including [run 39315896992](https://github.com/openai/openai-python/actions/runs/39315896992). |
+| T8 upload helper contract coverage | Approved / CI green; current-head automated summary unverified | [#4112](https://github.com/openai/openai-python/pull/4112), `0e81c0e88c57cd5939b03779ccb10e6dda717c5b`; 16 sync/async tests, Ruff, targeted mypy and pinned Pyright pass; reversing part IDs failed six tests as expected. Initial CI typing findings repaired; approval and CI are green on this head. The visible automated summary still identifies superseded `aaeb3972`, so this PR remains outside the queue pending current-head completion. Default 64 MiB boundary is not exercised by this slice. |
+| T10 video polling compatibility | PR open; current-head CI / review pending | [#4115](https://github.com/openai/openai-python/pull/4115), `f1cbaf298195a637f8dffdb7e7580a6f22635d98`; one handwritten file, 21 public-entrypoint sync/async tests passed, Ruff clean. An explicit-interval mutation caused six expected failures; exact runtime bytes restored and all 21 tests passed again. Diagnostic strict Pyright 1.1.413 is clean; the pinned 1.1.414 CI check remains required. Existing dictionary input-reference incompatibility is outside this coverage-only PR and is not locked in as a rejection contract. No generated-source/runtime changes or measured reduction. |
+| T15 Beta resource alias generation | Submitted for compiler review; CI pending | Typed OpenAI-only metadata generates the existing sync/async `beta.chat` and `beta.realtime` cached properties. 72 configuration and 680 renderer tests, generated runtime/actual-SDK getter contracts, Clippy, Ruff and Rustfmt pass. Raw parent comparison preserves all 17 StainlessParity files and unconfigured OpenAI output; configured output changes only the Beta resource module. Independent review found an alias-name shadowing gap; collision guards and regression tests were added and re-review found no blockers. All normal publication hooks passed without skips. No SDK promotion performed: one mixed file / 21 patch lines remains projected until compiler merge and verified generation. |
 | T11 Live queue generation | Submitted for compiler review; CI pending | 679 Python renderer unit tests, six generated WebSocket runtime tests, Clippy and Ruff pass; independent review found no blockers. Raw parent comparison verified identical StainlessParity bytes across 21 files and unchanged OpenAI output for unconfigured resources. The complete published patch also passes the repository debug-code guard. Compiler review currently includes an explicit human compliance approval requirement; agents cannot satisfy it through a reviewer identity. Canonical monorepo CI, required reviews and compiler merge remain prerequisites for SDK promotion. |
 | T1 authored schema documentation | Submitted for source review | Two authored description fixes; parsed schemas identical outside descriptions, exact intended substitutions and normal YAML/push checks pass. Potential reduction two files / four patch lines after verified regeneration. |
 | T14 file-processing delegate | Submitted for compiler review; CI pending | Typed helper binding validated and submitted with normal push hooks enabled. 73 configuration and 679 renderer tests pass; raw parent comparison is byte-identical across 11 files. Generated methods retain AST/signature/doc/module/qualname/defaults/override/await behavior and pass all 13 existing public file-processing tests with the unchanged SDK runtime. Canonical monorepo CI and compiler merge remain required. |
