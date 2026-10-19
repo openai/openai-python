@@ -125,3 +125,15 @@ async def test_play_stream_accepts_one_dimensional_float32(fake_sd: FakeSD) -> N
     # drop any leading zero-fill frames emitted before the producer delivered data
     nonzero = played[played[:, 0] != 0]
     assert np.allclose(nonzero[:, 0], samples)
+
+
+async def test_play_preserves_two_dimensional_float32_channels(fake_sd: FakeSD) -> None:
+    samples = np.array([[0.1, 0.2], [0.3, 0.4], [0.5, 0.6]], dtype=np.float32)
+
+    await asyncio.wait_for(local_audio_player.LocalAudioPlayer().play(samples), timeout=5)
+
+    stream = fake_sd.streams[0]
+    assert stream.error is None
+    assert stream.channels == 2
+    played = np.concatenate(stream.written)[: len(samples)]
+    assert np.allclose(played, samples)
