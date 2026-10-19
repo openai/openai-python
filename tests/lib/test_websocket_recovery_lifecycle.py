@@ -87,8 +87,8 @@ async def test_async_recovery_keeps_close_authoritative(
         async with manager(client, product) as connection:
             iterator = aiter(connection)
             receiving = asyncio.create_task(anext(iterator))
-            await asyncio.wait_for(started.wait(), timeout=10)
             try:
+                await asyncio.wait_for(started.wait(), timeout=10)
                 if close_during_handshake:
                     await connection.close()
                     # Closing must retire the queue even before the pending
@@ -136,17 +136,75 @@ async def test_cancelled_recovery_cannot_queue_after_close(monkeypatch: pytest.M
         async with manager(client, product) as connection:
             iterator = aiter(connection)
             receiving = asyncio.create_task(anext(iterator))
-            await asyncio.wait_for(started.wait(), timeout=10)
-            receiving.cancel()
-            with pytest.raises(asyncio.CancelledError):
-                await receiving
-            with pytest.raises(ConnectionClosedError):
-                await connection.send_raw('{"type":"synthetic.after_cancel"}')
-            await connection.close()
-            with pytest.raises(ConnectionClosedError):
-                await connection.send({"type": "synthetic.after_close"})
-            assert original.socket.sent == []
-            await iterator.aclose()
+            try:
+                await asyncio.wait_for(started.wait(), timeout=10)
+                receiving.cancel()
+                with pytest.raises(asyncio.CancelledError):
+                    await receiving
+                with pytest.raises(ConnectionClosedError):
+                    await connection.send_raw('{"type":"synthetic.after_cancel"}')
+                await connection.close()
+                with pytest.raises(ConnectionClosedError):
+                    await connection.send({"type": "synthetic.after_close"})
+                assert original.socket.sent == []
+            finally:
+                if not receiving.done():
+                    receiving.cancel()
+                await asyncio.gather(receiving, return_exceptions=True)
+                await iterator.aclose()
+
+
+@pytest.mark.parametrize("product", PRODUCTS)
+@pytest.mark.asyncio
+async def test_cancel_during_discard_still_closes_replacement(monkeypatch: pytest.MonkeyPatch, product: str) -> None:
+    original = AsyncSocket(True)
+    handshake_started, release_handshake = asyncio.Event(), asyncio.Event()
+    cleanup_started, release_cleanup, cleanup_done = asyncio.Event(), asyncio.Event(), asyncio.Event()
+    opens = 0
+
+    class ReplacementSocket(AsyncSocket):
+        async def close(self, **kwargs: Any) -> None:
+            cleanup_started.set()
+            await release_cleanup.wait()
+            await super().close(**kwargs)
+            cleanup_done.set()
+
+    replacement = ReplacementSocket(False)
+
+    async def connect(*_args: Any, **_kwargs: Any) -> AsyncSocket:
+        nonlocal opens
+        opens += 1
+        if opens == 1:
+            return original
+        handshake_started.set()
+        await release_handshake.wait()
+        return replacement
+
+    monkeypatch.setattr("openai.lib._websocket._WebSocketConnect", connect)
+    async with AsyncOpenAI(api_key="fake-key") as client:
+        async with manager(client, product) as connection:
+            iterator = aiter(connection)
+            receiving = asyncio.create_task(anext(iterator))
+            try:
+                await asyncio.wait_for(handshake_started.wait(), timeout=10)
+                await connection.close()
+                release_handshake.set()
+                await asyncio.wait_for(cleanup_started.wait(), timeout=10)
+                receiving.cancel()
+                with pytest.raises(asyncio.CancelledError):
+                    await asyncio.wait_for(receiving, timeout=10)
+                with pytest.raises(ConnectionClosedError):
+                    await connection.send_raw('{"type":"synthetic.after_close"}')
+                release_cleanup.set()
+                await asyncio.wait_for(cleanup_done.wait(), timeout=10)
+                assert replacement.socket.closed
+            finally:
+                release_handshake.set()
+                release_cleanup.set()
+                if not receiving.done():
+                    receiving.cancel()
+                await asyncio.gather(receiving, return_exceptions=True)
+                await iterator.aclose()
 
 
 @pytest.mark.parametrize("product", PRODUCTS)
@@ -181,8 +239,8 @@ def test_sync_recovery_keeps_close_authoritative(
 
             worker = threading.Thread(target=receive)
             worker.start()
-            assert started.wait(10)
             try:
+                assert started.wait(10)
                 if close_during_handshake:
                     connection.close()
                     with pytest.raises(ConnectionClosedError):
