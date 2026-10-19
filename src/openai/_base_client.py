@@ -746,6 +746,20 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
                 return cast(ResponseT, cast_to.build(response=response, data=data))
 
             if self._strict_response_validation:
+                # Temporary compatibility for the file-batch discriminator typo. Keep
+                # the published Literal until the next major, but validate real responses.
+                # Remove when VectorStoreFileBatch accepts the canonical spelling.
+                if is_dict(data) and data.get("object") == "vector_store.file_batch":
+                    from .types.vector_stores import VectorStoreFileBatch
+
+                    if cast_to is VectorStoreFileBatch:
+                        validated = validate_type(
+                            type_=VectorStoreFileBatch, value={**data, "object": "vector_store.files_batch"}
+                        )
+                        # Restore only this field on the validated instance; do not mutate
+                        # the response or skip validation of any other field.
+                        object.__setattr__(validated, "object", data["object"])
+                        return cast(ResponseT, validated)
                 return cast(ResponseT, validate_type(type_=cast_to, value=data))
 
             return cast(ResponseT, construct_type(type_=cast_to, value=data))
