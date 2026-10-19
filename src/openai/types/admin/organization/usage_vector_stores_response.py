@@ -77,6 +77,12 @@ class DataResultOrganizationUsageCompletionsResult(BaseModel):
     retention period.
     """
 
+    input_cache_write_30m_tokens: Optional[int] = None
+    """
+    The aggregated number of input tokens written to the cache with a 30-minute
+    retention period. May be absent or null for older responses.
+    """
+
     input_cache_write_tokens: Optional[int] = None
     """
     The aggregated number of input tokens written to the cache with a 30-minute
