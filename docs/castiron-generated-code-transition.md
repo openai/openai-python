@@ -182,17 +182,23 @@ Emit `create_and_poll`, `poll`, `upload`, and `upload_and_poll` delegates. Retai
 
 Verify `tests/lib/test_vector_store_polling.py`, `test_vector_store_file_poll_timeout.py`, `test_vector_store_files.py`, `test_vector_store_file_batches.py`, `tests/test_vector_batch_compat.py`, and signature synchronization.
 
+**Merge gate:** Every T7 PR that changes file-upload helpers, including generated delegates and handwritten runtime extractions, requires explicit SDK CODEOWNER approval before merge. Retain and add focused synchronous and asynchronous security regression tests as applicable to the changed upload boundary, including validation before side effects, file ownership/cleanup and cancellation. Preserve credential/header filtering and supported large payloads, following [AGENTS.md](../AGENTS.md#security-requirements-for-coding-agents). Functional tests or compiler approval alone do not satisfy this gate.
+
 ### T8 — uploads (221 lines, one file)
 
 Preserve exact `upload_file_chunked` overloads: path/in-memory variants, required filename/bytes for in-memory inputs, inferred path metadata and explicit overrides, 64 MiB default parts, sequential part order, completion part IDs and MD5, handle cleanup on success/failure, and async file I/O. Generate delegates after a handwritten runtime extraction only if it actually simplifies ownership. No new file maximum.
 
 Add focused sync/async mock-transport tests for metadata validation before HTTP calls, multipart content and order, completion, empty inputs, client options, and cleanup before extraction. Existing generated upload smoke tests alone do not cover helper lifecycle.
 
+**Merge gate:** Every T8 file-upload migration PR requires explicit SDK CODEOWNER approval before merge, including generated delegate changes and handwritten runtime extractions. Retain and add focused synchronous and asynchronous security regression tests as applicable: validation before HTTP requests, existing path/file handling, cleanup on failure/cancellation, and credential/header filtering. Use synthetic fixtures and preserve existing large-payload coverage without introducing new limits. The compatibility-test PR does not grant approval to a later migration PR; follow [AGENTS.md](../AGENTS.md#security-requirements-for-coding-agents).
+
 ### T9 — Hosted Agents (261 lines, three files)
 
 Generate environment file `prepare`, `prepare_directory`, `upload` and artifact `for_result` delegates with exact signatures. Preserve preflight before side effects, path/symlink safety, ownership of partially uploaded files, cancellation cleanup, async file access, large payloads, ordered artifact selection, and exact-turn scoping.
 
 Sessions additionally needs `output_type`/`tool_handlers` overload parameters, output-schema binding, stream-only handler validation, specialized streams, parser binding and context managers. Preserve subscribe-before-input, idempotency, single-use contexts, typed results, exactly-once dispatch, redaction/cancellation, and exclusion of local output types from serialized bodies. Verify `tests/lib/streaming/agents/`, especially file/artifact/create/output/result/stream contracts.
+
+**Merge gate:** Every T9 PR that changes file-upload helpers requires explicit SDK CODEOWNER approval before merge, including generated delegates and handwritten runtime extractions. Retain and add focused synchronous and asynchronous security regression tests as applicable for preflight/path/symlink safety, partial-upload ownership, cancellation cleanup and sensitive-data/header redaction. Preserve supported large payloads and follow [AGENTS.md](../AGENTS.md#security-requirements-for-coding-agents). Obtain all other security-sensitive reviews required for session/authentication/serialization changes as well.
 
 ### T10 — videos (243 lines including generated tests)
 
@@ -222,7 +228,7 @@ Keep verification in `lib/_webhooks.py` and generate exact verifying facades: st
 3. In parallel after their prerequisites, tackle T7 vector stores, T8 uploads, T10 videos, T12 webhooks, T13 embeddings, T15 aliases, and the independent Realtime portion of T11. Each PR states the exact compatibility surface and expected count reduction.
 4. Implement T3 audio, T6 Chat, T5 Responses and T9 session hooks, using shared typed helpers/hooks. Split beta websocket class placement separately.
 5. Draw down T4 Assistants and T2 client/root integration only with fuller contract coverage. These account for substantial patch size and compatibility risk. T16 documentation follows the relevant generated helper facts.
-6. For each compiler change: focused tests + both profile checks + maintained fixture/parity suite; compiler review/merge; regenerate using the merged compiler binary; review isolated SDK output; run compatibility/type/build checks; then normal SDK review/merge. Do not bundle unrelated API schema or dependency updates.
+6. For each compiler change: focused tests + both profile checks + maintained fixture/parity suite; compiler review/merge; regenerate using the merged compiler binary; review isolated SDK output; run compatibility/type/build checks and focused synchronous/asynchronous security regression tests as applicable; obtain required SDK CODEOWNER approval, explicitly including every T7/T8/T9 file-upload migration; then satisfy normal merge gates. Compiler approval, functional tests and earlier PR approvals do not replace CODEOWNER approval on the affected SDK PR. Do not bundle unrelated API schema or dependency updates.
 7. After measured reductions land, propose any ceiling decrease in a PR containing only `.castiron-ratchet.json`, with measured usage and headroom. Budget increases require human approval. Strict zero ownership is a separate activation after the SDK really reaches zero; never enable it over remaining patches.
 
 Compiler source changes must be merged to monorepo `master` before an agent promotes their SDK output. Draft generation is allowed for review. An approved but unmerged Delta is not sufficient. Do not hand-update `.castiron.stats.yml`, public snapshot SHAs, manifests, exclusions, or ownership to claim a reduction.
@@ -232,6 +238,8 @@ Compiler source changes must be merged to monorepo `master` before an agent prom
 For every runtime migration, preserve imports (including compatibility module paths and wildcard exports), `__all__`, class identities/modules, public signatures and overloads, generic return types, sync/async call shape, defaults, sentinel behavior, warnings/errors, request serialization/options, stream lifecycle, and subclass extension behavior. Add targeted baseline contract tests where existing coverage is weak. A smaller diff is insufficient evidence of compatibility.
 
 Run focused sync/async public-entrypoint tests, static type checks, repository lint/build as appropriate, and the existing custom-code unit suite. Run existing high-memory JSON/SSE regression cases sequentially without shrinking fixtures or raising client limits. No dependency or minimum-Python upgrades belong in these PRs. CI evidence must reference the exact current head.
+
+Every file-upload migration, including T7, T8 and T9 generated delegates or handwritten runtime extractions, must retain/add focused synchronous and asynchronous security regression coverage as applicable and obtain explicit SDK CODEOWNER approval before merge. Apply the same repository requirements to all other security-sensitive changes listed in [AGENTS.md](../AGENTS.md#security-requirements-for-coding-agents). Advancing automatically means preparing and validating successor work; merging or promoting it still requires these approvals and tests on the affected PR.
 
 A track is complete only when the compiler change has landed (where needed), the SDK is regenerated from verified merged inputs, its patch is absent in the authoritative report, developer behavior passes, and SDK review/checks are satisfied. Final completion is **zero mixed files and zero custom patch lines**, with legitimate handwritten runtime ownership intact.
 
@@ -259,7 +267,7 @@ Prefer T9 file/artifact delegates, T7 vector-store helpers, and T8 uploads after
 
 On each merge, reconcile existing branches/PRs first to avoid duplicate work, refresh only affected dependencies, run the focused compatibility checks, and publish the next small PRs/Deltas. Record merge commits, measured reductions, active successors and exact tested heads in the ledger. Link successor compiler Deltas to this coordinating chat so Conductor can route their updates here. Parallelize independent file groups in isolated checkouts; serialize changes to shared compiler/configuration mechanisms when needed.
 
-If one successor needs a human review, CI repair, or another merged prerequisite, record that blocker and continue unrelated ready tracks. Retain all required CODEOWNER, compliance, security, provenance and normal merge gates. Continue until the verified generated-owned tree reaches zero mixed files and zero patch lines; no developer-facing breaking changes are permitted.
+If one successor needs a human review, CI repair, or another merged prerequisite, record that blocker and continue unrelated ready tracks. T7/T8/T9 successors that change file uploads require explicit SDK CODEOWNER approval and focused synchronous/asynchronous security regression coverage as applicable before merge; a predecessor's approval or a green compiler change cannot substitute. Retain all required CODEOWNER, compliance, security, provenance and normal merge gates. Continue until the verified generated-owned tree reaches zero mixed files and zero patch lines; no developer-facing breaking changes are permitted.
 
 ## Execution ledger
 
