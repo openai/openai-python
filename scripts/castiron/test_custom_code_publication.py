@@ -326,6 +326,7 @@ class StatusPublisherTests(unittest.TestCase):
         queue_absent: bool = False,
         queue_pages: list[dict[str, Any]] | None = None,
         retarget_during_publication: bool = False,
+        same_head_next_pr: bool = False,
     ) -> list[dict[str, Any]]:
         base, head = "a" * 40, "b" * 40
         run = source_run(head, event_name)
@@ -369,6 +370,12 @@ class StatusPublisherTests(unittest.TestCase):
                 "PUBLISH_ATTEMPT": "1",
             },
         }
+        if same_head_next_pr:
+            current = payload["current"]
+            payload["pulls_by_number"] = {
+                3: current,
+                4: {**current, "number": 4, "base": {**current["base"], "ref": "next"}},
+            }
         if retarget_during_publication:
             current = payload["current"]
             payload["current_sequence"] = [
@@ -397,6 +404,22 @@ class StatusPublisherTests(unittest.TestCase):
                     result = self.publish(event_name=event, branch="next", previous_statuses=main)
                     self.assertEqual(result, [])
 
+    def test_same_head_next_pr_does_not_block_required_main_statuses(self) -> None:
+        for numbers in ([3, 4], [4, 3]):
+            with self.subTest(numbers=numbers):
+                results = self.publish(
+                    run_overrides={"pull_requests": []},
+                    fallback_pulls=[{"number": number} for number in numbers],
+                    same_head_next_pr=True,
+                    failed_budget=True,
+                )
+                self.assertEqual([r["state"] for r in results], ["success", "failure"])
+                self.assertTrue(all(r["sha"] == "b" * 40 for r in results))
+        self.assertEqual(
+            self.publish(run_overrides={"pull_requests": [{"number": 4}]}, same_head_next_pr=True),
+            [],
+        )
+
     def test_next_queue_never_authorizes_against_a_stale_main_policy(self) -> None:
         for changed in (False, True):
             with self.subTest(policy_changed=changed):
@@ -413,7 +436,9 @@ class StatusPublisherTests(unittest.TestCase):
         for policy_changed, queue_absent in ((True, False), (False, True)):
             with self.subTest(policy_changed=policy_changed, queue_absent=queue_absent):
                 result = self.publish(
-                    event_name="merge_group", policy_changed=policy_changed, queue_absent=queue_absent
+                    event_name="merge_group",
+                    policy_changed=policy_changed,
+                    queue_absent=queue_absent,
                 )
                 self.assertEqual([r["state"] for r in result], ["failure", "failure"])
         self.assertEqual(self.publish(retarget_during_publication=True), [])
