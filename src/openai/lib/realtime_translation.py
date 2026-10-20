@@ -5,6 +5,7 @@ import asyncio
 import threading
 from types import TracebackType
 from typing import TYPE_CHECKING, Any, Literal, cast
+from concurrent.futures import Future
 
 import httpx2
 from pydantic import BaseModel
@@ -72,6 +73,8 @@ class TranslationConnection:
     def __init__(self, connection: TranslationsConnection) -> None:
         self._connection = connection
         self._send_lock = threading.Lock()
+        self._close_lock = threading.Lock()
+        self._close_result: Future[None] | None = None
         self._state: Literal["open", "finishing", "closed"] = "open"
 
     def send(self, event: RealtimeTranslationClientEvent | RealtimeTranslationClientEventParam) -> None:
@@ -100,13 +103,48 @@ class TranslationConnection:
             self._connection.recv_bytes() if timeout is None else self._connection._connection.recv(timeout=timeout)
         )
         if isinstance(event, RealtimeTranslationSessionClosedEvent):
-            self.close()
+            if timeout is None:
+                self.close()
+            else:
+                self._close(background=True)
         return event
 
     def close(self) -> None:
+        self._close(background=False)
+
+    def _close(self, *, background: bool) -> None:
         # Do not wait for a blocked writer before aborting the transport.
-        self._state = "closed"
-        self._connection.close()
+        with self._close_lock:
+            self._state = "closed"
+            result = self._close_result
+            first = result is None
+            if result is None:
+                result = self._close_result = Future()
+
+        if first:
+            if background:
+                try:
+                    threading.Thread(target=self._finish_close, args=(result,), daemon=True).start()
+                except BaseException as starting:
+                    # Keep ownership if the close worker couldn't start.
+                    self._finish_close(result)
+                    try:
+                        result.result()
+                    except BaseException as closing:
+                        raise starting from closing
+                    raise
+            else:
+                self._finish_close(result)
+        if not background:
+            result.result()
+
+    def _finish_close(self, result: Future[None]) -> None:
+        try:
+            self._connection.close()
+        except BaseException as error:
+            result.set_exception(error)
+        else:
+            result.set_result(None)
 
 
 class AsyncTranslationConnection:
