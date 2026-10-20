@@ -44,7 +44,7 @@ from .transcription_sessions import (
     TranscriptionSessionsWithStreamingResponse,
     AsyncTranscriptionSessionsWithStreamingResponse,
 )
-from ....types.websocket_connection_options import WebsocketConnectionOptions
+from ....types.websocket_connection_options import WebsocketConnectionOptions, SyncWebSocketConnectionOptions
 from ....types.beta.realtime.realtime_client_event import RealtimeClientEvent
 from ....types.beta.realtime.realtime_server_event import RealtimeServerEvent
 from ....types.beta.realtime.conversation_item_param import ConversationItemParam
@@ -95,7 +95,7 @@ class Realtime(SyncAPIResource):
         model: str,
         extra_query: Query = {},
         extra_headers: Headers = {},
-        websocket_connection_options: WebsocketConnectionOptions = {},
+        websocket_connection_options: SyncWebSocketConnectionOptions = {},
     ) -> RealtimeConnectionManager:
         """
         The Realtime API enables you to build low-latency, multi-modal conversational experiences. It currently supports text and audio as both input and output, as well as function calling.
@@ -382,6 +382,7 @@ class AsyncRealtimeConnectionManager:
         if self.__websocket_connection_options:
             log.debug("Custom WebSocket connection options provided")
 
+        options: WebsocketConnectionOptions = {"max_size": None, **self.__websocket_connection_options}
         self.__connection = AsyncRealtimeConnection(
             await connect(
                 str(url),
@@ -393,7 +394,7 @@ class AsyncRealtimeConnectionManager:
                     },
                     self.__extra_headers,
                 ),
-                **self.__websocket_connection_options,
+                **options,
             )
         )
 
@@ -524,7 +525,7 @@ class RealtimeConnectionManager:
         model: str,
         extra_query: Query,
         extra_headers: Headers,
-        websocket_connection_options: WebsocketConnectionOptions,
+        websocket_connection_options: SyncWebSocketConnectionOptions,
     ) -> None:
         self.__client = client
         self.__model = model
@@ -575,6 +576,7 @@ class RealtimeConnectionManager:
         if self.__websocket_connection_options:
             log.debug("Custom WebSocket connection options provided")
 
+        options: SyncWebSocketConnectionOptions = {"max_size": None, **self.__websocket_connection_options}
         self.__connection = RealtimeConnection(
             connect(
                 str(url),
@@ -586,7 +588,7 @@ class RealtimeConnectionManager:
                     },
                     self.__extra_headers,
                 ),
-                **self.__websocket_connection_options,
+                **options,
             )
         )
 

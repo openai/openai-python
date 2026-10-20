@@ -25,7 +25,7 @@ def test_beta_realtime_import_still_works_with_old_alias() -> None:
 
 
 if TYPE_CHECKING:
-    from openai import AsyncOpenAI
+    from openai import OpenAI, AsyncOpenAI
     from openai.types.websocket_connection_options import SyncWebSocketConnectionOptions
 
     def native_options_contract(
@@ -49,3 +49,8 @@ if TYPE_CHECKING:
         client.realtime.connect(model="test", websocket_connection_options=original)
         client.responses.connect(websocket_connection_options=legacy)
         return valid_sync, invalid_sync
+
+    def beta_realtime_options_contract(client: OpenAI, async_client: AsyncOpenAI) -> None:
+        client.beta.realtime.connect(model="test", websocket_connection_options={"max_size": 512})
+        client.beta.realtime.connect(model="test", websocket_connection_options={"write_limit": 65536})  # pyright: ignore[reportArgumentType]
+        async_client.beta.realtime.connect(model="test", websocket_connection_options={"write_limit": 65536})
