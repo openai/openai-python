@@ -383,6 +383,8 @@ class AsyncRealtimeConnectionManager:
             log.debug("Custom WebSocket connection options provided")
 
         options: WebsocketConnectionOptions = {"max_size": None, **self.__websocket_connection_options}
+        if options["max_size"] is None:
+            options.setdefault("compression", None)
         self.__connection = AsyncRealtimeConnection(
             await connect(
                 str(url),
@@ -577,6 +579,8 @@ class RealtimeConnectionManager:
             log.debug("Custom WebSocket connection options provided")
 
         options: SyncWebSocketConnectionOptions = {"max_size": None, **self.__websocket_connection_options}
+        if options["max_size"] is None:
+            options.setdefault("compression", None)
         self.__connection = RealtimeConnection(
             connect(
                 str(url),

@@ -34,7 +34,10 @@ def test_interrupted_example_stops_descendants(
     worker.write_text(
         "import subprocess, sys, time\nfrom pathlib import Path\n"
         "child = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(60)'])\n"
-        "Path(__file__).with_suffix('.pid').write_text(str(child.pid))\n"
+        "pid = Path(__file__).with_suffix('.pid')\n"
+        "temporary = pid.with_suffix('.pid.tmp')\n"
+        "temporary.write_text(str(child.pid))\n"
+        "temporary.replace(pid)\n"
         "time.sleep(60)\n"
     )
     command = [sys.executable, str(worker)]
@@ -51,6 +54,7 @@ def test_interrupted_example_stops_descendants(
             while not worker.with_suffix(".pid").exists() and time.monotonic() < deadline:
                 time.sleep(0.01)
             interrupted = True
+            assert worker.with_suffix(".pid").exists(), "Worker didn't publish its descendant PID"
             raise KeyboardInterrupt()
         return original_wait(process, timeout=timeout)
 

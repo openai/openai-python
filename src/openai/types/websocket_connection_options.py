@@ -25,7 +25,12 @@ class SyncWebSocketConnectionOptions(TypedDict, total=False):
     """List of supported subprotocols, in order of decreasing preference."""
 
     compression: str | None
-    """The “permessage-deflate” extension is enabled by default. Set compression to None to disable it. See the [compression guide](https://websockets.readthedocs.io/en/stable/topics/compression.html) for details."""
+    """With unlimited messages (`max_size=None`, the SDK default), compression
+    defaults to `None`. With a finite `max_size`, including zero, the native
+    `websockets` default enables permessage-deflate. Set `compression="deflate"`
+    or `compression=None` to choose explicitly. Factories provided in
+    `extensions` can still negotiate compression when this option is `None`.
+    """
 
     # limits
     max_size: int | None

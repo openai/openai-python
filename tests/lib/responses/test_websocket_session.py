@@ -1335,6 +1335,7 @@ async def test_large_response_with_documented_transport_options(mode: str, respo
 async def test_sync_close_progresses_while_command_iterable_is_paused() -> None:
     entered = threading.Event()
     release = threading.Event()
+    peer_ready = threading.Event()
 
     def tools() -> Generator[dict[str, Any], None, None]:
         entered.set()
@@ -1343,11 +1344,13 @@ async def test_sync_close_progresses_while_command_iterable_is_paused() -> None:
 
     def script(socket: ServerConnection) -> None:
         # Closing during serialization must not send a request.
+        peer_ready.set()
         with pytest.raises(ConnectionClosedOK):
             socket.recv(timeout=10)
 
     with script_server(script) as url:
         async with session_for("sync", url) as driver:
+            assert await asyncio.to_thread(peer_ready.wait, 5), "WebSocket peer didn't start"
             send = asyncio.create_task(
                 driver.call(driver.session.default, "send", {"type": "response.create", "tools": tools()})
             )
