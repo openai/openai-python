@@ -159,6 +159,8 @@ class WebSocketConnectionBase:
                     self._flush_send_queue()
                     return True
                 except Exception:
+                    # Ordinary setup failures consume an attempt. The outer
+                    # finally ends queue admission when recovery exits.
                     pass
 
             return False
