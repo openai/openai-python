@@ -166,6 +166,51 @@ class CustomCodeTests(GitTestCase):
         with self.assertRaisesRegex(report.ReportError, "regular Git file"):
             report.read_stats(self.repo, self.commit())
 
+    def test_next_checkpoint_uses_its_namespaced_ref(self) -> None:
+        generated, base = self.baseline()
+        self.git("checkout", "--detach", generated)
+        metadata = {
+            "schema_version": "castiron-checkpoint/v2",
+            "release_target": "next",
+            "record": {"generation_id": GENERATION, "source_branch": "test"},
+        }
+        encoded = base64.b64encode(json.dumps(metadata).encode()).decode()
+        checkpoint = self.commit(f"codegen\n\nGeneration metadata: {encoded}")
+        ref = "refs/remotes/origin/codegen/castiron/next/test"
+        self.git("update-ref", ref, checkpoint)
+        stats = report.read_stats(self.repo, base) | {
+            "codegen_sha": checkpoint,
+            "codegen_hash": report.hash_codegen_commit(self.repo, checkpoint),
+        }
+        result = report.resolve_checkpoint(self.repo, stats, fetch=False, require_hash=True)
+        self.assertEqual(result["commit"], checkpoint)
+        self.git("update-ref", "refs/remotes/origin/codegen/test", checkpoint)
+        self.git("update-ref", "-d", ref)
+        with self.assertRaises(report.ReportError):
+            report.resolve_checkpoint(self.repo, stats, fetch=False, require_hash=True)
+
+    def test_invalid_checkpoint_envelopes_are_rejected(self) -> None:
+        _, base = self.baseline()
+        record = {"generation_id": GENERATION, "source_branch": "test"}
+        envelope = {
+            "schema_version": "castiron-checkpoint/v2",
+            "release_target": "next",
+            "record": record,
+        }
+        for metadata in (
+            envelope | {"schema_version": "unknown"},
+            envelope | {"release_target": "main"},
+            envelope | {"extra": True},
+            envelope | {"record": record | {"release_target": "next"}},
+            record | {"release_target": "next"},
+        ):
+            with self.subTest(metadata=metadata):
+                encoded = base64.b64encode(json.dumps(metadata).encode()).decode()
+                checkpoint = self.commit(f"codegen\n\nGeneration metadata: {encoded}")
+                stats = report.read_stats(self.repo, base) | {"codegen_sha": checkpoint}
+                with self.assertRaisesRegex(report.ReportError, "envelope"):
+                    report.resolve_checkpoint(self.repo, stats, fetch=False, require_hash=True)
+
     def test_public_snapshot_rejects_private_governance_and_unpublished_paths(self) -> None:
         entry = report.Entry(b"100644", "a" * 40)
         blocked = [

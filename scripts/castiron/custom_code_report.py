@@ -452,18 +452,31 @@ def resolve_checkpoint(
     if not isinstance(decoded, dict):
         raise ReportError("invalid codegen checkpoint metadata")
     metadata = cast(dict[str, Any], decoded)
+    namespace = ""
+    if "schema_version" in metadata:
+        if (
+            set(metadata) != {"schema_version", "release_target", "record"}
+            or metadata["schema_version"] != "castiron-checkpoint/v2"
+            or metadata["release_target"] != "next"
+            or not isinstance(metadata["record"], dict)
+        ):
+            raise ReportError("invalid versioned checkpoint envelope")
+        metadata = cast(dict[str, Any], metadata["record"])
+        namespace = "castiron/next/"
+    if {"release_target", "schema_version", "record"}.intersection(metadata):
+        raise ReportError("checkpoint target metadata must use the versioned envelope")
     if metadata.get("generation_id") != stats["generation_id"]:
         raise ReportError("codegen checkpoint generation ID does not match stats")
     branch = metadata.get("source_branch")
     if not isinstance(branch, str) or not branch:
         raise ReportError("codegen checkpoint has no source branch")
-    ref = f"refs/heads/codegen/{branch}"
+    ref = f"refs/heads/codegen/{namespace}{branch}"
     git(repo, "check-ref-format", ref)
     tracking = f"refs/castiron/report/{hashlib.sha256(ref.encode()).hexdigest()}"
     if fetch:
         git(repo, "fetch", "--quiet", "--no-tags", "origin", f"+{ref}:{tracking}")
     else:
-        tracking = f"refs/remotes/origin/codegen/{branch}"
+        tracking = f"refs/remotes/origin/codegen/{namespace}{branch}"
     git(repo, "merge-base", "--is-ancestor", commit, tracking)
     actual = hash_codegen_commit(repo, commit)
     expected = stats.get("codegen_hash")
@@ -807,6 +820,10 @@ def current_pull(repository: str, run: dict[str, Any]) -> tuple[int, str] | None
             and pull["base"]["ref"] in TARGET_BRANCHES
         ):
             current.append((number, pull["base"]["ref"]))
+    # Fallback discovery can find both targets for one head. Main's required
+    # checks take precedence over next's advisory report; keep same-target
+    # ambiguity fail-closed. Explicit run associations still limit discovery.
+    current = [pull for pull in current if pull[1] == "main"] or current
     if len(current) > 1:
         raise ReportError("workflow run has multiple current pull requests")
     return current[0] if current else None
