@@ -2,7 +2,20 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-# Bridge the old next baseline using its existing reviewed dependency lock.
-# The main-to-next sync replaces this with the normal uv project workflow.
+# Bridge the old Rye baseline until the main-to-next toolchain sync.
 uv venv --allow-existing --python "${UV_PYTHON:-$(cat .python-version)}" .venv
+
+# Rye re-resolved this non-universal lock after selecting each matrix runtime.
+# Expose its dev dependency array as a uv group without changing project metadata.
+requirements_dir=$(mktemp -d)
+trap 'rm -rf "$requirements_dir"' EXIT
+{
+  printf '[dependency-groups]\n'
+  sed -n '/^dev-dependencies = \[/,/^]/p' pyproject.toml | sed '1s/dev-dependencies/dev/'
+} > "$requirements_dir/pyproject.toml"
+# Require compatible wheels: older NumPy metadata omits its Python upper bound.
+uv pip compile pyproject.toml --all-extras --only-binary=:all: \
+  --group "$requirements_dir/pyproject.toml:dev" \
+  --python .venv/bin/python --output-file requirements-dev.lock
+printf '\n-e .\n' >> requirements-dev.lock
 uv pip sync --python .venv/bin/python requirements-dev.lock
