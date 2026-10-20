@@ -6,11 +6,13 @@ cd "$(dirname "$0")/.."
 
 if [ "$1" = "--fix" ]; then
   echo "==> Running lints with --fix"
-  rye run fix:ruff
+  .venv/bin/ruff check --fix .
 else
   echo "==> Running lints"
-  rye run lint
+  .venv/bin/ruff check .
+  PATH="$PWD/.venv/bin:$PATH" ./scripts/run-pyright
+  .venv/bin/mypy .
 fi
 
 echo "==> Making sure it imports"
-rye run python -c 'import openai'
+.venv/bin/python -c 'import openai'

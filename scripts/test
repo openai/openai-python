@@ -59,7 +59,7 @@ if [ "${OPENAI_TEST_HTTP_CLIENT:-httpx}" = "httpx2" ]; then
 fi
 
 echo "==> Running tests"
-rye run pytest "$@"
+.venv/bin/pytest "$@"
 
 echo "==> Running Pydantic v1 tests"
-rye run nox -s test-pydantic-v1 -- "$@"
+.venv/bin/nox -s test-pydantic-v1 -- "$@"
