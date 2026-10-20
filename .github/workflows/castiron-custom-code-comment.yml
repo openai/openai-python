@@ -168,9 +168,13 @@ jobs:
                 if (pr.state === 'open' && pr.head.sha === head &&
                     ['main', 'next'].includes(pr.base.ref) && pr.base.repo.full_name === `${context.repo.owner}/${context.repo.repo}`) current.push(pr);
               }
-              if (current.length !== 1) return;
-              branch = current[0].base.ref;
-              number = current[0].number;
+              // Match compute's preference for required main checks when
+              // fallback discovery finds an advisory next PR for the same head.
+              const main = current.filter(pr => pr.base.ref === 'main');
+              const selected = main.length ? main : current;
+              if (selected.length !== 1) return;
+              branch = selected[0].base.ref;
+              number = selected[0].number;
             } else {
               const match = run.head_branch.match(/^gh-readonly-queue\/(main|next)\//);
               if (run.event !== 'merge_group' || !match) return;
