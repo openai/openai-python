@@ -128,7 +128,7 @@ def test_concurrent_explicit_closes_wait_for_one_timed_terminal_close(monkeypatc
                 def close(index: int) -> None:
                     try:
                         connection.close()
-                    except BaseException as exc:
+                    except Exception as exc:
                         failures.append(exc)
                     finally:
                         completed[index].set()
@@ -178,9 +178,54 @@ def test_timed_terminal_close_error_reaches_context_exit(monkeypatch: pytest.Mon
                 assert connection.recv(timeout=0.25).type == "session.closed"
                 if body_failure:
                     raise body
-        assert caught.value is expected
         if body_failure:
+            assert caught.value is body
             assert caught.value.__cause__ is closing
+        else:
+            assert caught.value is closing
+        assert calls == 1
+
+
+@pytest.mark.parametrize("timeout", [0.25, None], ids=["timed-worker", "untimed-owner"])
+def test_interrupted_native_close_reaches_translation_owner(
+    monkeypatch: pytest.MonkeyPatch, timeout: float | None
+) -> None:
+    original_close = TranslationsConnection.close
+    closing = KeyboardInterrupt("fixture close interrupted")
+    caught: list[KeyboardInterrupt] = []
+    calls = 0
+
+    def fail_close(raw: TranslationsConnection, *, code: int = 1000, reason: str = "") -> None:
+        nonlocal calls
+        calls += 1
+        original_close(raw, code=code, reason=reason)
+        raise closing
+
+    def handler(ws: ServerConnection) -> None:
+        ws.send('{"type":"session.closed","event_id":"done"}')
+        with pytest.raises(ConnectionClosed):
+            ws.recv(timeout=5)
+
+    with (
+        script_server(handler) as url,
+        OpenAI(api_key="local-test-key", base_url=url, http_client=httpx2.Client(trust_env=False)) as client,
+    ):
+        monkeypatch.setattr(TranslationsConnection, "close", fail_close)
+
+        def receive_and_close() -> None:
+            try:
+                with TranslationSession(client.realtime.translations, model="gpt-realtime-translate") as connection:
+                    assert connection.recv(timeout=timeout).type == "session.closed"
+            except KeyboardInterrupt as exc:
+                caught.append(exc)
+
+        # Bound even a broken Future completion: a stranded owner must fail this
+        # test without preventing the test process from shutting down.
+        owner = threading.Thread(target=receive_and_close, daemon=True)
+        owner.start()
+        owner.join(timeout=5)
+        assert not owner.is_alive(), "Translation owner stayed blocked after close was interrupted"
+        assert caught == [closing]
         assert calls == 1
 
 
