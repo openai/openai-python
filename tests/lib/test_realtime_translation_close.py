@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import time
 import threading
+from typing_extensions import override
 
 import httpx2
 import pytest
@@ -41,6 +42,7 @@ def test_managed_translation_receive_close_deadline(
     )
 
     class ReplyConnection(ServerConnection):
+        @override
         def send_data(self) -> None:
             if self.protocol.close_rcvd is not None and not replied.is_set():
                 replied.set()
