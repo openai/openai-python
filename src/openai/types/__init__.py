@@ -119,6 +119,7 @@ from .video_get_character_response import VideoGetCharacterResponse as VideoGetC
 from .websocket_connection_options import (
     WebSocketConnectionOptions as WebSocketConnectionOptions,
     WebsocketConnectionOptions as WebsocketConnectionOptions,
+    SyncWebSocketConnectionOptions as SyncWebSocketConnectionOptions,
 )
 from .image_create_variation_params import ImageCreateVariationParams as ImageCreateVariationParams
 from .image_gen_partial_image_event import ImageGenPartialImageEvent as ImageGenPartialImageEvent
