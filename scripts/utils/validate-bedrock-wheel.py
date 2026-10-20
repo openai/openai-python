@@ -14,7 +14,7 @@ import sys
 import importlib.abc
 from pathlib import Path
 
-import httpx
+import httpx2
 
 
 class BlockBotocore(importlib.abc.MetaPathFinder):
@@ -39,35 +39,44 @@ requests = []
 
 def handler(request):
     requests.append(request)
-    return httpx.Response(200, request=request, json={})
+    return httpx2.Response(200, request=request, json={})
 
 
-http_client = httpx.Client(transport=httpx.MockTransport(handler), trust_env=False)
-with OpenAI(
-    provider=bedrock(region="us-east-1", api_key="bearer-token"),
-    http_client=http_client,
-) as client:
-    client.get("/models", cast_to=httpx.Response)
+for endpoint, hostname in (
+    ("mantle", "bedrock-mantle.us-east-1.api.aws"),
+    ("runtime", "bedrock-runtime.us-east-1.amazonaws.com"),
+):
+    requests.clear()
+    http_client = httpx2.Client(transport=httpx2.MockTransport(handler), trust_env=False)
+    with OpenAI(
+        provider=bedrock(endpoint=endpoint, region="us-east-1", api_key="bearer-token"),
+        http_client=http_client,
+    ) as client:
+        client.get("/models", cast_to=httpx2.Response)
 
-assert requests[0].headers["Authorization"] == "Bearer bearer-token"
-assert not any(name == "botocore" or name.startswith("botocore.") for name in sys.modules)
+    assert requests[0].url.host == hostname
+    assert requests[0].headers["Authorization"] == "Bearer bearer-token"
+    assert not any(name == "botocore" or name.startswith("botocore.") for name in sys.modules)
 
 sys.meta_path.remove(blocker)
-requests.clear()
-http_client = httpx.Client(transport=httpx.MockTransport(handler), trust_env=False)
-with OpenAI(
-    provider=bedrock(
-        region="us-east-1",
-        access_key_id="fixture-access-key",
-        secret_access_key="fixture-secret-key",
-        session_token="fixture-session-token",
-    ),
-    http_client=http_client,
-) as client:
-    client.get("/models", cast_to=httpx.Response)
+for endpoint, signing_service in (("mantle", "bedrock-mantle"), ("runtime", "bedrock")):
+    requests.clear()
+    http_client = httpx2.Client(transport=httpx2.MockTransport(handler), trust_env=False)
+    with OpenAI(
+        provider=bedrock(
+            endpoint=endpoint,
+            region="us-east-1",
+            access_key_id="fixture-access-key",
+            secret_access_key="fixture-secret-key",
+            session_token="fixture-session-token",
+        ),
+        http_client=http_client,
+    ) as client:
+        client.get("/models", cast_to=httpx2.Response)
 
-assert "Credential=fixture-access-key/" in requests[0].headers["Authorization"]
-assert requests[0].headers["X-Amz-Security-Token"] == "fixture-session-token"
+    assert "Credential=fixture-access-key/" in requests[0].headers["Authorization"]
+    assert f"/{signing_service}/aws4_request" in requests[0].headers["Authorization"]
+    assert requests[0].headers["X-Amz-Security-Token"] == "fixture-session-token"
 """
 
 
@@ -101,6 +110,10 @@ def main() -> None:
             raise RuntimeError(f"Botocore requirements must belong to the Bedrock extra: {botocore_requirements}")
         if any("python_version" in requirement for requirement in botocore_requirements):
             raise RuntimeError(f"Botocore requirements have redundant Python markers: {botocore_requirements}")
+
+        urllib3_requirements = [requirement for requirement in requirements if requirement.startswith("urllib3")]
+        if urllib3_requirements != ["urllib3<3,>=2.7.0; extra == 'bedrock'"]:
+            raise RuntimeError(f"The Bedrock extra must require a patched urllib3 release: {urllib3_requirements}")
 
         environment = os.environ.copy()
         for name in (

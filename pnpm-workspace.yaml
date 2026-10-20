@@ -1,0 +1,13 @@
+# Contributor tools only; this is not part of the Python SDK runtime.
+minimumReleaseAge: 11520
+minimumReleaseAgeStrict: true
+minimumReleaseAgeIgnoreMissingTime: false
+trustPolicy: no-downgrade
+blockExoticSubdeps: true
+strictDepBuilds: true
+trustLockfile: false
+pmOnFail: error
+runtimeOnFail: error
+verifyDepsBeforeRun: error
+ignoreScripts: true
+allowBuilds: {}

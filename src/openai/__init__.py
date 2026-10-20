@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -39,6 +39,7 @@ from ._exceptions import (
 )
 from ._base_client import DefaultHttpxClient, DefaultAioHttpClient, DefaultAsyncHttpxClient
 from ._utils._logs import setup_logging as _setup_logging
+from ._data_residency import DataResidency
 from ._legacy_response import HttpxBinaryResponseContent as HttpxBinaryResponseContent
 from .types.websocket_reconnection import ReconnectingEvent, ReconnectingOverrides
 
@@ -74,6 +75,7 @@ __all__ = [
     "InvalidWebhookSignatureError",
     "Timeout",
     "RequestOptions",
+    "DataResidency",
     "Client",
     "AsyncClient",
     "Stream",
@@ -101,15 +103,46 @@ __all__ = [
 if not _t.TYPE_CHECKING:
     from ._utils._resources_proxy import resources as resources
 
-from .lib import azure as _azure, bedrock as _bedrock, pydantic_function_tool as pydantic_function_tool
+from .lib import (
+    azure as _azure,
+    bedrock as _bedrock,
+    pydantic_function_tool as pydantic_function_tool,
+    pydantic_responses_function_tool as pydantic_responses_function_tool,
+)
 from .version import VERSION as VERSION
 from .lib.azure import AzureOpenAI as AzureOpenAI, AsyncAzureOpenAI as AsyncAzureOpenAI
 from .lib.bedrock import BedrockOpenAI as BedrockOpenAI, AsyncBedrockOpenAI as AsyncBedrockOpenAI
 from .lib._old_api import *
-from .lib.streaming import (
-    AssistantEventHandler as AssistantEventHandler,
-    AsyncAssistantEventHandler as AsyncAssistantEventHandler,
-)
+
+_COMPUTER_EXPORTS = ("ComputerToolset", "AsyncComputerToolset", "ComputerDriver", "AsyncComputerDriver")
+
+if _t.TYPE_CHECKING:
+    from .lib.computer import (
+        ComputerDriver as ComputerDriver,
+        ComputerToolset as ComputerToolset,
+        AsyncComputerDriver as AsyncComputerDriver,
+        AsyncComputerToolset as AsyncComputerToolset,
+    )
+    from .lib.streaming import (
+        AssistantEventHandler as AssistantEventHandler,
+        AsyncAssistantEventHandler as AsyncAssistantEventHandler,
+    )
+else:
+    _STREAMING_EXPORTS = ("AssistantEventHandler", "AsyncAssistantEventHandler")
+
+    def __getattr__(name: str) -> _t.Any:
+        if name in _STREAMING_EXPORTS or name in _COMPUTER_EXPORTS:
+            from importlib import import_module
+
+            module = ".lib.computer" if name in _COMPUTER_EXPORTS else ".lib.streaming"
+            value = getattr(import_module(module, __name__), name)
+            globals()[name] = value
+            return value
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+    def __dir__() -> list[str]:
+        return sorted(set(globals()) | set(_STREAMING_EXPORTS) | set(_COMPUTER_EXPORTS))
+
 
 _setup_logging()
 
@@ -126,11 +159,13 @@ for __name in __all__:
             # Some of our exported symbols are builtins which we can't set attributes for.
             pass
 
+__all__ += ["ComputerToolset", "AsyncComputerToolset", "ComputerDriver", "AsyncComputerDriver"]
+
 # ------ Module level client ------
 import typing as _t
 import typing_extensions as _te
 
-import httpx as _httpx
+import httpx2 as _httpx
 
 from ._base_client import DEFAULT_TIMEOUT, DEFAULT_MAX_RETRIES
 
@@ -164,7 +199,8 @@ api_version: str | None = _os.environ.get("OPENAI_API_VERSION")
 
 azure_endpoint: str | None = _os.environ.get("AZURE_OPENAI_ENDPOINT")
 
-azure_ad_token: str | None = _os.environ.get("AZURE_OPENAI_AD_TOKEN")
+# Keep explicit module configuration separate from Azure's environment fallback.
+azure_ad_token: str | None = None
 
 azure_ad_token_provider: _azure.AzureADTokenProvider | None = None
 
@@ -360,13 +396,10 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
     global _client
 
     if _client is None:
-        global api_type, azure_endpoint, azure_ad_token, api_version
+        global api_type, azure_endpoint, api_version
 
         if azure_endpoint is None:
             azure_endpoint = _os.environ.get("AZURE_OPENAI_ENDPOINT")
-
-        if azure_ad_token is None:
-            azure_ad_token = _os.environ.get("AZURE_OPENAI_AD_TOKEN")
 
         if api_version is None:
             api_version = _os.environ.get("OPENAI_API_VERSION")
@@ -377,11 +410,6 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
             has_azure_ad = _has_azure_ad_credentials()
 
             if has_openai and (has_azure or has_azure_ad):
-                raise _AmbiguousModuleClientUsageError()
-
-            if (azure_ad_token is not None or azure_ad_token_provider is not None) and _os.environ.get(
-                "AZURE_OPENAI_API_KEY"
-            ) is not None:
                 raise _AmbiguousModuleClientUsageError()
 
             if has_azure or has_azure_ad:
@@ -450,18 +478,21 @@ def _reset_client() -> None:  # type: ignore[reportUnusedFunction]
 from ._module_client import (
     beta as beta,
     chat as chat,
+    live as live,
     admin as admin,
     audio as audio,
     evals as evals,
     files as files,
     images as images,
     models as models,
+    safety as safety,
     skills as skills,
     videos as videos,
     batches as batches,
     uploads as uploads,
     realtime as realtime,
     webhooks as webhooks,
+    decisions as decisions,
     responses as responses,
     containers as containers,
     embeddings as embeddings,

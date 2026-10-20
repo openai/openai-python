@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -225,7 +225,7 @@ class ResponseComputerToolCallParam(TypedDict, total=False):
     """A tool call to a computer use tool.
 
     See the
-    [computer use guide](https://platform.openai.com/docs/guides/tools-computer-use) for more information.
+    [computer use guide](https://developers.openai.com/api/docs/guides/tools-computer-use) for more information.
     """
 
     id: Required[str]

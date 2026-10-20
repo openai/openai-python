@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -39,7 +39,7 @@ class ResponseRetrieveParamsNonStreaming(ResponseRetrieveParamsBase, total=False
     generated using
     [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
     See the
-    [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
+    [Streaming section below](https://developers.openai.com/api/reference/resources/responses/streaming-events)
     for more information.
     """
 
@@ -51,7 +51,7 @@ class ResponseRetrieveParamsStreaming(ResponseRetrieveParamsBase):
     generated using
     [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
     See the
-    [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
+    [Streaming section below](https://developers.openai.com/api/reference/resources/responses/streaming-events)
     for more information.
     """
 

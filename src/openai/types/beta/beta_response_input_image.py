@@ -1,9 +1,10 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import Optional
 from typing_extensions import Literal
 
 from ..._models import BaseModel
+from .beta_image_detail import BetaImageDetail
 
 __all__ = ["BetaResponseInputImage", "PromptCacheBreakpoint"]
 
@@ -21,10 +22,10 @@ class PromptCacheBreakpoint(BaseModel):
 class BetaResponseInputImage(BaseModel):
     """An image input to the model.
 
-    Learn about [image inputs](https://platform.openai.com/docs/guides/vision).
+    Learn about [image inputs](https://developers.openai.com/api/docs/guides/images-vision).
     """
 
-    detail: Literal["low", "high", "auto", "original"]
+    detail: BetaImageDetail
     """The detail level of the image to be sent to the model.
 
     One of `high`, `low`, `auto`, or `original`. Defaults to `auto`.

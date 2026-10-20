@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import List, Union, Optional
 from typing_extensions import Literal
@@ -63,7 +63,7 @@ class AudioTranscription(BaseModel):
     """
     An optional text to guide the model's style or continue a previous audio
     segment. For `whisper-1`, the
-    [prompt is a list of keywords](https://platform.openai.com/docs/guides/speech-to-text#prompting).
+    [prompt is a list of keywords](https://developers.openai.com/api/docs/guides/speech-to-text#prompting).
     For `gpt-4o-transcribe` models (excluding `gpt-4o-transcribe-diarize`), the
     prompt is a free text string, for example "expect words related to technology".
     Prompt is not supported with `gpt-realtime-whisper` in GA Realtime sessions.

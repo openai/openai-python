@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import List, Optional
 from typing_extensions import Literal
@@ -22,7 +22,12 @@ class Filters(BaseModel):
 
 
 class UserLocation(BaseModel):
-    """The approximate location of the user."""
+    """The approximate location of the user.
+
+    If omitted or null, defaults to the
+    United States. To avoid this fallback, pass `{"type": "approximate"}` without
+    location fields. To localize results, provide the relevant location fields.
+    """
 
     city: Optional[str] = None
     """Free text input for the city of the user, e.g. `San Francisco`."""
@@ -50,13 +55,20 @@ class WebSearchTool(BaseModel):
     """Search the Internet for sources related to the prompt.
 
     Learn more about the
-    [web search tool](https://platform.openai.com/docs/guides/tools-web-search).
+    [web search tool](https://developers.openai.com/api/docs/guides/tools-web-search).
     """
 
     type: Literal["web_search", "web_search_2025_08_26"]
     """The type of the web search tool.
 
     One of `web_search` or `web_search_2025_08_26`.
+    """
+
+    external_web_access: Optional[bool] = None
+    """Allow live internet access for web search.
+
+    Defaults to true when omitted. When false, the web search tool runs in
+    offline/cache-only mode and will not fetch new external content.
     """
 
     filters: Optional[Filters] = None
@@ -70,4 +82,9 @@ class WebSearchTool(BaseModel):
     """
 
     user_location: Optional[UserLocation] = None
-    """The approximate location of the user."""
+    """The approximate location of the user.
+
+    If omitted or null, defaults to the United States. To avoid this fallback, pass
+    `{"type": "approximate"}` without location fields. To localize results, provide
+    the relevant location fields.
+    """

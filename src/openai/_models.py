@@ -53,6 +53,7 @@ from ._types import (
 )
 from ._utils import (
     PropertyInfo,
+    is_dict,
     is_list,
     is_given,
     json_safe,
@@ -119,6 +120,26 @@ class BaseModel(pydantic.BaseModel):
 
         class Config(pydantic.BaseConfig):  # pyright: ignore[reportDeprecated]
             extra: Any = pydantic.Extra.allow  # type: ignore
+
+        @pydantic.root_validator(pre=True)  # pyright: ignore[reportDeprecated]
+        @classmethod
+        def _preserve_wire_aliases(cls, values: Any) -> Any:
+            if not is_dict(values):
+                return values
+
+            fields = get_model_fields(cls)
+            collisions = {
+                name
+                for name, field in fields.items()
+                if field.alias != name and name in values and field.alias in values
+            }
+            if not collisions:
+                return values
+
+            # A field's Python name can be a different field's wire alias.
+            # In that case Pydantic consumes it as a declared field, not an extra.
+            collisions.difference_update(field.alias for field in fields.values())
+            return {key: value for key, value in values.items() if key not in collisions}
 
         @override
         def __repr_args__(self) -> ReprArgs:
@@ -657,7 +678,8 @@ def construct_type(*, value: object, type_: object, metadata: Optional[List[Any]
         if not is_mapping(value):
             return value
 
-        _, items_type = get_args(type_)  # Dict[_, items_type]
+        # Bare containers have no type arguments; leave their contents untyped.
+        items_type = args[1] if len(args) > 1 else object  # Dict[_, items_type]
         return {key: construct_type(value=item, type_=items_type) for key, item in value.items()}
 
     if (
@@ -678,7 +700,7 @@ def construct_type(*, value: object, type_: object, metadata: Optional[List[Any]
         if not is_list(value):
             return value
 
-        inner_type = args[0]  # List[inner_type]
+        inner_type = args[0] if args else object  # List[inner_type]
         return [construct_type(value=entry, type_=inner_type) for entry in value]
 
     if origin == float:

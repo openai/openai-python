@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import Optional
 from typing_extensions import Literal
@@ -79,3 +79,9 @@ class ProjectAPIKey(BaseModel):
 
     redacted_value: str
     """The redacted value of the API key"""
+
+    expires_at: Optional[int] = None
+    """
+    The Unix timestamp (in seconds) when the API key expires, or null if it does not
+    expire.
+    """

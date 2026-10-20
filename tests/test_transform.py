@@ -4,7 +4,7 @@ import io
 import pathlib
 from typing import Any, Dict, List, Union, TypeVar, Iterable, Optional, cast
 from datetime import date, datetime
-from typing_extensions import Required, Annotated, TypedDict
+from typing_extensions import Required, Annotated, TypedDict, NotRequired
 
 import pytest
 
@@ -324,9 +324,9 @@ class ModelNestedObjects(BaseModel):
 @parametrize
 @pytest.mark.asyncio
 async def test_pydantic_nested_objects(use_async: bool) -> None:
-    model = ModelNestedObjects.construct(nested={"foo": "stainless"})
+    model = ModelNestedObjects.construct(nested={"foo": "openai"})
     assert isinstance(model.nested, MyModel)
-    assert cast(Any, await transform(model, Any, use_async)) == {"nested": {"foo": "stainless"}}
+    assert cast(Any, await transform(model, Any, use_async)) == {"nested": {"foo": "openai"}}
 
 
 class ModelWithDefaultField(BaseModel):
@@ -355,6 +355,21 @@ async def test_pydantic_default_field(use_async: bool) -> None:
     assert model.with_none_default == "bar"
     assert model.with_str_default == "baz"
     assert cast(Any, await transform(model, Any, use_async)) == {"with_none_default": "bar", "with_str_default": "baz"}
+
+
+class ModelWithApiExcludedField(BaseModel):
+    foo: str
+    client_only: str
+
+    __api_exclude__ = {"client_only"}
+
+
+@parametrize
+@pytest.mark.asyncio
+async def test_pydantic_model_api_exclude(use_async: bool) -> None:
+    model = ModelWithApiExcludedField(foo="hello!", client_only="local")
+    assert cast(Any, await transform(model, Any, use_async)) == {"foo": "hello!"}
+    assert cast(Any, await transform([model], List[ModelWithApiExcludedField], use_async)) == [{"foo": "hello!"}]
 
 
 class TypedDictIterableUnion(TypedDict):
@@ -395,6 +410,38 @@ async def test_dictionary_items(use_async: bool) -> None:
         foo_baz: Annotated[str, PropertyInfo(alias="fooBaz")]
 
     assert await transform({"foo": {"foo_baz": "bar"}}, Dict[str, DictItems], use_async) == {"foo": {"fooBaz": "bar"}}
+
+
+@parametrize
+@pytest.mark.asyncio
+async def test_bare_dict_annotation(use_async: bool) -> None:
+    """Bare dictionaries still serialize their values."""
+
+    class BareDict(TypedDict):
+        metadata: dict  # type: ignore[type-arg]
+
+    assert await transform({"metadata": {"key": "value"}}, BareDict, use_async) == {"metadata": {"key": "value"}}
+    assert await transform({"key": "value"}, dict, use_async) == {"key": "value"}
+    assert await transform({"key": "value"}, Dict, use_async) == {"key": "value"}
+    model = ModelWithDefaultField(foo="value")
+    assert cast(object, await transform({"metadata": {"model": model}}, BareDict, use_async)) == {
+        "metadata": {"model": {"foo": "value"}}
+    }
+
+
+@parametrize
+@pytest.mark.asyncio
+async def test_bare_list_annotation(use_async: bool) -> None:
+    """Bare lists still serialize their entries."""
+
+    class BareList(TypedDict):
+        items: list  # type: ignore[type-arg]
+
+    assert await transform({"items": [{"foo_baz": "bar"}]}, BareList, use_async) == {"items": [{"foo_baz": "bar"}]}
+    assert await transform([1, 2, 3], list, use_async) == [1, 2, 3]
+    assert await transform([1, 2, 3], List, use_async) == [1, 2, 3]
+    model = ModelWithDefaultField(foo="value")
+    assert cast(object, await transform({"items": [model]}, BareList, use_async)) == {"items": [{"foo": "value"}]}
 
 
 class TypedDictIterableUnionStr(TypedDict):
@@ -458,3 +505,24 @@ async def test_strips_notgiven(use_async: bool) -> None:
 async def test_strips_omit(use_async: bool) -> None:
     assert await transform({"foo_bar": "bar"}, Foo1, use_async) == {"fooBar": "bar"}
     assert await transform({"foo_bar": omit}, Foo1, use_async) == {}
+
+
+class DateDictWithNotRequiredAlias(TypedDict):
+    optional_prop: NotRequired[Annotated[date, PropertyInfo(format="iso8601", alias="prop")]]
+    nested: NotRequired[Bar2]
+    items: NotRequired[List[Bar2]]
+
+
+@parametrize
+@pytest.mark.asyncio
+async def test_not_required_transforms(use_async: bool) -> None:
+    assert await transform(cast(Dict[str, Any], {}), DateDictWithNotRequiredAlias, use_async) == {}
+    assert await transform({"optional_prop": date(2023, 2, 23)}, DateDictWithNotRequiredAlias, use_async) == {
+        "prop": "2023-02-23"
+    }
+    assert await transform({"nested": {"this_thing": 1}}, DateDictWithNotRequiredAlias, use_async) == {
+        "nested": {"this__thing": 1}
+    }
+    assert await transform({"items": [{"this_thing": 1}]}, DateDictWithNotRequiredAlias, use_async) == {
+        "items": [{"this__thing": 1}]
+    }
