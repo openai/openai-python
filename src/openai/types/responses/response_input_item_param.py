@@ -722,6 +722,9 @@ class CompactionTrigger(TypedDict, total=False):
     type: Required[Literal["compaction_trigger"]]
     """The type of the item. Always `compaction_trigger`."""
 
+    id: Optional[str]
+    """The unique ID of this compaction trigger."""
+
 
 class ItemReference(TypedDict, total=False):
     """An internal identifier for an item to reference."""

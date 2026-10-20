@@ -1098,6 +1098,9 @@ class CompactionTrigger(TypedDict, total=False):
     type: Required[Literal["compaction_trigger"]]
     """The type of the item. Always `compaction_trigger`."""
 
+    id: Optional[str]
+    """The unique ID of this compaction trigger."""
+
     agent: Optional[CompactionTriggerAgent]
     """The agent that produced this item."""
 
