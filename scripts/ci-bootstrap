@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+# Bridge the old next baseline using its existing reviewed dependency lock.
+# The main-to-next sync replaces this with the normal uv project workflow.
+uv venv --allow-existing --python "${UV_PYTHON:-$(cat .python-version)}" .venv
+uv pip sync --python .venv/bin/python requirements-dev.lock
