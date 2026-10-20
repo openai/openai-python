@@ -62,6 +62,35 @@ class GitHubAPI:
 
 
 class GitHubReportTests(GitTestCase):
+    def test_same_head_targets_preserve_required_main_discovery(self) -> None:
+        head = "b" * 40
+        run = source_run(head, "pull_request")
+        run["pull_requests"] = []
+        main: dict[str, Any] = {
+            "state": "open",
+            "head": {"sha": head},
+            "base": {"ref": "main", "repo": {"full_name": REPOSITORY}},
+        }
+        next_pull: dict[str, Any] = {**main, "base": {**main["base"], "ref": "next"}}
+        for numbers in ([3, 4], [4, 3]):
+            def api_response(_method: str, path: str, numbers: list[int] = numbers) -> Any:
+                if "/commits/" in path:
+                    return [{"number": number} for number in numbers]
+                return {"3": main, "4": next_pull}[path.rsplit("/", 1)[1]]
+
+            with (
+                self.subTest(numbers=numbers),
+                mock.patch.object(report, "api", side_effect=api_response),
+            ):
+                self.assertEqual(report.current_pull(REPOSITORY, run), (3, "main"))
+                run["pull_requests"] = [{"number": 4}]
+                self.assertEqual(report.current_pull(REPOSITORY, run), (4, "next"))
+                run["pull_requests"] = []
+                next_pull["base"]["ref"] = "main"
+                with self.assertRaisesRegex(report.ReportError, "multiple current"):
+                    report.current_pull(REPOSITORY, run)
+                next_pull["base"]["ref"] = "next"
+
     def test_trusted_report_recomputes_pr_output_in_a_bare_repository(self) -> None:
         generated, _ = self.baseline()
         content_hash = report.hash_codegen_commit(self.repo, generated)
