@@ -191,7 +191,8 @@ class BudgetTests(GitTestCase):
         ) as measured:
             self.evaluate(self.base)
         self.assertEqual(
-            measured.call_args.kwargs, {"public": False, "fetch": False, "require_head_hash": True}
+            measured.call_args.kwargs,
+            {"public": False, "fetch": False, "require_head_hash": True, "target_branch": "main"},
         )
 
     def test_queue_isolates_prs_but_uses_main_budget_for_combined_tree(self) -> None:
@@ -594,14 +595,17 @@ class StrictTests(GitTestCase):
                 )
                 # A newer verifier must also read the prior inventory to enforce retirement.
                 self.assertEqual(
-                    budget.verify_generated(self.repo, self.generated, self.base, previous=public), []
+                    budget.verify_generated(self.repo, self.generated, self.base, previous=public),
+                    [],
                 )
                 self.git("checkout", "--detach", "-q", self.base)
                 self.write(path, "retired generated CI\n")
                 failures = budget.verify_generated(
                     self.repo, self.generated, self.commit(), previous=public
                 )
-                self.assertTrue(any(path in failure and "retired" in failure for failure in failures))
+                self.assertTrue(
+                    any(path in failure and "retired" in failure for failure in failures)
+                )
 
     def test_manifest_cannot_claim_sdk_owned_workflows_or_actions(self) -> None:
         for path in (".github/workflows/ci.yml", ".github/actions/setup-go/action.yml"):
@@ -632,7 +636,9 @@ class StrictTests(GitTestCase):
                 del manifest["files"][path]
                 self.write(budget.MANIFEST.decode(), json.dumps(manifest))
                 with self.assertRaisesRegex(ValueError, "omits generated GitHub inventory path"):
-                    budget.generated_manifest(self.repo, self.commit("incomplete public checkpoint"))
+                    budget.generated_manifest(
+                        self.repo, self.commit("incomplete public checkpoint")
+                    )
 
     def test_public_snapshot_keeps_strict_workflow_identity_without_private_blob(self) -> None:
         self.git("checkout", "--detach", "-q", self.generated)
