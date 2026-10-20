@@ -191,7 +191,8 @@ class BudgetTests(GitTestCase):
         ) as measured:
             self.evaluate(self.base)
         self.assertEqual(
-            measured.call_args.kwargs, {"public": False, "fetch": False, "require_head_hash": True}
+            measured.call_args.kwargs,
+            {"public": False, "fetch": False, "require_head_hash": True, "target_branch": "main"}
         )
 
     def test_queue_isolates_prs_but_uses_main_budget_for_combined_tree(self) -> None:
@@ -523,6 +524,58 @@ class StrictTests(GitTestCase):
         self.manifest()
         self.write("generated.py", "snapshot changed without updating manifest\n")
         with self.assertRaisesRegex(ValueError, "disagrees"):
+            budget.generated_manifest(self.repo, self.commit())
+
+    def test_relocated_tooling_preserves_ownership_and_retirement_checks(self) -> None:
+        self.git("checkout", "--detach", "-q", self.generated)
+        old_manifest = budget.MANIFEST.decode()
+        new_manifest = "generated/castiron/generated-files.json"
+        old_checker = "scripts/castiron/custom_code_budget.py"
+        new_checker = "generated/castiron/custom_code_budget.py"
+        manifest = json.loads((self.repo / old_manifest).read_text())
+        manifest["files"][new_checker] = manifest["files"].pop(old_checker)
+        checker = (self.repo / old_checker).read_text()
+        self.write(new_checker, checker)
+        self.write(new_manifest, json.dumps(manifest))
+        (self.repo / old_checker).unlink()
+        (self.repo / old_manifest).unlink()
+        relocated = self.commit("relocate generated tooling")
+        self.assertEqual(
+            budget.verify_generated(self.repo, relocated, relocated, previous=self.generated), []
+        )
+        ownership = budget.generated_manifest(self.repo, relocated)
+        self.assertIn(new_manifest.encode(), ownership)
+        self.assertIn(new_checker.encode(), ownership)
+        self.assertNotIn(old_manifest.encode(), ownership)
+        self.write(old_checker, checker)
+        self.write("generated.py", "handwritten modification\n")
+        failures = budget.verify_generated(
+            self.repo, relocated, self.commit(), previous=self.generated
+        )
+        self.assertTrue(any(old_checker in failure and "retired" in failure for failure in failures))
+        self.assertTrue(any("generated.py: differs" in failure for failure in failures))
+        # Candidate manifest edits cannot change the verified ownership contract.
+        self.write(new_manifest, '{"schema_version": 1, "files": {}}')
+        failures = budget.verify_generated(self.repo, relocated, self.commit())
+        self.assertTrue(any(new_manifest in failure and "differs" in failure for failure in failures))
+
+    def test_checkpoint_rejects_ambiguous_manifest_locations(self) -> None:
+        self.git("checkout", "--detach", "-q", self.generated)
+        self.write(
+            "generated/castiron/generated-files.json",
+            (self.repo / budget.MANIFEST.decode()).read_text(),
+        )
+        with self.assertRaisesRegex(ValueError, "ambiguous"):
+            budget.generated_manifest(self.repo, self.commit())
+
+    def test_relocated_manifest_requires_colocated_checker_inventory(self) -> None:
+        self.git("checkout", "--detach", "-q", self.generated)
+        self.write(
+            "generated/castiron/generated-files.json",
+            (self.repo / budget.MANIFEST.decode()).read_text(),
+        )
+        (self.repo / budget.MANIFEST.decode()).unlink()
+        with self.assertRaisesRegex(ValueError, "missing its generated GitHub inventory"):
             budget.generated_manifest(self.repo, self.commit())
 
     def test_manifest_preserves_inherited_sdk_owned_github_files(self) -> None:

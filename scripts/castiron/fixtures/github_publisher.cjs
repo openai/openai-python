@@ -6,7 +6,12 @@ const writes = [];
 const github = {
   rest: {
     actions: { getWorkflowRun: async () => ({ data: data.run }) },
-    pulls: { get: async ({ pull_number }) => ({ data: data.current_sequence?.shift() || data.pulls_by_number?.[pull_number] || data.current }), list: 'pulls' },
+    pulls: {
+      get: async ({ pull_number }) => ({
+        data: data.current_sequence?.shift() || data.pulls_by_number?.[pull_number] || data.current,
+      }),
+      list: 'pulls',
+    },
     git: {
       getRef: async ({ ref }) => ({
         data: {

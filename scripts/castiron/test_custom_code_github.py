@@ -629,6 +629,7 @@ class GitHubBudgetTests(unittest.TestCase):
                 pull_heads=None,
                 measurement=None,
                 policy_sha=self.base,
+                target_branch="main",
             )
 
     def test_stale_pull_and_wrong_target_fail_before_objects_created(self) -> None:
