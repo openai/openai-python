@@ -23,7 +23,7 @@ from ..types.realtime import (
     RealtimeTranslationClientEventParam,
     RealtimeTranslationSessionClosedEvent,
 )
-from ..types.websocket_connection_options import WebSocketConnectionOptions
+from ..types.websocket_connection_options import WebSocketConnectionOptions, SyncWebSocketConnectionOptions
 
 __all__ = ["TranslationSession", "AsyncTranslationSession", "TranslationConnection", "AsyncTranslationConnection"]
 
@@ -158,7 +158,7 @@ class TranslationSession:
         model: str,
         extra_query: Query = {},
         extra_headers: Headers = {},
-        websocket_connection_options: WebSocketConnectionOptions = {},
+        websocket_connection_options: SyncWebSocketConnectionOptions = {},
     ) -> None:
         self._resource = resource
         self._client = resource._client

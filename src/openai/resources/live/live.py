@@ -42,7 +42,7 @@ from ...types.websocket_reconnection import ReconnectingEvent, ReconnectingOverr
 from ...types.live.client_event_param import ClientEventParam
 from ...types.live.live_create_response import LiveCreateResponse
 from ...types.live.session_config_param import SessionConfigParam
-from ...types.websocket_connection_options import WebSocketConnectionOptions
+from ...types.websocket_connection_options import WebSocketConnectionOptions, SyncWebSocketConnectionOptions
 from ...types.live.media_session_config_param import MediaSessionConfigParam
 from ...types.live.session_update_config_param import SessionUpdateConfigParam
 from ...types.responses.response_input_item_param import ResponseInputItemParam
@@ -143,7 +143,7 @@ class Live(SyncAPIResource):
         self,
         extra_query: Query = {},
         extra_headers: Headers = {},
-        websocket_connection_options: WebSocketConnectionOptions = {},
+        websocket_connection_options: SyncWebSocketConnectionOptions = {},
         on_reconnecting: Callable[[ReconnectingEvent], ReconnectingOverrides | None] | None = None,
         max_retries: int = 5,
         initial_delay: float = 0.5,
@@ -641,20 +641,29 @@ class AsyncLiveConnectionManager:
         """
         ws = await self._connect_ws(self.__extra_query, self.__extra_headers)
 
-        self.__connection = AsyncLiveConnection(
-            ws,
-            make_ws=self._connect_ws if self.__on_reconnecting is not None else None,
-            on_reconnecting=self.__on_reconnecting,
-            max_retries=self.__max_retries,
-            initial_delay=self.__initial_delay,
-            max_delay=self.__max_delay,
-            extra_query=self.__extra_query,
-            extra_headers=self.__extra_headers,
-            send_queue=self.__send_queue,
-        )
+        try:
+            self.__connection = AsyncLiveConnection(
+                ws,
+                make_ws=self._connect_ws if self.__on_reconnecting is not None else None,
+                on_reconnecting=self.__on_reconnecting,
+                max_retries=self.__max_retries,
+                initial_delay=self.__initial_delay,
+                max_delay=self.__max_delay,
+                extra_query=self.__extra_query,
+                extra_headers=self.__extra_headers,
+                send_queue=self.__send_queue,
+            )
 
-        self.__event_handler_registry.merge_into(self.__connection._event_handler_registry)
-        await self.__connection._flush_send_queue()
+            self.__event_handler_registry.merge_into(self.__connection._event_handler_registry)
+            await self.__connection._flush_send_queue()
+        except BaseException:
+            self.__connection = None
+            try:
+                await ws.close()
+            except BaseException:
+                # Preserve the exception that prevented successful entry.
+                pass
+            raise
 
         return self.__connection
 
@@ -699,11 +708,16 @@ class AsyncLiveConnectionManager:
         if self.__websocket_connection_options:
             log.debug("Custom WebSocket connection options provided")
 
+        websocket_options = self.__websocket_connection_options.copy()
+        websocket_options.setdefault("max_size", None)
+        if websocket_options.get("max_size") is None:
+            websocket_options.setdefault("compression", None)
+
         return await connect(
             str(url),
             user_agent_header=None,
             additional_headers=_merge_mappings(dict(headers.values()), {}),
-            **self.__websocket_connection_options,
+            **websocket_options,
         )
 
     def _prepare_url(self) -> httpx2.URL:
@@ -949,7 +963,7 @@ class LiveConnectionManager:
         client: OpenAI,
         extra_query: Query,
         extra_headers: Headers,
-        websocket_connection_options: WebSocketConnectionOptions,
+        websocket_connection_options: SyncWebSocketConnectionOptions,
         on_reconnecting: Callable[[ReconnectingEvent], ReconnectingOverrides | None] | None = None,
         max_retries: int = 5,
         initial_delay: float = 0.5,
@@ -1033,20 +1047,29 @@ class LiveConnectionManager:
         """
         ws = self._connect_ws(self.__extra_query, self.__extra_headers)
 
-        self.__connection = LiveConnection(
-            ws,
-            make_ws=self._connect_ws if self.__on_reconnecting is not None else None,
-            on_reconnecting=self.__on_reconnecting,
-            max_retries=self.__max_retries,
-            initial_delay=self.__initial_delay,
-            max_delay=self.__max_delay,
-            extra_query=self.__extra_query,
-            extra_headers=self.__extra_headers,
-            send_queue=self.__send_queue,
-        )
+        try:
+            self.__connection = LiveConnection(
+                ws,
+                make_ws=self._connect_ws if self.__on_reconnecting is not None else None,
+                on_reconnecting=self.__on_reconnecting,
+                max_retries=self.__max_retries,
+                initial_delay=self.__initial_delay,
+                max_delay=self.__max_delay,
+                extra_query=self.__extra_query,
+                extra_headers=self.__extra_headers,
+                send_queue=self.__send_queue,
+            )
 
-        self.__event_handler_registry.merge_into(self.__connection._event_handler_registry)
-        self.__connection._flush_send_queue()
+            self.__event_handler_registry.merge_into(self.__connection._event_handler_registry)
+            self.__connection._flush_send_queue()
+        except BaseException:
+            self.__connection = None
+            try:
+                ws.close()
+            except BaseException:
+                # Preserve the exception that prevented successful entry.
+                pass
+            raise
 
         return self.__connection
 
@@ -1091,11 +1114,16 @@ class LiveConnectionManager:
         if self.__websocket_connection_options:
             log.debug("Custom WebSocket connection options provided")
 
+        websocket_options = self.__websocket_connection_options.copy()
+        websocket_options.setdefault("max_size", None)
+        if websocket_options.get("max_size") is None:
+            websocket_options.setdefault("compression", None)
+
         return connect(
             str(url),
             user_agent_header=None,
             additional_headers=_merge_mappings(dict(headers.values()), {}),
-            **self.__websocket_connection_options,
+            **websocket_options,
         )
 
     def _prepare_url(self) -> httpx2.URL:
