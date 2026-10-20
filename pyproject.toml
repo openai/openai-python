@@ -114,6 +114,12 @@ typecheck = { chain = [
 "typecheck:verify-types" = "pyright --verifytypes openai --ignoreexternal"
 "typecheck:mypy" = "mypy ."
 
+[dependency-groups]
+build = [
+    "hatchling==1.26.3",
+    "hatch-fancy-pypi-readme==25.1.0",
+]
+
 [build-system]
 requires = ["hatchling==1.26.3", "hatch-fancy-pypi-readme"]
 build-backend = "hatchling.build"
