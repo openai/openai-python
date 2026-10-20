@@ -1109,6 +1109,9 @@ class CompactionTrigger(BaseModel):
     type: Literal["compaction_trigger"]
     """The type of the item. Always `compaction_trigger`."""
 
+    id: Optional[str] = None
+    """The unique ID of this compaction trigger."""
+
     agent: Optional[CompactionTriggerAgent] = None
     """The agent that produced this item."""
 
