@@ -193,14 +193,76 @@ def public_metadata(repo: Path, commit: str) -> dict[str, str]:
         fields[key] = matches[0]
     if fields["Version"] != "1" or not HASH.fullmatch(fields["Hash"]):
         raise ReportError("unsupported public codegen metadata")
+    targets = re.findall(r"^Castiron-Public-Codegen-Target: (.*)$", message, re.MULTILINE)
+    if targets:
+        if len(targets) != 1 or targets[0] not in TARGET_BRANCHES:
+            raise ReportError("invalid public codegen target")
+        fields["Target"] = targets[0]
     if not fields["Branch"].startswith("codegen/"):
         raise ReportError("invalid public codegen branch")
     git(repo, "check-ref-format", f"refs/heads/{fields['Branch']}")
     return fields
 
 
+def legacy_snapshot_on_main(repo: Path, commit: str, *, fetch: bool) -> bool:
+    """Legacy snapshots have no target; trust only adoption in public main history."""
+    if fetch:
+        git(
+            repo,
+            "fetch",
+            "--quiet",
+            "--no-tags",
+            "origin",
+            "+refs/heads/main:refs/remotes/origin/main",
+        )
+    revisions = (
+        git(
+            repo,
+            "log",
+            "--first-parent",
+            "--format=%H",
+            f"-G{require_sha(commit)}",
+            "refs/remotes/origin/main",
+            "--",
+            ".castiron.stats.yml",
+        )
+        .decode()
+        .splitlines()
+    )
+    for revision in revisions:
+        try:
+            if read_stats(repo, revision).get("public_codegen_sha") == commit:
+                return True
+        except ReportError:
+            continue
+    return False
+
+
+def validate_public_target(
+    repo: Path, commit: str, metadata: dict[str, str], *, target_branch: str, fetch: bool
+) -> None:
+    if target_branch not in TARGET_BRANCHES:
+        raise ReportError("unsupported report target")
+    if target_branch != "next" and (
+        metadata["Branch"] == "codegen/castiron/next"
+        or metadata["Branch"].startswith("codegen/castiron/next/")
+    ):
+        raise ReportError("next checkpoint cannot authorize a main report")
+    if target_branch == "main":
+        if metadata.get("Target") == "next":
+            raise ReportError("next checkpoint cannot authorize a main report")
+        if "Target" not in metadata and not legacy_snapshot_on_main(repo, commit, fetch=fetch):
+            raise ReportError("legacy snapshot has no verified main adoption")
+
+
 def resolve_public_baseline(
-    repo: Path, revision: str, *, fetch: bool, require_hash: bool, lineage: str | None = None
+    repo: Path,
+    revision: str,
+    *,
+    fetch: bool,
+    require_hash: bool,
+    lineage: str | None = None,
+    target_branch: str = "main",
 ) -> dict[str, Any]:
     stats = read_stats(repo, revision)
     commit = stats.get("public_codegen_sha")
@@ -218,6 +280,7 @@ def resolve_public_baseline(
     elif fetch:
         git(repo, "fetch", "--quiet", "--no-tags", "origin", commit)
     metadata = public_metadata(repo, commit)
+    validate_public_target(repo, commit, metadata, target_branch=target_branch, fetch=fetch)
     if metadata["Generation-ID"] != stats["generation_id"]:
         raise ReportError("public codegen generation ID does not match stats")
     ref = f"refs/heads/{metadata['Branch']}"
@@ -305,12 +368,18 @@ def create_public_snapshot(
     branch: str,
     parent: str | None,
 ) -> str:
+    target = (
+        "next"
+        if branch == "codegen/castiron/next" or branch.startswith("codegen/castiron/next/")
+        else "main"
+    )
     message = (
         "Castiron generated snapshot\n\n"
         "Castiron-Public-Codegen-Version: 1\n"
         f"Castiron-Public-Codegen-Generation-ID: {generation}\n"
         f"Castiron-Public-Codegen-Hash: {content_hash}\n"
         f"Castiron-Public-Codegen-Branch: {branch}\n"
+        f"Castiron-Public-Codegen-Target: {target}\n"
     )
     parents = ["-p", require_sha(parent)] if parent is not None else []
     snapshot = (
@@ -347,7 +416,12 @@ def prepare_public_snapshot(
     read_stats(source, source_base)
     after = read_stats(source, source_head)
     public = read_stats(destination, public_base)
-    baseline = resolve_checkpoint(source, after, fetch=True, require_hash=True)
+    target_branch = (
+        "next" if branch == "castiron/next" or branch.startswith("castiron/next/") else "main"
+    )
+    baseline = resolve_checkpoint(
+        source, after, fetch=True, require_hash=True, target_branch=target_branch
+    )
     codegen_branch = f"codegen/{branch}"
     ref = f"refs/heads/{codegen_branch}"
     git(destination, "check-ref-format", ref)
@@ -356,6 +430,9 @@ def prepare_public_snapshot(
     if previous:
         git(destination, "fetch", "--quiet", "--no-tags", "origin", previous)
         metadata = public_metadata(destination, previous)
+        validate_public_target(
+            destination, previous, metadata, target_branch=target_branch, fetch=True
+        )
         # Stats pin the snapshot, not the SDK branch that currently uses it.
         # Another promotion may legitimately reuse this public commit; its
         # original branch remains the locator used by resolve_public_baseline.
@@ -365,17 +442,24 @@ def prepare_public_snapshot(
     base_snapshot = public.get("public_codegen_sha")
     if base_snapshot:
         base_snapshot = resolve_public_baseline(
-            destination, public_base, fetch=True, require_hash=False
+            destination, public_base, fetch=True, require_hash=False, target_branch=target_branch
         )["commit"]
     elif previous:
         try:
             base_snapshot = resolve_public_baseline(
-                destination, public_base, fetch=True, require_hash=False, lineage=previous
+                destination,
+                public_base,
+                fetch=True,
+                require_hash=False,
+                lineage=previous,
+                target_branch=target_branch,
             )["commit"]
         except ReportError:
             base_snapshot = None
     if base_snapshot is None:
-        old = resolve_checkpoint(source, public, fetch=True, require_hash=False)
+        old = resolve_checkpoint(
+            source, public, fetch=True, require_hash=False, target_branch=target_branch
+        )
         # Initial bootstrap is limited to paths already present on public main.
         tree = copy_generated_tree(source, old["commit"], destination, public_base)
         base_snapshot = create_public_snapshot(
@@ -428,16 +512,27 @@ def prepare_public_snapshot(
 
 
 def resolve_baseline(
-    repo: Path, revision: str, *, fetch: bool, require_hash: bool
+    repo: Path, revision: str, *, fetch: bool, require_hash: bool, target_branch: str = "main"
 ) -> dict[str, Any]:
     return resolve_checkpoint(
-        repo, read_stats(repo, revision), fetch=fetch, require_hash=require_hash
+        repo,
+        read_stats(repo, revision),
+        fetch=fetch,
+        require_hash=require_hash,
+        target_branch=target_branch,
     )
 
 
 def resolve_checkpoint(
-    repo: Path, stats: dict[str, str], *, fetch: bool, require_hash: bool
+    repo: Path,
+    stats: dict[str, str],
+    *,
+    fetch: bool,
+    require_hash: bool,
+    target_branch: str = "main",
 ) -> dict[str, Any]:
+    if target_branch not in TARGET_BRANCHES:
+        raise ReportError("unsupported report target")
     commit = stats["codegen_sha"]
     if fetch:
         git(repo, "fetch", "--quiet", "--no-tags", "origin", commit)
@@ -461,6 +556,8 @@ def resolve_checkpoint(
             or not isinstance(metadata["record"], dict)
         ):
             raise ReportError("invalid versioned checkpoint envelope")
+        if target_branch != "next":
+            raise ReportError("next checkpoint cannot authorize a main report")
         metadata = cast(dict[str, Any], metadata["record"])
         namespace = "castiron/next/"
     if {"release_target", "schema_version", "record"}.intersection(metadata):
@@ -470,6 +567,8 @@ def resolve_checkpoint(
     branch = metadata.get("source_branch")
     if not isinstance(branch, str) or not branch:
         raise ReportError("codegen checkpoint has no source branch")
+    if not namespace and (branch == "castiron/next" or branch.startswith("castiron/next/")):
+        raise ReportError("legacy checkpoint cannot use the reserved next namespace")
     ref = f"refs/heads/codegen/{namespace}{branch}"
     git(repo, "check-ref-format", ref)
     tracking = f"refs/castiron/report/{hashlib.sha256(ref.encode()).hexdigest()}"
@@ -539,17 +638,29 @@ def build_report(
     fetch: bool = False,
     require_head_hash: bool = False,
     public: bool = False,
+    target_branch: str = "main",
 ) -> tuple[dict[str, Any], bytes]:
     base, head = require_sha(base), require_sha(head)
     comparison_base = git(repo, "merge-base", base, head).decode().strip()
     if public:
-        after = resolve_public_baseline(repo, head, fetch=fetch, require_hash=require_head_hash)
+        after = resolve_public_baseline(
+            repo, head, fetch=fetch, require_hash=require_head_hash, target_branch=target_branch
+        )
         before = resolve_public_baseline(
-            repo, comparison_base, fetch=fetch, require_hash=False, lineage=after["commit"]
+            repo,
+            comparison_base,
+            fetch=fetch,
+            require_hash=False,
+            lineage=after["commit"],
+            target_branch=target_branch,
         )
     else:
-        before = resolve_baseline(repo, comparison_base, fetch=fetch, require_hash=False)
-        after = resolve_baseline(repo, head, fetch=fetch, require_hash=require_head_hash)
+        before = resolve_baseline(
+            repo, comparison_base, fetch=fetch, require_hash=False, target_branch=target_branch
+        )
+        after = resolve_baseline(
+            repo, head, fetch=fetch, require_hash=require_head_hash, target_branch=target_branch
+        )
     g0, i0 = tree_entries(repo, before["commit"]), tree_entries(repo, comparison_base)
     g1, i1 = tree_entries(repo, after["commit"]), tree_entries(repo, head)
     stats = numstats(repo, after["commit"], head)
@@ -751,7 +862,7 @@ def render_report(
                 f"git fetch --no-tags origin {target_base} {head}",
                 "python3 scripts/castiron/custom_code_report.py report \\",
                 f"  --base {target_base} \\",
-                f"  --head {head} --fetch --require-head-hash{' --public' if report.get('public') else ''} \\",
+                f"  --head {head} --target-branch {branch} --fetch --require-head-hash{' --public' if report.get('public') else ''} \\",
                 f"  --out /tmp/castiron-custom-code-{head[:12]}",
                 f"cat /tmp/castiron-custom-code-{head[:12]}/custom-code.patch",
                 "```",
@@ -922,7 +1033,13 @@ def write_report(
     out.mkdir(parents=True, exist_ok=True)
     try:
         report, patch = build_report(
-            repo, base, head, fetch=fetch, require_head_hash=require_head_hash, public=public
+            repo,
+            base,
+            head,
+            fetch=fetch,
+            require_head_hash=require_head_hash,
+            public=public,
+            target_branch=target_branch,
         )
     except (ReportError, UnicodeError, KeyError, ValueError) as exc:
         report = {
@@ -1014,6 +1131,7 @@ def main() -> int:
     reporting.add_argument("--fetch", action="store_true")
     reporting.add_argument("--require-head-hash", action="store_true")
     reporting.add_argument("--public", action="store_true")
+    reporting.add_argument("--target-branch", choices=sorted(TARGET_BRANCHES), default="main")
     trusted = commands.add_parser("trusted-report")
     trusted.add_argument("--repo", type=Path, required=True)
     trusted.add_argument("--repository", required=True)
@@ -1083,6 +1201,7 @@ def main() -> int:
                 fetch=args.fetch,
                 require_head_hash=args.require_head_hash,
                 public=args.public,
+                target_branch=args.target_branch,
             )
             return 0 if report["status"] == "ok" else 1
     except (ReportError, OSError, subprocess.TimeoutExpired) as exc:

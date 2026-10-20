@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  REPORTER_SHA256: 4dc056b460d688cbe3035bd9649820f77e489424d0c9c48bd3f19ed4dfb7e9b4
+  REPORTER_SHA256: 373a39d2fd0f28c099123f317adff36cc5c7b9031393b4f221e4b97ea9e0d7b8
 
 jobs:
   queue-signal:
@@ -69,13 +69,14 @@ jobs:
           GIT_CONFIG_VALUE_1: '!gh auth git-credential'
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          TARGET_BRANCH: ${{ github.event.pull_request.base.ref }}
           PUBLIC_REPOSITORY: ${{ !github.event.repository.private }}
         run: |
           git fetch --quiet --no-tags origin "$BASE_SHA" "$HEAD_SHA"
           mode=()
           if [[ "$PUBLIC_REPOSITORY" == true ]]; then mode=(--public); fi
           python3 -I scripts/castiron/custom_code_report.py report \
-            --base "$BASE_SHA" --head "$HEAD_SHA" \
+            --base "$BASE_SHA" --head "$HEAD_SHA" --target-branch "$TARGET_BRANCH" \
             --fetch --require-head-hash "${mode[@]}" \
             --out "$RUNNER_TEMP/castiron-custom-code"
 
