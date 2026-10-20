@@ -391,8 +391,8 @@ class AsyncRealtimeConnectionManager:
                 user_agent_header=None,
                 additional_headers=_merge_headers(
                     auth_headers,
-                    {"OpenAI-Beta": "realtime=v1"},
                     self.__client.default_headers,
+                    {"OpenAI-Beta": "realtime=v1"},
                     self.__extra_headers,
                 ),
                 **options,
@@ -586,8 +586,8 @@ class RealtimeConnectionManager:
                 user_agent_header=None,
                 additional_headers=_merge_headers(
                     auth_headers,
-                    {"OpenAI-Beta": "realtime=v1"},
                     self.__client.default_headers,
+                    {"OpenAI-Beta": "realtime=v1"},
                     self.__extra_headers,
                 ),
                 **options,

@@ -71,12 +71,31 @@ def header_peer(monkeypatch: pytest.MonkeyPatch) -> Iterator[tuple[str, list[dic
 
 @pytest.mark.parametrize("mode", ["sync", "async"])
 @pytest.mark.parametrize("provider", ["openai", "azure"])
-@pytest.mark.parametrize("choice", ["provider", "client-authorization", "lowercase-extra", "lowercase-omit"])
+@pytest.mark.parametrize(
+    "choice",
+    [
+        "provider",
+        "client-authorization",
+        "lowercase-extra",
+        "lowercase-omit",
+        "feature-default",
+        "feature-override",
+        "feature-omit",
+    ],
+)
 async def test_beta_realtime_forwards_effective_client_and_connection_headers(
     header_peer: tuple[str, list[dict[str, list[str]]]],
     mode: Literal["sync", "async"],
     provider: Literal["openai", "azure"],
-    choice: Literal["provider", "client-authorization", "lowercase-extra", "lowercase-omit"],
+    choice: Literal[
+        "provider",
+        "client-authorization",
+        "lowercase-extra",
+        "lowercase-omit",
+        "feature-default",
+        "feature-override",
+        "feature-omit",
+    ],
 ) -> None:
     url, observed = header_peer
     issued: list[str] = []
@@ -98,6 +117,12 @@ async def test_beta_realtime_forwards_effective_client_and_connection_headers(
         extras = {"authorization": "Bearer fake-connection-override"}
     elif choice == "lowercase-omit":
         extras = {"authorization": omit}
+    elif choice in ("feature-default", "feature-override", "feature-omit"):
+        headers["openai-beta"] = "assistants=v2"
+        if choice == "feature-override":
+            extras = {"OPENAI-BETA": "realtime=future"}
+        elif choice == "feature-omit":
+            extras = {"OPENAI-BETA": omit}
     original_headers = headers.copy()
     original_extras = dict(extras)
 
@@ -142,18 +167,21 @@ async def test_beta_realtime_forwards_effective_client_and_connection_headers(
 
     assert len(issued) == 1
     expected_auth = {
-        "provider": [f"Bearer {issued[0]}"],
         "client-authorization": ["Bearer fake-client-override"],
         "lowercase-extra": ["Bearer fake-connection-override"],
         "lowercase-omit": [],
-    }[choice]
+    }.get(choice, [f"Bearer {issued[0]}"])
+    expected_beta = {
+        "feature-override": ["realtime=future"],
+        "feature-omit": [],
+    }.get(choice, ["realtime=v1"])
     assert observed == [
         {
             "authorization": expected_auth,
             "openai-organization": ["org-fake-current"],
             "openai-project": ["project-fake-current"],
             "x-probe-route": ["fake-client-route"],
-            "openai-beta": ["realtime=v1"],
+            "openai-beta": expected_beta,
             "user-agent": ["fake-client-agent"],
         }
     ]
