@@ -328,7 +328,11 @@ def test_ordinary_sync_reconnecting_error_preserves_original_close(
     monkeypatch: pytest.MonkeyPatch, product: str
 ) -> None:
     original = Socket(True)
-    monkeypatch.setattr("websockets.sync.client.connect", lambda *_args, **_kwargs: original)
+
+    def connect(*_args: Any, **_kwargs: Any) -> Socket:
+        return original
+
+    monkeypatch.setattr("websockets.sync.client.connect", connect)
 
     def reconnecting(_event: Any) -> None:
         raise ValueError("synthetic callback error")
