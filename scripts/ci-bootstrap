@@ -13,9 +13,11 @@ trap 'rm -rf "$requirements_dir"' EXIT
   printf '[dependency-groups]\n'
   sed -n '/^dev-dependencies = \[/,/^]/p' pyproject.toml | sed '1s/dev-dependencies/dev/'
 } > "$requirements_dir/pyproject.toml"
+# Preserve the reviewed root lock and keep the CI-only lock out of distributions.
+cp requirements-dev.lock .venv/requirements-dev.lock
 # Require compatible wheels: older NumPy metadata omits its Python upper bound.
 uv pip compile pyproject.toml --all-extras --only-binary=:all: \
   --group "$requirements_dir/pyproject.toml:dev" \
-  --python .venv/bin/python --output-file requirements-dev.lock
-printf '\n-e .\n' >> requirements-dev.lock
-uv pip sync --python .venv/bin/python requirements-dev.lock
+  --python .venv/bin/python --output-file .venv/requirements-dev.lock
+printf '\n-e .\n' >> .venv/requirements-dev.lock
+uv pip sync --python .venv/bin/python .venv/requirements-dev.lock
