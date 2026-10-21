@@ -4434,9 +4434,10 @@ class AsyncResponsesConnectionManager:
 
         url = self._prepare_url()
         url = url.copy_with(
-            params=httpx2.QueryParams(self.__client.qs.stringify(cast(Any, self.__client.default_query)))
-            .merge(url.params)
-            .merge(cast(Any, extra_query)),
+            params=self.__client._websocket_query_params(
+                url,
+                extra_query,
+            ),
         )
         url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
         options = await self.__client._prepare_options(
@@ -4839,9 +4840,10 @@ class ResponsesConnectionManager:
 
         url = self._prepare_url()
         url = url.copy_with(
-            params=httpx2.QueryParams(self.__client.qs.stringify(cast(Any, self.__client.default_query)))
-            .merge(url.params)
-            .merge(cast(Any, extra_query)),
+            params=self.__client._websocket_query_params(
+                url,
+                extra_query,
+            ),
         )
         url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
         options = self.__client._prepare_options(

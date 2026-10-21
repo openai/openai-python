@@ -528,11 +528,7 @@ class AzureOpenAI(BaseAzureClient[httpx2.Client, Stream[Any]], OpenAI):
             base_url = self._prepare_url("/realtime")
             realtime_url = base_url.copy_with(scheme="wss")
 
-        url = realtime_url.copy_with(
-            params=httpx2.QueryParams(self.qs.stringify(cast(Any, self.default_query)))
-            .merge(realtime_url.params)
-            .merge(cast(Any, query))
-        )
+        url = realtime_url.copy_with(params=self._websocket_query_params(realtime_url, query))
         return url, auth_headers
 
 
@@ -895,9 +891,5 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx2.AsyncClient, AsyncStream[Any]], As
             base_url = self._prepare_url("/realtime")
             realtime_url = base_url.copy_with(scheme="wss")
 
-        url = realtime_url.copy_with(
-            params=httpx2.QueryParams(self.qs.stringify(cast(Any, self.default_query)))
-            .merge(realtime_url.params)
-            .merge(cast(Any, query))
-        )
+        url = realtime_url.copy_with(params=self._websocket_query_params(realtime_url, query))
         return url, auth_headers

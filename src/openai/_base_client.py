@@ -59,6 +59,7 @@ from ._types import (
     AsyncBinaryTypes,
     HttpxRequestFiles,
     ModelBuilderProtocol,
+    omit,
     not_given,
 )
 from ._utils import SensitiveHeadersFilter, is_dict, is_list, asyncify, is_given, lru_cache, is_mapping
@@ -569,6 +570,25 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
             return self.base_url.copy_with(raw_path=merge_raw_path)
 
         return merge_url
+
+    def _websocket_query_params(self, url: URL, extra_query: Query) -> httpx2.QueryParams:
+        # Retire logical defaults before encoding so replacing a nested value
+        # cannot leave behind fields from the old value.
+        overridden = dict.fromkeys(extra_query, omit)
+        defaults = _merge_mappings(self.default_query, overridden)
+        params = httpx2.QueryParams(self.qs.stringify(cast(Any, defaults))).merge(url.params)
+        params = httpx2.QueryParams([(key, value) for key, value in params.multi_items() if key not in overridden])
+        if isinstance(extra_query, httpx2.QueryParams):
+            return params.merge(extra_query)
+        # WebSocket per-call None and sequences historically used httpx's
+        # blank values and repeated keys, while defaults use the REST encoder.
+        values = _merge_mappings({}, extra_query)
+        for key, value in values.items():
+            if value is None:
+                values[key] = ""
+            elif isinstance(value, (list, tuple)):
+                values[key] = ["" if item is None else item for item in cast(Iterable[object], value)]
+        return params.merge(self.qs.stringify(cast(Any, values), array_format="repeat"))
 
     def _make_sse_decoder(self) -> SSEDecoder | SSEBytesDecoder:
         return SSEDecoder()

@@ -538,11 +538,17 @@ class AsyncTranslationsConnectionManager:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
         url = self._prepare_url()
+        from ....lib.realtime_translation import _PreparedTranslationQuery
+
         url = url.copy_with(
-            params=httpx2.QueryParams(self.__client.qs.stringify(cast(Any, self.__client.default_query)))
-            .merge(url.params)
-            .merge({"model": self.__model})
-            .merge(cast(Any, extra_query)),
+            params=extra_query
+            if isinstance(extra_query, _PreparedTranslationQuery)
+            else self.__client._websocket_query_params(
+                url,
+                httpx2.QueryParams({"model": self.__model}).merge(extra_query)
+                if isinstance(extra_query, httpx2.QueryParams)
+                else {"model": self.__model, **extra_query},
+            )
         )
         url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
         options = await self.__client._prepare_options(
@@ -948,11 +954,17 @@ class TranslationsConnectionManager:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
         url = self._prepare_url()
+        from ....lib.realtime_translation import _PreparedTranslationQuery
+
         url = url.copy_with(
-            params=httpx2.QueryParams(self.__client.qs.stringify(cast(Any, self.__client.default_query)))
-            .merge(url.params)
-            .merge({"model": self.__model})
-            .merge(cast(Any, extra_query)),
+            params=extra_query
+            if isinstance(extra_query, _PreparedTranslationQuery)
+            else self.__client._websocket_query_params(
+                url,
+                httpx2.QueryParams({"model": self.__model}).merge(extra_query)
+                if isinstance(extra_query, httpx2.QueryParams)
+                else {"model": self.__model, **extra_query},
+            )
         )
         url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
         options = self.__client._prepare_options(
