@@ -50,6 +50,7 @@ bedrock = [
   "botocore>=1.40.0,<2",
   "urllib3>=2.7.0,<3",
 ]
+vertex = ["google-auth[requests]>=2.36,<3"]
 
 [dependency-groups]
 dev = [
@@ -66,6 +67,7 @@ dev = [
     "trio >=0.22.2",
     "pytest-xdist>=3.6.1",
     "griffe>=1",
+    "types-requests>=2.33.0.20261006",
 ]
 pydantic-v1 = ["pydantic>=1.10.26,<2"]
 pydantic-v2 = ["pydantic>=2,<3"]

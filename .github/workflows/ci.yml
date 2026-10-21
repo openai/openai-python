@@ -124,6 +124,9 @@ jobs:
       - name: Validate Bedrock wheel
         run: uv run --locked --all-extras python scripts/utils/validate-bedrock-wheel.py
 
+      - name: Validate Vertex wheel
+        run: uv run --locked --all-extras python scripts/utils/validate-vertex-wheel.py
+
       - name: Validate HTTPX2 wheel on Python 3.10
         run: uv run --locked --all-extras python scripts/utils/validate-httpx2-wheel.py
 
