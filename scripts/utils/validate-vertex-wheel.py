@@ -9,6 +9,7 @@ from collections.abc import Callable
 
 
 def check_installed(with_vertex: bool) -> None:
+    from typing import get_type_hints
     from importlib import metadata
     from unittest.mock import patch
 
@@ -18,6 +19,7 @@ def check_installed(with_vertex: bool) -> None:
     from openai.providers import vertex
 
     assert Path(openai.__file__).resolve().is_relative_to(Path(sys.prefix).resolve()), openai.__file__
+    assert "credentials" in get_type_hints(vertex)
 
     def handle(request: httpx2.Request) -> httpx2.Response:
         assert request.headers["authorization"] == "Bearer fixture-token"

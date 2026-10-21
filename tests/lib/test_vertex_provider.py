@@ -167,7 +167,10 @@ async def test_global_vertex_async_and_explicit_root() -> None:
     ]
 
 
-@pytest.mark.parametrize("base_url", ["http://aiplatform.googleapis.com/v1", "http://aiplatform.googleapis.com./v1"])
+@pytest.mark.parametrize(
+    "base_url",
+    ["http://aiplatform.googleapis.com/v1", "http://aiplatform.googleapis.com./v1", "http://googleapis.com/v1"],
+)
 def test_google_vertex_endpoints_require_https(base_url: str) -> None:
     with pytest.raises(OpenAIError, match="HTTPS"):
         vertex(base_url=base_url, token_provider=lambda: "fake")
@@ -311,6 +314,62 @@ def test_google_adc_and_explicit_credentials_refresh_concurrently(monkeypatch: p
     assert len(discovery) == 1
     with pytest.raises(OpenAIError, match="only one"):
         vertex(credentials=creds, token_provider=lambda: "fake")
+
+
+def test_explicit_service_account_credentials_receive_cloud_platform_scope() -> None:
+    pytest.importorskip("google.auth")
+    from google.auth.crypt import Signer
+    from google.oauth2.service_account import Credentials
+
+    credentials = Credentials(
+        create_autospec(Signer, instance=True), "test@example.invalid", "https://accounts.invalid/token"
+    )
+
+    def refresh(scoped: Credentials, _request: object) -> None:
+        assert "https://www.googleapis.com/auth/cloud-platform" in (scoped.scopes or ())
+        scoped.token = "fake-scoped-token"
+
+    response = httpx2.Response(200, json={"id": "resp_test", "output": []})
+    with (
+        patch.object(Credentials, "refresh", autospec=True, side_effect=refresh),
+        OpenAI(
+            provider=vertex(base_url="https://trusted.invalid/v1", credentials=credentials),
+            http_client=httpx2.Client(transport=httpx2.MockTransport(lambda _: response)),
+        ) as client,
+    ):
+        client.responses.create(model="model", input="hello")
+    assert response.request.headers["authorization"] == "Bearer fake-scoped-token"
+
+
+def test_google_auth_preserves_connect_and_read_timeout_phases() -> None:
+    pytest.importorskip("google.auth")
+    requests = pytest.importorskip("requests")
+    from google.oauth2.credentials import Credentials
+
+    credentials = Credentials(
+        token=None,
+        refresh_token="fake-refresh-token",
+        token_uri="https://accounts.invalid/token",
+        client_id="fake-client-id",
+        client_secret="fake-client-secret",
+    )
+    token_response = requests.Response()
+    token_response.status_code = 200
+    token_response._content = b'{"access_token":"fake-token","expires_in":3600,"token_type":"Bearer"}'
+    with (
+        patch.object(requests.Session, "request", return_value=token_response) as refresh,
+        OpenAI(
+            provider=vertex(base_url="https://trusted.invalid/v1", credentials=credentials),
+            timeout=httpx2.Timeout(2.0, connect=0.02),
+            http_client=httpx2.Client(
+                transport=httpx2.MockTransport(lambda _: httpx2.Response(200, json={"id": "resp_test", "output": []}))
+            ),
+        ) as client,
+    ):
+        client.responses.create(model="model", input="hello")
+    connect, read = refresh.call_args.kwargs["timeout"]
+    assert connect == 0.02
+    assert read > connect
 
 
 def test_sync_google_auth_refresh_timeout_is_api_timeout() -> None:

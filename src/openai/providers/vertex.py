@@ -19,8 +19,12 @@ from .._exceptions import OpenAIError, APITimeoutError
 
 if TYPE_CHECKING:
     from google.auth.credentials import Credentials
+else:
+    # Keep runtime type introspection available without importing the optional dependency.
+    Credentials = Any
 
 VertexTokenProvider = Callable[[], str | Awaitable[str]]
+_CLOUD_PLATFORM_SCOPES = ("https://www.googleapis.com/auth/cloud-platform",)
 
 
 @dataclass(frozen=True)
@@ -33,17 +37,17 @@ class _VertexDefinition:
     def configure(self) -> _ProviderRuntime:
         # ADC discovery/refresh belongs to this client. google-auth caches until expiry.
         lock = threading.Lock()
-        credentials = self.credentials
+        credentials: Credentials | None = None
 
         def auth_timeout(request: httpx2.Request) -> float | None:
-            # httpx stores the caller's per-operation timeout on the built request.
-            limits = request.extensions.get("timeout", {})
-            values = [limit for limit in (limits.get("connect"), limits.get("read")) if limit is not None]
-            return min(values) if values else None
+            # Authentication may include lock waiting and multiple network calls. Use the
+            # request's read timeout as its overall budget, not its connection timeout.
+            return cast("float | None", request.extensions.get("timeout", {}).get("read"))
 
         def adc_headers(request: httpx2.Request) -> dict[str, str]:
             nonlocal credentials
             budget = auth_timeout(request)
+            connect_timeout = cast("float | None", request.extensions.get("timeout", {}).get("connect"))
             started = time.monotonic()
             acquired = lock.acquire() if budget is None else lock.acquire(timeout=max(0, budget))
             if not acquired:
@@ -53,6 +57,7 @@ class _VertexDefinition:
                     import requests
                     import google.auth
                     from google.auth.exceptions import TransportError
+                    from google.auth.credentials import with_scopes_if_required
                     from google.auth.transport.requests import Request
                 except ImportError as exc:
                     raise OpenAIError(
@@ -64,11 +69,14 @@ class _VertexDefinition:
                     class BoundedRequest(Request):
                         @override
                         def __call__(self, *args: Any, **kwargs: Any) -> Any:
+                            remaining = None
+                            connect = connect_timeout
                             if budget is not None:
                                 remaining = budget - (time.monotonic() - started)
                                 if remaining <= 0:
                                     raise APITimeoutError(request=request)
-                                kwargs["timeout"] = remaining
+                                connect = min(connect, remaining) if connect is not None else remaining
+                            kwargs["timeout"] = (connect, remaining)
                             try:
                                 return super().__call__(*args, **kwargs)  # type: ignore[no-untyped-call]
                             except TransportError as exc:
@@ -78,11 +86,16 @@ class _VertexDefinition:
 
                     bounded_transport = BoundedRequest(session)
                     if credentials is None:
-                        # google-auth does not type its request or returned credentials.
-                        discover = cast("Callable[..., tuple[Credentials, str | None]]", cast(Any, google.auth).default)
-                        credentials, _ = discover(
-                            scopes=["https://www.googleapis.com/auth/cloud-platform"], request=bounded_transport
-                        )
+                        if self.credentials is None:
+                            # google-auth does not type its request or returned credentials.
+                            discover = cast(
+                                "Callable[..., tuple[Credentials, str | None]]", cast(Any, google.auth).default
+                            )
+                            credentials, _ = discover(scopes=_CLOUD_PLATFORM_SCOPES, request=bounded_transport)
+                        else:
+                            credentials = cast("Callable[..., Credentials]", with_scopes_if_required)(
+                                self.credentials, scopes=_CLOUD_PLATFORM_SCOPES
+                            )
                     headers: dict[str, str] = {}
                     credentials.before_request(bounded_transport, request.method, str(request.url), headers)  # type: ignore[no-untyped-call]
                     if budget is not None and time.monotonic() - started >= budget:
@@ -207,7 +220,8 @@ def vertex(
     url = httpx2.URL(base_url)
     if url.scheme not in ("http", "https") or not url.host or url.username or url.password or url.query or url.fragment:
         raise OpenAIError("Vertex base_url must be an HTTP(S) API root without credentials, query or fragment.")
-    if url.scheme != "https" and url.host.rstrip(".").endswith(".googleapis.com"):
+    host = url.host.rstrip(".")
+    if url.scheme != "https" and (host == "googleapis.com" or host.endswith(".googleapis.com")):
         raise OpenAIError("Google Vertex endpoints require HTTPS.")
     return _create_provider(_VertexDefinition(base_url=url, token_provider=token_provider, credentials=credentials))
 
