@@ -36,6 +36,14 @@ from .transcriptions import (
     TranscriptionsWithStreamingResponse,
     AsyncTranscriptionsWithStreamingResponse,
 )
+from .voice_consents import (
+    VoiceConsents,
+    AsyncVoiceConsents,
+    VoiceConsentsWithRawResponse,
+    AsyncVoiceConsentsWithRawResponse,
+    VoiceConsentsWithStreamingResponse,
+    AsyncVoiceConsentsWithStreamingResponse,
+)
 
 __all__ = ["Audio", "AsyncAudio"]
 
@@ -60,6 +68,11 @@ class Audio(SyncAPIResource):
     def voices(self) -> Voices:
         """Turn audio into text or text into audio."""
         return Voices(self._client)
+
+    @cached_property
+    def voice_consents(self) -> VoiceConsents:
+        """Turn audio into text or text into audio."""
+        return VoiceConsents(self._client)
 
     @cached_property
     def with_raw_response(self) -> AudioWithRawResponse:
@@ -101,6 +114,11 @@ class AsyncAudio(AsyncAPIResource):
     def voices(self) -> AsyncVoices:
         """Turn audio into text or text into audio."""
         return AsyncVoices(self._client)
+
+    @cached_property
+    def voice_consents(self) -> AsyncVoiceConsents:
+        """Turn audio into text or text into audio."""
+        return AsyncVoiceConsents(self._client)
 
     @cached_property
     def with_raw_response(self) -> AsyncAudioWithRawResponse:
@@ -146,6 +164,11 @@ class AudioWithRawResponse:
         """Turn audio into text or text into audio."""
         return VoicesWithRawResponse(self._audio.voices)
 
+    @cached_property
+    def voice_consents(self) -> VoiceConsentsWithRawResponse:
+        """Turn audio into text or text into audio."""
+        return VoiceConsentsWithRawResponse(self._audio.voice_consents)
+
 
 class AsyncAudioWithRawResponse:
     def __init__(self, audio: AsyncAudio) -> None:
@@ -170,6 +193,11 @@ class AsyncAudioWithRawResponse:
     def voices(self) -> AsyncVoicesWithRawResponse:
         """Turn audio into text or text into audio."""
         return AsyncVoicesWithRawResponse(self._audio.voices)
+
+    @cached_property
+    def voice_consents(self) -> AsyncVoiceConsentsWithRawResponse:
+        """Turn audio into text or text into audio."""
+        return AsyncVoiceConsentsWithRawResponse(self._audio.voice_consents)
 
 
 class AudioWithStreamingResponse:
@@ -196,6 +224,11 @@ class AudioWithStreamingResponse:
         """Turn audio into text or text into audio."""
         return VoicesWithStreamingResponse(self._audio.voices)
 
+    @cached_property
+    def voice_consents(self) -> VoiceConsentsWithStreamingResponse:
+        """Turn audio into text or text into audio."""
+        return VoiceConsentsWithStreamingResponse(self._audio.voice_consents)
+
 
 class AsyncAudioWithStreamingResponse:
     def __init__(self, audio: AsyncAudio) -> None:
@@ -220,3 +253,8 @@ class AsyncAudioWithStreamingResponse:
     def voices(self) -> AsyncVoicesWithStreamingResponse:
         """Turn audio into text or text into audio."""
         return AsyncVoicesWithStreamingResponse(self._audio.voices)
+
+    @cached_property
+    def voice_consents(self) -> AsyncVoiceConsentsWithStreamingResponse:
+        """Turn audio into text or text into audio."""
+        return AsyncVoiceConsentsWithStreamingResponse(self._audio.voice_consents)

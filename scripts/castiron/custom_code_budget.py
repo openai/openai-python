@@ -84,6 +84,9 @@ def strict_policy(repo: Path, revision: str) -> bool:
 
 
 MANIFEST = b"scripts/castiron/generated-files.json"
+# Accept the relocated tooling only from the verified checkpoint. Deploy this
+# reader before changing the producer so trusted-main checks can validate moves.
+MANIFEST_PATHS = (MANIFEST, b"generated/castiron/generated-files.json")
 # Derived from the renderer's repository-file inventory, also used by checkpoint
 # publication to distinguish generated tooling from protected SDK-owned CI.
 GENERATED_GITHUB_PATHS = frozenset(
@@ -148,13 +151,18 @@ def checkpoint_github_inventory(source: bytes) -> frozenset[bytes]:
 def generated_manifest(repo: Path, generated: str) -> dict[bytes, dict[str, str]]:
     """Read ownership from the verified snapshot, never the candidate's manifest."""
     entries = report.tree_entries(repo, generated, include_workflows=True)
-    entry = entries.get(MANIFEST)
+    manifests = [path for path in MANIFEST_PATHS if path in entries]
+    if len(manifests) > 1:
+        raise ValueError("checkpoint contains ambiguous generated ownership manifests")
+    manifest_path = manifests[0] if manifests else MANIFEST
+    entry = entries.get(manifest_path)
     if entry is None or entry.mode != b"100644":
         raise ValueError(
             "strict mode requires a generated ownership manifest; regenerate with Castiron"
         )
     blobs = report.read_blobs(repo, entries)
-    inventory_entry = entries.get(b"scripts/castiron/custom_code_budget.py")
+    inventory_path = manifest_path.rsplit(b"/", 1)[0] + b"/custom_code_budget.py"
+    inventory_entry = entries.get(inventory_path)
     if inventory_entry is None or inventory_entry.mode not in (b"100644", b"100755"):
         raise ValueError("checkpoint is missing its generated GitHub inventory")
     github_paths = checkpoint_github_inventory(blobs[inventory_entry.oid])
@@ -182,7 +190,7 @@ def generated_manifest(repo: Path, generated: str) -> dict[bytes, dict[str, str]
         ):
             raise ValueError("invalid generated manifest path")
         path = name.encode("utf-8")
-        if path == MANIFEST:
+        if path in MANIFEST_PATHS:
             raise ValueError("generated manifest cannot include itself")
         # A matching identity cannot turn inherited, SDK-owned CI into generated
         # output. Use this verified checkpoint's literal compiler inventory, not
@@ -213,7 +221,7 @@ def generated_manifest(repo: Path, generated: str) -> dict[bytes, dict[str, str]
     # Those are outside generated ownership. Every other snapshot path, including
     # renderer-owned GitHub files omitted from the legacy hash, must be listed.
     # Public snapshots retain generated identities without the private blobs.
-    snapshot_paths = set(entries) - {MANIFEST}
+    snapshot_paths = set(entries) - {manifest_path}
     if any(
         report.included(path) or path in github_paths for path in snapshot_paths - files.keys()
     ) or any(report.included(path) for path in files.keys() - snapshot_paths):
@@ -227,7 +235,7 @@ def generated_manifest(repo: Path, generated: str) -> dict[bytes, dict[str, str]
             ):
                 raise ValueError(f"manifest disagrees with generated snapshot: {path.decode()}")
     # The manifest is itself immutable, bound by the existing snapshot hash.
-    files[MANIFEST] = {"mode": "100644", "sha256": hashlib.sha256(blobs[entry.oid]).hexdigest()}
+    files[manifest_path] = {"mode": "100644", "sha256": hashlib.sha256(blobs[entry.oid]).hexdigest()}
     return files
 
 

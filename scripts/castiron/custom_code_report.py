@@ -239,7 +239,13 @@ def legacy_snapshot_on_main(repo: Path, commit: str, *, fetch: bool) -> bool:
 
 
 def validate_public_target(
-    repo: Path, commit: str, metadata: dict[str, str], *, target_branch: str, fetch: bool
+    repo: Path,
+    commit: str,
+    metadata: dict[str, str],
+    *,
+    target_branch: str,
+    fetch: bool,
+    bootstrap_lineage: str | None = None,
 ) -> None:
     if target_branch not in TARGET_BRANCHES:
         raise ReportError("unsupported report target")
@@ -252,7 +258,19 @@ def validate_public_target(
         if metadata.get("Target") == "next":
             raise ReportError("next checkpoint cannot authorize a main report")
         if "Target" not in metadata and not legacy_snapshot_on_main(repo, commit, fetch=fetch):
-            raise ReportError("legacy snapshot has no verified main adoption")
+            if bootstrap_lineage is None:
+                raise ReportError("legacy snapshot has no verified main adoption")
+            # Pre-bootstrap SDK stats have no public snapshot pointer. Their
+            # baseline may be an ancestor of an adopted snapshot, never adopted
+            # directly. Validate the lineage independently before trusting it.
+            validate_public_target(
+                repo,
+                bootstrap_lineage,
+                public_metadata(repo, bootstrap_lineage),
+                target_branch=target_branch,
+                fetch=fetch,
+            )
+            git(repo, "merge-base", "--is-ancestor", commit, bootstrap_lineage)
 
 
 def resolve_public_baseline(
@@ -280,7 +298,14 @@ def resolve_public_baseline(
     elif fetch:
         git(repo, "fetch", "--quiet", "--no-tags", "origin", commit)
     metadata = public_metadata(repo, commit)
-    validate_public_target(repo, commit, metadata, target_branch=target_branch, fetch=fetch)
+    validate_public_target(
+        repo,
+        commit,
+        metadata,
+        target_branch=target_branch,
+        fetch=fetch,
+        bootstrap_lineage=lineage if stats.get("public_codegen_sha") is None else None,
+    )
     if metadata["Generation-ID"] != stats["generation_id"]:
         raise ReportError("public codegen generation ID does not match stats")
     ref = f"refs/heads/{metadata['Branch']}"

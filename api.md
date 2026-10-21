@@ -258,6 +258,22 @@ Methods:
 
 - <code title="post /audio/voices">client.audio.voices.<a href="./src/openai/resources/audio/voices.py">create</a>(\*\*<a href="src/openai/types/audio/voice_create_params.py">params</a>) -> <a href="./src/openai/types/audio/voice.py">Voice</a></code>
 
+## VoiceConsents
+
+Types:
+
+```python
+from openai.types.audio import VoiceConsent, VoiceConsentDeleted
+```
+
+Methods:
+
+- <code title="post /audio/voice_consents">client.audio.voice_consents.<a href="./src/openai/resources/audio/voice_consents.py">create</a>(\*\*<a href="src/openai/types/audio/voice_consent_create_params.py">params</a>) -> <a href="./src/openai/types/audio/voice_consent.py">VoiceConsent</a></code>
+- <code title="get /audio/voice_consents/{consent_id}">client.audio.voice_consents.<a href="./src/openai/resources/audio/voice_consents.py">retrieve</a>(consent_id) -> <a href="./src/openai/types/audio/voice_consent.py">VoiceConsent</a></code>
+- <code title="post /audio/voice_consents/{consent_id}">client.audio.voice_consents.<a href="./src/openai/resources/audio/voice_consents.py">update</a>(consent_id, \*\*<a href="src/openai/types/audio/voice_consent_update_params.py">params</a>) -> <a href="./src/openai/types/audio/voice_consent.py">VoiceConsent</a></code>
+- <code title="get /audio/voice_consents">client.audio.voice_consents.<a href="./src/openai/resources/audio/voice_consents.py">list</a>(\*\*<a href="src/openai/types/audio/voice_consent_list_params.py">params</a>) -> <a href="./src/openai/types/audio/voice_consent.py">SyncCursorPage[VoiceConsent]</a></code>
+- <code title="delete /audio/voice_consents/{consent_id}">client.audio.voice_consents.<a href="./src/openai/resources/audio/voice_consents.py">delete</a>(consent_id) -> <a href="./src/openai/types/audio/voice_consent_deleted.py">VoiceConsentDeleted</a></code>
+
 # Moderations
 
 Types:
