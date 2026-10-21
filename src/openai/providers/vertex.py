@@ -114,15 +114,6 @@ class _VertexDefinition:
                 raise OpenAIError(
                     "Vertex owns authentication; remove OpenAI project/organization and custom Authorization or api-key headers."
                 )
-            # Stored responses use the beta outer Google API version. Explicit proxy roots
-            # without the Google resource shape are left intact. Match the raw path
-            # to preserve escaped path segments.
-            raw_path = request.url.raw_path
-            if request.method in ("GET", "DELETE") and re.match(
-                rb"^/v1/projects/[^/]+/locations/[^/]+/publishers/[^/]+/v1/responses/[^/]+(?:/|$)",
-                raw_path.partition(b"?")[0],
-            ):
-                request.url = request.url.copy_with(raw_path=raw_path.replace(b"/v1/", b"/v1beta1/", 1))
 
         def set_token(request: httpx2.Request, token: object) -> None:
             if not isinstance(token, str) or not token.strip() or any(ord(c) < 33 or ord(c) > 126 for c in token):
