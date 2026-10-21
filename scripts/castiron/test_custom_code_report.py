@@ -289,6 +289,48 @@ class CustomCodeTests(GitTestCase):
                     self.repo, snapshot, metadata, target_branch="next", fetch=False
                 )
 
+    def test_prepare_public_next_root_and_descendant(self) -> None:
+        generated, base = self.baseline()
+        self.git("branch", "codegen/test", generated)
+        self.git("checkout", "--detach", generated)
+        metadata = {
+            "schema_version": "castiron-checkpoint/v2",
+            "release_target": "next",
+            "record": {"generation_id": GENERATION, "source_branch": "test"},
+        }
+        encoded = base64.b64encode(json.dumps(metadata).encode()).decode()
+        checkpoint = self.commit(f"codegen\n\nGeneration metadata: {encoded}")
+        self.git("branch", "codegen/castiron/next/test", checkpoint)
+        self.git("checkout", "--detach", base)
+        stats = report.read_stats(self.repo, base) | {
+            "codegen_sha": checkpoint,
+            "codegen_hash": report.hash_codegen_commit(self.repo, checkpoint),
+        }
+        self.write(".castiron.stats.yml", "".join(f"{k}: {v}\n" for k, v in stats.items()))
+        head = self.commit("next checkpoint")
+        self.git("remote", "add", "origin", str(self.repo))
+        public = self.repo / "public"
+        self.git("clone", "--no-local", str(self.repo), str(public))
+        report.git(public, "checkout", "--detach", base)
+        public_remote = self.repo / "public.git"
+        report.git(public, "init", "--bare", str(public_remote))
+        report.git(public, "remote", "set-url", "origin", str(public_remote))
+        report.git(public, "push", "origin", f"{base}:refs/heads/main")
+        for branch in ("castiron/next", "castiron/next/test"):
+            with self.subTest(branch=branch):
+                snapshot = report.prepare_public_snapshot(
+                    self.repo, base, head, public, base, branch
+                )
+                self.assertEqual(snapshot["branch"], f"codegen/{branch}")
+                public_metadata = report.public_metadata(public, snapshot["commit"])
+                self.assertEqual(public_metadata["Target"], "next")
+                with self.assertRaisesRegex(report.ReportError, "cannot authorize a main"):
+                    report.validate_public_target(
+                        public, snapshot["commit"], public_metadata, target_branch="main", fetch=False
+                    )
+        with self.assertRaises(report.ReportError):
+            report.prepare_public_snapshot(self.repo, base, head, public, base, "castiron/nextish")
+
     def test_legacy_public_snapshot_requires_trusted_main_adoption(self) -> None:
         generated, base = self.baseline()
         branch = "codegen/castiron/promotions/pr-42"
@@ -363,6 +405,25 @@ class CustomCodeTests(GitTestCase):
                 self.git("update-ref", "refs/remotes/origin/main", formatted)
                 report.resolve_public_baseline(self.repo, formatted, fetch=False, require_hash=True)
 
+        # Replacing a comment with the field preserves the SHA occurrence count.
+        original_stats = self.git("show", f"{base}:.castiron.stats.yml") + "\n"
+        self.write(".castiron.stats.yml", original_stats + f"# candidate: {legacy}\n")
+        self.git("add", ".castiron.stats.yml")
+        mentioned = self.git(
+            "commit-tree", self.git("write-tree"), "-p", base, "-m", "mention candidate"
+        )
+        self.git("update-ref", "refs/remotes/origin/main", mentioned)
+        self.assertFalse(report.legacy_snapshot_on_main(self.repo, legacy, fetch=False))
+        with self.assertRaisesRegex(report.ReportError, "no verified main adoption"):
+            report.resolve_public_baseline(self.repo, head, fetch=False, require_hash=True)
+        self.write(".castiron.stats.yml", original_stats + f"public_codegen_sha: {legacy}\n")
+        self.git("add", ".castiron.stats.yml")
+        adopted = self.git(
+            "commit-tree", self.git("write-tree"), "-p", mentioned, "-m", "adopt candidate"
+        )
+        self.git("update-ref", "refs/remotes/origin/main", adopted)
+        report.resolve_public_baseline(self.repo, adopted, fetch=False, require_hash=True)
+
         # Explicit next metadata cannot be grandfathered, even with an old locator.
         explicit_next = self.git(
             "commit-tree", tree, "-m", message + "Castiron-Public-Codegen-Target: next\n"
@@ -374,6 +435,44 @@ class CustomCodeTests(GitTestCase):
         self.git("update-ref", "refs/remotes/origin/main", head)
         with self.assertRaisesRegex(report.ReportError, "cannot authorize a main"):
             report.resolve_public_baseline(self.repo, head, fetch=False, require_hash=True)
+
+    def test_legacy_bootstrap_baseline_uses_verified_main_lineage(self) -> None:
+        generated, base = self.baseline()
+        tree = self.git("rev-parse", f"{generated}^{{tree}}")
+        content_hash = report.hash_codegen_commit(self.repo, generated)
+        branch = "codegen/castiron/promotions/pr-1"
+
+        def legacy_snapshot(generation: str, parent: str | None = None) -> str:
+            message = (
+                "Castiron generated snapshot\n\n"
+                "Castiron-Public-Codegen-Version: 1\n"
+                f"Castiron-Public-Codegen-Generation-ID: {generation}\n"
+                f"Castiron-Public-Codegen-Hash: {content_hash}\n"
+                f"Castiron-Public-Codegen-Branch: {branch}\n"
+            )
+            return self.git("commit-tree", tree, *(["-p", parent] if parent else []), "-m", message)
+
+        bootstrap = legacy_snapshot(GENERATION)
+        generation = "650e8400-e29b-41d4-a716-446655440000"
+        adopted = legacy_snapshot(generation, bootstrap)
+        self.git("update-ref", f"refs/remotes/origin/{branch}", adopted)
+        stats = report.read_stats(self.repo, base) | {
+            "generation_id": generation,
+            "public_codegen_sha": adopted,
+        }
+        self.write(".castiron.stats.yml", "".join(f"{k}: {v}\n" for k, v in stats.items()))
+        head = self.commit("adopt first public checkpoint")
+        self.git("update-ref", "refs/remotes/origin/main", head)
+        result, _ = report.build_report(self.repo, base, head, public=True, require_head_hash=True)
+        self.assertEqual(result["before"]["commit"], bootstrap)
+        self.assertEqual(result["after"]["commit"], adopted)
+        self.assertFalse(report.legacy_snapshot_on_main(self.repo, bootstrap, fetch=False))
+
+        # An unadopted legacy head cannot authorize its own bootstrap lineage.
+        with self.assertRaisesRegex(report.ReportError, "no verified main adoption"):
+            report.resolve_public_baseline(
+                self.repo, base, fetch=False, require_hash=False, lineage=bootstrap
+            )
 
     def test_public_next_namespace_root_is_reserved(self) -> None:
         generated, _ = self.baseline()
@@ -432,6 +531,83 @@ class CustomCodeTests(GitTestCase):
                     self.repo, adopted, fetch=False, require_hash=True
                 )
                 self.assertEqual(resolved["commit"], snapshot)
+
+    def test_legacy_bootstrap_parent_uses_main_adopted_lineage(self) -> None:
+        generated, base = self.baseline()
+        tree = self.git("rev-parse", f"{generated}^{{tree}}")
+        content_hash = report.hash_codegen_commit(self.repo, generated)
+        child_generation = "550e8400-e29b-41d4-a716-446655440001"
+        for parent_branch, parent_target, allowed in (
+            ("codegen/castiron/bootstrap", "", True),
+            ("codegen/castiron/bootstrap", "next", False),
+            ("codegen/castiron/next", "", False),
+            ("codegen/castiron/next/bootstrap", "", False),
+        ):
+            with self.subTest(branch=parent_branch, target=parent_target):
+                for reserved in self.git(
+                    "for-each-ref",
+                    "--format=%(refname)",
+                    "refs/remotes/origin/codegen/castiron/next",
+                ).splitlines():
+                    self.git("update-ref", "-d", reserved)
+                self.git("checkout", "--detach", "-q", base)
+                self.git("update-ref", "refs/remotes/origin/main", base)
+                parent_message = (
+                    "Castiron generated snapshot\n\n"
+                    "Castiron-Public-Codegen-Version: 1\n"
+                    f"Castiron-Public-Codegen-Generation-ID: {GENERATION}\n"
+                    f"Castiron-Public-Codegen-Hash: {content_hash}\n"
+                    f"Castiron-Public-Codegen-Branch: {parent_branch}\n"
+                )
+                if parent_target:
+                    parent_message += f"Castiron-Public-Codegen-Target: {parent_target}\n"
+                parent = self.git("commit-tree", tree, "-m", parent_message)
+                self.git("update-ref", f"refs/remotes/origin/{parent_branch}", parent)
+                child_branch = "codegen/castiron/promotions/test"
+                child_message = (
+                    "Castiron generated snapshot\n\n"
+                    "Castiron-Public-Codegen-Version: 1\n"
+                    f"Castiron-Public-Codegen-Generation-ID: {child_generation}\n"
+                    f"Castiron-Public-Codegen-Hash: {content_hash}\n"
+                    f"Castiron-Public-Codegen-Branch: {child_branch}\n"
+                )
+                child = self.git("commit-tree", tree, "-p", parent, "-m", child_message)
+                self.git("update-ref", f"refs/remotes/origin/{child_branch}", child)
+                stats = report.read_stats(self.repo, base) | {
+                    "generation_id": child_generation,
+                    "public_codegen_sha": child,
+                }
+                self.write(".castiron.stats.yml", "".join(f"{k}: {v}\n" for k, v in stats.items()))
+                head = self.commit("adopt only the legacy descendant")
+                with self.assertRaisesRegex(report.ReportError, "no verified main adoption"):
+                    report.build_report(self.repo, base, head, public=True, require_head_hash=True)
+                self.git("update-ref", "refs/remotes/origin/main", head)
+                if allowed:
+                    result, _ = report.build_report(
+                        self.repo, base, head, public=True, require_head_hash=True
+                    )
+                    self.assertEqual(result["status"], "ok")
+                    self.assertEqual(
+                        report.resolve_public_baseline(
+                            self.repo, base, fetch=False, require_hash=False, lineage=child
+                        )["commit"],
+                        parent,
+                    )
+                    # Adoption of a descendant never authorizes a direct parent reference.
+                    direct = report.read_stats(self.repo, base) | {"public_codegen_sha": parent}
+                    self.write(
+                        ".castiron.stats.yml", "".join(f"{k}: {v}\n" for k, v in direct.items())
+                    )
+                    direct_head = self.commit("reference an unadopted parent directly")
+                    with self.assertRaisesRegex(report.ReportError, "no verified main adoption"):
+                        report.resolve_public_baseline(
+                            self.repo, direct_head, fetch=False, require_hash=True, lineage=child
+                        )
+                else:
+                    with self.assertRaisesRegex(report.ReportError, "cannot authorize a main"):
+                        report.build_report(
+                            self.repo, base, head, public=True, require_head_hash=True
+                        )
 
     def test_legacy_checkpoint_cannot_use_next_namespace(self) -> None:
         generated, base = self.baseline()

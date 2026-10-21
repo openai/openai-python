@@ -7,11 +7,11 @@
     },
     ".github/workflows/castiron-custom-code.yml": {
       "mode": "100644",
-      "sha256": "51c471e3bd5e7e4387281e3e057ead0c9f573db051610471a028cf8bf0988efe"
+      "sha256": "7e6d3951a3abc7b8f249a77b3b11da8467554d8e1771b70016253eb5768136aa"
     },
     "api.md": {
       "mode": "100644",
-      "sha256": "cb21d922f4599e1d2d05cd937ac10072d3b3dbcbac4e73c9903cea2125944cef"
+      "sha256": "968721dd24566639f234544b265b22e2ae826ed201377f93c87ef08b20c83ff5"
     },
     "scripts/castiron/CUSTOM_CODE.md": {
       "mode": "100644",
@@ -27,7 +27,7 @@
     },
     "scripts/castiron/custom_code_report.py": {
       "mode": "100755",
-      "sha256": "373a39d2fd0f28c099123f317adff36cc5c7b9031393b4f221e4b97ea9e0d7b8"
+      "sha256": "1867be6dc5ab291e1fd1a73a1da820c38031fd74fdf3dcadd033690d4e308a50"
     },
     "scripts/castiron/custom_code_test_support.py": {
       "mode": "100644",
@@ -55,7 +55,7 @@
     },
     "scripts/castiron/test_custom_code_report.py": {
       "mode": "100644",
-      "sha256": "622302cf89850c5d82bfb1727de3c7adb6062be4bb6beb746776f007301b33ea"
+      "sha256": "626252bd944c419835a1130fcc02680d9d23b774f2131446375eda7f4546f9bb"
     },
     "src/openai/__init__.py": {
       "mode": "100644",
@@ -247,11 +247,11 @@
     },
     "src/openai/resources/audio/__init__.py": {
       "mode": "100644",
-      "sha256": "6ce832d792ba2e8c7445792dcd7841b0fa2ca66daaf2e8004ad042ae9d587b2c"
+      "sha256": "689f7c7035a7ed8e2195dc40467562e15a842c5416cf049d79ed227f24c12785"
     },
     "src/openai/resources/audio/audio.py": {
       "mode": "100644",
-      "sha256": "845654e695477cf1465e35074b1e9a0537f3bc7d91ddc878815f142ddafd3f82"
+      "sha256": "09deae8cc14b04948ac112418fdc62773304e34c185dfe95dd31850aff55231e"
     },
     "src/openai/resources/audio/speech.py": {
       "mode": "100644",
@@ -264,6 +264,10 @@
     "src/openai/resources/audio/translations.py": {
       "mode": "100644",
       "sha256": "a8894549c9866ea3b08d90534a015fc3af2d5934fc592cdd89dc2811bfc32f32"
+    },
+    "src/openai/resources/audio/voice_consents.py": {
+      "mode": "100644",
+      "sha256": "124f3d025d056f60f79fd325ce19c640f62ae9cc86e2199c6f41d0ec3562e821"
     },
     "src/openai/resources/audio/voices.py": {
       "mode": "100644",
@@ -1451,7 +1455,7 @@
     },
     "src/openai/types/audio/__init__.py": {
       "mode": "100644",
-      "sha256": "377a78723a4719bae49b2de8b32b7592fe2f253e7b30e54b892dced92c019016"
+      "sha256": "e468dcb2033e714b0c5bef0275902c9d6621bed5e93e50b44bce1ef0d2eee7ad"
     },
     "src/openai/types/audio/speech_create_params.py": {
       "mode": "100644",
@@ -1536,6 +1540,26 @@
     "src/openai/types/audio/voice.py": {
       "mode": "100644",
       "sha256": "ed71fb7590405ac01f5664486c6f3c8b23f5eaf39f5ce8ca9a6a3a0aba981cc5"
+    },
+    "src/openai/types/audio/voice_consent.py": {
+      "mode": "100644",
+      "sha256": "01dcd389a984a09cd1fd514b6a1bb5f9140aed5c397af89c5e02a777c1eeaf35"
+    },
+    "src/openai/types/audio/voice_consent_create_params.py": {
+      "mode": "100644",
+      "sha256": "5886467fac979588d14c453f31ed04cb481b7f18376052e3f1bf9b3b10542aef"
+    },
+    "src/openai/types/audio/voice_consent_deleted.py": {
+      "mode": "100644",
+      "sha256": "c1a7a4b041e9105c989c0fd5885642a779c2928fb483bd72f92dea6966309880"
+    },
+    "src/openai/types/audio/voice_consent_list_params.py": {
+      "mode": "100644",
+      "sha256": "a99b16e7b7a22db9f05c97f409b0af2175bfefac7a4e22c532bac5d99dcf8f64"
+    },
+    "src/openai/types/audio/voice_consent_update_params.py": {
+      "mode": "100644",
+      "sha256": "0f9fe84b06e53d27e6cc55835d03cfc1d2782355c771e518b145a188d5342a85"
     },
     "src/openai/types/audio/voice_create_params.py": {
       "mode": "100644",
@@ -7400,6 +7424,10 @@
     "tests/api_resources/audio/test_translations.py": {
       "mode": "100644",
       "sha256": "f8be56e40c3af5e922e0bb1e2e4cc7a677a9abf162287fd1818b89b3a367560f"
+    },
+    "tests/api_resources/audio/test_voice_consents.py": {
+      "mode": "100644",
+      "sha256": "e8016e3354021751e02c76b395b6074a3840267441092f6413306495ec448f0b"
     },
     "tests/api_resources/audio/test_voices.py": {
       "mode": "100644",
