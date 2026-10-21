@@ -463,16 +463,12 @@ class AsyncSidebandConnectionManager:
 
         url = self._prepare_url()
         url = url.copy_with(
-            params=httpx2.QueryParams(self.__client.qs.stringify(cast(Any, self.__client.default_query)))
-            .merge(url.params)
-            .merge(
-                cast(
-                    Any,
-                    {
-                        **({"graceful_close": self.__graceful_close} if self.__graceful_close is not omit else {}),
-                        **extra_query,
-                    },
-                )
+            params=self.__client._websocket_query_params(
+                url,
+                {
+                    **({"graceful_close": self.__graceful_close} if self.__graceful_close is not omit else {}),
+                    **extra_query,
+                },
             ),
         )
         url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
@@ -887,16 +883,12 @@ class SidebandConnectionManager:
 
         url = self._prepare_url()
         url = url.copy_with(
-            params=httpx2.QueryParams(self.__client.qs.stringify(cast(Any, self.__client.default_query)))
-            .merge(url.params)
-            .merge(
-                cast(
-                    Any,
-                    {
-                        **({"graceful_close": self.__graceful_close} if self.__graceful_close is not omit else {}),
-                        **extra_query,
-                    },
-                )
+            params=self.__client._websocket_query_params(
+                url,
+                {
+                    **({"graceful_close": self.__graceful_close} if self.__graceful_close is not omit else {}),
+                    **extra_query,
+                },
             ),
         )
         url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
