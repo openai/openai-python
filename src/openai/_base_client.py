@@ -794,6 +794,20 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
             **self._custom_query,
         }
 
+    def _websocket_query_params(self, url: URL, query: Query) -> httpx2.QueryParams:
+        # Replace logical defaults before encoding nested keys, so overrides
+        # cannot leave fields from the old default in the request.
+        defaults = _merge_mappings({}, {key: value for key, value in self.default_query.items() if key not in query})
+        params = httpx2.QueryParams(self.qs.stringify(cast(Any, defaults))).merge(url.params)
+        for key, value in query.items():
+            if isinstance(value, Omit):
+                params = params.remove(key)
+
+        # Raw httpx query merging has always sent per-call None as an empty
+        # value and per-call sequences as repeated keys. Retain that contract.
+        overrides = {key: "" if value is None else value for key, value in _merge_mappings({}, query).items()}
+        return params.merge(self.qs.stringify(cast(Any, overrides), array_format="repeat"))
+
     def _validate_headers(
         self,
         headers: Headers,  # noqa: ARG002

@@ -7,7 +7,7 @@ import httpx2
 import pytest
 from websockets.sync.server import ServerConnection
 
-from openai import OpenAI, AsyncOpenAI, AzureOpenAI, AsyncAzureOpenAI
+from openai import OpenAI, AsyncOpenAI, AzureOpenAI, AsyncAzureOpenAI, omit
 
 from .test_websocket_redirects import resource, reconnect
 from .responses.test_websocket_session import script_server
@@ -17,6 +17,81 @@ from .responses.test_websocket_session import script_server
 def bypass_proxy(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("NO_PROXY", "127.0.0.1")
     monkeypatch.setenv("no_proxy", "127.0.0.1")
+
+
+@pytest.mark.parametrize("mode", ["sync", "async"])
+@pytest.mark.parametrize(
+    "name",
+    ["responses", "beta.responses", "realtime", "realtime.translations", "live", "live.sideband", "live.forks"],
+)
+async def test_query_overrides_are_preserved_through_reconnect(mode: str, name: str) -> None:
+    received: list[str] = []
+
+    def script(socket: ServerConnection) -> None:
+        assert socket.request is not None
+        received.append(socket.request.path)
+        socket.send('{"type":"response.future"}')
+        if len(received) == 1:
+            socket.close(code=1011)
+
+    with script_server(script, expected_connections=2) as url:
+        client_options: dict[str, Any] = {
+            "api_key": "fake-websocket-query-test-key",
+            "websocket_base_url": url.replace("http:", "ws:")
+            + "?route=first&route=second&priority=url&clear=url&removed=url&model=url-model",
+            "default_query": {
+                "priority": "default",
+                "selected": "default",
+                "clear": "default",
+                "default_none": None,
+                "removed": "default",
+                "default_omit": omit,
+                "settings": {"old": "must-be-replaced", "language": "en"},
+                "default_sequence": ["a", "b"],
+            },
+        }
+        connect_options: dict[str, Any] = {
+            "on_reconnecting": reconnect,
+            "initial_delay": 0,
+            "max_retries": 1,
+            "extra_query": {
+                "priority": "request",
+                "clear": None,
+                "removed": omit,
+                "settings": {"language": "es", "empty_nested": None},
+                "request_sequence": ["one", "two"],
+            },
+        }
+        if "realtime" in name:
+            connect_options["model"] = "selected-model"
+        if name.startswith("live."):
+            connect_options["session_id"] = "fake-session"
+
+        if mode == "sync":
+            with OpenAI(**client_options, http_client=httpx2.Client(trust_env=False)) as client:
+                with resource(client, name).connect(**connect_options) as connection:
+                    events = iter(connection)
+                    for _ in range(2):
+                        assert next(events).type == "response.future"
+        else:
+            async with AsyncOpenAI(**client_options, http_client=httpx2.AsyncClient(trust_env=False)) as async_client:
+                async with resource(async_client, name).connect(**connect_options) as async_connection:
+                    events = aiter(async_connection)
+                    for _ in range(2):
+                        assert (await anext(events)).type == "response.future"
+
+    assert len(received) == 2
+    for path in received:
+        assert parse_qs(urlsplit(path).query, keep_blank_values=True) == {
+            "selected": ["default"],
+            "route": ["first", "second"],
+            "priority": ["request"],
+            "clear": [""],
+            "settings[language]": ["es"],
+            "default_sequence[]": ["a", "b"],
+            "request_sequence": ["one", "two"],
+            "model": ["selected-model" if "realtime" in name else "url-model"],
+        }
 
 
 @pytest.mark.parametrize("mode", ["sync", "async"])
