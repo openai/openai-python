@@ -15,7 +15,6 @@ def check_installed(with_vertex: bool) -> None:
     import httpx2
 
     import openai
-    from openai import OpenAI, OpenAIError
     from openai.providers import vertex
 
     assert Path(openai.__file__).resolve().is_relative_to(Path(sys.prefix).resolve()), openai.__file__
@@ -25,7 +24,7 @@ def check_installed(with_vertex: bool) -> None:
         return httpx2.Response(200, json={"id": "resp_fixture", "object": "response", "output": []})
 
     def send(token_provider: Callable[[], str] | None = None) -> None:
-        with OpenAI(
+        with openai.OpenAI(
             provider=vertex(base_url="https://vertex.example/v1", token_provider=token_provider),
             http_client=httpx2.Client(transport=httpx2.MockTransport(handle), trust_env=False),
         ) as client:
@@ -48,7 +47,7 @@ def check_installed(with_vertex: bool) -> None:
         send(lambda: "fixture-token")
         try:
             send()
-        except OpenAIError as error:
+        except openai.OpenAIError as error:
             assert str(error) == "Install openai[vertex] to use Google credentials, or supply token_provider."
         else:
             raise AssertionError("Vertex ADC should require the vertex extra")

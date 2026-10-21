@@ -20,7 +20,7 @@ from .._exceptions import OpenAIError, APITimeoutError
 if TYPE_CHECKING:
     from google.auth.credentials import Credentials
 
-VertexTokenProvider = Callable[[], "str | Awaitable[str]"]
+VertexTokenProvider = Callable[[], str | Awaitable[str]]
 
 
 @dataclass(frozen=True)
