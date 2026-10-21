@@ -1,0 +1,1327 @@
+# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+
+from typing import List, Optional
+from typing_extensions import Literal
+
+from pydantic import Field as FieldInfo
+
+from ...._models import BaseModel
+
+__all__ = [
+    "AuditLogListResponse",
+    "Actor",
+    "ActorAPIKey",
+    "ActorAPIKeyServiceAccount",
+    "ActorAPIKeyUser",
+    "ActorSession",
+    "ActorSessionUser",
+    "APIKeyCreated",
+    "APIKeyCreatedData",
+    "APIKeyDeleted",
+    "APIKeyUpdated",
+    "APIKeyUpdatedChangesRequested",
+    "CertificateCreated",
+    "CertificateDeleted",
+    "CertificateUpdated",
+    "CertificatesActivated",
+    "CertificatesActivatedCertificate",
+    "CertificatesDeactivated",
+    "CertificatesDeactivatedCertificate",
+    "CheckpointPermissionCreated",
+    "CheckpointPermissionCreatedData",
+    "CheckpointPermissionDeleted",
+    "ExternalKeyRegistered",
+    "ExternalKeyRemoved",
+    "GroupCreated",
+    "GroupCreatedData",
+    "GroupDeleted",
+    "GroupUpdated",
+    "GroupUpdatedChangesRequested",
+    "InviteAccepted",
+    "InviteDeleted",
+    "InviteSent",
+    "InviteSentData",
+    "IPAllowlistConfigActivated",
+    "IPAllowlistConfigActivatedConfig",
+    "IPAllowlistConfigDeactivated",
+    "IPAllowlistConfigDeactivatedConfig",
+    "IPAllowlistCreated",
+    "IPAllowlistDeleted",
+    "IPAllowlistUpdated",
+    "LoginFailed",
+    "LogoutFailed",
+    "OrganizationUpdated",
+    "OrganizationUpdatedChangesRequested",
+    "Project",
+    "ProjectArchived",
+    "ProjectCreated",
+    "ProjectCreatedData",
+    "ProjectDeleted",
+    "ProjectUpdated",
+    "ProjectUpdatedChangesRequested",
+    "RateLimitDeleted",
+    "RateLimitUpdated",
+    "RateLimitUpdatedChangesRequested",
+    "RoleAssignmentCreated",
+    "RoleAssignmentDeleted",
+    "RoleBoundToResource",
+    "RoleCreated",
+    "RoleDeleted",
+    "RoleUnboundFromResource",
+    "RoleUpdated",
+    "RoleUpdatedChangesRequested",
+    "ScimDisabled",
+    "ScimEnabled",
+    "ServiceAccountCreated",
+    "ServiceAccountCreatedData",
+    "ServiceAccountDeleted",
+    "ServiceAccountUpdated",
+    "ServiceAccountUpdatedChangesRequested",
+    "UserAdded",
+    "UserAddedData",
+    "UserDeleted",
+    "UserUpdated",
+    "UserUpdatedChangesRequested",
+    "WorkloadIdentityProviderMappingCreated",
+    "WorkloadIdentityProviderMappingDeleted",
+    "WorkloadIdentityProviderMappingUpdated",
+    "WorkloadIdentityProviderCreated",
+    "WorkloadIdentityProviderDeleted",
+    "WorkloadIdentityProviderUpdated",
+]
+
+
+class ActorAPIKeyServiceAccount(BaseModel):
+    """The service account that performed the audit logged action."""
+
+    id: Optional[str] = None
+    """The service account id."""
+
+
+class ActorAPIKeyUser(BaseModel):
+    """The user who performed the audit logged action."""
+
+    id: Optional[str] = None
+    """The user id."""
+
+    email: Optional[str] = None
+    """The user email."""
+
+
+class ActorAPIKey(BaseModel):
+    """The API Key used to perform the audit logged action."""
+
+    id: Optional[str] = None
+    """The tracking id of the API key."""
+
+    service_account: Optional[ActorAPIKeyServiceAccount] = None
+    """The service account that performed the audit logged action."""
+
+    type: Optional[Literal["user", "service_account"]] = None
+    """The type of API key. Can be either `user` or `service_account`."""
+
+    user: Optional[ActorAPIKeyUser] = None
+    """The user who performed the audit logged action."""
+
+
+class ActorSessionUser(BaseModel):
+    """The user who performed the audit logged action."""
+
+    id: Optional[str] = None
+    """The user id."""
+
+    email: Optional[str] = None
+    """The user email."""
+
+
+class ActorSession(BaseModel):
+    """The session in which the audit logged action was performed."""
+
+    ip_address: Optional[str] = None
+    """The IP address from which the action was performed."""
+
+    user: Optional[ActorSessionUser] = None
+    """The user who performed the audit logged action."""
+
+
+class Actor(BaseModel):
+    """The actor who performed the audit logged action."""
+
+    api_key: Optional[ActorAPIKey] = None
+    """The API Key used to perform the audit logged action."""
+
+    session: Optional[ActorSession] = None
+    """The session in which the audit logged action was performed."""
+
+    type: Optional[Literal["session", "api_key"]] = None
+    """The type of actor. Is either `session` or `api_key`."""
+
+
+class APIKeyCreatedData(BaseModel):
+    """The payload used to create the API key."""
+
+    scopes: Optional[List[str]] = None
+    """A list of scopes allowed for the API key, e.g. `["api.model.request"]`"""
+
+
+class APIKeyCreated(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The tracking ID of the API key."""
+
+    data: Optional[APIKeyCreatedData] = None
+    """The payload used to create the API key."""
+
+
+class APIKeyDeleted(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The tracking ID of the API key."""
+
+
+class APIKeyUpdatedChangesRequested(BaseModel):
+    """The payload used to update the API key."""
+
+    scopes: Optional[List[str]] = None
+    """A list of scopes allowed for the API key, e.g. `["api.model.request"]`"""
+
+
+class APIKeyUpdated(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The tracking ID of the API key."""
+
+    changes_requested: Optional[APIKeyUpdatedChangesRequested] = None
+    """The payload used to update the API key."""
+
+
+class CertificateCreated(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The certificate ID."""
+
+    name: Optional[str] = None
+    """The name of the certificate."""
+
+
+class CertificateDeleted(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The certificate ID."""
+
+    certificate: Optional[str] = None
+    """The certificate content in PEM format."""
+
+    name: Optional[str] = None
+    """The name of the certificate."""
+
+
+class CertificateUpdated(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The certificate ID."""
+
+    name: Optional[str] = None
+    """The name of the certificate."""
+
+
+class CertificatesActivatedCertificate(BaseModel):
+    id: Optional[str] = None
+    """The certificate ID."""
+
+    name: Optional[str] = None
+    """The name of the certificate."""
+
+
+class CertificatesActivated(BaseModel):
+    """The details for events with this `type`."""
+
+    certificates: Optional[List[CertificatesActivatedCertificate]] = None
+
+
+class CertificatesDeactivatedCertificate(BaseModel):
+    id: Optional[str] = None
+    """The certificate ID."""
+
+    name: Optional[str] = None
+    """The name of the certificate."""
+
+
+class CertificatesDeactivated(BaseModel):
+    """The details for events with this `type`."""
+
+    certificates: Optional[List[CertificatesDeactivatedCertificate]] = None
+
+
+class CheckpointPermissionCreatedData(BaseModel):
+    """The payload used to create the checkpoint permission."""
+
+    fine_tuned_model_checkpoint: Optional[str] = None
+    """The ID of the fine-tuned model checkpoint."""
+
+    project_id: Optional[str] = None
+    """The ID of the project that the checkpoint permission was created for."""
+
+
+class CheckpointPermissionCreated(BaseModel):
+    """
+    The project and fine-tuned model checkpoint that the checkpoint permission was created for.
+    """
+
+    id: Optional[str] = None
+    """The ID of the checkpoint permission."""
+
+    data: Optional[CheckpointPermissionCreatedData] = None
+    """The payload used to create the checkpoint permission."""
+
+
+class CheckpointPermissionDeleted(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The ID of the checkpoint permission."""
+
+
+class ExternalKeyRegistered(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The ID of the external key configuration."""
+
+    data: Optional[object] = None
+    """The configuration for the external key."""
+
+
+class ExternalKeyRemoved(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The ID of the external key configuration."""
+
+
+class GroupCreatedData(BaseModel):
+    """Information about the created group."""
+
+    group_name: Optional[str] = None
+    """The group name."""
+
+
+class GroupCreated(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The ID of the group."""
+
+    data: Optional[GroupCreatedData] = None
+    """Information about the created group."""
+
+
+class GroupDeleted(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The ID of the group."""
+
+
+class GroupUpdatedChangesRequested(BaseModel):
+    """The payload used to update the group."""
+
+    group_name: Optional[str] = None
+    """The updated group name."""
+
+
+class GroupUpdated(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The ID of the group."""
+
+    changes_requested: Optional[GroupUpdatedChangesRequested] = None
+    """The payload used to update the group."""
+
+
+class InviteAccepted(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The ID of the invite."""
+
+
+class InviteDeleted(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The ID of the invite."""
+
+
+class InviteSentData(BaseModel):
+    """The payload used to create the invite."""
+
+    email: Optional[str] = None
+    """The email invited to the organization."""
+
+    role: Optional[str] = None
+    """The role the email was invited to be. Is either `owner` or `member`."""
+
+
+class InviteSent(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The ID of the invite."""
+
+    data: Optional[InviteSentData] = None
+    """The payload used to create the invite."""
+
+
+class IPAllowlistConfigActivatedConfig(BaseModel):
+    id: Optional[str] = None
+    """The ID of the IP allowlist configuration."""
+
+    name: Optional[str] = None
+    """The name of the IP allowlist configuration."""
+
+
+class IPAllowlistConfigActivated(BaseModel):
+    """The details for events with this `type`."""
+
+    configs: Optional[List[IPAllowlistConfigActivatedConfig]] = None
+    """The configurations that were activated."""
+
+
+class IPAllowlistConfigDeactivatedConfig(BaseModel):
+    id: Optional[str] = None
+    """The ID of the IP allowlist configuration."""
+
+    name: Optional[str] = None
+    """The name of the IP allowlist configuration."""
+
+
+class IPAllowlistConfigDeactivated(BaseModel):
+    """The details for events with this `type`."""
+
+    configs: Optional[List[IPAllowlistConfigDeactivatedConfig]] = None
+    """The configurations that were deactivated."""
+
+
+class IPAllowlistCreated(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The ID of the IP allowlist configuration."""
+
+    allowed_ips: Optional[List[str]] = None
+    """The IP addresses or CIDR ranges included in the configuration."""
+
+    name: Optional[str] = None
+    """The name of the IP allowlist configuration."""
+
+
+class IPAllowlistDeleted(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The ID of the IP allowlist configuration."""
+
+    allowed_ips: Optional[List[str]] = None
+    """The IP addresses or CIDR ranges that were in the configuration."""
+
+    name: Optional[str] = None
+    """The name of the IP allowlist configuration."""
+
+
+class IPAllowlistUpdated(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The ID of the IP allowlist configuration."""
+
+    allowed_ips: Optional[List[str]] = None
+    """The updated set of IP addresses or CIDR ranges in the configuration."""
+
+
+class LoginFailed(BaseModel):
+    """The details for events with this `type`."""
+
+    error_code: Optional[str] = None
+    """The error code of the failure."""
+
+    error_message: Optional[str] = None
+    """The error message of the failure."""
+
+
+class LogoutFailed(BaseModel):
+    """The details for events with this `type`."""
+
+    error_code: Optional[str] = None
+    """The error code of the failure."""
+
+    error_message: Optional[str] = None
+    """The error message of the failure."""
+
+
+class OrganizationUpdatedChangesRequested(BaseModel):
+    """The payload used to update the organization settings."""
+
+    api_call_logging: Optional[str] = None
+    """How your organization logs data from supported API calls.
+
+    One of `disabled`, `enabled_per_call`, `enabled_for_all_projects`, or
+    `enabled_for_selected_projects`
+    """
+
+    api_call_logging_project_ids: Optional[str] = None
+    """
+    The list of project ids if api_call_logging is set to
+    `enabled_for_selected_projects`
+    """
+
+    description: Optional[str] = None
+    """The organization description."""
+
+    name: Optional[str] = None
+    """The organization name."""
+
+    threads_ui_visibility: Optional[str] = None
+    """
+    Visibility of the threads page which shows messages created with the Assistants
+    API and Playground. One of `ANY_ROLE`, `OWNERS`, or `NONE`.
+    """
+
+    title: Optional[str] = None
+    """The organization title."""
+
+    usage_dashboard_visibility: Optional[str] = None
+    """
+    Visibility of the usage dashboard which shows activity and costs for your
+    organization. One of `ANY_ROLE` or `OWNERS`.
+    """
+
+
+class OrganizationUpdated(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The organization ID."""
+
+    changes_requested: Optional[OrganizationUpdatedChangesRequested] = None
+    """The payload used to update the organization settings."""
+
+
+class Project(BaseModel):
+    """The project that the action was scoped to.
+
+    Absent for actions not scoped to projects. Note that any admin actions taken via Admin API keys are associated with the default project.
+    """
+
+    id: Optional[str] = None
+    """The project ID."""
+
+    name: Optional[str] = None
+    """The project title."""
+
+
+class ProjectArchived(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The project ID."""
+
+
+class ProjectCreatedData(BaseModel):
+    """The payload used to create the project."""
+
+    name: Optional[str] = None
+    """The project name."""
+
+    title: Optional[str] = None
+    """The title of the project as seen on the dashboard."""
+
+
+class ProjectCreated(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The project ID."""
+
+    data: Optional[ProjectCreatedData] = None
+    """The payload used to create the project."""
+
+
+class ProjectDeleted(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The project ID."""
+
+
+class ProjectUpdatedChangesRequested(BaseModel):
+    """The payload used to update the project."""
+
+    title: Optional[str] = None
+    """The title of the project as seen on the dashboard."""
+
+
+class ProjectUpdated(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The project ID."""
+
+    changes_requested: Optional[ProjectUpdatedChangesRequested] = None
+    """The payload used to update the project."""
+
+
+class RateLimitDeleted(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The rate limit ID"""
+
+
+class RateLimitUpdatedChangesRequested(BaseModel):
+    """The payload used to update the rate limits."""
+
+    batch_1_day_max_input_tokens: Optional[int] = None
+    """The maximum batch input tokens per day. Only relevant for certain models."""
+
+    max_audio_megabytes_per_1_minute: Optional[int] = None
+    """The maximum audio megabytes per minute. Only relevant for certain models."""
+
+    max_images_per_1_minute: Optional[int] = None
+    """The maximum images per minute. Only relevant for certain models."""
+
+    max_requests_per_1_day: Optional[int] = None
+    """The maximum requests per day. Only relevant for certain models."""
+
+    max_requests_per_1_minute: Optional[int] = None
+    """The maximum requests per minute."""
+
+    max_tokens_per_1_minute: Optional[int] = None
+    """The maximum tokens per minute."""
+
+
+class RateLimitUpdated(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The rate limit ID"""
+
+    changes_requested: Optional[RateLimitUpdatedChangesRequested] = None
+    """The payload used to update the rate limits."""
+
+
+class RoleAssignmentCreated(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The identifier of the role assignment."""
+
+    principal_id: Optional[str] = None
+    """The principal (user or group) that received the role."""
+
+    principal_type: Optional[str] = None
+    """The type of principal (user or group) that received the role."""
+
+    resource_id: Optional[str] = None
+    """The resource the role assignment is scoped to."""
+
+    resource_type: Optional[str] = None
+    """The type of resource the role assignment is scoped to."""
+
+
+class RoleAssignmentDeleted(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The identifier of the role assignment."""
+
+    principal_id: Optional[str] = None
+    """The principal (user or group) that had the role removed."""
+
+    principal_type: Optional[str] = None
+    """The type of principal (user or group) that had the role removed."""
+
+    resource_id: Optional[str] = None
+    """The resource the role assignment was scoped to."""
+
+    resource_type: Optional[str] = None
+    """The type of resource the role assignment was scoped to."""
+
+
+class RoleBoundToResource(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The ID of the resource the role was bound to.
+
+    ChatGPT workspace connector resources use `<workspace_id>__<connector_id>`.
+    """
+
+    connector_id: Optional[str] = None
+    """The connector ID for a ChatGPT workspace connector resource."""
+
+    connector_name: Optional[str] = None
+    """
+    The connector display name for a ChatGPT workspace connector resource, or the
+    connector ID when the display name could not be resolved.
+    """
+
+    enabled: Optional[bool] = None
+    """Whether the connector is enabled for the role."""
+
+    permissions: Optional[List[str]] = None
+    """The permissions granted to the role for the resource."""
+
+    resource_id: Optional[str] = None
+    """The ID of the resource the role was bound to."""
+
+    resource_type: Optional[str] = None
+    """The type of resource the role was bound to."""
+
+    role_id: Optional[str] = None
+    """The ID of the role that was bound to the resource."""
+
+    source: Optional[
+        Literal["role_toggle", "role_connector_update", "role_delete", "workspace_permissions", "connector_publish"]
+    ] = None
+    """The connector role mutation path that produced the event."""
+
+    workspace_id: Optional[str] = None
+    """The workspace ID for a ChatGPT workspace connector resource."""
+
+
+class RoleCreated(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The role ID."""
+
+    permissions: Optional[List[str]] = None
+    """The permissions granted by the role."""
+
+    resource_id: Optional[str] = None
+    """The resource the role is scoped to."""
+
+    resource_type: Optional[str] = None
+    """The type of resource the role belongs to."""
+
+    role_name: Optional[str] = None
+    """The name of the role."""
+
+
+class RoleDeleted(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The role ID."""
+
+
+class RoleUnboundFromResource(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The ID of the resource the role was unbound from.
+
+    ChatGPT workspace connector resources use `<workspace_id>__<connector_id>`.
+    """
+
+    connector_id: Optional[str] = None
+    """The connector ID for a ChatGPT workspace connector resource."""
+
+    connector_name: Optional[str] = None
+    """
+    The connector display name for a ChatGPT workspace connector resource, or the
+    connector ID when the display name could not be resolved.
+    """
+
+    enabled: Optional[bool] = None
+    """Whether the connector is enabled for the role."""
+
+    permissions: Optional[List[str]] = None
+    """The permissions remaining for the role after the change."""
+
+    resource_id: Optional[str] = None
+    """The ID of the resource the role was unbound from."""
+
+    resource_type: Optional[str] = None
+    """The type of resource the role was unbound from."""
+
+    role_id: Optional[str] = None
+    """The ID of the role that was unbound from the resource."""
+
+    source: Optional[
+        Literal["role_toggle", "role_connector_update", "role_delete", "workspace_permissions", "connector_publish"]
+    ] = None
+    """The connector role mutation path that produced the event."""
+
+    workspace_id: Optional[str] = None
+    """The workspace ID for a ChatGPT workspace connector resource."""
+
+
+class RoleUpdatedChangesRequested(BaseModel):
+    """The payload used to update the role."""
+
+    description: Optional[str] = None
+    """The updated role description, when provided."""
+
+    metadata: Optional[object] = None
+    """Additional metadata stored on the role."""
+
+    permissions_added: Optional[List[str]] = None
+    """The permissions added to the role."""
+
+    permissions_removed: Optional[List[str]] = None
+    """The permissions removed from the role."""
+
+    resource_id: Optional[str] = None
+    """The resource the role is scoped to."""
+
+    resource_type: Optional[str] = None
+    """The type of resource the role belongs to."""
+
+    role_name: Optional[str] = None
+    """The updated role name, when provided."""
+
+
+class RoleUpdated(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The role ID."""
+
+    changes_requested: Optional[RoleUpdatedChangesRequested] = None
+    """The payload used to update the role."""
+
+
+class ScimDisabled(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The ID of the SCIM was disabled for."""
+
+
+class ScimEnabled(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The ID of the SCIM was enabled for."""
+
+
+class ServiceAccountCreatedData(BaseModel):
+    """The payload used to create the service account."""
+
+    role: Optional[str] = None
+    """The role of the service account. Is either `owner` or `member`."""
+
+
+class ServiceAccountCreated(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The service account ID."""
+
+    data: Optional[ServiceAccountCreatedData] = None
+    """The payload used to create the service account."""
+
+
+class ServiceAccountDeleted(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The service account ID."""
+
+
+class ServiceAccountUpdatedChangesRequested(BaseModel):
+    """The payload used to updated the service account."""
+
+    role: Optional[str] = None
+    """The role of the service account. Is either `owner` or `member`."""
+
+
+class ServiceAccountUpdated(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The service account ID."""
+
+    changes_requested: Optional[ServiceAccountUpdatedChangesRequested] = None
+    """The payload used to updated the service account."""
+
+
+class UserAddedData(BaseModel):
+    """The payload used to add the user to the project."""
+
+    role: Optional[str] = None
+    """The role of the user. Is either `owner` or `member`."""
+
+
+class UserAdded(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The user ID."""
+
+    data: Optional[UserAddedData] = None
+    """The payload used to add the user to the project."""
+
+
+class UserDeleted(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The user ID."""
+
+
+class UserUpdatedChangesRequested(BaseModel):
+    """The payload used to update the user."""
+
+    role: Optional[str] = None
+    """The role of the user. Is either `owner` or `member`."""
+
+
+class UserUpdated(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The project ID."""
+
+    changes_requested: Optional[UserUpdatedChangesRequested] = None
+    """The payload used to update the user."""
+
+
+class WorkloadIdentityProviderMappingCreated(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The workload identity provider mapping ID."""
+
+    data: Optional[object] = None
+    """The payload used to create the workload identity provider mapping."""
+
+    identity_provider_id: Optional[str] = None
+    """The workload identity provider ID."""
+
+
+class WorkloadIdentityProviderMappingDeleted(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The workload identity provider mapping ID."""
+
+    identity_provider_id: Optional[str] = None
+    """The workload identity provider ID."""
+
+    project_id: Optional[str] = None
+    """The project ID."""
+
+    service_account_id: Optional[str] = None
+    """The mapped service account ID."""
+
+
+class WorkloadIdentityProviderMappingUpdated(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The workload identity provider mapping ID."""
+
+    changes_requested: Optional[object] = None
+    """The payload used to update the workload identity provider mapping."""
+
+    identity_provider_id: Optional[str] = None
+    """The workload identity provider ID."""
+
+
+class WorkloadIdentityProviderCreated(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The workload identity provider ID."""
+
+    data: Optional[object] = None
+    """The payload used to create the workload identity provider."""
+
+
+class WorkloadIdentityProviderDeleted(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The workload identity provider ID."""
+
+    name: Optional[str] = None
+    """The workload identity provider name."""
+
+
+class WorkloadIdentityProviderUpdated(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The workload identity provider ID."""
+
+    changes_requested: Optional[object] = None
+    """The payload used to update the workload identity provider."""
+
+
+class AuditLogListResponse(BaseModel):
+    """A log of a user action or configuration change within this organization."""
+
+    id: str
+    """The ID of this log."""
+
+    effective_at: int
+    """The Unix timestamp (in seconds) of the event."""
+
+    type: Literal[
+        "api_key.created",
+        "api_key.updated",
+        "api_key.deleted",
+        "certificate.created",
+        "certificate.updated",
+        "certificate.deleted",
+        "certificates.activated",
+        "certificates.deactivated",
+        "checkpoint.permission.created",
+        "checkpoint.permission.deleted",
+        "external_key.registered",
+        "external_key.removed",
+        "group.created",
+        "group.updated",
+        "group.deleted",
+        "invite.sent",
+        "invite.accepted",
+        "invite.deleted",
+        "ip_allowlist.created",
+        "ip_allowlist.updated",
+        "ip_allowlist.deleted",
+        "ip_allowlist.config.activated",
+        "ip_allowlist.config.deactivated",
+        "login.succeeded",
+        "login.failed",
+        "logout.succeeded",
+        "logout.failed",
+        "organization.updated",
+        "project.created",
+        "project.updated",
+        "project.archived",
+        "project.deleted",
+        "rate_limit.updated",
+        "rate_limit.deleted",
+        "resource.deleted",
+        "tunnel.created",
+        "tunnel.updated",
+        "tunnel.deleted",
+        "workload_identity_provider.created",
+        "workload_identity_provider.updated",
+        "workload_identity_provider.deleted",
+        "workload_identity_provider_mapping.created",
+        "workload_identity_provider_mapping.updated",
+        "workload_identity_provider_mapping.deleted",
+        "role.created",
+        "role.updated",
+        "role.deleted",
+        "role.assignment.created",
+        "role.assignment.deleted",
+        "role.bound_to_resource",
+        "role.unbound_from_resource",
+        "scim.enabled",
+        "scim.disabled",
+        "service_account.created",
+        "service_account.updated",
+        "service_account.deleted",
+        "user.added",
+        "user.updated",
+        "user.deleted",
+        "tenant.metadata.updated",
+        "tenant.microsoft_entra_mapping.upserted",
+        "tenant.microsoft_entra_mapping.deleted",
+        "tenant.workload_identity.provider.created",
+        "tenant.workload_identity.provider.updated",
+        "tenant.workload_identity.provider.archived",
+        "tenant.workload_identity.mapping.created",
+        "tenant.workload_identity.mapping.updated",
+        "tenant.workload_identity.mapping.archived",
+        "tenant.workload_identity.binding.created",
+        "tenant.workload_identity.principal.provisioned",
+        "tenant.admin_api_key.created",
+        "tenant.admin_api_key.updated",
+        "tenant.admin_api_key.deleted",
+        "tenant.project_api_key.created",
+        "tenant.chatgpt_access_token.revoked",
+        "tenant.migration.completed",
+        "tenant.sso.migrated",
+        "tenant.domains.migrated",
+        "tenant.sso_connection.created",
+        "tenant.sso_connection.updated",
+        "tenant.sso_connection.deleted",
+        "tenant.sso_connection.setup.started",
+        "tenant.policy.created",
+        "tenant.policy.updated",
+        "tenant.policy.deleted",
+        "tenant.policy.attached",
+        "tenant.policy.detached",
+        "tenant.principal_authentication_policy.resolved",
+        "tenant.scim.setup.started",
+        "tenant.scim.deletion.requested",
+        "tenant.scim.directory.created",
+        "tenant.product_access_policy.updated",
+        "tenant.resource_share_grant.created",
+        "tenant.resource_share_grant.updated",
+        "tenant.resource_share_grant.accepted",
+        "tenant.resource_share_grant.declined",
+        "tenant.resource_share_grant.revoked",
+        "tenant.resource_share_grant.deleted",
+        "tenant.service_account.updated",
+        "tenant.service_account.deleted",
+        "tenant.service_account.token.revoked",
+        "tenant.billing.overage_limit.updated",
+        "tenant.billing.alerts.updated",
+        "tenant.billing.info.updated",
+        "tenant.usage_limit.workspace.updated",
+        "tenant.usage_limit.group.updated",
+        "tenant.usage_limit.user.updated",
+        "tenant.usage_limit.increase_request.updated",
+        "tenant.usage_limit.increase_request.resolved",
+        "tenant.group.created",
+        "tenant.group.updated",
+        "tenant.group.deleted",
+        "tenant.group.member.added",
+        "tenant.group.member.removed",
+        "tenant.migration_rollout.status.updated",
+        "tenant.migration_rollout.tier.updated",
+        "tenant.role.metadata.updated",
+        "tenant.custom_role.created",
+        "tenant.custom_role.updated",
+        "tenant.custom_role.deleted",
+        "tenant.role_assignment.created",
+        "tenant.role_assignment.deleted",
+        "tenant.resource_role_assignment.created",
+        "tenant.resource_role_assignment.deleted",
+        "tenant.resource_access.updated",
+        "tenant.resource_access.deleted",
+        "tenant.session_policy.created",
+        "tenant.session_policy.updated",
+        "tenant.session_policy.deleted",
+        "tenant.session_revocation.started",
+        "tenant.third_party_app_policy.updated",
+        "tenant.user.added",
+        "tenant.user.updated",
+        "tenant.user.removed",
+        "tenant.user.looked_up",
+        "tenant.user.invited",
+        "tenant.membership.revoked",
+        "tenant.api_organization_invite.upserted",
+        "tenant.api_organization_invite.deleted",
+        "tenant.chatgpt_workspace_invite.upserted",
+        "tenant.membership.accepted",
+        "tenant.membership.declined",
+        "tenant.workspace_invite_email_settings.updated",
+    ]
+    """The event type."""
+
+    actor: Optional[Actor] = None
+    """The actor who performed the audit logged action."""
+
+    api_key_created: Optional[APIKeyCreated] = FieldInfo(alias="api_key.created", default=None)
+    """The details for events with this `type`."""
+
+    api_key_deleted: Optional[APIKeyDeleted] = FieldInfo(alias="api_key.deleted", default=None)
+    """The details for events with this `type`."""
+
+    api_key_updated: Optional[APIKeyUpdated] = FieldInfo(alias="api_key.updated", default=None)
+    """The details for events with this `type`."""
+
+    certificate_created: Optional[CertificateCreated] = FieldInfo(alias="certificate.created", default=None)
+    """The details for events with this `type`."""
+
+    certificate_deleted: Optional[CertificateDeleted] = FieldInfo(alias="certificate.deleted", default=None)
+    """The details for events with this `type`."""
+
+    certificate_updated: Optional[CertificateUpdated] = FieldInfo(alias="certificate.updated", default=None)
+    """The details for events with this `type`."""
+
+    certificates_activated: Optional[CertificatesActivated] = FieldInfo(alias="certificates.activated", default=None)
+    """The details for events with this `type`."""
+
+    certificates_deactivated: Optional[CertificatesDeactivated] = FieldInfo(
+        alias="certificates.deactivated", default=None
+    )
+    """The details for events with this `type`."""
+
+    checkpoint_permission_created: Optional[CheckpointPermissionCreated] = FieldInfo(
+        alias="checkpoint.permission.created", default=None
+    )
+    """
+    The project and fine-tuned model checkpoint that the checkpoint permission was
+    created for.
+    """
+
+    checkpoint_permission_deleted: Optional[CheckpointPermissionDeleted] = FieldInfo(
+        alias="checkpoint.permission.deleted", default=None
+    )
+    """The details for events with this `type`."""
+
+    external_key_registered: Optional[ExternalKeyRegistered] = FieldInfo(alias="external_key.registered", default=None)
+    """The details for events with this `type`."""
+
+    external_key_removed: Optional[ExternalKeyRemoved] = FieldInfo(alias="external_key.removed", default=None)
+    """The details for events with this `type`."""
+
+    group_created: Optional[GroupCreated] = FieldInfo(alias="group.created", default=None)
+    """The details for events with this `type`."""
+
+    group_deleted: Optional[GroupDeleted] = FieldInfo(alias="group.deleted", default=None)
+    """The details for events with this `type`."""
+
+    group_updated: Optional[GroupUpdated] = FieldInfo(alias="group.updated", default=None)
+    """The details for events with this `type`."""
+
+    invite_accepted: Optional[InviteAccepted] = FieldInfo(alias="invite.accepted", default=None)
+    """The details for events with this `type`."""
+
+    invite_deleted: Optional[InviteDeleted] = FieldInfo(alias="invite.deleted", default=None)
+    """The details for events with this `type`."""
+
+    invite_sent: Optional[InviteSent] = FieldInfo(alias="invite.sent", default=None)
+    """The details for events with this `type`."""
+
+    ip_allowlist_config_activated: Optional[IPAllowlistConfigActivated] = FieldInfo(
+        alias="ip_allowlist.config.activated", default=None
+    )
+    """The details for events with this `type`."""
+
+    ip_allowlist_config_deactivated: Optional[IPAllowlistConfigDeactivated] = FieldInfo(
+        alias="ip_allowlist.config.deactivated", default=None
+    )
+    """The details for events with this `type`."""
+
+    ip_allowlist_created: Optional[IPAllowlistCreated] = FieldInfo(alias="ip_allowlist.created", default=None)
+    """The details for events with this `type`."""
+
+    ip_allowlist_deleted: Optional[IPAllowlistDeleted] = FieldInfo(alias="ip_allowlist.deleted", default=None)
+    """The details for events with this `type`."""
+
+    ip_allowlist_updated: Optional[IPAllowlistUpdated] = FieldInfo(alias="ip_allowlist.updated", default=None)
+    """The details for events with this `type`."""
+
+    login_failed: Optional[LoginFailed] = FieldInfo(alias="login.failed", default=None)
+    """The details for events with this `type`."""
+
+    login_succeeded: Optional[object] = FieldInfo(alias="login.succeeded", default=None)
+    """This event has no additional fields beyond the standard audit log attributes."""
+
+    logout_failed: Optional[LogoutFailed] = FieldInfo(alias="logout.failed", default=None)
+    """The details for events with this `type`."""
+
+    logout_succeeded: Optional[object] = FieldInfo(alias="logout.succeeded", default=None)
+    """This event has no additional fields beyond the standard audit log attributes."""
+
+    organization_updated: Optional[OrganizationUpdated] = FieldInfo(alias="organization.updated", default=None)
+    """The details for events with this `type`."""
+
+    project: Optional[Project] = None
+    """The project that the action was scoped to.
+
+    Absent for actions not scoped to projects. Note that any admin actions taken via
+    Admin API keys are associated with the default project.
+    """
+
+    project_archived: Optional[ProjectArchived] = FieldInfo(alias="project.archived", default=None)
+    """The details for events with this `type`."""
+
+    project_created: Optional[ProjectCreated] = FieldInfo(alias="project.created", default=None)
+    """The details for events with this `type`."""
+
+    project_deleted: Optional[ProjectDeleted] = FieldInfo(alias="project.deleted", default=None)
+    """The details for events with this `type`."""
+
+    project_updated: Optional[ProjectUpdated] = FieldInfo(alias="project.updated", default=None)
+    """The details for events with this `type`."""
+
+    rate_limit_deleted: Optional[RateLimitDeleted] = FieldInfo(alias="rate_limit.deleted", default=None)
+    """The details for events with this `type`."""
+
+    rate_limit_updated: Optional[RateLimitUpdated] = FieldInfo(alias="rate_limit.updated", default=None)
+    """The details for events with this `type`."""
+
+    role_assignment_created: Optional[RoleAssignmentCreated] = FieldInfo(alias="role.assignment.created", default=None)
+    """The details for events with this `type`."""
+
+    role_assignment_deleted: Optional[RoleAssignmentDeleted] = FieldInfo(alias="role.assignment.deleted", default=None)
+    """The details for events with this `type`."""
+
+    role_bound_to_resource: Optional[RoleBoundToResource] = FieldInfo(alias="role.bound_to_resource", default=None)
+    """The details for events with this `type`."""
+
+    role_created: Optional[RoleCreated] = FieldInfo(alias="role.created", default=None)
+    """The details for events with this `type`."""
+
+    role_deleted: Optional[RoleDeleted] = FieldInfo(alias="role.deleted", default=None)
+    """The details for events with this `type`."""
+
+    role_unbound_from_resource: Optional[RoleUnboundFromResource] = FieldInfo(
+        alias="role.unbound_from_resource", default=None
+    )
+    """The details for events with this `type`."""
+
+    role_updated: Optional[RoleUpdated] = FieldInfo(alias="role.updated", default=None)
+    """The details for events with this `type`."""
+
+    scim_disabled: Optional[ScimDisabled] = FieldInfo(alias="scim.disabled", default=None)
+    """The details for events with this `type`."""
+
+    scim_enabled: Optional[ScimEnabled] = FieldInfo(alias="scim.enabled", default=None)
+    """The details for events with this `type`."""
+
+    service_account_created: Optional[ServiceAccountCreated] = FieldInfo(alias="service_account.created", default=None)
+    """The details for events with this `type`."""
+
+    service_account_deleted: Optional[ServiceAccountDeleted] = FieldInfo(alias="service_account.deleted", default=None)
+    """The details for events with this `type`."""
+
+    service_account_updated: Optional[ServiceAccountUpdated] = FieldInfo(alias="service_account.updated", default=None)
+    """The details for events with this `type`."""
+
+    user_added: Optional[UserAdded] = FieldInfo(alias="user.added", default=None)
+    """The details for events with this `type`."""
+
+    user_deleted: Optional[UserDeleted] = FieldInfo(alias="user.deleted", default=None)
+    """The details for events with this `type`."""
+
+    user_updated: Optional[UserUpdated] = FieldInfo(alias="user.updated", default=None)
+    """The details for events with this `type`."""
+
+    workload_identity_provider_mapping_created: Optional[WorkloadIdentityProviderMappingCreated] = FieldInfo(
+        alias="workload_identity_provider_mapping.created", default=None
+    )
+    """The details for events with this `type`."""
+
+    workload_identity_provider_mapping_deleted: Optional[WorkloadIdentityProviderMappingDeleted] = FieldInfo(
+        alias="workload_identity_provider_mapping.deleted", default=None
+    )
+    """The details for events with this `type`."""
+
+    workload_identity_provider_mapping_updated: Optional[WorkloadIdentityProviderMappingUpdated] = FieldInfo(
+        alias="workload_identity_provider_mapping.updated", default=None
+    )
+    """The details for events with this `type`."""
+
+    workload_identity_provider_created: Optional[WorkloadIdentityProviderCreated] = FieldInfo(
+        alias="workload_identity_provider.created", default=None
+    )
+    """The details for events with this `type`."""
+
+    workload_identity_provider_deleted: Optional[WorkloadIdentityProviderDeleted] = FieldInfo(
+        alias="workload_identity_provider.deleted", default=None
+    )
+    """The details for events with this `type`."""
+
+    workload_identity_provider_updated: Optional[WorkloadIdentityProviderUpdated] = FieldInfo(
+        alias="workload_identity_provider.updated", default=None
+    )
+    """The details for events with this `type`."""

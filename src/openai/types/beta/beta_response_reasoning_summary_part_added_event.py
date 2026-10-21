@@ -1,0 +1,50 @@
+# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+
+from typing import Optional
+from typing_extensions import Literal
+
+from ..._models import BaseModel
+
+__all__ = ["BetaResponseReasoningSummaryPartAddedEvent", "Part", "Agent"]
+
+
+class Part(BaseModel):
+    """The summary part that was added."""
+
+    text: str
+    """The text of the summary part."""
+
+    type: Literal["summary_text"]
+    """The type of the summary part. Always `summary_text`."""
+
+
+class Agent(BaseModel):
+    """The agent that owns this multi-agent streaming event."""
+
+    agent_name: str
+    """The canonical name of the agent that produced this item."""
+
+
+class BetaResponseReasoningSummaryPartAddedEvent(BaseModel):
+    """Emitted when a new reasoning summary part is added."""
+
+    item_id: str
+    """The ID of the item this summary part is associated with."""
+
+    output_index: int
+    """The index of the output item this summary part is associated with."""
+
+    part: Part
+    """The summary part that was added."""
+
+    sequence_number: int
+    """The sequence number of this event."""
+
+    summary_index: int
+    """The index of the summary part within the reasoning summary."""
+
+    type: Literal["response.reasoning_summary_part.added"]
+    """The type of the event. Always `response.reasoning_summary_part.added`."""
+
+    agent: Optional[Agent] = None
+    """The agent that owns this multi-agent streaming event."""
