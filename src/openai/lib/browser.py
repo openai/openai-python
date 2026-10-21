@@ -1199,7 +1199,7 @@ def _arguments(member: str, raw: str) -> dict[str, object]:
 
 def _output(
     call: ResponseFunctionToolCall,
-    state: BrowserState,
+    state: BrowserState | None,
     result: object,
     error: str | None,
 ) -> _BrowserResult:
@@ -1208,7 +1208,9 @@ def _output(
     if ok and call.name[8:] in _FILE_TRANSFERS:
         # The execution boundary already validated and detached this result.
         ok = cast(BrowserFileOutcome, result)["status"] == "completed"
-    payload: dict[str, object] = {"ok": ok, "state": state}
+    payload: dict[str, object] = {"ok": ok}
+    if state is not None:
+        payload["state"] = state
     if error is not None:
         payload["error"] = error
     elif call.name in ("browser_zoom", "browser_screenshot"):
@@ -1470,8 +1472,12 @@ class BrowserToolset(_BrowserBase):
         if not isinstance(cast(object, call.call_id), str):
             raise RuntimeError("BrowserToolset requires a string call_id.")
         _capture_replay([call])
+        started = monotonic()
         active = call.type == "function_call" and call.status in (None, "completed") and call.name in self._names
-        member = call.name[8:] if active else None
+        if not active:
+            emit_tool_diagnostic(on_diagnostic, "browser", "arguments", "invalid_input", started, call_id=call.call_id)
+            return _output(call, None, None, "Browser tool is unavailable or incomplete.")
+        member: str | None = call.name[8:]
         if skip and member in self._confirm_reads:
             return _read_refused(call)
         if skip:
@@ -1723,8 +1729,12 @@ class AsyncBrowserToolset(_BrowserBase):
         if not isinstance(cast(object, call.call_id), str):
             raise RuntimeError("BrowserToolset requires a string call_id.")
         _capture_replay([call])
+        started = monotonic()
         active = call.type == "function_call" and call.status in (None, "completed") and call.name in self._names
-        member = call.name[8:] if active else None
+        if not active:
+            emit_tool_diagnostic(on_diagnostic, "browser", "arguments", "invalid_input", started, call_id=call.call_id)
+            return _output(call, None, None, "Browser tool is unavailable or incomplete.")
+        member: str | None = call.name[8:]
         if skip and member in self._confirm_reads:
             return _read_refused(call)
         if skip:

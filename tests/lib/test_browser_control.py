@@ -209,6 +209,73 @@ async def test_sensitive_read_approval_precedes_any_state_and_preserves_original
 
 
 @pytest.mark.parametrize("lane", ["sync", "async"])
+@pytest.mark.parametrize("skip", [False, True])
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("name", "browser_unknown"),
+        ("name", "other_tool"),
+        ("name", "browser_get_page_text"),
+        ("type", "message"),
+        ("status", "in_progress"),
+        ("status", "incomplete"),
+    ],
+)
+async def test_invalid_browser_call_never_reads_state(
+    lane: str, skip: bool, field: str, value: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    effects: list[str] = []
+    diagnostics: list[ToolDiagnostic] = []
+
+    def state() -> BrowserState:
+        effects.append("state")
+        return {
+            "tabs": [{"id": "t", "title": "sentinel-private-title", "url": "https://private.invalid", "active": True}]
+        }
+
+    async def astate() -> BrowserState:
+        return state()
+
+    def confirm(_ctx: BrowserConfirmContext | BrowserReadConfirmContext) -> bool:
+        effects.append("confirm")
+        return False
+
+    async def aconfirm(ctx: BrowserConfirmContext | BrowserReadConfirmContext) -> bool:
+        return confirm(ctx)
+
+    class Driver(SimpleNamespace):
+        pass
+
+    driver = Driver(state=state if lane == "sync" else astate)
+    request = call("list_tabs")
+    setattr(request, field, value)
+    browser: BrowserToolset | AsyncBrowserToolset
+    if lane == "sync":
+        browser = BrowserToolset(cast(BrowserDriver, driver), confirm_reads=["list_tabs"], confirm=confirm)
+    else:
+        browser = AsyncBrowserToolset(cast(AsyncBrowserDriver, driver), confirm_reads=["list_tabs"], confirm=aconfirm)
+
+    # Even looking up the state property may expose caller-owned browser state.
+    def state_property(_self: object) -> object:
+        effects.append("state_lookup")
+        return state if lane == "sync" else astate
+
+    monkeypatch.setattr(Driver, "state", property(state_property), raising=False)
+    if isinstance(browser, BrowserToolset):
+        output, ok = browser._execute(request, skip=skip, on_diagnostic=diagnostics.append)
+    else:
+        output, ok = await browser._execute(request, skip=skip, on_diagnostic=diagnostics.append)
+
+    assert effects == []
+    assert ok is False
+    assert output.get("call_id") == "real-id"
+    content = output["output"]
+    assert isinstance(content, list) and len(content) == 1 and content[0]["type"] == "input_text"
+    assert json.loads(content[0]["text"]) == {"ok": False, "error": "Browser tool is unavailable or incomplete."}
+    assert [(entry["stage"], entry["reason"]) for entry in diagnostics] == [("arguments", "invalid_input")]
+
+
+@pytest.mark.parametrize("lane", ["sync", "async"])
 async def test_pointer_and_checkbox_are_explicit_and_close_is_reentrant_without_closing_driver(lane: str) -> None:
     checked = False
     touched: list[str] = []
