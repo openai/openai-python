@@ -452,5 +452,462 @@
         "evidence": "https://github.com/openai/openai-python/actions/runs/39315896992"
       }
     }
-  ]
+  ],
+  "current_audit": {
+    "audit_date": "2026-10-21",
+    "sdk_commit": "b668ee88e7cb670704a0fd300152da29666b26cc",
+    "public_codegen_commit": "efa5c8db4dbf18180716aff72b9a58d1a9d6d2d6",
+    "generation_id": "d25554dd-0197-4996-acdc-7aade76e2045",
+    "codegen_hash": "7c1bfd93466328a0bae3a67e40c27251bc2152767cd7cf0c12835d7fac647efd",
+    "reporter_sha256": "6b7cfda1f85426daaa2e4f6186e2d1b20ac638dadaa54be8142ecec89fefd880",
+    "measurement": "generated-owned paths; git diff --numstat --no-renames; additions plus deletions; physical lines include comments and blanks",
+    "totals": {
+      "mixed_files": 42,
+      "added_lines": 6106,
+      "deleted_lines": 1292,
+      "custom_patch_lines": 7398,
+      "current_physical_lines": 46685,
+      "generated_physical_lines": 41871
+    },
+    "files": [
+      {
+        "path": "src/openai/resources/beta/threads/runs/runs.py",
+        "added": 1290,
+        "removed": 181,
+        "patch": 1471,
+        "present": true,
+        "current_lines": 3161,
+        "generated_lines": 2052,
+        "track": "T4"
+      },
+      {
+        "path": "src/openai/resources/responses/responses.py",
+        "added": 920,
+        "removed": 74,
+        "patch": 994,
+        "present": true,
+        "current_lines": 5169,
+        "generated_lines": 4323,
+        "track": "T5"
+      },
+      {
+        "path": "src/openai/resources/audio/transcriptions.py",
+        "added": 287,
+        "removed": 601,
+        "patch": 888,
+        "present": true,
+        "current_lines": 1089,
+        "generated_lines": 1403,
+        "track": "T3"
+      },
+      {
+        "path": "src/openai/_client.py",
+        "added": 759,
+        "removed": 60,
+        "patch": 819,
+        "present": true,
+        "current_lines": 2401,
+        "generated_lines": 1702,
+        "track": "T2"
+      },
+      {
+        "path": "src/openai/resources/chat/completions/completions.py",
+        "added": 603,
+        "removed": 1,
+        "patch": 604,
+        "present": true,
+        "current_lines": 3456,
+        "generated_lines": 2854,
+        "track": "T6"
+      },
+      {
+        "path": "src/openai/resources/beta/threads/threads.py",
+        "added": 390,
+        "removed": 7,
+        "patch": 397,
+        "present": true,
+        "current_lines": 2009,
+        "generated_lines": 1626,
+        "track": "T4"
+      },
+      {
+        "path": "src/openai/resources/vector_stores/file_batches.py",
+        "added": 242,
+        "removed": 3,
+        "patch": 245,
+        "present": true,
+        "current_lines": 867,
+        "generated_lines": 628,
+        "track": "T7"
+      },
+      {
+        "path": "src/openai/resources/uploads/uploads.py",
+        "added": 221,
+        "removed": 0,
+        "patch": 221,
+        "present": true,
+        "current_lines": 765,
+        "generated_lines": 544,
+        "track": "T8"
+      },
+      {
+        "path": "src/openai/resources/vector_stores/files.py",
+        "added": 220,
+        "removed": 1,
+        "patch": 221,
+        "present": true,
+        "current_lines": 1032,
+        "generated_lines": 813,
+        "track": "T7"
+      },
+      {
+        "path": "src/openai/__init__.py",
+        "added": 185,
+        "removed": 1,
+        "patch": 186,
+        "present": true,
+        "current_lines": 505,
+        "generated_lines": 321,
+        "track": "T2"
+      },
+      {
+        "path": "src/openai/resources/videos.py",
+        "added": 153,
+        "removed": 2,
+        "patch": 155,
+        "present": true,
+        "current_lines": 1457,
+        "generated_lines": 1306,
+        "track": "T10"
+      },
+      {
+        "path": "api.md",
+        "added": 119,
+        "removed": 8,
+        "patch": 127,
+        "present": true,
+        "current_lines": 2090,
+        "generated_lines": 1979,
+        "track": "T16"
+      },
+      {
+        "path": "src/openai/resources/beta/agents/environments/files.py",
+        "added": 125,
+        "removed": 2,
+        "patch": 127,
+        "present": true,
+        "current_lines": 596,
+        "generated_lines": 473,
+        "track": "T9"
+      },
+      {
+        "path": "src/openai/resources/beta/agents/sessions/sessions.py",
+        "added": 113,
+        "removed": 11,
+        "patch": 124,
+        "present": true,
+        "current_lines": 1304,
+        "generated_lines": 1202,
+        "track": "T9"
+      },
+      {
+        "path": "src/openai/resources/audio/translations.py",
+        "added": 40,
+        "removed": 75,
+        "patch": 115,
+        "present": true,
+        "current_lines": 374,
+        "generated_lines": 409,
+        "track": "T3"
+      },
+      {
+        "path": "src/openai/resources/beta/responses/responses.py",
+        "added": 55,
+        "removed": 55,
+        "patch": 110,
+        "present": true,
+        "current_lines": 5563,
+        "generated_lines": 5563,
+        "track": "T5"
+      },
+      {
+        "path": "src/openai/resources/webhooks/webhooks.py",
+        "added": 89,
+        "removed": 4,
+        "patch": 93,
+        "present": true,
+        "current_lines": 1146,
+        "generated_lines": 1061,
+        "track": "T12"
+      },
+      {
+        "path": "tests/api_resources/test_videos.py",
+        "added": 54,
+        "removed": 34,
+        "patch": 88,
+        "present": true,
+        "current_lines": 939,
+        "generated_lines": 919,
+        "track": "T10"
+      },
+      {
+        "path": "src/openai/resources/webhooks/__init__.py",
+        "added": 24,
+        "removed": 55,
+        "patch": 79,
+        "present": true,
+        "current_lines": 42,
+        "generated_lines": 73,
+        "track": "T12"
+      },
+      {
+        "path": "src/openai/resources/embeddings.py",
+        "added": 27,
+        "removed": 21,
+        "patch": 48,
+        "present": true,
+        "current_lines": 263,
+        "generated_lines": 257,
+        "track": "T13"
+      },
+      {
+        "path": "src/openai/resources/live/forks.py",
+        "added": 15,
+        "removed": 18,
+        "patch": 33,
+        "present": true,
+        "current_lines": 1444,
+        "generated_lines": 1447,
+        "track": "T11"
+      },
+      {
+        "path": "src/openai/resources/live/sideband.py",
+        "added": 15,
+        "removed": 18,
+        "patch": 33,
+        "present": true,
+        "current_lines": 1421,
+        "generated_lines": 1424,
+        "track": "T11"
+      },
+      {
+        "path": "src/openai/resources/files.py",
+        "added": 26,
+        "removed": 0,
+        "patch": 26,
+        "present": true,
+        "current_lines": 826,
+        "generated_lines": 800,
+        "track": "T14"
+      },
+      {
+        "path": "scripts/castiron/custom_code_budget.py",
+        "added": 14,
+        "removed": 11,
+        "patch": 25,
+        "present": true,
+        "current_lines": 758,
+        "generated_lines": 755,
+        "track": "T0",
+        "ast_equivalent": true
+      },
+      {
+        "path": "scripts/castiron/test_custom_code_budget.py",
+        "added": 15,
+        "removed": 6,
+        "patch": 21,
+        "present": true,
+        "current_lines": 773,
+        "generated_lines": 764,
+        "track": "T0",
+        "ast_equivalent": true
+      },
+      {
+        "path": "src/openai/resources/beta/beta.py",
+        "added": 21,
+        "removed": 0,
+        "patch": 21,
+        "present": true,
+        "current_lines": 269,
+        "generated_lines": 248,
+        "track": "T15"
+      },
+      {
+        "path": "src/openai/resources/realtime/api.md",
+        "added": 0,
+        "removed": 20,
+        "patch": 20,
+        "present": true,
+        "current_lines": 149,
+        "generated_lines": 169,
+        "track": "T16"
+      },
+      {
+        "path": "src/openai/resources/realtime/translations/translations.py",
+        "added": 18,
+        "removed": 2,
+        "patch": 20,
+        "present": true,
+        "current_lines": 1140,
+        "generated_lines": 1124,
+        "track": "T11"
+      },
+      {
+        "path": "src/openai/resources/live/live.py",
+        "added": 11,
+        "removed": 6,
+        "patch": 17,
+        "present": true,
+        "current_lines": 1641,
+        "generated_lines": 1636,
+        "track": "T11"
+      },
+      {
+        "path": "src/openai/resources/realtime/realtime.py",
+        "added": 9,
+        "removed": 3,
+        "patch": 12,
+        "present": true,
+        "current_lines": 1658,
+        "generated_lines": 1652,
+        "track": "T11"
+      },
+      {
+        "path": "src/openai/types/decision_input_image_param.py",
+        "added": 11,
+        "removed": 1,
+        "patch": 12,
+        "present": true,
+        "current_lines": 47,
+        "generated_lines": 37,
+        "track": "T1"
+      },
+      {
+        "path": "src/openai/types/decision_input_text_param.py",
+        "added": 11,
+        "removed": 1,
+        "patch": 12,
+        "present": true,
+        "current_lines": 33,
+        "generated_lines": 23,
+        "track": "T1"
+      },
+      {
+        "path": "src/openai/resources/beta/agents/sessions/artifacts.py",
+        "added": 10,
+        "removed": 0,
+        "patch": 10,
+        "present": true,
+        "current_lines": 561,
+        "generated_lines": 551,
+        "track": "T9"
+      },
+      {
+        "path": "src/openai/types/webhooks/__init__.py",
+        "added": 3,
+        "removed": 1,
+        "patch": 4,
+        "present": true,
+        "current_lines": 73,
+        "generated_lines": 71,
+        "track": "T1"
+      },
+      {
+        "path": "src/openai/types/webhooks/unwrap_webhook_event.py",
+        "added": 2,
+        "removed": 2,
+        "patch": 4,
+        "present": true,
+        "current_lines": 74,
+        "generated_lines": 74,
+        "track": "T1"
+      },
+      {
+        "path": "src/openai/types/responses/tool.py",
+        "added": 1,
+        "removed": 2,
+        "patch": 3,
+        "present": true,
+        "current_lines": 398,
+        "generated_lines": 399,
+        "track": "T1"
+      },
+      {
+        "path": "src/openai/types/responses/tool_param.py",
+        "added": 3,
+        "removed": 0,
+        "patch": 3,
+        "present": true,
+        "current_lines": 398,
+        "generated_lines": 395,
+        "track": "T1"
+      },
+      {
+        "path": "src/openai/types/webhooks/live_call_incoming_webhook_event.py",
+        "added": 2,
+        "removed": 1,
+        "patch": 3,
+        "present": true,
+        "current_lines": 71,
+        "generated_lines": 70,
+        "track": "T1"
+      },
+      {
+        "path": "src/openai/types/fine_tuning/fine_tuning_job_integration.py",
+        "added": 0,
+        "removed": 2,
+        "patch": 2,
+        "present": true,
+        "current_lines": 5,
+        "generated_lines": 7,
+        "track": "T1"
+      },
+      {
+        "path": "src/openai/types/realtime/conversation_item_input_audio_transcription_delta_event.py",
+        "added": 1,
+        "removed": 1,
+        "patch": 2,
+        "present": true,
+        "current_lines": 40,
+        "generated_lines": 40,
+        "track": "T1"
+      },
+      {
+        "path": "src/openai/types/realtime/realtime_error_event.py",
+        "added": 1,
+        "removed": 1,
+        "patch": 2,
+        "present": true,
+        "current_lines": 25,
+        "generated_lines": 25,
+        "track": "T1"
+      },
+      {
+        "path": "scripts/castiron/test_custom_code_github.py",
+        "added": 1,
+        "removed": 0,
+        "patch": 1,
+        "present": true,
+        "current_lines": 653,
+        "generated_lines": 652,
+        "track": "T0",
+        "ast_equivalent": true
+      }
+    ],
+    "ownership": {
+      "generated_paths": 1968,
+      "generated_source_paths": 1797,
+      "excluded_source_paths": 204,
+      "excluded_source_lines": 35158
+    },
+    "changes_from_original": {
+      "resolved": [
+        "scripts/castiron/test_custom_code_report.py"
+      ],
+      "new": [
+        "scripts/castiron/test_custom_code_budget.py",
+        "scripts/castiron/test_custom_code_github.py"
+      ]
+    }
+  }
 }
