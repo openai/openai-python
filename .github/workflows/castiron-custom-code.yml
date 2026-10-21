@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  REPORTER_SHA256: 1867be6dc5ab291e1fd1a73a1da820c38031fd74fdf3dcadd033690d4e308a50
+  REPORTER_SHA256: 6b7cfda1f85426daaa2e4f6186e2d1b20ac638dadaa54be8142ecec89fefd880
 
 jobs:
   queue-signal:
@@ -89,7 +89,7 @@ jobs:
 
       - name: Upload report and current custom-code patch
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: castiron-custom-code-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/castiron-custom-code/
