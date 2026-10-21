@@ -656,16 +656,12 @@ class AsyncRealtimeConnectionManager:
         else:
             url = self._prepare_url()
             url = url.copy_with(
-                params=httpx2.QueryParams(self.__client.qs.stringify(cast(Any, self.__client.default_query)))
-                .merge(url.params)
-                .merge(
-                    cast(
-                        Any,
-                        {
-                            **({"model": self.__model} if self.__model is not omit else {}),
-                            **extra_query,
-                        },
-                    )
+                params=self.__client._websocket_query_params(
+                    url,
+                    {
+                        **({"model": self.__model} if self.__model is not omit else {}),
+                        **extra_query,
+                    },
                 ),
             )
             url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
@@ -1090,16 +1086,12 @@ class RealtimeConnectionManager:
         else:
             url = self._prepare_url()
             url = url.copy_with(
-                params=httpx2.QueryParams(self.__client.qs.stringify(cast(Any, self.__client.default_query)))
-                .merge(url.params)
-                .merge(
-                    cast(
-                        Any,
-                        {
-                            **({"model": self.__model} if self.__model is not omit else {}),
-                            **extra_query,
-                        },
-                    )
+                params=self.__client._websocket_query_params(
+                    url,
+                    {
+                        **({"model": self.__model} if self.__model is not omit else {}),
+                        **extra_query,
+                    },
                 ),
             )
             url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))

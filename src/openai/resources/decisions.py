@@ -68,7 +68,7 @@ class Decisions(SyncAPIResource):
 
           model: The model to use. Only `gpt-6-luna` is supported.
 
-          questions: Ask 1–200 questions about the input. Each question can be a predicate, choice,
+          questions: Ask 1–400 questions about the input. Each question can be a predicate, choice,
               or score. Answers come back in the same order.
 
           prompt_cache_key: Partition prompt cache reuse by caller-provided key.
@@ -166,7 +166,7 @@ class AsyncDecisions(AsyncAPIResource):
 
           model: The model to use. Only `gpt-6-luna` is supported.
 
-          questions: Ask 1–200 questions about the input. Each question can be a predicate, choice,
+          questions: Ask 1–400 questions about the input. Each question can be a predicate, choice,
               or score. Answers come back in the same order.
 
           prompt_cache_key: Partition prompt cache reuse by caller-provided key.
