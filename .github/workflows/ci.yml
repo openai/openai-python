@@ -73,7 +73,9 @@ jobs:
         run: ./scripts/ci-bootstrap
 
       - name: Run build
-        run: uv build
+        run: |
+          uv export --frozen --only-group build --no-emit-project --format requirements-txt --output-file "$RUNNER_TEMP/build-constraints.txt"
+          uv build --build-constraints "$RUNNER_TEMP/build-constraints.txt" --require-hashes
 
       - name: Validate Python version metadata
         run: .venv/bin/python scripts/utils/validate-python-version-wheel.py
