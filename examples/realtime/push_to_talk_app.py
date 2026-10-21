@@ -143,6 +143,7 @@ class RealtimeApp(App[None]):
         self.last_audio_item_id = None
         self.should_send_audio = asyncio.Event()
         self.connected = asyncio.Event()
+        self._mic_stream: Any = None
 
     @override
     def compose(self) -> ComposeResult:
@@ -227,27 +228,30 @@ class RealtimeApp(App[None]):
 
         read_size = int(SAMPLE_RATE * 0.02)
 
-        stream = sd.InputStream(
-            channels=CHANNELS,
-            samplerate=SAMPLE_RATE,
-            dtype="int16",
-        )
-        stream.start()
-
-        status_indicator = self.query_one(AudioStatusIndicator)
-
         try:
             while True:
+                await self.should_send_audio.wait()
+                connection = await self._get_connection()
+                if not self.should_send_audio.is_set():
+                    continue
+
+                if self._mic_stream is None:
+                    # Use a fresh stream for each recording so buffered audio from
+                    # a previous recording cannot be sent when recording resumes.
+                    self._mic_stream = sd.InputStream(
+                        channels=CHANNELS,
+                        samplerate=SAMPLE_RATE,
+                        dtype="int16",
+                    )
+                    self._mic_stream.start()
+
+                stream = self._mic_stream
                 if stream.read_available < read_size:
                     await asyncio.sleep(0)
                     continue
 
-                await self.should_send_audio.wait()
-                status_indicator.is_recording = True
-
                 data, _ = stream.read(read_size)
 
-                connection = await self._get_connection()
                 if not sent_audio:
                     asyncio.create_task(connection.send({"type": "response.cancel"}))
                     sent_audio = True
@@ -258,8 +262,15 @@ class RealtimeApp(App[None]):
         except KeyboardInterrupt:
             pass
         finally:
-            stream.stop()
-            stream.close()
+            self._stop_mic_stream()
+
+    def _stop_mic_stream(self) -> None:
+        if self._mic_stream is not None:
+            try:
+                self._mic_stream.abort()
+            finally:
+                self._mic_stream.close()
+                self._mic_stream = None
 
     async def on_key(self, event: events.Key) -> None:
         """Handle key press events."""
@@ -275,6 +286,7 @@ class RealtimeApp(App[None]):
             status_indicator = self.query_one(AudioStatusIndicator)
             if status_indicator.is_recording:
                 self.should_send_audio.clear()
+                self._stop_mic_stream()
                 status_indicator.is_recording = False
 
                 if (
