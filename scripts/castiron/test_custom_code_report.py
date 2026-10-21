@@ -326,7 +326,11 @@ class CustomCodeTests(GitTestCase):
                 self.assertEqual(public_metadata["Target"], "next")
                 with self.assertRaisesRegex(report.ReportError, "cannot authorize a main"):
                     report.validate_public_target(
-                        public, snapshot["commit"], public_metadata, target_branch="main", fetch=False
+                        public,
+                        snapshot["commit"],
+                        public_metadata,
+                        target_branch="main",
+                        fetch=False,
                     )
         with self.assertRaises(report.ReportError):
             report.prepare_public_snapshot(self.repo, base, head, public, base, "castiron/nextish")

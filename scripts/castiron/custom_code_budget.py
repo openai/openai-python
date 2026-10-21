@@ -235,7 +235,10 @@ def generated_manifest(repo: Path, generated: str) -> dict[bytes, dict[str, str]
             ):
                 raise ValueError(f"manifest disagrees with generated snapshot: {path.decode()}")
     # The manifest is itself immutable, bound by the existing snapshot hash.
-    files[manifest_path] = {"mode": "100644", "sha256": hashlib.sha256(blobs[entry.oid]).hexdigest()}
+    files[manifest_path] = {
+        "mode": "100644",
+        "sha256": hashlib.sha256(blobs[entry.oid]).hexdigest(),
+    }
     return files
 
 
