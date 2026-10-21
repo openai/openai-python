@@ -39,13 +39,13 @@ def test_responses_routing_retry_and_credential_ownership() -> None:
         client.responses.delete("resp_123")
         client.responses.compact(model="enabled-model", input="hi")
 
-    prefix = "/projects/test-project/locations/us-east5/publishers/openai/v1/responses"
+    prefix = "/v1/projects/test-project/locations/us-east5/publishers/openai/v1/responses"
     assert [(r.method, r.url.path) for r in requests] == [
-        ("POST", "/v1" + prefix),
-        ("POST", "/v1" + prefix),
-        ("GET", "/v1beta1" + prefix + "/resp_123"),
-        ("DELETE", "/v1beta1" + prefix + "/resp_123"),
-        ("POST", "/v1" + prefix + "/compact"),
+        ("POST", prefix),
+        ("POST", prefix),
+        ("GET", prefix + "/resp_123"),
+        ("DELETE", prefix + "/resp_123"),
+        ("POST", prefix + "/compact"),
     ]
     assert [r.headers["authorization"] for r in requests] == [f"Bearer fake-{i}" for i in range(1, 6)]
     assert all(r.url.host == "us-east5-aiplatform.googleapis.com" for r in requests)
@@ -60,27 +60,21 @@ def test_lifecycle_route_preserves_escaped_response_id_and_query() -> None:
         client.responses.retrieve("resp_123/input_items", extra_query={"cursor": "a/b"})
 
     assert response.request.url.raw_path == (
-        b"/v1beta1/projects/test-project/locations/global/publishers/openai/v1/responses/resp_123%2Finput_items"
-        b"?cursor=a%2Fb"
+        b"/v1/projects/test-project/locations/global/publishers/openai/v1/responses/resp_123%2Finput_items?cursor=a%2Fb"
     )
 
 
 @pytest.mark.asyncio
-async def test_lifecycle_route_does_not_match_an_escaped_custom_root() -> None:
+async def test_lifecycle_route_preserves_configured_api_root() -> None:
     response = httpx2.Response(200, json={"id": "resp_123", "object": "response.deleted", "deleted": True})
+    base_url = "https://gateway.invalid/v1/projects/project/locations/global/publishers/openai/v1"
     async with AsyncOpenAI(
-        provider=vertex(
-            base_url="https://gateway.invalid/v1/projects%2Fproject/locations/global/publishers/openai/v1",
-            token_provider=lambda: "fake",
-        ),
+        provider=vertex(base_url=base_url, token_provider=lambda: "fake"),
         http_client=httpx2.AsyncClient(transport=httpx2.MockTransport(lambda _: response)),
     ) as client:
         await client.responses.delete("resp_123")
 
-    assert (
-        response.request.url.raw_path
-        == b"/v1/projects%2Fproject/locations/global/publishers/openai/v1/responses/resp_123"
-    )
+    assert str(response.request.url) == f"{base_url}/responses/resp_123"
 
 
 @pytest.mark.parametrize(
@@ -102,12 +96,12 @@ def test_derived_vertex_host_is_used_by_all_response_routes(location: str, host:
             client.responses.retrieve("resp_test")
             client.responses.delete("resp_test")
             client.responses.compact(model="model", input="hi")
-    prefix = f"/projects/env-project/locations/{location}/publishers/openai/v1/responses"
+    prefix = f"/v1/projects/env-project/locations/{location}/publishers/openai/v1/responses"
     assert [(r.url.host, r.method, r.url.path) for r in seen] == [
-        (host, "POST", "/v1" + prefix),
-        (host, "GET", "/v1beta1" + prefix + "/resp_test"),
-        (host, "DELETE", "/v1beta1" + prefix + "/resp_test"),
-        (host, "POST", "/v1" + prefix + "/compact"),
+        (host, "POST", prefix),
+        (host, "GET", prefix + "/resp_test"),
+        (host, "DELETE", prefix + "/resp_test"),
+        (host, "POST", prefix + "/compact"),
     ]
 
 
@@ -126,7 +120,7 @@ def test_domain_scoped_project_routes_as_one_path_segment(project: str | None, e
             client.responses.retrieve("resp_test")
 
     assert str(response.request.url) == (
-        "https://aiplatform.googleapis.com/v1beta1/projects/example.com:my-project/locations/global/"
+        "https://aiplatform.googleapis.com/v1/projects/example.com:my-project/locations/global/"
         "publishers/openai/v1/responses/resp_test"
     )
 
