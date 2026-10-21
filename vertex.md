@@ -23,6 +23,8 @@ You can set `GOOGLE_CLOUD_PROJECT` and `GOOGLE_CLOUD_LOCATION` instead of passin
 
 To supply existing Google credentials, pass `credentials=` to `vertex()`. If your application manages token refresh, pass `token_provider=` instead; the callback returns a bearer token and is invoked for each request attempt. This mode works without the `vertex` extra.
 
-With `AsyncOpenAI`, the token callback may return an awaitable. It runs on the event loop and must not block. If it finishes after the authentication deadline, the client raises `APITimeoutError` before sending the Vertex request.
+With `AsyncOpenAI`, the token callback may return an awaitable. It runs on the event loop and must not block. The read timeout bounds the callback. If it finishes after that deadline, the client raises `APITimeoutError` before sending the Vertex request.
+
+Google authentication uses the configured connect and read timeouts separately. Waiting for another request to refresh shared credentials uses the pool timeout. Async caller cancellation stops waiting for authentication, while any in-progress Google credential operation finishes in its worker thread.
 
 Pass `base_url=` only when you trust the full API root to receive Google credentials. Google endpoints require HTTPS, and redirects are disabled.

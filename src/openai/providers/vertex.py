@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import os
 import re
-import time
 import inspect
 import threading
 from typing import TYPE_CHECKING, Any, Callable, Awaitable, cast
@@ -39,17 +38,11 @@ class _VertexDefinition:
         lock = threading.Lock()
         credentials: Credentials | None = None
 
-        def auth_timeout(request: httpx2.Request) -> float | None:
-            # Authentication may include lock waiting and multiple network calls. Use the
-            # request's read timeout as its overall budget, not its connection timeout.
-            return cast("float | None", request.extensions.get("timeout", {}).get("read"))
-
         def adc_headers(request: httpx2.Request) -> dict[str, str]:
             nonlocal credentials
-            budget = auth_timeout(request)
-            connect_timeout = cast("float | None", request.extensions.get("timeout", {}).get("connect"))
-            started = time.monotonic()
-            acquired = lock.acquire() if budget is None else lock.acquire(timeout=max(0, budget))
+            limits = request.extensions.get("timeout", {})
+            pool_timeout = limits.get("pool")
+            acquired = lock.acquire() if pool_timeout is None else lock.acquire(timeout=max(0, pool_timeout))
             if not acquired:
                 raise APITimeoutError(request=request)
             try:
@@ -69,14 +62,8 @@ class _VertexDefinition:
                     class BoundedRequest(Request):
                         @override
                         def __call__(self, *args: Any, **kwargs: Any) -> Any:
-                            remaining = None
-                            connect = connect_timeout
-                            if budget is not None:
-                                remaining = budget - (time.monotonic() - started)
-                                if remaining <= 0:
-                                    raise APITimeoutError(request=request)
-                                connect = min(connect, remaining) if connect is not None else remaining
-                            kwargs["timeout"] = (connect, remaining)
+                            # Requests accepts separate connect/read limits, including None.
+                            kwargs["timeout"] = (limits.get("connect"), limits.get("read"))
                             try:
                                 return super().__call__(*args, **kwargs)  # type: ignore[no-untyped-call]
                             except TransportError as exc:
@@ -98,8 +85,6 @@ class _VertexDefinition:
                             )
                     headers: dict[str, str] = {}
                     credentials.before_request(bounded_transport, request.method, str(request.url), headers)  # type: ignore[no-untyped-call]
-                    if budget is not None and time.monotonic() - started >= budget:
-                        raise APITimeoutError(request=request)
                     return headers
             except (OpenAIError, APITimeoutError):
                 raise
@@ -163,11 +148,11 @@ class _VertexDefinition:
         async def prepare_async(request: httpx2.Request) -> None:
             prepare(request)
             try:
-                with anyio.fail_after(auth_timeout(request)) as scope:
-                    if self.token_provider is None:
-                        headers = await anyio.to_thread.run_sync(adc_headers, request, abandon_on_cancel=True)
-                        request.headers.update(headers)
-                    else:
+                if self.token_provider is None:
+                    headers = await anyio.to_thread.run_sync(adc_headers, request, abandon_on_cancel=True)
+                    request.headers.update(headers)
+                else:
+                    with anyio.fail_after(request.extensions.get("timeout", {}).get("read")) as scope:
                         token = self.token_provider()
                         if inspect.isawaitable(token):
                             token = await token

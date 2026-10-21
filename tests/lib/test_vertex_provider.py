@@ -341,35 +341,60 @@ def test_explicit_service_account_credentials_receive_cloud_platform_scope() -> 
     assert response.request.headers["authorization"] == "Bearer fake-scoped-token"
 
 
-def test_google_auth_preserves_connect_and_read_timeout_phases() -> None:
+@pytest.mark.asyncio
+@pytest.mark.parametrize("async_client", [False, True])
+@pytest.mark.parametrize("connect,read", [(0.001, 1.0), (1.0, 0.001), (None, 1.0), (1.0, None), (None, None)])
+async def test_google_auth_preserves_transport_timeout_phases(
+    async_client: bool,
+    connect: float | None,
+    read: float | None,
+) -> None:
     pytest.importorskip("google.auth")
-    requests = pytest.importorskip("requests")
+    import requests
     from google.oauth2.credentials import Credentials
 
     credentials = Credentials(
         token=None,
-        refresh_token="fake-refresh-token",
+        refresh_token="fake-refresh",
         token_uri="https://accounts.invalid/token",
-        client_id="fake-client-id",
-        client_secret="fake-client-secret",
+        client_id="fake-client",
+        client_secret="fake-secret",
     )
-    token_response = requests.Response()
-    token_response.status_code = 200
-    token_response._content = b'{"access_token":"fake-token","expires_in":3600,"token_type":"Bearer"}'
-    with (
-        patch.object(requests.Session, "request", return_value=token_response) as refresh,
-        OpenAI(
-            provider=vertex(base_url="https://trusted.invalid/v1", credentials=credentials),
-            timeout=httpx2.Timeout(2.0, connect=0.02),
-            http_client=httpx2.Client(
-                transport=httpx2.MockTransport(lambda _: httpx2.Response(200, json={"id": "resp_test", "output": []}))
-            ),
-        ) as client,
-    ):
-        client.responses.create(model="model", input="hello")
-    connect, read = refresh.call_args.kwargs["timeout"]
-    assert connect == 0.02
-    assert read > connect
+
+    def refresh_response(*_args: object, **kwargs: object) -> requests.Response:
+        assert kwargs["timeout"] == (connect, read)
+        # The transport owns the phases; elapsed authentication time must not be
+        # compared against the smaller phase's timeout by the provider.
+        time.sleep(0.02)
+        response = requests.Response()
+        response.status_code = 200
+        response._content = b'{"access_token":"fake-refreshed","expires_in":3600,"token_type":"Bearer"}'
+        return response
+
+    def handle(request: httpx2.Request) -> httpx2.Response:
+        assert request.headers["authorization"] == "Bearer fake-refreshed"
+        return httpx2.Response(200, json={"id": "resp_fixture", "output": []})
+
+    provider = vertex(base_url="https://vertex.invalid/v1", credentials=credentials)
+    timeout = httpx2.Timeout(1, connect=connect, read=read)
+    with patch.object(requests.Session, "request", side_effect=refresh_response) as refresh_mock:
+        if async_client:
+            async with AsyncOpenAI(
+                provider=provider,
+                timeout=timeout,
+                max_retries=0,
+                http_client=httpx2.AsyncClient(transport=httpx2.MockTransport(handle)),
+            ) as client:
+                await client.responses.create(model="fixture", input="hi")
+        else:
+            with OpenAI(
+                provider=provider,
+                timeout=timeout,
+                max_retries=0,
+                http_client=httpx2.Client(transport=httpx2.MockTransport(handle)),
+            ) as sync_client:
+                sync_client.responses.create(model="fixture", input="hi")
+        assert refresh_mock.call_count == 1
 
 
 def test_sync_google_auth_refresh_timeout_is_api_timeout() -> None:
@@ -427,7 +452,7 @@ async def test_auth_deadline_and_openai_header_boundaries() -> None:
     assert not sent
 
 
-def test_async_google_auth_deadline_stops_waiting_on_trio() -> None:
+def test_async_google_auth_cancellation_stops_waiting_on_trio() -> None:
     pytest.importorskip("google.auth")
     from google.auth.credentials import Credentials
 
@@ -453,7 +478,7 @@ def test_async_google_auth_deadline_stops_waiting_on_trio() -> None:
             max_retries=0,
             http_client=httpx2.AsyncClient(transport=httpx2.MockTransport(handle)),
         ) as client:
-            with pytest.raises(APITimeoutError):
+            with pytest.raises(TimeoutError), anyio.fail_after(0.3):
                 await client.responses.create(model="customer-model", input="hello")
             assert started.is_set()
             assert not finished.is_set()
@@ -551,3 +576,38 @@ def test_tools_and_stream_error_use_responses_contract_without_replay() -> None:
             with pytest.raises(APIError, match="fake-error"):
                 next(iterator)
     assert len(bodies) == 3
+
+
+def test_google_auth_lock_wait_uses_pool_timeout() -> None:
+    pytest.importorskip("google.auth")
+    from google.auth.credentials import Credentials
+
+    started = threading.Event()
+    release = threading.Event()
+    credentials = create_autospec(Credentials, instance=True)
+
+    def block_auth(_request: object, _method: str, _url: str, headers: dict[str, str]) -> None:
+        started.set()
+        assert release.wait(timeout=2)
+        headers["authorization"] = "Bearer fake-token"
+
+    credentials.before_request.side_effect = block_auth
+    response = httpx2.Response(200, json={"id": "resp_test", "output": []})
+    with (
+        OpenAI(
+            provider=vertex(base_url="https://trusted.invalid/v1", credentials=credentials),
+            timeout=httpx2.Timeout(1, pool=0.01),
+            max_retries=0,
+            http_client=httpx2.Client(transport=httpx2.MockTransport(lambda _: response)),
+        ) as client,
+        ThreadPoolExecutor(max_workers=1) as pool,
+    ):
+        first = pool.submit(client.responses.create, model="fixture", input="hi")
+        try:
+            assert started.wait(timeout=1)
+            with pytest.raises(APITimeoutError):
+                client.responses.create(model="fixture", input="hi")
+        finally:
+            release.set()
+        assert first.result(timeout=2).id == "resp_test"
+    assert credentials.before_request.call_count == 1
