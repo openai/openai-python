@@ -49,12 +49,27 @@ def _check_connection(client: OpenAI | AsyncOpenAI, model: str, query: Query) ->
         raise ValueError("Realtime Translation does not accept an intent query parameter.")
 
 
-def _connection_query(client: OpenAI | AsyncOpenAI, model: str, query: Query) -> Query:
+class _PreparedTranslationQuery(httpx2.QueryParams):
+    """Complete managed query; its removed defaults must not be added again."""
+
+
+def _connection_query(client: OpenAI | AsyncOpenAI, model: str, query: Query) -> _PreparedTranslationQuery:
     # Preserve Translation's base URL query when a separate WebSocket gateway is used.
-    params = client.base_url.params.merge(client.qs.stringify(cast(Any, client.default_query)))
+    params = client.base_url.params
+    # Defaults override the HTTP base URL, while the WebSocket URL wins over both.
+    # Let the shared helper encode the defaults after retiring logical overrides.
+    default_params = httpx2.QueryParams(client.qs.stringify(cast(Any, client.default_query)))
+    params = httpx2.QueryParams([(key, value) for key, value in params.multi_items() if key not in default_params])
     if client.websocket_base_url is not None:
         params = params.merge(httpx2.URL(str(client.websocket_base_url)).params)
-    return cast(Query, params.merge({"model": model}).merge(cast(Any, query)))
+    connection_query: Query = (
+        httpx2.QueryParams({"model": model}).merge(query)
+        if isinstance(query, httpx2.QueryParams)
+        else {"model": model, **query}
+    )
+    return _PreparedTranslationQuery(
+        client._websocket_query_params(client.base_url.copy_with(params=params), connection_query)
+    )
 
 
 def _parse(data: str | bytes) -> RealtimeTranslationServerEvent:
