@@ -49,8 +49,8 @@ class _VertexDefinition:
                 try:
                     import requests
                     import google.auth
+                    import google.auth.credentials
                     from google.auth.exceptions import TransportError
-                    from google.auth.credentials import with_scopes_if_required
                     from google.auth.transport.requests import Request
                 except ImportError as exc:
                     raise OpenAIError(
@@ -80,9 +80,10 @@ class _VertexDefinition:
                             )
                             credentials, _ = discover(scopes=_CLOUD_PLATFORM_SCOPES, request=bounded_transport)
                         else:
-                            credentials = cast("Callable[..., Credentials]", with_scopes_if_required)(
-                                self.credentials, scopes=_CLOUD_PLATFORM_SCOPES
+                            scope_credentials = cast(
+                                "Callable[..., Credentials]", cast(Any, google.auth.credentials).with_scopes_if_required
                             )
+                            credentials = scope_credentials(self.credentials, scopes=_CLOUD_PLATFORM_SCOPES)
                     headers: dict[str, str] = {}
                     credentials.before_request(bounded_transport, request.method, str(request.url), headers)  # type: ignore[no-untyped-call]
                     return headers
