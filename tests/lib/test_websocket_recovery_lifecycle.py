@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import threading
-from typing import Any
+from typing import Any, Callable
 from typing_extensions import override
 
 import pytest
@@ -13,17 +13,25 @@ from openai import OpenAI, AsyncOpenAI
 PRODUCTS = ["realtime", "transcription", "sideband", "responses", "live"]
 
 
-def manager(client: Any, product: str) -> Any:
-    def on_reconnecting(_event: Any) -> None:
+def manager(client: Any, product: str, on_reconnecting: Callable[[Any], Any] | None = None) -> Any:
+    def allow_reconnecting(_event: Any) -> None:
         pass
 
-    options = {"on_reconnecting": on_reconnecting, "initial_delay": 0}
+    options = {"on_reconnecting": on_reconnecting or allow_reconnecting, "initial_delay": 0}
     if product == "realtime":
         return client.realtime.connect(model="test-model", **options)
     if product == "transcription":
         return client.realtime.connect(extra_query={"intent": "transcription"}, **options)
     if product == "sideband":
         return client.realtime.connect(call_id="test-call", **options)
+    if product == "beta_responses":
+        return client.beta.responses.connect(**options)
+    if product == "live_forks":
+        return client.live.forks.connect(session_id="test-session", **options)
+    if product == "live_sideband":
+        return client.live.sideband.connect(session_id="test-session", **options)
+    if product == "translations":
+        return client.realtime.translations.connect(model="test-model", **options)
     return getattr(client, product).connect(**options)
 
 
@@ -267,3 +275,72 @@ def test_sync_recovery_keeps_close_authoritative(
                 release.set()
                 worker.join(10)
                 iterator.close()
+
+
+@pytest.mark.parametrize("product", PRODUCTS + ["beta_responses", "live_forks", "live_sideband", "translations"])
+@pytest.mark.parametrize("interrupt_from", ["callback", "handshake"])
+@pytest.mark.parametrize("error_type", [KeyboardInterrupt, SystemExit])
+def test_interrupted_sync_recovery_rejects_sends_until_retried(
+    monkeypatch: pytest.MonkeyPatch, product: str, interrupt_from: str, error_type: type[BaseException]
+) -> None:
+    original, replacement = Socket(True), Socket(False)
+    failure = error_type("synthetic recovery interruption")
+    opens = 0
+    callbacks = 0
+
+    def connect(*_args: Any, **_kwargs: Any) -> Socket:
+        nonlocal opens
+        opens += 1
+        if opens == 1:
+            return original
+        if opens == 2 and interrupt_from == "handshake":
+            raise failure
+        return replacement
+
+    def reconnecting(_event: Any) -> None:
+        nonlocal callbacks
+        callbacks += 1
+        if callbacks == 1 and interrupt_from == "callback":
+            raise failure
+
+    monkeypatch.setattr("websockets.sync.client.connect", connect)
+    with OpenAI(api_key="fake-key") as client:
+        with manager(client, product, reconnecting) as connection:
+            with pytest.raises(error_type) as caught:
+                next(iter(connection))
+            assert caught.value is failure
+            with pytest.raises(ConnectionClosedError):
+                connection.send_raw('{"type":"synthetic.after_interrupt_raw"}')
+            with pytest.raises(ConnectionClosedError):
+                connection.send({"type": "synthetic.after_interrupt_typed"})
+            # A later receive may start another recovery. The failed sends
+            # above must not be silently transmitted as a result.
+            event = next(iter(connection))
+            assert getattr(event, "type", None) == "synthetic.progress"
+            assert callbacks == 2
+            assert opens == (3 if interrupt_from == "handshake" else 2)
+            assert original.sent == []
+            assert replacement.sent == []
+
+
+@pytest.mark.parametrize("product", PRODUCTS)
+def test_ordinary_sync_reconnecting_error_preserves_original_close(
+    monkeypatch: pytest.MonkeyPatch, product: str
+) -> None:
+    original = Socket(True)
+
+    def connect(*_args: Any, **_kwargs: Any) -> Socket:
+        return original
+
+    monkeypatch.setattr("websockets.sync.client.connect", connect)
+
+    def reconnecting(_event: Any) -> None:
+        raise ValueError("synthetic callback error")
+
+    with OpenAI(api_key="fake-key") as client:
+        with manager(client, product, reconnecting) as connection:
+            with pytest.raises(ConnectionClosedError):
+                next(iter(connection))
+            with pytest.raises(ConnectionClosedError):
+                connection.send_raw('{"type":"synthetic.after_error"}')
+            assert original.sent == []

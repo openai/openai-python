@@ -98,74 +98,74 @@ class WebSocketConnectionBase:
         else:
             self._is_reconnecting = True
 
-        for attempt in range(self._reconnect_attempt + 1, self._max_retries + 1):
-            self._reconnect_attempt = attempt
-            base_delay = min(self._initial_delay * (2 ** (attempt - 1)), self._max_delay)
-            jitter = 0.75 + random.random() * 0.25
-            delay = base_delay * jitter
+        try:
+            for attempt in range(self._reconnect_attempt + 1, self._max_retries + 1):
+                self._reconnect_attempt = attempt
+                base_delay = min(self._initial_delay * (2 ** (attempt - 1)), self._max_delay)
+                jitter = 0.75 + random.random() * 0.25
+                delay = base_delay * jitter
 
-            event = ReconnectingEvent(
-                attempt=attempt,
-                max_attempts=self._max_retries,
-                delay=delay,
-                close_code=close_code,
-                extra_query=self._extra_query,
-                extra_headers=self._extra_headers,
-            )
+                event = ReconnectingEvent(
+                    attempt=attempt,
+                    max_attempts=self._max_retries,
+                    delay=delay,
+                    close_code=close_code,
+                    extra_query=self._extra_query,
+                    extra_headers=self._extra_headers,
+                )
 
-            try:
-                result = self._on_reconnecting(event)
-            except Exception:
-                self._is_reconnecting = False
-                return False
+                try:
+                    result = self._on_reconnecting(event)
+                except Exception:
+                    return False
 
-            if result is not None and result.get("abort"):
-                self._is_reconnecting = False
-                return False
+                if result is not None and result.get("abort"):
+                    return False
 
-            if result is not None:
-                if "extra_query" in result:
-                    self._extra_query = result["extra_query"]
-                if "extra_headers" in result:
-                    self._extra_headers = result["extra_headers"]
+                if result is not None:
+                    if "extra_query" in result:
+                        self._extra_query = result["extra_query"]
+                    if "extra_headers" in result:
+                        self._extra_headers = result["extra_headers"]
 
-            self._logger.info(
-                "Reconnecting to WebSocket API (attempt %d/%d) after %.1fs delay",
-                attempt,
-                self._max_retries,
-                delay,
-            )
-            if self._interruptible_reconnect:
-                closed = self._close_event.wait(delay)
-            else:
-                time.sleep(delay)
-                closed = self._intentionally_closed
-            if closed:
-                self._is_reconnecting = False
-                return False
-
-            try:
-                connection = self._make_ws(self._extra_query, self._extra_headers)
+                self._logger.info(
+                    "Reconnecting to WebSocket API (attempt %d/%d) after %.1fs delay",
+                    attempt,
+                    self._max_retries,
+                    delay,
+                )
                 if self._interruptible_reconnect:
-                    with self._connection_lock:
-                        closed = self._intentionally_closed
-                        if not closed:
-                            self._connection = connection
-                    if closed:
-                        connection.close()
-                        self._is_reconnecting = False
-                        return False
+                    closed = self._close_event.wait(delay)
                 else:
-                    self._connection = connection
-                self._logger.info("Reconnected to WebSocket API")
-                self._is_reconnecting = False
-                self._flush_send_queue()
-                return True
-            except Exception:
-                pass
+                    time.sleep(delay)
+                    closed = self._intentionally_closed
+                if closed:
+                    return False
 
-        self._is_reconnecting = False
-        return False
+                try:
+                    connection = self._make_ws(self._extra_query, self._extra_headers)
+                    if self._interruptible_reconnect:
+                        with self._connection_lock:
+                            closed = self._intentionally_closed
+                            if not closed:
+                                self._connection = connection
+                        if closed:
+                            connection.close()
+                            return False
+                    else:
+                        self._connection = connection
+                    self._logger.info("Reconnected to WebSocket API")
+                    self._is_reconnecting = False
+                    self._flush_send_queue()
+                    return True
+                except Exception:
+                    # Ordinary setup failures consume an attempt. The outer
+                    # finally ends queue admission when recovery exits.
+                    pass
+
+            return False
+        finally:
+            self._is_reconnecting = False
 
     def _flush_send_queue(self) -> None:
         """Send all queued messages over the current connection."""
