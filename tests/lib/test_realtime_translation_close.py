@@ -232,6 +232,7 @@ def test_interrupted_native_close_reaches_translation_owner(
 def test_failed_close_worker_start_still_closes_owned_translation(monkeypatch: pytest.MonkeyPatch) -> None:
     original_close = TranslationsConnection.close
     starting = RuntimeError("fixture worker could not start")
+    server_ready = threading.Event()
     calls = 0
 
     def counted_close(raw: TranslationsConnection, *, code: int = 1000, reason: str = "") -> None:
@@ -243,6 +244,7 @@ def test_failed_close_worker_start_still_closes_owned_translation(monkeypatch: p
         raise starting
 
     def handler(ws: ServerConnection) -> None:
+        server_ready.set()
         ws.send('{"type":"session.closed","event_id":"done"}')
         with pytest.raises(ConnectionClosed):
             ws.recv(timeout=5)
@@ -253,6 +255,7 @@ def test_failed_close_worker_start_still_closes_owned_translation(monkeypatch: p
     ):
         with TranslationSession(client.realtime.translations, model="gpt-realtime-translate") as connection:
             # Only inject failure after server and client transport workers exist.
+            assert server_ready.wait(5), "fixture server did not finish starting transport workers"
             with monkeypatch.context() as patch:
                 patch.setattr(TranslationsConnection, "close", counted_close)
                 patch.setattr(threading.Thread, "start", fail_start)

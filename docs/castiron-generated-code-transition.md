@@ -6,6 +6,68 @@ Eliminate handwritten patches in generated-owned files while preserving every ex
 
 No removals or renames of public symbols, new required arguments, narrower input/return types, dependency or Python-floor changes, altered defaults, new payload limits, changed warnings, or changed sync/async behavior are authorized by this transition. Deprecated methods and compatibility import paths remain supported.
 
+## Current measurement — 2026-10-21
+
+Public main `b668ee88e7cb670704a0fd300152da29666b26cc` contains **42 mixed files; 6,106 additions + 1,292 deletions = 7,398 custom patch lines**, with **46,685 integrated physical lines versus 41,871 generated physical lines**. The fixed October 19 audit below remains historical; the JSON records this refresh separately under `current_audit`.
+
+Verified public snapshot: `efa5c8db4dbf18180716aff72b9a58d1a9d6d2d6`; generation `d25554dd-0197-4996-acdc-7aade76e2045`; generated-content SHA-256 `7c1bfd93466328a0bae3a67e40c27251bc2152767cd7cf0c12835d7fac647efd`. The unchanged reporter extracted from this main revision (SHA-256 `6b7cfda1f85426daaa2e4f6186e2d1b20ac638dadaa54be8142ecec89fefd880`) verified metadata, ancestry and content hash directly, without the earlier I/O workaround. Reproduce the report below with both `--base` and `--head` set to this main SHA.
+
+All 39 remaining files after #4113 retain their previous patch sizes. Three reporting files now add **47 formatting-only patch lines**: `custom_code_budget.py` (25), `test_custom_code_budget.py` (21), and `test_custom_code_github.py` (1). Generated and integrated ASTs match for all three. This is a regression from the measured 39 files / 7,351 lines, not progress toward zero. The original reporting-test customization remains removed. Current policy remains 10,000 lines, with 2,602 lines of headroom.
+
+The compiler re-emits shared repository tooling after SDK formatting to preserve cross-language byte identity. The SDK formatter subsequently changes the noncanonical template formatting. Renew T0 by canonicalizing the shared templates and verifying formatter convergence; preserve the shared-tooling invariant, reporter semantics and all policy gates. A source-only restore would not establish durability. No source-family reduction is claimed until verified generated output lands.
+
+The snapshot owns 1,968 paths, including 1,797 source paths. Another 204 source files (35,158 physical lines) remain outside its ownership and are not mixed files. No mode-only or binary differences occur. The top six mixed files account for 5,173 patch lines (about 70%); finishing small tracks must lead into the larger client, audio, Assistants and parsing families.
+
+### Current per-file inventory
+
+
+| File | Integrated lines | Generated lines | Added | Deleted | Patch | Track |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| `src/openai/resources/beta/threads/runs/runs.py` | 3161 | 2052 | 1290 | 181 | 1471 | T4 |
+| `src/openai/resources/responses/responses.py` | 5169 | 4323 | 920 | 74 | 994 | T5 |
+| `src/openai/resources/audio/transcriptions.py` | 1089 | 1403 | 287 | 601 | 888 | T3 |
+| `src/openai/_client.py` | 2401 | 1702 | 759 | 60 | 819 | T2 |
+| `src/openai/resources/chat/completions/completions.py` | 3456 | 2854 | 603 | 1 | 604 | T6 |
+| `src/openai/resources/beta/threads/threads.py` | 2009 | 1626 | 390 | 7 | 397 | T4 |
+| `src/openai/resources/vector_stores/file_batches.py` | 867 | 628 | 242 | 3 | 245 | T7 |
+| `src/openai/resources/uploads/uploads.py` | 765 | 544 | 221 | 0 | 221 | T8 |
+| `src/openai/resources/vector_stores/files.py` | 1032 | 813 | 220 | 1 | 221 | T7 |
+| `src/openai/__init__.py` | 505 | 321 | 185 | 1 | 186 | T2 |
+| `src/openai/resources/videos.py` | 1457 | 1306 | 153 | 2 | 155 | T10 |
+| `api.md` | 2090 | 1979 | 119 | 8 | 127 | T16 |
+| `src/openai/resources/beta/agents/environments/files.py` | 596 | 473 | 125 | 2 | 127 | T9 |
+| `src/openai/resources/beta/agents/sessions/sessions.py` | 1304 | 1202 | 113 | 11 | 124 | T9 |
+| `src/openai/resources/audio/translations.py` | 374 | 409 | 40 | 75 | 115 | T3 |
+| `src/openai/resources/beta/responses/responses.py` | 5563 | 5563 | 55 | 55 | 110 | T5 |
+| `src/openai/resources/webhooks/webhooks.py` | 1146 | 1061 | 89 | 4 | 93 | T12 |
+| `tests/api_resources/test_videos.py` | 939 | 919 | 54 | 34 | 88 | T10 |
+| `src/openai/resources/webhooks/__init__.py` | 42 | 73 | 24 | 55 | 79 | T12 |
+| `src/openai/resources/embeddings.py` | 263 | 257 | 27 | 21 | 48 | T13 |
+| `src/openai/resources/live/forks.py` | 1444 | 1447 | 15 | 18 | 33 | T11 |
+| `src/openai/resources/live/sideband.py` | 1421 | 1424 | 15 | 18 | 33 | T11 |
+| `src/openai/resources/files.py` | 826 | 800 | 26 | 0 | 26 | T14 |
+| `scripts/castiron/custom_code_budget.py` | 758 | 755 | 14 | 11 | 25 | T0 |
+| `scripts/castiron/test_custom_code_budget.py` | 773 | 764 | 15 | 6 | 21 | T0 |
+| `src/openai/resources/beta/beta.py` | 269 | 248 | 21 | 0 | 21 | T15 |
+| `src/openai/resources/realtime/api.md` | 149 | 169 | 0 | 20 | 20 | T16 |
+| `src/openai/resources/realtime/translations/translations.py` | 1140 | 1124 | 18 | 2 | 20 | T11 |
+| `src/openai/resources/live/live.py` | 1641 | 1636 | 11 | 6 | 17 | T11 |
+| `src/openai/resources/realtime/realtime.py` | 1658 | 1652 | 9 | 3 | 12 | T11 |
+| `src/openai/types/decision_input_image_param.py` | 47 | 37 | 11 | 1 | 12 | T1 |
+| `src/openai/types/decision_input_text_param.py` | 33 | 23 | 11 | 1 | 12 | T1 |
+| `src/openai/resources/beta/agents/sessions/artifacts.py` | 561 | 551 | 10 | 0 | 10 | T9 |
+| `src/openai/types/webhooks/__init__.py` | 73 | 71 | 3 | 1 | 4 | T1 |
+| `src/openai/types/webhooks/unwrap_webhook_event.py` | 74 | 74 | 2 | 2 | 4 | T1 |
+| `src/openai/types/responses/tool.py` | 398 | 399 | 1 | 2 | 3 | T1 |
+| `src/openai/types/responses/tool_param.py` | 398 | 395 | 3 | 0 | 3 | T1 |
+| `src/openai/types/webhooks/live_call_incoming_webhook_event.py` | 71 | 70 | 2 | 1 | 3 | T1 |
+| `src/openai/types/fine_tuning/fine_tuning_job_integration.py` | 5 | 7 | 0 | 2 | 2 | T1 |
+| `src/openai/types/realtime/conversation_item_input_audio_transcription_delta_event.py` | 40 | 40 | 1 | 1 | 2 | T1 |
+| `src/openai/types/realtime/realtime_error_event.py` | 25 | 25 | 1 | 1 | 2 | T1 |
+| `scripts/castiron/test_custom_code_github.py` | 653 | 652 | 1 | 0 | 1 | T0 |
+
+Machine-readable evidence: [`castiron-transition-inventory.json`](castiron-transition-inventory.json), under `current_audit`. Reproduce using the pinned main reporter and command below with the current audit SHA for both revisions.
+
 ## Baseline and measurement
 
 Audited 2026-10-19 at public SDK commit `5589146d738e0c38758e117b8383a02c2e4e2ee7`. This is a fixed baseline, not a claim about future main.
@@ -35,13 +97,13 @@ python3 -I scripts/castiron/custom_code_report.py report \
   --out /tmp/python-custom-code-transition
 ```
 
-Read `.castiron.stats.yml` at the inspected revision. Validate public snapshot generation metadata, snapshot-branch ancestry, and content hash through the existing reporter. For physical sizes, read each integrated/generated blob and use `len(blob.splitlines())`; do not count the entire SDK diff because it also contains handwritten-only files. Regenerate this inventory after each promoted generation and record before/after measurements in its PR.
+Read `.castiron.stats.yml` at the inspected revision. Validate public snapshot generation metadata, snapshot-branch ancestry, and content hash through the existing reporter. For physical sizes, read each integrated/generated blob and use `len(blob.splitlines())`; do not count the entire SDK diff because it also contains handwritten-only files. Refresh `current_audit` after each promoted generation and record before/after measurements in its PR.
 
-## Merged progress
+## Historical merged progress — 2026-10-19
 
-[#4113](https://github.com/openai/openai-python/pull/4113) merged on 2026-10-19 at `9d12b565554c08bcee6287c0d8f671b8c97ed911`, verified on `origin/main`. Both reporting files now match the pinned generated snapshot byte for byte; the merge changes only those files. Conductor separately verified all post-merge push checks successful on this merge commit, including [run 39315896992](https://github.com/openai/openai-python/actions/runs/39315896992).
+[#4113](https://github.com/openai/openai-python/pull/4113) merged on 2026-10-19 at `9d12b565554c08bcee6287c0d8f671b8c97ed911`, verified on `origin/main`. Both reporting files matched the pinned generated snapshot byte for byte at that merge; it changed only those files. Conductor separately verified all post-merge push checks successful on this merge commit, including [run 39315896992](https://github.com/openai/openai-python/actions/runs/39315896992).
 
-The post-merge report verifies **39 mixed files; 6,076 additions + 1,275 deletions = 7,351 patch lines**. This is a merged reduction of two files and 17 patch lines. The remaining mixed files contain 44,289 integrated lines versus 39,488 generated lines; all 39 customized blobs are unchanged from the original audit. The generated snapshot, generation ID and content hash remain unchanged. The 10,000-line budget now has 2,649 lines of headroom; no budget change is included.
+The post-merge report verifies **39 mixed files; 6,076 additions + 1,275 deletions = 7,351 patch lines**. This is a merged reduction of two files and 17 patch lines. The remaining mixed files contain 44,289 integrated lines versus 39,488 generated lines; all 39 customized blobs are unchanged from the original audit. The generated snapshot, generation ID and content hash remain unchanged. At that revision, the 10,000-line budget had 2,649 lines of headroom; no budget change is included.
 
 The original inventory below remains the fixed 41-file audit at `5589146d`; the JSON inventory adds a separate `merged_progress` record rather than overwriting its baseline totals or per-file sizes. No compiler-dependent SDK reduction is claimed until its source has merged and its verified generation lands.
 
@@ -280,7 +342,7 @@ A track is complete only when the compiler change has landed (where needed), the
 
 ## Conductor follow-up policy
 
-The user authorizes implementation, publication of independent PRs/Deltas, and automatic reactions to Conductor updates without repeated permission prompts. Each event is a wake-up: fetch current head, reviews/threads, CI and merge state before acting. Address actionable feedback, resolve narrow conflicts, rerun appropriate checks, and keep this ledger current. Deduplicate existing review requests.
+The user authorizes implementation, publication of independent PRs/Deltas, and automatic reactions to Conductor updates without repeated permission prompts. Current coordinating chat: `codex://threads/01a15fb8-0aab-7b52-9dc3-a7622ac190a8`; historical implementation chat: `codex://threads/6ad66292-b06c-8191-b9f2-baafa5fb801d`. Preserve the historical context when routing successor events. Each event is a wake-up: fetch current head, reviews/threads, CI and merge state before acting. Address actionable feedback, resolve narrow conflicts, rerun appropriate checks, and keep this ledger current. Deduplicate existing review requests.
 
 Use ordinary review/check/queue controls; never approve through a human identity, bypass a gate, weaken CODEOWNERS/counting/fixtures/security, force-push shared work, or promote unmerged compiler output. Required SDK CODEOWNER or compiler maintainer approvals remain real prerequisites. Distinguish approved, queued, and actually merged. Scope follow-up to the PRs/Deltas in this transition, preserve dependencies, and suppress unchanged status.
 
@@ -309,13 +371,17 @@ If one successor needs a human review, CI repair, or another merged prerequisite
 | Work | State | Evidence / next action |
 | --- | --- | --- |
 | Baseline audit and plan | Merged; post-merge checks green / complete | [#4114](https://github.com/openai/openai-python/pull/4114), head `7eea9bf1beb552f4db8c456105b6a28bfe9bebe3`, merged as `6a52987f2da5c3bc9b700a7094c0cf14fe7e78dc` on main. Frozen audit: 41 files / 7,368 patch lines at `5589146d`; current merged reduction recorded separately. Explicit current-head human approval and protected merge gates were satisfied. Post-merge push CI, CodeQL and release checks are green on the merge commit, including [run 39316813847](https://github.com/openai/openai-python/actions/runs/39316813847). |
-| T0 generated reporting restoration | Merged; post-merge checks green / complete | [#4113](https://github.com/openai/openai-python/pull/4113), head `886eb8079e65cfc0509fc945c17d7578b3459bfb`, merged as `9d12b565554c08bcee6287c0d8f671b8c97ed911` on main. Both files match the verified generated snapshot byte for byte; post-merge measurement is 39 mixed files / 7,351 patch lines, with all other customizations unchanged. Prior validation: 94 offline tests passed, one compiler-binary contract test skipped (binary unset); AST comparison and assertion mutation passed. Conductor verified every post-merge push check successful on the merge commit, including [run 39315896992](https://github.com/openai/openai-python/actions/runs/39315896992). |
-| T8 upload helper contract coverage | Approved / CI green; current-head automated summary unverified | [#4112](https://github.com/openai/openai-python/pull/4112), `0e81c0e88c57cd5939b03779ccb10e6dda717c5b`; 16 sync/async tests, Ruff, targeted mypy and pinned Pyright pass; reversing part IDs failed six tests as expected. Initial CI typing findings repaired; approval and CI are green on this head. The visible automated summary still identifies superseded `aaeb3972`, so this PR remains outside the queue pending current-head completion. Default 64 MiB boundary is not exercised by this slice. |
-| T10 video polling compatibility | PR open; current-head CI / review pending | [#4115](https://github.com/openai/openai-python/pull/4115), `f1cbaf298195a637f8dffdb7e7580a6f22635d98`; one handwritten file, 21 public-entrypoint sync/async tests passed, Ruff clean. An explicit-interval mutation caused six expected failures; exact runtime bytes restored and all 21 tests passed again. Diagnostic strict Pyright 1.1.413 is clean; the pinned 1.1.414 CI check remains required. Existing dictionary input-reference incompatibility is outside this coverage-only PR and is not locked in as a rejection contract. No generated-source/runtime changes or measured reduction. |
-| T15 Beta resource alias generation | Submitted for compiler review; CI pending | Typed OpenAI-only metadata generates the existing sync/async `beta.chat` and `beta.realtime` cached properties. 72 configuration and 680 renderer tests, generated runtime/actual-SDK getter contracts, Clippy, Ruff and Rustfmt pass. Raw parent comparison preserves all 17 StainlessParity files and unconfigured OpenAI output; configured output changes only the Beta resource module. Independent review found an alias-name shadowing gap; collision guards and regression tests were added and re-review found no blockers. All normal publication hooks passed without skips. No SDK promotion performed: one mixed file / 21 patch lines remains projected until compiler merge and verified generation. |
-| T11 Live queue generation | Submitted for compiler review; CI pending | 679 Python renderer unit tests, six generated WebSocket runtime tests, Clippy and Ruff pass; independent review found no blockers. Raw parent comparison verified identical StainlessParity bytes across 21 files and unchanged OpenAI output for unconfigured resources. The complete published patch also passes the repository debug-code guard. Compiler review currently includes an explicit human compliance approval requirement; agents cannot satisfy it through a reviewer identity. Canonical monorepo CI, required reviews and compiler merge remain prerequisites for SDK promotion. |
-| T1 authored schema documentation | Submitted for source review | Two authored description fixes; parsed schemas identical outside descriptions, exact intended substitutions and normal YAML/push checks pass. Potential reduction two files / four patch lines after verified regeneration. |
-| T14 file-processing delegate | Submitted for compiler review; CI pending | Typed helper binding validated and submitted with normal push hooks enabled. 73 configuration and 679 renderer tests pass; raw parent comparison is byte-identical across 11 files. Generated methods retain AST/signature/doc/module/qualname/defaults/override/await behavior and pass all 13 existing public file-processing tests with the unchanged SDK runtime. Canonical monorepo CI and compiler merge remain required. |
+| T0 generated reporting restoration | Original cleanup merged; renewed formatting work remains | [#4113](https://github.com/openai/openai-python/pull/4113), head `886eb8079e65cfc0509fc945c17d7578b3459bfb`, merged as `9d12b565554c08bcee6287c0d8f671b8c97ed911` on main. Both files matched the verified generated snapshot byte for byte at that merge; its post-merge measurement was 39 mixed files / 7,351 patch lines, with all other customizations unchanged. Prior validation: 94 offline tests passed, one compiler-binary contract test skipped (binary unset); AST comparison and assertion mutation passed. Conductor verified every post-merge push check successful on the merge commit, including [run 39315896992](https://github.com/openai/openai-python/actions/runs/39315896992). |
+| T8 upload helper contract coverage | Merged; successor eligible | [#4112](https://github.com/openai/openai-python/pull/4112) merged on 2026-10-19 as `163a2966140bc0399af7d81e03580d9d907a51df`. Preserve its 16 sync/async contracts in the typed upload-delegation successor. The default 64 MiB boundary remains an additional coverage requirement. This test-only merge does not reduce mixed-file counts or approve a later upload migration. |
+| T10 video polling compatibility | Merged; successor eligible | [#4115](https://github.com/openai/openai-python/pull/4115) merged on 2026-10-19 as `969ae2c734a508ebc5e3370c9dc41bd15602a4a4`. Retain all 21 public-entrypoint sync/async contracts and the interval mutation evidence in the polling-family successor. This test-only merge does not reduce mixed-file counts. |
+| T15 Beta resource alias generation | Open; conflicts repaired; fresh CI and human compliance review pending | [Delta 2566635](https://flow.apps.openai.org/deltas/openai/openai/2566635), head `440d29e065bfe80c8f92e7f1d9ca8a44aef6c6ab`; [build 8880002](https://buildkite.com/openai-mono/monorepo/builds/8880002) is pending after the master refresh and behavior-preserving module extractions required by file-size checks. Preserve exact sync/async cached-property behavior and collision guards. The recorded approval explicitly does not replace pending human compatibility/compliance review. Do not merge on the automated approval alone. |
+| T11 Live queue generation | Open; conflicts repaired; fresh CI and required review pending | [Delta 2565610](https://flow.apps.openai.org/deltas/openai/openai/2565610), head `906ed06a153ad7ff40d0e79982213ac5572a43f0`; [build 8880008](https://buildkite.com/openai-mono/monorepo/builds/8880008) is pending after the master refresh and behavior-preserving module extractions required by file-size checks. Preserve the Live byte limit, direct constructors and caller-owned empty queues. Compiler and required human compliance reviews remain prerequisites. |
+| T1 authored schema documentation | Redundant candidate; merged source already present | [Delta 2565621](https://flow.apps.openai.org/deltas/openai/openai/2565621) duplicates the corrections already merged through [Delta 1490194](https://flow.apps.openai.org/deltas/openai/openai/1490194), commit `97ba353f886c5248912eb50a516cb1aab2fee4c6`. The duplicate is closed with supersession evidence. The generated/integrated SDK descriptions still differ at the current audit; verify input propagation and regenerate before claiming the two-file/four-line reduction. |
+| T7 / T10 / T14 polling family | Existing batch open; conflicts repaired; fresh CI and required review pending | [Delta 2565776](https://flow.apps.openai.org/deltas/openai/openai/2565776), head `e6040d78cf8116173807c6fc94a591e3dd9241fa`; [build 8880006](https://buildkite.com/openai-mono/monorepo/builds/8880006) is pending after the master refresh and behavior-preserving module extractions required by file-size checks. The original Files change has expanded to Files, Videos and vector-store files/batches. Prior review feedback was repaired; current approval/compliance gates remain prerequisites. Preserve prepared runtime extraction, exact facade contracts and generated warning/signature coverage. |
+| T8 / T9 upload and agent facades | Existing batch open; conflicts repaired; fresh CI and required review pending | [Delta 2568634](https://flow.apps.openai.org/deltas/openai/openai/2568634), head `1f4f2cafdac4ef6b504ba2e535174b705aa96acd`; [build 8880007](https://buildkite.com/openai-mono/monorepo/builds/8880007) is pending after the master refresh and behavior-preserving module extractions required by file-size checks. Existing repairs cover generated-name collisions, overload shadowing, child-resource forwarding and test discovery. Preserve synchronous factories on async resources, subclass dispatch, part ordering and cleanup. SDK runtime preparation exists in the original local workspace; recover it before constructing the integration candidate. Compiler merge and separate affected-SDK CODEOWNER review remain required. |
+| T0 recurring reporting formatting | Compiler repair green and approved; protected merge pending | [Delta 2585899](https://flow.apps.openai.org/deltas/openai/openai/2585899), head `d7a85e0380b72dfa446bc61f2a5e23871341cf57`, canonicalizes the three shared templates and adds a formatter-convergence assertion on actual compiler output. AST identity, Ruff 0.16.8/0.16.9 convergence and a negative control against all three original templates pass. Local Bazel was blocked before target analysis by missing sparse-checkout dependencies; compiled-output integration passed [CI 8878534](https://buildkite.com/openai-mono/monorepo/builds/8878534). Two repository hooks with absent scripts were skipped; all other publication/security hooks remained enabled. The 47-line reduction is projected until compiler merge and verified SDK generation. No policy or behavior change. |
+| T11 client WebSocket query composition | Compiler merged; SDK integration remains | [Delta 2585522](https://flow.apps.openai.org/deltas/openai/openai/2585522), head `d64f939e2c2081795eb5457016288548ea7b10ec`, merged as `2d362ee4f251079a7fc6ba607ef835d63f912ad2` after green CI, security review and approvals. Generate the query helper on both clients together with its callers. Coordinate the existing SDK integration before opening a duplicate successor. |
+| Earlier stable web-search naming | Superseded; stale candidate closed | [Internal #55](https://github.com/openai/openai-python-internal/pull/55) closed after confirming merged [Delta 2513050](https://flow.apps.openai.org/deltas/openai/openai/2513050) and exact generated/integrated equality of both stable web-search modules on current main. Do not reintroduce its stale generation metadata or historical cross-language naming change. |
 
 The ledger reports observed work; projected reductions are not merged reductions. Refresh it with PR/Delta links and exact tested heads as publication completes.
 
