@@ -61,6 +61,7 @@ class GitTestCase(unittest.TestCase):
 def source_run(head: str, event: str = "pull_request") -> dict[str, Any]:
     return {
         "id": 123,
+        "workflow_id": 456,
         "event": event,
         "head_sha": head,
         "head_branch": "gh-readonly-queue/main/pr-7-example" if event == "merge_group" else "sdk",

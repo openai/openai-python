@@ -85,9 +85,7 @@ client = OpenAI(
     workload_identity={
         "identity_provider_id": "idp-123",
         "service_account_id": "sa-456",
-        "provider": k8s_service_account_token_provider(
-            "/var/run/secrets/kubernetes.io/serviceaccount/token"
-        ),
+        "provider": k8s_service_account_token_provider("/var/run/secrets/kubernetes.io/serviceaccount/token"),
     },
 )
 
@@ -400,13 +398,12 @@ Basic text based example:
 import asyncio
 from openai import AsyncOpenAI
 
+
 async def main():
     client = AsyncOpenAI()
 
     async with client.realtime.connect(model="gpt-realtime-2") as connection:
-        await connection.session.update(
-            session={"type": "realtime", "output_modalities": ["text"]}
-        )
+        await connection.session.update(session={"type": "realtime", "output_modalities": ["text"]})
 
         await connection.conversation.item.create(
             item={
@@ -427,6 +424,7 @@ async def main():
             elif event.type == "response.done":
                 break
 
+
 asyncio.run(main())
 ```
 
@@ -442,7 +440,7 @@ client = AsyncOpenAI()
 async with client.realtime.connect(model="gpt-realtime-2") as connection:
     ...
     async for event in connection:
-        if event.type == 'error':
+        if event.type == "error":
             print(event.error.type)
             print(event.error.code)
             print(event.error.event_id)
@@ -845,10 +843,10 @@ In an API response, a field may be explicitly `null`, or missing entirely; in ei
 
 ```py
 if response.my_field is None:
-  if 'my_field' not in response.model_fields_set:
-    print('Got json like {}, without a "my_field" key present at all.')
-  else:
-    print('Got json like {"my_field": null}.')
+    if "my_field" not in response.model_fields_set:
+        print('Got json like {}, without a "my_field" key present at all.')
+    else:
+        print('Got json like {"my_field": null}.')
 ```
 
 ### Accessing raw response data (e.g. headers)
@@ -860,13 +858,15 @@ from openai import OpenAI
 
 client = OpenAI()
 response = client.chat.completions.with_raw_response.create(
-    messages=[{
-        "role": "user",
-        "content": "Say this is a test",
-    }],
+    messages=[
+        {
+            "role": "user",
+            "content": "Say this is a test",
+        }
+    ],
     model="gpt-5.5",
 )
-print(response.headers.get('X-My-Header'))
+print(response.headers.get("X-My-Header"))
 
 completion = response.parse()  # get the object that `chat.completions.create()` would have returned
 print(completion)
@@ -1077,8 +1077,8 @@ By default the library closes underlying HTTP connections whenever the client is
 from openai import OpenAI
 
 with OpenAI() as client:
-  # make requests here
-  ...
+    # make requests here
+    ...
 
 # HTTP client is now closed
 ```
@@ -1093,9 +1093,7 @@ from openai import AsyncOpenAI
 
 async def main() -> None:
     async with AsyncOpenAI() as client:
-        response = await client.responses.create(
-            model="gpt-5.5", input="Say this is a test"
-        )
+        response = await client.responses.create(model="gpt-5.5", input="Say this is a test")
         print(response.output_text)
 
 
@@ -1242,6 +1240,7 @@ You can determine the version that is being used at runtime with:
 
 ```py
 import openai
+
 print(openai.__version__)
 ```
 

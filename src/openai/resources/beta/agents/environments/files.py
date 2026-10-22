@@ -33,62 +33,6 @@ __all__ = ["Files", "AsyncFiles"]
 
 
 class Files(SyncAPIResource):
-    def prepare(
-        self,
-        files: Mapping[str, str | PathLike[str]],
-        *,
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> PreparedAgentFiles:
-        """Beta: upload selected files for a new hosted environment."""
-        return prepare(
-            self,
-            files,
-            {"extra_headers": extra_headers, "extra_query": extra_query, "extra_body": extra_body, "timeout": timeout},
-        )
-
-    def prepare_directory(
-        self,
-        root: str | PathLike[str],
-        *,
-        destination: str,
-        include: Sequence[str],
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> PreparedAgentFiles:
-        """Beta: prepare an explicitly selected directory snapshot."""
-        return self.prepare(
-            directory_files(root, destination, include),
-            extra_headers=extra_headers,
-            extra_query=extra_query,
-            extra_body=extra_body,
-            timeout=timeout,
-        )
-
-    def upload(
-        self,
-        environment_id: str,
-        *,
-        file: FileTypes,
-        path: str,
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> StagedAgentFile:
-        """Beta: upload and stage one file in an existing environment."""
-        return upload(
-            self,
-            environment_id,
-            file,
-            path,
-            {"extra_headers": extra_headers, "extra_query": extra_query, "extra_body": extra_body, "timeout": timeout},
-        )
-
     @cached_property
     def with_raw_response(self) -> FilesWithRawResponse:
         """
@@ -107,6 +51,66 @@ class Files(SyncAPIResource):
         For more information, see https://www.github.com/openai/openai-python#with_streaming_response
         """
         return FilesWithStreamingResponse(self)
+
+    def prepare(
+        self,
+        files: Mapping[str, str | PathLike[str]],
+        *,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> PreparedAgentFiles:
+        "Beta: upload selected files for a new hosted environment."
+        return prepare(
+            self,
+            files,
+            {"extra_headers": extra_headers, "extra_query": extra_query, "extra_body": extra_body, "timeout": timeout},
+        )
+
+    def prepare_directory(
+        self,
+        root: str | PathLike[str],
+        *,
+        destination: str,
+        include: Sequence[str],
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> PreparedAgentFiles:
+        "Beta: prepare an explicitly selected directory snapshot."
+        return self.prepare(
+            directory_files(
+                root,
+                destination,
+                include,
+            ),
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
+
+    def upload(
+        self,
+        environment_id: str,
+        *,
+        file: FileTypes,
+        path: str,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> StagedAgentFile:
+        "Beta: upload and stage one file in an existing environment."
+        return upload(
+            self,
+            environment_id,
+            file,
+            path,
+            {"extra_headers": extra_headers, "extra_query": extra_query, "extra_body": extra_body, "timeout": timeout},
+        )
 
     @overload
     def create(
@@ -291,62 +295,6 @@ class Files(SyncAPIResource):
 
 
 class AsyncFiles(AsyncAPIResource):
-    async def prepare(
-        self,
-        files: Mapping[str, str | PathLike[str]],
-        *,
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> PreparedAgentFiles:
-        """Beta: upload selected files for a new hosted environment."""
-        return await async_prepare(
-            self,
-            files,
-            {"extra_headers": extra_headers, "extra_query": extra_query, "extra_body": extra_body, "timeout": timeout},
-        )
-
-    async def prepare_directory(
-        self,
-        root: str | PathLike[str],
-        *,
-        destination: str,
-        include: Sequence[str],
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> PreparedAgentFiles:
-        """Beta: prepare an explicitly selected directory snapshot."""
-        return await self.prepare(
-            await async_directory_files(root, destination, include),
-            extra_headers=extra_headers,
-            extra_query=extra_query,
-            extra_body=extra_body,
-            timeout=timeout,
-        )
-
-    async def upload(
-        self,
-        environment_id: str,
-        *,
-        file: FileTypes,
-        path: str,
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> StagedAgentFile:
-        """Beta: upload and stage one file in an existing environment."""
-        return await async_upload(
-            self,
-            environment_id,
-            file,
-            path,
-            {"extra_headers": extra_headers, "extra_query": extra_query, "extra_body": extra_body, "timeout": timeout},
-        )
-
     @cached_property
     def with_raw_response(self) -> AsyncFilesWithRawResponse:
         """
@@ -365,6 +313,66 @@ class AsyncFiles(AsyncAPIResource):
         For more information, see https://www.github.com/openai/openai-python#with_streaming_response
         """
         return AsyncFilesWithStreamingResponse(self)
+
+    async def prepare(
+        self,
+        files: Mapping[str, str | PathLike[str]],
+        *,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> PreparedAgentFiles:
+        "Beta: upload selected files for a new hosted environment."
+        return await async_prepare(
+            self,
+            files,
+            {"extra_headers": extra_headers, "extra_query": extra_query, "extra_body": extra_body, "timeout": timeout},
+        )
+
+    async def prepare_directory(
+        self,
+        root: str | PathLike[str],
+        *,
+        destination: str,
+        include: Sequence[str],
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> PreparedAgentFiles:
+        "Beta: prepare an explicitly selected directory snapshot."
+        return await self.prepare(
+            await async_directory_files(
+                root,
+                destination,
+                include,
+            ),
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
+
+    async def upload(
+        self,
+        environment_id: str,
+        *,
+        file: FileTypes,
+        path: str,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> StagedAgentFile:
+        "Beta: upload and stage one file in an existing environment."
+        return await async_upload(
+            self,
+            environment_id,
+            file,
+            path,
+            {"extra_headers": extra_headers, "extra_query": extra_query, "extra_body": extra_body, "timeout": timeout},
+        )
 
     @overload
     async def create(

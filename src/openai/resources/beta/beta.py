@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from ..chat import Chat, AsyncChat
 from ..._compat import cached_property
 from .assistants import (
     Assistants,
@@ -36,11 +37,7 @@ from .threads.threads import (
     ThreadsWithStreamingResponse,
     AsyncThreadsWithStreamingResponse,
 )
-from ...resources.chat import Chat, AsyncChat
-from .realtime.realtime import (
-    Realtime,
-    AsyncRealtime,
-)
+from .realtime.realtime import Realtime, AsyncRealtime
 from .responses.responses import (
     Responses,
     AsyncResponses,

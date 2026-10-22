@@ -186,9 +186,7 @@ async def test_approved_results_and_live_cancel_reach_script(lane: str, source: 
         return stopped
 
     assert (
-        payload(await dispatch(browser, "run_script", {**ARGS["run_script"], "source": source}, cancelled))[
-            "result"
-        ]
+        payload(await dispatch(browser, "run_script", {**ARGS["run_script"], "source": source}, cancelled))["result"]
         == driver.result
     )
     assert approvals[1]["arguments"]["source"] == source

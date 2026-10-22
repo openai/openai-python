@@ -16,7 +16,7 @@ concurrency:
 jobs:
   compute:
     name: Compute trusted custom-code report
-    if: contains(fromJSON('["pull_request", "merge_group"]'), github.event.workflow_run.event) && github.event.workflow_run.path == '.github/workflows/castiron-custom-code.yml'
+    if: contains(fromJSON('["pull_request", "merge_group"]'), github.event.workflow_run.event) && (github.event.workflow_run.path == '.github/workflows/castiron-custom-code.yml' || startsWith(github.event.workflow_run.path, '.github/workflows/castiron-custom-code.yml@'))
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -24,6 +24,12 @@ jobs:
       actions: read
       pull-requests: read
     outputs:
+      selected-policy-sha: ${{ steps.select-policy.outputs.policy_sha }}
+      selected-base-sha: ${{ steps.select-policy.outputs.base_sha }}
+      selected-head-sha: ${{ steps.select-policy.outputs.head_sha }}
+      selected-branch: ${{ steps.select-policy.outputs.target_branch }}
+      policy-reviews: ${{ steps.select-policy.outputs.policy_reviews }}
+      human-review-rules: ${{ steps.select-policy.outputs.human_review_rules }}
       number: ${{ steps.report.outputs.number }}
       artifact-id: ${{ steps.artifact.outputs.artifact-id }}
       artifact-run-attempt: ${{ github.run_attempt }}
@@ -42,6 +48,32 @@ jobs:
           ref: main
           persist-credentials: false
 
+      # The selector and its module come from current main. The later evaluator
+      # loads its own policy helpers from the immutable pinned checkout.
+      - name: Select reviewed policy from the trusted target base
+        id: select-policy
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          GIT_CONFIG_COUNT: '2'
+          GIT_CONFIG_KEY_0: credential.helper
+          GIT_CONFIG_VALUE_0: ''
+          GIT_CONFIG_KEY_1: credential.https://github.com.helper
+          GIT_CONFIG_VALUE_1: '!gh auth git-credential'
+        run: |
+          python3 -I scripts/castiron/custom_code_budget.py select-policy \
+            --repository "$REPOSITORY" --event-path "$GITHUB_EVENT_PATH" \
+            --trusted-sha "$(git rev-parse HEAD)" \
+            --repo "$RUNNER_TEMP/castiron-policy-objects.git" \
+            --out "$RUNNER_TEMP/castiron-policy-selection.json"
+
+      - name: Check out the authenticated main policy version
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.select-policy.outputs.policy_sha }}
+          path: .castiron-policy-checker
+          persist-credentials: false
+
       - name: Compute from trusted main and target branch Git objects
         id: report
         if: github.event.workflow_run.event == 'pull_request'
@@ -56,9 +88,9 @@ jobs:
           RUN_ID: ${{ github.event.workflow_run.id }}
           RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
         run: |
-          python3 -I scripts/castiron/custom_code_report.py trusted-report \
+          python3 -I .castiron-policy-checker/scripts/castiron/custom_code_report.py trusted-report \
             --repo "$RUNNER_TEMP/castiron-objects.git" \
-            --base "$(git rev-parse HEAD)" \
+            --base "$(git -C .castiron-policy-checker rev-parse HEAD)" \
             --repository "$REPOSITORY" --run-id "$RUN_ID" --run-attempt "$RUN_ATTEMPT" \
             --out "$RUNNER_TEMP/castiron-custom-code"
           if test -f "$RUNNER_TEMP/castiron-custom-code/context.json"; then
@@ -93,14 +125,15 @@ jobs:
           GIT_CONFIG_KEY_1: credential.https://github.com.helper
           GIT_CONFIG_VALUE_1: '!gh auth git-credential'
         run: |
-          trusted_sha=$(git rev-parse HEAD)
+          trusted_sha=$(git -C .castiron-policy-checker rev-parse HEAD)
           reuse=()
           if [[ "$SOURCE_EVENT" == pull_request ]]; then
             reuse=(--trusted-report-dir "$RUNNER_TEMP/castiron-custom-code")
           fi
-          python3 -I scripts/castiron/custom_code_budget.py github \
+          python3 -I .castiron-policy-checker/scripts/castiron/custom_code_budget.py github \
             --repository "$REPOSITORY" --event-path "$GITHUB_EVENT_PATH" \
             --trusted-sha "$trusted_sha" --repo "$RUNNER_TEMP/castiron-objects.git" \
+            --selected-policy-json "$RUNNER_TEMP/castiron-policy-selection.json" \
             "${reuse[@]}" --out "$RUNNER_TEMP/custom-code-budget"
 
       - name: Add the budget to the run summary
@@ -135,6 +168,12 @@ jobs:
       - name: Publish exact-head statuses after checking freshness
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
+          SELECTED_POLICY_SHA: ${{ needs.compute.outputs.selected-policy-sha }}
+          SELECTED_BASE_SHA: ${{ needs.compute.outputs.selected-base-sha }}
+          SELECTED_HEAD_SHA: ${{ needs.compute.outputs.selected-head-sha }}
+          SELECTED_BRANCH: ${{ needs.compute.outputs.selected-branch }}
+          POLICY_REVIEWS: ${{ needs.compute.outputs.policy-reviews }}
+          HUMAN_REVIEW_RULES: ${{ needs.compute.outputs.human-review-rules }}
           TARGET_BRANCH: ${{ needs.compute.outputs.target-branch }}
           POLICY_SHA: ${{ needs.compute.outputs.policy-sha }}
           BASE_SHA: ${{ needs.compute.outputs.base-sha }}
@@ -146,6 +185,11 @@ jobs:
           script: |
             const event = context.payload.workflow_run;
             const {data: run} = await github.rest.actions.getWorkflowRun({...context.repo, run_id: event.id});
+            const {data: workflow} = await github.rest.actions.getWorkflow({
+              ...context.repo, workflow_id: 'castiron-custom-code.yml',
+            });
+            if (!Number.isSafeInteger(run.workflow_id) || run.workflow_id !== workflow.id ||
+                workflow.path !== '.github/workflows/castiron-custom-code.yml') return;
             if (run.event !== event.event || run.head_sha !== event.head_sha || run.run_attempt !== event.run_attempt ||
                 run.status !== 'completed' || run.path.split('@', 1)[0] !== '.github/workflows/castiron-custom-code.yml' ||
                 run.repository.full_name !== `${context.repo.owner}/${context.repo.repo}`) return;
@@ -180,9 +224,10 @@ jobs:
               if (run.event !== 'merge_group' || !match) return;
               branch = match[1];
             }
-            // These required contexts belong to main. Next reports are advisory:
-            // GitHub does not rebuild its queue when main's policy changes.
-            if (branch !== 'main') return;
+            // Bind every target to the trusted selector, including next-to-main retargeting.
+            fresh = fresh && process.env.SELECTED_BRANCH === branch &&
+              process.env.SELECTED_BASE_SHA === base && process.env.SELECTED_HEAD_SHA === head &&
+              process.env.SELECTED_POLICY_SHA === policy;
             fresh = fresh && evaluatedBranch === branch;
             const url = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
             // Concurrency serializes writes, but does not order runs or retries.
@@ -190,7 +235,8 @@ jobs:
             const order = [run.id, run.run_attempt, Number(context.runId), Number(process.env.PUBLISH_ATTEMPT)];
             const marker = `[evaluation ${order.join(':')}]`;
             const statuses = await github.paginate(github.rest.repos.listCommitStatusesForRef, {...context.repo, ref: head});
-            const names = ['Castiron / budget-only change', 'Castiron / custom-code budget'];
+            const prefix = branch === 'next' ? 'Castiron next' : 'Castiron';
+            const names = [`${prefix} / budget-only change`, `${prefix} / custom-code budget`];
             for (const status of statuses) {
               if (!names.includes(status.context) || status.creator?.login !== 'github-actions[bot]') continue;
               const prior = status.description?.match(/\[evaluation (\d+):(\d+):(\d+):(\d+)\]$/);
@@ -225,12 +271,50 @@ jobs:
                 cursor = next;
               } while (true);
               const {data: target} = await github.rest.git.getRef({...context.repo, ref: `heads/${branch}`});
-              fresh = fresh && base === target.object.sha && policy === target.object.sha;
+              fresh = fresh && base === target.object.sha && (branch === 'next' || policy === target.object.sha);
               fresh = fresh && member;
             }
+            if (branch === 'next' && run.event === 'pull_request') {
+              const {data: target} = await github.rest.git.getRef({...context.repo, ref: 'heads/next'});
+              fresh = fresh && base === target.object.sha;
+            }
+            // Selection is not a lasting approval. Recheck live reviews after
+            // compute and immediately before attaching required statuses.
+            if (branch === 'next') {
+              try {
+                const proofs = JSON.parse(process.env.POLICY_REVIEWS);
+                const rules = JSON.parse(process.env.HUMAN_REVIEW_RULES);
+                if (!Array.isArray(proofs) || rules.version !== 1 || !Array.isArray(rules.associations) ||
+                    typeof rules.negative_pattern !== 'string') throw new Error('Missing trusted review contract');
+                const negative = new RegExp(rules.negative_pattern, 'i');
+                const seen = new Set();
+                for (const proof of proofs) {
+                  if (!Number.isSafeInteger(proof.number) || proof.number <= 0 || !/^[0-9a-f]{40}$/.test(proof.head_sha) ||
+                      seen.has(proof.number) || (run.event === 'pull_request' && (proof.number !== number || proof.head_sha !== head))) {
+                    throw new Error('Invalid policy review receipt');
+                  }
+                  seen.add(proof.number);
+                  const {data: pr} = await github.rest.pulls.get({...context.repo, pull_number: proof.number});
+                  if (pr.state !== 'open' || pr.head.sha !== proof.head_sha || pr.base.ref !== 'next' ||
+                      pr.base.repo.full_name !== `${context.repo.owner}/${context.repo.repo}`) throw new Error('Policy PR changed');
+                  const reviews = await github.paginate(github.rest.pulls.listReviews, {...context.repo, pull_number: proof.number, per_page: 100});
+                  const latest = new Map();
+                  for (const review of reviews) {
+                    if (review.state === 'PENDING') continue;
+                    const login = review.user.login;
+                    if (!latest.has(login) || review.id > latest.get(login).id) latest.set(login, review);
+                  }
+                  const approved = [...latest.values()].some(review => review.state === 'APPROVED' &&
+                    review.commit_id === proof.head_sha && review.user.type === 'User' &&
+                    rules.associations.includes(review.author_association) && !review.user.login.endsWith('[bot]') &&
+                    review.user.login !== pr.user.login && !negative.test(review.body || ''));
+                  if (!approved) throw new Error('Human policy approval is no longer valid');
+                }
+              } catch { fresh = false; }
+            }
             for (const [name, result] of [
-              ['Castiron / budget-only change', process.env.ISOLATION_RESULT],
-              ['Castiron / custom-code budget', process.env.BUDGET_RESULT],
+              [names[0], process.env.ISOLATION_RESULT],
+              [names[1], process.env.BUDGET_RESULT],
             ]) {
               const state = fresh && result === 'success' ? 'success' : 'failure';
               const description = !fresh ? 'Evaluation unavailable or queue base changed; inspect the trusted run and rerun.'
@@ -289,14 +373,27 @@ jobs:
           script: |
             const marker = '<!-- castiron:custom-code-report:v1 -->';
             const run = context.payload.workflow_run;
-            if (run.event !== 'pull_request' || run.path !== '.github/workflows/castiron-custom-code.yml') return;
+            const {data: workflow} = await github.rest.actions.getWorkflow({
+              ...context.repo, workflow_id: 'castiron-custom-code.yml',
+            });
+            if (!Number.isSafeInteger(run.workflow_id) || run.workflow_id !== workflow.id ||
+                workflow.path !== '.github/workflows/castiron-custom-code.yml') return;
+            if (run.event !== 'pull_request' || run.path.split('@', 1)[0] !== '.github/workflows/castiron-custom-code.yml') return;
             let pulls = run.pull_requests?.length ? run.pull_requests : await github.paginate(github.rest.repos.listPullRequestsAssociatedWithCommit, {...context.repo, commit_sha: run.head_sha});
             if (!pulls.length) pulls = await github.paginate(github.rest.pulls.list, {
               ...context.repo, state: 'open', head: `${run.head_repository.owner.login}:${run.head_branch}`,
             });
+            const current = [];
             for (const pull of pulls) {
-              const {data: current} = await github.rest.pulls.get({...context.repo, pull_number: pull.number});
-              if (current.state !== 'open' || current.head.sha !== run.head_sha) continue;
+              const {data: pr} = await github.rest.pulls.get({...context.repo, pull_number: pull.number});
+              if (pr.state === 'open' && pr.head.sha === run.head_sha &&
+                  ['main', 'next'].includes(pr.base.ref) && pr.base.repo.full_name === `${context.repo.owner}/${context.repo.repo}`) current.push(pr);
+            }
+            // Match trusted compute's supported-target and main-preference selection.
+            const main = current.filter(pr => pr.base.ref === 'main');
+            const selected = main.length ? main : current;
+            if (selected.length !== 1) return;
+            for (const pull of selected) {
               const comments = await github.paginate(github.rest.issues.listComments, {...context.repo, issue_number: pull.number});
               const previous = comments.find(c => c.user?.type === 'Bot' && c.user?.login === 'github-actions[bot]' && c.body?.startsWith(marker));
               const prior = previous?.body?.match(/<!-- castiron:run:v1:(\d+):(\d+) -->/);

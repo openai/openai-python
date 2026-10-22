@@ -4580,8 +4580,13 @@ class AsyncResponsesConnectionManager:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
         url = self._prepare_url()
+        try:
+            # Older runtimes do not declare this optional helper.
+            query_params = getattr(self.__client, "_websocket_query_params")  # noqa: B009
+        except AttributeError:
+            query_params = self.__client._websocket_query_params_fallback
         url = url.copy_with(
-            params=self.__client._websocket_query_params(
+            params=query_params(
                 url,
                 extra_query,
             ),
@@ -4985,8 +4990,13 @@ class ResponsesConnectionManager:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
         url = self._prepare_url()
+        try:
+            # Older runtimes do not declare this optional helper.
+            query_params = getattr(self.__client, "_websocket_query_params")  # noqa: B009
+        except AttributeError:
+            query_params = self.__client._websocket_query_params_fallback
         url = url.copy_with(
-            params=self.__client._websocket_query_params(
+            params=query_params(
                 url,
                 extra_query,
             ),

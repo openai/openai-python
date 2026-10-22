@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING, Any, Mapping, Callable, Awaitable
+from typing import TYPE_CHECKING, Any, Mapping, Callable, Iterable, Awaitable, cast
 from typing_extensions import Self, Unpack, override
 
 import httpx2
@@ -13,6 +13,7 @@ from ._qs import Querystring
 from .auth import WorkloadIdentity, WorkloadIdentityAuth, X509WorkloadIdentity
 from ._types import (
     Omit,
+    Query,
     Headers,
     Timeout,
     NotGiven,
@@ -20,6 +21,7 @@ from ._types import (
     ProxiesTypes,
     HttpxSendArgs,
     RequestOptions,
+    omit,
     not_given,
 )
 from ._utils import (
@@ -50,6 +52,7 @@ from ._base_client import (
     DEFAULT_MAX_RETRIES,
     SyncAPIClient,
     AsyncAPIClient,
+    _merge_mappings,
 )
 from ._data_residency import DataResidency, resolve_data_residency
 
@@ -160,6 +163,24 @@ class OpenAI(SyncAPIClient):
         self._base_url = self._enforce_trailing_slash(normalized_url)
         self._base_url_was_default = False
         self._data_residency = None
+
+    def _websocket_query_params_fallback(self, url: httpx2.URL, extra_query: Query) -> httpx2.QueryParams:
+        # Remove replaced logical defaults before encoding nested query values.
+        overridden = dict.fromkeys(extra_query, omit)
+        defaults = _merge_mappings(self.default_query, overridden)
+        params = httpx2.QueryParams(self.qs.stringify(cast(Any, defaults))).merge(url.params)
+        params = httpx2.QueryParams([(key, value) for key, value in params.multi_items() if key not in overridden])
+        if isinstance(extra_query, httpx2.QueryParams):
+            return params.merge(extra_query)
+        # Per-call None and sequences retain blank values and repeated keys;
+        # defaults continue to use the REST encoder's configured array format.
+        values = _merge_mappings({}, extra_query)
+        for key, value in values.items():
+            if value is None:
+                values[key] = ""
+            elif isinstance(value, (list, tuple)):
+                values[key] = ["" if item is None else item for item in cast(Iterable[object], value)]
+        return params.merge(self.qs.stringify(cast(Any, values), array_format="repeat"))
 
     def __init__(
         self,
@@ -926,6 +947,24 @@ class AsyncOpenAI(AsyncAPIClient):
         self._base_url = self._enforce_trailing_slash(normalized_url)
         self._base_url_was_default = False
         self._data_residency = None
+
+    def _websocket_query_params_fallback(self, url: httpx2.URL, extra_query: Query) -> httpx2.QueryParams:
+        # Remove replaced logical defaults before encoding nested query values.
+        overridden = dict.fromkeys(extra_query, omit)
+        defaults = _merge_mappings(self.default_query, overridden)
+        params = httpx2.QueryParams(self.qs.stringify(cast(Any, defaults))).merge(url.params)
+        params = httpx2.QueryParams([(key, value) for key, value in params.multi_items() if key not in overridden])
+        if isinstance(extra_query, httpx2.QueryParams):
+            return params.merge(extra_query)
+        # Per-call None and sequences retain blank values and repeated keys;
+        # defaults continue to use the REST encoder's configured array format.
+        values = _merge_mappings({}, extra_query)
+        for key, value in values.items():
+            if value is None:
+                values[key] = ""
+            elif isinstance(value, (list, tuple)):
+                values[key] = ["" if item is None else item for item in cast(Iterable[object], value)]
+        return params.merge(self.qs.stringify(cast(Any, values), array_format="repeat"))
 
     def __init__(
         self,

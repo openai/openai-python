@@ -217,9 +217,7 @@ async def test_zoom_accepts_each_native_image_source(
     assert isinstance(content, list) and content[1] == image
     assert text(result) == {
         "ok": True,
-        "state": {
-            "tabs": [{"id": "one", "title": "Public fixture", "url": "https://fixture.example", "active": True}]
-        },
+        "state": {"tabs": [{"id": "one", "title": "Public fixture", "url": "https://fixture.example", "active": True}]},
     }
     assert driver.states == 2
     assert driver.captures == [{"tab_id": "one", "region": [0, 0, 1, 1]}]

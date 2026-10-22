@@ -22,16 +22,19 @@ limits = ResponsesWebSocketLimits(
     max_response_bytes=None,  # Default: no cumulative response accumulation cap.
 )
 
+
 async def run():
     async with AsyncOpenAI() as client:
         async with client.responses.connect(websocket_connection_options={"max_size": None}) as connection:
             async with AsyncResponsesWebSocketSession(connection, limits=limits) as session:
                 lane = session.lane("conversation")
-                await lane.send({
-                    "type": "response.create",
-                    "model": "gpt-4o-mini",
-                    "input": "Say hello.",
-                })
+                await lane.send(
+                    {
+                        "type": "response.create",
+                        "model": "gpt-4o-mini",
+                        "input": "Say hello.",
+                    }
+                )
                 response = await lane.get_final_response()
                 return response
 ```
