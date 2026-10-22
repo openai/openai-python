@@ -16,7 +16,6 @@ from ....types.beta.agent_session import RequiredAction
 from ....types.beta.agent_session_event import AgentSessionEvent
 from ....types.beta.agents.sessions.turn import Turn
 from ....types.beta.agent_session_message import AgentSessionMessage
-from ....types.beta.agent_session_assistant_message import AgentSessionAssistantMessage
 
 OutputT = TypeVar("OutputT", default=Any)
 ParseT = TypeVar("ParseT")
@@ -141,20 +140,16 @@ class AgentTurnResultCollector:
                 and item.status == "completed"
             ):
                 data = item.to_dict(warnings=PYDANTIC_V1)
+                issues = []
                 try:
-                    parse_obj(AgentSessionAssistantMessage, data)
+                    parse_obj(type(item), data)
                 except ValidationError as exc:
-                    # Locations contain schema field names and list indices, not values.
-                    issues = [f"{'.'.join(map(str, error['loc']))}: {error['type']}" for error in exc.errors()]
-                else:
-                    issues = []
+                    issues = [(error["loc"], error["type"]) for error in exc.errors()]
                 # Warn outside the handler so warnings-as-errors do not chain the validation error.
-                if issues:
+                for location, code in issues:
                     warnings.warn(
-                        "Agent result message did not match the response schema: "
-                        + "; ".join(issues)
-                        + ". Values were preserved, but result helpers may fail. Check your gateway's response format "
-                        "or report this schema mismatch and your SDK version to the SDK maintainers.",
+                        f"Agent result field {location}: {code}. "
+                        "Check the response against the SDK schema; the original value was preserved.",
                         stacklevel=2,
                     )
                 message = AgentSessionMessage.construct(_fields_set=None, **deepcopy(data))
