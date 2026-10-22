@@ -45,12 +45,12 @@ def matrix_body(job: str) -> str:
     return match.group("body")
 
 
-def matrix_versions(job: str) -> tuple[str, ...]:
-    versions: list[str] = []
-    for line in matrix_body(job).splitlines():
-        if re.match(r"^\s+(?:-\s+)?python-version:", line):
-            versions.extend(re.findall(r'"(3\.\d+)"', line))
-    return tuple(versions)
+def check_pr_runtimes(workflow: str) -> None:
+    for version in (MINIMUM, CURRENT_STABLE):
+        name = f"test-python{version.replace('.', '')}"
+        job = workflow_job(workflow, name)
+        versions = re.findall(r"^ +python-version: ['\"](3\.\d+)['\"]$", job, re.MULTILINE)
+        require(versions == [version], f"CI job {name!r} runtimes are {versions}, expected {[version]}")
 
 
 def compatibility_matrix(job: str) -> tuple[tuple[str, bool], ...]:
@@ -96,12 +96,7 @@ def main() -> None:
         "Realtime example metadata does not state the minimum Python",
     )
 
-    pr_versions = matrix_versions(workflow_job(workflow, "test"))
-    expected_pr_versions = (MINIMUM, CURRENT_STABLE)
-    require(
-        pr_versions == expected_pr_versions,
-        f"PR test matrix is {pr_versions}, expected {expected_pr_versions}",
-    )
+    check_pr_runtimes(workflow)
 
     compatibility_job = workflow_job(workflow, "compatibility")
     require(
