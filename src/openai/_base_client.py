@@ -485,21 +485,27 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         self,
         response: httpx2.Response,
     ) -> APIStatusError:
+        err_msg = f"Error code: {response.status_code}"
         if response.is_closed and not response.is_stream_consumed:
             # We can't read the response body as it has been closed
             # before it was read. This can happen if an event hook
             # raises a status error.
             body = None
-            err_msg = f"Error code: {response.status_code}"
         else:
             err_text = response.text.strip()
             body = err_text
 
             try:
                 body = json.loads(err_text)
-                err_msg = f"Error code: {response.status_code} - {body}"
             except Exception:
-                err_msg = err_text or f"Error code: {response.status_code}"
+                pass
+            else:
+                # Keep full response details available through the error attributes,
+                # but only include the designated message field in exception text.
+                error = body.get("error", body) if is_mapping(body) else None
+                message = error.get("message") if is_mapping(error) else None
+                if isinstance(message, str) and message:
+                    err_msg += f" - {message}"
 
         return self._make_status_error(err_msg, body=body, response=response)
 
