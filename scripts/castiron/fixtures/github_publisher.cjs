@@ -5,8 +5,17 @@ const data = JSON.parse(fs.readFileSync(0, 'utf8'));
 const writes = [];
 const github = {
   rest: {
-    actions: { getWorkflowRun: async () => ({ data: data.run }) },
-    pulls: { get: async () => ({ data: data.current_sequence?.shift() || data.current }), list: 'pulls' },
+    actions: {
+      getWorkflowRun: async () => ({ data: data.run }),
+      getWorkflow: async () => ({ data: { id: 456, path: '.github/workflows/castiron-custom-code.yml' } }),
+    },
+    pulls: {
+      get: async ({ pull_number }) => ({
+        data: data.current_sequence?.shift() || data.pulls_by_number?.[pull_number] || data.current,
+      }),
+      list: 'pulls',
+      listReviews: 'reviews',
+    },
     git: {
       getRef: async ({ ref }) => ({
         data: {
@@ -41,6 +50,7 @@ const github = {
     };
   },
   paginate: async (method, params) => {
+    if (method === 'reviews') return data.reviews_by_number?.[params.pull_number] || data.reviews || [];
     if (method === 'statuses') return data.previous_statuses || [];
     if (method === 'comments') return data.comments || [];
     if (method === 'associations') return [];

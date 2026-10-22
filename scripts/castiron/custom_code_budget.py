@@ -20,59 +20,26 @@ import sys
 from pathlib import Path
 from typing import Any, cast
 
-# Explicitly load the reporter beside this trusted script, including under python -I.
-# The inspected repository is only a Git object store, not a Python import path.
+# Load only the policy helpers beside this immutable checker, including under -I.
 _spec = importlib.util.spec_from_file_location(
-    "castiron_budget_reporter", Path(__file__).with_name("custom_code_report.py")
+    "castiron_budget_policy", Path(__file__).with_name("custom_code_policy.py")
 )
 assert _spec is not None and _spec.loader is not None
-report = importlib.util.module_from_spec(_spec)
-sys.modules[_spec.name] = report
-_spec.loader.exec_module(report)
+policy = importlib.util.module_from_spec(_spec)
+sys.modules[_spec.name] = policy
+_spec.loader.exec_module(policy)
+report = policy.report
+unique_keys = policy.unique_keys
+read_policy = policy.read_policy
+changed_paths = policy.changed_paths
+queued_entries = policy.queued_entries
 
 POLICY = ".castiron-ratchet.json"
+NEXT_POLICY_VERSION = 1
 ISOLATION_MESSAGE = (
     "Budget changes require a separate, budget-only PR. "
     "Put the justification in the PR description."
 )
-
-
-def unique_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
-    value: dict[str, Any] = {}
-    for key, item in pairs:
-        if key in value:
-            raise ValueError(f"duplicate policy key: {key}")
-        value[key] = item
-    return value
-
-
-def read_policy(repo: Path, revision: str) -> dict[str, Any]:
-    revision = report.require_sha(revision)
-    entry = report.git(repo, "ls-tree", revision, "--", POLICY).split()
-    if len(entry) != 4 or entry[:2] != [b"100644", b"blob"]:
-        raise ValueError(f"{POLICY} must exist as a regular, non-executable file at {revision}")
-    if int(report.git(repo, "cat-file", "-s", entry[2].decode())) > 4096:
-        raise ValueError("budget file exceeds 4096 bytes")
-    value = json.loads(
-        report.git(repo, "show", f"{revision}:{POLICY}"), object_pairs_hook=unique_keys
-    )
-    if not isinstance(value, dict):
-        raise ValueError("budget file must be an object")  # noqa: TRY004 - malformed policy is a value error
-    value = cast(dict[str, Any], value)
-    version = value.get("schema_version")
-    if type(version) is not int or version not in (1, 2):
-        raise ValueError("unsupported budget schema_version")
-    keys = {"schema_version", "max_custom_patch_lines"}
-    if version == 2:
-        keys.add("generated_files")
-    if set(value) != keys:
-        raise ValueError("budget file contains missing or unsupported fields")
-    limit = value["max_custom_patch_lines"]
-    if type(limit) is not int or limit < 0:
-        raise ValueError("max_custom_patch_lines must be a nonnegative integer")
-    if version == 2 and (value["generated_files"] != "strict" or limit != 0):
-        raise ValueError("schema v2 requires generated_files=strict and a zero budget")
-    return value
 
 
 def read_budget(repo: Path, revision: str) -> int:
@@ -84,6 +51,9 @@ def strict_policy(repo: Path, revision: str) -> bool:
 
 
 MANIFEST = b"scripts/castiron/generated-files.json"
+# Accept the relocated tooling only from the verified checkpoint. Deploy this
+# reader before changing the producer so trusted-main checks can validate moves.
+MANIFEST_PATHS = (MANIFEST, b"generated/castiron/generated-files.json")
 # Derived from the renderer's repository-file inventory, also used by checkpoint
 # publication to distinguish generated tooling from protected SDK-owned CI.
 GENERATED_GITHUB_PATHS = frozenset(
@@ -92,7 +62,6 @@ GENERATED_GITHUB_PATHS = frozenset(
         b".github/workflows/castiron-custom-code-comment.yml",
     }
 )
-
 
 
 # Audited inventory of the authenticated pre-inventory checker format. These
@@ -149,18 +118,26 @@ def checkpoint_github_inventory(source: bytes) -> frozenset[bytes]:
 def generated_manifest(repo: Path, generated: str) -> dict[bytes, dict[str, str]]:
     """Read ownership from the verified snapshot, never the candidate's manifest."""
     entries = report.tree_entries(repo, generated, include_workflows=True)
-    entry = entries.get(MANIFEST)
+    manifests = [path for path in MANIFEST_PATHS if path in entries]
+    if len(manifests) > 1:
+        raise ValueError("checkpoint contains ambiguous generated ownership manifests")
+    manifest_path = manifests[0] if manifests else MANIFEST
+    entry = entries.get(manifest_path)
     if entry is None or entry.mode != b"100644":
         raise ValueError(
             "strict mode requires a generated ownership manifest; regenerate with Castiron"
         )
     blobs = report.read_blobs(repo, entries)
-    inventory_entry = entries.get(b"scripts/castiron/custom_code_budget.py")
+    inventory_path = manifest_path.rsplit(b"/", 1)[0] + b"/custom_code_budget.py"
+    inventory_entry = entries.get(inventory_path)
     if inventory_entry is None or inventory_entry.mode not in (b"100644", b"100755"):
         raise ValueError("checkpoint is missing its generated GitHub inventory")
     github_paths = checkpoint_github_inventory(blobs[inventory_entry.oid])
     value = json.loads(blobs[entry.oid], object_pairs_hook=unique_keys)
-    if not isinstance(value, dict) or set(cast(dict[str, Any], value)) != {"schema_version", "files"}:
+    if not isinstance(value, dict) or set(cast(dict[str, Any], value)) != {
+        "schema_version",
+        "files",
+    }:
         raise ValueError("invalid generated ownership manifest")
     value = cast(dict[str, Any], value)
     if (
@@ -180,7 +157,7 @@ def generated_manifest(repo: Path, generated: str) -> dict[bytes, dict[str, str]
         ):
             raise ValueError("invalid generated manifest path")
         path = name.encode("utf-8")
-        if path == MANIFEST:
+        if path in MANIFEST_PATHS:
             raise ValueError("generated manifest cannot include itself")
         # A matching identity cannot turn inherited, SDK-owned CI into generated
         # output. Use this verified checkpoint's literal compiler inventory, not
@@ -188,7 +165,10 @@ def generated_manifest(repo: Path, generated: str) -> dict[bytes, dict[str, str]
         # Public checkpoints may omit the private workflow/action blobs.
         if not report.included(path) and path not in github_paths:
             raise ValueError(f"generated manifest claims SDK-owned GitHub path: {name}")
-        if not isinstance(identity, dict) or set(cast(dict[str, Any], identity)) != {"mode", "sha256"}:
+        if not isinstance(identity, dict) or set(cast(dict[str, Any], identity)) != {
+            "mode",
+            "sha256",
+        }:
             raise ValueError(f"invalid generated identity: {name}")
         identity = cast(dict[str, Any], identity)
         if (
@@ -208,10 +188,9 @@ def generated_manifest(repo: Path, generated: str) -> dict[bytes, dict[str, str]
     # Those are outside generated ownership. Every other snapshot path, including
     # renderer-owned GitHub files omitted from the legacy hash, must be listed.
     # Public snapshots retain generated identities without the private blobs.
-    snapshot_paths = set(entries) - {MANIFEST}
+    snapshot_paths = set(entries) - {manifest_path}
     if any(
-        report.included(path) or path in github_paths
-        for path in snapshot_paths - files.keys()
+        report.included(path) or path in github_paths for path in snapshot_paths - files.keys()
     ) or any(report.included(path) for path in files.keys() - snapshot_paths):
         raise ValueError("generated manifest does not cover the verified snapshot exactly")
     for path, identity in files.items():
@@ -223,7 +202,10 @@ def generated_manifest(repo: Path, generated: str) -> dict[bytes, dict[str, str]
             ):
                 raise ValueError(f"manifest disagrees with generated snapshot: {path.decode()}")
     # The manifest is itself immutable, bound by the existing snapshot hash.
-    files[MANIFEST] = {"mode": "100644", "sha256": hashlib.sha256(blobs[entry.oid]).hexdigest()}
+    files[manifest_path] = {
+        "mode": "100644",
+        "sha256": hashlib.sha256(blobs[entry.oid]).hexdigest(),
+    }
     return files
 
 
@@ -276,29 +258,6 @@ def verify_generated(
     return failures
 
 
-def changed_paths(repo: Path, base: str, head: str) -> set[bytes]:
-    """Use the entire PR diff, not its last commit or a truncated API file list."""
-    start = (
-        report.git(repo, "merge-base", report.require_sha(base), report.require_sha(head))
-        .decode()
-        .strip()
-    )
-    return set(
-        report.git(
-            repo,
-            "diff",
-            "--name-only",
-            "-z",
-            "--no-renames",
-            "--no-ext-diff",
-            "--no-textconv",
-            start,
-            head,
-            "--",
-        ).split(b"\0")
-    ) - {b""}
-
-
 def check_isolation(repo: Path, base: str, head: str) -> int | None:
     # Validate even if the policy was removed by an earlier commit in this PR.
     proposed = read_budget(repo, head)
@@ -341,20 +300,22 @@ def evaluate(
     pull_heads: list[str] | None = None,
     measurement: tuple[dict[str, Any], bytes] | None = None,
     policy_sha: str | None = None,
+    target_branch: str = "main",
 ) -> tuple[dict[str, Any], bytes]:
     """In a queue, isolate each PR but budget the complete merged candidate."""
     base, head = report.require_sha(base), report.require_sha(head)
-    policy_sha = cast(str, report.require_sha(policy_sha or base))
+    policy = cast(str, report.require_sha(policy_sha or base))
     result: dict[str, Any] = {
         "base_sha": base,
-        "policy_sha": policy_sha,
+        "target_branch": target_branch,
+        "policy_sha": policy,
         "head_sha": head,
         "checks": {},
     }
     checks = result["checks"]
     proposed_limits: list[int] = []
     try:
-        read_budget(repo, policy_sha)
+        read_budget(repo, policy)
         read_budget(repo, base)
         read_budget(repo, head)
         if pull_heads is not None and not pull_heads:
@@ -371,7 +332,7 @@ def evaluate(
 
     patch = b""
     try:
-        limit = read_budget(repo, policy_sha)
+        limit = read_budget(repo, policy)
         result["limit"] = limit
         measured, patch = (
             measurement
@@ -383,6 +344,7 @@ def evaluate(
                 public=public,
                 fetch=fetch,
                 require_head_hash=True,
+                target_branch=target_branch,
             )
         )
         added, removed = count_custom_lines(measured)
@@ -402,11 +364,7 @@ def evaluate(
         description = f"+{added} / -{removed} = {total} custom lines; limit {checked_limit}."
         # Main's strict policy applies even if the candidate tries to remove it.
         # A proposed activation must itself satisfy the stricter contract.
-        if (
-            strict_policy(repo, policy_sha)
-            or strict_policy(repo, base)
-            or strict_policy(repo, head)
-        ):
+        if strict_policy(repo, policy) or strict_policy(repo, base) or strict_policy(repo, head):
             violations = verify_generated(
                 repo, measured["after"]["commit"], head, previous=measured["before"]["commit"]
             )
@@ -463,52 +421,13 @@ def write_result(out: Path, result: dict[str, Any], patch: bytes = b"") -> None:
     print(summary)
 
 
-def queued_entries(repository: str, branch: str) -> list[tuple[str, str]]:
-    """Query the actual queue; never infer PR membership from commit messages."""
-    owner, name = repository.split("/")
-    query = """query($owner:String!,$name:String!,$branch:String!,$cursor:String) {
-      repository(owner:$owner,name:$name) { mergeQueue(branch:$branch) {
-        entries(first:100,after:$cursor) {
-          nodes { pullRequest { headRefOid } headCommit { oid } }
-          pageInfo { hasNextPage endCursor }
-        }
-      } }
-    }"""
-    cursor = None
-    heads: list[tuple[str, str]] = []
-    while True:
-        response = report.api(
-            "POST",
-            "graphql",
-            {
-                "query": query,
-                "variables": {"owner": owner, "name": name, "branch": branch, "cursor": cursor},
-            },
-        )
-        entries = response["data"]["repository"]["mergeQueue"]["entries"]
-        for node in entries["nodes"]:
-            # Entries still awaiting preparation have no synthetic queue commit.
-            if node["headCommit"] is not None:
-                heads.append(
-                    (
-                        report.require_sha(node["pullRequest"]["headRefOid"]),
-                        report.require_sha(node["headCommit"]["oid"]),
-                    )
-                )
-        page = entries["pageInfo"]
-        if not page["hasNextPage"]:
-            return heads
-        if not page["endCursor"] or page["endCursor"] == cursor:
-            raise ValueError("invalid merge-queue pagination")
-        cursor = page["endCursor"]
-
-
 def github_evaluate(
     repo: Path,
     repository: str,
     event: dict[str, Any],
     trusted_sha: str,
     trusted_report_dir: Path | None = None,
+    selection: dict[str, Any] | None = None,
 ) -> tuple[dict[str, Any], bytes]:
     """Fetch data into a fresh bare repo; the executable checkout remains trusted."""
     if not report.REPOSITORY.fullmatch(repository):
@@ -570,7 +489,7 @@ def github_evaluate(
         current_main = report.require_sha(
             report.api("GET", f"{root}/git/ref/heads/main")["object"]["sha"]
         )
-        if main != current_main:
+        if branch == "main" and main != current_main:
             raise ValueError("trusted checkout is stale; rerun against current main")
         base = (
             main
@@ -593,6 +512,23 @@ def github_evaluate(
                 f"{branch} must require a merge queue before activating the budget gate"
             )
         page += 1
+    # This receipt is created locally by the trusted-main selector before the
+    # pinned checkout. It must never come from candidate workflow artifacts.
+    if (
+        selection is None
+        or type(selection.get("schema_version")) is not int
+        or any(
+            selection.get(key) != value
+            for key, value in {
+                "schema_version": 1,
+                "target_branch": branch,
+                "base_sha": base,
+                "head_sha": head,
+                "policy_sha": main,
+            }.items()
+        )
+    ):
+        raise ValueError("trusted policy selection does not match evaluation")
     measurement = None
     if trusted_report_dir is not None:
         # Only the preceding main-branch step may supply this directory. Never
@@ -635,6 +571,22 @@ def github_evaluate(
                 pull_heads.append(candidate)
         if not pull_heads:
             raise ValueError("cannot verify merge-group PR membership; retry the current group")
+    if branch == "next":
+        assert selection is not None
+        base_pin = read_policy(repo, base).get("next_policy")
+        if base_pin is None:
+            # evaluate() checks each verified queue constituent for policy isolation.
+            if (
+                selection.get("bootstrap") is not True
+                or "next_policy" not in read_policy(repo, head)
+                or (pull_heads is None and changed_paths(repo, base, head) != {POLICY.encode()})
+            ):
+                raise ValueError("unreviewed next policy initialization")
+        elif selection.get("bootstrap") is not False or base_pin != {
+            "repository": repository,
+            "main_sha": main,
+        }:
+            raise ValueError("trusted next base pin changed; rerun policy selection")
     result, patch = evaluate(
         repo,
         base,
@@ -644,12 +596,15 @@ def github_evaluate(
         pull_heads=pull_heads,
         measurement=measurement,
         policy_sha=main,
+        target_branch=branch,
     )
     result["target_branch"] = branch
     return result, patch
 
 
 def main() -> int:
+    if sys.argv[1:2] == ["select-policy"]:
+        return cast(int, policy.main(sys.argv[1:]))
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
     generated = commands.add_parser("verify-generated")
@@ -664,11 +619,13 @@ def main() -> int:
     local.add_argument("--head", required=True)
     local.add_argument("--public", action="store_true")
     local.add_argument("--fetch", action="store_true")
+    local.add_argument("--target-branch", choices=sorted(report.TARGET_BRANCHES), default="main")
     github = commands.add_parser("github")
     github.add_argument("--repository", required=True)
     github.add_argument("--event-path", type=Path, required=True)
     github.add_argument("--trusted-sha", required=True)
     github.add_argument("--trusted-report-dir", type=Path)
+    github.add_argument("--selected-policy-json", type=Path)
     for command in (local, github):
         command.add_argument("--repo", type=Path, required=True)
         command.add_argument("--out", type=Path, required=True)
@@ -698,7 +655,12 @@ def main() -> int:
     try:
         if args.command == "check":
             result, patch = evaluate(
-                args.repo, args.base, args.head, public=args.public, fetch=args.fetch
+                args.repo,
+                args.base,
+                args.head,
+                public=args.public,
+                fetch=args.fetch,
+                target_branch=args.target_branch,
             )
         else:
             result, patch = github_evaluate(
@@ -707,6 +669,9 @@ def main() -> int:
                 json.loads(args.event_path.read_text()),
                 args.trusted_sha,
                 args.trusted_report_dir,
+                json.loads(args.selected_policy_json.read_text())
+                if args.selected_policy_json
+                else None,
             )
     except (
         report.ReportError,

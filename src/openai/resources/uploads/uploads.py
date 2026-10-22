@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+import os
+import logging
+from typing import overload
+
 import httpx2
 
 from ... import _legacy_response
@@ -20,10 +24,14 @@ from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ..._base_client import make_request_options
+from ...lib._uploads import upload_file_chunked, async_upload_file_chunked
 from ...types.upload import Upload
-from ...types.file_purpose import FilePurpose
 
 __all__ = ["Uploads", "AsyncUploads"]
+
+
+DEFAULT_PART_SIZE = 67108864
+log: logging.Logger = logging.getLogger(__name__)
 
 
 class Uploads(SyncAPIResource):
@@ -52,6 +60,56 @@ class Uploads(SyncAPIResource):
         For more information, see https://www.github.com/openai/openai-python#with_streaming_response
         """
         return UploadsWithStreamingResponse(self)
+
+    @overload
+    def upload_file_chunked(
+        self,
+        *,
+        file: os.PathLike[str],
+        mime_type: str,
+        purpose: FilePurpose,
+        bytes: int | None = None,
+        part_size: int | None = None,
+        md5: str | Omit = omit,
+    ) -> Upload:
+        "Splits a file into multiple 64MB parts and uploads them sequentially."
+
+    @overload
+    def upload_file_chunked(
+        self,
+        *,
+        file: bytes,
+        filename: str,
+        bytes: int,
+        mime_type: str,
+        purpose: FilePurpose,
+        part_size: int | None = None,
+        md5: str | Omit = omit,
+    ) -> Upload:
+        "Splits an in-memory file into multiple 64MB parts and uploads them sequentially."
+
+    def upload_file_chunked(
+        self,
+        *,
+        file: os.PathLike[str] | bytes,
+        mime_type: str,
+        purpose: FilePurpose,
+        filename: str | None = None,
+        bytes: int | None = None,
+        part_size: int | None = None,
+        md5: str | Omit = omit,
+    ) -> Upload:
+        'Splits the given file into multiple parts and uploads them sequentially.\n\n        ```py\n        from pathlib import Path\n\n        client.uploads.upload_file(\n            file=Path("my-paper.pdf"),\n            mime_type="pdf",\n            purpose="assistants",\n        )\n        ```\n'
+        return upload_file_chunked(
+            self,
+            file=file,
+            mime_type=mime_type,
+            purpose=purpose,
+            filename=filename,
+            bytes=bytes,
+            part_size=part_size,
+            md5=md5,
+        )
 
     def create(
         self,
@@ -271,6 +329,56 @@ class AsyncUploads(AsyncAPIResource):
         For more information, see https://www.github.com/openai/openai-python#with_streaming_response
         """
         return AsyncUploadsWithStreamingResponse(self)
+
+    @overload
+    async def upload_file_chunked(
+        self,
+        *,
+        file: os.PathLike[str],
+        mime_type: str,
+        purpose: FilePurpose,
+        bytes: int | None = None,
+        part_size: int | None = None,
+        md5: str | Omit = omit,
+    ) -> Upload:
+        "Splits a file into multiple 64MB parts and uploads them sequentially."
+
+    @overload
+    async def upload_file_chunked(
+        self,
+        *,
+        file: bytes,
+        filename: str,
+        bytes: int,
+        mime_type: str,
+        purpose: FilePurpose,
+        part_size: int | None = None,
+        md5: str | Omit = omit,
+    ) -> Upload:
+        "Splits an in-memory file into multiple 64MB parts and uploads them sequentially."
+
+    async def upload_file_chunked(
+        self,
+        *,
+        file: os.PathLike[str] | bytes,
+        mime_type: str,
+        purpose: FilePurpose,
+        filename: str | None = None,
+        bytes: int | None = None,
+        part_size: int | None = None,
+        md5: str | Omit = omit,
+    ) -> Upload:
+        'Splits the given file into multiple parts and uploads them sequentially.\n\n        ```py\n        from pathlib import Path\n\n        client.uploads.upload_file(\n            file=Path("my-paper.pdf"),\n            mime_type="pdf",\n            purpose="assistants",\n        )\n        ```\n'
+        return await async_upload_file_chunked(
+            self,
+            file=file,
+            mime_type=mime_type,
+            purpose=purpose,
+            filename=filename,
+            bytes=bytes,
+            part_size=part_size,
+            md5=md5,
+        )
 
     async def create(
         self,

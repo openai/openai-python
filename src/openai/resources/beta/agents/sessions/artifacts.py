@@ -22,6 +22,8 @@ from ....._response import (
 )
 from .....pagination import SyncCursorPage, AsyncCursorPage
 from ....._base_client import AsyncPaginator, make_request_options
+from .....lib.beta.agents._result import AgentTurnResult
+from .....lib.beta.agents._artifacts import AgentResultArtifacts, AsyncAgentResultArtifacts
 from .....types.beta.agents.sessions import artifact_list_params
 from .....types.beta.agents.sessions.session_artifact import SessionArtifact
 from .....types.beta.agents.sessions.session_artifact_deleted import SessionArtifactDeleted
@@ -48,6 +50,16 @@ class Artifacts(SyncAPIResource):
         For more information, see https://www.github.com/openai/openai-python#with_streaming_response
         """
         return ArtifactsWithStreamingResponse(self)
+
+    def for_result(
+        self,
+        result: AgentTurnResult,
+    ) -> AgentResultArtifacts:
+        "Beta: download artifacts scoped to the exact completed result turn."
+        return AgentResultArtifacts(
+            self,
+            result,
+        )
 
     def retrieve(
         self,
@@ -272,6 +284,16 @@ class AsyncArtifacts(AsyncAPIResource):
         For more information, see https://www.github.com/openai/openai-python#with_streaming_response
         """
         return AsyncArtifactsWithStreamingResponse(self)
+
+    def for_result(
+        self,
+        result: AgentTurnResult,
+    ) -> AsyncAgentResultArtifacts:
+        "Beta: download artifacts scoped to the exact completed result turn."
+        return AsyncAgentResultArtifacts(
+            self,
+            result,
+        )
 
     async def retrieve(
         self,

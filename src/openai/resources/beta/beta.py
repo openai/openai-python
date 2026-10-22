@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from ..chat import Chat, AsyncChat
 from ..._compat import cached_property
 from .assistants import (
     Assistants,
@@ -36,6 +37,7 @@ from .threads.threads import (
     ThreadsWithStreamingResponse,
     AsyncThreadsWithStreamingResponse,
 )
+from .realtime.realtime import Realtime, AsyncRealtime
 from .responses.responses import (
     Responses,
     AsyncResponses,
@@ -49,6 +51,14 @@ __all__ = ["Beta", "AsyncBeta"]
 
 
 class Beta(SyncAPIResource):
+    @cached_property
+    def chat(self) -> Chat:
+        return Chat(self._client)
+
+    @cached_property
+    def realtime(self) -> Realtime:
+        return Realtime(self._client)
+
     @cached_property
     def agents(self) -> Agents:
         return Agents(self._client)
@@ -93,6 +103,14 @@ class Beta(SyncAPIResource):
 
 
 class AsyncBeta(AsyncAPIResource):
+    @cached_property
+    def chat(self) -> AsyncChat:
+        return AsyncChat(self._client)
+
+    @cached_property
+    def realtime(self) -> AsyncRealtime:
+        return AsyncRealtime(self._client)
+
     @cached_property
     def agents(self) -> AsyncAgents:
         return AsyncAgents(self._client)

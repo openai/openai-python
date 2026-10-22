@@ -62,6 +62,36 @@ class GitHubAPI:
 
 
 class GitHubReportTests(GitTestCase):
+    def test_same_head_targets_preserve_required_main_discovery(self) -> None:
+        head = "b" * 40
+        run = source_run(head, "pull_request")
+        run["pull_requests"] = []
+        main: dict[str, Any] = {
+            "state": "open",
+            "head": {"sha": head},
+            "base": {"ref": "main", "repo": {"full_name": REPOSITORY}},
+        }
+        next_pull: dict[str, Any] = {**main, "base": {**main["base"], "ref": "next"}}
+        for numbers in ([3, 4], [4, 3]):
+
+            def api_response(_method: str, path: str, numbers: list[int] = numbers) -> Any:
+                if "/commits/" in path:
+                    return [{"number": number} for number in numbers]
+                return {"3": main, "4": next_pull}[path.rsplit("/", 1)[1]]
+
+            with (
+                self.subTest(numbers=numbers),
+                mock.patch.object(report, "api", side_effect=api_response),
+            ):
+                self.assertEqual(report.current_pull(REPOSITORY, run), (3, "main"))
+                run["pull_requests"] = [{"number": 4}]
+                self.assertEqual(report.current_pull(REPOSITORY, run), (4, "next"))
+                run["pull_requests"] = []
+                next_pull["base"]["ref"] = "main"
+                with self.assertRaisesRegex(report.ReportError, "multiple current"):
+                    report.current_pull(REPOSITORY, run)
+                next_pull["base"]["ref"] = "next"
+
     def test_trusted_report_recomputes_pr_output_in_a_bare_repository(self) -> None:
         generated, _ = self.baseline()
         content_hash = report.hash_codegen_commit(self.repo, generated)
@@ -109,6 +139,7 @@ class GitHubReportTests(GitTestCase):
             ("next-bad-hash", broken, None),
         ):
             with self.subTest(label=label):
+                result: dict[str, Any] | None = None
                 api = GitHubAPI(
                     "d" * 40, revision
                 )  # PR metadata already differs from captured main.
@@ -136,14 +167,33 @@ class GitHubReportTests(GitTestCase):
                     )
                     # Advance main before both budget evaluation and publication.
                     api.main = api.next = api.pull["base"]["sha"] = "e" * 40
-                    result, _ = budget.github_evaluate(
-                        objects,
-                        REPOSITORY,
-                        {"repository": {"full_name": REPOSITORY}, "workflow_run": api.run},
-                        base,
-                        out,
-                    )
-                    self.assertEqual((result["base_sha"], result["head_sha"]), (base, revision))
+                    if label.startswith("next"):
+                        # Advisory reporting alone cannot authorize next without
+                        # the trusted selector's protected-base pin receipt.
+                        with self.assertRaisesRegex(ValueError, "selection"):
+                            budget.github_evaluate(
+                                objects,
+                                REPOSITORY,
+                                {"repository": {"full_name": REPOSITORY}, "workflow_run": api.run},
+                                base,
+                                out,
+                            )
+                    else:
+                        result, _ = budget.github_evaluate(
+                            objects,
+                            REPOSITORY,
+                            {"repository": {"full_name": REPOSITORY}, "workflow_run": api.run},
+                            base,
+                            out,
+                            selection={
+                                "schema_version": 1,
+                                "target_branch": "main",
+                                "base_sha": base,
+                                "head_sha": revision,
+                                "policy_sha": base,
+                            },
+                        )
+                        self.assertEqual((result["base_sha"], result["head_sha"]), (base, revision))
                     report.publish_comment(
                         measured, REPOSITORY, 3, 123, 1, artifact_run_id=9, artifact_run_attempt=3
                     )
@@ -152,6 +202,13 @@ class GitHubReportTests(GitTestCase):
                 self.assertIn("castiron:run:v1:123:1", body)
                 self.assertIn(base, body)
                 self.assertIn("/actions/runs/9", body)
+                if label.startswith("next"):
+                    self.assertIn(
+                        "Report unavailable" if total is None else "Generated baselines verified",
+                        body,
+                    )
+                    continue
+                assert result is not None
                 if total is None:
                     self.assertEqual(result["checks"]["budget"]["state"], "failure")
                     self.assertIn("could not verify", result["checks"]["budget"]["description"])
@@ -297,7 +354,19 @@ class GitHubReportTests(GitTestCase):
             ),
         ):
             repo = Path(temp) / "queue.git"
-            result, _ = budget.github_evaluate(repo, "openai/example", event, base)
+            result, _ = budget.github_evaluate(
+                repo,
+                "openai/example",
+                event,
+                base,
+                selection={
+                    "schema_version": 1,
+                    "target_branch": "main",
+                    "base_sha": base,
+                    "head_sha": queue_head,
+                    "policy_sha": base,
+                },
+            )
             self.assertEqual(result["head_sha"], queue_head)
             self.assertEqual(result["checks"]["budget"]["state"], "success", result["checks"])
             self.assertEqual(result["total"], 1)
@@ -305,11 +374,92 @@ class GitHubReportTests(GitTestCase):
                 [c["state"] for c in result["checks"].values()], ["success", "success"]
             )
 
-    def test_next_queue_uses_separate_main_policy_without_main_ancestry(self) -> None:
+    def test_next_queue_bootstrap_isolated_per_verified_constituent(self) -> None:
+        generated, _ = self.baseline()
+        self.git("branch", "codegen/test", generated)
+        policy = {"schema_version": 1, "max_custom_patch_lines": 10}
+        self.write(budget.POLICY, json.dumps(policy))
+        base = self.commit("unpinned next budget")
+        self.git("checkout", "-q", "-b", "initialize", base)
+        self.write(
+            budget.POLICY,
+            json.dumps({**policy, "next_policy": {"repository": REPOSITORY, "main_sha": base}}),
+        )
+        pin_head = self.commit("policy-only initialization")
+        self.git("checkout", "-q", "-b", "sdk", base)
+        self.write("generated.py", "generated\ncustom\n")
+        sdk_head = self.commit("unrelated SDK PR")
+        self.git("checkout", "-q", "-b", "queue", base)
+        self.git("merge", "--squash", "initialize")
+        pin_queue = self.commit("synthetic policy queue commit")
+        self.git("merge", "--squash", "sdk")
+        queue_head = self.commit("synthetic combined queue commit")
+        run = source_run(queue_head, "merge_group")
+        run["head_branch"] = "gh-readonly-queue/next/pr-7-example"
+        event = {"repository": {"full_name": REPOSITORY}, "workflow_run": run}
+        original_git = report.git
+
+        def local_fetch(repo: Path, *args: str, input_bytes: bytes | None = None) -> bytes:
+            if args[0] == "fetch":
+                args = tuple(str(self.repo) if arg == "origin" else arg for arg in args)
+            return original_git(repo, *args, input_bytes=input_bytes)
+
+        for entries, state in (
+            ([(pin_head, pin_queue), (sdk_head, queue_head)], "success"),
+            ([(queue_head, queue_head)], "failure"),
+        ):
+            with (
+                self.subTest(entries=entries),
+                tempfile.TemporaryDirectory() as temp,
+                mock.patch.object(
+                    budget.report,
+                    "api",
+                    side_effect=[
+                        {"default_branch": "main", "private": True},
+                        run,
+                        {"object": {"sha": base}},
+                        {"object": {"sha": base}},
+                        [{"type": "merge_queue"}],
+                    ],
+                ),
+                mock.patch.object(budget, "queued_entries", return_value=entries),
+                mock.patch.object(budget.report, "git", side_effect=local_fetch),
+            ):
+                result, _ = budget.github_evaluate(
+                    Path(temp) / "queue.git",
+                    REPOSITORY,
+                    event,
+                    base,
+                    selection={
+                        "schema_version": 1,
+                        "target_branch": "next",
+                        "base_sha": base,
+                        "head_sha": queue_head,
+                        "policy_sha": base,
+                        "bootstrap": True,
+                    },
+                )
+                self.assertEqual(result["checks"]["isolation"]["state"], state)
+                self.assertEqual(result["checks"]["budget"]["state"], "success")
+                self.assertEqual(result["limit"], 10)
+                self.assertEqual(result["total"], 1)
+
+    def test_next_queue_uses_reviewed_main_policy_after_main_advances(self) -> None:
         generated, _ = self.baseline()
         self.git("branch", "codegen/test", generated)
         self.write(budget.POLICY, json.dumps({"schema_version": 1, "max_custom_patch_lines": 10}))
-        base = self.commit("budget")
+        approved_policy = self.commit("budget")
+        self.write(
+            budget.POLICY,
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "max_custom_patch_lines": 10,
+                    "next_policy": {"repository": "openai/example", "main_sha": approved_policy},
+                }
+            ),
+        )
+        base = self.commit("reviewed next policy")
         self.git("checkout", "-q", "-b", "sdk", base)
         self.write("generated.py", "generated\ncustom\n")
         pr_head = self.commit()
@@ -355,16 +505,119 @@ class GitHubReportTests(GitTestCase):
             ),
         ):
             repo = Path(temp) / "queue.git"
-            result, _ = budget.github_evaluate(repo, "openai/example", event, policy)
+            result, _ = budget.github_evaluate(
+                repo,
+                "openai/example",
+                event,
+                approved_policy,
+                selection={
+                    "target_branch": "next",
+                    "base_sha": base,
+                    "head_sha": queue_head,
+                    "policy_sha": approved_policy,
+                    "bootstrap": False,
+                    "schema_version": 1,
+                },
+            )
             self.assertEqual(result["head_sha"], queue_head)
-            self.assertEqual(result["checks"]["budget"]["state"], "failure", result["checks"])
-            self.assertEqual(result["limit"], 0)
+            self.assertEqual(result["checks"]["budget"]["state"], "success", result["checks"])
+            self.assertEqual(result["limit"], 10)
             self.assertEqual(result["base_sha"], base)
-            self.assertEqual(result["policy_sha"], policy)
+            self.assertEqual(result["policy_sha"], approved_policy)
             self.assertEqual(result["target_branch"], "next")
             self.assertEqual(result["total"], 1)
             self.assertEqual(
-                [c["state"] for c in result["checks"].values()], ["success", "failure"]
+                [c["state"] for c in result["checks"].values()], ["success", "success"]
+            )
+
+    def test_next_queue_bootstrap_with_separate_sdk_pr(self) -> None:
+        generated, _ = self.baseline()
+        self.git("branch", "codegen/test", generated)
+        self.write(budget.POLICY, json.dumps({"schema_version": 1, "max_custom_patch_lines": 10}))
+        approved_policy = self.commit("budget")
+        self.write(
+            budget.POLICY,
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "max_custom_patch_lines": 10,
+                    "next_policy": {"repository": "openai/example", "main_sha": approved_policy},
+                }
+            ),
+        )
+        pin_head = self.commit("isolated initialization PR")
+        base = approved_policy
+        self.git("checkout", "-q", "-b", "sdk", base)
+        self.write("generated.py", "generated\ncustom\n")
+        pr_head = self.commit()
+        self.git("checkout", "-q", "-b", "queue", base)
+        self.git("merge", "--squash", "sdk")
+        self.commit("SDK queue entry")
+        self.git("merge", "--squash", pin_head)
+        queue_head = self.commit("synthetic queue commit")
+        self.assertNotEqual(self.git("merge-base", pr_head, queue_head), pr_head)
+        policy = approved_policy
+        run = source_run(queue_head, "merge_group")
+        run["head_branch"] = "gh-readonly-queue/next/pr-7-example"
+        event = {
+            "repository": {"full_name": "openai/example"},
+            "workflow_run": run,
+        }
+        original_git = report.git
+
+        def local_fetch(repo: Path, *args: str, input_bytes: bytes | None = None) -> bytes:
+            if args[0] == "fetch":
+                args = tuple(str(self.repo) if arg == "origin" else arg for arg in args)
+            return original_git(repo, *args, input_bytes=input_bytes)
+
+        with (
+            tempfile.TemporaryDirectory() as temp,
+            mock.patch.object(
+                budget.report,
+                "api",
+                side_effect=[
+                    {"default_branch": "main", "private": True},
+                    run,
+                    {"object": {"sha": policy}},
+                    {"object": {"sha": base}},
+                    [{"type": "merge_queue"}],
+                ],
+            ),
+            mock.patch.object(
+                budget,
+                "queued_entries",
+                return_value=[(pin_head, queue_head), (pr_head, queue_head)],
+            ),
+            mock.patch.object(
+                budget.report,
+                "git",
+                side_effect=local_fetch,
+            ),
+        ):
+            repo = Path(temp) / "queue.git"
+            result, _ = budget.github_evaluate(
+                repo,
+                "openai/example",
+                event,
+                approved_policy,
+                selection={
+                    "target_branch": "next",
+                    "base_sha": base,
+                    "head_sha": queue_head,
+                    "policy_sha": approved_policy,
+                    "bootstrap": True,
+                    "schema_version": 1,
+                },
+            )
+            self.assertEqual(result["head_sha"], queue_head)
+            self.assertEqual(result["checks"]["budget"]["state"], "success", result["checks"])
+            self.assertEqual(result["limit"], 10)
+            self.assertEqual(result["base_sha"], base)
+            self.assertEqual(result["policy_sha"], approved_policy)
+            self.assertEqual(result["target_branch"], "next")
+            self.assertEqual(result["total"], 1)
+            self.assertEqual(
+                [c["state"] for c in result["checks"].values()], ["success", "success"]
             )
 
 
@@ -385,7 +638,46 @@ class GitHubBudgetTests(unittest.TestCase):
             "repository": {"full_name": REPOSITORY},
             "workflow_run": source_run(self.head, self.api.run["event"]),
         }
-        return budget.github_evaluate(self.repo, REPOSITORY, event, self.base, trusted_report)
+        return budget.github_evaluate(
+            self.repo,
+            REPOSITORY,
+            event,
+            self.base,
+            trusted_report,
+            selection={
+                "schema_version": 1,
+                "target_branch": "main",
+                "base_sha": self.base,
+                "head_sha": self.head,
+                "policy_sha": self.base,
+            },
+        )
+
+    def test_main_rejects_missing_or_retargeted_selection(self) -> None:
+        for branch in (None, "next"):
+            selection = (
+                None
+                if branch is None
+                else {
+                    "schema_version": 1,
+                    "target_branch": branch,
+                    "base_sha": self.base,
+                    "head_sha": self.head,
+                    "policy_sha": self.base,
+                }
+            )
+            with (
+                self.subTest(branch=branch),
+                self.assertRaisesRegex(ValueError, "policy selection"),
+            ):
+                budget.github_evaluate(
+                    self.repo,
+                    REPOSITORY,
+                    {"repository": {"full_name": REPOSITORY}, "workflow_run": self.api.run},
+                    self.base,
+                    selection=selection,
+                )
+            self.assertFalse(self.repo.exists())
 
     def test_merge_queue_rule_is_required_before_passing(self) -> None:
         self.api.run = source_run(self.head, "merge_group")
@@ -442,7 +734,12 @@ class GitHubBudgetTests(unittest.TestCase):
                     mock.patch.object(budget, "evaluate", return_value=({}, b"")) as evaluate,
                 ):
                     if stale:
-                        with self.assertRaisesRegex(ValueError, "trusted report does not match"):
+                        with self.assertRaisesRegex(
+                            ValueError,
+                            "trusted policy selection"
+                            if stale == "base"
+                            else "trusted report does not match",
+                        ):
                             self.evaluate(trusted_report=self.root)
                         evaluate.assert_not_called()
                     else:
@@ -452,7 +749,7 @@ class GitHubBudgetTests(unittest.TestCase):
                             evaluate.call_args.kwargs["measurement"], (measured, b"verified patch")
                         )
 
-    def test_next_reuses_target_snapshot_but_keeps_main_policy(self) -> None:
+    def test_next_reuses_target_snapshot_but_uses_selected_main_policy(self) -> None:
         self.api.pull["base"]["ref"] = "next"
         target = "c" * 40
         self.api.next = target
@@ -468,14 +765,34 @@ class GitHubBudgetTests(unittest.TestCase):
         with (
             mock.patch.object(budget.report, "git", return_value=b"true\n"),
             mock.patch.object(budget, "evaluate", return_value=({}, b"")) as evaluate,
+            mock.patch.object(
+                budget,
+                "read_policy",
+                return_value={"next_policy": {"repository": REPOSITORY, "main_sha": self.base}},
+            ),
         ):
-            self.evaluate(trusted_report=self.root)
+            budget.github_evaluate(
+                self.repo,
+                REPOSITORY,
+                {"repository": {"full_name": REPOSITORY}, "workflow_run": self.api.run},
+                self.base,
+                self.root,
+                selection={
+                    "target_branch": "next",
+                    "base_sha": target,
+                    "head_sha": self.head,
+                    "policy_sha": self.base,
+                    "bootstrap": False,
+                    "schema_version": 1,
+                },
+            )
         self.assertEqual(evaluate.call_args.args, (self.repo, target, self.head))
         self.assertEqual(evaluate.call_args.kwargs["policy_sha"], self.base)
 
     def test_next_report_reuse_rejects_retargeting_and_policy_mismatch(self) -> None:
         self.api.pull["base"]["ref"] = "next"
         self.repo.mkdir()
+        self.api.next = "d" * 40
         for field, value in (
             ("target_branch", "main"),
             ("policy_sha", "c" * 40),
@@ -493,9 +810,23 @@ class GitHubBudgetTests(unittest.TestCase):
                 self.subTest(field=field),
                 self.assertRaisesRegex(ValueError, "trusted report does not match"),
             ):
-                self.evaluate(trusted_report=self.root)
+                budget.github_evaluate(
+                    self.repo,
+                    REPOSITORY,
+                    {"repository": {"full_name": REPOSITORY}, "workflow_run": self.api.run},
+                    self.base,
+                    self.root,
+                    selection={
+                        "target_branch": "next",
+                        "base_sha": self.api.next,
+                        "head_sha": self.head,
+                        "policy_sha": self.base,
+                        "bootstrap": False,
+                        "schema_version": 1,
+                    },
+                )
 
-    def test_next_queue_uses_target_rules_and_rejects_stale_policy(self) -> None:
+    def test_next_queue_uses_target_rules_and_requires_policy_selection(self) -> None:
         self.api.run = source_run(self.head, "merge_group")
         self.api.run["head_branch"] = "gh-readonly-queue/next/pr-3-test"
         self.api.rules = []
@@ -503,8 +834,32 @@ class GitHubBudgetTests(unittest.TestCase):
             self.evaluate()
         self.api.rules = [{"type": "merge_queue"}]
         self.api.main = "c" * 40
-        with self.assertRaisesRegex(ValueError, "trusted checkout is stale"):
+        with self.assertRaisesRegex(ValueError, "policy selection"):
             self.evaluate()
+        self.assertFalse(self.repo.exists())
+
+    def test_next_selection_receipt_rejects_missing_unknown_or_boolean_version(self) -> None:
+        self.api.pull["base"]["ref"] = "next"
+        self.api.next = "d" * 40
+        for version in (None, 2, True):
+            with (
+                self.subTest(version=version),
+                self.assertRaisesRegex(ValueError, "policy selection"),
+            ):
+                budget.github_evaluate(
+                    self.repo,
+                    REPOSITORY,
+                    {"repository": {"full_name": REPOSITORY}, "workflow_run": self.api.run},
+                    self.base,
+                    selection={
+                        "schema_version": version,
+                        "target_branch": "next",
+                        "base_sha": self.api.next,
+                        "head_sha": self.head,
+                        "policy_sha": self.base,
+                        "bootstrap": False,
+                    },
+                )
         self.assertFalse(self.repo.exists())
 
     def test_queue_cannot_reuse_pr_measurement(self) -> None:
@@ -600,6 +955,7 @@ class GitHubBudgetTests(unittest.TestCase):
                 pull_heads=None,
                 measurement=None,
                 policy_sha=self.base,
+                target_branch="main",
             )
 
     def test_stale_pull_and_wrong_target_fail_before_objects_created(self) -> None:

@@ -244,9 +244,10 @@ class TestVideos:
     @pytest.mark.respx2(base_url=base_url)
     def test_method_download_content(self, client: OpenAI, respx2_mock: MockRouter) -> None:
         respx2_mock.get("/videos/video_123/content").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
-        video = client.videos.download_content(
-            video_id="video_123",
-        )
+        with pytest.warns(DeprecationWarning):
+            video = client.videos.download_content(
+                video_id="video_123",
+            )
         assert isinstance(video, _legacy_response.HttpxBinaryResponseContent)
         assert video.json() == {"foo": "bar"}
 
@@ -254,10 +255,11 @@ class TestVideos:
     @pytest.mark.respx2(base_url=base_url)
     def test_method_download_content_with_all_params(self, client: OpenAI, respx2_mock: MockRouter) -> None:
         respx2_mock.get("/videos/video_123/content").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
-        video = client.videos.download_content(
-            video_id="video_123",
-            variant="video",
-        )
+        with pytest.warns(DeprecationWarning):
+            video = client.videos.download_content(
+                video_id="video_123",
+                variant="video",
+            )
         assert isinstance(video, _legacy_response.HttpxBinaryResponseContent)
         assert video.json() == {"foo": "bar"}
 
@@ -266,9 +268,10 @@ class TestVideos:
     def test_raw_response_download_content(self, client: OpenAI, respx2_mock: MockRouter) -> None:
         respx2_mock.get("/videos/video_123/content").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
 
-        response = client.videos.with_raw_response.download_content(
-            video_id="video_123",
-        )
+        with pytest.warns(DeprecationWarning):
+            response = client.videos.with_raw_response.download_content(
+                video_id="video_123",
+            )
 
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -279,14 +282,15 @@ class TestVideos:
     @pytest.mark.respx2(base_url=base_url)
     def test_streaming_response_download_content(self, client: OpenAI, respx2_mock: MockRouter) -> None:
         respx2_mock.get("/videos/video_123/content").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
-        with client.videos.with_streaming_response.download_content(
-            video_id="video_123",
-        ) as response:
-            assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        with pytest.warns(DeprecationWarning):
+            with client.videos.with_streaming_response.download_content(
+                video_id="video_123",
+            ) as response:
+                assert not response.is_closed
+                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
-            video = response.parse()
-            assert_matches_type(bytes, video, path=["response"])
+                video = response.parse()
+                assert_matches_type(bytes, video, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 
@@ -690,9 +694,10 @@ class TestAsyncVideos:
     @pytest.mark.respx2(base_url=base_url)
     async def test_method_download_content(self, async_client: AsyncOpenAI, respx2_mock: MockRouter) -> None:
         respx2_mock.get("/videos/video_123/content").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
-        video = await async_client.videos.download_content(
-            video_id="video_123",
-        )
+        with pytest.warns(DeprecationWarning):
+            video = await async_client.videos.download_content(
+                video_id="video_123",
+            )
         assert isinstance(video, _legacy_response.HttpxBinaryResponseContent)
         assert video.json() == {"foo": "bar"}
 
@@ -702,10 +707,11 @@ class TestAsyncVideos:
         self, async_client: AsyncOpenAI, respx2_mock: MockRouter
     ) -> None:
         respx2_mock.get("/videos/video_123/content").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
-        video = await async_client.videos.download_content(
-            video_id="video_123",
-            variant="video",
-        )
+        with pytest.warns(DeprecationWarning):
+            video = await async_client.videos.download_content(
+                video_id="video_123",
+                variant="video",
+            )
         assert isinstance(video, _legacy_response.HttpxBinaryResponseContent)
         assert video.json() == {"foo": "bar"}
 
@@ -714,9 +720,10 @@ class TestAsyncVideos:
     async def test_raw_response_download_content(self, async_client: AsyncOpenAI, respx2_mock: MockRouter) -> None:
         respx2_mock.get("/videos/video_123/content").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
 
-        response = await async_client.videos.with_raw_response.download_content(
-            video_id="video_123",
-        )
+        with pytest.warns(DeprecationWarning):
+            response = await async_client.videos.with_raw_response.download_content(
+                video_id="video_123",
+            )
 
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -729,14 +736,15 @@ class TestAsyncVideos:
         self, async_client: AsyncOpenAI, respx2_mock: MockRouter
     ) -> None:
         respx2_mock.get("/videos/video_123/content").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
-        async with async_client.videos.with_streaming_response.download_content(
-            video_id="video_123",
-        ) as response:
-            assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        with pytest.warns(DeprecationWarning):
+            async with async_client.videos.with_streaming_response.download_content(
+                video_id="video_123",
+            ) as response:
+                assert not response.is_closed
+                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
-            video = await response.parse()
-            assert_matches_type(bytes, video, path=["response"])
+                video = await response.parse()
+                assert_matches_type(bytes, video, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 
