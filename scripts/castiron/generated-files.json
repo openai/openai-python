@@ -543,7 +543,7 @@
     },
     "src/openai/resources/files.py": {
       "mode": "100644",
-      "sha256": "0629d0cd6e09883f185a459dea2d86a35d72c3960e462e29c89854ae680bccf4"
+      "sha256": "4d07e7fd7e821a92b4e55d985336c0a2b4495aa7b682b82dd1f37557171c807a"
     },
     "src/openai/resources/fine_tuning/__init__.py": {
       "mode": "100644",
@@ -735,11 +735,11 @@
     },
     "src/openai/resources/vector_stores/file_batches.py": {
       "mode": "100644",
-      "sha256": "63a7f2d37951dca32762d626fef547e1492ddd1e2adbd4a56d40ead8e3b25e98"
+      "sha256": "da1b1f55d74fd6c7ad6d9c980b16d41b4fb51c50db15c84e71002f0860e4c6f1"
     },
     "src/openai/resources/vector_stores/files.py": {
       "mode": "100644",
-      "sha256": "ef82de91391256f56d50c9ce084d6954241101e0e663c5e8142ec063dc4a8293"
+      "sha256": "c16228370423aa83e41db874ae577b85442290acf51eca4e4937e1cfa174a7ab"
     },
     "src/openai/resources/vector_stores/vector_stores.py": {
       "mode": "100644",
@@ -747,7 +747,7 @@
     },
     "src/openai/resources/videos.py": {
       "mode": "100644",
-      "sha256": "c17aa6cdb4691bb88e69e7288a72f4e963c121a9429de61fdb1e4842168b9d0c"
+      "sha256": "d505c37b6faae6cb3de9dabab651edd2ea5ee8eeac2134a0db94bf568f3a77c8"
     },
     "src/openai/resources/webhooks/__init__.py": {
       "mode": "100644",
@@ -7843,7 +7843,7 @@
     },
     "tests/api_resources/test_videos.py": {
       "mode": "100644",
-      "sha256": "3be3adea04934a991e9906d794468a0e33116dd1a2ca3762b360870a626f82fc"
+      "sha256": "bcc55dc2c7b47d6998ac977b4b6b073ce62bd6f963496f312ff350e9ee1382c9"
     },
     "tests/api_resources/test_webhooks.py": {
       "mode": "100644",
