@@ -186,7 +186,8 @@ jobs:
         run: uv run --locked --all-extras --group browser-demo python scripts/check-example-security.py demo
 
   optional-provider-types:
-    timeout-minutes: 10
+    # Allow OS/browser setup time while retaining each security exercise's timeout.
+    timeout-minutes: ${{ matrix.provider == 'browser' && 15 || 10 }}
     name: optional provider types (${{ matrix.provider }})
     runs-on: ubuntu-latest
     needs: dependency-locks
