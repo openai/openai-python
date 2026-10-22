@@ -5,8 +5,6 @@ from types import TracebackType
 from typing import TYPE_CHECKING, Any, Generic, Callable, Iterable, Awaitable, AsyncIterator, cast
 from typing_extensions import Self, Iterator, assert_never
 
-from jiter import from_json
-
 from ._types import ParsedChoiceSnapshot, ParsedChatCompletionSnapshot, ParsedChatCompletionMessageSnapshot
 from ._events import (
     ChunkEvent,
@@ -38,6 +36,7 @@ from ..._parsing import (
 from ...._streaming import Stream, AsyncStream
 from ....types.chat import ChatCompletionChunk, ParsedChatCompletion, ChatCompletionToolUnionParam
 from ...._exceptions import LengthFinishReasonError, ContentFilterFinishReasonError
+from .._partial_json import PartialJSONParser
 from ....types.chat.chat_completion import Moderation, ChoiceLogprobs
 from ....types.chat.chat_completion_chunk import Choice as ChoiceChunk
 from ....types.chat.completion_create_params import ResponseFormat as ResponseFormatParam
@@ -318,6 +317,8 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
     ) -> None:
         self.__current_completion_snapshot: ParsedChatCompletionSnapshot | None = None
         self.__choice_event_states: list[ChoiceEventState] = []
+        self.__content_parsers: dict[int, PartialJSONParser] = {}
+        self.__tool_parsers: dict[tuple[int, int], PartialJSONParser] = {}
 
         self._input_tools = [tool for tool in input_tools] if is_given(input_tools) else []
         self._response_format = response_format
@@ -440,10 +441,10 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                 # partial parsing fails on white-space
                 and choice_snapshot.message.content.lstrip()
             ):
-                choice_snapshot.message.parsed = from_json(
-                    bytes(choice_snapshot.message.content, "utf-8"),
-                    partial_mode=True,
-                )
+                parser = self.__content_parsers.get(choice.index)
+                if parser is None:
+                    parser = self.__content_parsers[choice.index] = PartialJSONParser()
+                choice_snapshot.message.parsed = parser.parse(choice_snapshot.message.content)
 
             for tool_call_chunk in choice.delta.tool_calls or []:
                 tool_call_snapshot = (choice_snapshot.message.tool_calls or [])[tool_call_chunk.index]
@@ -458,9 +459,12 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                         and input_tool.get("function", {}).get("strict")
                         and tool_call_snapshot.function.arguments
                     ):
-                        tool_call_snapshot.function.parsed_arguments = from_json(
-                            bytes(tool_call_snapshot.function.arguments, "utf-8"),
-                            partial_mode=True,
+                        key = (choice.index, tool_call_chunk.index)
+                        parser = self.__tool_parsers.get(key)
+                        if parser is None:
+                            parser = self.__tool_parsers[key] = PartialJSONParser()
+                        tool_call_snapshot.function.parsed_arguments = parser.parse(
+                            tool_call_snapshot.function.arguments
                         )
                 elif TYPE_CHECKING:  # type: ignore[unreachable]
                     assert_never(tool_call_snapshot)
