@@ -23,6 +23,10 @@ from .._response import (
     to_custom_streamed_response_wrapper,
     async_to_custom_streamed_response_wrapper,
 )
+from ..lib._files import (
+    wait_for_file_processing as _wait_for_file_processing,
+    async_wait_for_file_processing as _async_wait_for_file_processing,
+)
 from ..pagination import SyncCursorPage, AsyncCursorPage
 from .._base_client import AsyncPaginator, make_request_options
 from ..types.file_object import FileObject
@@ -362,6 +366,16 @@ class Files(SyncAPIResource):
             cast_to=str,
         )
 
+    def wait_for_processing(
+        self,
+        id: str,
+        *,
+        poll_interval: float = 5.0,
+        max_wait_seconds: float = 30 * 60,
+    ) -> FileObject:
+        "Waits for the given file to be processed, default timeout is 30 mins."
+        return _wait_for_file_processing(self, id, poll_interval=poll_interval, max_wait_seconds=max_wait_seconds)
+
 
 class AsyncFiles(AsyncAPIResource):
     """
@@ -691,6 +705,18 @@ class AsyncFiles(AsyncAPIResource):
                 security={"bearer_auth": True},
             ),
             cast_to=str,
+        )
+
+    async def wait_for_processing(
+        self,
+        id: str,
+        *,
+        poll_interval: float = 5.0,
+        max_wait_seconds: float = 30 * 60,
+    ) -> FileObject:
+        "Waits for the given file to be processed, default timeout is 30 mins."
+        return await _async_wait_for_file_processing(
+            self, id, poll_interval=poll_interval, max_wait_seconds=max_wait_seconds
         )
 
 

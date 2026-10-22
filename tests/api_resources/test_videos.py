@@ -18,6 +18,7 @@ from openai.types import (
     VideoCreateCharacterResponse,
 )
 from tests.respx2 import MockRouter
+from openai._utils import assert_signatures_in_sync
 from openai.pagination import SyncConversationCursorPage, AsyncConversationCursorPage
 
 # pyright: reportDeprecated=false
@@ -925,3 +926,14 @@ class TestAsyncVideos:
                     video_id="",
                     prompt="x",
                 )
+
+
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+def test_create_and_poll_method_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
+    checking_client: OpenAI | AsyncOpenAI = client if sync else async_client
+
+    assert_signatures_in_sync(
+        checking_client.videos.create,  # pyright: ignore[reportDeprecated]
+        checking_client.videos.create_and_poll,  # pyright: ignore[reportDeprecated]
+        exclude_params={"extra_headers", "extra_query", "extra_body", "timeout"},
+    )
