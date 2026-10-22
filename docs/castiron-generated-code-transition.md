@@ -6,15 +6,9 @@ Eliminate handwritten patches in generated-owned files while preserving every ex
 
 No removals or renames of public symbols, new required arguments, narrower input/return types, dependency or Python-floor changes, altered defaults, new payload limits, changed warnings, or changed sync/async behavior are authorized by this transition. Deprecated methods and compatibility import paths remain supported.
 
-## Verified integration candidate — 2026-10-22
+## Delivered integration — uploads, aliases and Live defaults
 
-Private candidate #315 measures **32 mixed files; 5,632 additions + 1,213 deletions = 6,845 custom patch lines**, with **37,881 integrated versus 33,462 generated physical lines**. Its released baseline contains 48 mixed files / 9,173 patch lines. This is a private candidate reduction, not a merged public result.
-
-Evaluated SDK code: `5fcd05c9064e5bcfa820aed283d9570e1f997255`; released baseline: `49e6757e464ce03b6f47c89740feaa75870ba168`. Normal generation used merged compiler `6959b4685e426934700ebb40c159e382714c8542`, private checkpoint `b345a3bfad1729f1640878441f304e9fc4787c36`, generation `9fa1f60f-3df4-4d35-8b22-19dbbb6c80fb`, and content hash `f71f5997995e620542e459fbe3a23789b2fbacf139d5d0c805e79c456abd2f49`. The unchanged reporter verified real checkpoint ancestry and recorded content hashes with `--fetch --require-head-hash`.
-
-The API specification and dependency manifests/locks remain unchanged. Configuration changes remain limited to the eight upload/agent helper, alias and Live queue paths. The seven polling paths remain a separate follow-up; released polling runtime additions are preserved. No generation ownership is removed, no new mixed files are introduced, and no budget or exclusion is changed.
-
-16 files now match generation byte for byte, eliminating 1,838 old patch lines. The net patch reduction is 2,328; changes to the generated baseline also affect the remaining patches. These counts include comments, blank lines and moves and do not represent removed executable statements.
+[#4152](https://github.com/openai/openai-python/pull/4152) merged through the normal public queue on 2026-10-22 as `a29dc3947aeccecc2e85d8fbad4d7c03b8af13e9`. This delivered **48 → 32 mixed files** and **9,173 → 6,845 custom patch lines**, a net reduction of **2,328**. Private #315 is closed as completed; its generation checkpoints are retained. The 16 files below match generation byte for byte and account for 1,838 previous patch lines; generated-baseline changes explain the difference from the net reduction.
 
 | File now matching generation | Integrated = generated lines | Previous patch |
 | --- | ---: | ---: |
@@ -35,17 +29,15 @@ The API specification and dependency manifests/locks remain unchanged. Configura
 | `src/openai/types/__init__.py` | 150 | 1 |
 | `tests/api_resources/admin/organization/projects/test_api_keys.py` | 442 | 10 |
 
-Remaining files whose patch size changed:
+The released integration preserves upload factories, subclass dispatch, lazy defaults and logging, aliases, Live queue defaults, and current/older-runtime WebSocket behavior. Its validation included 1,606 runtime/client/security tests with 16 skips, 158 reporting tests with one skip, full lint/type checks and independent checkpoint/contract review. All review feedback was addressed before normal protected merge. [Main post-merge CI](https://github.com/openai/openai-python/actions/runs/39727147208) passed. Historical private-candidate evidence is retained under `delivered_integrations` in the JSON.
 
-| File | Previous patch | Candidate patch |
-| --- | ---: | ---: |
-| `src/openai/resources/beta/responses/responses.py` | 214 | 110 |
-| `src/openai/resources/realtime/realtime.py` | 134 | 12 |
-| `src/openai/resources/realtime/translations/translations.py` | 138 | 52 |
-| `src/openai/resources/responses/responses.py` | 1096 | 994 |
-| `tests/api_resources/test_videos.py` | 88 | 12 |
+## Current published baseline — 2026-10-22
 
-### Remaining candidate inventory
+Released commit `a29dc3947aeccecc2e85d8fbad4d7c03b8af13e9` contains **32 mixed files; 5,632 additions + 1,213 deletions = 6,845 custom patch lines**, with **37,881 integrated versus 33,462 generated physical lines**. The public generated snapshot is `75ba2ba983afb0a8823fae82670c5323c0ee9908`, generation `9fa1f60f-3df4-4d35-8b22-19dbbb6c80fb`, content hash `f71f5997995e620542e459fbe3a23789b2fbacf139d5d0c805e79c456abd2f49`. The unchanged reporter verified real public checkpoint ancestry and the recorded hash with `--public --fetch --require-head-hash`; run from a clone whose origin is the public SDK, using this released SHA for both base and head to reproduce the inventory.
+
+The snapshot owns 1,970 paths, including 1,797 source paths. Another 205 source paths / 35,731 physical lines remain outside generated ownership. The polling candidate retains this ownership, the existing exclusions and the 10,000-line budget. Physical lines include comments and blanks; patch additions plus deletions are not a count of executable statements. The original October 19 audit below remains historical; `current_audit` records this released baseline, and `published_audit_history` retains the previous 48-file audit.
+
+### Current per-file inventory
 
 | File | Integrated lines | Generated lines | Added | Deleted | Patch | Track |
 | --- | ---: | ---: | ---: | ---: | ---: | --- |
@@ -82,76 +74,51 @@ Remaining files whose patch size changed:
 | `src/openai/types/realtime/conversation_item_input_audio_transcription_delta_event.py` | 40 | 40 | 1 | 1 | 2 | T1 |
 | `src/openai/types/realtime/realtime_error_event.py` | 25 | 25 | 1 | 1 | 2 | T1 |
 
-Machine-readable evidence is under `pending_candidate_audit` in [castiron-transition-inventory.json](castiron-transition-inventory.json).
+## Verified polling integration candidate — 2026-10-22
 
-Validation on this exact code head: the normal SDK lint script passed Ruff, Pyright (zero errors), Mypy (2,047 files) and import verification; 1,606 runtime/client/security compatibility tests passed with 16 skips; 159 reporting tests ran successfully with one skip (158 passed). Existing public declarations and decorators are unchanged; the only added declarations are two private fallback methods. Dependency manifests, lockfile, release/version metadata, API reference, service-account documentation and the prepared translations module are byte-identical to the released baseline. Independent review verified all 1,971 manifest hashes/modes against the pure checkpoint, all canonical reporting/workflow bytes, and the unchanged eight-path configuration scope.
+[Private #326](https://github.com/openai/openai-python-internal/pull/326) measures **32 → 27 mixed files** and **6,845 → 6,186 custom patch lines**, a further **659** reduction. This is a separately verified private candidate, not yet a merged public reduction. The 27 remaining files contain 4,979 additions + 1,207 deletions and 32,760 integrated versus 28,988 generated physical lines.
 
-The generated WebSocket call sites preserve the released runtime helper and subclass dispatch, using a distinct fallback only when that optional helper is absent. Dynamic lookup survives normal formatting and typechecks with both current and older runtimes; blank-value, repeated-key and mapping semantics remain covered. Queue bootstrap policy applies isolation to every verified constituent while retaining combined-budget enforcement and approval checks. Source fixes alone do not resolve candidate review feedback; the published SDK head must include and pass both fixes.
+Evaluated code: `aaa793c62214fa0c1541581aff6b4235fe5b9d24`. Normal generation used merged compiler `6959b4685e426934700ebb40c159e382714c8542`, pure checkpoint `7e3f90acf16f400505edeff5eb14ebb11981975a`, configuration checkpoint `db11a1a29f20f388bf6443d8bf5666e492f94777`, generation `18a47a5c-822b-47f7-9e5e-afd9c57dc6f6`, and content hash `d0c03ec7e35a1c576cfc7197aa8a3bd4e2b5e240ad90621c86437967444e3ef8`. The unchanged reporter (SHA-256 `6b7cfda1f85426daaa2e4f6186e2d1b20ac638dadaa54be8142ecec89fefd880`) verifies the authentic private checkpoint ancestry and recorded hash.
 
-Reproduce the private candidate report from an internal SDK checkout containing these commits:
+Exactly seven authored polling configuration settings are added to the released configuration: Files retrieve; vector-store Files create/retrieve; vector-store FileBatches create/retrieve; and Videos create/retrieve. All eight predecessor settings remain intact. Removing these seven settings and collapsing the five endpoint-only shorthand maps reproduces the complete predecessor configuration. Raw and transformed API specifications, dependency files, release metadata, handwritten runtimes, client/translation code, ownership, exclusions and budgets remain unchanged.
 
-```sh
-python3 -I scripts/castiron/custom_code_report.py report \
-  --repo . \
-  --base 49e6757e464ce03b6f47c89740feaa75870ba168 \
-  --head 5fcd05c9064e5bcfa820aed283d9570e1f997255 \
-  --fetch --require-head-hash \
-  --out /tmp/python-transition-candidate-report
-```
+The five files below now match the pure checkpoint exactly. Their 659 prior patch lines account for the full reduction; every remaining patch is unchanged.
 
-## Current published baseline — 2026-10-22
+| File now matching generation | Integrated = generated lines | Previous patch |
+| --- | ---: | ---: |
+| `src/openai/resources/files.py` | 826 | 26 |
+| `src/openai/resources/vector_stores/file_batches.py` | 776 | 245 |
+| `src/openai/resources/vector_stores/files.py` | 987 | 221 |
+| `src/openai/resources/videos.py` | 1444 | 155 |
+| `tests/api_resources/test_videos.py` | 939 | 12 |
 
-Published baseline `49e6757e464ce03b6f47c89740feaa75870ba168` contains **48 mixed files; 7,565 additions + 1,608 deletions = 9,173 custom patch lines**, with **50,243 integrated physical lines versus 44,286 generated physical lines** in those files. The fixed October 19 audit below remains historical; `current_audit` in the JSON records this released baseline. The additive upload runtime (#4146) and polling runtime (#4148) are merged; their handwritten modules remain outside generated ownership.
+Validation: **303 polling/runtime compatibility tests passed** across synchronous, asynchronous and Trio behavior; the normal lint script passed Ruff, Pyright (zero errors), Mypy (2,047 files) and import verification. All **112 public facade contracts** and **16 runtime exports** are retained. Independent review verified that the ten delegate runtime bodies match released method bodies after receiver/validator-alias normalization, every argument is forwarded unchanged, and all other method bodies (including video polling) remain unchanged. Deadlines, validation-before-side-effects, cancellation, upload ownership, concurrency, headers, deprecation warnings and terminal-state behavior remain covered.
 
-Verified public snapshot: `f99cb5bb5fc87965058d7055e382a25d1d064bcc`; generation `dd7765a4-3f6a-4a04-aaca-19aaa7507cdd`; generated-content SHA-256 `a7aa886594dd13f43e180a8516000bdf96481ed147ba52f0f2def6e243bb03b5`. The reporter is byte-identical to this published revision (SHA-256 `6b7cfda1f85426daaa2e4f6186e2d1b20ac638dadaa54be8142ecec89fefd880`); `--public --fetch --require-head-hash` verifies the actual public checkpoint ancestry and content hash. Run the report from a clone whose `origin` is the public SDK repository; set both `--base` and `--head` to this baseline SHA to reproduce the current inventory. No synthetic tracking ref or checkpoint recovery is needed.
+Local dependency freshness checks fail on both the unchanged released predecessor and this candidate under the managed registry. Local checks use the exact committed dependency set installed with `uv sync --frozen --all-extras` and no re-resolution; registry security settings and lockfiles are retained. Current hosted locked-install checks remain required before promotion. SDK CODEOWNER review and normal public checks/queue are also required; the independent audit does not replace them.
 
-Release 3.36.1 (#4145) changes only version/changelog metadata after #4151 and leaves every inventory row and total unchanged. This baseline includes the released service-account API-key documentation update in [#4151](https://github.com/openai/openai-python/pull/4151). Compared with `7cd702895379656bee62047ff64813ff616aeef7`, changed generated baselines add two mixed files: `scripts/castiron/custom_code_report.py` (206 patch lines) and `src/openai/types/__init__.py` (1 patch line). Existing mixed-file patches increase by another 903 lines: 1,110 additional measured patch lines overall. The SDK update itself changes documentation, while its generated checkpoint changes this measurement. The current 10,000-line budget has 827 lines of headroom. Preserve released behavior, exports and tests; measure the pending candidate separately before claiming a reduction.
-
-The snapshot owns 1,968 paths, including 1,797 source paths. Another 205 paths under `src/openai/` (35,728 physical lines) remain outside generated ownership and are not mixed files. Physical lines include comments and blanks. Additions plus deletions measure patch size, not executable handwritten statements removed.
-
-### Current per-file inventory
+### Remaining candidate inventory
 
 | File | Integrated lines | Generated lines | Added | Deleted | Patch | Track |
 | --- | ---: | ---: | ---: | ---: | ---: | --- |
 | `src/openai/resources/beta/threads/runs/runs.py` | 3161 | 2052 | 1290 | 181 | 1471 | T4 |
-| `src/openai/resources/responses/responses.py` | 5171 | 4295 | 986 | 110 | 1096 | T5 |
+| `src/openai/resources/responses/responses.py` | 5181 | 4335 | 920 | 74 | 994 | T5 |
 | `src/openai/resources/audio/transcriptions.py` | 1089 | 1403 | 287 | 601 | 888 | T3 |
-| `src/openai/_client.py` | 2401 | 1702 | 759 | 60 | 819 | T2 |
-| `scripts/castiron/test_custom_code_report.py` | 1081 | 460 | 621 | 0 | 621 | T0 |
+| `src/openai/_client.py` | 2440 | 1741 | 759 | 60 | 819 | T2 |
 | `src/openai/resources/chat/completions/completions.py` | 3456 | 2854 | 603 | 1 | 604 | T6 |
 | `src/openai/resources/beta/threads/threads.py` | 2009 | 1626 | 390 | 7 | 397 | T4 |
-| `src/openai/resources/vector_stores/file_batches.py` | 867 | 628 | 242 | 3 | 245 | T7 |
-| `src/openai/resources/uploads/uploads.py` | 765 | 544 | 221 | 0 | 221 | T8 |
-| `src/openai/resources/vector_stores/files.py` | 1032 | 813 | 220 | 1 | 221 | T7 |
-| `src/openai/resources/beta/responses/responses.py` | 5565 | 5535 | 122 | 92 | 214 | T5 |
-| `scripts/castiron/custom_code_report.py` | 1250 | 1078 | 189 | 17 | 206 | T0 |
 | `src/openai/__init__.py` | 505 | 321 | 185 | 1 | 186 | T2 |
-| `src/openai/resources/live/sideband.py` | 1413 | 1394 | 89 | 70 | 159 | T11 |
-| `src/openai/resources/videos.py` | 1457 | 1306 | 153 | 2 | 155 | T10 |
-| `src/openai/resources/live/forks.py` | 1446 | 1417 | 85 | 56 | 141 | T11 |
-| `src/openai/resources/realtime/translations/translations.py` | 1152 | 1094 | 98 | 40 | 138 | T11 |
-| `src/openai/resources/realtime/realtime.py` | 1650 | 1624 | 80 | 54 | 134 | T11 |
 | `api.md` | 2090 | 1979 | 119 | 8 | 127 | T16 |
-| `src/openai/resources/beta/agents/environments/files.py` | 596 | 473 | 125 | 2 | 127 | T9 |
-| `src/openai/resources/live/live.py` | 1643 | 1606 | 81 | 44 | 125 | T11 |
 | `src/openai/resources/beta/agents/sessions/sessions.py` | 1304 | 1202 | 113 | 11 | 124 | T9 |
 | `src/openai/resources/audio/translations.py` | 374 | 409 | 40 | 75 | 115 | T3 |
+| `src/openai/resources/beta/responses/responses.py` | 5575 | 5575 | 55 | 55 | 110 | T5 |
 | `src/openai/resources/webhooks/webhooks.py` | 1146 | 1061 | 89 | 4 | 93 | T12 |
-| `tests/api_resources/test_videos.py` | 939 | 919 | 54 | 34 | 88 | T10 |
 | `src/openai/resources/webhooks/__init__.py` | 42 | 73 | 24 | 55 | 79 | T12 |
-| `scripts/castiron/test_custom_code_budget.py` | 773 | 711 | 66 | 4 | 70 | T0 |
-| `scripts/castiron/custom_code_budget.py` | 758 | 737 | 41 | 20 | 61 | T0 |
+| `src/openai/resources/realtime/translations/translations.py` | 1152 | 1136 | 34 | 18 | 52 | T11 |
 | `src/openai/resources/embeddings.py` | 263 | 257 | 27 | 21 | 48 | T13 |
-| `scripts/castiron/test_custom_code_github.py` | 653 | 622 | 31 | 0 | 31 | T0 |
-| `scripts/castiron/test_custom_code_publication.py` | 567 | 542 | 26 | 1 | 27 | T0 |
-| `src/openai/resources/files.py` | 826 | 800 | 26 | 0 | 26 | T14 |
-| `src/openai/resources/beta/beta.py` | 269 | 248 | 21 | 0 | 21 | T15 |
 | `src/openai/resources/realtime/api.md` | 149 | 169 | 0 | 20 | 20 | T16 |
+| `src/openai/resources/realtime/realtime.py` | 1660 | 1654 | 9 | 3 | 12 | T11 |
 | `src/openai/types/decision_input_image_param.py` | 47 | 37 | 11 | 1 | 12 | T1 |
 | `src/openai/types/decision_input_text_param.py` | 33 | 23 | 11 | 1 | 12 | T1 |
-| `src/openai/resources/beta/agents/sessions/artifacts.py` | 561 | 551 | 10 | 0 | 10 | T9 |
-| `tests/api_resources/admin/organization/projects/test_api_keys.py` | 442 | 432 | 10 | 0 | 10 | T1 |
-| `scripts/castiron/fixtures/github_publisher.cjs` | 64 | 59 | 6 | 1 | 7 | T0 |
 | `src/openai/types/webhooks/__init__.py` | 73 | 71 | 3 | 1 | 4 | T1 |
 | `src/openai/types/webhooks/unwrap_webhook_event.py` | 74 | 74 | 2 | 2 | 4 | T1 |
 | `src/openai/types/responses/tool.py` | 398 | 399 | 1 | 2 | 3 | T1 |
@@ -160,7 +127,17 @@ The snapshot owns 1,968 paths, including 1,797 source paths. Another 205 paths u
 | `src/openai/types/fine_tuning/fine_tuning_job_integration.py` | 5 | 7 | 0 | 2 | 2 | T1 |
 | `src/openai/types/realtime/conversation_item_input_audio_transcription_delta_event.py` | 40 | 40 | 1 | 1 | 2 | T1 |
 | `src/openai/types/realtime/realtime_error_event.py` | 25 | 25 | 1 | 1 | 2 | T1 |
-| `src/openai/types/__init__.py` | 150 | 149 | 1 | 0 | 1 | T2 |
+
+Machine-readable pending evidence is under `pending_candidate_audit` in [castiron-transition-inventory.json](castiron-transition-inventory.json). Reproduce from an internal SDK checkout containing the evaluated commit:
+
+```sh
+python3 -I scripts/castiron/custom_code_report.py report \
+  --repo . \
+  --base a29dc3947aeccecc2e85d8fbad4d7c03b8af13e9 \
+  --head aaa793c62214fa0c1541581aff6b4235fe5b9d24 \
+  --fetch --require-head-hash \
+  --out /tmp/python-polling-candidate-report
+```
 
 ## Baseline and measurement
 
@@ -465,16 +442,16 @@ If one successor needs a human review, CI repair, or another merged prerequisite
 | Work | State | Evidence / next action |
 | --- | --- | --- |
 | Baseline audit and plan | Merged; post-merge checks green / complete | [#4114](https://github.com/openai/openai-python/pull/4114), head `7eea9bf1beb552f4db8c456105b6a28bfe9bebe3`, merged as `6a52987f2da5c3bc9b700a7094c0cf14fe7e78dc` on main. Frozen audit: 41 files / 7,368 patch lines at `5589146d`; current merged reduction recorded separately. Explicit current-head human approval and protected merge gates were satisfied. Post-merge push CI, CodeQL and release checks are green on the merge commit, including [run 39316813847](https://github.com/openai/openai-python/actions/runs/39316813847). |
-| T0 generated reporting restoration | Original cleanup merged; renewed formatting work remains | [#4113](https://github.com/openai/openai-python/pull/4113), head `886eb8079e65cfc0509fc945c17d7578b3459bfb`, merged as `9d12b565554c08bcee6287c0d8f671b8c97ed911` on main. Both files matched the verified generated snapshot byte for byte at that merge; its post-merge measurement was 39 mixed files / 7,351 patch lines, with all other customizations unchanged. Prior validation: 94 offline tests passed, one compiler-binary contract test skipped (binary unset); AST comparison and assertion mutation passed. Conductor verified every post-merge push check successful on the merge commit, including [run 39315896992](https://github.com/openai/openai-python/actions/runs/39315896992). |
+| T0 generated reporting restoration | Original cleanup and renewed restoration merged | Original [#4113](https://github.com/openai/openai-python/pull/4113) remains historical. The renewed canonical reporting restoration is delivered in [#4152](https://github.com/openai/openai-python/pull/4152), merge a29dc394; all seven reporting files listed above match generation. |
 | T8 upload helper contract coverage | Merged; successor eligible | [#4112](https://github.com/openai/openai-python/pull/4112) merged on 2026-10-19 as `163a2966140bc0399af7d81e03580d9d907a51df`. Preserve its 16 sync/async contracts in the typed upload-delegation successor. The default 64 MiB boundary remains an additional coverage requirement. This test-only merge does not reduce mixed-file counts or approve a later upload migration. |
 | T10 video polling compatibility | Merged; successor eligible | [#4115](https://github.com/openai/openai-python/pull/4115) merged on 2026-10-19 as `969ae2c734a508ebc5e3370c9dc41bd15602a4a4`. Retain all 21 public-entrypoint sync/async contracts and the interval mutation evidence in the polling-family successor. This test-only merge does not reduce mixed-file counts. |
-| T15 Beta resource alias generation | Compiler merged; candidate SDK integration verified | [Delta 2566635](https://flow.apps.openai.org/deltas/openai/openai/2566635) merged as `509f49c1`. Candidate #315 removes the 21-line Beta patch and preserves the existing sync/async cached-property contracts and collision guards. Public promotion and its normal checks remain. |
-| T11 Live queue generation | Compiler merged; candidate SDK integration verified | [Delta 2565610](https://flow.apps.openai.org/deltas/openai/openai/2565610) is merged. Candidate #315 makes Live, forks and sideband byte-identical to generated output, retaining the byte limit, direct constructors and caller-owned empty queues. |
+| T15 Beta resource alias generation | Compiler and SDK integration merged | [Delta 2566635](https://flow.apps.openai.org/deltas/openai/openai/2566635) merged as 509f49c1. [#4152](https://github.com/openai/openai-python/pull/4152) delivers the generated aliases, removing the 21-line Beta patch while preserving sync/async cached properties and collision guards. |
+| T11 Live queue generation | Compiler and SDK integration merged | [Delta 2565610](https://flow.apps.openai.org/deltas/openai/openai/2565610) and [#4152](https://github.com/openai/openai-python/pull/4152) deliver generation for Live, forks and sideband, retaining byte limits, direct constructors and caller-owned empty queues. All three files match generation. |
 | T1 authored schema documentation | Redundant candidate; merged source already present | [Delta 2565621](https://flow.apps.openai.org/deltas/openai/openai/2565621) duplicates the corrections already merged through [Delta 1490194](https://flow.apps.openai.org/deltas/openai/openai/1490194), commit `97ba353f886c5248912eb50a516cb1aab2fee4c6`. The duplicate is closed with supersession evidence. The generated/integrated SDK descriptions still differ at the current audit; verify input propagation and regenerate before claiming the two-file/four-line reduction. |
-| T7 / T10 / T14 polling family | Compiler and runtime preparation merged; separate integration preview verified | [Delta 2565776](https://flow.apps.openai.org/deltas/openai/openai/2565776) merged as `7098c3c1a28c8ab3afebd9158a68518243e059ce`. The ten vector runtime exports and parity tests are released in [#4148](https://github.com/openai/openai-python/pull/4148), merge `7cd702895379656bee62047ff64813ff616aeef7`. Seven polling configuration paths remain excluded from #315. The isolated successor preview preserves all 112 public contracts and 16 exports and passes 303 tests, Ruff, Mypy and Pyright. Regenerate against the final predecessor, publish, and verify its authoritative inventory before claiming a reduction. |
-| T8 / T9 upload and agent facades | Compiler and upload runtime merged; candidate SDK integration verified | [Delta 2568634](https://flow.apps.openai.org/deltas/openai/openai/2568634) merged as `14c8b579`; upload runtime preparation [#4146](https://github.com/openai/openai-python/pull/4146) merged as `2d58e828`. Candidate #315 clears uploads, environment files and session artifacts while retaining synchronous factories on async resources, subclass dispatch, lazy defaults, logger timing, part ordering and cleanup. Its focused suite includes the 64 MiB boundary. |
-| T0 recurring reporting formatting | Candidate cleanup verified; public integration pending | [Delta 2585899](https://flow.apps.openai.org/deltas/openai/openai/2585899) supplies the canonical reporting templates. Follow-up [Delta 2588691](https://flow.apps.openai.org/deltas/openai/openai/2588691) merged as `697c482a7e50c9278c03d25b9d0862e2f2e5d71e`, preserving executable semantics while fixing shared-template formatting. [Delta 2591310](https://flow.apps.openai.org/deltas/openai/openai/2591310) also preserves the requested unittest import style through normal formatting. The current candidate clears 7 reporting files / 1,023 baseline patch lines, as itemized above. Budget and exclusions remain unchanged. |
-| T11 client WebSocket query composition | Compiler fixes merged; regenerated candidate verified | [Delta 2589816](https://flow.apps.openai.org/deltas/openai/openai/2589816) preserves released query serialization; [Delta 2590767](https://flow.apps.openai.org/deltas/openai/openai/2590767) preserves runtime helper dispatch with a distinct older-runtime fallback and formatter-safe dynamic lookup. Candidate #315 retains client properties and the prepared translations query path. Current/older-runtime typing and released wire contracts must remain green through public promotion. Client and translations files remain mixed. |
+| T7 / T10 / T14 polling family | Compiler/runtime preparation merged; private integration verified | [Delta 2565776](https://flow.apps.openai.org/deltas/openai/openai/2565776) and runtime [#4148](https://github.com/openai/openai-python/pull/4148) are merged. [Private #326](https://github.com/openai/openai-python-internal/pull/326) applies exactly seven settings on released a29dc394; five files / 659 patch lines clear, 112 contracts and 16 exports remain, and 303 tests pass. Public promotion/merge remain pending. |
+| T8 / T9 upload and agent facades | Compiler, runtime and SDK integration merged | [Delta 2568634](https://flow.apps.openai.org/deltas/openai/openai/2568634), runtime [#4146](https://github.com/openai/openai-python/pull/4146) and integration [#4152](https://github.com/openai/openai-python/pull/4152) are merged. Uploads, environment files and session artifacts match generation; synchronous factories on async resources, subclass dispatch, lazy defaults/logger timing, ordering, cleanup and the 64 MiB boundary remain covered. The separate sessions facade still has 124 patch lines. |
+| T0 recurring reporting formatting | Canonical source and public integration merged | [Deltas 2588691](https://flow.apps.openai.org/deltas/openai/openai/2588691) and [2591310](https://flow.apps.openai.org/deltas/openai/openai/2591310) fix shared-template formatting and preserve the requested unittest import style. [#4152](https://github.com/openai/openai-python/pull/4152) clears seven reporting files / 1,023 prior patch lines. Budget and exclusions are unchanged. |
+| T11 client WebSocket query composition | Compiler fixes and public integration merged | [Deltas 2589816](https://flow.apps.openai.org/deltas/openai/openai/2589816) and [2590767](https://flow.apps.openai.org/deltas/openai/openai/2590767) are delivered in [#4152](https://github.com/openai/openai-python/pull/4152). Released query semantics, runtime/subclass dispatch, older-runtime fallback, client properties and prepared translations remain verified. Client and translations files still have unrelated custom patches. |
 | Earlier stable web-search naming | Superseded; stale candidate closed | [Internal #55](https://github.com/openai/openai-python-internal/pull/55) closed after confirming merged [Delta 2513050](https://flow.apps.openai.org/deltas/openai/openai/2513050) and exact generated/integrated equality of both stable web-search modules on current main. Do not reintroduce its stale generation metadata or historical cross-language naming change. |
 
 The ledger reports observed work; projected reductions are not merged reductions. Refresh it with PR/Delta links and exact tested heads as publication completes.

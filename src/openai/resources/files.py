@@ -373,7 +373,7 @@ class Files(SyncAPIResource):
         poll_interval: float = 5.0,
         max_wait_seconds: float = 30 * 60,
     ) -> FileObject:
-        """Waits for the given file to be processed, default timeout is 30 mins."""
+        "Waits for the given file to be processed, default timeout is 30 mins."
         return _wait_for_file_processing(self, id, poll_interval=poll_interval, max_wait_seconds=max_wait_seconds)
 
 
@@ -714,7 +714,7 @@ class AsyncFiles(AsyncAPIResource):
         poll_interval: float = 5.0,
         max_wait_seconds: float = 30 * 60,
     ) -> FileObject:
-        """Waits for the given file to be processed, default timeout is 30 mins."""
+        "Waits for the given file to be processed, default timeout is 30 mins."
         return await _async_wait_for_file_processing(
             self, id, poll_interval=poll_interval, max_wait_seconds=max_wait_seconds
         )
