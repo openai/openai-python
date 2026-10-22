@@ -4,27 +4,14 @@ from __future__ import annotations
 
 import json
 import logging
-from copy import copy
 from types import TracebackType
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    List,
-    Type,
-    Union,
-    Callable,
-    Iterable,
-    Iterator,
-    Optional,
-    Awaitable,
-    AsyncIterator,
-    cast,
-)
-from functools import partial
-from typing_extensions import Literal, overload
+from typing import TYPE_CHECKING, Any, List, Union, Callable, Iterable, Iterator, Optional, Awaitable, cast
+from typing_extensions import Literal, AsyncIterator, overload
 
 import httpx2
 from pydantic import BaseModel
+
+import openai.lib._response_resources
 
 from ... import _legacy_response
 from ..._types import NOT_GIVEN, Body, Omit, Query, Headers, NoneType, NotGiven, omit, not_given
@@ -43,7 +30,6 @@ from .input_items import (
     AsyncInputItemsWithStreamingResponse,
 )
 from ..._streaming import Stream, AsyncStream
-from ...lib._tools import PydanticFunctionTool, ResponsesPydanticFunctionTool
 from .input_tokens import (
     InputTokens,
     AsyncInputTokens,
@@ -63,11 +49,8 @@ from ...types.responses import (
     responses_client_event_param,
 )
 from ..._websocket_connection import WebSocketConnectionBase, AsyncWebSocketConnectionBase
-from ...lib._parsing._responses import (
-    TextFormatT,
-    parse_response,
-    type_to_text_format_param as _type_to_text_format_param,
-)
+from ...lib._parsing._responses import TextFormatT
+from ...lib._response_resources import parse, stream, async_parse, async_stream
 from ...types.responses.response import Response
 from ...types.responses.tool_param import ToolParam, ParseableToolParam
 from ...types.responses.service_tier import ServiceTier
@@ -99,6 +82,13 @@ if TYPE_CHECKING:
 __all__ = ["Responses", "AsyncResponses"]
 
 log: logging.Logger = logging.getLogger(__name__)
+
+
+# Retained module entry point; callers may live outside generated resources.
+def _make_tools(  # pyright: ignore[reportUnusedFunction]
+    tools: Iterable[ParseableToolParam] | Omit,
+) -> List[ToolParam] | Omit:
+    return openai.lib._response_resources._make_tools(tools)
 
 
 class Responses(SyncAPIResource):
@@ -1112,7 +1102,6 @@ class Responses(SyncAPIResource):
         text_format: type[TextFormatT] | Omit = omit,
         starting_after: int | Omit = omit,
         tools: Iterable[ParseableToolParam] | Omit = omit,
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -1155,8 +1144,6 @@ class Responses(SyncAPIResource):
         top_p: Optional[float] | Omit = omit,
         truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
         user: str | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -1200,135 +1187,52 @@ class Responses(SyncAPIResource):
         truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
         user: str | Omit = omit,
         starting_after: int | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ResponseStreamManager[TextFormatT]:
-        new_response_args = {
-            "access_programs": access_programs,
-            "input": input,
-            "model": model,
-            "context_management": context_management,
-            "conversation": conversation,
-            "include": include,
-            "instructions": instructions,
-            "max_output_tokens": max_output_tokens,
-            "max_tool_calls": max_tool_calls,
-            "metadata": metadata,
-            "moderation": moderation,
-            "parallel_tool_calls": parallel_tool_calls,
-            "previous_response_id": previous_response_id,
-            "prompt": prompt,
-            "prompt_cache_key": prompt_cache_key,
-            "prompt_cache_options": prompt_cache_options,
-            "prompt_cache_retention": prompt_cache_retention,
-            "reasoning": reasoning,
-            "safety_identifier": safety_identifier,
-            "service_tier": service_tier,
-            "store": store,
-            "stream_options": stream_options,
-            "temperature": temperature,
-            "text": text,
-            "tool_choice": tool_choice,
-            "top_logprobs": top_logprobs,
-            "top_p": top_p,
-            "truncation": truncation,
-            "user": user,
-            "background": background,
-        }
-        new_response_args_names = [k for k, v in new_response_args.items() if is_given(v)]
-
-        if (is_given(response_id) or is_given(starting_after)) and len(new_response_args_names) > 0:
-            raise ValueError(
-                "Cannot provide both response_id/starting_after can't be provided together with "
-                + ", ".join(new_response_args_names)
-            )
-        tools = _make_tools(tools)
-        if len(new_response_args_names) > 0:
-            if not is_given(input):
-                raise ValueError("input must be provided when creating a new response")
-
-            if not is_given(model):
-                raise ValueError("model must be provided when creating a new response")
-
-            if is_given(text_format):
-                if not text:
-                    text = {}
-
-                if "format" in text:
-                    raise TypeError("Cannot mix and match text.format with text_format")
-
-                text = copy(text)
-                text["format"] = _type_to_text_format_param(text_format)
-
-            api_request: partial[Stream[ResponseStreamEvent]] = partial(
-                self.create,
-                access_programs=access_programs,
-                input=input,
-                model=model,
-                tools=tools,
-                context_management=context_management,
-                conversation=conversation,
-                include=include,
-                instructions=instructions,
-                max_output_tokens=max_output_tokens,
-                max_tool_calls=max_tool_calls,
-                metadata=metadata,
-                moderation=moderation,
-                parallel_tool_calls=parallel_tool_calls,
-                previous_response_id=previous_response_id,
-                prompt=prompt,
-                prompt_cache_key=prompt_cache_key,
-                prompt_cache_options=prompt_cache_options,
-                prompt_cache_retention=prompt_cache_retention,
-                store=store,
-                stream_options=stream_options,
-                stream=True,
-                temperature=temperature,
-                text=text,
-                tool_choice=tool_choice,
-                reasoning=reasoning,
-                safety_identifier=safety_identifier,
-                service_tier=service_tier,
-                top_logprobs=top_logprobs,
-                top_p=top_p,
-                truncation=truncation,
-                user=user,
-                background=background,
-                extra_headers=extra_headers,
-                extra_query=extra_query,
-                extra_body=extra_body,
-                timeout=timeout,
-            )
-
-            return ResponseStreamManager(
-                api_request,
-                text_format=text_format,
-                input_tools=tools,
-                starting_after=None,
-            )
-        else:
-            if not is_given(response_id):
-                raise ValueError("id must be provided when streaming an existing response")
-
-            return ResponseStreamManager(
-                lambda: self.retrieve(
-                    response_id=response_id,
-                    stream=True,
-                    include=include or [],
-                    extra_headers=extra_headers,
-                    extra_query=extra_query,
-                    extra_body=extra_body,
-                    starting_after=omit,
-                    timeout=timeout,
-                ),
-                text_format=text_format,
-                input_tools=tools,
-                starting_after=starting_after if is_given(starting_after) else None,
-            )
+        return stream(
+            self,
+            response_id=response_id,
+            input=input,
+            model=model,
+            access_programs=access_programs,
+            background=background,
+            context_management=context_management,
+            text_format=text_format,
+            tools=tools,
+            conversation=conversation,
+            include=include,
+            instructions=instructions,
+            max_output_tokens=max_output_tokens,
+            max_tool_calls=max_tool_calls,
+            metadata=metadata,
+            parallel_tool_calls=parallel_tool_calls,
+            moderation=moderation,
+            previous_response_id=previous_response_id,
+            prompt=prompt,
+            prompt_cache_key=prompt_cache_key,
+            prompt_cache_options=prompt_cache_options,
+            prompt_cache_retention=prompt_cache_retention,
+            reasoning=reasoning,
+            safety_identifier=safety_identifier,
+            service_tier=service_tier,
+            store=store,
+            stream_options=stream_options,
+            temperature=temperature,
+            text=text,
+            tool_choice=tool_choice,
+            top_logprobs=top_logprobs,
+            top_p=top_p,
+            truncation=truncation,
+            user=user,
+            starting_after=starting_after,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
 
     def parse(
         self,
@@ -1367,82 +1271,51 @@ class Responses(SyncAPIResource):
         truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
         user: str | Omit = omit,
         verbosity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ParsedResponse[TextFormatT]:
-        if is_given(text_format):
-            if not text:
-                text = {}
-
-            if "format" in text:
-                raise TypeError("Cannot mix and match text.format with text_format")
-            text = copy(text)
-            text["format"] = _type_to_text_format_param(text_format)
-
-        tools = _make_tools(tools)
-
-        def parser(raw_response: Response) -> ParsedResponse[TextFormatT]:
-            return parse_response(
-                input_tools=tools,
-                text_format=text_format,
-                response=raw_response,
-            )
-
-        return self._post(
-            "/responses",
-            body=maybe_transform(
-                {
-                    "model": model,
-                    "stream": stream,
-                    "service_tier": service_tier,
-                    "access_programs": access_programs,
-                    "background": background,
-                    "context_management": context_management,
-                    "conversation": conversation,
-                    "include": include,
-                    "input": input,
-                    "instructions": instructions,
-                    "max_output_tokens": max_output_tokens,
-                    "max_tool_calls": max_tool_calls,
-                    "metadata": metadata,
-                    "moderation": moderation,
-                    "parallel_tool_calls": parallel_tool_calls,
-                    "previous_response_id": previous_response_id,
-                    "prompt": prompt,
-                    "prompt_cache_key": prompt_cache_key,
-                    "prompt_cache_options": prompt_cache_options,
-                    "prompt_cache_retention": prompt_cache_retention,
-                    "reasoning": reasoning,
-                    "safety_identifier": safety_identifier,
-                    "store": store,
-                    "stream_options": stream_options,
-                    "temperature": temperature,
-                    "text": text,
-                    "tool_choice": tool_choice,
-                    "tools": tools,
-                    "top_logprobs": top_logprobs,
-                    "top_p": top_p,
-                    "truncation": truncation,
-                    "user": user,
-                    "verbosity": verbosity,
-                },
-                response_create_params.ResponseCreateParams,
-            ),
-            options=make_request_options(
-                extra_headers=extra_headers,
-                extra_query=extra_query,
-                extra_body=extra_body,
-                timeout=timeout,
-                post_parser=parser,
-                security={"bearer_auth": True},
-            ),
-            # we turn the `Response` instance into a `ParsedResponse`
-            # in the `parser` function above
-            cast_to=cast("Type[ParsedResponse[TextFormatT]]", Response),
+        return parse(
+            self,
+            text_format=text_format,
+            access_programs=access_programs,
+            background=background,
+            context_management=context_management,
+            conversation=conversation,
+            include=include,
+            input=input,
+            instructions=instructions,
+            max_output_tokens=max_output_tokens,
+            max_tool_calls=max_tool_calls,
+            metadata=metadata,
+            model=model,
+            moderation=moderation,
+            parallel_tool_calls=parallel_tool_calls,
+            previous_response_id=previous_response_id,
+            prompt=prompt,
+            prompt_cache_key=prompt_cache_key,
+            prompt_cache_options=prompt_cache_options,
+            prompt_cache_retention=prompt_cache_retention,
+            reasoning=reasoning,
+            safety_identifier=safety_identifier,
+            service_tier=service_tier,
+            store=store,
+            stream=stream,
+            stream_options=stream_options,
+            temperature=temperature,
+            text=text,
+            tool_choice=tool_choice,
+            tools=tools,
+            top_logprobs=top_logprobs,
+            top_p=top_p,
+            truncation=truncation,
+            user=user,
+            verbosity=verbosity,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
         )
 
     @overload
@@ -1454,8 +1327,6 @@ class Responses(SyncAPIResource):
         include_obfuscation: bool | Omit = omit,
         starting_after: int | Omit = omit,
         stream: Literal[False] | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -1470,8 +1341,6 @@ class Responses(SyncAPIResource):
         stream: Literal[True],
         include: List[ResponseIncludable] | Omit = omit,
         starting_after: int | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -1486,8 +1355,6 @@ class Responses(SyncAPIResource):
         stream: bool,
         include: List[ResponseIncludable] | Omit = omit,
         starting_after: int | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -1502,8 +1369,6 @@ class Responses(SyncAPIResource):
         stream: bool = False,
         include: List[ResponseIncludable] | Omit = omit,
         starting_after: int | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -1540,7 +1405,6 @@ class Responses(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        ...
 
     @overload
     def retrieve(
@@ -1551,8 +1415,6 @@ class Responses(SyncAPIResource):
         include: List[ResponseIncludable] | Omit = omit,
         include_obfuscation: bool | Omit = omit,
         starting_after: int | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -1589,7 +1451,6 @@ class Responses(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        ...
 
     @overload
     def retrieve(
@@ -1600,8 +1461,6 @@ class Responses(SyncAPIResource):
         include: List[ResponseIncludable] | Omit = omit,
         include_obfuscation: bool | Omit = omit,
         starting_after: int | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -1638,7 +1497,6 @@ class Responses(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        ...
 
     def retrieve(
         self,
@@ -1648,8 +1506,6 @@ class Responses(SyncAPIResource):
         include_obfuscation: bool | Omit = omit,
         starting_after: int | Omit = omit,
         stream: Literal[False] | Literal[True] | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -3021,7 +2877,6 @@ class AsyncResponses(AsyncAPIResource):
         text_format: type[TextFormatT] | Omit = omit,
         starting_after: int | Omit = omit,
         tools: Iterable[ParseableToolParam] | Omit = omit,
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -3064,8 +2919,6 @@ class AsyncResponses(AsyncAPIResource):
         top_p: Optional[float] | Omit = omit,
         truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
         user: str | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -3109,134 +2962,52 @@ class AsyncResponses(AsyncAPIResource):
         truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
         user: str | Omit = omit,
         starting_after: int | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AsyncResponseStreamManager[TextFormatT]:
-        new_response_args = {
-            "access_programs": access_programs,
-            "input": input,
-            "model": model,
-            "context_management": context_management,
-            "conversation": conversation,
-            "include": include,
-            "instructions": instructions,
-            "max_output_tokens": max_output_tokens,
-            "max_tool_calls": max_tool_calls,
-            "metadata": metadata,
-            "moderation": moderation,
-            "parallel_tool_calls": parallel_tool_calls,
-            "previous_response_id": previous_response_id,
-            "prompt": prompt,
-            "prompt_cache_key": prompt_cache_key,
-            "prompt_cache_options": prompt_cache_options,
-            "prompt_cache_retention": prompt_cache_retention,
-            "reasoning": reasoning,
-            "safety_identifier": safety_identifier,
-            "service_tier": service_tier,
-            "store": store,
-            "stream_options": stream_options,
-            "temperature": temperature,
-            "text": text,
-            "tool_choice": tool_choice,
-            "top_logprobs": top_logprobs,
-            "top_p": top_p,
-            "truncation": truncation,
-            "user": user,
-            "background": background,
-        }
-        new_response_args_names = [k for k, v in new_response_args.items() if is_given(v)]
-
-        if (is_given(response_id) or is_given(starting_after)) and len(new_response_args_names) > 0:
-            raise ValueError(
-                "Cannot provide both response_id/starting_after can't be provided together with "
-                + ", ".join(new_response_args_names)
-            )
-
-        tools = _make_tools(tools)
-        if len(new_response_args_names) > 0:
-            if isinstance(input, NotGiven):
-                raise ValueError("input must be provided when creating a new response")
-
-            if not is_given(model):
-                raise ValueError("model must be provided when creating a new response")
-
-            if is_given(text_format):
-                if not text:
-                    text = {}
-
-                if "format" in text:
-                    raise TypeError("Cannot mix and match text.format with text_format")
-                text = copy(text)
-                text["format"] = _type_to_text_format_param(text_format)
-
-            api_request = self.create(
-                access_programs=access_programs,
-                input=input,
-                model=model,
-                stream=True,
-                tools=tools,
-                context_management=context_management,
-                conversation=conversation,
-                include=include,
-                instructions=instructions,
-                max_output_tokens=max_output_tokens,
-                max_tool_calls=max_tool_calls,
-                metadata=metadata,
-                moderation=moderation,
-                parallel_tool_calls=parallel_tool_calls,
-                previous_response_id=previous_response_id,
-                prompt=prompt,
-                prompt_cache_key=prompt_cache_key,
-                prompt_cache_options=prompt_cache_options,
-                prompt_cache_retention=prompt_cache_retention,
-                store=store,
-                stream_options=stream_options,
-                temperature=temperature,
-                text=text,
-                tool_choice=tool_choice,
-                reasoning=reasoning,
-                safety_identifier=safety_identifier,
-                service_tier=service_tier,
-                top_logprobs=top_logprobs,
-                top_p=top_p,
-                truncation=truncation,
-                user=user,
-                background=background,
-                extra_headers=extra_headers,
-                extra_query=extra_query,
-                extra_body=extra_body,
-                timeout=timeout,
-            )
-
-            return AsyncResponseStreamManager(
-                api_request,
-                text_format=text_format,
-                input_tools=tools,
-                starting_after=None,
-            )
-        else:
-            if isinstance(response_id, Omit):
-                raise ValueError("response_id must be provided when streaming an existing response")
-
-            api_request = self.retrieve(
-                response_id,
-                stream=True,
-                include=include or [],
-                extra_headers=extra_headers,
-                extra_query=extra_query,
-                extra_body=extra_body,
-                timeout=timeout,
-            )
-            return AsyncResponseStreamManager(
-                api_request,
-                text_format=text_format,
-                input_tools=tools,
-                starting_after=starting_after if is_given(starting_after) else None,
-            )
+        return async_stream(
+            self,
+            response_id=response_id,
+            input=input,
+            model=model,
+            access_programs=access_programs,
+            background=background,
+            context_management=context_management,
+            text_format=text_format,
+            tools=tools,
+            conversation=conversation,
+            include=include,
+            instructions=instructions,
+            max_output_tokens=max_output_tokens,
+            max_tool_calls=max_tool_calls,
+            metadata=metadata,
+            parallel_tool_calls=parallel_tool_calls,
+            moderation=moderation,
+            previous_response_id=previous_response_id,
+            prompt=prompt,
+            prompt_cache_key=prompt_cache_key,
+            prompt_cache_options=prompt_cache_options,
+            prompt_cache_retention=prompt_cache_retention,
+            reasoning=reasoning,
+            safety_identifier=safety_identifier,
+            service_tier=service_tier,
+            store=store,
+            stream_options=stream_options,
+            temperature=temperature,
+            text=text,
+            tool_choice=tool_choice,
+            top_logprobs=top_logprobs,
+            top_p=top_p,
+            truncation=truncation,
+            user=user,
+            starting_after=starting_after,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
 
     async def parse(
         self,
@@ -3275,82 +3046,51 @@ class AsyncResponses(AsyncAPIResource):
         truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
         user: str | Omit = omit,
         verbosity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ParsedResponse[TextFormatT]:
-        if is_given(text_format):
-            if not text:
-                text = {}
-
-            if "format" in text:
-                raise TypeError("Cannot mix and match text.format with text_format")
-            text = copy(text)
-            text["format"] = _type_to_text_format_param(text_format)
-
-        tools = _make_tools(tools)
-
-        def parser(raw_response: Response) -> ParsedResponse[TextFormatT]:
-            return parse_response(
-                input_tools=tools,
-                text_format=text_format,
-                response=raw_response,
-            )
-
-        return await self._post(
-            "/responses",
-            body=maybe_transform(
-                {
-                    "model": model,
-                    "stream": stream,
-                    "service_tier": service_tier,
-                    "access_programs": access_programs,
-                    "background": background,
-                    "context_management": context_management,
-                    "conversation": conversation,
-                    "include": include,
-                    "input": input,
-                    "instructions": instructions,
-                    "max_output_tokens": max_output_tokens,
-                    "max_tool_calls": max_tool_calls,
-                    "metadata": metadata,
-                    "moderation": moderation,
-                    "parallel_tool_calls": parallel_tool_calls,
-                    "previous_response_id": previous_response_id,
-                    "prompt": prompt,
-                    "prompt_cache_key": prompt_cache_key,
-                    "prompt_cache_options": prompt_cache_options,
-                    "prompt_cache_retention": prompt_cache_retention,
-                    "reasoning": reasoning,
-                    "safety_identifier": safety_identifier,
-                    "store": store,
-                    "stream_options": stream_options,
-                    "temperature": temperature,
-                    "text": text,
-                    "tool_choice": tool_choice,
-                    "tools": tools,
-                    "top_logprobs": top_logprobs,
-                    "top_p": top_p,
-                    "truncation": truncation,
-                    "user": user,
-                    "verbosity": verbosity,
-                },
-                response_create_params.ResponseCreateParams,
-            ),
-            options=make_request_options(
-                extra_headers=extra_headers,
-                extra_query=extra_query,
-                extra_body=extra_body,
-                timeout=timeout,
-                post_parser=parser,
-                security={"bearer_auth": True},
-            ),
-            # we turn the `Response` instance into a `ParsedResponse`
-            # in the `parser` function above
-            cast_to=cast("Type[ParsedResponse[TextFormatT]]", Response),
+        return await async_parse(
+            self,
+            text_format=text_format,
+            access_programs=access_programs,
+            background=background,
+            context_management=context_management,
+            conversation=conversation,
+            include=include,
+            input=input,
+            instructions=instructions,
+            max_output_tokens=max_output_tokens,
+            max_tool_calls=max_tool_calls,
+            metadata=metadata,
+            model=model,
+            moderation=moderation,
+            parallel_tool_calls=parallel_tool_calls,
+            previous_response_id=previous_response_id,
+            prompt=prompt,
+            prompt_cache_key=prompt_cache_key,
+            prompt_cache_options=prompt_cache_options,
+            prompt_cache_retention=prompt_cache_retention,
+            reasoning=reasoning,
+            safety_identifier=safety_identifier,
+            service_tier=service_tier,
+            store=store,
+            stream=stream,
+            stream_options=stream_options,
+            temperature=temperature,
+            text=text,
+            tool_choice=tool_choice,
+            tools=tools,
+            top_logprobs=top_logprobs,
+            top_p=top_p,
+            truncation=truncation,
+            user=user,
+            verbosity=verbosity,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
         )
 
     @overload
@@ -3362,8 +3102,6 @@ class AsyncResponses(AsyncAPIResource):
         include_obfuscation: bool | Omit = omit,
         starting_after: int | Omit = omit,
         stream: Literal[False] | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -3378,8 +3116,6 @@ class AsyncResponses(AsyncAPIResource):
         stream: Literal[True],
         include: List[ResponseIncludable] | Omit = omit,
         starting_after: int | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -3394,8 +3130,6 @@ class AsyncResponses(AsyncAPIResource):
         stream: bool,
         include: List[ResponseIncludable] | Omit = omit,
         starting_after: int | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -3410,8 +3144,6 @@ class AsyncResponses(AsyncAPIResource):
         stream: bool = False,
         include: List[ResponseIncludable] | Omit = omit,
         starting_after: int | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -3448,7 +3180,6 @@ class AsyncResponses(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        ...
 
     @overload
     async def retrieve(
@@ -3459,8 +3190,6 @@ class AsyncResponses(AsyncAPIResource):
         include: List[ResponseIncludable] | Omit = omit,
         include_obfuscation: bool | Omit = omit,
         starting_after: int | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -3497,7 +3226,6 @@ class AsyncResponses(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        ...
 
     @overload
     async def retrieve(
@@ -3508,8 +3236,6 @@ class AsyncResponses(AsyncAPIResource):
         include: List[ResponseIncludable] | Omit = omit,
         include_obfuscation: bool | Omit = omit,
         starting_after: int | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -3546,7 +3272,6 @@ class AsyncResponses(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        ...
 
     async def retrieve(
         self,
@@ -3556,8 +3281,6 @@ class AsyncResponses(AsyncAPIResource):
         include_obfuscation: bool | Omit = omit,
         starting_after: int | Omit = omit,
         stream: Literal[False] | Literal[True] | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -3937,6 +3660,7 @@ class ResponsesWithRawResponse:
         self.compact = _legacy_response.to_raw_response_wrapper(
             responses.compact,
         )
+
         self.parse = _legacy_response.to_raw_response_wrapper(
             responses.parse,
         )
@@ -3971,6 +3695,7 @@ class AsyncResponsesWithRawResponse:
         self.compact = _legacy_response.async_to_raw_response_wrapper(
             responses.compact,
         )
+
         self.parse = _legacy_response.async_to_raw_response_wrapper(
             responses.parse,
         )
@@ -4046,46 +3771,6 @@ class AsyncResponsesWithStreamingResponse:
     def input_tokens(self) -> AsyncInputTokensWithStreamingResponse:
         """Create and manage model responses."""
         return AsyncInputTokensWithStreamingResponse(self._responses.input_tokens)
-
-
-def _make_tools(tools: Iterable[ParseableToolParam] | Omit) -> List[ToolParam] | Omit:
-    if not is_given(tools):
-        return omit
-
-    converted_tools: List[ToolParam] = []
-    for tool in tools:
-        if tool["type"] != "function":
-            converted_tools.append(tool)
-            continue
-
-        if "function" not in tool:
-            # standard Responses API case
-            converted_tools.append(tool)
-            continue
-
-        function = cast(Any, tool)["function"]  # pyright: ignore[reportUnnecessaryCast]
-        if not isinstance(function, PydanticFunctionTool):
-            raise Exception(
-                "Expected Chat Completions function tool shape to be created using `openai.pydantic_function_tool()`"
-            )
-
-        assert "parameters" in function
-        new_tool = ResponsesPydanticFunctionTool(
-            {
-                "type": "function",
-                "name": function["name"],
-                "description": function.get("description"),
-                "parameters": function["parameters"],
-                "strict": function.get("strict") or False,
-            },
-            function.model,
-        )
-
-        # Retain applicable options added to the compatibility definition.
-        new_tool.update({key: value for key, value in function.items() if key not in new_tool})
-        converted_tools.append(new_tool.cast())
-
-    return converted_tools
 
 
 class AsyncResponsesConnection(AsyncWebSocketConnectionBase):

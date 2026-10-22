@@ -72,7 +72,7 @@ class Uploads(SyncAPIResource):
         part_size: int | None = None,
         md5: str | Omit = omit,
     ) -> Upload:
-        "Splits a file into multiple 64MB parts and uploads them sequentially."
+        """Splits a file into multiple 64MB parts and uploads them sequentially."""
 
     @overload
     def upload_file_chunked(
@@ -86,7 +86,7 @@ class Uploads(SyncAPIResource):
         part_size: int | None = None,
         md5: str | Omit = omit,
     ) -> Upload:
-        "Splits an in-memory file into multiple 64MB parts and uploads them sequentially."
+        """Splits an in-memory file into multiple 64MB parts and uploads them sequentially."""
 
     def upload_file_chunked(
         self,
@@ -99,7 +99,18 @@ class Uploads(SyncAPIResource):
         part_size: int | None = None,
         md5: str | Omit = omit,
     ) -> Upload:
-        'Splits the given file into multiple parts and uploads them sequentially.\n\n        ```py\n        from pathlib import Path\n\n        client.uploads.upload_file(\n            file=Path("my-paper.pdf"),\n            mime_type="pdf",\n            purpose="assistants",\n        )\n        ```\n'
+        """Splits the given file into multiple parts and uploads them sequentially.
+
+        ```py
+        from pathlib import Path
+
+        client.uploads.upload_file(
+            file=Path(\"my-paper.pdf\"),
+            mime_type=\"pdf\",
+            purpose=\"assistants\",
+        )
+        ```
+        """
         return upload_file_chunked(
             self,
             file=file,
@@ -341,7 +352,7 @@ class AsyncUploads(AsyncAPIResource):
         part_size: int | None = None,
         md5: str | Omit = omit,
     ) -> Upload:
-        "Splits a file into multiple 64MB parts and uploads them sequentially."
+        """Splits a file into multiple 64MB parts and uploads them sequentially."""
 
     @overload
     async def upload_file_chunked(
@@ -355,7 +366,7 @@ class AsyncUploads(AsyncAPIResource):
         part_size: int | None = None,
         md5: str | Omit = omit,
     ) -> Upload:
-        "Splits an in-memory file into multiple 64MB parts and uploads them sequentially."
+        """Splits an in-memory file into multiple 64MB parts and uploads them sequentially."""
 
     async def upload_file_chunked(
         self,
@@ -368,7 +379,18 @@ class AsyncUploads(AsyncAPIResource):
         part_size: int | None = None,
         md5: str | Omit = omit,
     ) -> Upload:
-        'Splits the given file into multiple parts and uploads them sequentially.\n\n        ```py\n        from pathlib import Path\n\n        client.uploads.upload_file(\n            file=Path("my-paper.pdf"),\n            mime_type="pdf",\n            purpose="assistants",\n        )\n        ```\n'
+        """Splits the given file into multiple parts and uploads them sequentially.
+
+        ```py
+        from pathlib import Path
+
+        client.uploads.upload_file(
+            file=Path(\"my-paper.pdf\"),
+            mime_type=\"pdf\",
+            purpose=\"assistants\",
+        )
+        ```
+        """
         return await async_upload_file_chunked(
             self,
             file=file,

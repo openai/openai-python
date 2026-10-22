@@ -50,6 +50,10 @@ def strict_policy(repo: Path, revision: str) -> bool:
     return cast(int, read_policy(repo, revision)["schema_version"]) == 2
 
 
+def go_ratchet(repo: Path, revision: str) -> bool:
+    return cast(bool, read_policy(repo, revision).get("ratchet") == "go")
+
+
 MANIFEST = b"scripts/castiron/generated-files.json"
 # Accept the relocated tooling only from the verified checkpoint. Deploy this
 # reader before changing the producer so trusted-main checks can validate moves.
@@ -266,6 +270,8 @@ def check_isolation(repo: Path, base: str, head: str) -> int | None:
         return None
     if strict_policy(repo, base) and not strict_policy(repo, head):
         raise ValueError("strict generated-file ownership cannot be downgraded")
+    if go_ratchet(repo, base) and not go_ratchet(repo, head):
+        raise ValueError("Go customization ratchet cannot be disabled")
     if paths != {POLICY.encode()}:
         raise ValueError(ISOLATION_MESSAGE)
     return proposed
@@ -288,6 +294,40 @@ def count_custom_lines(result: dict[str, Any]) -> tuple[int, int]:
 
 def outcome(state: str, description: str) -> dict[str, str]:
     return {"state": state, "description": description}
+
+
+def go_customization(repo: Path, revision: str, measured: dict[str, Any]) -> dict[str, Any]:
+    """Count patches plus physical handwritten Go, using only verified Git objects."""
+    added, removed = count_custom_lines(measured)
+    # Use the reporter's ownership view. Private snapshots also retain SDK-owned
+    # CI files excluded from that view; those Go files are still handwritten.
+    generated = report.tree_entries(repo, measured["after"]["commit"])
+    handwritten = {
+        path: entry
+        for path, entry in report.tree_entries(repo, revision, include_workflows=True).items()
+        if path.endswith(b".go") and path not in generated
+    }
+    for path, entry in handwritten.items():
+        if entry.mode not in {b"100644", b"100755"}:
+            raise ValueError(f"nonregular handwritten Go: {path!r}")
+    blobs = report.read_blobs(repo, handwritten)
+    files: list[dict[str, Any]] = []
+    for path, entry in sorted(handwritten.items()):
+        content = blobs[entry.oid]
+        content.decode("utf-8")
+        if b"\0" in content:
+            raise ValueError(f"non-text handwritten Go: {path!r}")
+        lines = content.count(b"\n") + int(bool(content) and not content.endswith(b"\n"))
+        files.append({"path": path.decode("utf-8"), "lines": lines})
+    handwritten_lines = sum(file["lines"] for file in files)
+    return {
+        "revision": revision,
+        "generated": measured["after"],
+        "patch_lines": added + removed,
+        "handwritten_lines": handwritten_lines,
+        "handwritten_files": files,
+        "total": added + removed + handwritten_lines,
+    }
 
 
 def evaluate(
@@ -362,11 +402,38 @@ def evaluate(
         result["checked_limit"] = checked_limit
         state = "success" if total <= checked_limit else "failure"
         description = f"+{added} / -{removed} = {total} custom lines; limit {checked_limit}."
+        if any(go_ratchet(repo, revision) for revision in (policy, base, head)):
+            # The report's historical merge base is for presentation only. Measure
+            # the captured live target against its own hash-verified snapshot.
+            baseline, _ = report.build_report(
+                repo,
+                base,
+                base,
+                public=public,
+                fetch=fetch,
+                require_head_hash=True,
+                target_branch=target_branch,
+            )
+            before = go_customization(repo, base, baseline)
+            after = go_customization(repo, head, measured)
+            delta = after["total"] - before["total"]
+            result["ratchet"] = {"kind": "go", "before": before, "after": after, "delta": delta}
+            description += (
+                f" Go customization {before['total']} -> {after['total']} (delta {delta:+d})."
+            )
+            if delta > 0:
+                state = "failure"
+            if go_ratchet(repo, base) and not go_ratchet(repo, head):
+                state = "failure"
+                description += " Go customization ratchet cannot be disabled."
         # Main's strict policy applies even if the candidate tries to remove it.
         # A proposed activation must itself satisfy the stricter contract.
         if strict_policy(repo, policy) or strict_policy(repo, base) or strict_policy(repo, head):
             violations = verify_generated(
-                repo, measured["after"]["commit"], head, previous=measured["before"]["commit"]
+                repo,
+                measured["after"]["commit"],
+                head,
+                previous=(measured["before"] or measured["adoption_baseline"])["commit"],
             )
             result["strict_violations"] = violations
             if violations:

@@ -8,6 +8,8 @@ from typing_extensions import Literal, overload
 
 import httpx2
 
+import openai.lib._parsing._audio
+
 from ... import _legacy_response
 from ..._files import deepcopy_with_paths
 from ..._types import Body, Omit, Query, Headers, NotGiven, FileTypes, omit, not_given
@@ -18,14 +20,20 @@ from ..._response import to_streamed_response_wrapper, async_to_streamed_respons
 from ...types.audio import translation_create_params
 from ..._base_client import make_request_options
 from ...types.audio_model import AudioModel
-from ...lib._parsing._audio import get_translation_response_format_type as _get_translation_response_format_type
 from ...types.audio.translation import Translation
 from ...types.audio_response_format import AudioResponseFormat
 from ...types.audio.translation_verbose import TranslationVerbose
 
 __all__ = ["Translations", "AsyncTranslations"]
 
+
 log: logging.Logger = logging.getLogger("openai.audio.transcriptions")
+
+
+def _get_response_format_type(
+    response_format: AudioResponseFormat | Omit,
+) -> type[Translation | TranslationVerbose | str]:
+    return openai.lib._parsing._audio.get_translation_response_format_type(response_format, log=log)
 
 
 class Translations(SyncAPIResource):
@@ -59,8 +67,6 @@ class Translations(SyncAPIResource):
         response_format: Union[Literal["json"], Omit] = omit,
         prompt: str | Omit = omit,
         temperature: float | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -76,8 +82,6 @@ class Translations(SyncAPIResource):
         response_format: Literal["verbose_json"],
         prompt: str | Omit = omit,
         temperature: float | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -93,8 +97,6 @@ class Translations(SyncAPIResource):
         response_format: Literal["text", "srt", "vtt"],
         prompt: str | Omit = omit,
         temperature: float | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -109,8 +111,6 @@ class Translations(SyncAPIResource):
         prompt: str | Omit = omit,
         response_format: Union[Literal["json", "text", "srt", "verbose_json", "vtt"], Omit] = omit,
         temperature: float | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -165,7 +165,7 @@ class Translations(SyncAPIResource):
         # sent to the server will contain a `boundary` parameter, e.g.
         # multipart/form-data; boundary=---abc--
         extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
-        return self._post(  # type: ignore[return-value]
+        return self._post(
             "/audio/translations",
             body=maybe_transform(body, translation_create_params.TranslationCreateParams),
             files=files,
@@ -211,8 +211,6 @@ class AsyncTranslations(AsyncAPIResource):
         response_format: Union[Literal["json"], Omit] = omit,
         prompt: str | Omit = omit,
         temperature: float | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -228,8 +226,6 @@ class AsyncTranslations(AsyncAPIResource):
         response_format: Literal["verbose_json"],
         prompt: str | Omit = omit,
         temperature: float | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -245,8 +241,6 @@ class AsyncTranslations(AsyncAPIResource):
         response_format: Literal["text", "srt", "vtt"],
         prompt: str | Omit = omit,
         temperature: float | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -261,8 +255,6 @@ class AsyncTranslations(AsyncAPIResource):
         prompt: str | Omit = omit,
         response_format: Union[AudioResponseFormat, Omit] = omit,
         temperature: float | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -366,9 +358,3 @@ class AsyncTranslationsWithStreamingResponse:
         self.create = async_to_streamed_response_wrapper(
             translations.create,
         )
-
-
-def _get_response_format_type(
-    response_format: AudioResponseFormat | Omit,
-) -> type[Translation | TranslationVerbose | str]:
-    return _get_translation_response_format_type(response_format, log=log)
