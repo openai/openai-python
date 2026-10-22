@@ -206,12 +206,17 @@ PR targeting next; preserve the existing budget/schema fields:
 
 The SHA must belong to that same repository's authenticated main first-parent
 history and support this pin protocol. Selection reads the protected target
-base, never the candidate. Updates require an exact-head human approving review
-from a repository owner, member, or collaborator, in addition to ordinary
-CODEOWNERS and required reviews. Bot reviews, review-body markers, stale reviews,
-and dismissed approvals do not authorize activation.
+base, never the candidate. Pin-only updates and initial pin adoption use ordinary
+CODEOWNERS and required reviews when the pin does not roll back to an older main
+checker, the effective pinned budget stays the same or decreases, and its schema,
+strictness and ratchet mode stay unchanged. Initial adoption compares checker age
+with authenticated bootstrap main; later updates compare with the prior pin. A
+checker rollback, an effective pinned-budget increase or mode transition, a local numeric budget increase, or Go
+ratchet activation still requires an exact-head human approving review from a
+repository owner, member, or collaborator. Bot reviews, stale reviews and dismissed
+approvals do not authorize those changes.
 
-For these policy-only reviews, the approving reviewer must explicitly attest that
+For those human-required changes, the approving reviewer must explicitly attest that
 they personally performed the human review. The entire review body must be the
 following sentence, substituting the exact full current head SHA:
 
@@ -227,7 +232,7 @@ SDK code reviews continue to accept automation under their normal repository gat
 
 For initial adoption only, a base with no pin may accept an exact policy-only
 pin-initialization PR under authenticated current-main checker/policy, with the
-same human review requirement. The proposed pin is validated but never executed
+same effective-budget and mode review requirements. The proposed pin is validated but never executed
 for its own initialization. A malformed base pin cannot enter this path; other
 changes without a base pin fail closed. Ordinary pin updates execute under the
 previous approved version and cannot include SDK/tooling changes.
