@@ -10,6 +10,7 @@ from pydantic import BaseModel
 import openai
 from openai._types import Omit
 from openai.types.responses import ToolParam
+from openai.types.responses.namespace_tool_param import ToolFunction
 
 from .test_commentary_parsing import _response
 
@@ -45,6 +46,8 @@ async def test_deferred_typed_tool_request_and_parsing(
         "arguments": '{"item_id":"A123"}',
         "status": "completed",
     }
+    if defer_loading is True:
+        item["namespace"] = "lookup_item"
 
     def respond(request: httpx2.Request) -> httpx2.Response:
         submitted = json.loads(request.content)["tools"][1]
@@ -93,6 +96,46 @@ async def test_deferred_typed_tool_request_and_parsing(
     assert call.type == "function_call"
     assert isinstance(call.parsed_arguments, LookupItem)
     assert call.parsed_arguments.item_id == "A123"
+
+
+@pytest.mark.parametrize("nested_name,top_level", [("lookup_item", False), ("lookup_item", True), ("other", True)])
+def test_namespaced_tool_parsing(nested_name: str, top_level: bool) -> None:
+    class OtherLookup(BaseModel):
+        item_id: str
+
+    tools: list[ToolParam] = []
+    if top_level:
+        # The same schema must still resolve to the model in the requested namespace.
+        tools.append(openai.pydantic_responses_function_tool(OtherLookup, name="lookup_item"))
+    tools.append(
+        {
+            "type": "namespace",
+            "name": "catalog",
+            "description": "Catalog tools",
+            "tools": [cast(ToolFunction, openai.pydantic_responses_function_tool(LookupItem, name=nested_name))],
+        }
+    )
+    item = {
+        "id": "fc_test",
+        "call_id": "call_test",
+        "type": "function_call",
+        "name": "lookup_item",
+        "namespace": "catalog",
+        "arguments": '{"item_id":"A123"}',
+        "status": "completed",
+    }
+    transport = httpx2.MockTransport(lambda _request: httpx2.Response(200, json=_response([item])))
+    with openai.OpenAI(api_key="synthetic", http_client=httpx2.Client(transport=transport, trust_env=False)) as client:
+        response = client.responses.parse(model="test-model", input="Look up A123", tools=tools)
+
+    call = response.output[0]
+    assert call.type == "function_call"
+    if nested_name == "lookup_item":
+        assert isinstance(call.parsed_arguments, LookupItem)
+        assert call.parsed_arguments.item_id == "A123"
+    else:
+        # A matching namespace with no matching function must not fall back to top-level tools.
+        assert call.parsed_arguments is None
 
 
 @pytest.mark.parametrize("streaming", [False, True])
