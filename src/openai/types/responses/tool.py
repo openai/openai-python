@@ -12,7 +12,6 @@ from .namespace_tool import NamespaceTool
 from .web_search_tool import (
     Filters as _compat_WebSearchToolFilters,
     UserLocation as _compat_WebSearchToolUserLocation,
-    WebSearchTool,
     WebSearchTool as WebSearchTool,
 )
 from .apply_patch_tool import ApplyPatchTool
@@ -26,6 +25,7 @@ from .container_network_policy_allowlist import ContainerNetworkPolicyAllowlist
 
 __all__ = [
     "Tool",
+    "WebSearchTool",
     "Mcp",
     "McpAllowedTools",
     "McpAllowedToolsMcpToolFilter",
@@ -41,7 +41,6 @@ __all__ = [
     "ImageGeneration",
     "ImageGenerationInputImageMask",
     "LocalShell",
-    "WebSearchTool",
 ]
 
 

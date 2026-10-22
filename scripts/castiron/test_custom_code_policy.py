@@ -77,6 +77,7 @@ class ReviewedPinTests(GitTestCase):
             "commit_id": self.head,
             "user": {"type": "User", "login": "reviewer"},
             "author_association": "MEMBER",
+            "body": selector.HUMAN_REVIEW_RULES["attestation_prefix"] + self.head,
             **kwargs,
         }
 
@@ -330,6 +331,9 @@ class ReviewedPinTests(GitTestCase):
         self.head = self.base
         cases = [
             [],
+            [self.approved(body="")],
+            [self.approved(body="Looks good to me")],
+            [self.approved(body=selector.HUMAN_REVIEW_RULES["attestation_prefix"] + "f" * 40)],
             [self.approved(state="COMMENTED", body="APPROVED by a human")],
             [self.approved(user={"type": "Bot", "login": "reviewer[bot]"})],
             [self.approved(commit_id="a" * 40)],

@@ -20,7 +20,6 @@ from openai.types.realtime import (
     ConversationItemRetrieveEvent,
     ConversationItemTruncateEvent,
     ConversationItemTruncatedEvent,
-    ConversationItemWithReference,
     InputAudioBufferAppendEvent,
     InputAudioBufferClearEvent,
     InputAudioBufferClearedEvent,
@@ -69,7 +68,6 @@ from openai.types.realtime import (
     RealtimeResponseUsageInputTokenDetails,
     RealtimeResponseUsageOutputTokenDetails,
     RealtimeServerEvent,
-    RealtimeSession,
     RealtimeSessionCreateRequest,
     RealtimeToolChoiceConfig,
     RealtimeToolsConfig,
@@ -80,7 +78,6 @@ from openai.types.realtime import (
     RealtimeTranscriptionSessionAudioInputTurnDetection,
     RealtimeTranscriptionSessionCreateRequest,
     RealtimeTranslationClientEvent,
-    RealtimeTranslationClientSecretCreateRequest,
     RealtimeTranslationClientSecretCreateResponse,
     RealtimeTranslationInputAudioBufferAppendEvent,
     RealtimeTranslationInputTranscriptDeltaEvent,
@@ -121,8 +118,6 @@ from openai.types.realtime import (
     SessionCreatedEvent,
     SessionUpdateEvent,
     SessionUpdatedEvent,
-    TranscriptionSessionUpdate,
-    TranscriptionSessionUpdatedEvent,
 )
 ```
 

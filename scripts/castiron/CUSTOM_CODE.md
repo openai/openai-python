@@ -193,6 +193,20 @@ from a repository owner, member, or collaborator, in addition to ordinary
 CODEOWNERS and required reviews. Bot reviews, review-body markers, stale reviews,
 and dismissed approvals do not authorize activation.
 
+For these policy-only reviews, the approving reviewer must explicitly attest that
+they personally performed the human review. The entire review body must be the
+following sentence, substituting the exact full current head SHA:
+
+```text
+I personally reviewed and approve this policy change as a human: <40-character head SHA>
+```
+
+Blank reviews, ordinary code-review text, quoted attestations, and attestations for
+an earlier head do not qualify. Agents must never submit this attestation, even
+through a human account. This is an explicit reviewer attestation, not a claim that
+GitHub account type or team membership proves who operated the account. Ordinary
+SDK code reviews continue to accept automation under their normal repository gates.
+
 For initial adoption only, a base with no pin may accept an exact policy-only
 pin-initialization PR under authenticated current-main checker/policy, with the
 same human review requirement. The proposed pin is validated but never executed
@@ -215,3 +229,29 @@ immediately before publication. Dismissed, replaced, stale, automated or missing
 approvals fail closed even if ordinary automated approvals keep the queue live.
 The publisher consumes the selector's versioned review rules, with cross-runtime
 predicate fixtures; candidate artifacts never supply authorization or outcomes.
+
+
+### Review changes after publication
+
+The unprivileged reporter workflow signals submitted, edited and dismissed reviews.
+For a current next PR changing the policy file, the trusted main handler marks its
+required budget statuses and affected live queue statuses pending, then requests
+normal reporter reruns. Only the ordinary authenticated evaluator may restore
+success; the review signal never selects executable code, approval rules or an
+arbitrary status target. Fork runs with empty PR lists use authenticated commit
+associations and open-PR lookup, retaining live head/merge binding. The handler
+marks each authenticated snapshot pending before slow run pagination, then retries
+discovery if the PR or queue changes. Pending statuses on superseded affected
+SHAs cannot authorize a merge; observed successes stay revoked even if a later
+lookup fails. Reporter reruns must resolve to this same PR under the canonical
+main-preference rule, not merely share its head SHA. Missing or ambiguous reporter
+runs remain pending. Status writers share a serialization group.
+
+Retain native required approving reviews and CODEOWNERS at merge time. Review-event
+delivery and reevaluation are asynchronous; this mechanism is not an atomic human
+approval check at merge. In particular, automated reviews using human accounts do
+not become human policy authorization. Do not weaken native gates or treat this
+handler as their replacement. A failed invalidation or rerun must be investigated;
+missing reporter runs remain pending until the normal trusted run is requested.
+Install and validate the review signal on the protected target before activating
+next policy checks, including actual PR and queue revocation after dismissal.

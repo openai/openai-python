@@ -677,30 +677,25 @@ class Transcriptions(SyncAPIResource):
         # sent to the server will contain a `boundary` parameter, e.g.
         # multipart/form-data; boundary=---abc--
         extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
-        return cast(
-            Transcription | TranscriptionVerbose | TranscriptionDiarized | str | Stream[TranscriptionStreamEvent],
-            self._post(
-                "/audio/transcriptions",
-                body=maybe_transform(
-                    body,
-                    transcription_create_params.TranscriptionCreateParamsStreaming
-                    if stream
-                    else transcription_create_params.TranscriptionCreateParamsNonStreaming,
-                ),
-                files=files,
-                options=make_request_options(
-                    extra_headers=extra_headers,
-                    extra_query=extra_query,
-                    extra_body=extra_body,
-                    timeout=timeout,
-                    security={"bearer_auth": True},
-                ),
-                cast_to=_create_response_format_type(
-                    response_format, log=logging.getLogger("openai.audio.transcriptions")
-                ),
-                stream=stream or False,
-                stream_cls=Stream[TranscriptionStreamEvent],
+        return self._post(
+            "/audio/transcriptions",
+            body=maybe_transform(
+                body,
+                transcription_create_params.TranscriptionCreateParamsStreaming
+                if stream
+                else transcription_create_params.TranscriptionCreateParamsNonStreaming,
             ),
+            files=files,
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+            ),
+            cast_to=_create_response_format_type(response_format, log=logging.getLogger("openai.audio.transcriptions")),
+            stream=stream or False,
+            stream_cls=Stream[TranscriptionStreamEvent],
         )
 
 
@@ -1340,30 +1335,25 @@ class AsyncTranscriptions(AsyncAPIResource):
         # sent to the server will contain a `boundary` parameter, e.g.
         # multipart/form-data; boundary=---abc--
         extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
-        return cast(
-            Transcription | TranscriptionVerbose | TranscriptionDiarized | str | AsyncStream[TranscriptionStreamEvent],
-            await self._post(
-                "/audio/transcriptions",
-                body=await async_maybe_transform(
-                    body,
-                    transcription_create_params.TranscriptionCreateParamsStreaming
-                    if stream
-                    else transcription_create_params.TranscriptionCreateParamsNonStreaming,
-                ),
-                files=files,
-                options=make_request_options(
-                    extra_headers=extra_headers,
-                    extra_query=extra_query,
-                    extra_body=extra_body,
-                    timeout=timeout,
-                    security={"bearer_auth": True},
-                ),
-                cast_to=_create_response_format_type(
-                    response_format, log=logging.getLogger("openai.audio.transcriptions")
-                ),
-                stream=stream or False,
-                stream_cls=AsyncStream[TranscriptionStreamEvent],
+        return await self._post(
+            "/audio/transcriptions",
+            body=await async_maybe_transform(
+                body,
+                transcription_create_params.TranscriptionCreateParamsStreaming
+                if stream
+                else transcription_create_params.TranscriptionCreateParamsNonStreaming,
             ),
+            files=files,
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+            ),
+            cast_to=_create_response_format_type(response_format, log=logging.getLogger("openai.audio.transcriptions")),
+            stream=stream or False,
+            stream_cls=AsyncStream[TranscriptionStreamEvent],
         )
 
 

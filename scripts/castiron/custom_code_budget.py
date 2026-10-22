@@ -366,7 +366,10 @@ def evaluate(
         # A proposed activation must itself satisfy the stricter contract.
         if strict_policy(repo, policy) or strict_policy(repo, base) or strict_policy(repo, head):
             violations = verify_generated(
-                repo, measured["after"]["commit"], head, previous=measured["before"]["commit"]
+                repo,
+                measured["after"]["commit"],
+                head,
+                previous=(measured["before"] or measured["adoption_baseline"])["commit"],
             )
             result["strict_violations"] = violations
             if violations:

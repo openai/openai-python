@@ -7,6 +7,7 @@ from pydantic import StrictStr, StrictBool
 
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
+from ..shared.decision_question_input_part import DecisionQuestionInputPart
 
 __all__ = [
     "DecisionTrigger",
@@ -23,7 +24,7 @@ __all__ = [
 class DecisionsQuestionQuestionParamPredicate(BaseModel):
     """Estimate how likely it is that a statement about the input is true."""
 
-    instructions: str
+    instructions: Union[str, List[DecisionQuestionInputPart]]
 
     type: Literal["predicate"]
     """The type of the object. Always `predicate`."""
@@ -46,7 +47,7 @@ class DecisionsQuestionQuestionParamChoice(BaseModel):
     choices: List[DecisionsQuestionQuestionParamChoiceChoice]
     """Provide between 2 and 255 choices. Each choice must be unique."""
 
-    instructions: str
+    instructions: Union[str, List[DecisionQuestionInputPart]]
 
     type: Literal["choice"]
     """The type of the object. Always `choice`."""
@@ -63,7 +64,7 @@ class DecisionsQuestionQuestionParamScoreLevel(BaseModel):
 class DecisionsQuestionQuestionParamScore(BaseModel):
     """Rate the input against the supplied ordered levels."""
 
-    instructions: str
+    instructions: Union[str, List[DecisionQuestionInputPart]]
 
     levels: List[DecisionsQuestionQuestionParamScoreLevel]
 

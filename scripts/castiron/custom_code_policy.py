@@ -133,10 +133,12 @@ class HumanReviewRules(TypedDict):
     version: int
     associations: list[str]
     negative_pattern: str
+    attestation_prefix: str
 
 
 HUMAN_REVIEW_RULES: HumanReviewRules = {
-    "version": 1,
+    "version": 2,
+    "attestation_prefix": "I personally reviewed and approve this policy change as a human: ",
     "associations": ["OWNER", "MEMBER", "COLLABORATOR"],
     "negative_pattern": (
         r"automated[\s_:-]*(?:source[\s_:-]*)?review|source[- ]only review|"
@@ -161,6 +163,7 @@ def has_human_approval(reviews: list[dict[str, Any]], author: str, head: str) ->
         and review.get("author_association") in HUMAN_REVIEW_RULES["associations"]
         and not review["user"]["login"].endswith("[bot]")
         and review["user"]["login"] != author
+        and (review.get("body") or "").strip() == HUMAN_REVIEW_RULES["attestation_prefix"] + head
         and not re.search(
             HUMAN_REVIEW_RULES["negative_pattern"], review.get("body") or "", re.IGNORECASE
         )

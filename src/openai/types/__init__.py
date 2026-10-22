@@ -18,6 +18,7 @@ from .shared import (
     ResponsesModel as ResponsesModel,
     ReasoningEffort as ReasoningEffort,
     ComparisonFilter as ComparisonFilter,
+    DecisionInputJSON as DecisionInputJSON,
     FunctionDefinition as FunctionDefinition,
     FunctionParameters as FunctionParameters,
     ResponseFormatText as ResponseFormatText,
@@ -25,7 +26,10 @@ from .shared import (
     ResponseFormatJSONObject as ResponseFormatJSONObject,
     ResponseFormatJSONSchema as ResponseFormatJSONSchema,
     ResponseFormatTextPython as ResponseFormatTextPython,
+    DecisionQuestionInputPart as DecisionQuestionInputPart,
+    DecisionQuestionInputText as DecisionQuestionInputText,
     ResponseFormatTextGrammar as ResponseFormatTextGrammar,
+    DecisionQuestionInputImage as DecisionQuestionInputImage,
 )
 from .upload import Upload as Upload
 from .decision import Decision as Decision

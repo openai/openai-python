@@ -48,6 +48,7 @@ LABELS = {
     "newly_customized": "Newly customized",
     "removed": "Customization removed",
     "existing_changed": "Existing customization changed",
+    "first_adoption": "Current customization; legacy baseline unavailable",
     "baseline_changed": "Generated baseline changed",
     "unchanged": "Existing customization unchanged",
     "no_longer_generated": "No longer generated",
@@ -201,6 +202,14 @@ def public_metadata(repo: Path, commit: str) -> dict[str, str]:
     if not fields["Branch"].startswith("codegen/"):
         raise ReportError("invalid public codegen branch")
     git(repo, "check-ref-format", f"refs/heads/{fields['Branch']}")
+    for key in ("Adoption-Base", "Adoption-Source"):
+        values = re.findall(rf"^Castiron-Public-Codegen-{key}: (.+)$", message, re.MULTILINE)
+        if values:
+            if len(values) != 1:
+                raise ReportError("duplicate adoption metadata")
+            fields[key] = require_sha(values[0])
+    if ("Adoption-Base" in fields) != ("Adoption-Source" in fields):
+        raise ReportError("incomplete adoption metadata")
     return fields
 
 
@@ -392,6 +401,7 @@ def create_public_snapshot(
     content_hash: str,
     branch: str,
     parent: str | None,
+    adoption: tuple[str, str] | None = None,
 ) -> str:
     target = (
         "next"
@@ -406,6 +416,11 @@ def create_public_snapshot(
         f"Castiron-Public-Codegen-Branch: {branch}\n"
         f"Castiron-Public-Codegen-Target: {target}\n"
     )
+    if adoption is not None:
+        if target != "next":
+            raise ReportError("adoption snapshot must target next")
+        message += f"Castiron-Public-Codegen-Adoption-Base: {require_sha(adoption[0])}\n"
+        message += f"Castiron-Public-Codegen-Adoption-Source: {require_sha(adoption[1])}\n"
     parents = ["-p", require_sha(parent)] if parent is not None else []
     snapshot = (
         git(
@@ -429,6 +444,124 @@ def create_public_snapshot(
     return snapshot
 
 
+def first_adoption_source(repo: Path, base: str, *, target_branch: str, fetch: bool) -> str:
+    """Authority is the protected target base policy, never a candidate receipt."""
+    base = require_sha(base)
+    if target_branch != "next":
+        raise ReportError("first adoption is next-only")
+    if git(repo, "ls-tree", base, "--", ".castiron.stats.yml"):
+        raise ReportError("existing/corrupt Castiron stats require ordinary recovery")
+    if git(repo, "log", "--full-history", "--format=%H", base, "--", ".castiron.stats.yml").strip():
+        raise ReportError("deleted Castiron stats cannot authorize first adoption")
+    if not git(repo, "ls-tree", base, "--", ".stats.yml").startswith(b"100644 blob "):
+        raise ReportError("first adoption requires a legacy SDK target")
+    if not git(repo, "ls-tree", base, "--", ".castiron-ratchet.json").startswith(b"100644 blob "):
+        raise ReportError("first adoption requires an approved target policy")
+
+    def unique(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+        result: dict[str, Any] = {}
+        for key, value in pairs:
+            if key in result:
+                raise ReportError("duplicate policy field")
+            result[key] = value
+        return result
+
+    policy = json.loads(
+        git(repo, "show", f"{base}:.castiron-ratchet.json"), object_pairs_hook=unique
+    )
+    pin = policy.get("next_policy")
+    if not isinstance(pin, dict) or set(cast(dict[str, Any], pin)) != {"repository", "main_sha"}:
+        raise ReportError("first adoption requires the protected next-policy pin")
+    pin = cast(dict[str, Any], pin)
+    repository = pin["repository"]
+    if repository not in {"openai/openai-java", "openai/openai-cli"}:
+        raise ReportError("first adoption is only supported for legacy Java/CLI")
+    remote = git(repo, "remote", "get-url", "origin").decode().strip()
+    allowed = {
+        f"https://github.com/{repository}.git",
+        f"https://github.com/{repository}",
+        f"git@github.com:{repository}.git",
+        f"https://github.com/{repository}-internal.git",
+        f"https://github.com/{repository}-internal",
+        f"git@github.com:{repository}-internal.git",
+    }
+    if remote not in allowed:
+        raise ReportError("adoption policy repository does not match SDK origin")
+    source = require_sha(pin["main_sha"])
+    main_ref = "refs/castiron/adoption-main" if fetch else "refs/remotes/origin/main"
+    if fetch:
+        git(
+            repo,
+            "fetch",
+            "--quiet",
+            "--no-tags",
+            f"https://github.com/{repository}.git",
+            f"+refs/heads/main:{main_ref}",
+        )
+    if source not in git(repo, "rev-list", "--first-parent", main_ref).decode().splitlines():
+        raise ReportError("adoption source is not on authenticated main history")
+    source_policy = json.loads(
+        git(repo, "show", f"{source}:.castiron-ratchet.json"), object_pairs_hook=unique
+    )
+    if {key: value for key, value in policy.items() if key != "next_policy"} != source_policy:
+        raise ReportError("first adoption must preserve approved policy limits")
+    if not read_stats(repo, source).get("public_codegen_sha"):
+        raise ReportError(
+            "approved main must have a genuine public checkpoint before first adoption"
+        )
+    return source
+
+
+def adoption_head(
+    repo: Path,
+    base: str,
+    source: str,
+    head: str,
+    after: dict[str, Any],
+    *,
+    public: bool,
+) -> None:
+    git(repo, "merge-base", "--is-ancestor", base, head)
+    if not public:
+        # Private initialization retains the authenticated source parent. Normal
+        # promotion deliberately publishes a single-parent target-branch commit.
+        git(repo, "merge-base", "--is-ancestor", source, head)
+    if git(repo, "show", f"{base}:.castiron-ratchet.json") != git(
+        repo, "show", f"{head}:.castiron-ratchet.json"
+    ):
+        raise ReportError("first adoption must preserve protected target policy")
+    original, current = read_stats(repo, source), read_stats(repo, head)
+    if original["generation_id"] == current["generation_id"]:
+        raise ReportError("first adoption requires a new generation")
+    for key in ("config_hash", "openapi_spec_hash"):
+        if not original.get(key) or current.get(key) != original[key]:
+            raise ReportError("first adoption must preserve authenticated main inputs")
+    if public:
+        # Public authorization comes from the protected pin and verified public
+        # snapshot ancestry, never from a candidate-supplied adoption receipt.
+        git(repo, "merge-base", "--is-ancestor", original["public_codegen_sha"], after["commit"])
+        metadata = public_metadata(repo, after["commit"])
+        if (
+            metadata.get("Target") != "next"
+            or metadata.get("Adoption-Base") != base
+            or metadata.get("Adoption-Source") != source
+        ):
+            raise ReportError("snapshot does not bind the authorized first adoption")
+    else:
+        message = git(repo, "show", "-s", "--format=%B", current["codegen_sha"]).decode()
+        bindings = re.findall(r"^Generation metadata: ([A-Za-z0-9+/=]+)$", message, re.MULTILINE)
+        if len(bindings) != 1:
+            raise ReportError("invalid adoption generation binding")
+        envelope = json.loads(base64.b64decode(bindings[0], validate=True))
+        record = envelope.get("record", {})
+        if envelope.get("release_target") != "next" or record.get("public_baseline_commit") != base:
+            raise ReportError("new checkpoint must bind the old target base")
+        pin = json.loads(git(repo, "show", f"{base}:.castiron-ratchet.json"))["next_policy"]
+        sdk = pin["repository"].split("/")[1]
+        if record.get("target") != sdk or record.get("language") != sdk.removeprefix("openai-"):
+            raise ReportError("adoption generation SDK mismatch")
+
+
 def prepare_public_snapshot(
     source: Path,
     source_base: str,
@@ -438,15 +571,25 @@ def prepare_public_snapshot(
     branch: str,
 ) -> dict[str, Any]:
     """Prepare public-only generated history; never push anything."""
-    read_stats(source, source_base)
     after = read_stats(source, source_head)
-    public = read_stats(destination, public_base)
     target_branch = (
         "next" if branch == "castiron/next" or branch.startswith("castiron/next/") else "main"
     )
+    adoption_source = None
+    if not git(destination, "ls-tree", public_base, "--", ".castiron.stats.yml"):
+        adoption_source = first_adoption_source(
+            destination, public_base, target_branch=target_branch, fetch=True
+        )
+    else:
+        read_stats(source, source_base)
+    public = read_stats(destination, adoption_source or public_base)
     baseline = resolve_checkpoint(
         source, after, fetch=True, require_hash=True, target_branch=target_branch
     )
+    if adoption_source:
+        # Public source commit is already fetched into the private promotion clone.
+        adoption_head(source, public_base, adoption_source, source_head, baseline, public=False)
+
     codegen_branch = f"codegen/{branch}"
     ref = f"refs/heads/{codegen_branch}"
     git(destination, "check-ref-format", ref)
@@ -477,7 +620,11 @@ def prepare_public_snapshot(
     base_snapshot = public.get("public_codegen_sha")
     if base_snapshot:
         base_snapshot = resolve_public_baseline(
-            destination, public_base, fetch=True, require_hash=False, target_branch=target_branch
+            destination,
+            adoption_source or public_base,
+            fetch=True,
+            require_hash=False,
+            target_branch="main" if adoption_source else target_branch,
         )["commit"]
     elif previous:
         try:
@@ -515,6 +662,13 @@ def prepare_public_snapshot(
         if (
             not upgrade_legacy_parent
             and metadata["Generation-ID"] == after["generation_id"]
+            and (
+                not adoption_source
+                or (
+                    metadata.get("Adoption-Base") == public_base
+                    and metadata.get("Adoption-Source") == adoption_source
+                )
+            )
             and metadata["Hash"] == baseline["hash"]
             and git(destination, "rev-parse", f"{previous}^{{tree}}").decode().strip() == tree
             and base_snapshot in ancestors
@@ -522,7 +676,13 @@ def prepare_public_snapshot(
             snapshot = previous
         else:
             snapshot = create_public_snapshot(
-                destination, tree, after["generation_id"], baseline["hash"], codegen_branch, parent
+                destination,
+                tree,
+                after["generation_id"],
+                baseline["hash"],
+                codegen_branch,
+                parent,
+                (public_base, adoption_source) if adoption_source else None,
             )
     elif (
         public_metadata(destination, base_snapshot)["Generation-ID"] == after["generation_id"]
@@ -531,7 +691,13 @@ def prepare_public_snapshot(
         snapshot = base_snapshot
     else:
         snapshot = create_public_snapshot(
-            destination, tree, after["generation_id"], baseline["hash"], codegen_branch, parent
+            destination,
+            tree,
+            after["generation_id"],
+            baseline["hash"],
+            codegen_branch,
+            parent,
+            (public_base, adoption_source) if adoption_source else None,
         )
     stats_path = destination / ".castiron.stats.yml"
     current = git(source, "show", f"{require_sha(source_head)}:.castiron.stats.yml").decode("utf-8")
@@ -678,26 +844,53 @@ def build_report(
 ) -> tuple[dict[str, Any], bytes]:
     base, head = require_sha(base), require_sha(head)
     comparison_base = git(repo, "merge-base", base, head).decode().strip()
+    adoption_source = None
+    if not git(repo, "ls-tree", comparison_base, "--", ".castiron.stats.yml"):
+        if comparison_base != base:
+            raise ReportError(
+                "first-adoption target advanced; regenerate against the protected base"
+            )
+        adoption_source = first_adoption_source(
+            repo, comparison_base, target_branch=target_branch, fetch=fetch
+        )
     if public:
         after = resolve_public_baseline(
-            repo, head, fetch=fetch, require_hash=require_head_hash, target_branch=target_branch
+            repo,
+            head,
+            fetch=fetch,
+            require_hash=require_head_hash,
+            target_branch=target_branch,
         )
         before = resolve_public_baseline(
             repo,
-            comparison_base,
+            adoption_source or comparison_base,
             fetch=fetch,
             require_hash=False,
             lineage=after["commit"],
-            target_branch=target_branch,
+            target_branch="main" if adoption_source else target_branch,
         )
     else:
         before = resolve_baseline(
-            repo, comparison_base, fetch=fetch, require_hash=False, target_branch=target_branch
+            repo,
+            adoption_source or comparison_base,
+            fetch=fetch,
+            require_hash=False,
+            target_branch="main" if adoption_source else target_branch,
         )
         after = resolve_baseline(
-            repo, head, fetch=fetch, require_hash=require_head_hash, target_branch=target_branch
+            repo,
+            head,
+            fetch=fetch,
+            require_hash=require_head_hash,
+            target_branch=target_branch,
         )
-    g0, i0 = tree_entries(repo, before["commit"]), tree_entries(repo, comparison_base)
+    if adoption_source:
+        adoption_head(repo, comparison_base, adoption_source, head, after, public=public)
+    g0, i0 = (
+        ({}, {})
+        if adoption_source
+        else (tree_entries(repo, before["commit"]), tree_entries(repo, comparison_base))
+    )
     g1, i1 = tree_entries(repo, after["commit"]), tree_entries(repo, head)
     stats = numstats(repo, after["commit"], head)
     files: list[dict[str, Any]] = []
@@ -712,8 +905,12 @@ def build_report(
         files.append(
             {
                 "path": path.decode("utf-8"),
-                "category": category,
-                "custom_before": custom_before,
+                "category": (
+                    ("first_adoption" if custom_after else "unchanged")
+                    if adoption_source
+                    else category
+                ),
+                "custom_before": None if adoption_source else custom_before,
                 "custom_after": custom_after,
                 "added": added,
                 "removed": removed,
@@ -745,11 +942,14 @@ def build_report(
         "target_base_sha": base,
         "base_sha": comparison_base,
         "head_sha": head,
-        "before": before,
+        "before": None if adoption_source else before,
+        "adoption_baseline": before if adoption_source else None,
+        "adoption_source": adoption_source,
+        "before_status": "legacy_generation_unavailable" if adoption_source else "verified",
         "after": after,
         "files": files,
         "counts": {
-            "before": sum(f["custom_before"] for f in files),
+            "before": None if adoption_source else sum(f["custom_before"] for f in files),
             "after": sum(f["custom_after"] for f in files),
             **dict(collections.Counter(f["category"] for f in files)),
         },
@@ -794,7 +994,15 @@ def render_report(
             and file["category"] != "no_longer_generated"
             for file in files
         )
-        if newly_customized == 0:
+        if report.get("before_status") == "legacy_generation_unavailable":
+            lines.extend(
+                [
+                    "Legacy before-generation unavailable; no historical customization claim.",
+                    "",
+                    f"Current mixed files: {after}. Approved main reference: `{require_sha(report['adoption_source'])}`.",
+                ]
+            )
+        elif newly_customized == 0:
             remaining = (
                 f"{after} mixed file{'s' if after != 1 else ''} remain{'s' if after == 1 else ''}"
             )
@@ -822,8 +1030,16 @@ def render_report(
                     ),
                 ]
             )
-        lines.extend(["", f"Compared `{base[:12]}` → `{head[:12]}`. Generated baselines verified."])
-        if not report["before"]["hash_recorded"] or not report["after"]["hash_recorded"]:
+        verification = (
+            "Current generation and approved main reference verified."
+            if report["before"] is None
+            else "Generated baselines verified."
+        )
+        lines.extend(["", f"Compared `{base[:12]}` → `{head[:12]}`. {verification}"])
+        if (
+            not (report["before"] or report["adoption_baseline"])["hash_recorded"]
+            or not report["after"]["hash_recorded"]
+        ):
             lines.extend(
                 [
                     "",
@@ -1175,6 +1391,10 @@ def main() -> int:
     trusted.add_argument("--run-attempt", type=int, required=True)
     trusted.add_argument("--out", type=Path, required=True)
     trusted.add_argument("--base", required=True, help="immutable main SHA of the trusted checkout")
+    selecting = commands.add_parser("promotion-base")
+    selecting.add_argument("--repo", type=Path, required=True)
+    selecting.add_argument("--base", required=True)
+    selecting.add_argument("--branch", required=True)
     preparing = commands.add_parser("prepare-public")
     preparing.add_argument("--source-repo", type=Path, required=True)
     preparing.add_argument("--source-base", required=True)
@@ -1194,6 +1414,16 @@ def main() -> int:
     try:
         if args.command == "hash":
             sys.stdout.write(hash_codegen_commit(args.repo, args.commit) + "\n")
+        elif args.command == "promotion-base":
+            base = require_sha(args.base)
+            if not git(args.repo, "ls-tree", base, "--", ".castiron.stats.yml"):
+                target = (
+                    "next"
+                    if args.branch == "castiron/next" or args.branch.startswith("castiron/next/")
+                    else "main"
+                )
+                base = first_adoption_source(args.repo, base, target_branch=target, fetch=True)
+            sys.stdout.write(base + "\n")
         elif args.command == "prepare-public":
             sys.stdout.write(
                 json.dumps(
@@ -1210,7 +1440,12 @@ def main() -> int:
             )
         elif args.command == "trusted-report":
             trusted_report(
-                args.repo, args.repository, args.run_id, args.run_attempt, args.out, base=args.base
+                args.repo,
+                args.repository,
+                args.run_id,
+                args.run_attempt,
+                args.out,
+                base=args.base,
             )
         elif args.command == "comment":
             if args.report.stat().st_size > 5_000_000:
