@@ -139,6 +139,7 @@ class AgentTurnResultCollector:
                 and item.phase != "commentary"
                 and item.status == "completed"
             ):
+                # V1 emits no serialization warnings, but its shim rejects warnings=False.
                 data = item.to_dict(warnings=PYDANTIC_V1)
                 issues = []
                 try:
@@ -147,9 +148,19 @@ class AgentTurnResultCollector:
                     issues = [(error["loc"], error["type"]) for error in exc.errors()]
                 # Warn outside the handler so warnings-as-errors do not chain the validation error.
                 for location, code in issues:
+                    path = "".join(f"[{part}]" if isinstance(part, int) else f".{part}" for part in location).lstrip(
+                        "."
+                    )
+                    expected = {
+                        "string_type": "a string",
+                        "type_error.str": "a string",
+                        "list_type": "a list",
+                        "type_error.list": "a list",
+                    }.get(code)
                     warnings.warn(
-                        f"Agent result field {location}: {code}. "
-                        "Check the response against the SDK schema; the original value was preserved.",
+                        f"Unexpected response type at {path}: expected {expected}."
+                        if expected
+                        else f"Unexpected response value at {path}: {code}.",
                         stacklevel=2,
                     )
                 message = AgentSessionMessage.construct(_fields_set=None, **deepcopy(data))

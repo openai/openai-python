@@ -157,7 +157,9 @@ async def test_result_schema_warning(sdk: OpenAI | AsyncOpenAI, server: ResultSe
         server.body = EventBody([turn_event("created"), event, turn_event("completed"), idle()])
 
     reset()
-    with pytest.warns(UserWarning, match=r"\('content', 0, 'text'\): (string_type|type_error.str)") as captured:
+    with pytest.warns(
+        UserWarning, match=r"^Unexpected response type at content\[0\]\.text: expected a string\.$"
+    ) as captured:
         result = await collect(sdk, creation)
     assert len(captured) == 1
     warning = captured[0].message
