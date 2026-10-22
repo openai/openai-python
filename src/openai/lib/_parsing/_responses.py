@@ -182,6 +182,8 @@ def get_input_tool_by_name(
                 return None
 
     # Deferred top-level functions can return their own name as the namespace.
+    if namespace is not None and namespace != name:
+        return None
     for tool in input_tools:
         if tool["type"] == "function" and tool.get("name") == name:
             return tool

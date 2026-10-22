@@ -4054,6 +4054,9 @@ def _make_tools(tools: Iterable[ParseableToolParam] | Omit) -> List[ToolParam] |
 
     converted_tools: List[ToolParam] = []
     for tool in tools:
+        if tool["type"] == "namespace":
+            converted_tools.append({**tool, "tools": list(tool["tools"])})
+            continue
         if tool["type"] != "function":
             converted_tools.append(tool)
             continue
