@@ -5,6 +5,8 @@ from __future__ import annotations
 from typing import Union, Iterable
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
+from ..shared_params.decision_question_input_part import DecisionQuestionInputPart
+
 __all__ = [
     "DecisionsDelegationUpdateConfigParam",
     "Question",
@@ -19,7 +21,7 @@ __all__ = [
 class QuestionQuestionParamPredicate(TypedDict, total=False):
     """Estimate how likely it is that a statement about the input is true."""
 
-    instructions: Required[str]
+    instructions: Required[Union[str, Iterable[DecisionQuestionInputPart]]]
 
     type: Required[Literal["predicate"]]
     """The type of the object. Always `predicate`."""
@@ -42,7 +44,7 @@ class QuestionQuestionParamChoice(TypedDict, total=False):
     choices: Required[Iterable[QuestionQuestionParamChoiceChoice]]
     """Provide between 2 and 255 choices. Each choice must be unique."""
 
-    instructions: Required[str]
+    instructions: Required[Union[str, Iterable[DecisionQuestionInputPart]]]
 
     type: Required[Literal["choice"]]
     """The type of the object. Always `choice`."""
@@ -59,7 +61,7 @@ class QuestionQuestionParamScoreLevel(TypedDict, total=False):
 class QuestionQuestionParamScore(TypedDict, total=False):
     """Rate the input against the supplied ordered levels."""
 
-    instructions: Required[str]
+    instructions: Required[Union[str, Iterable[DecisionQuestionInputPart]]]
 
     levels: Required[Iterable[QuestionQuestionParamScoreLevel]]
 

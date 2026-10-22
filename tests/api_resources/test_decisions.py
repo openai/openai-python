@@ -24,7 +24,7 @@ class TestDecisions:
             model="model",
             questions=[
                 {
-                    "instructions": "instructions",
+                    "instructions": "string",
                     "type": "predicate",
                 }
             ],
@@ -38,7 +38,7 @@ class TestDecisions:
             model="model",
             questions=[
                 {
-                    "instructions": "instructions",
+                    "instructions": "string",
                     "type": "predicate",
                     "name": "name",
                 }
@@ -59,7 +59,7 @@ class TestDecisions:
             model="model",
             questions=[
                 {
-                    "instructions": "instructions",
+                    "instructions": "string",
                     "type": "predicate",
                 }
             ],
@@ -77,7 +77,7 @@ class TestDecisions:
             model="model",
             questions=[
                 {
-                    "instructions": "instructions",
+                    "instructions": "string",
                     "type": "predicate",
                 }
             ],
@@ -103,7 +103,7 @@ class TestAsyncDecisions:
             model="model",
             questions=[
                 {
-                    "instructions": "instructions",
+                    "instructions": "string",
                     "type": "predicate",
                 }
             ],
@@ -117,7 +117,7 @@ class TestAsyncDecisions:
             model="model",
             questions=[
                 {
-                    "instructions": "instructions",
+                    "instructions": "string",
                     "type": "predicate",
                     "name": "name",
                 }
@@ -138,7 +138,7 @@ class TestAsyncDecisions:
             model="model",
             questions=[
                 {
-                    "instructions": "instructions",
+                    "instructions": "string",
                     "type": "predicate",
                 }
             ],
@@ -156,7 +156,7 @@ class TestAsyncDecisions:
             model="model",
             questions=[
                 {
-                    "instructions": "instructions",
+                    "instructions": "string",
                     "type": "predicate",
                 }
             ],

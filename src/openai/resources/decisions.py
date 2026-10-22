@@ -15,7 +15,6 @@ from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from .._base_client import make_request_options
 from ..types.decision import Decision
-from ..types.decision_input_message_param import DecisionInputMessageParam
 
 __all__ = ["Decisions", "AsyncDecisions"]
 
@@ -43,7 +42,7 @@ class Decisions(SyncAPIResource):
     def create(
         self,
         *,
-        input: Union[str, Iterable[DecisionInputMessageParam]],
+        input: Union[str, Iterable[decision_create_params.InputUnionMember1]],
         model: str,
         questions: Iterable[decision_create_params.Question],
         prompt_cache_key: Optional[str] | Omit = omit,
@@ -61,14 +60,13 @@ class Decisions(SyncAPIResource):
         some input. You can ask multiple questions in one request.
 
         Args:
-          input: The text or images to evaluate for every question. Provide a text string or user
-              messages containing text and images. Images can be base64 data URLs or publicly
-              accessible HTTP(S) URLs; at most 128 images are allowed across all messages in
-              one request. Files, audio, tools, and item references are not supported.
+          input: The input to evaluate for every question. Provide a text string or an ordered
+              array of messages, function calls and outputs, or custom tool calls and outputs.
+              Each tool output must identify a matching call by call ID.
 
           model: The model to use. Only `gpt-6-luna` is supported.
 
-          questions: Ask 1–200 questions about the input. Each question can be a predicate, choice,
+          questions: Ask 1–400 questions about the input. Each question can be a predicate, choice,
               or score. Answers come back in the same order.
 
           prompt_cache_key: Partition prompt cache reuse by caller-provided key.
@@ -141,7 +139,7 @@ class AsyncDecisions(AsyncAPIResource):
     async def create(
         self,
         *,
-        input: Union[str, Iterable[DecisionInputMessageParam]],
+        input: Union[str, Iterable[decision_create_params.InputUnionMember1]],
         model: str,
         questions: Iterable[decision_create_params.Question],
         prompt_cache_key: Optional[str] | Omit = omit,
@@ -159,14 +157,13 @@ class AsyncDecisions(AsyncAPIResource):
         some input. You can ask multiple questions in one request.
 
         Args:
-          input: The text or images to evaluate for every question. Provide a text string or user
-              messages containing text and images. Images can be base64 data URLs or publicly
-              accessible HTTP(S) URLs; at most 128 images are allowed across all messages in
-              one request. Files, audio, tools, and item references are not supported.
+          input: The input to evaluate for every question. Provide a text string or an ordered
+              array of messages, function calls and outputs, or custom tool calls and outputs.
+              Each tool output must identify a matching call by call ID.
 
           model: The model to use. Only `gpt-6-luna` is supported.
 
-          questions: Ask 1–200 questions about the input. Each question can be a predicate, choice,
+          questions: Ask 1–400 questions about the input. Each question can be a predicate, choice,
               or score. Answers come back in the same order.
 
           prompt_cache_key: Partition prompt cache reuse by caller-provided key.

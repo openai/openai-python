@@ -62,7 +62,7 @@ class TestLive:
                         "decisions": {
                             "questions": [
                                 {
-                                    "instructions": "instructions",
+                                    "instructions": "string",
                                     "type": "predicate",
                                     "name": "name",
                                 }
@@ -163,7 +163,7 @@ class TestAsyncLive:
                         "decisions": {
                             "questions": [
                                 {
-                                    "instructions": "instructions",
+                                    "instructions": "string",
                                     "type": "predicate",
                                     "name": "name",
                                 }

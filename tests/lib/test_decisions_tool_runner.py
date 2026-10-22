@@ -3,15 +3,15 @@ from __future__ import annotations
 import json
 import asyncio
 import inspect
-from typing import Any, Callable, Iterator, cast
-from typing_extensions import Literal, override
+from typing import Any, Callable, Iterable, Iterator, cast
+from typing_extensions import Literal, override, assert_type
 
 import httpx2
 import pytest
 from pydantic import StrictStr, StrictBool
 
 from openai import OpenAI, AsyncOpenAI
-from openai.types import Decision
+from openai.types import Decision, DecisionInputTextParam, DecisionInputImageParam
 from openai.lib.tool_diagnostics import ToolDiagnostic, ToolDiagnosticObserver
 from openai.lib.decisions_tool_runner import (
     DecisionCandidate,
@@ -24,7 +24,6 @@ from openai.lib.decisions_tool_runner import (
     DecisionsToolRunnerError,
     DecisionsToolRunnerCancelledError,
 )
-from openai.types.decision_input_part_union_param import DecisionInputPartUnionParam
 
 PARAMS: DecisionsRunnerParams = {"model": "", "input": "Complete the fixture.", "safety_identifier": "fixture_user"}
 DONE: DecisionCandidate = {"id": "finish", "description": "Task is complete", "done": True}
@@ -525,13 +524,14 @@ async def test_missing_observation_part_stops_before_candidates_or_verification(
 @pytest.mark.parametrize("lane", ["sync", "async"])
 async def test_generated_inline_image_iterable_is_owned_before_callbacks(lane: str) -> None:
     effects: list[str] = []
-    raw: list[DecisionInputPartUnionParam] = [
+    raw: list[DecisionInputTextParam | DecisionInputImageParam] = [
         {"type": "input_text", "text": "safe page"},
         {"type": "input_image", "image_url": "data:image/png;base64,aW1hZ2U="},
     ]
     requests: list[dict[str, Any]] = []
 
     def candidates(obs: DecisionObservation) -> list[DecisionCandidate]:
+        assert_type(obs, str | Iterable[DecisionInputTextParam | DecisionInputImageParam])
         assert not isinstance(obs, str)
         copy = list(obs)
         assert copy[0]["type"] == "input_text"

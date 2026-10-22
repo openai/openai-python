@@ -18,7 +18,8 @@ from ..types.decision import Usage, Answer, UsageInputTokensDetails, UsageOutput
 from ._tool_lifecycle import CloseStatus, ToolLifecycle, invoke, rotated_idempotency_headers
 from .tool_diagnostics import ToolDiagnosticObserver, emit_tool_diagnostic
 from ..types.decision_create_params import DecisionCreateParams
-from ..types.decision_input_part_union_param import DecisionInputPartUnionParam
+from ..types.decision_input_text_param import DecisionInputTextParam
+from ..types.decision_input_image_param import DecisionInputImageParam
 
 __all__ = [
     "DecisionObservation",
@@ -35,8 +36,9 @@ __all__ = [
     "DecisionsToolRunnerCancelledError",
 ]
 
-DecisionObservation: TypeAlias = str | Iterable[DecisionInputPartUnionParam]
-_OwnedObservation: TypeAlias = str | list[DecisionInputPartUnionParam]
+_ObservationPart: TypeAlias = DecisionInputTextParam | DecisionInputImageParam
+DecisionObservation: TypeAlias = str | Iterable[_ObservationPart]
+_OwnedObservation: TypeAlias = str | list[_ObservationPart]
 
 
 class DecisionActionCandidate(TypedDict, total=False):
