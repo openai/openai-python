@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Dict, Union, Iterable, Optional
+from typing import Dict, Union, Mapping, Iterable, Optional
 from typing_extensions import Literal, overload
 
 import httpx2
@@ -53,9 +53,9 @@ from .turns.turns import (
 )
 from ....._resource import SyncAPIResource, AsyncAPIResource
 from ....._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
-from ....._streaming import Stream, AsyncStream
 from .....pagination import SyncCursorPage, AsyncCursorPage
 from ....._base_client import AsyncPaginator, make_request_options
+from .....lib.beta.agents import AgentSessionEventStream, AsyncAgentSessionEventStream
 from .subagents.subagents import (
     Subagents,
     AsyncSubagents,
@@ -65,9 +65,12 @@ from .subagents.subagents import (
     AsyncSubagentsWithStreamingResponse,
 )
 from .....types.beta.agents import session_list_params, session_create_params, session_update_params
+from .....lib.streaming.agents import ToolHandler, AsyncToolHandler, AgentSessionStream, AsyncAgentSessionStream
+from .....lib.beta.agents._create import prepare_session_create, prepare_async_session_create
+from .....lib.beta.agents._result import OutputT
 from .....types.beta.agent_session import AgentSession
+from .....lib.beta.agents._tool_error import ToolErrorHandler, AsyncToolErrorHandler
 from .....types.beta.environment_param import EnvironmentParam
-from .....types.beta.agent_session_event import AgentSessionEvent
 from .....types.beta.agent_session_deleted import AgentSessionDeleted
 from .....types.beta.agent_session_input_message_param import AgentSessionInputMessageParam
 
@@ -75,6 +78,38 @@ __all__ = ["Sessions", "AsyncSessions"]
 
 
 class Sessions(SyncAPIResource):
+    def stream(
+        self,
+        session_id: str,
+        *,
+        input: str | Iterable[AgentSessionInputMessageParam],
+        output_type: type[OutputT] | None = None,
+        tool_handlers: Mapping[str, ToolHandler] | None = None,
+        on_tool_error: ToolErrorHandler | None = None,
+        idempotency_key: str | Omit = omit,
+        extra_headers: Headers | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AgentSessionStream[OutputT]:
+        """Stream one turn of an idle session, subscribing before submitting input.
+
+        Use as a context manager. Only one caller may submit input to the session
+        while this helper runs. Optional tool handlers receive an arguments dict;
+        their results are submitted automatically. Use on_tool_error alongside
+        tool_handlers to log or monitor local argument, handler, and output failures.
+        The callback does not receive API or stream errors. Ordinary observer
+        exceptions are ignored. See AgentSessionStream for details."""
+        return AgentSessionStream(
+            self,
+            session_id,
+            input=input,
+            output_type=output_type,
+            tool_handlers=tool_handlers,
+            on_tool_error=on_tool_error,
+            idempotency_key=idempotency_key,
+            extra_headers=extra_headers,
+            timeout=timeout,
+        )
+
     @cached_property
     def subagents(self) -> Subagents:
         return Subagents(self._client)
@@ -123,6 +158,8 @@ class Sessions(SyncAPIResource):
         self,
         *,
         environment: EnvironmentParam,
+        output_type: type[OutputT] | None = None,
+        tool_handlers: Mapping[str, ToolHandler] | None = None,
         agent: session_create_params.Agent | Omit = omit,
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
@@ -130,15 +167,12 @@ class Sessions(SyncAPIResource):
         spend_control: Optional[session_create_params.SpendControl] | Omit = omit,
         stream: Literal[False] | Omit = omit,
         vault_ids: Optional[SequenceNotStr[str]] | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AgentSession:
-        """
-        Creates a managed agent session, optionally submits initial input, and returns
+        """Creates a managed agent session, optionally submits initial input, and returns
         the session or streams its events when stream is true. See
         [running sessions](https://developers.openai.com/api/docs/guides/agents-api/sessions).
 
@@ -172,15 +206,15 @@ class Sessions(SyncAPIResource):
 
           extra_body: Add additional JSON properties to the request
 
-          timeout: Override the client-level default timeout for this request, in seconds
-        """
-        ...
+          timeout: Override the client-level default timeout for this request, in seconds"""
 
     @overload
     def create(
         self,
         *,
         environment: EnvironmentParam,
+        output_type: type[OutputT] | None = None,
+        tool_handlers: Mapping[str, ToolHandler] | None = None,
         stream: Literal[True],
         agent: session_create_params.Agent | Omit = omit,
         agent_id: str | Omit = omit,
@@ -188,15 +222,12 @@ class Sessions(SyncAPIResource):
         metadata: Optional[Dict[str, str]] | Omit = omit,
         spend_control: Optional[session_create_params.SpendControl] | Omit = omit,
         vault_ids: Optional[SequenceNotStr[str]] | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> Stream[AgentSessionEvent]:
-        """
-        Creates a managed agent session, optionally submits initial input, and returns
+    ) -> AgentSessionEventStream[OutputT]:
+        """Creates a managed agent session, optionally submits initial input, and returns
         the session or streams its events when stream is true. See
         [running sessions](https://developers.openai.com/api/docs/guides/agents-api/sessions).
 
@@ -230,15 +261,15 @@ class Sessions(SyncAPIResource):
 
           extra_body: Add additional JSON properties to the request
 
-          timeout: Override the client-level default timeout for this request, in seconds
-        """
-        ...
+          timeout: Override the client-level default timeout for this request, in seconds"""
 
     @overload
     def create(
         self,
         *,
         environment: EnvironmentParam,
+        output_type: type[OutputT] | None = None,
+        tool_handlers: Mapping[str, ToolHandler] | None = None,
         stream: bool,
         agent: session_create_params.Agent | Omit = omit,
         agent_id: str | Omit = omit,
@@ -246,15 +277,12 @@ class Sessions(SyncAPIResource):
         metadata: Optional[Dict[str, str]] | Omit = omit,
         spend_control: Optional[session_create_params.SpendControl] | Omit = omit,
         vault_ids: Optional[SequenceNotStr[str]] | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> AgentSession | Stream[AgentSessionEvent]:
-        """
-        Creates a managed agent session, optionally submits initial input, and returns
+    ) -> AgentSession | AgentSessionEventStream[OutputT]:
+        """Creates a managed agent session, optionally submits initial input, and returns
         the session or streams its events when stream is true. See
         [running sessions](https://developers.openai.com/api/docs/guides/agents-api/sessions).
 
@@ -288,15 +316,15 @@ class Sessions(SyncAPIResource):
 
           extra_body: Add additional JSON properties to the request
 
-          timeout: Override the client-level default timeout for this request, in seconds
-        """
-        ...
+          timeout: Override the client-level default timeout for this request, in seconds"""
 
     @required_args(["environment"], ["environment", "stream"])
     def create(
         self,
         *,
         environment: EnvironmentParam,
+        output_type: type[OutputT] | None = None,
+        tool_handlers: Mapping[str, ToolHandler] | None = None,
         agent: session_create_params.Agent | Omit = omit,
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
@@ -304,27 +332,34 @@ class Sessions(SyncAPIResource):
         spend_control: Optional[session_create_params.SpendControl] | Omit = omit,
         stream: Literal[False] | Literal[True] | Omit = omit,
         vault_ids: Optional[SequenceNotStr[str]] | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> AgentSession | Stream[AgentSessionEvent]:
+    ) -> AgentSession | AgentSessionEventStream[OutputT]:
         extra_headers = {"OpenAI-Beta": "agents=v1", **(extra_headers or {})}
+        _runtime_context = prepare_session_create(
+            self,
+            {
+                "stream": stream,
+                "environment": environment,
+                "agent": agent,
+                "agent_id": agent_id,
+                "input": input,
+                "metadata": metadata,
+                "spend_control": spend_control,
+                "vault_ids": vault_ids,
+            },
+            output_type=output_type,
+            tool_handlers=tool_handlers,
+            stream=stream,
+            extra_headers=extra_headers,
+            timeout=timeout,
+        )
         return self._post(
             "/agents/sessions",
             body=maybe_transform(
-                {
-                    "stream": stream,
-                    "environment": environment,
-                    "agent": agent,
-                    "agent_id": agent_id,
-                    "input": input,
-                    "metadata": metadata,
-                    "spend_control": spend_control,
-                    "vault_ids": vault_ids,
-                },
+                _runtime_context.body,
                 session_create_params.SessionCreateParamsStreaming
                 if stream
                 else session_create_params.SessionCreateParamsNonStreaming,
@@ -335,10 +370,11 @@ class Sessions(SyncAPIResource):
                 extra_body=extra_body,
                 timeout=timeout,
                 security={"bearer_auth": True},
+                post_parser=_runtime_context.post_parser,
             ),
             cast_to=AgentSession,
             stream=stream or False,
-            stream_cls=Stream[AgentSessionEvent],
+            stream_cls=AgentSessionEventStream,
         )
 
     def retrieve(
@@ -549,6 +585,38 @@ class Sessions(SyncAPIResource):
 
 
 class AsyncSessions(AsyncAPIResource):
+    def stream(
+        self,
+        session_id: str,
+        *,
+        input: str | Iterable[AgentSessionInputMessageParam],
+        output_type: type[OutputT] | None = None,
+        tool_handlers: Mapping[str, AsyncToolHandler] | None = None,
+        on_tool_error: AsyncToolErrorHandler | None = None,
+        idempotency_key: str | Omit = omit,
+        extra_headers: Headers | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AsyncAgentSessionStream[OutputT]:
+        """Stream one turn of an idle session, subscribing before submitting input.
+
+        Use as an async context manager. Only one caller may submit input to the session
+        while this helper runs. Optional tool handlers receive an arguments dict;
+        their results are submitted automatically. Use on_tool_error alongside
+        tool_handlers to log or monitor local argument, handler, and output failures.
+        The callback may be async; it does not receive API or stream errors.
+        Ordinary observer exceptions are ignored. See AsyncAgentSessionStream for details."""
+        return AsyncAgentSessionStream(
+            self,
+            session_id,
+            input=input,
+            output_type=output_type,
+            tool_handlers=tool_handlers,
+            on_tool_error=on_tool_error,
+            idempotency_key=idempotency_key,
+            extra_headers=extra_headers,
+            timeout=timeout,
+        )
+
     @cached_property
     def subagents(self) -> AsyncSubagents:
         return AsyncSubagents(self._client)
@@ -597,6 +665,8 @@ class AsyncSessions(AsyncAPIResource):
         self,
         *,
         environment: EnvironmentParam,
+        output_type: type[OutputT] | None = None,
+        tool_handlers: Mapping[str, AsyncToolHandler] | None = None,
         agent: session_create_params.Agent | Omit = omit,
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
@@ -604,15 +674,12 @@ class AsyncSessions(AsyncAPIResource):
         spend_control: Optional[session_create_params.SpendControl] | Omit = omit,
         stream: Literal[False] | Omit = omit,
         vault_ids: Optional[SequenceNotStr[str]] | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AgentSession:
-        """
-        Creates a managed agent session, optionally submits initial input, and returns
+        """Creates a managed agent session, optionally submits initial input, and returns
         the session or streams its events when stream is true. See
         [running sessions](https://developers.openai.com/api/docs/guides/agents-api/sessions).
 
@@ -646,15 +713,15 @@ class AsyncSessions(AsyncAPIResource):
 
           extra_body: Add additional JSON properties to the request
 
-          timeout: Override the client-level default timeout for this request, in seconds
-        """
-        ...
+          timeout: Override the client-level default timeout for this request, in seconds"""
 
     @overload
     async def create(
         self,
         *,
         environment: EnvironmentParam,
+        output_type: type[OutputT] | None = None,
+        tool_handlers: Mapping[str, AsyncToolHandler] | None = None,
         stream: Literal[True],
         agent: session_create_params.Agent | Omit = omit,
         agent_id: str | Omit = omit,
@@ -662,15 +729,12 @@ class AsyncSessions(AsyncAPIResource):
         metadata: Optional[Dict[str, str]] | Omit = omit,
         spend_control: Optional[session_create_params.SpendControl] | Omit = omit,
         vault_ids: Optional[SequenceNotStr[str]] | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> AsyncStream[AgentSessionEvent]:
-        """
-        Creates a managed agent session, optionally submits initial input, and returns
+    ) -> AsyncAgentSessionEventStream[OutputT]:
+        """Creates a managed agent session, optionally submits initial input, and returns
         the session or streams its events when stream is true. See
         [running sessions](https://developers.openai.com/api/docs/guides/agents-api/sessions).
 
@@ -704,15 +768,15 @@ class AsyncSessions(AsyncAPIResource):
 
           extra_body: Add additional JSON properties to the request
 
-          timeout: Override the client-level default timeout for this request, in seconds
-        """
-        ...
+          timeout: Override the client-level default timeout for this request, in seconds"""
 
     @overload
     async def create(
         self,
         *,
         environment: EnvironmentParam,
+        output_type: type[OutputT] | None = None,
+        tool_handlers: Mapping[str, AsyncToolHandler] | None = None,
         stream: bool,
         agent: session_create_params.Agent | Omit = omit,
         agent_id: str | Omit = omit,
@@ -720,15 +784,12 @@ class AsyncSessions(AsyncAPIResource):
         metadata: Optional[Dict[str, str]] | Omit = omit,
         spend_control: Optional[session_create_params.SpendControl] | Omit = omit,
         vault_ids: Optional[SequenceNotStr[str]] | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> AgentSession | AsyncStream[AgentSessionEvent]:
-        """
-        Creates a managed agent session, optionally submits initial input, and returns
+    ) -> AgentSession | AsyncAgentSessionEventStream[OutputT]:
+        """Creates a managed agent session, optionally submits initial input, and returns
         the session or streams its events when stream is true. See
         [running sessions](https://developers.openai.com/api/docs/guides/agents-api/sessions).
 
@@ -762,15 +823,15 @@ class AsyncSessions(AsyncAPIResource):
 
           extra_body: Add additional JSON properties to the request
 
-          timeout: Override the client-level default timeout for this request, in seconds
-        """
-        ...
+          timeout: Override the client-level default timeout for this request, in seconds"""
 
     @required_args(["environment"], ["environment", "stream"])
     async def create(
         self,
         *,
         environment: EnvironmentParam,
+        output_type: type[OutputT] | None = None,
+        tool_handlers: Mapping[str, AsyncToolHandler] | None = None,
         agent: session_create_params.Agent | Omit = omit,
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
@@ -778,27 +839,34 @@ class AsyncSessions(AsyncAPIResource):
         spend_control: Optional[session_create_params.SpendControl] | Omit = omit,
         stream: Literal[False] | Literal[True] | Omit = omit,
         vault_ids: Optional[SequenceNotStr[str]] | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> AgentSession | AsyncStream[AgentSessionEvent]:
+    ) -> AgentSession | AsyncAgentSessionEventStream[OutputT]:
         extra_headers = {"OpenAI-Beta": "agents=v1", **(extra_headers or {})}
+        _runtime_context = prepare_async_session_create(
+            self,
+            {
+                "stream": stream,
+                "environment": environment,
+                "agent": agent,
+                "agent_id": agent_id,
+                "input": input,
+                "metadata": metadata,
+                "spend_control": spend_control,
+                "vault_ids": vault_ids,
+            },
+            output_type=output_type,
+            tool_handlers=tool_handlers,
+            stream=stream,
+            extra_headers=extra_headers,
+            timeout=timeout,
+        )
         return await self._post(
             "/agents/sessions",
             body=await async_maybe_transform(
-                {
-                    "stream": stream,
-                    "environment": environment,
-                    "agent": agent,
-                    "agent_id": agent_id,
-                    "input": input,
-                    "metadata": metadata,
-                    "spend_control": spend_control,
-                    "vault_ids": vault_ids,
-                },
+                _runtime_context.body,
                 session_create_params.SessionCreateParamsStreaming
                 if stream
                 else session_create_params.SessionCreateParamsNonStreaming,
@@ -809,10 +877,11 @@ class AsyncSessions(AsyncAPIResource):
                 extra_body=extra_body,
                 timeout=timeout,
                 security={"bearer_auth": True},
+                post_parser=_runtime_context.post_parser,
             ),
             cast_to=AgentSession,
             stream=stream or False,
-            stream_cls=AsyncStream[AgentSessionEvent],
+            stream_cls=AsyncAgentSessionEventStream,
         )
 
     async def retrieve(

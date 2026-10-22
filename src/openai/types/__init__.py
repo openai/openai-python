@@ -116,7 +116,10 @@ from .vector_store_update_params import VectorStoreUpdateParams as VectorStoreUp
 from .container_retrieve_response import ContainerRetrieveResponse as ContainerRetrieveResponse
 from .image_input_reference_param import ImageInputReferenceParam as ImageInputReferenceParam
 from .moderation_text_input_param import ModerationTextInputParam as ModerationTextInputParam
-from .decision_input_message_param import DecisionInputMessageParam as DecisionInputMessageParam
+from .decision_input_message_param import (
+    DecisionInputMessageParam as DecisionInputMessageParam,
+    DecisionInputMessageUnionParam as DecisionInputMessageUnionParam,
+)
 from .file_chunking_strategy_param import FileChunkingStrategyParam as FileChunkingStrategyParam
 from .vector_store_search_response import VectorStoreSearchResponse as VectorStoreSearchResponse
 from .video_get_character_response import VideoGetCharacterResponse as VideoGetCharacterResponse

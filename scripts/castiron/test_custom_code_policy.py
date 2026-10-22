@@ -387,6 +387,25 @@ class ReviewedPinTests(GitTestCase):
         with self.assertRaisesRegex(ValueError, "changed"):
             self.select()
 
+    def test_go_ratchet_activation_requires_human_for_pr_and_queue(self) -> None:
+        self.git("checkout", "-q", "--detach", self.base)
+        self.write_policy({**selector.read_policy(self.repo, self.base), "ratchet": "go"})
+        self.head = self.commit("activate Go ratchet without changing pin or ceiling")
+        for pull_heads in (None, [self.head]):
+            for reviews in ([], [self.approved(body="Automated source review.")]):
+                with (
+                    self.subTest(pull_heads=pull_heads, reviews=reviews),
+                    mock.patch.object(selector.report, "api", side_effect=self.review_api(reviews)),
+                    self.assertRaisesRegex(ValueError, "human"),
+                ):
+                    self.select(pull_heads=pull_heads)
+            with mock.patch.object(
+                selector.report, "api", side_effect=self.review_api([self.approved()])
+            ):
+                selected = self.select(pull_heads=pull_heads)
+                self.assertEqual(selected["policy_sha"], self.main)
+                self.assertEqual(selected["policy_reviews"], [{"number": 3, "head_sha": self.head}])
+
     def test_wrong_origin_rejected(self) -> None:
         self.git("remote", "set-url", "origin", "https://github.com/attacker/example.git")
         with self.assertRaisesRegex(ValueError, "origin"):

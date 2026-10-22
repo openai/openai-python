@@ -9,6 +9,24 @@ and human review, and [AGENTS.md](../../AGENTS.md#custom-code-budget) for agent 
 
 ## What is counted
 
+Repositories may separately activate `"ratchet": "go"` in their policy after
+this checker reaches trusted main. Activation must be a human-reviewed,
+policy-only PR; SDK promotion does not carry policy edits. Keep the existing
+`max_custom_patch_lines` ceiling.
+
+The Go ratchet rejects net growth in generated-owned custom patch additions
+plus deletions **and physical lines of handwritten Go** compared with the
+captured live target. It includes helpers, tests, comments, blank lines, nested
+modules, and SDK-owned CI Go retained in private checkpoints. Non-text and
+nonregular handwritten Go fail validation. Both revisions use their own verified
+generated snapshots, read as Git objects without executing candidate code.
+
+Stale PRs compare with the live target, not their historical merge base. Merge
+queues check the complete combined candidate. Every landed reduction becomes
+the next baseline automatically. An activated ratchet cannot be disabled;
+raising the independent patch-only ceiling does not restore retired headroom.
+Existing policy isolation, human review, and snapshot ownership rules still apply.
+
 The budget is **added lines plus deleted lines in the entire current custom patch**
 against the candidate's verified pure-generated snapshot. It is not the PR's diff
 against main, and additions and deletions never cancel. Replacing 500 generated
@@ -229,7 +247,6 @@ immediately before publication. Dismissed, replaced, stale, automated or missing
 approvals fail closed even if ordinary automated approvals keep the queue live.
 The publisher consumes the selector's versioned review rules, with cross-runtime
 predicate fixtures; candidate artifacts never supply authorization or outcomes.
-
 
 ### Review changes after publication
 

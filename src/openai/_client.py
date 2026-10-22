@@ -2,44 +2,81 @@
 
 from __future__ import annotations
 
-import os
-from typing import TYPE_CHECKING, Any, Mapping, Iterable, cast
-from typing_extensions import Self, override
+import os as os
+from typing import (
+    TYPE_CHECKING as TYPE_CHECKING,
+    Any as Any,
+    Mapping as Mapping,
+    Callable as Callable,
+    Iterable as Iterable,
+    Awaitable as Awaitable,
+    cast as cast,
+)
+from typing_extensions import Self as Self, Unpack as Unpack, override as override
 
-import httpx2
+import httpx2 as httpx2
 
-from . import _exceptions
-from ._qs import Querystring
+from . import _exceptions as _exceptions
+from ._qs import Querystring as Querystring
+from .auth import (
+    WorkloadIdentity as WorkloadIdentity,
+    WorkloadIdentityAuth as WorkloadIdentityAuth,
+    X509WorkloadIdentity as X509WorkloadIdentity,
+)
 from ._types import (
-    Omit,
-    Query,
-    Headers,
-    Timeout,
-    NotGiven,
-    Transport,
-    ProxiesTypes,
-    RequestOptions,
-    omit,
-    not_given,
+    Omit as Omit,
+    Query as Query,
+    Headers as Headers,
+    Timeout as Timeout,
+    NotGiven as NotGiven,
+    Transport as Transport,
+    ProxiesTypes as ProxiesTypes,
+    HttpxSendArgs as HttpxSendArgs,
+    RequestOptions as RequestOptions,
+    omit as omit,
+    not_given as not_given,
 )
 from ._utils import (
-    is_given,
-    is_mapping,
-    is_mapping_t,
-    get_async_library,
+    is_given as is_given,
+    is_mapping as is_mapping,
+    is_mapping_t as is_mapping_t,
+    get_async_library as get_async_library,
 )
-from ._compat import cached_property
-from ._models import SecurityOptions
-from ._version import __version__
+from ._compat import cached_property as cached_property
+from ._httpx2 import (
+    normalize_httpx_url as normalize_httpx_url,
+    is_httpx2_sync_client as is_httpx2_sync_client,
+    is_httpx2_async_client as is_httpx2_async_client,
+)
+from ._models import SecurityOptions as SecurityOptions, FinalRequestOptions as FinalRequestOptions
+from ._version import __version__ as __version__
+from ._provider import (
+    _Provider as _Provider,
+    _provider_name as _provider_name,
+    _ProviderRuntime as _ProviderRuntime,
+    _configure_provider as _configure_provider,
+)
 from ._streaming import Stream as Stream, AsyncStream as AsyncStream
-from ._exceptions import APIStatusError
-from ._base_client import (
-    DEFAULT_MAX_RETRIES,
-    SyncAPIClient,
-    AsyncAPIClient,
-    _merge_mappings,
+from .auth._x509 import (
+    MTLS_API_BASE_URL as MTLS_API_BASE_URL,
+    SyncX509WorkloadIdentityAuth as SyncX509WorkloadIdentityAuth,
+    AsyncX509WorkloadIdentityAuth as AsyncX509WorkloadIdentityAuth,
+    validate_x509_api_url as validate_x509_api_url,
+    is_x509_workload_identity as is_x509_workload_identity,
+    x509_data_residency_base_url as x509_data_residency_base_url,
+    validate_x509_api_credentials as validate_x509_api_credentials,
+    x509_safe_environment_headers as x509_safe_environment_headers,
+    validate_x509_request_authority as validate_x509_request_authority,
 )
-from ._data_residency import DataResidency, resolve_data_residency
+from ._exceptions import OpenAIError as OpenAIError, APIStatusError as APIStatusError
+from ._base_client import (
+    DEFAULT_MAX_RETRIES as DEFAULT_MAX_RETRIES,
+    SyncAPIClient as SyncAPIClient,
+    AsyncAPIClient as AsyncAPIClient,
+    _merge_mappings as _merge_mappings,
+)
+from ._data_residency import DataResidency as DataResidency, resolve_data_residency as resolve_data_residency
+from .lib._client_auth import _has_header as _has_header, _has_omitted_header as _has_omitted_header
 
 if TYPE_CHECKING:
     from .resources import (
@@ -99,10 +136,21 @@ if TYPE_CHECKING:
 
 __all__ = ["Timeout", "Transport", "ProxiesTypes", "RequestOptions", "OpenAI", "AsyncOpenAI", "Client", "AsyncClient"]
 
+WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER = "workload-identity-auth"
+
 
 class OpenAI(SyncAPIClient):
+    workload_identity: WorkloadIdentity | X509WorkloadIdentity | None
+    _workload_identity_auth: WorkloadIdentityAuth | SyncX509WorkloadIdentityAuth | None
+    _provider: _Provider | None
+    _provider_runtime: _ProviderRuntime | None
+    _base_url_was_default: bool
+    _data_residency: DataResidency | None
+    _ambient_authorizations: frozenset[str]
+    _api_key_provider: Callable[[], str] | None
+
     # client options
-    api_key: str | None
+    api_key: str
     admin_api_key: str | None
     organization: str | None
     project: str | None
@@ -115,6 +163,24 @@ class OpenAI(SyncAPIClient):
     'http://' or 'https://' scheme. For example: 'http://example.com' becomes
     'wss://example.com'
     """
+
+    @property
+    @override
+    def base_url(
+        self,
+    ) -> httpx2.URL:
+        from .lib._client_auth import syncbase_url
+
+        return syncbase_url(self)
+
+    @base_url.setter
+    def base_url(
+        self,
+        url: httpx2.URL | str,
+    ) -> None:
+        from .lib._client_auth import syncbase_url_set
+
+        return syncbase_url_set(self, url)
 
     def _websocket_query_params_fallback(self, url: httpx2.URL, extra_query: Query) -> httpx2.QueryParams:
         # Remove replaced logical defaults before encoding nested query values.
@@ -137,11 +203,13 @@ class OpenAI(SyncAPIClient):
     def __init__(
         self,
         *,
-        api_key: str | None = None,
+        api_key: str | Callable[[], str] | None = None,
         admin_api_key: str | None = None,
+        workload_identity: WorkloadIdentity | X509WorkloadIdentity | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
+        provider: _Provider | None = None,
         base_url: str | httpx2.URL | None | NotGiven = not_given,
         data_residency: DataResidency | None = None,
         websocket_base_url: str | httpx2.URL | None = None,
@@ -149,19 +217,9 @@ class OpenAI(SyncAPIClient):
         max_retries: int = DEFAULT_MAX_RETRIES,
         default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
-        # Configure a custom httpx2 client.
-        # We provide a `DefaultHttpxClient` class that you can pass to retain the default values we use for `limits`, `timeout` & `follow_redirects`.
-        # See the [httpx2 documentation](https://httpx2.pydantic.dev/api/#client) for more details.
         http_client: httpx2.Client | None = None,
-        # Enable or disable schema validation for data returned by the API.
-        # When enabled an error APIResponseValidationError is raised
-        # if the API responds with invalid data for the expected schema.
-        #
-        # This parameter may be removed or changed in the future.
-        # If you rely on this feature, please open a GitHub issue
-        # outlining your use-case to help us decide if it should be
-        # part of our public interface in the future.
         _strict_response_validation: bool = False,
+        _enforce_credentials: bool = True,
     ) -> None:
         """Construct a new synchronous OpenAI client instance.
 
@@ -171,56 +229,36 @@ class OpenAI(SyncAPIClient):
         - `organization` from `OPENAI_ORG_ID`
         - `project` from `OPENAI_PROJECT_ID`
         - `webhook_secret` from `OPENAI_WEBHOOK_SECRET`
+
+        When `provider` is supplied, authentication and the base URL are configured by that provider instead.
+        `data_residency` selects an OpenAI regional endpoint and cannot be combined with
+        `base_url`, `websocket_base_url`, or `provider`.
         """
-        base_url = resolve_data_residency(data_residency, base_url, websocket_base_url=websocket_base_url)
-        if api_key is None:
-            api_key = os.environ.get("OPENAI_API_KEY")
-        self.api_key = api_key
+        from typing import Any as _RuntimeAny, cast as _runtime_cast
 
-        if admin_api_key is None:
-            admin_api_key = os.environ.get("OPENAI_ADMIN_KEY")
-        self.admin_api_key = admin_api_key
+        from .lib._client_auth import sync__init__
 
-        if organization is None:
-            organization = os.environ.get("OPENAI_ORG_ID")
-        self.organization = organization
-
-        if project is None:
-            project = os.environ.get("OPENAI_PROJECT_ID")
-        self.project = project
-
-        if webhook_secret is None:
-            webhook_secret = os.environ.get("OPENAI_WEBHOOK_SECRET")
-        self.webhook_secret = webhook_secret
-
-        self.websocket_base_url = websocket_base_url
-
-        if base_url is None:
-            base_url = os.environ.get("OPENAI_BASE_URL")
-        if base_url is None:
-            base_url = f"https://api.openai.com/v1"
-
-        custom_headers_env = os.environ.get("OPENAI_CUSTOM_HEADERS")
-        if custom_headers_env is not None:
-            parsed: dict[str, str] = {}
-            for line in custom_headers_env.split("\n"):
-                colon = line.find(":")
-                if colon >= 0:
-                    parsed[line[:colon].strip()] = line[colon + 1 :].strip()
-            default_headers = {**parsed, **(default_headers if is_mapping_t(default_headers) else {})}
-
-        super().__init__(
-            version=__version__,
+        return sync__init__(
+            _runtime_cast(_RuntimeAny, super()).__thisclass__,
+            self,
+            api_key=api_key,
+            admin_api_key=admin_api_key,
+            workload_identity=workload_identity,
+            organization=organization,
+            project=project,
+            webhook_secret=webhook_secret,
+            provider=provider,
             base_url=base_url,
-            max_retries=max_retries,
+            data_residency=data_residency,
+            websocket_base_url=websocket_base_url,
             timeout=timeout,
+            max_retries=max_retries,
+            default_headers=default_headers,
+            default_query=default_query,
             http_client=http_client,
-            custom_headers=default_headers,
-            custom_query=default_query,
             _strict_response_validation=_strict_response_validation,
+            _enforce_credentials=_enforce_credentials,
         )
-
-        self._default_stream_cls = Stream
 
     @cached_property
     def decisions(self) -> Decisions:
@@ -410,23 +448,59 @@ class OpenAI(SyncAPIClient):
     def qs(self) -> Querystring:
         return Querystring(array_format="brackets")
 
+    def _send_with_auth_retry(
+        self,
+        request: httpx2.Request,
+        *,
+        stream: bool,
+        retried: bool = False,
+        **kwargs: Unpack[HttpxSendArgs],
+    ) -> httpx2.Response:
+        from typing import Any as _RuntimeAny, cast as _runtime_cast
+
+        from .lib._client_auth import sync_send_with_auth_retry
+
+        return sync_send_with_auth_retry(
+            _runtime_cast(_RuntimeAny, super()).__thisclass__, self, request, stream=stream, retried=retried, **kwargs
+        )
+
     @override
-    def _auth_headers(self, security: SecurityOptions) -> dict[str, str]:
-        headers: dict[str, str] = {}
-        if security.get("bearer_auth", False):
-            for key, value in self._bearer_auth.items():
-                headers.setdefault(key, value)
-        if security.get("admin_api_key_auth", False):
-            for key, value in self._admin_api_key_auth.items():
-                headers.setdefault(key, value)
-        return headers
+    def _send_request(
+        self,
+        request: httpx2.Request,
+        *,
+        stream: bool,
+        **kwargs: Unpack[HttpxSendArgs],
+    ) -> httpx2.Response:
+        from .lib._client_auth import sync_send_request
+
+        return sync_send_request(self, request, stream=stream, **kwargs)
+
+    @override
+    def _auth_headers(
+        self,
+        security: SecurityOptions,
+    ) -> dict[str, str]:
+        from .lib._client_auth import sync_auth_headers
+
+        return sync_auth_headers(self, security)
 
     @property
-    def _bearer_auth(self) -> dict[str, str]:
-        api_key = self.api_key
-        if api_key is None:
-            return {}
-        return {"Authorization": f"Bearer {api_key}"}
+    def _bearer_auth(
+        self,
+    ) -> dict[str, str]:
+        from .lib._client_auth import sync_bearer_auth
+
+        return sync_bearer_auth(self)
+
+    @property
+    @override
+    def auth_headers(
+        self,
+    ) -> dict[str, str]:
+        from .lib._client_auth import syncauth_headers
+
+        return syncauth_headers(self)
 
     @property
     def _admin_api_key_auth(self) -> dict[str, str]:
@@ -447,19 +521,60 @@ class OpenAI(SyncAPIClient):
         }
 
     @override
-    def _validate_headers(self, headers: Headers, custom_headers: Headers) -> None:
-        if headers.get("Authorization") or isinstance(custom_headers.get("Authorization"), Omit):
-            return
+    def _validate_headers(
+        self,
+        headers: Headers,
+        custom_headers: Headers,
+    ) -> None:
+        from .lib._client_auth import sync_validate_headers
 
-        raise TypeError(
-            "Could not resolve authentication method. Expected either api_key or admin_api_key to be set. Or for the `Authorization` header to be explicitly omitted."
-        )
+        return sync_validate_headers(self, headers, custom_headers)
+
+    @override
+    def _prepare_options(
+        self,
+        options: FinalRequestOptions,
+    ) -> FinalRequestOptions:
+        from typing import Any as _RuntimeAny, cast as _runtime_cast
+
+        from .lib._client_auth import sync_prepare_options
+
+        return sync_prepare_options(_runtime_cast(_RuntimeAny, super()).__thisclass__, self, options)
+
+    @override
+    def _prepare_request(
+        self,
+        request: httpx2.Request,
+    ) -> None:
+        from .lib._client_auth import sync_prepare_request
+
+        return sync_prepare_request(self, request)
+
+    @override
+    def _custom_auth(
+        self,
+        security: SecurityOptions,
+    ) -> httpx2.Auth | None:
+        from typing import Any as _RuntimeAny, cast as _runtime_cast
+
+        from .lib._client_auth import sync_custom_auth
+
+        return sync_custom_auth(_runtime_cast(_RuntimeAny, super()).__thisclass__, self, security)
+
+    def _refresh_api_key(
+        self,
+    ) -> str:
+        from .lib._client_auth import sync_refresh_api_key
+
+        return sync_refresh_api_key(self)
 
     def copy(
         self,
         *,
-        api_key: str | None = None,
+        api_key: str | Callable[[], str] | None = None,
         admin_api_key: str | None = None,
+        workload_identity: WorkloadIdentity | X509WorkloadIdentity | None = None,
+        provider: _Provider | None | NotGiven = not_given,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -473,46 +588,36 @@ class OpenAI(SyncAPIClient):
         set_default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
         set_default_query: Mapping[str, object] | None = None,
+        _enforce_credentials: bool | None = None,
         _extra_kwargs: Mapping[str, Any] = {},
     ) -> Self:
         """
         Create a new client instance re-using the same options given to the current client with optional overriding.
+        `data_residency` replaces the inherited HTTP and WebSocket endpoints, without changing this client.
         """
-        if default_headers is not None and set_default_headers is not None:
-            raise ValueError("The `default_headers` and `set_default_headers` arguments are mutually exclusive")
+        from .lib._client_auth import synccopy
 
-        if default_query is not None and set_default_query is not None:
-            raise ValueError("The `default_query` and `set_default_query` arguments are mutually exclusive")
-
-        headers = self._custom_headers
-        if default_headers is not None:
-            headers = {**headers, **default_headers}
-        elif set_default_headers is not None:
-            headers = set_default_headers
-
-        params = self._custom_query
-        if default_query is not None:
-            params = {**params, **default_query}
-        elif set_default_query is not None:
-            params = set_default_query
-
-        base_url = resolve_data_residency(data_residency, base_url, websocket_base_url=websocket_base_url)
-
-        http_client = http_client or self._client
-        return self.__class__(
-            api_key=api_key or self.api_key,
-            admin_api_key=admin_api_key or self.admin_api_key,
-            organization=organization or self.organization,
-            project=project or self.project,
-            webhook_secret=webhook_secret or self.webhook_secret,
-            websocket_base_url=None if data_residency is not None else websocket_base_url or self.websocket_base_url,
-            base_url=base_url or self.base_url,
-            timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,
+        return synccopy(
+            self,
+            api_key=api_key,
+            admin_api_key=admin_api_key,
+            workload_identity=workload_identity,
+            provider=provider,
+            organization=organization,
+            project=project,
+            webhook_secret=webhook_secret,
+            websocket_base_url=websocket_base_url,
+            base_url=base_url,
+            data_residency=data_residency,
+            timeout=timeout,
             http_client=http_client,
-            max_retries=max_retries if is_given(max_retries) else self.max_retries,
-            default_headers=headers,
-            default_query=params,
-            **_extra_kwargs,
+            max_retries=max_retries,
+            default_headers=default_headers,
+            set_default_headers=set_default_headers,
+            default_query=default_query,
+            set_default_query=set_default_query,
+            _enforce_credentials=_enforce_credentials,
+            _extra_kwargs=_extra_kwargs,
         )
 
     # Alias for `copy` for nicer inline usage, e.g.
@@ -555,8 +660,17 @@ class OpenAI(SyncAPIClient):
 
 
 class AsyncOpenAI(AsyncAPIClient):
+    workload_identity: WorkloadIdentity | X509WorkloadIdentity | None
+    _workload_identity_auth: WorkloadIdentityAuth | AsyncX509WorkloadIdentityAuth | None
+    _provider: _Provider | None
+    _provider_runtime: _ProviderRuntime | None
+    _base_url_was_default: bool
+    _data_residency: DataResidency | None
+    _ambient_authorizations: frozenset[str]
+    _api_key_provider: Callable[[], Awaitable[str]] | None
+
     # client options
-    api_key: str | None
+    api_key: str
     admin_api_key: str | None
     organization: str | None
     project: str | None
@@ -569,6 +683,24 @@ class AsyncOpenAI(AsyncAPIClient):
     'http://' or 'https://' scheme. For example: 'http://example.com' becomes
     'wss://example.com'
     """
+
+    @property
+    @override
+    def base_url(
+        self,
+    ) -> httpx2.URL:
+        from .lib._client_auth import asyncbase_url
+
+        return asyncbase_url(self)
+
+    @base_url.setter
+    def base_url(
+        self,
+        url: httpx2.URL | str,
+    ) -> None:
+        from .lib._client_auth import asyncbase_url_set
+
+        return asyncbase_url_set(self, url)
 
     def _websocket_query_params_fallback(self, url: httpx2.URL, extra_query: Query) -> httpx2.QueryParams:
         # Remove replaced logical defaults before encoding nested query values.
@@ -591,11 +723,13 @@ class AsyncOpenAI(AsyncAPIClient):
     def __init__(
         self,
         *,
-        api_key: str | None = None,
+        api_key: str | Callable[[], Awaitable[str]] | None = None,
         admin_api_key: str | None = None,
+        workload_identity: WorkloadIdentity | X509WorkloadIdentity | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
+        provider: _Provider | None = None,
         base_url: str | httpx2.URL | None | NotGiven = not_given,
         data_residency: DataResidency | None = None,
         websocket_base_url: str | httpx2.URL | None = None,
@@ -603,19 +737,9 @@ class AsyncOpenAI(AsyncAPIClient):
         max_retries: int = DEFAULT_MAX_RETRIES,
         default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
-        # Configure a custom httpx2 client.
-        # We provide a `DefaultAsyncHttpxClient` class that you can pass to retain the default values we use for `limits`, `timeout` & `follow_redirects`.
-        # See the [httpx2 documentation](https://httpx2.pydantic.dev/api/#asyncclient) for more details.
         http_client: httpx2.AsyncClient | None = None,
-        # Enable or disable schema validation for data returned by the API.
-        # When enabled an error APIResponseValidationError is raised
-        # if the API responds with invalid data for the expected schema.
-        #
-        # This parameter may be removed or changed in the future.
-        # If you rely on this feature, please open a GitHub issue
-        # outlining your use-case to help us decide if it should be
-        # part of our public interface in the future.
         _strict_response_validation: bool = False,
+        _enforce_credentials: bool = True,
     ) -> None:
         """Construct a new async AsyncOpenAI client instance.
 
@@ -625,56 +749,36 @@ class AsyncOpenAI(AsyncAPIClient):
         - `organization` from `OPENAI_ORG_ID`
         - `project` from `OPENAI_PROJECT_ID`
         - `webhook_secret` from `OPENAI_WEBHOOK_SECRET`
+
+        When `provider` is supplied, authentication and the base URL are configured by that provider instead.
+        `data_residency` selects an OpenAI regional endpoint and cannot be combined with
+        `base_url`, `websocket_base_url`, or `provider`.
         """
-        base_url = resolve_data_residency(data_residency, base_url, websocket_base_url=websocket_base_url)
-        if api_key is None:
-            api_key = os.environ.get("OPENAI_API_KEY")
-        self.api_key = api_key
+        from typing import Any as _RuntimeAny, cast as _runtime_cast
 
-        if admin_api_key is None:
-            admin_api_key = os.environ.get("OPENAI_ADMIN_KEY")
-        self.admin_api_key = admin_api_key
+        from .lib._client_auth import async__init__
 
-        if organization is None:
-            organization = os.environ.get("OPENAI_ORG_ID")
-        self.organization = organization
-
-        if project is None:
-            project = os.environ.get("OPENAI_PROJECT_ID")
-        self.project = project
-
-        if webhook_secret is None:
-            webhook_secret = os.environ.get("OPENAI_WEBHOOK_SECRET")
-        self.webhook_secret = webhook_secret
-
-        self.websocket_base_url = websocket_base_url
-
-        if base_url is None:
-            base_url = os.environ.get("OPENAI_BASE_URL")
-        if base_url is None:
-            base_url = f"https://api.openai.com/v1"
-
-        custom_headers_env = os.environ.get("OPENAI_CUSTOM_HEADERS")
-        if custom_headers_env is not None:
-            parsed: dict[str, str] = {}
-            for line in custom_headers_env.split("\n"):
-                colon = line.find(":")
-                if colon >= 0:
-                    parsed[line[:colon].strip()] = line[colon + 1 :].strip()
-            default_headers = {**parsed, **(default_headers if is_mapping_t(default_headers) else {})}
-
-        super().__init__(
-            version=__version__,
+        return async__init__(
+            _runtime_cast(_RuntimeAny, super()).__thisclass__,
+            self,
+            api_key=api_key,
+            admin_api_key=admin_api_key,
+            workload_identity=workload_identity,
+            organization=organization,
+            project=project,
+            webhook_secret=webhook_secret,
+            provider=provider,
             base_url=base_url,
-            max_retries=max_retries,
+            data_residency=data_residency,
+            websocket_base_url=websocket_base_url,
             timeout=timeout,
+            max_retries=max_retries,
+            default_headers=default_headers,
+            default_query=default_query,
             http_client=http_client,
-            custom_headers=default_headers,
-            custom_query=default_query,
             _strict_response_validation=_strict_response_validation,
+            _enforce_credentials=_enforce_credentials,
         )
-
-        self._default_stream_cls = AsyncStream
 
     @cached_property
     def decisions(self) -> AsyncDecisions:
@@ -864,23 +968,59 @@ class AsyncOpenAI(AsyncAPIClient):
     def qs(self) -> Querystring:
         return Querystring(array_format="brackets")
 
+    async def _send_with_auth_retry(
+        self,
+        request: httpx2.Request,
+        *,
+        stream: bool,
+        retried: bool = False,
+        **kwargs: Unpack[HttpxSendArgs],
+    ) -> httpx2.Response:
+        from typing import Any as _RuntimeAny, cast as _runtime_cast
+
+        from .lib._client_auth import async_send_with_auth_retry
+
+        return await async_send_with_auth_retry(
+            _runtime_cast(_RuntimeAny, super()).__thisclass__, self, request, stream=stream, retried=retried, **kwargs
+        )
+
     @override
-    def _auth_headers(self, security: SecurityOptions) -> dict[str, str]:
-        headers: dict[str, str] = {}
-        if security.get("bearer_auth", False):
-            for key, value in self._bearer_auth.items():
-                headers.setdefault(key, value)
-        if security.get("admin_api_key_auth", False):
-            for key, value in self._admin_api_key_auth.items():
-                headers.setdefault(key, value)
-        return headers
+    async def _send_request(
+        self,
+        request: httpx2.Request,
+        *,
+        stream: bool,
+        **kwargs: Unpack[HttpxSendArgs],
+    ) -> httpx2.Response:
+        from .lib._client_auth import async_send_request
+
+        return await async_send_request(self, request, stream=stream, **kwargs)
+
+    @override
+    def _auth_headers(
+        self,
+        security: SecurityOptions,
+    ) -> dict[str, str]:
+        from .lib._client_auth import async_auth_headers
+
+        return async_auth_headers(self, security)
 
     @property
-    def _bearer_auth(self) -> dict[str, str]:
-        api_key = self.api_key
-        if api_key is None:
-            return {}
-        return {"Authorization": f"Bearer {api_key}"}
+    def _bearer_auth(
+        self,
+    ) -> dict[str, str]:
+        from .lib._client_auth import async_bearer_auth
+
+        return async_bearer_auth(self)
+
+    @property
+    @override
+    def auth_headers(
+        self,
+    ) -> dict[str, str]:
+        from .lib._client_auth import asyncauth_headers
+
+        return asyncauth_headers(self)
 
     @property
     def _admin_api_key_auth(self) -> dict[str, str]:
@@ -901,19 +1041,60 @@ class AsyncOpenAI(AsyncAPIClient):
         }
 
     @override
-    def _validate_headers(self, headers: Headers, custom_headers: Headers) -> None:
-        if headers.get("Authorization") or isinstance(custom_headers.get("Authorization"), Omit):
-            return
+    def _validate_headers(
+        self,
+        headers: Headers,
+        custom_headers: Headers,
+    ) -> None:
+        from .lib._client_auth import async_validate_headers
 
-        raise TypeError(
-            "Could not resolve authentication method. Expected either api_key or admin_api_key to be set. Or for the `Authorization` header to be explicitly omitted."
-        )
+        return async_validate_headers(self, headers, custom_headers)
+
+    @override
+    async def _prepare_options(
+        self,
+        options: FinalRequestOptions,
+    ) -> FinalRequestOptions:
+        from typing import Any as _RuntimeAny, cast as _runtime_cast
+
+        from .lib._client_auth import async_prepare_options
+
+        return await async_prepare_options(_runtime_cast(_RuntimeAny, super()).__thisclass__, self, options)
+
+    @override
+    async def _prepare_request(
+        self,
+        request: httpx2.Request,
+    ) -> None:
+        from .lib._client_auth import async_prepare_request
+
+        return await async_prepare_request(self, request)
+
+    @property
+    @override
+    def custom_auth(
+        self,
+    ) -> httpx2.Auth | None:
+        from typing import Any as _RuntimeAny, cast as _runtime_cast
+
+        from .lib._client_auth import asynccustom_auth
+
+        return asynccustom_auth(_runtime_cast(_RuntimeAny, super()).__thisclass__, self)
+
+    async def _refresh_api_key(
+        self,
+    ) -> str:
+        from .lib._client_auth import async_refresh_api_key
+
+        return await async_refresh_api_key(self)
 
     def copy(
         self,
         *,
-        api_key: str | None = None,
+        api_key: str | Callable[[], Awaitable[str]] | None = None,
         admin_api_key: str | None = None,
+        workload_identity: WorkloadIdentity | X509WorkloadIdentity | None = None,
+        provider: _Provider | None | NotGiven = not_given,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -927,46 +1108,36 @@ class AsyncOpenAI(AsyncAPIClient):
         set_default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
         set_default_query: Mapping[str, object] | None = None,
+        _enforce_credentials: bool | None = None,
         _extra_kwargs: Mapping[str, Any] = {},
     ) -> Self:
         """
         Create a new client instance re-using the same options given to the current client with optional overriding.
+        `data_residency` replaces the inherited HTTP and WebSocket endpoints, without changing this client.
         """
-        if default_headers is not None and set_default_headers is not None:
-            raise ValueError("The `default_headers` and `set_default_headers` arguments are mutually exclusive")
+        from .lib._client_auth import asynccopy
 
-        if default_query is not None and set_default_query is not None:
-            raise ValueError("The `default_query` and `set_default_query` arguments are mutually exclusive")
-
-        headers = self._custom_headers
-        if default_headers is not None:
-            headers = {**headers, **default_headers}
-        elif set_default_headers is not None:
-            headers = set_default_headers
-
-        params = self._custom_query
-        if default_query is not None:
-            params = {**params, **default_query}
-        elif set_default_query is not None:
-            params = set_default_query
-
-        base_url = resolve_data_residency(data_residency, base_url, websocket_base_url=websocket_base_url)
-
-        http_client = http_client or self._client
-        return self.__class__(
-            api_key=api_key or self.api_key,
-            admin_api_key=admin_api_key or self.admin_api_key,
-            organization=organization or self.organization,
-            project=project or self.project,
-            webhook_secret=webhook_secret or self.webhook_secret,
-            websocket_base_url=None if data_residency is not None else websocket_base_url or self.websocket_base_url,
-            base_url=base_url or self.base_url,
-            timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,
+        return asynccopy(
+            self,
+            api_key=api_key,
+            admin_api_key=admin_api_key,
+            workload_identity=workload_identity,
+            provider=provider,
+            organization=organization,
+            project=project,
+            webhook_secret=webhook_secret,
+            websocket_base_url=websocket_base_url,
+            base_url=base_url,
+            data_residency=data_residency,
+            timeout=timeout,
             http_client=http_client,
-            max_retries=max_retries if is_given(max_retries) else self.max_retries,
-            default_headers=headers,
-            default_query=params,
-            **_extra_kwargs,
+            max_retries=max_retries,
+            default_headers=default_headers,
+            set_default_headers=set_default_headers,
+            default_query=default_query,
+            set_default_query=set_default_query,
+            _enforce_credentials=_enforce_credentials,
+            _extra_kwargs=_extra_kwargs,
         )
 
     # Alias for `copy` for nicer inline usage, e.g.

@@ -1339,7 +1339,7 @@ class FirstAdoptionTests(GitTestCase):
             report.build_report(self.repo, self.base, head, public=False, target_branch="next")
 
     def test_config_change_rejected(self) -> None:
-        head = self.head()
+        self.head()
         path = self.repo / ".castiron.stats.yml"
         path.write_text(path.read_text().replace("source-config", "wrong-config"))
         head = self.commit()
@@ -1357,7 +1357,7 @@ class FirstAdoptionTests(GitTestCase):
             report.first_adoption_source(self.repo, deleted, target_branch="next", fetch=False)
 
     def test_candidate_cannot_select_source_or_remove_policy(self) -> None:
-        head = self.head()
+        self.head()
         self.write(".castiron-ratchet.json", json.dumps(self.policy) + "\n")
         head = self.commit()
         with self.assertRaisesRegex(report.ReportError, "protected target policy"):
