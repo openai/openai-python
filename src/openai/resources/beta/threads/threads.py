@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import typing_extensions
 from typing import Union, Iterable, Optional
-from functools import partial
 from typing_extensions import Literal, overload
 
 import httpx2
@@ -48,6 +47,12 @@ from ....lib.streaming import (
 )
 from ....types.beta.thread import Thread
 from ....types.beta.threads.run import Run
+from ....lib._assistants_threads import (
+    threads_create_and_run_poll,
+    threads_create_and_run_stream,
+    async_threads_create_and_run_poll,
+    async_threads_create_and_run_stream,
+)
 from ....types.shared.chat_model import ChatModel
 from ....types.beta.thread_deleted import ThreadDeleted
 from ....types.shared_params.metadata import Metadata
@@ -784,19 +789,16 @@ class Threads(SyncAPIResource):
         top_p: Optional[float] | Omit = omit,
         truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | Omit = omit,
         poll_interval_ms: int | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Run:
-        """
-        A helper to create a thread, start a run and then poll for a terminal state.
+        """A helper to create a thread, start a run and then poll for a terminal state.
         More information on Run lifecycles can be found here:
-        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps
-        """
-        run = self.create_and_run(  # pyright: ignore[reportDeprecated]
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
+        return threads_create_and_run_poll(
+            self,
             assistant_id=assistant_id,
             instructions=instructions,
             max_completion_tokens=max_completion_tokens,
@@ -806,19 +808,18 @@ class Threads(SyncAPIResource):
             parallel_tool_calls=parallel_tool_calls,
             response_format=response_format,
             temperature=temperature,
-            stream=False,
             thread=thread,
-            tool_resources=tool_resources,
             tool_choice=tool_choice,
-            truncation_strategy=truncation_strategy,
-            top_p=top_p,
+            tool_resources=tool_resources,
             tools=tools,
+            top_p=top_p,
+            truncation_strategy=truncation_strategy,
+            poll_interval_ms=poll_interval_ms,
             extra_headers=extra_headers,
             extra_query=extra_query,
             extra_body=extra_body,
             timeout=timeout,
         )
-        return self.runs.poll(run.id, run.thread_id, extra_headers, extra_query, extra_body, timeout, poll_interval_ms)  # pyright: ignore[reportDeprecated]
 
     @overload
     def create_and_run_stream(
@@ -839,15 +840,12 @@ class Threads(SyncAPIResource):
         tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
         top_p: Optional[float] | Omit = omit,
         truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AssistantStreamManager[AssistantEventHandler]:
         """Create a thread and stream the run back"""
-        ...
 
     @overload
     def create_and_run_stream(
@@ -869,15 +867,12 @@ class Threads(SyncAPIResource):
         top_p: Optional[float] | Omit = omit,
         truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | Omit = omit,
         event_handler: AssistantEventHandlerT,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AssistantStreamManager[AssistantEventHandlerT]:
         """Create a thread and stream the run back"""
-        ...
 
     def create_and_run_stream(
         self,
@@ -898,56 +893,35 @@ class Threads(SyncAPIResource):
         top_p: Optional[float] | Omit = omit,
         truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | Omit = omit,
         event_handler: AssistantEventHandlerT | None = None,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AssistantStreamManager[AssistantEventHandler] | AssistantStreamManager[AssistantEventHandlerT]:
         """Create a thread and stream the run back"""
-        extra_headers = {
-            "OpenAI-Beta": "assistants=v2",
-            "X-Stainless-Stream-Helper": "threads.create_and_run_stream",
-            "X-Stainless-Custom-Event-Handler": "true" if event_handler else "false",
-            **(extra_headers or {}),
-        }
-        make_request = partial(
-            self._post,
-            "/threads/runs",
-            body=maybe_transform(
-                {
-                    "assistant_id": assistant_id,
-                    "instructions": instructions,
-                    "max_completion_tokens": max_completion_tokens,
-                    "max_prompt_tokens": max_prompt_tokens,
-                    "metadata": metadata,
-                    "model": model,
-                    "parallel_tool_calls": parallel_tool_calls,
-                    "response_format": response_format,
-                    "temperature": temperature,
-                    "tool_choice": tool_choice,
-                    "stream": True,
-                    "thread": thread,
-                    "tools": tools,
-                    "tool_resources": tool_resources,
-                    "truncation_strategy": truncation_strategy,
-                    "top_p": top_p,
-                },
-                thread_create_and_run_params.ThreadCreateAndRunParams,
-            ),
-            options=make_request_options(
-                extra_headers=extra_headers,
-                extra_query=extra_query,
-                extra_body=extra_body,
-                timeout=timeout,
-                security={"bearer_auth": True},
-            ),
-            cast_to=Run,
-            stream=True,
-            stream_cls=Stream[AssistantStreamEvent],
+        return threads_create_and_run_stream(
+            self,
+            assistant_id=assistant_id,
+            instructions=instructions,
+            max_completion_tokens=max_completion_tokens,
+            max_prompt_tokens=max_prompt_tokens,
+            metadata=metadata,
+            model=model,
+            parallel_tool_calls=parallel_tool_calls,
+            response_format=response_format,
+            temperature=temperature,
+            thread=thread,
+            tool_choice=tool_choice,
+            tool_resources=tool_resources,
+            tools=tools,
+            top_p=top_p,
+            truncation_strategy=truncation_strategy,
+            event_handler=event_handler,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
         )
-        return AssistantStreamManager(make_request, event_handler=event_handler or AssistantEventHandler())
 
 
 class AsyncThreads(AsyncAPIResource):
@@ -1675,19 +1649,16 @@ class AsyncThreads(AsyncAPIResource):
         top_p: Optional[float] | Omit = omit,
         truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | Omit = omit,
         poll_interval_ms: int | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Run:
-        """
-        A helper to create a thread, start a run and then poll for a terminal state.
+        """A helper to create a thread, start a run and then poll for a terminal state.
         More information on Run lifecycles can be found here:
-        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps
-        """
-        run = await self.create_and_run(  # pyright: ignore[reportDeprecated]
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
+        return await async_threads_create_and_run_poll(
+            self,
             assistant_id=assistant_id,
             instructions=instructions,
             max_completion_tokens=max_completion_tokens,
@@ -1697,20 +1668,17 @@ class AsyncThreads(AsyncAPIResource):
             parallel_tool_calls=parallel_tool_calls,
             response_format=response_format,
             temperature=temperature,
-            stream=False,
             thread=thread,
-            tool_resources=tool_resources,
             tool_choice=tool_choice,
-            truncation_strategy=truncation_strategy,
-            top_p=top_p,
+            tool_resources=tool_resources,
             tools=tools,
+            top_p=top_p,
+            truncation_strategy=truncation_strategy,
+            poll_interval_ms=poll_interval_ms,
             extra_headers=extra_headers,
             extra_query=extra_query,
             extra_body=extra_body,
             timeout=timeout,
-        )
-        return await self.runs.poll(  # pyright: ignore[reportDeprecated]
-            run.id, run.thread_id, extra_headers, extra_query, extra_body, timeout, poll_interval_ms
         )
 
     @overload
@@ -1732,15 +1700,12 @@ class AsyncThreads(AsyncAPIResource):
         tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
         top_p: Optional[float] | Omit = omit,
         truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AsyncAssistantStreamManager[AsyncAssistantEventHandler]:
         """Create a thread and stream the run back"""
-        ...
 
     @overload
     def create_and_run_stream(
@@ -1762,15 +1727,12 @@ class AsyncThreads(AsyncAPIResource):
         top_p: Optional[float] | Omit = omit,
         truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | Omit = omit,
         event_handler: AsyncAssistantEventHandlerT,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AsyncAssistantStreamManager[AsyncAssistantEventHandlerT]:
         """Create a thread and stream the run back"""
-        ...
 
     def create_and_run_stream(
         self,
@@ -1791,8 +1753,6 @@ class AsyncThreads(AsyncAPIResource):
         top_p: Optional[float] | Omit = omit,
         truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | Omit = omit,
         event_handler: AsyncAssistantEventHandlerT | None = None,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -1802,47 +1762,29 @@ class AsyncThreads(AsyncAPIResource):
         | AsyncAssistantStreamManager[AsyncAssistantEventHandlerT]
     ):
         """Create a thread and stream the run back"""
-        extra_headers = {
-            "OpenAI-Beta": "assistants=v2",
-            "X-Stainless-Stream-Helper": "threads.create_and_run_stream",
-            "X-Stainless-Custom-Event-Handler": "true" if event_handler else "false",
-            **(extra_headers or {}),
-        }
-        request = self._post(
-            "/threads/runs",
-            body=maybe_transform(
-                {
-                    "assistant_id": assistant_id,
-                    "instructions": instructions,
-                    "max_completion_tokens": max_completion_tokens,
-                    "max_prompt_tokens": max_prompt_tokens,
-                    "metadata": metadata,
-                    "model": model,
-                    "parallel_tool_calls": parallel_tool_calls,
-                    "response_format": response_format,
-                    "temperature": temperature,
-                    "tool_choice": tool_choice,
-                    "stream": True,
-                    "thread": thread,
-                    "tools": tools,
-                    "tool_resources": tool_resources,
-                    "truncation_strategy": truncation_strategy,
-                    "top_p": top_p,
-                },
-                thread_create_and_run_params.ThreadCreateAndRunParams,
-            ),
-            options=make_request_options(
-                extra_headers=extra_headers,
-                extra_query=extra_query,
-                extra_body=extra_body,
-                timeout=timeout,
-                security={"bearer_auth": True},
-            ),
-            cast_to=Run,
-            stream=True,
-            stream_cls=AsyncStream[AssistantStreamEvent],
+        return async_threads_create_and_run_stream(
+            self,
+            assistant_id=assistant_id,
+            instructions=instructions,
+            max_completion_tokens=max_completion_tokens,
+            max_prompt_tokens=max_prompt_tokens,
+            metadata=metadata,
+            model=model,
+            parallel_tool_calls=parallel_tool_calls,
+            response_format=response_format,
+            temperature=temperature,
+            thread=thread,
+            tool_choice=tool_choice,
+            tool_resources=tool_resources,
+            tools=tools,
+            top_p=top_p,
+            truncation_strategy=truncation_strategy,
+            event_handler=event_handler,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
         )
-        return AsyncAssistantStreamManager(request, event_handler=event_handler or AsyncAssistantEventHandler())
 
 
 class ThreadsWithRawResponse:

@@ -55,7 +55,7 @@ class Artifacts(SyncAPIResource):
         self,
         result: AgentTurnResult,
     ) -> AgentResultArtifacts:
-        "Beta: download artifacts scoped to the exact completed result turn."
+        """Beta: download artifacts scoped to the exact completed result turn."""
         return AgentResultArtifacts(
             self,
             result,
@@ -289,7 +289,7 @@ class AsyncArtifacts(AsyncAPIResource):
         self,
         result: AgentTurnResult,
     ) -> AsyncAgentResultArtifacts:
-        "Beta: download artifacts scoped to the exact completed result turn."
+        """Beta: download artifacts scoped to the exact completed result turn."""
         return AsyncAgentResultArtifacts(
             self,
             result,

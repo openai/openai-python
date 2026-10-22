@@ -16,6 +16,152 @@ import custom_code_report as report
 from custom_code_test_support import GitTestCase
 
 
+class GoRatchetTests(GitTestCase):
+    def prepare(self, *, inherited_ci: bool = False) -> str:
+        if inherited_ci:
+            self.write(".github/actions/check/main.go", "package main\n")
+        self.baseline()
+        self.policy()
+        return self.commit("activate Go ratchet")
+
+    def policy(self, *, active: bool = True, limit: int = 2000) -> None:
+        value: dict[str, Any] = {"schema_version": 1, "max_custom_patch_lines": limit}
+        if active:
+            value["ratchet"] = "go"
+        self.write(budget.POLICY, json.dumps(value) + "\n")
+
+    def evaluate(self, base: str, head: str, **kwargs: Any) -> dict[str, Any]:
+        return budget.evaluate(self.repo, base, head, public=False, **kwargs)[0]
+
+    def test_handwritten_helpers_tests_comments_and_nested_modules_count(self) -> None:
+        base = self.prepare()
+        for path in (
+            "helper.go",
+            "helper_test.go",
+            "nested/module/helper.go",
+            ".github/workflows/check.go",
+        ):
+            with self.subTest(path=path):
+                self.git("checkout", "--detach", "-q", base)
+                self.write(path, "// comment\n\npackage example\n// final line")
+                result = self.evaluate(base, self.commit())
+                self.assertEqual(result["checks"]["budget"]["state"], "failure")
+                self.assertEqual(result["ratchet"]["delta"], 4)
+                self.assertEqual(
+                    result["ratchet"]["after"]["handwritten_files"], [{"path": path, "lines": 4}]
+                )
+
+    def test_inherited_private_checkpoint_ci_is_handwritten(self) -> None:
+        base = self.prepare(inherited_ci=True)
+        self.write(".github/actions/check/main.go", "package main\n// added\n")
+        result = self.evaluate(base, self.commit())
+        self.assertEqual(result["total"], 0)
+        self.assertEqual(result["ratchet"]["before"]["handwritten_lines"], 1)
+        self.assertEqual(result["ratchet"]["delta"], 1)
+        self.assertEqual(
+            result["ratchet"]["after"]["handwritten_files"],
+            [{"path": ".github/actions/check/main.go", "lines": 2}],
+        )
+        self.assertEqual(result["checks"]["budget"]["state"], "failure")
+
+    def test_patch_reduction_can_pay_for_handwritten_lines(self) -> None:
+        self.prepare()
+        self.write("generated.py", "generated\ncustom\ncustom\n")
+        base = self.commit()
+        self.write("generated.py", "generated\n")
+        self.write("helper.go", "package example\n")
+        result = self.evaluate(base, self.commit())
+        self.assertEqual(result["ratchet"]["delta"], -1)
+        self.assertEqual(result["checks"]["budget"]["state"], "success")
+
+    def test_stale_branch_cannot_reclaim_landed_reduction(self) -> None:
+        self.prepare()
+        self.write("helper.go", "package example\n// old allowance\n")
+        old = self.commit()
+        self.git("checkout", "-q", "-b", "stale")
+        head = self.commit()
+        self.git("checkout", "-q", "main")
+        self.write("helper.go", "package example\n")
+        base = self.commit()
+        self.assertEqual(self.git("merge-base", base, head), old)
+        result = self.evaluate(base, head)
+        self.assertEqual(result["ratchet"]["before"]["revision"], base)
+        self.assertEqual(result["ratchet"]["delta"], 1)
+        self.assertEqual(result["checks"]["budget"]["state"], "failure")
+
+    def test_complete_merge_queue_candidate_is_counted(self) -> None:
+        base = self.prepare()
+        constituent = self.commit("empty constituent")
+        self.write("helper.go", "package example\n")
+        result = self.evaluate(base, self.commit("combined queue"), pull_heads=[constituent])
+        self.assertEqual(result["checks"]["isolation"]["state"], "success")
+        self.assertEqual(result["checks"]["budget"]["state"], "failure")
+
+    def test_ratchet_cannot_be_disabled(self) -> None:
+        base = self.prepare()
+        self.policy(active=False)
+        result = self.evaluate(base, self.commit())
+        for name in ("budget", "isolation"):
+            self.assertEqual(result["checks"][name]["state"], "failure")
+            self.assertIn("cannot be disabled", result["checks"][name]["description"])
+
+    def test_old_ceiling_increase_cannot_restore_ratchet_headroom(self) -> None:
+        self.prepare()
+        self.policy(limit=3000)
+        base = self.commit("separately reviewed ceiling increase")
+        self.write("helper.go", "package example\n")
+        result = self.evaluate(base, self.commit())
+        self.assertEqual(result["limit"], 3000)
+        self.assertEqual(result["checks"]["budget"]["state"], "failure")
+
+    def test_fixed_patch_ceiling_remains_independent(self) -> None:
+        self.prepare()
+        self.policy(limit=1)
+        self.write("helper.go", "package example\n// two\n// three\n")
+        base = self.commit()
+        (self.repo / "helper.go").unlink()
+        self.write("generated.py", "generated\ncustom\ncustom\n")
+        result = self.evaluate(base, self.commit())
+        self.assertEqual(result["ratchet"]["delta"], -1)
+        self.assertEqual(result["checks"]["budget"]["state"], "failure")
+
+    def test_nontext_and_symlink_go_fail_closed(self) -> None:
+        base = self.prepare()
+        for content in (b"package example\0", b"\xff", None):
+            with self.subTest(content=content):
+                self.git("checkout", "--detach", "-q", base)
+                path = self.repo / "helper.go"
+                if content is None:
+                    path.symlink_to("generated.py")
+                else:
+                    path.write_bytes(content)
+                result = self.evaluate(base, self.commit())
+                self.assertEqual(result["checks"]["budget"]["state"], "failure")
+
+    def test_live_target_snapshot_hash_is_verified(self) -> None:
+        self.prepare()
+        self.git("checkout", "-q", "-b", "candidate")
+        head = self.commit()
+        self.git("checkout", "-q", "main")
+        stats = self.repo / ".castiron.stats.yml"
+        stats.write_text(stats.read_text().replace("codegen_hash: ", "codegen_hash: bad"))
+        result = self.evaluate(self.commit(), head)
+        self.assertEqual(result["checks"]["budget"]["state"], "failure")
+
+    def test_activation_must_be_policy_only(self) -> None:
+        self.prepare()
+        self.policy(active=False)
+        base = self.commit()
+        self.policy()
+        head = self.commit()
+        result = self.evaluate(base, head)
+        self.assertTrue(all(check["state"] == "success" for check in result["checks"].values()))
+        self.write("helper.go", "package example\n")
+        result = self.evaluate(base, self.commit())
+        self.assertEqual(result["checks"]["isolation"]["state"], "failure")
+        self.assertEqual(result["checks"]["budget"]["state"], "failure")
+
+
 class BudgetTests(GitTestCase):
     def setUp(self) -> None:  # pyright: ignore[reportImplicitOverride]
         super().setUp()

@@ -58,7 +58,7 @@ UnwrapWebhookEvent: TypeAlias = Annotated[
         FineTuningJobCancelledWebhookEvent,
         FineTuningJobFailedWebhookEvent,
         FineTuningJobSucceededWebhookEvent,
-        LiveCallIncomingWebhookEvent,  # pyright: ignore[reportDeprecated]  # Preserve legacy payload parsing.
+        LiveCallIncomingWebhookEvent,  # pyright: ignore[reportDeprecated]
         LiveTransportIncomingWebhookEvent,
         RealtimeCallIncomingWebhookEvent,
         ResponseCancelledWebhookEvent,

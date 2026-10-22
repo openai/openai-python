@@ -59,6 +59,10 @@ def read_policy(repo: Path, revision: str) -> dict[str, Any]:
     if type(version) is not int or version not in (1, 2):
         raise ValueError("unsupported budget schema_version")
     keys = {"schema_version", "max_custom_patch_lines"}
+    if "ratchet" in value:
+        keys.add("ratchet")
+        if value["ratchet"] != "go":
+            raise ValueError("ratchet must be go")
     if version == 2:
         keys.add("generated_files")
     if "next_policy" in value:
@@ -133,10 +137,12 @@ class HumanReviewRules(TypedDict):
     version: int
     associations: list[str]
     negative_pattern: str
+    attestation_prefix: str
 
 
 HUMAN_REVIEW_RULES: HumanReviewRules = {
-    "version": 1,
+    "version": 2,
+    "attestation_prefix": "I personally reviewed and approve this policy change as a human: ",
     "associations": ["OWNER", "MEMBER", "COLLABORATOR"],
     "negative_pattern": (
         r"automated[\s_:-]*(?:source[\s_:-]*)?review|source[- ]only review|"
@@ -161,6 +167,7 @@ def has_human_approval(reviews: list[dict[str, Any]], author: str, head: str) ->
         and review.get("author_association") in HUMAN_REVIEW_RULES["associations"]
         and not review["user"]["login"].endswith("[bot]")
         and review["user"]["login"] != author
+        and (review.get("body") or "").strip() == HUMAN_REVIEW_RULES["attestation_prefix"] + head
         and not re.search(
             HUMAN_REVIEW_RULES["negative_pattern"], review.get("body") or "", re.IGNORECASE
         )
@@ -249,7 +256,8 @@ def select_policy(
         raise ValueError("next evaluation has no verified constituent PR")
     for candidate in candidates:
         candidate_policy = read_policy(repo, candidate)
-        candidate_base_policy = read_policy(repo, merge_base(repo, base, candidate))
+        candidate_base = merge_base(repo, base, candidate)
+        candidate_base_policy = read_policy(repo, candidate_base)
         pin_changed = candidate_policy.get("next_policy") != candidate_base_policy.get(
             "next_policy"
         )
@@ -257,9 +265,50 @@ def select_policy(
             candidate_policy["max_custom_patch_lines"]
             > candidate_base_policy["max_custom_patch_lines"]
         )
-        if pin_changed or budget_increased:
-            if changed_paths(repo, base, candidate) != {POLICY.encode()}:
-                raise ValueError("each next policy activation or increase must be policy-only")
+        ratchet_activated = (
+            candidate_policy.get("ratchet") == "go" and candidate_base_policy.get("ratchet") != "go"
+        )
+        if (pin_changed or budget_increased or ratchet_activated) and changed_paths(
+            repo, base, candidate
+        ) != {POLICY.encode()}:
+            raise ValueError("each next policy activation or increase must be policy-only")
+        pin_requires_human = False
+        if pin_changed:
+            proposed = read_policy(
+                repo, next_policy_sha(repo, repository, candidate, authenticated_main)
+            )
+            previous = (
+                read_policy(
+                    repo, next_policy_sha(repo, repository, candidate_base, authenticated_main)
+                )
+                if "next_policy" in candidate_base_policy
+                else candidate_base_policy
+            )
+            # Bootstrap executes authenticated main; initial adoption must not silently
+            # replace it with older checker code, even when policy fields match.
+            previous_checker = (
+                candidate_base_policy["next_policy"]["main_sha"]
+                if "next_policy" in candidate_base_policy
+                else authenticated_main
+            )
+            rolled_back = bool(
+                report.git(
+                    repo,
+                    "rev-list",
+                    "--first-parent",
+                    f"{candidate_policy['next_policy']['main_sha']}..{previous_checker}",
+                ).strip()
+            )
+            # Compare effective policies, not the candidate's unchanged local ceiling.
+            # Schema/strictness or ratchet transitions also retain human authorization.
+            pin_requires_human = (
+                rolled_back
+                or proposed["max_custom_patch_lines"] > previous["max_custom_patch_lines"]
+                or proposed["schema_version"] != previous["schema_version"]
+                or proposed.get("generated_files") != previous.get("generated_files")
+                or proposed.get("ratchet") != previous.get("ratchet")
+            )
+        if budget_increased or ratchet_activated or pin_requires_human:
             number = require_human_policy_review(repository, candidate)
             policy_reviews.append({"number": number, "head_sha": candidate})
     return {
