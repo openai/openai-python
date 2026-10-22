@@ -50,8 +50,9 @@ def test_stream_event_construction_preserves_values(delta: Any) -> None:
     from openai.lib.streaming.chat._completions import _build
 
     parsed: dict[str, list[int]] = {"items": []}
-    actual = _build(ContentDeltaEvent, type="content.delta", delta=delta, snapshot="text", parsed=parsed)
-    expected = build(ContentDeltaEvent, type="content.delta", delta=delta, snapshot="text", parsed=parsed)
+    values: Any = dict(type="content.delta", delta=delta, snapshot="text", parsed=parsed, extension={"value": 1})
+    actual = _build(ContentDeltaEvent, **values)
+    expected = build(ContentDeltaEvent, **values)
     assert actual == expected
     assert actual.model_fields_set == expected.model_fields_set
     assert actual.parsed is parsed

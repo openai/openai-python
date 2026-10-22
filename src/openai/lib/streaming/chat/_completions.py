@@ -746,15 +746,22 @@ _ModelT = TypeVar("_ModelT", bound=BaseModel)
 _P = ParamSpec("_P")
 
 
-def _build(cls: Callable[_P, _ModelT], *args: _P.args, **kwargs: _P.kwargs) -> _ModelT:
+def _build(base_model_cls: Callable[_P, _ModelT], *args: _P.args, **kwargs: _P.kwargs) -> _ModelT:
     # Pydantic v2's compiled validator avoids recursively inspecting field types.
-    # Keep loose construction for incomplete or unexpected API data, and v1.
-    if not PYDANTIC_V1 and not args:
+    # Keep loose construction for incomplete or unexpected API data.
+    if not args:
         try:
-            return cast(type[_ModelT], cls).model_validate(kwargs, strict=True)
+            model = cast(type[_ModelT], base_model_cls).model_validate(kwargs, strict=True)
+            # Match loose construction, which excludes extras from fields_set.
+            model.model_fields_set.difference_update(model.model_extra or ())
+            return model
         except ValidationError:
             pass
-    return build(cls, *args, **kwargs)
+    return build(base_model_cls, *args, **kwargs)
+
+
+if PYDANTIC_V1:
+    _build = build
 
 
 def _convert_initial_chunk_into_snapshot(chunk: ChatCompletionChunk) -> ParsedChatCompletionSnapshot:
