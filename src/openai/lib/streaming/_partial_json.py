@@ -19,7 +19,7 @@ class PartialJSONParser:
         self._in_string = False
         self._escaped = False
         self._unicode_escape = False
-        self._prefix = b""
+        self._prefix: str | bytes = b""
 
     def parse(self, value: str) -> Any:
         delta = value[self._length :]
@@ -33,18 +33,30 @@ class PartialJSONParser:
                 self._escaped = extension[1] is not None
                 # Parse again rather than reuse a mutable dict/list from an
                 # earlier event. The unfinished string contributes no value.
+                if isinstance(self._prefix, str):
+                    self._prefix = self._prefix.encode("utf-8")
                 return from_json(self._prefix, partial_mode=True)
 
+        self._prefix = b""
         raw = value.encode("utf-8")
         parsed = from_json(raw, partial_mode=True)
-        for match in _STRING_BOUNDARY.finditer(delta):
-            token = match[0]
-            if token == '"':
-                self._in_string = not self._in_string
+        if self._unicode_escape and '"' not in delta:
+            self._escaped = bool((len(delta) - len(delta.rstrip("\\"))) % 2)
+        elif "\\" not in delta:
+            quotes = delta.count('"')
+            self._in_string ^= bool(quotes % 2)
+            if quotes:
                 self._unicode_escape = False
-            elif self._in_string and token == "\\u":
-                self._unicode_escape = True
-            self._escaped = self._in_string and token == "\\"
+            self._escaped = False
+        else:
+            for match in _STRING_BOUNDARY.finditer(delta):
+                token = match[0]
+                if token == '"':
+                    self._in_string = not self._in_string
+                    self._unicode_escape = False
+                elif self._in_string and token == "\\u":
+                    self._unicode_escape = True
+                self._escaped = self._in_string and token == "\\"
         self._length = len(value)
-        self._prefix = raw if self._in_string and not self._unicode_escape else b""
+        self._prefix = value if self._in_string and not self._unicode_escape else b""
         return parsed
