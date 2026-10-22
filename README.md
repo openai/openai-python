@@ -669,12 +669,6 @@ When the library is unable to connect to the API (for example, due to network co
 When the API returns a non-success status code (that is, 4xx or 5xx
 response), a subclass of `openai.APIStatusError` is raised, containing `status_code` and `response` properties.
 
-The exception message includes the HTTP status and the JSON `error.message` string
-(or a top-level `message` when there is no `error` field). If no nonempty string
-message is available, it includes only the status. Other JSON fields and non-JSON
-response bodies are omitted from the message; use `body` or `response` to inspect
-them explicitly. The server-provided message itself is preserved without redaction.
-
 All errors inherit from `openai.APIError`.
 
 When consuming a `Stream` or `AsyncStream`, read timeouts raise `APITimeoutError`
