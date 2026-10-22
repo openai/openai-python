@@ -659,8 +659,13 @@ class AsyncRealtimeConnectionManager:
             prepared_headers: Headers = extra_headers
         else:
             url = self._prepare_url()
+            try:
+                # Older runtimes do not declare this optional helper.
+                query_params = getattr(self.__client, "_websocket_query_params")  # noqa: B009
+            except AttributeError:
+                query_params = self.__client._websocket_query_params_fallback
             url = url.copy_with(
-                params=self.__client._websocket_query_params(
+                params=query_params(
                     url,
                     {
                         **({"model": self.__model} if self.__model is not omit else {}),
@@ -1091,8 +1096,13 @@ class RealtimeConnectionManager:
             prepared_headers: Headers = extra_headers
         else:
             url = self._prepare_url()
+            try:
+                # Older runtimes do not declare this optional helper.
+                query_params = getattr(self.__client, "_websocket_query_params")  # noqa: B009
+            except AttributeError:
+                query_params = self.__client._websocket_query_params_fallback
             url = url.copy_with(
-                params=self.__client._websocket_query_params(
+                params=query_params(
                     url,
                     {
                         **({"model": self.__model} if self.__model is not omit else {}),

@@ -20,59 +20,26 @@ import sys
 from pathlib import Path
 from typing import Any, cast
 
-# Explicitly load the reporter beside this trusted script, including under python -I.
-# The inspected repository is only a Git object store, not a Python import path.
+# Load only the policy helpers beside this immutable checker, including under -I.
 _spec = importlib.util.spec_from_file_location(
-    "castiron_budget_reporter", Path(__file__).with_name("custom_code_report.py")
+    "castiron_budget_policy", Path(__file__).with_name("custom_code_policy.py")
 )
 assert _spec is not None and _spec.loader is not None
-report = importlib.util.module_from_spec(_spec)
-sys.modules[_spec.name] = report
-_spec.loader.exec_module(report)
+policy = importlib.util.module_from_spec(_spec)
+sys.modules[_spec.name] = policy
+_spec.loader.exec_module(policy)
+report = policy.report
+unique_keys = policy.unique_keys
+read_policy = policy.read_policy
+changed_paths = policy.changed_paths
+queued_entries = policy.queued_entries
 
 POLICY = ".castiron-ratchet.json"
+NEXT_POLICY_VERSION = 1
 ISOLATION_MESSAGE = (
     "Budget changes require a separate, budget-only PR. "
     "Put the justification in the PR description."
 )
-
-
-def unique_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
-    value: dict[str, Any] = {}
-    for key, item in pairs:
-        if key in value:
-            raise ValueError(f"duplicate policy key: {key}")
-        value[key] = item
-    return value
-
-
-def read_policy(repo: Path, revision: str) -> dict[str, Any]:
-    revision = report.require_sha(revision)
-    entry = report.git(repo, "ls-tree", revision, "--", POLICY).split()
-    if len(entry) != 4 or entry[:2] != [b"100644", b"blob"]:
-        raise ValueError(f"{POLICY} must exist as a regular, non-executable file at {revision}")
-    if int(report.git(repo, "cat-file", "-s", entry[2].decode())) > 4096:
-        raise ValueError("budget file exceeds 4096 bytes")
-    value = json.loads(
-        report.git(repo, "show", f"{revision}:{POLICY}"), object_pairs_hook=unique_keys
-    )
-    if not isinstance(value, dict):
-        raise ValueError("budget file must be an object")  # noqa: TRY004 - malformed policy is a value error
-    value = cast(dict[str, Any], value)
-    version = value.get("schema_version")
-    if type(version) is not int or version not in (1, 2):
-        raise ValueError("unsupported budget schema_version")
-    keys = {"schema_version", "max_custom_patch_lines"}
-    if version == 2:
-        keys.add("generated_files")
-    if set(value) != keys:
-        raise ValueError("budget file contains missing or unsupported fields")
-    limit = value["max_custom_patch_lines"]
-    if type(limit) is not int or limit < 0:
-        raise ValueError("max_custom_patch_lines must be a nonnegative integer")
-    if version == 2 and (value["generated_files"] != "strict" or limit != 0):
-        raise ValueError("schema v2 requires generated_files=strict and a zero budget")
-    return value
 
 
 def read_budget(repo: Path, revision: str) -> int:
@@ -291,29 +258,6 @@ def verify_generated(
     return failures
 
 
-def changed_paths(repo: Path, base: str, head: str) -> set[bytes]:
-    """Use the entire PR diff, not its last commit or a truncated API file list."""
-    start = (
-        report.git(repo, "merge-base", report.require_sha(base), report.require_sha(head))
-        .decode()
-        .strip()
-    )
-    return set(
-        report.git(
-            repo,
-            "diff",
-            "--name-only",
-            "-z",
-            "--no-renames",
-            "--no-ext-diff",
-            "--no-textconv",
-            start,
-            head,
-            "--",
-        ).split(b"\0")
-    ) - {b""}
-
-
 def check_isolation(repo: Path, base: str, head: str) -> int | None:
     # Validate even if the policy was removed by an earlier commit in this PR.
     proposed = read_budget(repo, head)
@@ -477,52 +421,13 @@ def write_result(out: Path, result: dict[str, Any], patch: bytes = b"") -> None:
     print(summary)
 
 
-def queued_entries(repository: str, branch: str) -> list[tuple[str, str]]:
-    """Query the actual queue; never infer PR membership from commit messages."""
-    owner, name = repository.split("/")
-    query = """query($owner:String!,$name:String!,$branch:String!,$cursor:String) {
-      repository(owner:$owner,name:$name) { mergeQueue(branch:$branch) {
-        entries(first:100,after:$cursor) {
-          nodes { pullRequest { headRefOid } headCommit { oid } }
-          pageInfo { hasNextPage endCursor }
-        }
-      } }
-    }"""
-    cursor = None
-    heads: list[tuple[str, str]] = []
-    while True:
-        response = report.api(
-            "POST",
-            "graphql",
-            {
-                "query": query,
-                "variables": {"owner": owner, "name": name, "branch": branch, "cursor": cursor},
-            },
-        )
-        entries = response["data"]["repository"]["mergeQueue"]["entries"]
-        for node in entries["nodes"]:
-            # Entries still awaiting preparation have no synthetic queue commit.
-            if node["headCommit"] is not None:
-                heads.append(
-                    (
-                        report.require_sha(node["pullRequest"]["headRefOid"]),
-                        report.require_sha(node["headCommit"]["oid"]),
-                    )
-                )
-        page = entries["pageInfo"]
-        if not page["hasNextPage"]:
-            return heads
-        if not page["endCursor"] or page["endCursor"] == cursor:
-            raise ValueError("invalid merge-queue pagination")
-        cursor = page["endCursor"]
-
-
 def github_evaluate(
     repo: Path,
     repository: str,
     event: dict[str, Any],
     trusted_sha: str,
     trusted_report_dir: Path | None = None,
+    selection: dict[str, Any] | None = None,
 ) -> tuple[dict[str, Any], bytes]:
     """Fetch data into a fresh bare repo; the executable checkout remains trusted."""
     if not report.REPOSITORY.fullmatch(repository):
@@ -584,7 +489,7 @@ def github_evaluate(
         current_main = report.require_sha(
             report.api("GET", f"{root}/git/ref/heads/main")["object"]["sha"]
         )
-        if main != current_main:
+        if branch == "main" and main != current_main:
             raise ValueError("trusted checkout is stale; rerun against current main")
         base = (
             main
@@ -607,6 +512,23 @@ def github_evaluate(
                 f"{branch} must require a merge queue before activating the budget gate"
             )
         page += 1
+    # This receipt is created locally by the trusted-main selector before the
+    # pinned checkout. It must never come from candidate workflow artifacts.
+    if (
+        selection is None
+        or type(selection.get("schema_version")) is not int
+        or any(
+            selection.get(key) != value
+            for key, value in {
+                "schema_version": 1,
+                "target_branch": branch,
+                "base_sha": base,
+                "head_sha": head,
+                "policy_sha": main,
+            }.items()
+        )
+    ):
+        raise ValueError("trusted policy selection does not match evaluation")
     measurement = None
     if trusted_report_dir is not None:
         # Only the preceding main-branch step may supply this directory. Never
@@ -649,6 +571,22 @@ def github_evaluate(
                 pull_heads.append(candidate)
         if not pull_heads:
             raise ValueError("cannot verify merge-group PR membership; retry the current group")
+    if branch == "next":
+        assert selection is not None
+        base_pin = read_policy(repo, base).get("next_policy")
+        if base_pin is None:
+            # evaluate() checks each verified queue constituent for policy isolation.
+            if (
+                selection.get("bootstrap") is not True
+                or "next_policy" not in read_policy(repo, head)
+                or (pull_heads is None and changed_paths(repo, base, head) != {POLICY.encode()})
+            ):
+                raise ValueError("unreviewed next policy initialization")
+        elif selection.get("bootstrap") is not False or base_pin != {
+            "repository": repository,
+            "main_sha": main,
+        }:
+            raise ValueError("trusted next base pin changed; rerun policy selection")
     result, patch = evaluate(
         repo,
         base,
@@ -665,6 +603,8 @@ def github_evaluate(
 
 
 def main() -> int:
+    if sys.argv[1:2] == ["select-policy"]:
+        return cast(int, policy.main(sys.argv[1:]))
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
     generated = commands.add_parser("verify-generated")
@@ -685,6 +625,7 @@ def main() -> int:
     github.add_argument("--event-path", type=Path, required=True)
     github.add_argument("--trusted-sha", required=True)
     github.add_argument("--trusted-report-dir", type=Path)
+    github.add_argument("--selected-policy-json", type=Path)
     for command in (local, github):
         command.add_argument("--repo", type=Path, required=True)
         command.add_argument("--out", type=Path, required=True)
@@ -728,6 +669,9 @@ def main() -> int:
                 json.loads(args.event_path.read_text()),
                 args.trusted_sha,
                 args.trusted_report_dir,
+                json.loads(args.selected_policy_json.read_text())
+                if args.selected_policy_json
+                else None,
             )
     except (
         report.ReportError,

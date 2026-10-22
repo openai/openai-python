@@ -41,7 +41,10 @@ import os
 
 from openai import AsyncOpenAI
 from openai.lib.browser import (
-    AsyncBrowserToolset, BrowserError, BrowserState, TabInput,
+    AsyncBrowserToolset,
+    BrowserError,
+    BrowserState,
+    TabInput,
 )
 from openai.lib.responses_tool_runner import AsyncResponsesToolRunner
 from playwright.async_api import Page, async_playwright
@@ -52,8 +55,7 @@ class Reader:
         self.page = page
 
     async def state(self) -> BrowserState:
-        return {"tabs": [{"id": "one", "url": self.page.url,
-                          "title": await self.page.title(), "active": True}]}
+        return {"tabs": [{"id": "one", "url": self.page.url, "title": await self.page.title(), "active": True}]}
 
     async def get_page_text(self, args: TabInput) -> str:
         if args["tab_id"] not in (None, "one"):
@@ -75,8 +77,11 @@ async def main() -> None:
             browser = AsyncBrowserToolset(Reader(page), members=["get_page_text"])
             response = await AsyncResponsesToolRunner(browser=browser).run(
                 client,
-                {"model": os.environ["OPENAI_MODEL"],
-                 "input": "Read the page and tell me when the cafe closes.", "store": False},
+                {
+                    "model": os.environ["OPENAI_MODEL"],
+                    "input": "Read the page and tell me when the cafe closes.",
+                    "store": False,
+                },
                 max_steps=3,
             )
             print(response.output_text)
@@ -387,17 +392,28 @@ Register a normal function with its Responses function schema and an executor:
 
 ```python
 from openai.lib.responses_tool_runner import (
-    AsyncRegisteredFunction, AsyncResponsesToolRunner,
+    AsyncRegisteredFunction,
+    AsyncResponsesToolRunner,
 )
+
 
 async def lookup(args: dict[str, object]) -> str:
     return str(args["reference"])
 
+
 registered = AsyncRegisteredFunction(
-    tool={"type": "function", "name": "lookup", "description": "Look up a reference",
-          "parameters": {"type": "object", "properties": {"reference": {"type": "string"}},
-                         "required": ["reference"], "additionalProperties": False},
-          "strict": True},
+    tool={
+        "type": "function",
+        "name": "lookup",
+        "description": "Look up a reference",
+        "parameters": {
+            "type": "object",
+            "properties": {"reference": {"type": "string"}},
+            "required": ["reference"],
+            "additionalProperties": False,
+        },
+        "strict": True,
+    },
     execute=lookup,
 )
 # Pass your existing AsyncComputerToolset and AsyncBrowserToolset:
@@ -423,14 +439,18 @@ from pydantic import BaseModel
 from openai import pydantic_responses_function_tool
 from openai.lib.responses_tool_runner import AsyncRegisteredFunction
 
+
 class Lookup(BaseModel):
     reference: str
+
 
 async def lookup(args: Lookup) -> str:
     return args.reference
 
+
 registered = AsyncRegisteredFunction.from_tool(
-    pydantic_responses_function_tool(Lookup), execute=lookup,
+    pydantic_responses_function_tool(Lookup),
+    execute=lookup,
 )
 ```
 Use the existing SDK Responses Pydantic wrapper, as returned by
@@ -644,14 +664,17 @@ The same whole-pair and pending-effect rules apply to in-memory runs:
 ```python
 from openai.lib.responses_tool_runner import ContextBudgetDecision, ContextBudgetSnapshot
 
+
 def select_completed_results(snapshot: ContextBudgetSnapshot) -> ContextBudgetDecision:
     return {
         "drop_call_ids": snapshot["eligible_call_ids"],
         "summary": "Older tool outputs remain in the application's full ledger.",
     }
 
+
 response = await runner.run(
-    client, params,
+    client,
+    params,
     context_budget={
         "max_input_bytes": 240_000,
         "max_input_images": 3,
@@ -736,8 +759,11 @@ The Fieldwork demo uses a local rehearsal and independently checks the saved res
 ```python
 from openai import AsyncOpenAI
 from openai.lib.decisions_tool_runner import (
-    AsyncDecisionCandidate, AsyncDecisionsToolRunner, DecisionObservation,
+    AsyncDecisionCandidate,
+    AsyncDecisionsToolRunner,
+    DecisionObservation,
 )
+
 
 async def complete(model: str, task: str, page) -> str:
     async def observe() -> DecisionObservation:
@@ -747,6 +773,7 @@ async def complete(model: str, task: str, page) -> str:
         async def mark_reviewed() -> None:
             # Check the current page URL and request permission here when needed.
             await page.get_by_role("button", name="Mark reviewed").click()
+
         return [
             {"id": "review", "description": "Mark the document reviewed", "execute": mark_reviewed},
             {"id": "done", "description": "The document is already reviewed", "done": True},
@@ -757,7 +784,9 @@ async def complete(model: str, task: str, page) -> str:
 
     async with AsyncOpenAI() as client:
         result = await AsyncDecisionsToolRunner(
-            observe=observe, candidates=candidates, verify=verify,
+            observe=observe,
+            candidates=candidates,
+            verify=verify,
         ).run(client, {"model": model, "input": task}, max_steps=8)
     return result["status"]
 ```

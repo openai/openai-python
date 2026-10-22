@@ -11,13 +11,13 @@ from openai import OpenAI
 from openai.lib.realtime_translation import TranslationSession
 
 with OpenAI() as client:
-    with TranslationSession(
-        client.realtime.translations, model="gpt-realtime-translate"
-    ) as connection:
-        connection.send({
-            "type": "session.input_audio_buffer.append",
-            "audio": base64.b64encode(pcm_audio).decode("ascii"),
-        })
+    with TranslationSession(client.realtime.translations, model="gpt-realtime-translate") as connection:
+        connection.send(
+            {
+                "type": "session.input_audio_buffer.append",
+                "audio": base64.b64encode(pcm_audio).decode("ascii"),
+            }
+        )
         connection.send({"type": "session.close"})
         while True:
             event = connection.recv()

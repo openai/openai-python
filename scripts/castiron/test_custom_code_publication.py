@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any, cast
 from unittest import mock
 
+import custom_code_policy as policy
 import custom_code_report as report
 from custom_code_test_support import GitTestCase, source_run
 
@@ -28,9 +29,13 @@ def run_publisher(step: str, payload: dict[str, Any]) -> list[dict[str, Any]]:
         if line and not line.startswith("            "):
             break
         lines.append(line[12:])
+    return run_workflow_script("\n".join(lines), payload)
+
+
+def run_workflow_script(script: str, payload: dict[str, Any]) -> list[dict[str, Any]]:
     output = subprocess.run(
         ["node", str(Path(__file__).with_name("fixtures") / "github_publisher.cjs")],
-        input=json.dumps({**payload, "script": "\n".join(lines)}),
+        input=json.dumps({**payload, "script": script}),
         text=True,
         capture_output=True,
         check=True,
@@ -40,10 +45,85 @@ def run_publisher(step: str, payload: dict[str, Any]) -> list[dict[str, Any]]:
 
 class WorkflowTests(unittest.TestCase):
     @unittest.skipUnless(shutil.which("node"), "GitHub Actions JavaScript runtime")
+    def test_workflow_path_filters_accept_refs_without_accepting_other_files(self) -> None:
+        compute = WORKFLOW.read_text().split("\n  compute:\n", 1)[1]
+        condition = next(
+            line.removeprefix("    if: ")
+            for line in compute.splitlines()
+            if line.startswith("    if: ")
+        )
+        expected_path = ".github/workflows/castiron-custom-code.yml"
+        cases = [
+            (expected_path, True),
+            (expected_path + "@main", True),
+            (expected_path + "@refs/heads/next", True),
+            (expected_path + "@refs/pull/42/merge", True),
+            (".github/workflows/other.yml@main", False),
+            (expected_path + ".bak@main", False),
+            (expected_path + "/other@main", False),
+            ("other/" + expected_path + "@main", False),
+            ("", False),
+        ]
+        head = "a" * 40
+        pull = {
+            "number": 3,
+            "state": "open",
+            "head": {"sha": head},
+            "base": {"ref": "next", "repo": {"full_name": "openai/example"}},
+        }
+        for path, accepted in cases:
+            for event in ("pull_request", "merge_group", "push"):
+                with self.subTest(path=path, event=event):
+                    run = {**source_run(head), "id": 20, "path": path, "event": event}
+                    payload = {
+                        "context": {
+                            "payload": {"workflow_run": run},
+                            "runId": 20,
+                            "repo": {"owner": "openai", "repo": "example"},
+                            "serverUrl": "https://github.com",
+                        },
+                        "current": pull,
+                    }
+                    # Evaluate the emitted job condition with its Actions builtins.
+                    script = (
+                        "const fromJSON = JSON.parse;\n"
+                        "const contains = (items, value) => items.includes(value);\n"
+                        "const startsWith = (value, prefix) => value.startsWith(prefix);\n"
+                        "github.event = context.payload;\n"
+                        f"if ({condition}) await github.rest.issues.createComment({{}});"
+                    )
+                    self.assertEqual(
+                        bool(run_workflow_script(script, payload)),
+                        accepted and event in ("pull_request", "merge_group"),
+                    )
+                    self.assertEqual(
+                        bool(run_publisher("Publish a trusted failure status", payload)),
+                        accepted and event == "pull_request",
+                    )
+
+    def test_candidate_tests_cannot_modify_credentialed_reporter_runner(self) -> None:
+        producer = (WORKFLOW.parent / "castiron-custom-code.yml").read_text()
+        tests, reporter = producer.split("\n  report:\n", 1)
+        tests = tests.split("\n  candidate-tests:\n", 1)[1]
+        self.assertIn("runs-on: ubuntu-latest", tests)
+        self.assertIn("persist-credentials: false", tests)
+        self.assertIn("python3 -m unittest discover", tests)
+        self.assertNotIn("GH_TOKEN", tests)
+        self.assertNotIn("upload-artifact@", tests)
+        self.assertNotIn("unittest", reporter)
+        self.assertIn("GH_TOKEN:", reporter)
+        self.assertNotIn("needs: candidate-tests", reporter)
+
+    @unittest.skipUnless(shutil.which("node"), "GitHub Actions JavaScript runtime")
     def test_trusted_failure_publisher_updates_one_current_comment(self) -> None:
         head = "a" * 40
         run = {**source_run(head), "id": 20}
-        current = {"state": "open", "head": {"sha": head}}
+        current = {
+            "number": 3,
+            "state": "open",
+            "head": {"sha": head},
+            "base": {"ref": "main", "repo": {"full_name": "openai/example"}},
+        }
         previous = {
             "id": 42,
             "user": {"type": "Bot", "login": "github-actions[bot]"},
@@ -84,6 +164,50 @@ class WorkflowTests(unittest.TestCase):
                         self.assertIn("Report unavailable", writes[0]["body"])
                         self.assertIn("castiron:run:v1:20:1", writes[0]["body"])
 
+    @unittest.skipUnless(shutil.which("node"), "GitHub Actions JavaScript runtime")
+    def test_failure_comments_require_one_supported_target(self) -> None:
+        head = "a" * 40
+
+        def pull(number: int, branch: str = "main", repo: str = "openai/example") -> dict[str, Any]:
+            return {
+                "number": number,
+                "state": "open",
+                "head": {"sha": head},
+                "base": {"ref": branch, "repo": {"full_name": repo}},
+            }
+
+        cases: list[tuple[str, list[dict[str, Any]], list[int]]] = [
+            ("retargeted", [pull(3, "release")], []),
+            ("other repository", [pull(3, repo="other/example")], []),
+            ("ambiguous main", [pull(3), pull(4)], []),
+            ("ambiguous next", [pull(3, "next"), pull(4, "next")], []),
+            ("prefer main", [pull(3, "next"), pull(4)], [4]),
+            ("one next", [pull(3, "next")], [3]),
+            ("ignore unsupported", [pull(3, "release"), pull(4)], [4]),
+        ]
+        for name, pulls, expected in cases:
+            for fallback in (False, True):
+                with self.subTest(name=name, fallback=fallback):
+                    run = {
+                        **source_run(head),
+                        "id": 20,
+                        "pull_requests": [] if fallback else pulls,
+                    }
+                    writes = run_publisher(
+                        "Publish a trusted failure status",
+                        {
+                            "context": {
+                                "payload": {"workflow_run": run},
+                                "runId": 20,
+                                "repo": {"owner": "openai", "repo": "example"},
+                                "serverUrl": "https://github.com",
+                            },
+                            "pulls_by_number": {str(pr["number"]): pr for pr in pulls},
+                            "fallback_pulls": pulls,
+                        },
+                    )
+                    self.assertEqual([write["issue_number"] for write in writes], expected)
+
     def test_workflow_reports_all_branches_without_write_credentials(self) -> None:
         workflows = Path(__file__).resolve().parents[2] / ".github/workflows"
         producer = (workflows / "castiron-custom-code.yml").read_text()
@@ -105,8 +229,8 @@ class WorkflowTests(unittest.TestCase):
         self.assertIn("pull-requests: read", compute)
         self.assertIn(" trusted-report ", compute)
         self.assertIn("ref: main", compute)
-        self.assertIn('--base "$(git rev-parse HEAD)"', compute)
-        self.assertIn("trusted_sha=$(git rev-parse HEAD)", compute)
+        self.assertIn('--base "$(git -C .castiron-policy-checker rev-parse HEAD)"', compute)
+        self.assertIn("trusted_sha=$(git -C .castiron-policy-checker rev-parse HEAD)", compute)
         self.assertIn("merge_group:", producer)
         self.assertNotIn("download-artifact@", compute)
         self.assertNotIn("unittest", compute)
@@ -323,19 +447,26 @@ class StatusPublisherTests(unittest.TestCase):
         branch: str = "main",
         evaluated_branch: str | None = None,
         policy_changed: bool = False,
+        policy_sha: str | None = None,
+        selected_policy_matches: bool = True,
         queue_absent: bool = False,
         queue_pages: list[dict[str, Any]] | None = None,
         retarget_during_publication: bool = False,
         same_head_next_pr: bool = False,
+        policy_reviews: list[dict[str, Any]] | None = None,
+        reviews: list[dict[str, Any]] | None = None,
+        policy_pull: dict[str, Any] | None = None,
+        missing_review_contract: bool = False,
     ) -> list[dict[str, Any]]:
         base, head = "a" * 40, "b" * 40
         run = source_run(head, event_name)
         if event_name == "merge_group":
             run["head_branch"] = f"gh-readonly-queue/{branch}/pr-7-example"
         payload: dict[str, Any] = {
+            "reviews": reviews or [],
             "main_sha": "d" * 40
             if policy_changed
-            else ("c" * 40 if branch == "main" and base_changed else base),
+            else (policy_sha or ("c" * 40 if branch == "main" and base_changed else base)),
             "queue_absent": queue_absent,
             "queue_pages": queue_pages,
             "fallback_pulls": fallback_pulls,
@@ -352,6 +483,7 @@ class StatusPublisherTests(unittest.TestCase):
             "run": {**run, **(run_overrides or {})},
             "current": {
                 "number": 3,
+                "user": {"login": "author"},
                 "state": "open",
                 "head": {"sha": "c" * 40 if head_changed else head},
                 "base": {
@@ -361,8 +493,18 @@ class StatusPublisherTests(unittest.TestCase):
                 },
             },
             "env": {
+                "POLICY_REVIEWS": json.dumps(policy_reviews or []),
+                "HUMAN_REVIEW_RULES": ""
+                if missing_review_contract
+                else json.dumps(policy.HUMAN_REVIEW_RULES),
+                "SELECTED_BRANCH": branch,
+                "SELECTED_BASE_SHA": base,
+                "SELECTED_HEAD_SHA": head,
+                "SELECTED_POLICY_SHA": (policy_sha or base)
+                if selected_policy_matches
+                else "f" * 40,
                 "TARGET_BRANCH": "" if no_result else (evaluated_branch or branch),
-                "POLICY_SHA": "" if no_result else base,
+                "POLICY_SHA": "" if no_result else (policy_sha or base),
                 "BASE_SHA": "" if no_result else base,
                 "HEAD_SHA": "" if no_result else head,
                 "ISOLATION_RESULT": "success",
@@ -370,6 +512,8 @@ class StatusPublisherTests(unittest.TestCase):
                 "PUBLISH_ATTEMPT": "1",
             },
         }
+        if policy_pull:
+            payload["pulls_by_number"] = {policy_pull["number"]: policy_pull}
         if same_head_next_pr:
             current = payload["current"]
             payload["pulls_by_number"] = {
@@ -383,6 +527,132 @@ class StatusPublisherTests(unittest.TestCase):
                 {**current, "base": {**current["base"], "ref": "other"}},
             ]
         return run_publisher("Publish exact-head statuses after checking freshness", payload)
+
+    def test_live_human_review_predicate_matches_selector(self) -> None:
+        head = "b" * 40
+        approved = {
+            "id": 10,
+            "state": "APPROVED",
+            "commit_id": head,
+            "user": {"login": "human", "type": "User"},
+            "author_association": "MEMBER",
+            "body": "",
+        }
+        cases = [
+            [approved],
+            [],
+            [{**approved, "state": "DISMISSED"}],
+            [approved, {**approved, "id": 11, "state": "CHANGES_REQUESTED"}],
+            [approved, {**approved, "id": 11, "state": "COMMENTED"}],
+            [{**approved, "commit_id": "f" * 40}],
+            [{**approved, "user": {"login": "author", "type": "User"}}],
+            [{**approved, "user": {"login": "bot", "type": "Bot"}}],
+            [{**approved, "author_association": "NONE"}],
+        ]
+        for body in [
+            "<!-- pr-review:automated-review:v1 -->",
+            "Automated source review.",
+            "Source-only review; I did not execute candidate code or workflows.",
+            "This does not substitute for human approval.",
+            "This is not a human approving review.",
+        ]:
+            cases.append([{**approved, "body": body}])
+        for reviews in cases:
+            with self.subTest(reviews=reviews):
+                expected = (
+                    "success" if policy.has_human_approval(reviews, "author", head) else "failure"
+                )
+                writes = self.publish(
+                    branch="next", policy_reviews=[{"number": 3, "head_sha": head}], reviews=reviews
+                )
+                self.assertEqual([w["state"] for w in writes], [expected, expected])
+
+    def test_queue_policy_approval_dismissal_after_selection_fails(self) -> None:
+        candidate = "e" * 40
+        pull: dict[str, Any] = {
+            "number": 7,
+            "user": {"login": "author"},
+            "state": "open",
+            "head": {"sha": candidate},
+            "base": {"ref": "next", "repo": {"full_name": "openai/example"}},
+        }
+        approved = {
+            "id": 1,
+            "state": "APPROVED",
+            "commit_id": candidate,
+            "user": {"login": "human", "type": "User"},
+            "author_association": "MEMBER",
+            "body": "",
+        }
+        for state in ("APPROVED", "DISMISSED", "CHANGES_REQUESTED"):
+            with self.subTest(state=state):
+                writes = self.publish(
+                    event_name="merge_group",
+                    branch="next",
+                    policy_pull=pull,
+                    policy_reviews=[{"number": 7, "head_sha": candidate}],
+                    reviews=[{**approved, "state": state}],
+                )
+                self.assertEqual(
+                    [w["state"] for w in writes],
+                    ["success" if state == "APPROVED" else "failure"] * 2,
+                )
+        # Ordinary automated approvals may keep the queue live, but cannot replace
+        # the independently required human policy approval.
+        writes = self.publish(
+            event_name="merge_group",
+            branch="next",
+            policy_pull=pull,
+            policy_reviews=[{"number": 7, "head_sha": candidate}],
+            reviews=[
+                {**approved, "state": "DISMISSED"},
+                {
+                    **approved,
+                    "id": 2,
+                    "user": {"login": "automated", "type": "User"},
+                    "body": "<!-- pr-review:automated-review:v1 -->",
+                },
+            ],
+        )
+        self.assertEqual([w["state"] for w in writes], ["failure", "failure"])
+
+    def test_queue_policy_constituent_changes_fail_closed(self) -> None:
+        candidate = "e" * 40
+        pull: dict[str, Any] = {
+            "number": 7,
+            "user": {"login": "author"},
+            "state": "open",
+            "head": {"sha": candidate},
+            "base": {"ref": "next", "repo": {"full_name": "openai/example"}},
+        }
+        approved = {
+            "id": 1,
+            "state": "APPROVED",
+            "commit_id": candidate,
+            "user": {"login": "human", "type": "User"},
+            "author_association": "MEMBER",
+            "body": "",
+        }
+        for changed in [
+            {**pull, "state": "closed"},
+            {**pull, "head": {"sha": "f" * 40}},
+            {**pull, "base": {**pull["base"], "ref": "main"}},
+        ]:
+            with self.subTest(changed=changed):
+                writes = self.publish(
+                    event_name="merge_group",
+                    branch="next",
+                    policy_pull=changed,
+                    policy_reviews=[{"number": 7, "head_sha": candidate}],
+                    reviews=[approved],
+                )
+                self.assertEqual([w["state"] for w in writes], ["failure", "failure"])
+
+    def test_missing_policy_review_contract_fails_closed(self) -> None:
+        self.assertEqual(
+            [w["state"] for w in self.publish(branch="next", missing_review_contract=True)],
+            ["failure", "failure"],
+        )
 
     def test_statuses_attach_to_candidate_not_main(self) -> None:
         for event in ("pull_request", "merge_group"):
@@ -402,7 +672,10 @@ class StatusPublisherTests(unittest.TestCase):
                     # Both evaluations use the same commit. A next success
                     # must not replace the main target's required failure.
                     result = self.publish(event_name=event, branch="next", previous_statuses=main)
-                    self.assertEqual(result, [])
+                    self.assertEqual([r["state"] for r in result], ["success", "success"])
+                    self.assertTrue(
+                        {r["context"] for r in result}.isdisjoint(r["context"] for r in main)
+                    )
 
     def test_same_head_next_pr_does_not_block_required_main_statuses(self) -> None:
         for numbers in ([3, 4], [4, 3]):
@@ -415,18 +688,35 @@ class StatusPublisherTests(unittest.TestCase):
                 )
                 self.assertEqual([r["state"] for r in results], ["success", "failure"])
                 self.assertTrue(all(r["sha"] == "b" * 40 for r in results))
-        self.assertEqual(
-            self.publish(run_overrides={"pull_requests": [{"number": 4}]}, same_head_next_pr=True),
-            [],
+        next_results = self.publish(
+            branch="next", run_overrides={"pull_requests": [{"number": 4}]}, same_head_next_pr=True
         )
+        self.assertEqual([r["state"] for r in next_results], ["success", "success"])
+        self.assertTrue(all(r["context"].startswith("Castiron next /") for r in next_results))
 
-    def test_next_queue_never_authorizes_against_a_stale_main_policy(self) -> None:
+    def test_next_queue_approved_pin_survives_main_advancing(self) -> None:
         for changed in (False, True):
             with self.subTest(policy_changed=changed):
-                self.assertEqual(
-                    self.publish(event_name="merge_group", branch="next", policy_changed=changed),
-                    [],
+                results = self.publish(
+                    event_name="merge_group", branch="next", policy_changed=changed
                 )
+                self.assertEqual([r["state"] for r in results], ["success", "success"])
+
+    def test_next_pin_receipt_and_target_freshness(self) -> None:
+        for event in ("pull_request", "merge_group"):
+            cases: tuple[dict[str, Any], ...] = (
+                {"selected_policy_matches": False},
+                {"no_result": True},
+                {"base_changed": True},
+            )
+            for kwargs in cases:
+                with self.subTest(event=event, kwargs=kwargs):
+                    results = self.publish(event_name=event, branch="next", **kwargs)
+                    self.assertEqual([r["state"] for r in results], ["failure", "failure"])
+            results = self.publish(event_name=event, branch="next", policy_sha="e" * 40)
+            self.assertEqual([r["state"] for r in results], ["success", "success"])
+        results = self.publish(event_name="merge_group", branch="next", queue_absent=True)
+        self.assertEqual([r["state"] for r in results], ["failure", "failure"])
 
     def test_main_statuses_bind_target_policy_and_queue_membership(self) -> None:
         for event in ("pull_request", "merge_group"):
@@ -447,7 +737,7 @@ class StatusPublisherTests(unittest.TestCase):
         result = self.publish(
             branch="next", run_overrides={"pull_requests": []}, fallback_pulls=[{"number": 3}]
         )
-        self.assertEqual(result, [])
+        self.assertEqual([r["state"] for r in result], ["success", "success"])
         for event in ("pull_request", "merge_group"):
             for branch in ("Next", "Main", "release", "next-other"):
                 with self.subTest(event=event, branch=branch):
@@ -511,6 +801,22 @@ class StatusPublisherTests(unittest.TestCase):
                 self.assertEqual(result["state"], "failure")
                 self.assertIn("inspect the trusted run", result["description"])
                 self.assertTrue(result["target_url"].endswith("/actions/runs/123"))
+
+    def test_main_rejects_mismatched_selector_receipt(self) -> None:
+        results = self.publish(selected_policy_matches=False)
+        self.assertTrue(results)
+        self.assertTrue(all(result["state"] != "success" for result in results))
+
+    def test_lookalike_workflow_cannot_publish(self) -> None:
+        self.assertEqual(
+            self.publish(
+                run_overrides={
+                    "path": ".github/workflows/castiron-custom-code.yml@evil.yml",
+                    "workflow_id": 789,
+                }
+            ),
+            [],
+        )
 
     def test_superseded_or_wrong_source_run_cannot_publish(self) -> None:
         for overrides in (
