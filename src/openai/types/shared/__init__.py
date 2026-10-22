@@ -10,6 +10,7 @@ from .responses_model import ResponsesModel as ResponsesModel
 from .oauth_error_code import OAuthErrorCode as OAuthErrorCode
 from .reasoning_effort import ReasoningEffort as ReasoningEffort
 from .comparison_filter import ComparisonFilter as ComparisonFilter
+from .decision_input_json import DecisionInputJSON as DecisionInputJSON
 from .function_definition import FunctionDefinition as FunctionDefinition
 from .function_parameters import FunctionParameters as FunctionParameters
 from .response_format_text import ResponseFormatText as ResponseFormatText
@@ -17,4 +18,7 @@ from .custom_tool_input_format import CustomToolInputFormat as CustomToolInputFo
 from .response_format_json_object import ResponseFormatJSONObject as ResponseFormatJSONObject
 from .response_format_json_schema import ResponseFormatJSONSchema as ResponseFormatJSONSchema
 from .response_format_text_python import ResponseFormatTextPython as ResponseFormatTextPython
+from .decision_question_input_part import DecisionQuestionInputPart as DecisionQuestionInputPart
+from .decision_question_input_text import DecisionQuestionInputText as DecisionQuestionInputText
 from .response_format_text_grammar import ResponseFormatTextGrammar as ResponseFormatTextGrammar
+from .decision_question_input_image import DecisionQuestionInputImage as DecisionQuestionInputImage

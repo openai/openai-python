@@ -65,7 +65,7 @@ class TestSessions:
                         "decisions": {
                             "questions": [
                                 {
-                                    "instructions": "instructions",
+                                    "instructions": "string",
                                     "type": "predicate",
                                     "name": "name",
                                 }
@@ -437,7 +437,7 @@ class TestAsyncSessions:
                         "decisions": {
                             "questions": [
                                 {
-                                    "instructions": "instructions",
+                                    "instructions": "string",
                                     "type": "predicate",
                                     "name": "name",
                                 }

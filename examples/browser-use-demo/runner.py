@@ -20,7 +20,6 @@ from playwright.async_api import Page, BrowserContext, WebSocketRoute, Screencas
 from playwright._impl._errors import TargetClosedError
 
 from openai import AsyncOpenAI
-from openai.types import DecisionInputPartUnionParam
 from openai.lib.browser import (
     TabInput,
     TypeInput,
@@ -637,17 +636,16 @@ class Run:
             self.observed_binding = None
         await self.capture(cancelled=cancelled)
 
-    async def observe(self) -> list[DecisionInputPartUnionParam]:
+    async def observe(self) -> DecisionObservation:
         await self.read_page({"tab_id": None, "filter": "all"}, cancelled=self.phase_cancel.is_set)
         assert self.screenshot is not None
-        result: list[DecisionInputPartUnionParam] = [
+        return [
             {"type": "input_text", "text": json.dumps(self.observation)},
             {
                 "type": "input_image",
                 "image_url": "data:image/jpeg;base64," + base64.b64encode(self.screenshot).decode(),
             },
         ]
-        return result
 
     async def candidates(self, _observation: DecisionObservation) -> list[AsyncDecisionCandidate]:
         state = await self.inspect(cancelled=self.phase_cancel.is_set)

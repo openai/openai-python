@@ -81913,21 +81913,24 @@ components:
     DecisionInputContentParts:
       type: array
       items:
-        oneOf:
-        - $ref: '#/components/schemas/DecisionInputText'
-        - $ref: '#/components/schemas/DecisionInputImage'
+        x-oai-discriminator-values:
+        - input_text
+        - input_image
+        - input_json
         discriminator:
           propertyName: type
           mapping:
             input_text: '#/components/schemas/DecisionInputText'
             input_image: '#/components/schemas/DecisionInputImage'
-        x-oai-discriminator-values:
-        - input_text
-        - input_image
+            input_json: '#/components/schemas/DecisionInputJson'
+        anyOf:
+        - $ref: '#/components/schemas/DecisionInputText'
+        - $ref: '#/components/schemas/DecisionInputImage'
+        - $ref: '#/components/schemas/DecisionInputJson'
       minItems: 0
       maxItems: 16384
     DecisionInputContent:
-      description: Text evidence or an ordered list of text and image parts.
+      description: A text string or an ordered list of text, image, and JSON parts.
       anyOf:
       - type: string
         minLength: 0
@@ -81941,26 +81944,23 @@ components:
       - final_answer
     DecisionInputMessage:
       type: object
-      properties:
-        role:
-          type: string
-          enum:
-          - user
-          default: user
-          x-stainless-const: true
-        content:
-          $ref: '#/components/schemas/DecisionInputContent'
-        type:
-          type: string
-          enum:
-          - message
-          default: message
-          x-stainless-const: true
-      required:
-      - role
-      - content
-      additionalProperties: false
-      description: A user message containing text or images.
+      discriminator:
+        propertyName: role
+        mapping:
+          user: '#/components/schemas/DecisionInputUserMessage'
+          developer: '#/components/schemas/DecisionInputDeveloperMessage'
+          system: '#/components/schemas/DecisionInputSystemMessage'
+          assistant: '#/components/schemas/DecisionInputAssistantMessage'
+      x-oai-discriminator-values:
+      - user
+      - developer
+      - system
+      - assistant
+      anyOf:
+      - $ref: '#/components/schemas/DecisionInputUserMessage'
+      - $ref: '#/components/schemas/DecisionInputDeveloperMessage'
+      - $ref: '#/components/schemas/DecisionInputSystemMessage'
+      - $ref: '#/components/schemas/DecisionInputAssistantMessage'
     FunctionCallStatusParam:
       type: string
       enum:
@@ -82142,24 +82142,36 @@ components:
       - type
       additionalProperties: false
     DecisionInput:
-      oneOf:
+      description: The input to evaluate for every question. Provide a text string or an ordered array of messages, function calls and outputs, or custom tool calls and outputs. Each tool output must identify a matching call by call ID.
+      anyOf:
       - type: string
         minLength: 0
         maxLength: 10485760
       - type: array
         items:
-          oneOf:
-          - $ref: '#/components/schemas/DecisionInputMessage'
+          x-oai-default-discriminator-value: message
           discriminator:
             propertyName: type
             mapping:
               message: '#/components/schemas/DecisionInputMessage'
+              function_call: '#/components/schemas/DecisionInputFunctionCall'
+              function_call_output: '#/components/schemas/DecisionInputFunctionCallOutput'
+              custom_tool_call: '#/components/schemas/DecisionInputCustomToolCall'
+              custom_tool_call_output: '#/components/schemas/DecisionInputCustomToolCallOutput'
           x-oai-discriminator-values:
           - message
-          x-oai-default-discriminator-value: message
+          - function_call
+          - function_call_output
+          - custom_tool_call
+          - custom_tool_call_output
+          anyOf:
+          - $ref: '#/components/schemas/DecisionInputMessage'
+          - $ref: '#/components/schemas/DecisionInputFunctionCall'
+          - $ref: '#/components/schemas/DecisionInputFunctionCallOutput'
+          - $ref: '#/components/schemas/DecisionInputCustomToolCall'
+          - $ref: '#/components/schemas/DecisionInputCustomToolCallOutput'
         minItems: 0
         maxItems: 131072
-      description: The text or images to evaluate for every question. Provide a text string or user messages containing text and images. Images can be base64 data URLs or publicly accessible HTTP(S) URLs; at most 128 images are allowed across all messages in one request. Files, audio, tools, and item references are not supported.
     QuestionParamPredicate:
       type: object
       properties:
@@ -82175,9 +82187,15 @@ components:
           minLength: 0
           maxLength: 1048576
         instructions:
-          type: string
-          minLength: 0
-          maxLength: 1048576
+          anyOf:
+          - type: string
+            minLength: 0
+            maxLength: 1048576
+          - type: array
+            items:
+              $ref: '#/components/schemas/DecisionQuestionInputPart'
+            minItems: 1
+            maxItems: 16384
       required:
       - type
       - instructions
@@ -82217,9 +82235,15 @@ components:
           minLength: 0
           maxLength: 1048576
         instructions:
-          type: string
-          minLength: 0
-          maxLength: 1048576
+          anyOf:
+          - type: string
+            minLength: 0
+            maxLength: 1048576
+          - type: array
+            items:
+              $ref: '#/components/schemas/DecisionQuestionInputPart'
+            minItems: 1
+            maxItems: 16384
         choices:
           type: array
           items:
@@ -82262,9 +82286,15 @@ components:
           minLength: 0
           maxLength: 1048576
         instructions:
-          type: string
-          minLength: 0
-          maxLength: 1048576
+          anyOf:
+          - type: string
+            minLength: 0
+            maxLength: 1048576
+          - type: array
+            items:
+              $ref: '#/components/schemas/DecisionQuestionInputPart'
+            minItems: 1
+            maxItems: 16384
         levels:
           type: array
           items:
@@ -82308,8 +82338,8 @@ components:
           items:
             $ref: '#/components/schemas/QuestionParam'
           minItems: 1
-          maxItems: 200
-          description: Ask 1–200 questions about the input. Each question can be a predicate, choice, or score. Answers come back in the same order.
+          maxItems: 400
+          description: Ask 1–400 questions about the input. Each question can be a predicate, choice, or score. Answers come back in the same order.
         safety_identifier:
           type:
           - string
@@ -107352,6 +107382,233 @@ components:
       additionalProperties: false
       title: Prompt cache breakpoint
       description: Marks the exact end of a reusable prompt prefix. The breakpoint inherits its TTL from the request's `prompt_cache_options.ttl`; the boundary is not rounded to a token block.
+    DecisionInputJson:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+          - input_json
+          default: input_json
+          x-stainless-const: true
+        data:
+          anyOf:
+          - type: object
+            additionalProperties:
+              anyOf:
+              - {}
+              - type: 'null'
+            propertyNames:
+              type: string
+              minLength: 0
+            minProperties: 0
+          - type: array
+            items:
+              type: object
+              additionalProperties:
+                anyOf:
+                - {}
+                - type: 'null'
+              propertyNames:
+                type: string
+                minLength: 0
+              minProperties: 0
+            minItems: 0
+      required:
+      - type
+      - data
+      additionalProperties: false
+      description: A JSON object or an array of objects rendered as text. Nested values may be any JSON value. Limited to 32 container levels, 10,000 values, and 256 KiB of compact UTF-8 JSON.
+    DecisionQuestionInputPart:
+      description: A text, image, or JSON content part in a question instruction.
+      discriminator:
+        propertyName: type
+        mapping:
+          input_text: '#/components/schemas/DecisionQuestionInputText'
+          input_image: '#/components/schemas/DecisionQuestionInputImage'
+          input_json: '#/components/schemas/DecisionInputJson'
+      x-oai-discriminator-values:
+      - input_text
+      - input_image
+      - input_json
+      anyOf:
+      - $ref: '#/components/schemas/DecisionQuestionInputText'
+      - $ref: '#/components/schemas/DecisionQuestionInputImage'
+      - $ref: '#/components/schemas/DecisionInputJson'
+    DecisionQuestionInputText:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+          - input_text
+          default: input_text
+          x-stainless-const: true
+        text:
+          type: string
+          minLength: 0
+          maxLength: 10485760
+      required:
+      - type
+      - text
+      additionalProperties: false
+    DecisionQuestionInputImage:
+      type: object
+      properties:
+        image_url:
+          type: string
+          minLength: 0
+          maxLength: 1073741824
+          pattern: ^(data:|https?://)
+          description: A base64-encoded image in a data URL or a publicly accessible HTTP(S) image URL.
+        detail:
+          anyOf:
+          - $ref: '#/components/schemas/ImageDetailParam'
+          - type: 'null'
+          description: The image detail level, using the selected model's image profile. Defaults to auto.
+          default: auto
+        type:
+          type: string
+          enum:
+          - input_image
+          default: input_image
+          x-stainless-const: true
+      required:
+      - image_url
+      - type
+      additionalProperties: false
+      description: An image provided as a base64 data URL or a publicly accessible HTTP(S) URL. File IDs are not supported.
+    DecisionInputUserMessage:
+      type: object
+      properties:
+        role:
+          type: string
+          enum:
+          - user
+          default: user
+          x-stainless-const: true
+        content:
+          $ref: '#/components/schemas/DecisionInputContent'
+        type:
+          type: string
+          enum:
+          - message
+          default: message
+          x-stainless-const: true
+      required:
+      - role
+      - content
+      additionalProperties: false
+      description: A user message containing input text, images, or JSON.
+    DecisionInputDeveloperMessage:
+      type: object
+      properties:
+        role:
+          type: string
+          enum:
+          - developer
+          default: developer
+          x-stainless-const: true
+        content:
+          $ref: '#/components/schemas/DecisionInputDeveloperContent'
+        type:
+          type: string
+          enum:
+          - message
+          default: message
+          x-stainless-const: true
+      required:
+      - role
+      - content
+      additionalProperties: false
+      description: A developer message containing input text.
+    DecisionInputSystemMessage:
+      type: object
+      properties:
+        role:
+          type: string
+          enum:
+          - system
+          default: system
+          x-stainless-const: true
+        content:
+          $ref: '#/components/schemas/DecisionInputDeveloperContent'
+        type:
+          type: string
+          enum:
+          - message
+          default: message
+          x-stainless-const: true
+      required:
+      - role
+      - content
+      additionalProperties: false
+      description: A system message containing input text.
+    DecisionInputAssistantMessage:
+      type: object
+      properties:
+        role:
+          type: string
+          enum:
+          - assistant
+          default: assistant
+          x-stainless-const: true
+        content:
+          $ref: '#/components/schemas/DecisionInputAssistantContent'
+        phase:
+          anyOf:
+          - $ref: '#/components/schemas/MessagePhaseParam'
+          - type: 'null'
+          description: The phase of an assistant message.
+        type:
+          type: string
+          enum:
+          - message
+          default: message
+          x-stainless-const: true
+      required:
+      - role
+      - content
+      additionalProperties: false
+      description: An assistant message containing output text or refusals.
+    DecisionInputDeveloperContent:
+      description: A text string or an ordered list of input text parts.
+      anyOf:
+      - type: string
+        minLength: 0
+        maxLength: 10485760
+      - $ref: '#/components/schemas/DecisionInputDeveloperContentParts'
+        title: Parts
+    DecisionInputAssistantContent:
+      description: A text string or an ordered list of output text and refusal parts.
+      anyOf:
+      - type: string
+        minLength: 0
+        maxLength: 10485760
+      - $ref: '#/components/schemas/DecisionInputAssistantContentParts'
+        title: Parts
+    DecisionInputDeveloperContentParts:
+      type: array
+      items:
+        $ref: '#/components/schemas/DecisionInputText'
+      minItems: 0
+      maxItems: 16384
+    DecisionInputAssistantContentParts:
+      type: array
+      items:
+        x-oai-discriminator-values:
+        - output_text
+        - refusal
+        discriminator:
+          propertyName: type
+          mapping:
+            output_text: '#/components/schemas/DecisionInputOutputText'
+            refusal: '#/components/schemas/DecisionInputRefusal'
+        anyOf:
+        - $ref: '#/components/schemas/DecisionInputOutputText'
+        - $ref: '#/components/schemas/DecisionInputRefusal'
+      minItems: 0
+      maxItems: 16384
     OAuthErrorCode:
       anyOf:
       - enum:
