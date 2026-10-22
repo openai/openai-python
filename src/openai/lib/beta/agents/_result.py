@@ -1,17 +1,22 @@
 from __future__ import annotations
 
+import warnings
 from copy import deepcopy
 from typing import Any, Generic, Iterable
 from dataclasses import dataclass
 from typing_extensions import Literal, TypeVar
 
+from pydantic import ValidationError
+
 from ._output import validate_output_type
+from ...._compat import PYDANTIC_V1, parse_obj
 from ...._exceptions import OpenAIError
 from ..._parsing._completions import _parse_content
 from ....types.beta.agent_session import RequiredAction
 from ....types.beta.agent_session_event import AgentSessionEvent
 from ....types.beta.agents.sessions.turn import Turn
 from ....types.beta.agent_session_message import AgentSessionMessage
+from ....types.beta.agent_session_assistant_message import AgentSessionAssistantMessage
 
 OutputT = TypeVar("OutputT", default=Any)
 ParseT = TypeVar("ParseT")
@@ -135,7 +140,24 @@ class AgentTurnResultCollector:
                 and item.phase != "commentary"
                 and item.status == "completed"
             ):
-                message = AgentSessionMessage.construct(_fields_set=None, **deepcopy(item.to_dict()))
+                data = item.to_dict(warnings=PYDANTIC_V1)
+                try:
+                    parse_obj(AgentSessionAssistantMessage, data)
+                except ValidationError as exc:
+                    # Locations contain schema field names and list indices, not values.
+                    issues = [f"{'.'.join(map(str, error['loc']))}: {error['type']}" for error in exc.errors()]
+                else:
+                    issues = []
+                # Warn outside the handler so warnings-as-errors do not chain the validation error.
+                if issues:
+                    warnings.warn(
+                        "Agent result message did not match the response schema: "
+                        + "; ".join(issues)
+                        + ". Values were preserved, but result helpers may fail. Check your gateway's response format "
+                        "or report this schema mismatch and your SDK version to the SDK maintainers.",
+                        stacklevel=2,
+                    )
+                message = AgentSessionMessage.construct(_fields_set=None, **deepcopy(data))
                 self._messages[item.id] = (event.output_index, message)
         elif event.type == "agent.session.in_progress":
             self.required_actions = []
