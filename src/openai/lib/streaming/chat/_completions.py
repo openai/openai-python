@@ -2,8 +2,11 @@ from __future__ import annotations
 
 import inspect
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Generic, Callable, Iterable, Awaitable, AsyncIterator, cast
-from typing_extensions import Self, Iterator, assert_never
+from typing import TYPE_CHECKING, Any, Generic, TypeVar, Callable, Iterable, Awaitable, AsyncIterator, cast
+from typing_extensions import Self, Iterator, ParamSpec, assert_never
+
+from jiter import from_json
+from pydantic import ValidationError
 
 from ._types import ParsedChoiceSnapshot, ParsedChatCompletionSnapshot, ParsedChatCompletionMessageSnapshot
 from ._events import (
@@ -23,8 +26,8 @@ from ._events import (
 from .._deltas import accumulate_delta
 from ...._types import Omit, IncEx, omit
 from ...._utils import is_given, consume_sync_iterator, consume_async_iterator
-from ...._compat import model_dump
-from ...._models import build, construct_type
+from ...._compat import PYDANTIC_V1, model_dump
+from ...._models import BaseModel, build, construct_type
 from ..._parsing import (
     ResponseFormatT,
     has_parseable_input,
@@ -36,7 +39,6 @@ from ..._parsing import (
 from ...._streaming import Stream, AsyncStream
 from ....types.chat import ChatCompletionChunk, ParsedChatCompletion, ChatCompletionToolUnionParam
 from ...._exceptions import LengthFinishReasonError, ContentFilterFinishReasonError
-from .._partial_json import PartialJSONParser
 from ....types.chat.chat_completion import Moderation, ChoiceLogprobs
 from ....types.chat.chat_completion_chunk import Choice as ChoiceChunk
 from ....types.chat.completion_create_params import ResponseFormat as ResponseFormatParam
@@ -317,8 +319,6 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
     ) -> None:
         self.__current_completion_snapshot: ParsedChatCompletionSnapshot | None = None
         self.__choice_event_states: list[ChoiceEventState] = []
-        self.__content_parsers: dict[int, PartialJSONParser] = {}
-        self.__tool_parsers: dict[tuple[int, int], PartialJSONParser] = {}
 
         self._input_tools = [tool for tool in input_tools] if is_given(input_tools) else []
         self._response_format = response_format
@@ -369,11 +369,11 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                 choice_snapshot = completion_snapshot.choices[choice.index]
                 previous_tool_calls = choice_snapshot.message.tool_calls or []
 
-                choice_snapshot.message = cast(
+                choice_snapshot.message = _build(
                     ParsedChatCompletionMessageSnapshot,
-                    construct_type(
-                        type_=ParsedChatCompletionMessageSnapshot,
-                        value=accumulate_delta(
+                    **cast(
+                        "dict[str, Any]",
+                        accumulate_delta(
                             cast(
                                 "dict[object, object]",
                                 model_dump(
@@ -441,10 +441,10 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                 # partial parsing fails on white-space
                 and choice_snapshot.message.content.lstrip()
             ):
-                parser = self.__content_parsers.get(choice.index)
-                if parser is None:
-                    parser = self.__content_parsers[choice.index] = PartialJSONParser()
-                choice_snapshot.message.parsed = parser.parse(choice_snapshot.message.content)
+                choice_snapshot.message.parsed = from_json(
+                    bytes(choice_snapshot.message.content, "utf-8"),
+                    partial_mode=True,
+                )
 
             for tool_call_chunk in choice.delta.tool_calls or []:
                 tool_call_snapshot = (choice_snapshot.message.tool_calls or [])[tool_call_chunk.index]
@@ -459,12 +459,9 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                         and input_tool.get("function", {}).get("strict")
                         and tool_call_snapshot.function.arguments
                     ):
-                        key = (choice.index, tool_call_chunk.index)
-                        parser = self.__tool_parsers.get(key)
-                        if parser is None:
-                            parser = self.__tool_parsers[key] = PartialJSONParser()
-                        tool_call_snapshot.function.parsed_arguments = parser.parse(
-                            tool_call_snapshot.function.arguments
+                        tool_call_snapshot.function.parsed_arguments = from_json(
+                            bytes(tool_call_snapshot.function.arguments, "utf-8"),
+                            partial_mode=True,
                         )
                 elif TYPE_CHECKING:  # type: ignore[unreachable]
                     assert_never(tool_call_snapshot)
@@ -507,7 +504,7 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
         events_to_fire: list[ChatCompletionStreamEvent[ResponseFormatT]] = []
 
         events_to_fire.append(
-            build(ChunkEvent, type="chunk", chunk=chunk, snapshot=completion_snapshot),
+            _build(ChunkEvent, type="chunk", chunk=chunk, snapshot=completion_snapshot),
         )
 
         for choice in chunk.choices:
@@ -516,7 +513,7 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
 
             if choice.delta.content is not None and choice_snapshot.message.content is not None:
                 events_to_fire.append(
-                    build(
+                    _build(
                         ContentDeltaEvent,
                         type="content.delta",
                         delta=choice.delta.content,
@@ -527,7 +524,7 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
 
             if choice.delta.refusal is not None and choice_snapshot.message.refusal is not None:
                 events_to_fire.append(
-                    build(
+                    _build(
                         RefusalDeltaEvent,
                         type="refusal.delta",
                         delta=choice.delta.refusal,
@@ -545,7 +542,7 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                     if tool_call.type == "function":
                         assert tool_call_delta.function is not None
                         events_to_fire.append(
-                            build(
+                            _build(
                                 FunctionToolCallArgumentsDeltaEvent,
                                 type="tool_calls.function.arguments.delta",
                                 name=tool_call.function.name,
@@ -561,7 +558,7 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
             if choice.logprobs is not None and choice_snapshot.logprobs is not None:
                 if choice.logprobs.content and choice_snapshot.logprobs.content:
                     events_to_fire.append(
-                        build(
+                        _build(
                             LogprobsContentDeltaEvent,
                             type="logprobs.content.delta",
                             content=choice.logprobs.content,
@@ -571,7 +568,7 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
 
                 if choice.logprobs.refusal and choice_snapshot.logprobs.refusal:
                     events_to_fire.append(
-                        build(
+                        _build(
                             LogprobsRefusalDeltaEvent,
                             type="logprobs.refusal.delta",
                             refusal=choice.logprobs.refusal,
@@ -743,6 +740,21 @@ class ChoiceEventState:
             )
         elif TYPE_CHECKING:  # type: ignore[unreachable]
             assert_never(tool_call_snapshot)
+
+
+_ModelT = TypeVar("_ModelT", bound=BaseModel)
+_P = ParamSpec("_P")
+
+
+def _build(cls: Callable[_P, _ModelT], *args: _P.args, **kwargs: _P.kwargs) -> _ModelT:
+    # Pydantic v2's compiled validator avoids recursively inspecting field types.
+    # Keep loose construction for incomplete or unexpected API data, and v1.
+    if not PYDANTIC_V1 and not args:
+        try:
+            return cast(type[_ModelT], cls).model_validate(kwargs, strict=True)
+        except ValidationError:
+            pass
+    return build(cls, *args, **kwargs)
 
 
 def _convert_initial_chunk_into_snapshot(chunk: ChatCompletionChunk) -> ParsedChatCompletionSnapshot:

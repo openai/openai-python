@@ -43,6 +43,20 @@ _T = TypeVar("_T")
 # `OPENAI_LIVE=1 pytest --inline-snapshot=fix -p no:xdist -o addopts=""`
 
 
+@pytest.mark.parametrize("delta", ["text", 123])
+def test_stream_event_construction_preserves_values(delta: Any) -> None:
+    from openai._models import build
+    from openai.lib.streaming.chat import ContentDeltaEvent
+    from openai.lib.streaming.chat._completions import _build
+
+    parsed: dict[str, list[int]] = {"items": []}
+    actual = _build(ContentDeltaEvent, type="content.delta", delta=delta, snapshot="text", parsed=parsed)
+    expected = build(ContentDeltaEvent, type="content.delta", delta=delta, snapshot="text", parsed=parsed)
+    assert actual == expected
+    assert actual.model_fields_set == expected.model_fields_set
+    assert actual.parsed is parsed
+
+
 @pytest.mark.respx2(base_url=base_url)
 def test_parse_nothing(client: OpenAI, respx2_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
     listener = _make_stream_snapshot_request(
