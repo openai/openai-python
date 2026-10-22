@@ -5,8 +5,12 @@ on:
     branches:
       - main
   pull_request:
+    types: [opened, synchronize, reopened, edited]
     branches:
       - main
+      - next
+  merge_group:
+    types: [checks_requested]
   workflow_dispatch:
 
 permissions:
@@ -15,13 +19,15 @@ permissions:
 
 jobs:
   analyze:
-    name: Analyze Python
+    name: ${{ ((github.event_name == 'pull_request' && github.base_ref == 'next') || (github.event_name == 'merge_group' && github.event.merge_group.base_ref == 'refs/heads/next')) && 'Analyze Python (next)' || 'Analyze Python' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
     steps:
       - name: Check out repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@7188fc363630916deb702c7fdcf4e481b751f97a # v4

@@ -1,9 +1,12 @@
 name: CI
 on:
   pull_request:
+    types: [opened, synchronize, reopened, edited]
     branches:
       - main
       - next
+  merge_group:
+    types: [checks_requested]
   workflow_dispatch:
     inputs:
       release_pr:
@@ -22,10 +25,10 @@ permissions:
 jobs:
   detect_breaking_changes:
     runs-on: 'ubuntu-latest'
-    name: detect-breaking-changes
-    if: github.repository == 'openai/openai-python' && (github.event_name == 'pull_request' || (inputs.release_pr && github.ref == 'refs/heads/release-please--branches--main'))
+    name: ${{ ((github.event_name == 'pull_request' && github.base_ref == 'next') || (github.event_name == 'merge_group' && github.event.merge_group.base_ref == 'refs/heads/next')) && 'detect-breaking-changes (next)' || 'detect-breaking-changes' }}
+    if: github.repository == 'openai/openai-python' && (github.event_name == 'pull_request' || github.event_name == 'merge_group' || (inputs.release_pr && github.ref == 'refs/heads/release-please--branches--main'))
     env:
-      BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || inputs.base_sha }}
+      BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || (github.event_name == 'merge_group' && github.event.merge_group.base_sha) || inputs.base_sha }}
       FETCH_DEPTH: 0
     steps:
       - name: Calculate fetch-depth
@@ -40,6 +43,13 @@ jobs:
           # Ensure we can check out the pull request base in the script below.
           fetch-depth: ${{ env.FETCH_DEPTH }}
           persist-credentials: false
+
+      - name: Validate comparison baseline
+        shell: bash
+        run: |
+          [[ "$BASE_SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "Invalid comparison base SHA"; exit 1; }
+          git cat-file -e "$BASE_SHA^{commit}"
+          git merge-base --is-ancestor "$BASE_SHA" HEAD
 
       - name: Set up uv
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
