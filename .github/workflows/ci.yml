@@ -10,6 +10,7 @@ on:
       - '!codegen/**'
       - 'codegen/stl/**'
   pull_request:
+    types: [opened, synchronize, reopened, edited]
     branches-ignore:
       - 'stl-preview-head/**'
       - 'stl-preview-base/**'
@@ -347,10 +348,16 @@ jobs:
             tests/lib/test_pydantic.py
 
   ci-required:
-    name: ci-required
+    # Even skipped jobs publish a check: keep other targets out of next's context.
+    name: >-
+      ${{ ((github.event_name == 'push' && github.ref == 'refs/heads/next') ||
+           (github.event_name == 'merge_group' && github.event.merge_group.base_ref == 'refs/heads/next') ||
+           (github.event_name == 'pull_request' && github.base_ref == 'next')) &&
+          'ci-required (next)' || 'ci-required (non-next)' }}
     if: >-
       always() &&
-      (github.event_name == 'push' || github.event_name == 'merge_group' ||
+      ((github.event_name == 'push' && github.ref == 'refs/heads/next') ||
+       (github.event_name == 'merge_group' && github.event.merge_group.base_ref == 'refs/heads/next') ||
        (github.event_name == 'pull_request' && github.base_ref == 'next')) &&
       (github.event_name != 'push' || github.event.head_commit.message != 'codegen metadata')
     needs: [lint, build, test-python310, test-python314, test-httpx2, python-policy]
