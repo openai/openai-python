@@ -47,10 +47,11 @@ def test_multiple_params() -> None:
 
     assert foo(a="a", b="b", c="c") == "a b c"
 
-    error_message = r"Missing required arguments.*"
-
-    with pytest.raises(TypeError, match=error_message):
+    with pytest.raises(TypeError) as exc_info:
         foo()
+    assert str(exc_info.value) == "Missing required arguments: 'a', 'b' or 'c'"
+
+    error_message = r"Missing required arguments.*"
 
     with pytest.raises(TypeError, match=error_message):
         foo(a="a")
