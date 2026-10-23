@@ -410,6 +410,8 @@ async def test_reviewed_function_routing_optional_native_fields(lane: str) -> No
         {"async": "later"},
         {"namespace": None},
         {"namespace": {}},
+        {"namespace": ""},
+        {"namespace": "unrelated"},
         {"caller": []},
         {"caller": {}},
         {"caller": {"type": "program"}},
@@ -438,9 +440,9 @@ async def test_ag_rejects_optional_function_metadata_before_sibling(lane: str, m
 @pytest.mark.parametrize(
     "metadata",
     [
-        {"caller": None, "async": False, "namespace": ""},
+        {"caller": None, "async": False, "namespace": "record"},
         {"caller": {"type": "direct"}, "async": True},
-        {"caller": {"type": "program", "caller_id": ""}, "namespace": "fixture", "extra": ["kept"]},
+        {"caller": {"type": "program", "caller_id": ""}, "namespace": "record", "extra": ["kept"]},
     ],
 )
 async def test_ag_preserves_native_function_metadata(lane: str, metadata: dict[str, object]) -> None:

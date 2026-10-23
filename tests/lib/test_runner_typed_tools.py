@@ -84,12 +84,36 @@ class Booking(BaseModel):
 
 @pytest.mark.parametrize("lane", ["sync", "async"])
 @pytest.mark.parametrize("stream", [False, True])
-@pytest.mark.parametrize("outcome", ["valid", "invalid_arguments", "invalid_output"])
-async def test_existing_pydantic_tool_parser_receipts_and_wire_body(lane: str, stream: bool, outcome: str) -> None:
+@pytest.mark.parametrize(
+    "namespace,outcome",
+    [
+        (None, "valid"),
+        (None, "invalid_arguments"),
+        (None, "invalid_output"),
+        (None, "malformed_arguments"),
+        (None, "unparsed_arguments"),
+        ("reserve", "valid"),
+        ("reserve", "invalid_arguments"),
+        ("unrelated", "valid"),
+        ("unrelated", "invalid_arguments"),
+        ("unrelated", "malformed_arguments"),
+    ],
+)
+async def test_existing_pydantic_tool_parser_receipts_and_wire_body(
+    lane: str, stream: bool, namespace: str | None, outcome: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
     effects: list[Booking] = []
     requests: list[dict[str, Any]] = []
     checkpoints: list[ResponsesToolCheckpoint] = []
     diagnostics: list[ToolDiagnostic] = []
+    rejected = namespace == "unrelated" or outcome in ("invalid_arguments", "malformed_arguments", "unparsed_arguments")
+
+    if outcome == "unparsed_arguments":
+
+        def unparsed(**_kwargs: object) -> None:
+            return None
+
+        monkeypatch.setattr("openai.lib.responses_tool_runner.parse_function_tool_arguments", unparsed)
 
     def execute(args: Booking) -> FunctionResult:
         effects.append(args)
@@ -107,7 +131,12 @@ async def test_existing_pydantic_tool_parser_receipts_and_wire_body(lane: str, s
     def handler(request: httpx2.Request) -> httpx2.Response:
         data = json.loads(request.content)
         requests.append(data)
-        reply = resp([fn("reserve", "reserve-1", seats=9 if outcome == "invalid_arguments" else 2)], "r1")
+        item = fn("reserve", "reserve-1", seats=9 if outcome == "invalid_arguments" else 2)
+        if namespace is not None:
+            item["namespace"] = namespace
+        if outcome == "malformed_arguments":
+            item["arguments"] = "{invalid json"
+        reply = resp([item], "r1")
         response = reply if len(requests) == 1 else FINAL
         if stream:
             return httpx2.Response(200, headers={"content-type": "text/event-stream"}, content=sse(response))
@@ -116,7 +145,7 @@ async def test_existing_pydantic_tool_parser_receipts_and_wire_body(lane: str, s
     if lane == "sync":
         runner = ResponsesToolRunner(functions=[RegisteredFunction.from_tool(tool, execute=execute)])
         with OpenAI(api_key="fake", http_client=httpx2.Client(transport=httpx2.MockTransport(handler))) as client:
-            if outcome == "valid":
+            if outcome == "valid" and not rejected:
                 runner.run(
                     client,
                     PARAMS,
@@ -138,7 +167,7 @@ async def test_existing_pydantic_tool_parser_receipts_and_wire_body(lane: str, s
         async with AsyncOpenAI(
             api_key="fake", http_client=httpx2.AsyncClient(transport=httpx2.MockTransport(handler))
         ) as client_async:
-            if outcome == "valid":
+            if outcome == "valid" and not rejected:
                 await runner_async.run(
                     client_async,
                     PARAMS,
@@ -155,13 +184,18 @@ async def test_existing_pydantic_tool_parser_receipts_and_wire_body(lane: str, s
                         ledger=AsyncResponsesToolLedger("receipt", save),
                         on_diagnostic=diagnostics.append,
                     )
-    assert [entry.seats for entry in effects] == ([] if outcome == "invalid_arguments" else [2])
+    assert [entry.seats for entry in effects] == ([] if rejected else [2])
     assert requests[0]["tools"] == [dict(tool)]
     recorded_requests = [event for event in diagnostics if event["stage"] == "request"]
     assert len(recorded_requests) == len(requests)
     assert all(event["usage"] is None for event in recorded_requests)
     assert "seats" not in json.dumps(diagnostics)
-    if outcome == "valid":
+    if rejected:
+        assert len(requests) == 1
+        assert error is not None
+        assert error.value.attempted_call_ids == ()
+        assert error.value.completed_call_ids == ()
+    elif outcome == "valid":
         assert checkpoints[-1]["phase"] == "final"
         assert requests[1]["input"][-1] == {
             "type": "function_call_output",
