@@ -1564,6 +1564,9 @@ class _Run:
         if item.type == "function_call":
             if item.name not in self.function_names or not _valid_function_metadata(wire):
                 raise self.error("Function was not registered or lacks native metadata.")
+            # The runner registers top-level functions; deferred calls may repeat their name as the namespace.
+            if item.namespace not in (None, item.name):
+                raise self.error("Function namespace does not match its registration.")
             declaration = next(tool for tool in self.tools if tool["type"] == "function" and tool["name"] == item.name)
             allowed = cast(object, declaration.get("allowed_callers"))
             caller = wire.get("caller")
@@ -1593,11 +1596,14 @@ class _Run:
             function = self.functions[item.name]
             started = monotonic()
             try:
-                self.arguments[item.call_id] = (
+                arguments = (
                     _function_args(item)
                     if function._parsed_tool is None
                     else parse_function_tool_arguments(input_tools=[function._parsed_tool], function_call=item)
                 )
+                if function._parsed_tool is not None and arguments is None:
+                    raise self.error("Typed function arguments were not parsed.")
+                self.arguments[item.call_id] = arguments
             except Exception:
                 emit_tool_diagnostic(
                     self.on_diagnostic,
