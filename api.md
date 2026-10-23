@@ -257,12 +257,13 @@ Methods:
 Types:
 
 ```python
-from openai.types.audio import Voice
+from openai.types.audio import Voice, VoiceDeleted
 ```
 
 Methods:
 
 - <code title="post /audio/voices">client.audio.voices.<a href="./src/openai/resources/audio/voices.py">create</a>(\*\*<a href="src/openai/types/audio/voice_create_params.py">params</a>) -> <a href="./src/openai/types/audio/voice.py">Voice</a></code>
+- <code title="delete /audio/voices/{voice_id}">client.audio.voices.<a href="./src/openai/resources/audio/voices.py">delete</a>(voice_id) -> <a href="./src/openai/types/audio/voice_deleted.py">VoiceDeleted</a></code>
 
 ## VoiceConsents
 
@@ -636,6 +637,49 @@ Methods:
 - <code title="post /agents/{agent_id}">client.beta.agents.<a href="./src/openai/resources/beta/agents/agents.py">update</a>(agent_id, \*\*<a href="src/openai/types/beta/agent_update_params.py">params</a>) -> <a href="./src/openai/types/beta/agent.py">Agent</a></code>
 - <code title="get /agents">client.beta.agents.<a href="./src/openai/resources/beta/agents/agents.py">list</a>(\*\*<a href="src/openai/types/beta/agent_list_params.py">params</a>) -> <a href="./src/openai/types/beta/agent.py">SyncCursorPage[Agent]</a></code>
 - <code title="delete /agents/{agent_id}">client.beta.agents.<a href="./src/openai/resources/beta/agents/agents.py">delete</a>(agent_id) -> <a href="./src/openai/types/beta/agent_deleted.py">AgentDeleted</a></code>
+
+### Automations
+
+Types:
+
+```python
+from openai.types.beta.agents import (
+    Automation,
+    AutomationAgentConfig,
+    AutomationCreatedBy,
+    AutomationDeleted,
+    AutomationEnvironment,
+    AutomationMetadataParam,
+    AutomationTarget,
+    AutomationTargetParam,
+    OneTimeAutomation,
+    PeriodicAutomation,
+)
+```
+
+Methods:
+
+- <code title="post /agents/automations">client.beta.agents.automations.<a href="./src/openai/resources/beta/agents/automations/automations.py">create</a>(\*\*<a href="src/openai/types/beta/agents/automation_create_params.py">params</a>) -> <a href="./src/openai/types/beta/agents/automation.py">Automation</a></code>
+- <code title="get /agents/automations/{automation_id}">client.beta.agents.automations.<a href="./src/openai/resources/beta/agents/automations/automations.py">retrieve</a>(automation_id) -> <a href="./src/openai/types/beta/agents/automation.py">Automation</a></code>
+- <code title="post /agents/automations/{automation_id}">client.beta.agents.automations.<a href="./src/openai/resources/beta/agents/automations/automations.py">update</a>(automation_id, \*\*<a href="src/openai/types/beta/agents/automation_update_params.py">params</a>) -> <a href="./src/openai/types/beta/agents/automation.py">Automation</a></code>
+- <code title="get /agents/automations">client.beta.agents.automations.<a href="./src/openai/resources/beta/agents/automations/automations.py">list</a>(\*\*<a href="src/openai/types/beta/agents/automation_list_params.py">params</a>) -> <a href="./src/openai/types/beta/agents/automation.py">SyncCursorPage[Automation]</a></code>
+- <code title="delete /agents/automations/{automation_id}">client.beta.agents.automations.<a href="./src/openai/resources/beta/agents/automations/automations.py">delete</a>(automation_id) -> <a href="./src/openai/types/beta/agents/automation_deleted.py">AutomationDeleted</a></code>
+- <code title="post /agents/automations/{automation_id}/pause">client.beta.agents.automations.<a href="./src/openai/resources/beta/agents/automations/automations.py">pause</a>(automation_id) -> <a href="./src/openai/types/beta/agents/automation.py">Automation</a></code>
+- <code title="post /agents/automations/{automation_id}/resume">client.beta.agents.automations.<a href="./src/openai/resources/beta/agents/automations/automations.py">resume</a>(automation_id) -> <a href="./src/openai/types/beta/agents/automation.py">Automation</a></code>
+
+#### Invocations
+
+Types:
+
+```python
+from openai.types.beta.agents.automations import AutomationInvocation, AutomationInvocationSource
+```
+
+Methods:
+
+- <code title="post /agents/automations/{automation_id}/invocations">client.beta.agents.automations.invocations.<a href="./src/openai/resources/beta/agents/automations/invocations.py">create</a>(automation_id) -> <a href="./src/openai/types/beta/agents/automations/automation_invocation.py">AutomationInvocation</a></code>
+- <code title="get /agents/automations/{automation_id}/invocations/{invocation_id}">client.beta.agents.automations.invocations.<a href="./src/openai/resources/beta/agents/automations/invocations.py">retrieve</a>(invocation_id, \*, automation_id) -> <a href="./src/openai/types/beta/agents/automations/automation_invocation.py">AutomationInvocation</a></code>
+- <code title="get /agents/automations/{automation_id}/invocations">client.beta.agents.automations.invocations.<a href="./src/openai/resources/beta/agents/automations/invocations.py">list</a>(automation_id, \*\*<a href="src/openai/types/beta/agents/automations/invocation_list_params.py">params</a>) -> <a href="./src/openai/types/beta/agents/automations/automation_invocation.py">SyncCursorPage[AutomationInvocation]</a></code>
 
 ### Environments
 

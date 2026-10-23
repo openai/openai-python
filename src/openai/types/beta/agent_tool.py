@@ -15,6 +15,7 @@ __all__ = [
     "AgentToolResourceWebSearch",
     "AgentToolResourceWebSearchLocation",
     "AgentToolResourceComputerUse",
+    "AgentToolResourceAutomations",
 ]
 
 
@@ -123,6 +124,13 @@ class AgentToolResourceComputerUse(BaseModel):
     """The type of the object. Always `computer_use`."""
 
 
+class AgentToolResourceAutomations(BaseModel):
+    """Lets the agent manage its own scheduled wakeups."""
+
+    type: Literal["automations"]
+    """The type of the object. Always `automations`."""
+
+
 AgentTool: TypeAlias = Annotated[
     Union[
         AgentToolResourceFunction,
@@ -130,6 +138,7 @@ AgentTool: TypeAlias = Annotated[
         AgentToolResourceMcp,
         AgentToolResourceWebSearch,
         AgentToolResourceComputerUse,
+        AgentToolResourceAutomations,
     ],
     PropertyInfo(discriminator="type"),
 ]

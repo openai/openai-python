@@ -122,6 +122,11 @@ Next uses separate `Castiron next / budget-only change` and
 two tracks cannot overwrite each other's authorization. The policy version is
 fixed by next's protected base; advancing main does not silently change it.
 Changing the reviewed pin changes next's own base and rebuilds its merge queue.
+Review invalidation reads the effective checker's inert `PIN_REVIEW_POLICY`
+capability marker at that exact revision. Legacy or unknown versions retain
+human review for every pin edit; only the recognized effective-policy contract
+allows non-increasing forward pin changes to use ordinary review. No checker
+code is executed by the invalidation handler.
 
 The effective policy is read from the selected authenticated main commit. The
 next base selects that version; a candidate never selects its own executing
@@ -210,7 +215,9 @@ base, never the candidate. Pin-only updates and initial pin adoption use ordinar
 CODEOWNERS and required reviews when the pin does not roll back to an older main
 checker, the effective pinned budget stays the same or decreases, and its schema,
 strictness and ratchet mode stay unchanged. Initial adoption compares checker age
-with authenticated bootstrap main; later updates compare with the prior pin. A
+and effective policy with authenticated bootstrap main, not the unpinned target's
+local policy fields; later updates compare with the current protected
+target pin and effective policy, even for stale PRs. A
 checker rollback, an effective pinned-budget increase or mode transition, a local numeric budget increase, or Go
 ratchet activation still requires an exact-head human approving review from a
 repository owner, member, or collaborator. Bot reviews, stale reviews and dismissed
@@ -277,3 +284,5 @@ handler as their replacement. A failed invalidation or rerun must be investigate
 missing reporter runs remain pending until the normal trusted run is requested.
 Install and validate the review signal on the protected target before activating
 next policy checks, including actual PR and queue revocation after dismissal.
+
+The trusted selector also checks this exact active-checker contract before granting a pin-only review exemption. Legacy or unrecognized contracts retain the required exact-head review in the selection receipt, so the final publisher revalidates it even without a review-change event.

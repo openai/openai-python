@@ -33,6 +33,14 @@ from .sessions.sessions import (
     AsyncSessionsWithStreamingResponse,
 )
 from ....types.beta.agent import Agent
+from .automations.automations import (
+    Automations,
+    AsyncAutomations,
+    AutomationsWithRawResponse,
+    AsyncAutomationsWithRawResponse,
+    AutomationsWithStreamingResponse,
+    AsyncAutomationsWithStreamingResponse,
+)
 from .environments.environments import (
     Environments,
     AsyncEnvironments,
@@ -51,6 +59,10 @@ __all__ = ["Agents", "AsyncAgents"]
 
 
 class Agents(SyncAPIResource):
+    @cached_property
+    def automations(self) -> Automations:
+        return Automations(self._client)
+
     @cached_property
     def environments(self) -> Environments:
         return Environments(self._client)
@@ -405,6 +417,10 @@ class Agents(SyncAPIResource):
 
 
 class AsyncAgents(AsyncAPIResource):
+    @cached_property
+    def automations(self) -> AsyncAutomations:
+        return AsyncAutomations(self._client)
+
     @cached_property
     def environments(self) -> AsyncEnvironments:
         return AsyncEnvironments(self._client)
@@ -779,6 +795,10 @@ class AgentsWithRawResponse:
         )
 
     @cached_property
+    def automations(self) -> AutomationsWithRawResponse:
+        return AutomationsWithRawResponse(self._agents.automations)
+
+    @cached_property
     def environments(self) -> EnvironmentsWithRawResponse:
         return EnvironmentsWithRawResponse(self._agents.environments)
 
@@ -810,6 +830,10 @@ class AsyncAgentsWithRawResponse:
         self.delete = _legacy_response.async_to_raw_response_wrapper(
             agents.delete,
         )
+
+    @cached_property
+    def automations(self) -> AsyncAutomationsWithRawResponse:
+        return AsyncAutomationsWithRawResponse(self._agents.automations)
 
     @cached_property
     def environments(self) -> AsyncEnvironmentsWithRawResponse:
@@ -845,6 +869,10 @@ class AgentsWithStreamingResponse:
         )
 
     @cached_property
+    def automations(self) -> AutomationsWithStreamingResponse:
+        return AutomationsWithStreamingResponse(self._agents.automations)
+
+    @cached_property
     def environments(self) -> EnvironmentsWithStreamingResponse:
         return EnvironmentsWithStreamingResponse(self._agents.environments)
 
@@ -876,6 +904,10 @@ class AsyncAgentsWithStreamingResponse:
         self.delete = async_to_streamed_response_wrapper(
             agents.delete,
         )
+
+    @cached_property
+    def automations(self) -> AsyncAutomationsWithStreamingResponse:
+        return AsyncAutomationsWithStreamingResponse(self._agents.automations)
 
     @cached_property
     def environments(self) -> AsyncEnvironmentsWithStreamingResponse:

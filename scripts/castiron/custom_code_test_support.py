@@ -9,7 +9,7 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import custom_code_report as report
 
@@ -73,3 +73,30 @@ def source_run(head: str, event: str = "pull_request") -> dict[str, Any]:
         "pull_requests": [{"number": 3}] if event == "pull_request" else [],
         "conclusion": "failure",  # The candidate's result is deliberately ignored.
     }
+
+
+WORKFLOW = (
+    Path(__file__).resolve().parents[2] / ".github/workflows/castiron-custom-code-comment.yml"
+)
+
+
+def run_publisher(step: str, payload: dict[str, Any]) -> list[dict[str, Any]]:
+    section = WORKFLOW.read_text().split(f"- name: {step}\n", 1)[1]
+    script = section.split("          script: |\n", 1)[1]
+    lines: list[str] = []
+    for line in script.splitlines():
+        if line and not line.startswith("            "):
+            break
+        lines.append(line[12:])
+    return run_workflow_script("\n".join(lines), payload)
+
+
+def run_workflow_script(script: str, payload: dict[str, Any]) -> list[dict[str, Any]]:
+    output = subprocess.run(
+        ["node", str(Path(__file__).with_name("fixtures") / "github_publisher.cjs")],
+        input=json.dumps({**payload, "script": script}),
+        text=True,
+        capture_output=True,
+        check=True,
+    )
+    return cast(list[dict[str, Any]], json.loads(output.stdout))
