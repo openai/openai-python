@@ -27,6 +27,7 @@ from ...types.responses import (
     ParsedResponseFunctionToolCall,
 )
 from ...types.chat.completion_create_params import ResponseFormat
+from ...types.responses.namespace_tool_param import ToolFunction
 
 TextFormatT = TypeVar(
     "TextFormatT",
@@ -168,7 +169,21 @@ def parse_text(text: str, text_format: type[TextFormatT] | Omit, *, phase: str |
     raise TypeError(f"Unable to automatically parse response format type {text_format}")
 
 
-def get_input_tool_by_name(*, input_tools: Iterable[ToolParam], name: str) -> FunctionToolParam | None:
+def get_input_tool_by_name(
+    *, input_tools: Iterable[ToolParam], name: str, namespace: str | None = None
+) -> FunctionToolParam | ToolFunction | None:
+    if namespace is not None:
+        input_tools = list(input_tools)
+        for tool in input_tools:
+            if tool["type"] == "namespace" and tool["name"] == namespace:
+                for nested_tool in tool["tools"]:
+                    if nested_tool["type"] == "function" and nested_tool["name"] == name:
+                        return nested_tool
+                return None
+
+    # Deferred top-level functions can return their own name as the namespace.
+    if namespace is not None and namespace != name:
+        return None
     for tool in input_tools:
         if tool["type"] == "function" and tool.get("name") == name:
             return tool
@@ -184,7 +199,9 @@ def parse_function_tool_arguments(
     if input_tools is None or not is_given(input_tools):
         return None
 
-    input_tool = get_input_tool_by_name(input_tools=input_tools, name=function_call.name)
+    input_tool = get_input_tool_by_name(
+        input_tools=input_tools, name=function_call.name, namespace=function_call.namespace
+    )
     if not input_tool:
         return None
 
