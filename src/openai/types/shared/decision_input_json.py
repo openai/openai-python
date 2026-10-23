@@ -14,6 +14,6 @@ class DecisionInputJSON(BaseModel):
     Nested values may be any JSON value. Limited to 32 container levels, 10,000 values, and 256 KiB of compact UTF-8 JSON.
     """
 
-    data: Union[Dict[str, Optional[object]], List[Dict[str, Optional[object]]]]
+    data: Union[List[Dict[str, Optional[object]]], Dict[str, Optional[object]]]
 
     type: Literal["input_json"]

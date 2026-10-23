@@ -16,6 +16,7 @@ __all__ = [
     "PersistedAgentToolResourceWebSearch",
     "PersistedAgentToolResourceWebSearchLocation",
     "PersistedAgentToolResourceComputerUse",
+    "PersistedAgentToolResourceAutomations",
 ]
 
 
@@ -128,6 +129,13 @@ class PersistedAgentToolResourceComputerUse(BaseModel):
     """The type of the object. Always `computer_use`."""
 
 
+class PersistedAgentToolResourceAutomations(BaseModel):
+    """Lets the agent manage its own scheduled wakeups."""
+
+    type: Literal["automations"]
+    """The type of the object. Always `automations`."""
+
+
 PersistedAgentTool: TypeAlias = Annotated[
     Union[
         PersistedAgentToolResourceFunction,
@@ -136,6 +144,7 @@ PersistedAgentTool: TypeAlias = Annotated[
         PersistedAgentToolResourceMcp,
         PersistedAgentToolResourceWebSearch,
         PersistedAgentToolResourceComputerUse,
+        PersistedAgentToolResourceAutomations,
     ],
     PropertyInfo(discriminator="type"),
 ]
