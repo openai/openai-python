@@ -3,7 +3,7 @@
   "files": {
     ".github/workflows/castiron-custom-code-comment.yml": {
       "mode": "100644",
-      "sha256": "e509efc5bc41f8a5b3494ad849af5acfc9fd72ac878589effb8c79dff01b28a3"
+      "sha256": "db521f2e39d1c39ad2edacedc9903954471308e660e6df5b4ba8ca7615e5a5a8"
     },
     ".github/workflows/castiron-custom-code.yml": {
       "mode": "100644",
@@ -39,7 +39,7 @@
     },
     "scripts/castiron/fixtures/github_publisher.cjs": {
       "mode": "100644",
-      "sha256": "32ac621f6f062644c065002289d092b607755e567e4422369a66e7040051741c"
+      "sha256": "3f77c368ed668bb6ddcde1f2e806e3f307d64cb68cc45fe4c4968adfe1f7c0fe"
     },
     "scripts/castiron/ruff.toml": {
       "mode": "100644",
@@ -67,7 +67,7 @@
     },
     "scripts/castiron/test_custom_code_review_revocation.py": {
       "mode": "100644",
-      "sha256": "efc1e3e75fea75f74c1e6acf09ccca2e5ff25c550b576b2435f2edd7508654f8"
+      "sha256": "2ad322e7e7b2cbd425f6647edc1cde98d4354b989dfb0b61f326030292e9c460"
     },
     "src/openai/__init__.py": {
       "mode": "100644",
@@ -307,7 +307,7 @@
     },
     "src/openai/resources/beta/agents/automations/automations.py": {
       "mode": "100644",
-      "sha256": "dcd32b80a3caa6a1e7d110c8aee71e771ebae5bd82ee7147df8bf5f267169164"
+      "sha256": "12667bf711a724fe02cb5afb5e70247bd13288d13dbc98f3fe4dc63ec67252ef"
     },
     "src/openai/resources/beta/agents/automations/invocations.py": {
       "mode": "100644",
@@ -1955,7 +1955,7 @@
     },
     "src/openai/types/beta/agents/automation_create_params.py": {
       "mode": "100644",
-      "sha256": "a56b7b3a1db7da96c050de9e6538e84d8fca0d906b547d2a56277ca6d64fe948"
+      "sha256": "5dd8f64b7943d9d1e4ae65df62e10ad909346454c463588b1968e767a4bb6200"
     },
     "src/openai/types/beta/agents/automation_created_by.py": {
       "mode": "100644",
@@ -6843,7 +6843,7 @@
     },
     "src/openai/types/shared/decision_input_json.py": {
       "mode": "100644",
-      "sha256": "161cecb4ba9d08ee9c4890609360b596901f4913eaf5464876b60236fa0cbb99"
+      "sha256": "7e494030f2dc9fe1bd372c8789956110e35db226707dfceba20843efa8951450"
     },
     "src/openai/types/shared/decision_question_input_image.py": {
       "mode": "100644",
@@ -7651,7 +7651,7 @@
     },
     "tests/api_resources/beta/agents/test_automations.py": {
       "mode": "100644",
-      "sha256": "d7e7a9a99b6f816cd53d0a8dbb08caff465a6c14bba09e5ea731df4b28a297ac"
+      "sha256": "37b24f5906be1a5b0b7479fc13d78befdf10ea262658cb7de10c29dec86e4f96"
     },
     "tests/api_resources/beta/agents/test_environments.py": {
       "mode": "100644",

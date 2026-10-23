@@ -136,7 +136,7 @@ class TestAutomations:
     def test_method_create_overload_2(self, client: OpenAI) -> None:
         automation = client.beta.agents.automations.create(
             name="x",
-            run_at=1.0,
+            run_at=1,
             target={
                 "environment": {"type": "none"},
                 "input": [
@@ -160,7 +160,7 @@ class TestAutomations:
     def test_method_create_with_all_params_overload_2(self, client: OpenAI) -> None:
         automation = client.beta.agents.automations.create(
             name="x",
-            run_at=1.0,
+            run_at=1,
             target={
                 "environment": {"type": "none"},
                 "input": [
@@ -185,7 +185,7 @@ class TestAutomations:
     def test_raw_response_create_overload_2(self, client: OpenAI) -> None:
         response = client.beta.agents.automations.with_raw_response.create(
             name="x",
-            run_at=1.0,
+            run_at=1,
             target={
                 "environment": {"type": "none"},
                 "input": [
@@ -213,7 +213,7 @@ class TestAutomations:
     def test_streaming_response_create_overload_2(self, client: OpenAI) -> None:
         with client.beta.agents.automations.with_streaming_response.create(
             name="x",
-            run_at=1.0,
+            run_at=1,
             target={
                 "environment": {"type": "none"},
                 "input": [
@@ -642,7 +642,7 @@ class TestAsyncAutomations:
     async def test_method_create_overload_2(self, async_client: AsyncOpenAI) -> None:
         automation = await async_client.beta.agents.automations.create(
             name="x",
-            run_at=1.0,
+            run_at=1,
             target={
                 "environment": {"type": "none"},
                 "input": [
@@ -666,7 +666,7 @@ class TestAsyncAutomations:
     async def test_method_create_with_all_params_overload_2(self, async_client: AsyncOpenAI) -> None:
         automation = await async_client.beta.agents.automations.create(
             name="x",
-            run_at=1.0,
+            run_at=1,
             target={
                 "environment": {"type": "none"},
                 "input": [
@@ -691,7 +691,7 @@ class TestAsyncAutomations:
     async def test_raw_response_create_overload_2(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.beta.agents.automations.with_raw_response.create(
             name="x",
-            run_at=1.0,
+            run_at=1,
             target={
                 "environment": {"type": "none"},
                 "input": [
@@ -719,7 +719,7 @@ class TestAsyncAutomations:
     async def test_streaming_response_create_overload_2(self, async_client: AsyncOpenAI) -> None:
         async with async_client.beta.agents.automations.with_streaming_response.create(
             name="x",
-            run_at=1.0,
+            run_at=1,
             target={
                 "environment": {"type": "none"},
                 "input": [

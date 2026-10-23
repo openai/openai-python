@@ -131,7 +131,7 @@ const exec = {
     ) {
       throw new Error('Unexpected trusted policy invocation');
     }
-    if (data.policy_error) throw new Error('Trusted policy evaluation failed');
+    if (data.policy_error_sequence?.shift() || data.policy_error) throw new Error('Trusted policy evaluation failed');
     return { stdout: JSON.stringify({ requires_human: data.requires_human ?? true }) };
   },
 };

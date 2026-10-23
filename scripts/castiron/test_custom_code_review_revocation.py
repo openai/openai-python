@@ -85,6 +85,16 @@ class ReviewRevocationTests(unittest.TestCase):
         self.assertEqual([item["run_id"] for item in result[4:]], [12, 14])
         self.assertNotIn("success", [item.get("state") for item in result])
 
+    def test_retries_policy_failure_when_main_advances_before_revocation(self) -> None:
+        payload = self.payload()
+        payload["main_sha_sequence"] = ["d" * 40, "e" * 40]
+        payload["main_sha"] = "e" * 40
+        payload["policy_error_sequence"] = [True, False]
+        result = self.invoke(payload)
+        self.assertEqual([item.get("state") for item in result[:4]], ["pending"] * 4)
+        self.assertEqual({item["sha"] for item in result[:4]}, {"a" * 40, "c" * 40})
+        self.assertEqual([item["run_id"] for item in result[4:]], [12, 14])
+
     def approval(self) -> dict[str, Any]:
         return {
             "fullDatabaseId": "101",

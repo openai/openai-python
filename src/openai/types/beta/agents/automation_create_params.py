@@ -28,7 +28,7 @@ class CreateAutomationParamsPeriodic(TypedDict, total=False):
 class CreateAutomationParamsOnce(TypedDict, total=False):
     name: Required[str]
 
-    run_at: Required[float]
+    run_at: Required[int]
 
     target: Required[AutomationTargetParam]
 

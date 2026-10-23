@@ -106,7 +106,7 @@ class Automations(SyncAPIResource):
         self,
         *,
         name: str,
-        run_at: float,
+        run_at: int,
         target: AutomationTargetParam,
         type: Literal["once"],
         metadata: AutomationMetadataParam | Omit = omit,
@@ -149,7 +149,7 @@ class Automations(SyncAPIResource):
         timezone: str | Omit = omit,
         type: Literal["periodic"] | Literal["once"],
         metadata: AutomationMetadataParam | Omit = omit,
-        run_at: float | Omit = omit,
+        run_at: int | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -548,7 +548,7 @@ class AsyncAutomations(AsyncAPIResource):
         self,
         *,
         name: str,
-        run_at: float,
+        run_at: int,
         target: AutomationTargetParam,
         type: Literal["once"],
         metadata: AutomationMetadataParam | Omit = omit,
@@ -591,7 +591,7 @@ class AsyncAutomations(AsyncAPIResource):
         timezone: str | Omit = omit,
         type: Literal["periodic"] | Literal["once"],
         metadata: AutomationMetadataParam | Omit = omit,
-        run_at: float | Omit = omit,
+        run_at: int | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
