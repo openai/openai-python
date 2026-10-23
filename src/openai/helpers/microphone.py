@@ -5,7 +5,7 @@ import io
 import time
 import wave
 import asyncio
-from typing import Any, Type, Union, Generic, TypeVar, Callable, overload
+from typing import Any, Type, Union, Generic, TypeVar, Callable, cast, overload
 from typing_extensions import TYPE_CHECKING, Literal
 
 from .._types import FileTypes, FileContent
@@ -35,12 +35,22 @@ class Microphone(Generic[DType]):
         self.has_record_function = callable(should_record)
 
     def _ndarray_to_wav(self, audio_data: npt.NDArray[DType]) -> FileTypes:
+        if audio_data.dtype == np.float32:
+            # wave writes integer PCM, so normalized floats need conversion.
+            float_data = cast("npt.NDArray[np.float32]", audio_data)
+            wav_data = (np.clip(float_data, -1, 1) * 32767).astype(np.int16)
+        elif audio_data.dtype == np.int8:
+            # Eight-bit PCM uses unsigned samples with silence at 128.
+            wav_data = audio_data.astype(np.uint8) + 128
+        else:
+            wav_data = audio_data
+
         buffer: FileContent = io.BytesIO()
         with wave.open(buffer, "w") as wav_file:
             wav_file.setnchannels(self.channels)
-            wav_file.setsampwidth(np.dtype(self.dtype).itemsize)
+            wav_file.setsampwidth(wav_data.dtype.itemsize)
             wav_file.setframerate(SAMPLE_RATE)
-            wav_file.writeframes(audio_data.tobytes())
+            wav_file.writeframes(wav_data.tobytes())
         buffer.seek(0)
         return ("audio.wav", buffer, "audio/wav")
 
