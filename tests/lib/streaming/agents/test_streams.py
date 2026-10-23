@@ -481,7 +481,8 @@ async def test_long_stream_bounds_event_cache_without_repeating_tools(
 
     repeated_call = {"event_id": "original-call", **call()}
     payloads = [turn_event("created"), repeated_call]
-    for index in range(5000):
+    delta_count = 1026  # Evict the tool event from the 1,024-event cache.
+    for index in range(delta_count):
         delta_event: dict[str, object] = {
             "type": "agent.session.turn.output_text.delta",
             "event_id": f"delta-{index}",
@@ -496,6 +497,7 @@ async def test_long_stream_bounds_event_cache_without_repeating_tools(
     payloads.extend([repeated_call, turn_event("completed"), idle()])
     server.body = EventBody(payloads)
     deltas: list[str] = []
+    tool_event_deliveries = 0
     if isinstance(sdk, AsyncOpenAI):
         async with sdk.beta.agents.sessions.stream(
             "session_test", input="Hello", tool_handlers={"search": handler}
@@ -503,6 +505,8 @@ async def test_long_stream_bounds_event_cache_without_repeating_tools(
             async for event in stream:
                 if event.type == "agent.session.turn.output_text.delta":
                     deltas.append(event.delta)
+                elif event.event_id == repeated_call["event_id"]:
+                    tool_event_deliveries += 1
             assert len(stream._state.event_ids) <= 1024
             assert len(stream._state.recent_events) <= 1024
     else:
@@ -512,9 +516,12 @@ async def test_long_stream_bounds_event_cache_without_repeating_tools(
             for event in sync_stream:
                 if event.type == "agent.session.turn.output_text.delta":
                     deltas.append(event.delta)
+                elif event.event_id == repeated_call["event_id"]:
+                    tool_event_deliveries += 1
             assert len(sync_stream._state.event_ids) <= 1024
             assert len(sync_stream._state.recent_events) <= 1024
-    assert deltas == [str(index) for index in range(5000)]
+    assert deltas == [str(index) for index in range(delta_count)]
+    assert tool_event_deliveries == 2
     assert calls == [{"query": "test"}]
     assert len(server.inputs()) == 2
     assert server.body.closed
