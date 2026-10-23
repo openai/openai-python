@@ -130,6 +130,7 @@ class LocalAudioPlayer:
                     try:
                         current_buffer = buffer_queue.get(timeout=0.1)
                         if current_buffer is None:
+                            outdata[frames_written:] = 0
                             loop.call_soon_threadsafe(event.set)
                             raise sd.CallbackStop
                         buffer_pos = 0
