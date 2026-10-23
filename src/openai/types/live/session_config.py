@@ -69,11 +69,30 @@ class DelegationResponses(BaseModel):
     Always `responses` for tasks handled by the Responses API.
     """
 
+    acknowledgement_delay_ms: Optional[int] = None
+    """
+    Milliseconds to wait before requesting an automatic spoken acknowledgement for a
+    delegation. The model may still speak before this delay. Any commentary or
+    thinking appended to the session cancels all pending acknowledgements, including
+    those for other delegations. Defaults to 400 for Decisions sessions and 0
+    (request immediately) for other sessions. Omission in a session update preserves
+    the current value. Updates apply to subsequent delegations.
+    """
+
 
 class DelegationDecisions(BaseModel):
     decisions: DecisionsDelegationConfig
 
     type: Literal["decisions"]
+
+    acknowledgement_delay_ms: Optional[int] = None
+    """
+    Milliseconds to wait before requesting an automatic spoken acknowledgement for a
+    delegation. The model may still speak before this delay. Any commentary or
+    thinking appended to the session cancels all pending acknowledgements, including
+    those for other delegations. Defaults to 400. Updates apply to subsequent
+    delegations.
+    """
 
 
 Delegation: TypeAlias = Annotated[

@@ -7,6 +7,7 @@ from .translation import Translation as Translation
 from .speech_model import SpeechModel as SpeechModel
 from .transcription import Transcription as Transcription
 from .voice_consent import VoiceConsent as VoiceConsent
+from .voice_deleted import VoiceDeleted as VoiceDeleted
 from .transcription_word import TranscriptionWord as TranscriptionWord
 from .translation_verbose import TranslationVerbose as TranslationVerbose
 from .voice_create_params import VoiceCreateParams as VoiceCreateParams

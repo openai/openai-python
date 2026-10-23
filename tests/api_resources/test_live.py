@@ -40,7 +40,10 @@ class TestLive:
                         "allowed_server_events": "all",
                     }
                 },
-                "delegation": {"type": "client"},
+                "delegation": {
+                    "type": "client",
+                    "acknowledgement_delay_ms": 0,
+                },
                 "input": [
                     {
                         "content": [
@@ -141,7 +144,10 @@ class TestAsyncLive:
                         "allowed_server_events": "all",
                     }
                 },
-                "delegation": {"type": "client"},
+                "delegation": {
+                    "type": "client",
+                    "acknowledgement_delay_ms": 0,
+                },
                 "input": [
                     {
                         "content": [

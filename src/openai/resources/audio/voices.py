@@ -10,13 +10,14 @@ import httpx2
 from ... import _legacy_response
 from ..._files import deepcopy_with_paths
 from ..._types import Body, Omit, Query, Headers, NotGiven, FileTypes, omit, not_given
-from ..._utils import extract_files, required_args, maybe_transform, async_maybe_transform
+from ..._utils import extract_files, path_template, required_args, maybe_transform, async_maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ...types.audio import voice_create_params
 from ..._base_client import make_request_options
 from ...types.audio.voice import Voice
+from ...types.audio.voice_deleted import VoiceDeleted
 
 __all__ = ["Voices", "AsyncVoices"]
 
@@ -192,6 +193,50 @@ class Voices(SyncAPIResource):
             cast_to=Voice,
         )
 
+    def delete(
+        self,
+        voice_id: str,
+        *,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> VoiceDeleted:
+        """
+        Deletes a voice created from a text prompt or an audio sample.
+
+        Requires voice write permission and access to the voice's project. Access to
+        voices created from recordings is limited to eligible customers. See the
+        [custom voices guide](https://developers.openai.com/api/docs/guides/custom-voices).
+
+        Deleting a voice does not delete its consent recording. Deleting an already
+        deleted voice returns a 404 error.
+
+        Args:
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not voice_id:
+            raise ValueError(f"Expected a non-empty value for `voice_id` but received {voice_id!r}")
+        return self._delete(
+            path_template("/audio/voices/{voice_id}", voice_id=voice_id),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+            ),
+            cast_to=VoiceDeleted,
+        )
+
 
 class AsyncVoices(AsyncAPIResource):
     """Turn audio into text or text into audio."""
@@ -364,6 +409,50 @@ class AsyncVoices(AsyncAPIResource):
             cast_to=Voice,
         )
 
+    async def delete(
+        self,
+        voice_id: str,
+        *,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> VoiceDeleted:
+        """
+        Deletes a voice created from a text prompt or an audio sample.
+
+        Requires voice write permission and access to the voice's project. Access to
+        voices created from recordings is limited to eligible customers. See the
+        [custom voices guide](https://developers.openai.com/api/docs/guides/custom-voices).
+
+        Deleting a voice does not delete its consent recording. Deleting an already
+        deleted voice returns a 404 error.
+
+        Args:
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not voice_id:
+            raise ValueError(f"Expected a non-empty value for `voice_id` but received {voice_id!r}")
+        return await self._delete(
+            path_template("/audio/voices/{voice_id}", voice_id=voice_id),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+            ),
+            cast_to=VoiceDeleted,
+        )
+
 
 class VoicesWithRawResponse:
     def __init__(self, voices: Voices) -> None:
@@ -371,6 +460,9 @@ class VoicesWithRawResponse:
 
         self.create = _legacy_response.to_raw_response_wrapper(
             voices.create,
+        )
+        self.delete = _legacy_response.to_raw_response_wrapper(
+            voices.delete,
         )
 
 
@@ -381,6 +473,9 @@ class AsyncVoicesWithRawResponse:
         self.create = _legacy_response.async_to_raw_response_wrapper(
             voices.create,
         )
+        self.delete = _legacy_response.async_to_raw_response_wrapper(
+            voices.delete,
+        )
 
 
 class VoicesWithStreamingResponse:
@@ -390,6 +485,9 @@ class VoicesWithStreamingResponse:
         self.create = to_streamed_response_wrapper(
             voices.create,
         )
+        self.delete = to_streamed_response_wrapper(
+            voices.delete,
+        )
 
 
 class AsyncVoicesWithStreamingResponse:
@@ -398,4 +496,7 @@ class AsyncVoicesWithStreamingResponse:
 
         self.create = async_to_streamed_response_wrapper(
             voices.create,
+        )
+        self.delete = async_to_streamed_response_wrapper(
+            voices.delete,
         )
