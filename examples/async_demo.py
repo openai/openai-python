@@ -1,4 +1,4 @@
-#!/usr/bin/env -S poetry run python
+#!/usr/bin/env -S uv run python
 
 import asyncio
 
@@ -23,7 +23,7 @@ async def main() -> None:
         if not chunk.choices:
             continue
 
-        print(chunk.choices[0].delta.content, end="")
+        print(chunk.choices[0].delta.content or "", end="")
     print()
 
 

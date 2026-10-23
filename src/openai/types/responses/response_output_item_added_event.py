@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing_extensions import Literal
 
@@ -12,7 +12,13 @@ class ResponseOutputItemAddedEvent(BaseModel):
     """Emitted when a new output item is added."""
 
     item: ResponseOutputItem
-    """The output item that was added."""
+    """The output item that was added.
+
+    For reasoning items, `encrypted_content` may be incomplete while the item is in
+    progress. Use the reasoning item from the corresponding
+    `response.output_item.done` event when passing it as input to a subsequent
+    request.
+    """
 
     output_index: int
     """The index of the output item that was added."""

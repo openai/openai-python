@@ -1,14 +1,13 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
-import inspect
-from typing import Dict, List, Type, Union, Iterable, Optional, cast
-from functools import partial
+from typing import Dict, List, Union, Iterable, Optional
 from typing_extensions import Literal, overload
 
-import httpx
-import pydantic
+import httpx2
+
+import openai.lib._chat_completion_resources
 
 from .... import _legacy_response
 from .messages import (
@@ -33,21 +32,16 @@ from ....types.chat import (
     completion_update_params,
 )
 from ...._base_client import AsyncPaginator, make_request_options
-from ....lib._parsing import (
-    ResponseFormatT,
-    validate_input_tools as _validate_input_tools,
-    parse_chat_completion as _parse_chat_completion,
-    type_to_response_format_param as _type_to_response_format,
-)
+from ....lib._parsing import ResponseFormatT
 from ....lib.streaming.chat import ChatCompletionStreamManager, AsyncChatCompletionStreamManager
 from ....types.shared.chat_model import ChatModel
 from ....types.chat.chat_completion import ChatCompletion
 from ....types.shared_params.metadata import Metadata
 from ....types.shared.reasoning_effort import ReasoningEffort
+from ....lib._chat_completion_resources import parse, stream, async_parse, async_stream
 from ....types.chat.chat_completion_chunk import ChatCompletionChunk
 from ....types.chat.parsed_chat_completion import ParsedChatCompletion
 from ....types.chat.chat_completion_deleted import ChatCompletionDeleted
-from ....types.chat.chat_completion_audio_param import ChatCompletionAudioParam
 from ....types.chat.chat_completion_message_param import ChatCompletionMessageParam
 from ....types.chat.chat_completion_tool_union_param import ChatCompletionToolUnionParam
 from ....types.chat.chat_completion_stream_options_param import ChatCompletionStreamOptionsParam
@@ -55,6 +49,12 @@ from ....types.chat.chat_completion_prediction_content_param import ChatCompleti
 from ....types.chat.chat_completion_tool_choice_option_param import ChatCompletionToolChoiceOptionParam
 
 __all__ = ["Completions", "AsyncCompletions"]
+
+
+def validate_response_format(
+    response_format: object,
+) -> None:
+    return openai.lib._chat_completion_resources.validate_response_format(response_format)
 
 
 class Completions(SyncAPIResource):
@@ -109,14 +109,14 @@ class Completions(SyncAPIResource):
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: completion_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
-        safety_identifier: str | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
-        stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        stop: Union[str, SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -127,12 +127,10 @@ class Completions(SyncAPIResource):
         user: str | Omit = omit,
         verbosity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
         web_search_options: completion_create_params.WebSearchOptions | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ParsedChatCompletion[ResponseFormatT]:
         """Wrapper over the `client.chat.completions.create()` method that provides richer integrations with Python specific types
         & returns a `ParsedChatCompletion` object, which is a subclass of the standard `ChatCompletion` class.
@@ -142,7 +140,7 @@ class Completions(SyncAPIResource):
 
         This method will also automatically parse `function` tool calls if:
         - You use the `openai.pydantic_function_tool()` helper method
-        - You mark your tool schema with `"strict": True`
+        - You mark your tool schema with `\"strict\": True`
 
         Example usage:
         ```py
@@ -162,10 +160,10 @@ class Completions(SyncAPIResource):
 
         client = OpenAI()
         completion = client.chat.completions.parse(
-            model="gpt-4o-2024-08-06",
+            model=\"gpt-4o-2024-08-06\",
             messages=[
-                {"role": "system", "content": "You are a helpful math tutor."},
-                {"role": "user", "content": "solve 8x + 31 = 2"},
+                {\"role\": \"system\", \"content\": \"You are a helpful math tutor.\"},
+                {\"role\": \"user\", \"content\": \"solve 8x + 31 = 2\"},
             ],
             response_format=MathResponse,
         )
@@ -173,79 +171,51 @@ class Completions(SyncAPIResource):
         message = completion.choices[0].message
         if message.parsed:
             print(message.parsed.steps)
-            print("answer: ", message.parsed.final_answer)
+            print(\"answer: \", message.parsed.final_answer)
         ```
         """
-        chat_completion_tools = _validate_input_tools(tools)
-
-        extra_headers = {
-            "X-Stainless-Helper-Method": "chat.completions.parse",
-            **(extra_headers or {}),
-        }
-
-        def parser(raw_completion: ChatCompletion) -> ParsedChatCompletion[ResponseFormatT]:
-            return _parse_chat_completion(
-                response_format=response_format,
-                chat_completion=raw_completion,
-                input_tools=chat_completion_tools,
-            )
-
-        return self._post(
-            "/chat/completions",
-            body=maybe_transform(
-                {
-                    "messages": messages,
-                    "model": model,
-                    "audio": audio,
-                    "frequency_penalty": frequency_penalty,
-                    "function_call": function_call,
-                    "functions": functions,
-                    "logit_bias": logit_bias,
-                    "logprobs": logprobs,
-                    "max_completion_tokens": max_completion_tokens,
-                    "max_tokens": max_tokens,
-                    "metadata": metadata,
-                    "modalities": modalities,
-                    "moderation": moderation,
-                    "n": n,
-                    "parallel_tool_calls": parallel_tool_calls,
-                    "prediction": prediction,
-                    "presence_penalty": presence_penalty,
-                    "prompt_cache_key": prompt_cache_key,
-                    "prompt_cache_options": prompt_cache_options,
-                    "prompt_cache_retention": prompt_cache_retention,
-                    "reasoning_effort": reasoning_effort,
-                    "response_format": _type_to_response_format(response_format),
-                    "safety_identifier": safety_identifier,
-                    "seed": seed,
-                    "service_tier": service_tier,
-                    "stop": stop,
-                    "store": store,
-                    "stream": False,
-                    "stream_options": stream_options,
-                    "temperature": temperature,
-                    "tool_choice": tool_choice,
-                    "tools": tools,
-                    "top_logprobs": top_logprobs,
-                    "top_p": top_p,
-                    "user": user,
-                    "verbosity": verbosity,
-                    "web_search_options": web_search_options,
-                },
-                completion_create_params.CompletionCreateParams,
-            ),
-            options=make_request_options(
-                extra_headers=extra_headers,
-                extra_query=extra_query,
-                extra_body=extra_body,
-                timeout=timeout,
-                post_parser=parser,
-                security={"bearer_auth": True},
-            ),
-            # we turn the `ChatCompletion` instance into a `ParsedChatCompletion`
-            # in the `parser` function above
-            cast_to=cast(Type[ParsedChatCompletion[ResponseFormatT]], ChatCompletion),
-            stream=False,
+        return parse(
+            self,
+            messages=messages,
+            model=model,
+            audio=audio,
+            response_format=response_format,
+            frequency_penalty=frequency_penalty,
+            function_call=function_call,
+            functions=functions,
+            logit_bias=logit_bias,
+            logprobs=logprobs,
+            max_completion_tokens=max_completion_tokens,
+            max_tokens=max_tokens,
+            metadata=metadata,
+            modalities=modalities,
+            moderation=moderation,
+            n=n,
+            parallel_tool_calls=parallel_tool_calls,
+            prediction=prediction,
+            presence_penalty=presence_penalty,
+            prompt_cache_key=prompt_cache_key,
+            prompt_cache_options=prompt_cache_options,
+            prompt_cache_retention=prompt_cache_retention,
+            reasoning_effort=reasoning_effort,
+            safety_identifier=safety_identifier,
+            seed=seed,
+            service_tier=service_tier,
+            stop=stop,
+            store=store,
+            stream_options=stream_options,
+            temperature=temperature,
+            tool_choice=tool_choice,
+            tools=tools,
+            top_logprobs=top_logprobs,
+            top_p=top_p,
+            user=user,
+            verbosity=verbosity,
+            web_search_options=web_search_options,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
         )
 
     @overload
@@ -269,15 +239,15 @@ class Completions(SyncAPIResource):
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: completion_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
         response_format: completion_create_params.ResponseFormat | Omit = omit,
-        safety_identifier: str | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
-        stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        stop: Union[str, SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Omit = omit,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
@@ -294,47 +264,47 @@ class Completions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ChatCompletion:
         """
         **Starting a new project?** We recommend trying
-        [Responses](https://platform.openai.com/docs/api-reference/responses) to take
-        advantage of the latest OpenAI platform features. Compare
-        [Chat Completions with Responses](https://platform.openai.com/docs/guides/responses-vs-chat-completions?api-mode=responses).
+        [Responses](https://developers.openai.com/api/reference/resources/responses) to
+        take advantage of the latest OpenAI platform features. Compare
+        [Chat Completions with Responses](https://developers.openai.com/api/docs/guides/migrate-to-responses?api-mode=responses).
 
         ---
 
         Creates a model response for the given chat conversation. Learn more in the
-        [text generation](https://platform.openai.com/docs/guides/text-generation),
-        [vision](https://platform.openai.com/docs/guides/vision), and
-        [audio](https://platform.openai.com/docs/guides/audio) guides.
+        [text generation](https://developers.openai.com/api/docs/guides/text),
+        [vision](https://developers.openai.com/api/docs/guides/images-vision), and
+        [audio](https://developers.openai.com/api/docs/guides/audio) guides.
 
         Parameter support can differ depending on the model used to generate the
         response, particularly for newer reasoning models. Parameters that are only
         supported for reasoning models are noted below. For the current state of
         unsupported parameters in reasoning models,
-        [refer to the reasoning guide](https://platform.openai.com/docs/guides/reasoning).
+        [refer to the reasoning guide](https://developers.openai.com/api/docs/guides/reasoning).
 
         Returns a chat completion object, or a streamed sequence of chat completion
         chunk objects if the request is streamed.
 
         Args:
           messages: A list of messages comprising the conversation so far. Depending on the
-              [model](https://platform.openai.com/docs/models) you use, different message
-              types (modalities) are supported, like
-              [text](https://platform.openai.com/docs/guides/text-generation),
-              [images](https://platform.openai.com/docs/guides/vision), and
-              [audio](https://platform.openai.com/docs/guides/audio).
+              [model](https://developers.openai.com/api/docs/models) you use, different
+              message types (modalities) are supported, like
+              [text](https://developers.openai.com/api/docs/guides/text),
+              [images](https://developers.openai.com/api/docs/guides/images-vision), and
+              [audio](https://developers.openai.com/api/docs/guides/audio).
 
-          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
-              wide range of models with different capabilities, performance characteristics,
-              and price points. Refer to the
-              [model guide](https://platform.openai.com/docs/models) to browse and compare
-              available models.
+          model: Model ID used to generate the response, like `gpt-6-astra` or `o3`. OpenAI
+              offers a wide range of models with different capabilities, performance
+              characteristics, and price points. Refer to the
+              [model guide](https://developers.openai.com/api/docs/models) to browse and
+              compare available models.
 
           audio: Parameters for audio output. Required when audio output is requested with
               `modalities: ["audio"]`.
-              [Learn more](https://platform.openai.com/docs/guides/audio).
+              [Learn more](https://developers.openai.com/api/docs/guides/audio).
 
           frequency_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on their
               existing frequency in the text so far, decreasing the model's likelihood to
@@ -374,15 +344,15 @@ class Completions(SyncAPIResource):
 
           max_completion_tokens: An upper bound for the number of tokens that can be generated for a completion,
               including visible output tokens and
-              [reasoning tokens](https://platform.openai.com/docs/guides/reasoning).
+              [reasoning tokens](https://developers.openai.com/api/docs/guides/reasoning).
 
-          max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the chat
-              completion. This value can be used to control
+          max_tokens: The maximum number of [tokens](https://platform.openai.com/tokenizer) that can
+              be generated in the chat completion. This value can be used to control
               [costs](https://openai.com/api/pricing/) for text generated via API.
 
               This value is now deprecated in favor of `max_completion_tokens`, and is not
               compatible with
-              [o-series models](https://platform.openai.com/docs/guides/reasoning).
+              [o-series models](https://developers.openai.com/api/docs/guides/reasoning).
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format, and
@@ -397,8 +367,8 @@ class Completions(SyncAPIResource):
               `["text"]`
 
               The `gpt-4o-audio-preview` model can also be used to
-              [generate audio](https://platform.openai.com/docs/guides/audio). To request that
-              this model generate both text and audio responses, you can use:
+              [generate audio](https://developers.openai.com/api/docs/guides/audio). To
+              request that this model generate both text and audio responses, you can use:
 
               `["text", "audio"]`
 
@@ -409,11 +379,14 @@ class Completions(SyncAPIResource):
               choices. Keep `n` as `1` to minimize costs.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
+              [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
               during tool use.
 
-          prediction: Static predicted output content, such as the content of a text file that is
-              being regenerated.
+          prediction: Configuration for a
+              [Predicted Output](https://developers.openai.com/api/docs/guides/predicted-outputs),
+              which can greatly improve response times when large parts of the model response
+              are known ahead of time. This is most common when you are regenerating a file
+              with only minor changes to most of the content.
 
           presence_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on
               whether they appear in the text so far, increasing the model's likelihood to
@@ -421,7 +394,7 @@ class Completions(SyncAPIResource):
 
           prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
               hit rates. Replaces the `user` field.
-              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+              [Learn more](https://developers.openai.com/api/docs/guides/prompt-caching).
 
           prompt_cache_options: Options for prompt caching. Supported for `gpt-5.6` and later models. By
               default, OpenAI automatically chooses one implicit cache breakpoint. You can add
@@ -430,7 +403,7 @@ class Completions(SyncAPIResource):
               up to the latest 80 breakpoints in the conversation, without a content-block
               lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The
               `ttl` defaults to `30m`, which is currently the only supported value. See the
-              [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching)
+              [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching)
               for current details.
 
           prompt_cache_retention: Deprecated. Use `prompt_cache_options.ttl` instead.
@@ -438,7 +411,7 @@ class Completions(SyncAPIResource):
               The retention policy for the prompt cache. Set to `24h` to enable extended
               prompt caching, which keeps cached prefixes active for longer, up to a maximum
               of 24 hours.
-              [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+              [Learn more](https://developers.openai.com/api/docs/guides/prompt-caching#prompt-cache-retention).
               This field expresses a maximum retention policy, while
               `prompt_cache_options.ttl` expresses a minimum cache lifetime. The two fields
               are independent and do not interact. For `gpt-5.5`, `gpt-5.5-pro`, and future
@@ -455,7 +428,7 @@ class Completions(SyncAPIResource):
               are `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, and `max`. Reducing
               reasoning effort can result in faster responses and fewer tokens used on
               reasoning in a response. Not all reasoning models support every value. See the
-              [reasoning guide](https://platform.openai.com/docs/guides/reasoning) for
+              [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
               model-specific support.
 
           response_format: An object specifying the format that the model must output.
@@ -463,7 +436,7 @@ class Completions(SyncAPIResource):
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
               Outputs which ensures the model will match your supplied JSON schema. Learn more
               in the
-              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+              [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables the older JSON mode, which
               ensures the message the model generates is valid JSON. Using `json_schema` is
@@ -471,10 +444,10 @@ class Completions(SyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user, with a maximum length of 64 characters. We recommend
+              identifies each user, with a maximum length of 128 characters. We recommend
               hashing their username or email address, in order to avoid sending us any
               identifying information.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
@@ -489,9 +462,15 @@ class Completions(SyncAPIResource):
                 will use 'default'.
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
-              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                '[priority](https://openai.com/api-priority-processing/)', then the request
-                will be processed with the corresponding service tier.
+              - If set to
+                '[flex](https://developers.openai.com/api/docs/guides/flex-processing)', then
+                the request will be processed with the Flex Processing service tier.
+              - To opt-in to
+                [Fast mode](https://developers.openai.com/api/docs/guides/fast-mode) at the
+                request level, include the `service_tier=fast` or `service_tier=priority`
+                parameter for Responses or Chat Completions. The response will show
+                `service_tier=priority` regardless of if you specify `service_tier=fast` or
+                `priority` in your request.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -505,8 +484,9 @@ class Completions(SyncAPIResource):
               returned text will not contain the stop sequence.
 
           store: Whether or not to store the output of this chat completion request for use in
-              our [model distillation](https://platform.openai.com/docs/guides/distillation)
-              or [evals](https://platform.openai.com/docs/guides/evals) products.
+              our
+              [model distillation](https://developers.openai.com/api/docs/guides/supervised-fine-tuning#distilling-from-a-larger-model)
+              or [evals](https://developers.openai.com/api/docs/guides/evals) products.
 
               Supports text and image inputs. Note: image inputs over 8MB will be dropped.
 
@@ -514,9 +494,9 @@ class Completions(SyncAPIResource):
               generated using
               [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
               See the
-              [Streaming section below](https://platform.openai.com/docs/api-reference/chat/streaming)
+              [Streaming section below](https://developers.openai.com/api/reference/resources/chat/subresources/completions/streaming-events)
               for more information, along with the
-              [streaming responses](https://platform.openai.com/docs/guides/streaming-responses)
+              [streaming responses](https://developers.openai.com/api/docs/guides/streaming-responses)
               guide for more information on how to handle the streaming events.
 
           stream_options: Options for streaming response. Only set this when you set `stream: true`.
@@ -537,8 +517,9 @@ class Completions(SyncAPIResource):
               are present.
 
           tools: A list of tools the model may call. You can provide either
-              [custom tools](https://platform.openai.com/docs/guides/function-calling#custom-tools)
-              or [function tools](https://platform.openai.com/docs/guides/function-calling).
+              [custom tools](https://developers.openai.com/api/docs/guides/function-calling#custom-tools)
+              or
+              [function tools](https://developers.openai.com/api/docs/guides/function-calling).
 
           top_logprobs: An integer between 0 and 20 specifying the maximum number of most likely tokens
               to return at each token position, each with an associated log probability. In
@@ -555,15 +536,16 @@ class Completions(SyncAPIResource):
               `prompt_cache_key` instead to maintain caching optimizations. A stable
               identifier for your end-users. Used to boost cache hit rates by better bucketing
               similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           verbosity: Constrains the verbosity of the model's response. Lower values will result in
               more concise responses, while higher values will result in more verbose
-              responses. Currently supported values are `low`, `medium`, and `high`.
+              responses. Currently supported values are `low`, `medium`, and `high`. The
+              default is `medium`.
 
           web_search_options: This tool searches the web for relevant results to use in a response. Learn more
               about the
-              [web search tool](https://platform.openai.com/docs/guides/tools-web-search?api-mode=chat).
+              [web search tool](https://developers.openai.com/api/docs/guides/tools-web-search).
 
           extra_headers: Send extra headers
 
@@ -597,15 +579,15 @@ class Completions(SyncAPIResource):
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: completion_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
         response_format: completion_create_params.ResponseFormat | Omit = omit,
-        safety_identifier: str | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
-        stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        stop: Union[str, SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -621,56 +603,56 @@ class Completions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Stream[ChatCompletionChunk]:
         """
         **Starting a new project?** We recommend trying
-        [Responses](https://platform.openai.com/docs/api-reference/responses) to take
-        advantage of the latest OpenAI platform features. Compare
-        [Chat Completions with Responses](https://platform.openai.com/docs/guides/responses-vs-chat-completions?api-mode=responses).
+        [Responses](https://developers.openai.com/api/reference/resources/responses) to
+        take advantage of the latest OpenAI platform features. Compare
+        [Chat Completions with Responses](https://developers.openai.com/api/docs/guides/migrate-to-responses?api-mode=responses).
 
         ---
 
         Creates a model response for the given chat conversation. Learn more in the
-        [text generation](https://platform.openai.com/docs/guides/text-generation),
-        [vision](https://platform.openai.com/docs/guides/vision), and
-        [audio](https://platform.openai.com/docs/guides/audio) guides.
+        [text generation](https://developers.openai.com/api/docs/guides/text),
+        [vision](https://developers.openai.com/api/docs/guides/images-vision), and
+        [audio](https://developers.openai.com/api/docs/guides/audio) guides.
 
         Parameter support can differ depending on the model used to generate the
         response, particularly for newer reasoning models. Parameters that are only
         supported for reasoning models are noted below. For the current state of
         unsupported parameters in reasoning models,
-        [refer to the reasoning guide](https://platform.openai.com/docs/guides/reasoning).
+        [refer to the reasoning guide](https://developers.openai.com/api/docs/guides/reasoning).
 
         Returns a chat completion object, or a streamed sequence of chat completion
         chunk objects if the request is streamed.
 
         Args:
           messages: A list of messages comprising the conversation so far. Depending on the
-              [model](https://platform.openai.com/docs/models) you use, different message
-              types (modalities) are supported, like
-              [text](https://platform.openai.com/docs/guides/text-generation),
-              [images](https://platform.openai.com/docs/guides/vision), and
-              [audio](https://platform.openai.com/docs/guides/audio).
+              [model](https://developers.openai.com/api/docs/models) you use, different
+              message types (modalities) are supported, like
+              [text](https://developers.openai.com/api/docs/guides/text),
+              [images](https://developers.openai.com/api/docs/guides/images-vision), and
+              [audio](https://developers.openai.com/api/docs/guides/audio).
 
-          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
-              wide range of models with different capabilities, performance characteristics,
-              and price points. Refer to the
-              [model guide](https://platform.openai.com/docs/models) to browse and compare
-              available models.
+          model: Model ID used to generate the response, like `gpt-6-astra` or `o3`. OpenAI
+              offers a wide range of models with different capabilities, performance
+              characteristics, and price points. Refer to the
+              [model guide](https://developers.openai.com/api/docs/models) to browse and
+              compare available models.
 
           stream: If set to true, the model response data will be streamed to the client as it is
               generated using
               [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
               See the
-              [Streaming section below](https://platform.openai.com/docs/api-reference/chat/streaming)
+              [Streaming section below](https://developers.openai.com/api/reference/resources/chat/subresources/completions/streaming-events)
               for more information, along with the
-              [streaming responses](https://platform.openai.com/docs/guides/streaming-responses)
+              [streaming responses](https://developers.openai.com/api/docs/guides/streaming-responses)
               guide for more information on how to handle the streaming events.
 
           audio: Parameters for audio output. Required when audio output is requested with
               `modalities: ["audio"]`.
-              [Learn more](https://platform.openai.com/docs/guides/audio).
+              [Learn more](https://developers.openai.com/api/docs/guides/audio).
 
           frequency_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on their
               existing frequency in the text so far, decreasing the model's likelihood to
@@ -710,15 +692,15 @@ class Completions(SyncAPIResource):
 
           max_completion_tokens: An upper bound for the number of tokens that can be generated for a completion,
               including visible output tokens and
-              [reasoning tokens](https://platform.openai.com/docs/guides/reasoning).
+              [reasoning tokens](https://developers.openai.com/api/docs/guides/reasoning).
 
-          max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the chat
-              completion. This value can be used to control
+          max_tokens: The maximum number of [tokens](https://platform.openai.com/tokenizer) that can
+              be generated in the chat completion. This value can be used to control
               [costs](https://openai.com/api/pricing/) for text generated via API.
 
               This value is now deprecated in favor of `max_completion_tokens`, and is not
               compatible with
-              [o-series models](https://platform.openai.com/docs/guides/reasoning).
+              [o-series models](https://developers.openai.com/api/docs/guides/reasoning).
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format, and
@@ -733,8 +715,8 @@ class Completions(SyncAPIResource):
               `["text"]`
 
               The `gpt-4o-audio-preview` model can also be used to
-              [generate audio](https://platform.openai.com/docs/guides/audio). To request that
-              this model generate both text and audio responses, you can use:
+              [generate audio](https://developers.openai.com/api/docs/guides/audio). To
+              request that this model generate both text and audio responses, you can use:
 
               `["text", "audio"]`
 
@@ -745,11 +727,14 @@ class Completions(SyncAPIResource):
               choices. Keep `n` as `1` to minimize costs.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
+              [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
               during tool use.
 
-          prediction: Static predicted output content, such as the content of a text file that is
-              being regenerated.
+          prediction: Configuration for a
+              [Predicted Output](https://developers.openai.com/api/docs/guides/predicted-outputs),
+              which can greatly improve response times when large parts of the model response
+              are known ahead of time. This is most common when you are regenerating a file
+              with only minor changes to most of the content.
 
           presence_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on
               whether they appear in the text so far, increasing the model's likelihood to
@@ -757,7 +742,7 @@ class Completions(SyncAPIResource):
 
           prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
               hit rates. Replaces the `user` field.
-              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+              [Learn more](https://developers.openai.com/api/docs/guides/prompt-caching).
 
           prompt_cache_options: Options for prompt caching. Supported for `gpt-5.6` and later models. By
               default, OpenAI automatically chooses one implicit cache breakpoint. You can add
@@ -766,7 +751,7 @@ class Completions(SyncAPIResource):
               up to the latest 80 breakpoints in the conversation, without a content-block
               lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The
               `ttl` defaults to `30m`, which is currently the only supported value. See the
-              [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching)
+              [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching)
               for current details.
 
           prompt_cache_retention: Deprecated. Use `prompt_cache_options.ttl` instead.
@@ -774,7 +759,7 @@ class Completions(SyncAPIResource):
               The retention policy for the prompt cache. Set to `24h` to enable extended
               prompt caching, which keeps cached prefixes active for longer, up to a maximum
               of 24 hours.
-              [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+              [Learn more](https://developers.openai.com/api/docs/guides/prompt-caching#prompt-cache-retention).
               This field expresses a maximum retention policy, while
               `prompt_cache_options.ttl` expresses a minimum cache lifetime. The two fields
               are independent and do not interact. For `gpt-5.5`, `gpt-5.5-pro`, and future
@@ -791,7 +776,7 @@ class Completions(SyncAPIResource):
               are `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, and `max`. Reducing
               reasoning effort can result in faster responses and fewer tokens used on
               reasoning in a response. Not all reasoning models support every value. See the
-              [reasoning guide](https://platform.openai.com/docs/guides/reasoning) for
+              [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
               model-specific support.
 
           response_format: An object specifying the format that the model must output.
@@ -799,7 +784,7 @@ class Completions(SyncAPIResource):
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
               Outputs which ensures the model will match your supplied JSON schema. Learn more
               in the
-              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+              [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables the older JSON mode, which
               ensures the message the model generates is valid JSON. Using `json_schema` is
@@ -807,10 +792,10 @@ class Completions(SyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user, with a maximum length of 64 characters. We recommend
+              identifies each user, with a maximum length of 128 characters. We recommend
               hashing their username or email address, in order to avoid sending us any
               identifying information.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
@@ -825,9 +810,15 @@ class Completions(SyncAPIResource):
                 will use 'default'.
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
-              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                '[priority](https://openai.com/api-priority-processing/)', then the request
-                will be processed with the corresponding service tier.
+              - If set to
+                '[flex](https://developers.openai.com/api/docs/guides/flex-processing)', then
+                the request will be processed with the Flex Processing service tier.
+              - To opt-in to
+                [Fast mode](https://developers.openai.com/api/docs/guides/fast-mode) at the
+                request level, include the `service_tier=fast` or `service_tier=priority`
+                parameter for Responses or Chat Completions. The response will show
+                `service_tier=priority` regardless of if you specify `service_tier=fast` or
+                `priority` in your request.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -841,8 +832,9 @@ class Completions(SyncAPIResource):
               returned text will not contain the stop sequence.
 
           store: Whether or not to store the output of this chat completion request for use in
-              our [model distillation](https://platform.openai.com/docs/guides/distillation)
-              or [evals](https://platform.openai.com/docs/guides/evals) products.
+              our
+              [model distillation](https://developers.openai.com/api/docs/guides/supervised-fine-tuning#distilling-from-a-larger-model)
+              or [evals](https://developers.openai.com/api/docs/guides/evals) products.
 
               Supports text and image inputs. Note: image inputs over 8MB will be dropped.
 
@@ -864,8 +856,9 @@ class Completions(SyncAPIResource):
               are present.
 
           tools: A list of tools the model may call. You can provide either
-              [custom tools](https://platform.openai.com/docs/guides/function-calling#custom-tools)
-              or [function tools](https://platform.openai.com/docs/guides/function-calling).
+              [custom tools](https://developers.openai.com/api/docs/guides/function-calling#custom-tools)
+              or
+              [function tools](https://developers.openai.com/api/docs/guides/function-calling).
 
           top_logprobs: An integer between 0 and 20 specifying the maximum number of most likely tokens
               to return at each token position, each with an associated log probability. In
@@ -882,15 +875,16 @@ class Completions(SyncAPIResource):
               `prompt_cache_key` instead to maintain caching optimizations. A stable
               identifier for your end-users. Used to boost cache hit rates by better bucketing
               similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           verbosity: Constrains the verbosity of the model's response. Lower values will result in
               more concise responses, while higher values will result in more verbose
-              responses. Currently supported values are `low`, `medium`, and `high`.
+              responses. Currently supported values are `low`, `medium`, and `high`. The
+              default is `medium`.
 
           web_search_options: This tool searches the web for relevant results to use in a response. Learn more
               about the
-              [web search tool](https://platform.openai.com/docs/guides/tools-web-search?api-mode=chat).
+              [web search tool](https://developers.openai.com/api/docs/guides/tools-web-search).
 
           extra_headers: Send extra headers
 
@@ -924,15 +918,15 @@ class Completions(SyncAPIResource):
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: completion_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
         response_format: completion_create_params.ResponseFormat | Omit = omit,
-        safety_identifier: str | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
-        stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        stop: Union[str, SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -948,56 +942,56 @@ class Completions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ChatCompletion | Stream[ChatCompletionChunk]:
         """
         **Starting a new project?** We recommend trying
-        [Responses](https://platform.openai.com/docs/api-reference/responses) to take
-        advantage of the latest OpenAI platform features. Compare
-        [Chat Completions with Responses](https://platform.openai.com/docs/guides/responses-vs-chat-completions?api-mode=responses).
+        [Responses](https://developers.openai.com/api/reference/resources/responses) to
+        take advantage of the latest OpenAI platform features. Compare
+        [Chat Completions with Responses](https://developers.openai.com/api/docs/guides/migrate-to-responses?api-mode=responses).
 
         ---
 
         Creates a model response for the given chat conversation. Learn more in the
-        [text generation](https://platform.openai.com/docs/guides/text-generation),
-        [vision](https://platform.openai.com/docs/guides/vision), and
-        [audio](https://platform.openai.com/docs/guides/audio) guides.
+        [text generation](https://developers.openai.com/api/docs/guides/text),
+        [vision](https://developers.openai.com/api/docs/guides/images-vision), and
+        [audio](https://developers.openai.com/api/docs/guides/audio) guides.
 
         Parameter support can differ depending on the model used to generate the
         response, particularly for newer reasoning models. Parameters that are only
         supported for reasoning models are noted below. For the current state of
         unsupported parameters in reasoning models,
-        [refer to the reasoning guide](https://platform.openai.com/docs/guides/reasoning).
+        [refer to the reasoning guide](https://developers.openai.com/api/docs/guides/reasoning).
 
         Returns a chat completion object, or a streamed sequence of chat completion
         chunk objects if the request is streamed.
 
         Args:
           messages: A list of messages comprising the conversation so far. Depending on the
-              [model](https://platform.openai.com/docs/models) you use, different message
-              types (modalities) are supported, like
-              [text](https://platform.openai.com/docs/guides/text-generation),
-              [images](https://platform.openai.com/docs/guides/vision), and
-              [audio](https://platform.openai.com/docs/guides/audio).
+              [model](https://developers.openai.com/api/docs/models) you use, different
+              message types (modalities) are supported, like
+              [text](https://developers.openai.com/api/docs/guides/text),
+              [images](https://developers.openai.com/api/docs/guides/images-vision), and
+              [audio](https://developers.openai.com/api/docs/guides/audio).
 
-          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
-              wide range of models with different capabilities, performance characteristics,
-              and price points. Refer to the
-              [model guide](https://platform.openai.com/docs/models) to browse and compare
-              available models.
+          model: Model ID used to generate the response, like `gpt-6-astra` or `o3`. OpenAI
+              offers a wide range of models with different capabilities, performance
+              characteristics, and price points. Refer to the
+              [model guide](https://developers.openai.com/api/docs/models) to browse and
+              compare available models.
 
           stream: If set to true, the model response data will be streamed to the client as it is
               generated using
               [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
               See the
-              [Streaming section below](https://platform.openai.com/docs/api-reference/chat/streaming)
+              [Streaming section below](https://developers.openai.com/api/reference/resources/chat/subresources/completions/streaming-events)
               for more information, along with the
-              [streaming responses](https://platform.openai.com/docs/guides/streaming-responses)
+              [streaming responses](https://developers.openai.com/api/docs/guides/streaming-responses)
               guide for more information on how to handle the streaming events.
 
           audio: Parameters for audio output. Required when audio output is requested with
               `modalities: ["audio"]`.
-              [Learn more](https://platform.openai.com/docs/guides/audio).
+              [Learn more](https://developers.openai.com/api/docs/guides/audio).
 
           frequency_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on their
               existing frequency in the text so far, decreasing the model's likelihood to
@@ -1037,15 +1031,15 @@ class Completions(SyncAPIResource):
 
           max_completion_tokens: An upper bound for the number of tokens that can be generated for a completion,
               including visible output tokens and
-              [reasoning tokens](https://platform.openai.com/docs/guides/reasoning).
+              [reasoning tokens](https://developers.openai.com/api/docs/guides/reasoning).
 
-          max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the chat
-              completion. This value can be used to control
+          max_tokens: The maximum number of [tokens](https://platform.openai.com/tokenizer) that can
+              be generated in the chat completion. This value can be used to control
               [costs](https://openai.com/api/pricing/) for text generated via API.
 
               This value is now deprecated in favor of `max_completion_tokens`, and is not
               compatible with
-              [o-series models](https://platform.openai.com/docs/guides/reasoning).
+              [o-series models](https://developers.openai.com/api/docs/guides/reasoning).
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format, and
@@ -1060,8 +1054,8 @@ class Completions(SyncAPIResource):
               `["text"]`
 
               The `gpt-4o-audio-preview` model can also be used to
-              [generate audio](https://platform.openai.com/docs/guides/audio). To request that
-              this model generate both text and audio responses, you can use:
+              [generate audio](https://developers.openai.com/api/docs/guides/audio). To
+              request that this model generate both text and audio responses, you can use:
 
               `["text", "audio"]`
 
@@ -1072,11 +1066,14 @@ class Completions(SyncAPIResource):
               choices. Keep `n` as `1` to minimize costs.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
+              [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
               during tool use.
 
-          prediction: Static predicted output content, such as the content of a text file that is
-              being regenerated.
+          prediction: Configuration for a
+              [Predicted Output](https://developers.openai.com/api/docs/guides/predicted-outputs),
+              which can greatly improve response times when large parts of the model response
+              are known ahead of time. This is most common when you are regenerating a file
+              with only minor changes to most of the content.
 
           presence_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on
               whether they appear in the text so far, increasing the model's likelihood to
@@ -1084,7 +1081,7 @@ class Completions(SyncAPIResource):
 
           prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
               hit rates. Replaces the `user` field.
-              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+              [Learn more](https://developers.openai.com/api/docs/guides/prompt-caching).
 
           prompt_cache_options: Options for prompt caching. Supported for `gpt-5.6` and later models. By
               default, OpenAI automatically chooses one implicit cache breakpoint. You can add
@@ -1093,7 +1090,7 @@ class Completions(SyncAPIResource):
               up to the latest 80 breakpoints in the conversation, without a content-block
               lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The
               `ttl` defaults to `30m`, which is currently the only supported value. See the
-              [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching)
+              [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching)
               for current details.
 
           prompt_cache_retention: Deprecated. Use `prompt_cache_options.ttl` instead.
@@ -1101,7 +1098,7 @@ class Completions(SyncAPIResource):
               The retention policy for the prompt cache. Set to `24h` to enable extended
               prompt caching, which keeps cached prefixes active for longer, up to a maximum
               of 24 hours.
-              [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+              [Learn more](https://developers.openai.com/api/docs/guides/prompt-caching#prompt-cache-retention).
               This field expresses a maximum retention policy, while
               `prompt_cache_options.ttl` expresses a minimum cache lifetime. The two fields
               are independent and do not interact. For `gpt-5.5`, `gpt-5.5-pro`, and future
@@ -1118,7 +1115,7 @@ class Completions(SyncAPIResource):
               are `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, and `max`. Reducing
               reasoning effort can result in faster responses and fewer tokens used on
               reasoning in a response. Not all reasoning models support every value. See the
-              [reasoning guide](https://platform.openai.com/docs/guides/reasoning) for
+              [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
               model-specific support.
 
           response_format: An object specifying the format that the model must output.
@@ -1126,7 +1123,7 @@ class Completions(SyncAPIResource):
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
               Outputs which ensures the model will match your supplied JSON schema. Learn more
               in the
-              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+              [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables the older JSON mode, which
               ensures the message the model generates is valid JSON. Using `json_schema` is
@@ -1134,10 +1131,10 @@ class Completions(SyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user, with a maximum length of 64 characters. We recommend
+              identifies each user, with a maximum length of 128 characters. We recommend
               hashing their username or email address, in order to avoid sending us any
               identifying information.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
@@ -1152,9 +1149,15 @@ class Completions(SyncAPIResource):
                 will use 'default'.
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
-              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                '[priority](https://openai.com/api-priority-processing/)', then the request
-                will be processed with the corresponding service tier.
+              - If set to
+                '[flex](https://developers.openai.com/api/docs/guides/flex-processing)', then
+                the request will be processed with the Flex Processing service tier.
+              - To opt-in to
+                [Fast mode](https://developers.openai.com/api/docs/guides/fast-mode) at the
+                request level, include the `service_tier=fast` or `service_tier=priority`
+                parameter for Responses or Chat Completions. The response will show
+                `service_tier=priority` regardless of if you specify `service_tier=fast` or
+                `priority` in your request.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -1168,8 +1171,9 @@ class Completions(SyncAPIResource):
               returned text will not contain the stop sequence.
 
           store: Whether or not to store the output of this chat completion request for use in
-              our [model distillation](https://platform.openai.com/docs/guides/distillation)
-              or [evals](https://platform.openai.com/docs/guides/evals) products.
+              our
+              [model distillation](https://developers.openai.com/api/docs/guides/supervised-fine-tuning#distilling-from-a-larger-model)
+              or [evals](https://developers.openai.com/api/docs/guides/evals) products.
 
               Supports text and image inputs. Note: image inputs over 8MB will be dropped.
 
@@ -1191,8 +1195,9 @@ class Completions(SyncAPIResource):
               are present.
 
           tools: A list of tools the model may call. You can provide either
-              [custom tools](https://platform.openai.com/docs/guides/function-calling#custom-tools)
-              or [function tools](https://platform.openai.com/docs/guides/function-calling).
+              [custom tools](https://developers.openai.com/api/docs/guides/function-calling#custom-tools)
+              or
+              [function tools](https://developers.openai.com/api/docs/guides/function-calling).
 
           top_logprobs: An integer between 0 and 20 specifying the maximum number of most likely tokens
               to return at each token position, each with an associated log probability. In
@@ -1209,15 +1214,16 @@ class Completions(SyncAPIResource):
               `prompt_cache_key` instead to maintain caching optimizations. A stable
               identifier for your end-users. Used to boost cache hit rates by better bucketing
               similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           verbosity: Constrains the verbosity of the model's response. Lower values will result in
               more concise responses, while higher values will result in more verbose
-              responses. Currently supported values are `low`, `medium`, and `high`.
+              responses. Currently supported values are `low`, `medium`, and `high`. The
+              default is `medium`.
 
           web_search_options: This tool searches the web for relevant results to use in a response. Learn more
               about the
-              [web search tool](https://platform.openai.com/docs/guides/tools-web-search?api-mode=chat).
+              [web search tool](https://developers.openai.com/api/docs/guides/tools-web-search).
 
           extra_headers: Send extra headers
 
@@ -1250,15 +1256,15 @@ class Completions(SyncAPIResource):
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: completion_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
         response_format: completion_create_params.ResponseFormat | Omit = omit,
-        safety_identifier: str | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
-        stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        stop: Union[str, SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
@@ -1275,15 +1281,17 @@ class Completions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ChatCompletion | Stream[ChatCompletionChunk]:
         validate_response_format(response_format)
         return self._post(
             "/chat/completions",
             body=maybe_transform(
                 {
-                    "messages": messages,
                     "model": model,
+                    "stream": stream,
+                    "service_tier": service_tier,
+                    "messages": messages,
                     "audio": audio,
                     "frequency_penalty": frequency_penalty,
                     "function_call": function_call,
@@ -1306,10 +1314,8 @@ class Completions(SyncAPIResource):
                     "response_format": response_format,
                     "safety_identifier": safety_identifier,
                     "seed": seed,
-                    "service_tier": service_tier,
                     "stop": stop,
                     "store": store,
-                    "stream": stream,
                     "stream_options": stream_options,
                     "temperature": temperature,
                     "tool_choice": tool_choice,
@@ -1345,7 +1351,7 @@ class Completions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ChatCompletion:
         """Get a stored chat completion.
 
@@ -1385,7 +1391,7 @@ class Completions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ChatCompletion:
         """Modify a stored chat completion.
 
@@ -1437,7 +1443,7 @@ class Completions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[ChatCompletion]:
         """List stored Chat Completions.
 
@@ -1499,7 +1505,7 @@ class Completions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ChatCompletionDeleted:
         """Delete a stored chat completion.
 
@@ -1550,14 +1556,14 @@ class Completions(SyncAPIResource):
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: completion_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
-        safety_identifier: str | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
-        stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        stop: Union[str, SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -1568,12 +1574,10 @@ class Completions(SyncAPIResource):
         user: str | Omit = omit,
         verbosity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
         web_search_options: completion_create_params.WebSearchOptions | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ChatCompletionStreamManager[ResponseFormatT]:
         """Wrapper over the `client.chat.completions.create(stream=True)` method that provides a more granular event API
         and automatic accumulation of each delta.
@@ -1584,12 +1588,12 @@ class Completions(SyncAPIResource):
 
         ```py
         with client.chat.completions.stream(
-            model="gpt-4o-2024-08-06",
+            model=\"gpt-4o-2024-08-06\",
             messages=[...],
         ) as stream:
             for event in stream:
-                if event.type == "content.delta":
-                    print(event.delta, flush=True, end="")
+                if event.type == \"content.delta\":
+                    print(event.delta, flush=True, end=\"\")
         ```
 
         When the context manager is entered, a `ChatCompletionStream` instance is returned which, like `.create(stream=True)` is an iterator. The full list of events that are yielded by the iterator are outlined in [these docs](https://github.com/openai/openai-python/blob/main/helpers.md#chat-completions-events).
@@ -1597,18 +1601,12 @@ class Completions(SyncAPIResource):
         When the context manager exits, the response will be closed, however the `stream` instance is still available outside
         the context manager.
         """
-        extra_headers = {
-            "X-Stainless-Helper-Method": "chat.completions.stream",
-            **(extra_headers or {}),
-        }
-
-        api_request: partial[Stream[ChatCompletionChunk]] = partial(
-            self.create,
+        return stream(
+            self,
             messages=messages,
             model=model,
             audio=audio,
-            stream=True,
-            response_format=_type_to_response_format(response_format),
+            response_format=response_format,
             frequency_penalty=frequency_penalty,
             function_call=function_call,
             functions=functions,
@@ -1630,8 +1628,8 @@ class Completions(SyncAPIResource):
             safety_identifier=safety_identifier,
             seed=seed,
             service_tier=service_tier,
-            store=store,
             stop=stop,
+            store=store,
             stream_options=stream_options,
             temperature=temperature,
             tool_choice=tool_choice,
@@ -1645,11 +1643,6 @@ class Completions(SyncAPIResource):
             extra_query=extra_query,
             extra_body=extra_body,
             timeout=timeout,
-        )
-        return ChatCompletionStreamManager(
-            api_request,
-            response_format=response_format,
-            input_tools=tools,
         )
 
 
@@ -1705,14 +1698,14 @@ class AsyncCompletions(AsyncAPIResource):
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: completion_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
-        safety_identifier: str | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
-        stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        stop: Union[str, SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -1723,12 +1716,10 @@ class AsyncCompletions(AsyncAPIResource):
         user: str | Omit = omit,
         verbosity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
         web_search_options: completion_create_params.WebSearchOptions | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ParsedChatCompletion[ResponseFormatT]:
         """Wrapper over the `client.chat.completions.create()` method that provides richer integrations with Python specific types
         & returns a `ParsedChatCompletion` object, which is a subclass of the standard `ChatCompletion` class.
@@ -1738,7 +1729,7 @@ class AsyncCompletions(AsyncAPIResource):
 
         This method will also automatically parse `function` tool calls if:
         - You use the `openai.pydantic_function_tool()` helper method
-        - You mark your tool schema with `"strict": True`
+        - You mark your tool schema with `\"strict\": True`
 
         Example usage:
         ```py
@@ -1758,10 +1749,10 @@ class AsyncCompletions(AsyncAPIResource):
 
         client = AsyncOpenAI()
         completion = await client.chat.completions.parse(
-            model="gpt-4o-2024-08-06",
+            model=\"gpt-4o-2024-08-06\",
             messages=[
-                {"role": "system", "content": "You are a helpful math tutor."},
-                {"role": "user", "content": "solve 8x + 31 = 2"},
+                {\"role\": \"system\", \"content\": \"You are a helpful math tutor.\"},
+                {\"role\": \"user\", \"content\": \"solve 8x + 31 = 2\"},
             ],
             response_format=MathResponse,
         )
@@ -1769,79 +1760,51 @@ class AsyncCompletions(AsyncAPIResource):
         message = completion.choices[0].message
         if message.parsed:
             print(message.parsed.steps)
-            print("answer: ", message.parsed.final_answer)
+            print(\"answer: \", message.parsed.final_answer)
         ```
         """
-        _validate_input_tools(tools)
-
-        extra_headers = {
-            "X-Stainless-Helper-Method": "chat.completions.parse",
-            **(extra_headers or {}),
-        }
-
-        def parser(raw_completion: ChatCompletion) -> ParsedChatCompletion[ResponseFormatT]:
-            return _parse_chat_completion(
-                response_format=response_format,
-                chat_completion=raw_completion,
-                input_tools=tools,
-            )
-
-        return await self._post(
-            "/chat/completions",
-            body=await async_maybe_transform(
-                {
-                    "messages": messages,
-                    "model": model,
-                    "audio": audio,
-                    "frequency_penalty": frequency_penalty,
-                    "function_call": function_call,
-                    "functions": functions,
-                    "logit_bias": logit_bias,
-                    "logprobs": logprobs,
-                    "max_completion_tokens": max_completion_tokens,
-                    "max_tokens": max_tokens,
-                    "metadata": metadata,
-                    "modalities": modalities,
-                    "moderation": moderation,
-                    "n": n,
-                    "parallel_tool_calls": parallel_tool_calls,
-                    "prediction": prediction,
-                    "presence_penalty": presence_penalty,
-                    "prompt_cache_key": prompt_cache_key,
-                    "prompt_cache_options": prompt_cache_options,
-                    "prompt_cache_retention": prompt_cache_retention,
-                    "reasoning_effort": reasoning_effort,
-                    "response_format": _type_to_response_format(response_format),
-                    "safety_identifier": safety_identifier,
-                    "seed": seed,
-                    "service_tier": service_tier,
-                    "store": store,
-                    "stop": stop,
-                    "stream": False,
-                    "stream_options": stream_options,
-                    "temperature": temperature,
-                    "tool_choice": tool_choice,
-                    "tools": tools,
-                    "top_logprobs": top_logprobs,
-                    "top_p": top_p,
-                    "user": user,
-                    "verbosity": verbosity,
-                    "web_search_options": web_search_options,
-                },
-                completion_create_params.CompletionCreateParams,
-            ),
-            options=make_request_options(
-                extra_headers=extra_headers,
-                extra_query=extra_query,
-                extra_body=extra_body,
-                timeout=timeout,
-                post_parser=parser,
-                security={"bearer_auth": True},
-            ),
-            # we turn the `ChatCompletion` instance into a `ParsedChatCompletion`
-            # in the `parser` function above
-            cast_to=cast(Type[ParsedChatCompletion[ResponseFormatT]], ChatCompletion),
-            stream=False,
+        return await async_parse(
+            self,
+            messages=messages,
+            model=model,
+            audio=audio,
+            response_format=response_format,
+            frequency_penalty=frequency_penalty,
+            function_call=function_call,
+            functions=functions,
+            logit_bias=logit_bias,
+            logprobs=logprobs,
+            max_completion_tokens=max_completion_tokens,
+            max_tokens=max_tokens,
+            metadata=metadata,
+            modalities=modalities,
+            moderation=moderation,
+            n=n,
+            parallel_tool_calls=parallel_tool_calls,
+            prediction=prediction,
+            presence_penalty=presence_penalty,
+            prompt_cache_key=prompt_cache_key,
+            prompt_cache_options=prompt_cache_options,
+            prompt_cache_retention=prompt_cache_retention,
+            reasoning_effort=reasoning_effort,
+            safety_identifier=safety_identifier,
+            seed=seed,
+            service_tier=service_tier,
+            stop=stop,
+            store=store,
+            stream_options=stream_options,
+            temperature=temperature,
+            tool_choice=tool_choice,
+            tools=tools,
+            top_logprobs=top_logprobs,
+            top_p=top_p,
+            user=user,
+            verbosity=verbosity,
+            web_search_options=web_search_options,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
         )
 
     @overload
@@ -1865,15 +1828,15 @@ class AsyncCompletions(AsyncAPIResource):
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: completion_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
         response_format: completion_create_params.ResponseFormat | Omit = omit,
-        safety_identifier: str | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
-        stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        stop: Union[str, SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Omit = omit,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
@@ -1890,47 +1853,47 @@ class AsyncCompletions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ChatCompletion:
         """
         **Starting a new project?** We recommend trying
-        [Responses](https://platform.openai.com/docs/api-reference/responses) to take
-        advantage of the latest OpenAI platform features. Compare
-        [Chat Completions with Responses](https://platform.openai.com/docs/guides/responses-vs-chat-completions?api-mode=responses).
+        [Responses](https://developers.openai.com/api/reference/resources/responses) to
+        take advantage of the latest OpenAI platform features. Compare
+        [Chat Completions with Responses](https://developers.openai.com/api/docs/guides/migrate-to-responses?api-mode=responses).
 
         ---
 
         Creates a model response for the given chat conversation. Learn more in the
-        [text generation](https://platform.openai.com/docs/guides/text-generation),
-        [vision](https://platform.openai.com/docs/guides/vision), and
-        [audio](https://platform.openai.com/docs/guides/audio) guides.
+        [text generation](https://developers.openai.com/api/docs/guides/text),
+        [vision](https://developers.openai.com/api/docs/guides/images-vision), and
+        [audio](https://developers.openai.com/api/docs/guides/audio) guides.
 
         Parameter support can differ depending on the model used to generate the
         response, particularly for newer reasoning models. Parameters that are only
         supported for reasoning models are noted below. For the current state of
         unsupported parameters in reasoning models,
-        [refer to the reasoning guide](https://platform.openai.com/docs/guides/reasoning).
+        [refer to the reasoning guide](https://developers.openai.com/api/docs/guides/reasoning).
 
         Returns a chat completion object, or a streamed sequence of chat completion
         chunk objects if the request is streamed.
 
         Args:
           messages: A list of messages comprising the conversation so far. Depending on the
-              [model](https://platform.openai.com/docs/models) you use, different message
-              types (modalities) are supported, like
-              [text](https://platform.openai.com/docs/guides/text-generation),
-              [images](https://platform.openai.com/docs/guides/vision), and
-              [audio](https://platform.openai.com/docs/guides/audio).
+              [model](https://developers.openai.com/api/docs/models) you use, different
+              message types (modalities) are supported, like
+              [text](https://developers.openai.com/api/docs/guides/text),
+              [images](https://developers.openai.com/api/docs/guides/images-vision), and
+              [audio](https://developers.openai.com/api/docs/guides/audio).
 
-          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
-              wide range of models with different capabilities, performance characteristics,
-              and price points. Refer to the
-              [model guide](https://platform.openai.com/docs/models) to browse and compare
-              available models.
+          model: Model ID used to generate the response, like `gpt-6-astra` or `o3`. OpenAI
+              offers a wide range of models with different capabilities, performance
+              characteristics, and price points. Refer to the
+              [model guide](https://developers.openai.com/api/docs/models) to browse and
+              compare available models.
 
           audio: Parameters for audio output. Required when audio output is requested with
               `modalities: ["audio"]`.
-              [Learn more](https://platform.openai.com/docs/guides/audio).
+              [Learn more](https://developers.openai.com/api/docs/guides/audio).
 
           frequency_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on their
               existing frequency in the text so far, decreasing the model's likelihood to
@@ -1970,15 +1933,15 @@ class AsyncCompletions(AsyncAPIResource):
 
           max_completion_tokens: An upper bound for the number of tokens that can be generated for a completion,
               including visible output tokens and
-              [reasoning tokens](https://platform.openai.com/docs/guides/reasoning).
+              [reasoning tokens](https://developers.openai.com/api/docs/guides/reasoning).
 
-          max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the chat
-              completion. This value can be used to control
+          max_tokens: The maximum number of [tokens](https://platform.openai.com/tokenizer) that can
+              be generated in the chat completion. This value can be used to control
               [costs](https://openai.com/api/pricing/) for text generated via API.
 
               This value is now deprecated in favor of `max_completion_tokens`, and is not
               compatible with
-              [o-series models](https://platform.openai.com/docs/guides/reasoning).
+              [o-series models](https://developers.openai.com/api/docs/guides/reasoning).
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format, and
@@ -1993,8 +1956,8 @@ class AsyncCompletions(AsyncAPIResource):
               `["text"]`
 
               The `gpt-4o-audio-preview` model can also be used to
-              [generate audio](https://platform.openai.com/docs/guides/audio). To request that
-              this model generate both text and audio responses, you can use:
+              [generate audio](https://developers.openai.com/api/docs/guides/audio). To
+              request that this model generate both text and audio responses, you can use:
 
               `["text", "audio"]`
 
@@ -2005,11 +1968,14 @@ class AsyncCompletions(AsyncAPIResource):
               choices. Keep `n` as `1` to minimize costs.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
+              [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
               during tool use.
 
-          prediction: Static predicted output content, such as the content of a text file that is
-              being regenerated.
+          prediction: Configuration for a
+              [Predicted Output](https://developers.openai.com/api/docs/guides/predicted-outputs),
+              which can greatly improve response times when large parts of the model response
+              are known ahead of time. This is most common when you are regenerating a file
+              with only minor changes to most of the content.
 
           presence_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on
               whether they appear in the text so far, increasing the model's likelihood to
@@ -2017,7 +1983,7 @@ class AsyncCompletions(AsyncAPIResource):
 
           prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
               hit rates. Replaces the `user` field.
-              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+              [Learn more](https://developers.openai.com/api/docs/guides/prompt-caching).
 
           prompt_cache_options: Options for prompt caching. Supported for `gpt-5.6` and later models. By
               default, OpenAI automatically chooses one implicit cache breakpoint. You can add
@@ -2026,7 +1992,7 @@ class AsyncCompletions(AsyncAPIResource):
               up to the latest 80 breakpoints in the conversation, without a content-block
               lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The
               `ttl` defaults to `30m`, which is currently the only supported value. See the
-              [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching)
+              [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching)
               for current details.
 
           prompt_cache_retention: Deprecated. Use `prompt_cache_options.ttl` instead.
@@ -2034,7 +2000,7 @@ class AsyncCompletions(AsyncAPIResource):
               The retention policy for the prompt cache. Set to `24h` to enable extended
               prompt caching, which keeps cached prefixes active for longer, up to a maximum
               of 24 hours.
-              [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+              [Learn more](https://developers.openai.com/api/docs/guides/prompt-caching#prompt-cache-retention).
               This field expresses a maximum retention policy, while
               `prompt_cache_options.ttl` expresses a minimum cache lifetime. The two fields
               are independent and do not interact. For `gpt-5.5`, `gpt-5.5-pro`, and future
@@ -2051,7 +2017,7 @@ class AsyncCompletions(AsyncAPIResource):
               are `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, and `max`. Reducing
               reasoning effort can result in faster responses and fewer tokens used on
               reasoning in a response. Not all reasoning models support every value. See the
-              [reasoning guide](https://platform.openai.com/docs/guides/reasoning) for
+              [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
               model-specific support.
 
           response_format: An object specifying the format that the model must output.
@@ -2059,7 +2025,7 @@ class AsyncCompletions(AsyncAPIResource):
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
               Outputs which ensures the model will match your supplied JSON schema. Learn more
               in the
-              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+              [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables the older JSON mode, which
               ensures the message the model generates is valid JSON. Using `json_schema` is
@@ -2067,10 +2033,10 @@ class AsyncCompletions(AsyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user, with a maximum length of 64 characters. We recommend
+              identifies each user, with a maximum length of 128 characters. We recommend
               hashing their username or email address, in order to avoid sending us any
               identifying information.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
@@ -2085,9 +2051,15 @@ class AsyncCompletions(AsyncAPIResource):
                 will use 'default'.
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
-              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                '[priority](https://openai.com/api-priority-processing/)', then the request
-                will be processed with the corresponding service tier.
+              - If set to
+                '[flex](https://developers.openai.com/api/docs/guides/flex-processing)', then
+                the request will be processed with the Flex Processing service tier.
+              - To opt-in to
+                [Fast mode](https://developers.openai.com/api/docs/guides/fast-mode) at the
+                request level, include the `service_tier=fast` or `service_tier=priority`
+                parameter for Responses or Chat Completions. The response will show
+                `service_tier=priority` regardless of if you specify `service_tier=fast` or
+                `priority` in your request.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -2101,8 +2073,9 @@ class AsyncCompletions(AsyncAPIResource):
               returned text will not contain the stop sequence.
 
           store: Whether or not to store the output of this chat completion request for use in
-              our [model distillation](https://platform.openai.com/docs/guides/distillation)
-              or [evals](https://platform.openai.com/docs/guides/evals) products.
+              our
+              [model distillation](https://developers.openai.com/api/docs/guides/supervised-fine-tuning#distilling-from-a-larger-model)
+              or [evals](https://developers.openai.com/api/docs/guides/evals) products.
 
               Supports text and image inputs. Note: image inputs over 8MB will be dropped.
 
@@ -2110,9 +2083,9 @@ class AsyncCompletions(AsyncAPIResource):
               generated using
               [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
               See the
-              [Streaming section below](https://platform.openai.com/docs/api-reference/chat/streaming)
+              [Streaming section below](https://developers.openai.com/api/reference/resources/chat/subresources/completions/streaming-events)
               for more information, along with the
-              [streaming responses](https://platform.openai.com/docs/guides/streaming-responses)
+              [streaming responses](https://developers.openai.com/api/docs/guides/streaming-responses)
               guide for more information on how to handle the streaming events.
 
           stream_options: Options for streaming response. Only set this when you set `stream: true`.
@@ -2133,8 +2106,9 @@ class AsyncCompletions(AsyncAPIResource):
               are present.
 
           tools: A list of tools the model may call. You can provide either
-              [custom tools](https://platform.openai.com/docs/guides/function-calling#custom-tools)
-              or [function tools](https://platform.openai.com/docs/guides/function-calling).
+              [custom tools](https://developers.openai.com/api/docs/guides/function-calling#custom-tools)
+              or
+              [function tools](https://developers.openai.com/api/docs/guides/function-calling).
 
           top_logprobs: An integer between 0 and 20 specifying the maximum number of most likely tokens
               to return at each token position, each with an associated log probability. In
@@ -2151,15 +2125,16 @@ class AsyncCompletions(AsyncAPIResource):
               `prompt_cache_key` instead to maintain caching optimizations. A stable
               identifier for your end-users. Used to boost cache hit rates by better bucketing
               similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           verbosity: Constrains the verbosity of the model's response. Lower values will result in
               more concise responses, while higher values will result in more verbose
-              responses. Currently supported values are `low`, `medium`, and `high`.
+              responses. Currently supported values are `low`, `medium`, and `high`. The
+              default is `medium`.
 
           web_search_options: This tool searches the web for relevant results to use in a response. Learn more
               about the
-              [web search tool](https://platform.openai.com/docs/guides/tools-web-search?api-mode=chat).
+              [web search tool](https://developers.openai.com/api/docs/guides/tools-web-search).
 
           extra_headers: Send extra headers
 
@@ -2193,15 +2168,15 @@ class AsyncCompletions(AsyncAPIResource):
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: completion_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
         response_format: completion_create_params.ResponseFormat | Omit = omit,
-        safety_identifier: str | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
-        stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        stop: Union[str, SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -2217,56 +2192,56 @@ class AsyncCompletions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncStream[ChatCompletionChunk]:
         """
         **Starting a new project?** We recommend trying
-        [Responses](https://platform.openai.com/docs/api-reference/responses) to take
-        advantage of the latest OpenAI platform features. Compare
-        [Chat Completions with Responses](https://platform.openai.com/docs/guides/responses-vs-chat-completions?api-mode=responses).
+        [Responses](https://developers.openai.com/api/reference/resources/responses) to
+        take advantage of the latest OpenAI platform features. Compare
+        [Chat Completions with Responses](https://developers.openai.com/api/docs/guides/migrate-to-responses?api-mode=responses).
 
         ---
 
         Creates a model response for the given chat conversation. Learn more in the
-        [text generation](https://platform.openai.com/docs/guides/text-generation),
-        [vision](https://platform.openai.com/docs/guides/vision), and
-        [audio](https://platform.openai.com/docs/guides/audio) guides.
+        [text generation](https://developers.openai.com/api/docs/guides/text),
+        [vision](https://developers.openai.com/api/docs/guides/images-vision), and
+        [audio](https://developers.openai.com/api/docs/guides/audio) guides.
 
         Parameter support can differ depending on the model used to generate the
         response, particularly for newer reasoning models. Parameters that are only
         supported for reasoning models are noted below. For the current state of
         unsupported parameters in reasoning models,
-        [refer to the reasoning guide](https://platform.openai.com/docs/guides/reasoning).
+        [refer to the reasoning guide](https://developers.openai.com/api/docs/guides/reasoning).
 
         Returns a chat completion object, or a streamed sequence of chat completion
         chunk objects if the request is streamed.
 
         Args:
           messages: A list of messages comprising the conversation so far. Depending on the
-              [model](https://platform.openai.com/docs/models) you use, different message
-              types (modalities) are supported, like
-              [text](https://platform.openai.com/docs/guides/text-generation),
-              [images](https://platform.openai.com/docs/guides/vision), and
-              [audio](https://platform.openai.com/docs/guides/audio).
+              [model](https://developers.openai.com/api/docs/models) you use, different
+              message types (modalities) are supported, like
+              [text](https://developers.openai.com/api/docs/guides/text),
+              [images](https://developers.openai.com/api/docs/guides/images-vision), and
+              [audio](https://developers.openai.com/api/docs/guides/audio).
 
-          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
-              wide range of models with different capabilities, performance characteristics,
-              and price points. Refer to the
-              [model guide](https://platform.openai.com/docs/models) to browse and compare
-              available models.
+          model: Model ID used to generate the response, like `gpt-6-astra` or `o3`. OpenAI
+              offers a wide range of models with different capabilities, performance
+              characteristics, and price points. Refer to the
+              [model guide](https://developers.openai.com/api/docs/models) to browse and
+              compare available models.
 
           stream: If set to true, the model response data will be streamed to the client as it is
               generated using
               [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
               See the
-              [Streaming section below](https://platform.openai.com/docs/api-reference/chat/streaming)
+              [Streaming section below](https://developers.openai.com/api/reference/resources/chat/subresources/completions/streaming-events)
               for more information, along with the
-              [streaming responses](https://platform.openai.com/docs/guides/streaming-responses)
+              [streaming responses](https://developers.openai.com/api/docs/guides/streaming-responses)
               guide for more information on how to handle the streaming events.
 
           audio: Parameters for audio output. Required when audio output is requested with
               `modalities: ["audio"]`.
-              [Learn more](https://platform.openai.com/docs/guides/audio).
+              [Learn more](https://developers.openai.com/api/docs/guides/audio).
 
           frequency_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on their
               existing frequency in the text so far, decreasing the model's likelihood to
@@ -2306,15 +2281,15 @@ class AsyncCompletions(AsyncAPIResource):
 
           max_completion_tokens: An upper bound for the number of tokens that can be generated for a completion,
               including visible output tokens and
-              [reasoning tokens](https://platform.openai.com/docs/guides/reasoning).
+              [reasoning tokens](https://developers.openai.com/api/docs/guides/reasoning).
 
-          max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the chat
-              completion. This value can be used to control
+          max_tokens: The maximum number of [tokens](https://platform.openai.com/tokenizer) that can
+              be generated in the chat completion. This value can be used to control
               [costs](https://openai.com/api/pricing/) for text generated via API.
 
               This value is now deprecated in favor of `max_completion_tokens`, and is not
               compatible with
-              [o-series models](https://platform.openai.com/docs/guides/reasoning).
+              [o-series models](https://developers.openai.com/api/docs/guides/reasoning).
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format, and
@@ -2329,8 +2304,8 @@ class AsyncCompletions(AsyncAPIResource):
               `["text"]`
 
               The `gpt-4o-audio-preview` model can also be used to
-              [generate audio](https://platform.openai.com/docs/guides/audio). To request that
-              this model generate both text and audio responses, you can use:
+              [generate audio](https://developers.openai.com/api/docs/guides/audio). To
+              request that this model generate both text and audio responses, you can use:
 
               `["text", "audio"]`
 
@@ -2341,11 +2316,14 @@ class AsyncCompletions(AsyncAPIResource):
               choices. Keep `n` as `1` to minimize costs.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
+              [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
               during tool use.
 
-          prediction: Static predicted output content, such as the content of a text file that is
-              being regenerated.
+          prediction: Configuration for a
+              [Predicted Output](https://developers.openai.com/api/docs/guides/predicted-outputs),
+              which can greatly improve response times when large parts of the model response
+              are known ahead of time. This is most common when you are regenerating a file
+              with only minor changes to most of the content.
 
           presence_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on
               whether they appear in the text so far, increasing the model's likelihood to
@@ -2353,7 +2331,7 @@ class AsyncCompletions(AsyncAPIResource):
 
           prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
               hit rates. Replaces the `user` field.
-              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+              [Learn more](https://developers.openai.com/api/docs/guides/prompt-caching).
 
           prompt_cache_options: Options for prompt caching. Supported for `gpt-5.6` and later models. By
               default, OpenAI automatically chooses one implicit cache breakpoint. You can add
@@ -2362,7 +2340,7 @@ class AsyncCompletions(AsyncAPIResource):
               up to the latest 80 breakpoints in the conversation, without a content-block
               lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The
               `ttl` defaults to `30m`, which is currently the only supported value. See the
-              [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching)
+              [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching)
               for current details.
 
           prompt_cache_retention: Deprecated. Use `prompt_cache_options.ttl` instead.
@@ -2370,7 +2348,7 @@ class AsyncCompletions(AsyncAPIResource):
               The retention policy for the prompt cache. Set to `24h` to enable extended
               prompt caching, which keeps cached prefixes active for longer, up to a maximum
               of 24 hours.
-              [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+              [Learn more](https://developers.openai.com/api/docs/guides/prompt-caching#prompt-cache-retention).
               This field expresses a maximum retention policy, while
               `prompt_cache_options.ttl` expresses a minimum cache lifetime. The two fields
               are independent and do not interact. For `gpt-5.5`, `gpt-5.5-pro`, and future
@@ -2387,7 +2365,7 @@ class AsyncCompletions(AsyncAPIResource):
               are `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, and `max`. Reducing
               reasoning effort can result in faster responses and fewer tokens used on
               reasoning in a response. Not all reasoning models support every value. See the
-              [reasoning guide](https://platform.openai.com/docs/guides/reasoning) for
+              [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
               model-specific support.
 
           response_format: An object specifying the format that the model must output.
@@ -2395,7 +2373,7 @@ class AsyncCompletions(AsyncAPIResource):
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
               Outputs which ensures the model will match your supplied JSON schema. Learn more
               in the
-              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+              [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables the older JSON mode, which
               ensures the message the model generates is valid JSON. Using `json_schema` is
@@ -2403,10 +2381,10 @@ class AsyncCompletions(AsyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user, with a maximum length of 64 characters. We recommend
+              identifies each user, with a maximum length of 128 characters. We recommend
               hashing their username or email address, in order to avoid sending us any
               identifying information.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
@@ -2421,9 +2399,15 @@ class AsyncCompletions(AsyncAPIResource):
                 will use 'default'.
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
-              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                '[priority](https://openai.com/api-priority-processing/)', then the request
-                will be processed with the corresponding service tier.
+              - If set to
+                '[flex](https://developers.openai.com/api/docs/guides/flex-processing)', then
+                the request will be processed with the Flex Processing service tier.
+              - To opt-in to
+                [Fast mode](https://developers.openai.com/api/docs/guides/fast-mode) at the
+                request level, include the `service_tier=fast` or `service_tier=priority`
+                parameter for Responses or Chat Completions. The response will show
+                `service_tier=priority` regardless of if you specify `service_tier=fast` or
+                `priority` in your request.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -2437,8 +2421,9 @@ class AsyncCompletions(AsyncAPIResource):
               returned text will not contain the stop sequence.
 
           store: Whether or not to store the output of this chat completion request for use in
-              our [model distillation](https://platform.openai.com/docs/guides/distillation)
-              or [evals](https://platform.openai.com/docs/guides/evals) products.
+              our
+              [model distillation](https://developers.openai.com/api/docs/guides/supervised-fine-tuning#distilling-from-a-larger-model)
+              or [evals](https://developers.openai.com/api/docs/guides/evals) products.
 
               Supports text and image inputs. Note: image inputs over 8MB will be dropped.
 
@@ -2460,8 +2445,9 @@ class AsyncCompletions(AsyncAPIResource):
               are present.
 
           tools: A list of tools the model may call. You can provide either
-              [custom tools](https://platform.openai.com/docs/guides/function-calling#custom-tools)
-              or [function tools](https://platform.openai.com/docs/guides/function-calling).
+              [custom tools](https://developers.openai.com/api/docs/guides/function-calling#custom-tools)
+              or
+              [function tools](https://developers.openai.com/api/docs/guides/function-calling).
 
           top_logprobs: An integer between 0 and 20 specifying the maximum number of most likely tokens
               to return at each token position, each with an associated log probability. In
@@ -2478,15 +2464,16 @@ class AsyncCompletions(AsyncAPIResource):
               `prompt_cache_key` instead to maintain caching optimizations. A stable
               identifier for your end-users. Used to boost cache hit rates by better bucketing
               similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           verbosity: Constrains the verbosity of the model's response. Lower values will result in
               more concise responses, while higher values will result in more verbose
-              responses. Currently supported values are `low`, `medium`, and `high`.
+              responses. Currently supported values are `low`, `medium`, and `high`. The
+              default is `medium`.
 
           web_search_options: This tool searches the web for relevant results to use in a response. Learn more
               about the
-              [web search tool](https://platform.openai.com/docs/guides/tools-web-search?api-mode=chat).
+              [web search tool](https://developers.openai.com/api/docs/guides/tools-web-search).
 
           extra_headers: Send extra headers
 
@@ -2520,15 +2507,15 @@ class AsyncCompletions(AsyncAPIResource):
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: completion_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
         response_format: completion_create_params.ResponseFormat | Omit = omit,
-        safety_identifier: str | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
-        stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        stop: Union[str, SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -2544,56 +2531,56 @@ class AsyncCompletions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ChatCompletion | AsyncStream[ChatCompletionChunk]:
         """
         **Starting a new project?** We recommend trying
-        [Responses](https://platform.openai.com/docs/api-reference/responses) to take
-        advantage of the latest OpenAI platform features. Compare
-        [Chat Completions with Responses](https://platform.openai.com/docs/guides/responses-vs-chat-completions?api-mode=responses).
+        [Responses](https://developers.openai.com/api/reference/resources/responses) to
+        take advantage of the latest OpenAI platform features. Compare
+        [Chat Completions with Responses](https://developers.openai.com/api/docs/guides/migrate-to-responses?api-mode=responses).
 
         ---
 
         Creates a model response for the given chat conversation. Learn more in the
-        [text generation](https://platform.openai.com/docs/guides/text-generation),
-        [vision](https://platform.openai.com/docs/guides/vision), and
-        [audio](https://platform.openai.com/docs/guides/audio) guides.
+        [text generation](https://developers.openai.com/api/docs/guides/text),
+        [vision](https://developers.openai.com/api/docs/guides/images-vision), and
+        [audio](https://developers.openai.com/api/docs/guides/audio) guides.
 
         Parameter support can differ depending on the model used to generate the
         response, particularly for newer reasoning models. Parameters that are only
         supported for reasoning models are noted below. For the current state of
         unsupported parameters in reasoning models,
-        [refer to the reasoning guide](https://platform.openai.com/docs/guides/reasoning).
+        [refer to the reasoning guide](https://developers.openai.com/api/docs/guides/reasoning).
 
         Returns a chat completion object, or a streamed sequence of chat completion
         chunk objects if the request is streamed.
 
         Args:
           messages: A list of messages comprising the conversation so far. Depending on the
-              [model](https://platform.openai.com/docs/models) you use, different message
-              types (modalities) are supported, like
-              [text](https://platform.openai.com/docs/guides/text-generation),
-              [images](https://platform.openai.com/docs/guides/vision), and
-              [audio](https://platform.openai.com/docs/guides/audio).
+              [model](https://developers.openai.com/api/docs/models) you use, different
+              message types (modalities) are supported, like
+              [text](https://developers.openai.com/api/docs/guides/text),
+              [images](https://developers.openai.com/api/docs/guides/images-vision), and
+              [audio](https://developers.openai.com/api/docs/guides/audio).
 
-          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
-              wide range of models with different capabilities, performance characteristics,
-              and price points. Refer to the
-              [model guide](https://platform.openai.com/docs/models) to browse and compare
-              available models.
+          model: Model ID used to generate the response, like `gpt-6-astra` or `o3`. OpenAI
+              offers a wide range of models with different capabilities, performance
+              characteristics, and price points. Refer to the
+              [model guide](https://developers.openai.com/api/docs/models) to browse and
+              compare available models.
 
           stream: If set to true, the model response data will be streamed to the client as it is
               generated using
               [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
               See the
-              [Streaming section below](https://platform.openai.com/docs/api-reference/chat/streaming)
+              [Streaming section below](https://developers.openai.com/api/reference/resources/chat/subresources/completions/streaming-events)
               for more information, along with the
-              [streaming responses](https://platform.openai.com/docs/guides/streaming-responses)
+              [streaming responses](https://developers.openai.com/api/docs/guides/streaming-responses)
               guide for more information on how to handle the streaming events.
 
           audio: Parameters for audio output. Required when audio output is requested with
               `modalities: ["audio"]`.
-              [Learn more](https://platform.openai.com/docs/guides/audio).
+              [Learn more](https://developers.openai.com/api/docs/guides/audio).
 
           frequency_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on their
               existing frequency in the text so far, decreasing the model's likelihood to
@@ -2633,15 +2620,15 @@ class AsyncCompletions(AsyncAPIResource):
 
           max_completion_tokens: An upper bound for the number of tokens that can be generated for a completion,
               including visible output tokens and
-              [reasoning tokens](https://platform.openai.com/docs/guides/reasoning).
+              [reasoning tokens](https://developers.openai.com/api/docs/guides/reasoning).
 
-          max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the chat
-              completion. This value can be used to control
+          max_tokens: The maximum number of [tokens](https://platform.openai.com/tokenizer) that can
+              be generated in the chat completion. This value can be used to control
               [costs](https://openai.com/api/pricing/) for text generated via API.
 
               This value is now deprecated in favor of `max_completion_tokens`, and is not
               compatible with
-              [o-series models](https://platform.openai.com/docs/guides/reasoning).
+              [o-series models](https://developers.openai.com/api/docs/guides/reasoning).
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format, and
@@ -2656,8 +2643,8 @@ class AsyncCompletions(AsyncAPIResource):
               `["text"]`
 
               The `gpt-4o-audio-preview` model can also be used to
-              [generate audio](https://platform.openai.com/docs/guides/audio). To request that
-              this model generate both text and audio responses, you can use:
+              [generate audio](https://developers.openai.com/api/docs/guides/audio). To
+              request that this model generate both text and audio responses, you can use:
 
               `["text", "audio"]`
 
@@ -2668,11 +2655,14 @@ class AsyncCompletions(AsyncAPIResource):
               choices. Keep `n` as `1` to minimize costs.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
+              [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
               during tool use.
 
-          prediction: Static predicted output content, such as the content of a text file that is
-              being regenerated.
+          prediction: Configuration for a
+              [Predicted Output](https://developers.openai.com/api/docs/guides/predicted-outputs),
+              which can greatly improve response times when large parts of the model response
+              are known ahead of time. This is most common when you are regenerating a file
+              with only minor changes to most of the content.
 
           presence_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on
               whether they appear in the text so far, increasing the model's likelihood to
@@ -2680,7 +2670,7 @@ class AsyncCompletions(AsyncAPIResource):
 
           prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
               hit rates. Replaces the `user` field.
-              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+              [Learn more](https://developers.openai.com/api/docs/guides/prompt-caching).
 
           prompt_cache_options: Options for prompt caching. Supported for `gpt-5.6` and later models. By
               default, OpenAI automatically chooses one implicit cache breakpoint. You can add
@@ -2689,7 +2679,7 @@ class AsyncCompletions(AsyncAPIResource):
               up to the latest 80 breakpoints in the conversation, without a content-block
               lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The
               `ttl` defaults to `30m`, which is currently the only supported value. See the
-              [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching)
+              [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching)
               for current details.
 
           prompt_cache_retention: Deprecated. Use `prompt_cache_options.ttl` instead.
@@ -2697,7 +2687,7 @@ class AsyncCompletions(AsyncAPIResource):
               The retention policy for the prompt cache. Set to `24h` to enable extended
               prompt caching, which keeps cached prefixes active for longer, up to a maximum
               of 24 hours.
-              [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+              [Learn more](https://developers.openai.com/api/docs/guides/prompt-caching#prompt-cache-retention).
               This field expresses a maximum retention policy, while
               `prompt_cache_options.ttl` expresses a minimum cache lifetime. The two fields
               are independent and do not interact. For `gpt-5.5`, `gpt-5.5-pro`, and future
@@ -2714,7 +2704,7 @@ class AsyncCompletions(AsyncAPIResource):
               are `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, and `max`. Reducing
               reasoning effort can result in faster responses and fewer tokens used on
               reasoning in a response. Not all reasoning models support every value. See the
-              [reasoning guide](https://platform.openai.com/docs/guides/reasoning) for
+              [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
               model-specific support.
 
           response_format: An object specifying the format that the model must output.
@@ -2722,7 +2712,7 @@ class AsyncCompletions(AsyncAPIResource):
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
               Outputs which ensures the model will match your supplied JSON schema. Learn more
               in the
-              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+              [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables the older JSON mode, which
               ensures the message the model generates is valid JSON. Using `json_schema` is
@@ -2730,10 +2720,10 @@ class AsyncCompletions(AsyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user, with a maximum length of 64 characters. We recommend
+              identifies each user, with a maximum length of 128 characters. We recommend
               hashing their username or email address, in order to avoid sending us any
               identifying information.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
@@ -2748,9 +2738,15 @@ class AsyncCompletions(AsyncAPIResource):
                 will use 'default'.
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
-              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                '[priority](https://openai.com/api-priority-processing/)', then the request
-                will be processed with the corresponding service tier.
+              - If set to
+                '[flex](https://developers.openai.com/api/docs/guides/flex-processing)', then
+                the request will be processed with the Flex Processing service tier.
+              - To opt-in to
+                [Fast mode](https://developers.openai.com/api/docs/guides/fast-mode) at the
+                request level, include the `service_tier=fast` or `service_tier=priority`
+                parameter for Responses or Chat Completions. The response will show
+                `service_tier=priority` regardless of if you specify `service_tier=fast` or
+                `priority` in your request.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -2764,8 +2760,9 @@ class AsyncCompletions(AsyncAPIResource):
               returned text will not contain the stop sequence.
 
           store: Whether or not to store the output of this chat completion request for use in
-              our [model distillation](https://platform.openai.com/docs/guides/distillation)
-              or [evals](https://platform.openai.com/docs/guides/evals) products.
+              our
+              [model distillation](https://developers.openai.com/api/docs/guides/supervised-fine-tuning#distilling-from-a-larger-model)
+              or [evals](https://developers.openai.com/api/docs/guides/evals) products.
 
               Supports text and image inputs. Note: image inputs over 8MB will be dropped.
 
@@ -2787,8 +2784,9 @@ class AsyncCompletions(AsyncAPIResource):
               are present.
 
           tools: A list of tools the model may call. You can provide either
-              [custom tools](https://platform.openai.com/docs/guides/function-calling#custom-tools)
-              or [function tools](https://platform.openai.com/docs/guides/function-calling).
+              [custom tools](https://developers.openai.com/api/docs/guides/function-calling#custom-tools)
+              or
+              [function tools](https://developers.openai.com/api/docs/guides/function-calling).
 
           top_logprobs: An integer between 0 and 20 specifying the maximum number of most likely tokens
               to return at each token position, each with an associated log probability. In
@@ -2805,15 +2803,16 @@ class AsyncCompletions(AsyncAPIResource):
               `prompt_cache_key` instead to maintain caching optimizations. A stable
               identifier for your end-users. Used to boost cache hit rates by better bucketing
               similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           verbosity: Constrains the verbosity of the model's response. Lower values will result in
               more concise responses, while higher values will result in more verbose
-              responses. Currently supported values are `low`, `medium`, and `high`.
+              responses. Currently supported values are `low`, `medium`, and `high`. The
+              default is `medium`.
 
           web_search_options: This tool searches the web for relevant results to use in a response. Learn more
               about the
-              [web search tool](https://platform.openai.com/docs/guides/tools-web-search?api-mode=chat).
+              [web search tool](https://developers.openai.com/api/docs/guides/tools-web-search).
 
           extra_headers: Send extra headers
 
@@ -2846,15 +2845,15 @@ class AsyncCompletions(AsyncAPIResource):
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: completion_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
         response_format: completion_create_params.ResponseFormat | Omit = omit,
-        safety_identifier: str | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
-        stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        stop: Union[str, SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
@@ -2871,15 +2870,17 @@ class AsyncCompletions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ChatCompletion | AsyncStream[ChatCompletionChunk]:
         validate_response_format(response_format)
         return await self._post(
             "/chat/completions",
             body=await async_maybe_transform(
                 {
-                    "messages": messages,
                     "model": model,
+                    "stream": stream,
+                    "service_tier": service_tier,
+                    "messages": messages,
                     "audio": audio,
                     "frequency_penalty": frequency_penalty,
                     "function_call": function_call,
@@ -2902,10 +2903,8 @@ class AsyncCompletions(AsyncAPIResource):
                     "response_format": response_format,
                     "safety_identifier": safety_identifier,
                     "seed": seed,
-                    "service_tier": service_tier,
                     "stop": stop,
                     "store": store,
-                    "stream": stream,
                     "stream_options": stream_options,
                     "temperature": temperature,
                     "tool_choice": tool_choice,
@@ -2941,7 +2940,7 @@ class AsyncCompletions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ChatCompletion:
         """Get a stored chat completion.
 
@@ -2981,7 +2980,7 @@ class AsyncCompletions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ChatCompletion:
         """Modify a stored chat completion.
 
@@ -3033,7 +3032,7 @@ class AsyncCompletions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[ChatCompletion, AsyncCursorPage[ChatCompletion]]:
         """List stored Chat Completions.
 
@@ -3095,7 +3094,7 @@ class AsyncCompletions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ChatCompletionDeleted:
         """Delete a stored chat completion.
 
@@ -3146,14 +3145,14 @@ class AsyncCompletions(AsyncAPIResource):
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: completion_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
-        safety_identifier: str | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
-        stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        stop: Union[str, SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -3164,12 +3163,10 @@ class AsyncCompletions(AsyncAPIResource):
         user: str | Omit = omit,
         verbosity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
         web_search_options: completion_create_params.WebSearchOptions | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncChatCompletionStreamManager[ResponseFormatT]:
         """Wrapper over the `client.chat.completions.create(stream=True)` method that provides a more granular event API
         and automatic accumulation of each delta.
@@ -3180,12 +3177,12 @@ class AsyncCompletions(AsyncAPIResource):
 
         ```py
         async with client.chat.completions.stream(
-            model="gpt-4o-2024-08-06",
+            model=\"gpt-4o-2024-08-06\",
             messages=[...],
         ) as stream:
             async for event in stream:
-                if event.type == "content.delta":
-                    print(event.delta, flush=True, end="")
+                if event.type == \"content.delta\":
+                    print(event.delta, flush=True, end=\"\")
         ```
 
         When the context manager is entered, an `AsyncChatCompletionStream` instance is returned which, like `.create(stream=True)` is an async iterator. The full list of events that are yielded by the iterator are outlined in [these docs](https://github.com/openai/openai-python/blob/main/helpers.md#chat-completions-events).
@@ -3193,19 +3190,12 @@ class AsyncCompletions(AsyncAPIResource):
         When the context manager exits, the response will be closed, however the `stream` instance is still available outside
         the context manager.
         """
-        _validate_input_tools(tools)
-
-        extra_headers = {
-            "X-Stainless-Helper-Method": "chat.completions.stream",
-            **(extra_headers or {}),
-        }
-
-        api_request = self.create(
+        return async_stream(
+            self,
             messages=messages,
             model=model,
             audio=audio,
-            stream=True,
-            response_format=_type_to_response_format(response_format),
+            response_format=response_format,
             frequency_penalty=frequency_penalty,
             function_call=function_call,
             functions=functions,
@@ -3243,11 +3233,6 @@ class AsyncCompletions(AsyncAPIResource):
             extra_body=extra_body,
             timeout=timeout,
         )
-        return AsyncChatCompletionStreamManager(
-            api_request,
-            response_format=response_format,
-            input_tools=tools,
-        )
 
 
 class CompletionsWithRawResponse:
@@ -3257,6 +3242,7 @@ class CompletionsWithRawResponse:
         self.parse = _legacy_response.to_raw_response_wrapper(
             completions.parse,
         )
+
         self.create = _legacy_response.to_raw_response_wrapper(
             completions.create,
         )
@@ -3288,6 +3274,7 @@ class AsyncCompletionsWithRawResponse:
         self.parse = _legacy_response.async_to_raw_response_wrapper(
             completions.parse,
         )
+
         self.create = _legacy_response.async_to_raw_response_wrapper(
             completions.create,
         )
@@ -3319,6 +3306,7 @@ class CompletionsWithStreamingResponse:
         self.parse = to_streamed_response_wrapper(
             completions.parse,
         )
+
         self.create = to_streamed_response_wrapper(
             completions.create,
         )
@@ -3350,6 +3338,7 @@ class AsyncCompletionsWithStreamingResponse:
         self.parse = async_to_streamed_response_wrapper(
             completions.parse,
         )
+
         self.create = async_to_streamed_response_wrapper(
             completions.create,
         )
@@ -3372,10 +3361,3 @@ class AsyncCompletionsWithStreamingResponse:
         Given a list of messages comprising a conversation, the model will return a response.
         """
         return AsyncMessagesWithStreamingResponse(self._completions.messages)
-
-
-def validate_response_format(response_format: object) -> None:
-    if inspect.isclass(response_format) and issubclass(response_format, pydantic.BaseModel):
-        raise TypeError(
-            "You tried to pass a `BaseModel` class to `chat.completions.create()`; You must use `chat.completions.parse()` instead"
-        )

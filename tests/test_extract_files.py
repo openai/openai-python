@@ -41,6 +41,16 @@ def test_top_level_file_array() -> None:
     assert query == {"title": "hello"}
 
 
+@pytest.mark.parametrize("file", [b"zip contents", ("skill.zip", b"zip contents")])
+def test_single_file_fallback_after_array_path(file: FileTypes) -> None:
+    query = {"files": file, "title": "hello"}
+    assert extract_files(query, paths=[["files", "<array>"]]) == []
+    assert query == {"files": file, "title": "hello"}
+
+    assert extract_files(query, paths=[["files", "<array>"], ["files"]]) == [("files", file)]
+    assert query == {"title": "hello"}
+
+
 @pytest.mark.parametrize(
     "query,paths,expected",
     [

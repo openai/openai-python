@@ -1,0 +1,730 @@
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
+name: Castiron custom code comment
+
+on:
+  workflow_run:
+    workflows: [Castiron custom code]
+    types: [completed]
+
+permissions: {}
+
+concurrency:
+  group: castiron-custom-code-comment-${{ github.event.workflow_run.head_repository.id }}-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+  queue: max # Preserve newer pending evaluations if older runs arrive out of order.
+
+jobs:
+  review-change:
+    name: Invalidate reviewed policy statuses
+    if: github.event.workflow_run.event == 'pull_request_review'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    concurrency:
+      group: castiron-budget-writes-${{ github.repository_id }}
+      cancel-in-progress: false
+      queue: max
+    permissions:
+      actions: write
+      contents: read
+      pull-requests: read
+      statuses: write
+    steps:
+      # Execute only the helper belonging to this immutable workflow revision.
+      - name: Check out the trusted review policy
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
+
+      - name: Re-evaluate current PR and queue after review changes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GIT_CONFIG_COUNT: '2'
+          GIT_CONFIG_KEY_0: credential.helper
+          GIT_CONFIG_VALUE_0: ''
+          GIT_CONFIG_KEY_1: credential.https://github.com.helper
+          GIT_CONFIG_VALUE_1: '!gh auth git-credential'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            // Trusted main orchestration only. Signal fields never choose status targets.
+            const repo = `${context.repo.owner}/${context.repo.repo}`;
+            const signal = context.payload.workflow_run;
+            const {data: run} = await github.rest.actions.getWorkflowRun({...context.repo, run_id: signal.id});
+            const {data: workflow} = await github.rest.actions.getWorkflow({
+              ...context.repo, workflow_id: 'castiron-custom-code.yml',
+            });
+            if (!Number.isSafeInteger(run.workflow_id) || run.workflow_id !== workflow.id ||
+                workflow.path !== '.github/workflows/castiron-custom-code.yml') return;
+            if (run.repository.full_name !== repo || run.event !== 'pull_request_review' ||
+                run.status !== 'completed' || run.id !== signal.id || run.run_attempt !== signal.run_attempt ||
+                run.head_sha !== signal.head_sha || run.path.split('@', 1)[0] !== '.github/workflows/castiron-custom-code.yml') {
+              throw new Error('Unexpected or superseded review signal');
+            }
+            async function mergeBase(base, head) {
+              const {data: comparison} = await github.rest.repos.compareCommitsWithBasehead({
+                ...context.repo, basehead: `${base}...${head}`, per_page: 1,
+              });
+              const sha = comparison.merge_base_commit?.sha;
+              if (!/^[0-9a-f]{40}$/.test(sha || '')) throw new Error('Invalid policy merge base');
+              return sha;
+            }
+            async function requiresHuman(pr, mainSha) {
+              const path = require('node:path');
+              const fs = require('node:fs');
+              const root = fs.mkdtempSync(path.join(process.env.RUNNER_TEMP, 'castiron-review-'));
+              try {
+                const result = await exec.getExecOutput('python3', ['-I',
+                  'scripts/castiron/custom_code_policy.py', 'review-required',
+                  '--repository', repo, '--repo', path.join(root, 'objects.git'),
+                  '--base', pr.base.sha, '--head', pr.head.sha, '--main', mainSha], {silent: true});
+                const decision = JSON.parse(result.stdout);
+                if (typeof decision.requires_human !== 'boolean') throw new Error('Invalid review decision');
+                return decision.requires_human;
+              } finally {
+                fs.rmSync(root, {recursive: true, force: true});
+              }
+            }
+            const dirtyTargets = new Set();
+            // Retry discovery within this job timeout while targets are changing.
+            while (true) {
+              const candidates = [];
+              let pulls = run.pull_requests?.length ? run.pull_requests : await github.paginate(
+                github.rest.repos.listPullRequestsAssociatedWithCommit, {...context.repo, commit_sha: run.head_sha});
+              const hasAssociation = pulls.length > 0;
+              if (!pulls.length) pulls = await github.paginate(github.rest.pulls.list, {
+                ...context.repo, state: 'open', head: `${run.head_repository.owner.login}:${run.head_branch}`,
+              });
+              for (const item of pulls) {
+                const {data: pr} = await github.rest.pulls.get({...context.repo, pull_number: item.number});
+                if (pr.state !== 'open' || pr.base.ref !== 'next' || pr.base.repo.full_name !== repo ||
+                    (item.head?.sha && pr.head.sha !== item.head.sha) || !/^[0-9a-f]{40}$/.test(pr.head.sha)) continue;
+                if (run.head_sha !== pr.head.sha) {
+                  const {data: commit} = await github.rest.repos.getCommit({...context.repo, ref: run.head_sha});
+                  if (commit.parents.length !== 2 || commit.parents[1].sha !== pr.head.sha ||
+                      !/^[0-9a-f]{40}$/.test(commit.parents[0].sha) ||
+                      await mergeBase(commit.parents[0].sha, pr.base.sha) !== commit.parents[0].sha) continue;
+                  // Without a commit association, the live merge ref must identify this PR.
+                  if (!hasAssociation) {
+                    const {data: merge} = await github.rest.git.getRef({...context.repo, ref: `pull/${pr.number}/merge`});
+                    if (merge.object.sha !== run.head_sha || commit.parents[0].sha !== pr.base.sha) continue;
+                  }
+                }
+                candidates.push(pr);
+              }
+              if (!candidates.length) return; // Main, closed, and superseded PR reviews have no next target.
+              // Commit associations may include other PRs sharing the same head.
+              const matching = candidates.length === 1 ? candidates : candidates.filter(pr =>
+                Number.isSafeInteger(run.head_repository?.id) && run.head_repository.id > 0 &&
+                pr.head.repo?.id === run.head_repository.id && typeof run.head_branch === 'string' &&
+                run.head_branch.length > 0 && pr.head.ref === run.head_branch);
+              if (matching.length !== 1) throw new Error('Review signal identifies ambiguous next PRs');
+              const pr = matching[0];
+              const files = await github.paginate(github.rest.pulls.listFiles, {...context.repo, pull_number: pr.number});
+              if (!files.some(file => file.filename === '.castiron-ratchet.json')) return;
+              const {data: main} = await github.rest.git.getRef({...context.repo, ref: 'heads/main'});
+              const mainSha = main.object.sha;
+              let requiresReview;
+              try {
+                requiresReview = await requiresHuman(pr, mainSha);
+              } catch (error) {
+                const {data: currentMain} = await github.rest.git.getRef({...context.repo, ref: 'heads/main'});
+                if (currentMain.object.sha !== mainSha) continue;
+                throw error;
+              }
+              if (!requiresReview) {
+                const [{data: current}, {data: target}, main] = await Promise.all([
+                  github.rest.pulls.get({...context.repo, pull_number: pr.number}),
+                  github.rest.git.getRef({...context.repo, ref: 'heads/next'}),
+                  mainSha && github.rest.git.getRef({...context.repo, ref: 'heads/main'}),
+                ]);
+                if (current.head.sha !== pr.head.sha || current.base.sha !== pr.base.sha ||
+                    target.object.sha !== pr.base.sha || (main && main.data.object.sha !== mainSha)) continue;
+                return;
+              }
+              // Read authoritative reviews, including edits: submittedAt alone misses
+              // removal/restoration of an attestation. Never trust candidate event artifacts.
+              let reviewCursor = null;
+              const latest = new Map();
+              do {
+                const result = await github.graphql(`query($owner:String!,$name:String!,$number:Int!,$cursor:String) {
+                  repository(owner:$owner,name:$name) { pullRequest(number:$number) {
+                    reviews(first:100,after:$cursor) { nodes { fullDatabaseId state body updatedAt
+                      author { login __typename } authorAssociation commit { oid } }
+                      pageInfo { hasNextPage endCursor } }
+                  } }
+                }`, {...context.repo, name: context.repo.repo, number: pr.number, cursor: reviewCursor});
+                const page = result.repository.pullRequest.reviews;
+                for (const review of page.nodes) {
+                  const value = review.fullDatabaseId;
+                  if (!(typeof value === 'string' || Number.isSafeInteger(value)) ||
+                      !/^[1-9][0-9]*$/.test(String(value))) throw new Error('Invalid review identity');
+                  const identity = String(value);
+                  if (review.state === 'PENDING' || !review.author) continue;
+                  const previous = latest.get(review.author.login);
+                  if (!previous || BigInt(identity) > BigInt(previous.identity)) latest.set(review.author.login, {...review, identity});
+                }
+                if (!page.pageInfo.hasNextPage) break;
+                if (!page.pageInfo.endCursor || page.pageInfo.endCursor === reviewCursor) throw new Error('Invalid review cursor');
+                reviewCursor = page.pageInfo.endCursor;
+              } while (true);
+              // Same v2 whole-body contract as the selector/publisher. This can only
+              // request reevaluation; the normal publisher still decides authorization.
+              const approvals = [...latest.values()].filter(review =>
+                review.state === 'APPROVED' && review.commit?.oid === pr.head.sha &&
+                review.author.__typename === 'User' && !review.author.login.endsWith('[bot]') &&
+                review.author.login !== pr.user.login &&
+                ['OWNER', 'MEMBER', 'COLLABORATOR'].includes(review.authorAssociation) &&
+                typeof review.body === 'string' &&
+                review.body.trim() === 'I personally reviewed and approve this policy change as a human: ' + pr.head.sha);
+              const authorized = approvals.length > 0;
+              if (authorized && (run.actor?.type !== 'User' ||
+                  !approvals.some(review => review.author.login === run.actor.login))) return;
+              for (const review of approvals) {
+                if (!Number.isFinite(Date.parse(review.updatedAt))) throw new Error('Missing review update time');
+              }
+              const fingerprint = require('node:crypto').createHash('sha256').update(JSON.stringify(
+                [pr.head.sha, approvals.map(review => [review.identity, review.updatedAt]).sort((a, b) => a[0].localeCompare(b[0]))]
+              )).digest('hex');
+              const marker = `[review ${authorized ? 'approve' : 'revoke'} ${fingerprint}]`;
+              async function queue() {
+                let cursor = null;
+                const entries = [];
+                do {
+                  const result = await github.graphql(`query($owner:String!,$name:String!,$cursor:String) {
+                    repository(owner:$owner,name:$name) { mergeQueue(branch:"next") {
+                      entries(first:100,after:$cursor) { nodes { headCommit { oid } pullRequest { number headRefOid } }
+                        pageInfo { hasNextPage endCursor } }
+                    } }
+                  }`, {...context.repo, name: context.repo.repo, cursor});
+                  const page = result.repository.mergeQueue?.entries;
+                  if (!page) return [];
+                  entries.push(...page.nodes);
+                  if (!page.pageInfo.hasNextPage) return entries;
+                  if (!page.pageInfo.endCursor || page.pageInfo.endCursor === cursor) throw new Error('Invalid queue cursor');
+                  cursor = page.pageInfo.endCursor;
+                } while (true);
+              }
+              const entries = await queue();
+              const index = entries.findIndex(entry => entry.pullRequest?.number === pr.number && entry.pullRequest.headRefOid === pr.head.sha);
+              // Later queue entries can include the affected constituent. Re-evaluate all of them.
+              const targets = new Map([[pr.head.sha, 'pull_request']]);
+              for (const entry of index < 0 ? [] : entries.slice(index)) {
+                if (entry.headCommit === null) continue; // Queue preparation has not produced statuses yet.
+                if (!/^[0-9a-f]{40}$/.test(entry.headCommit.oid)) throw new Error('Invalid queue SHA');
+                targets.set(entry.headCommit.oid, 'merge_group');
+              }
+              // Revoke the authenticated snapshot before slower reads. Pending on an obsolete
+              // affected SHA cannot authorize a merge, and a later race must not retain success.
+              const url = `${context.serverUrl}/${repo}/actions/runs/${context.runId}`;
+              const activeTargets = new Map();
+              const priorWriters = new Map();
+              async function priorWriter(status) {
+                if (!/\[review (?:approve|revoke) [0-9a-f]{64}\]$/.test(status.description || '')) return null;
+                const identity = status.target_url?.slice(`${context.serverUrl}/${repo}/actions/runs/`.length);
+                if (!/^[1-9][0-9]*$/.test(identity || '') || !Number.isSafeInteger(Number(identity))) return null;
+                if (!priorWriters.has(identity)) {
+                  const {data: definition} = await github.rest.actions.getWorkflow({
+                    ...context.repo, workflow_id: 'castiron-custom-code-comment.yml',
+                  });
+                  let writer;
+                  try {
+                    ({data: writer} = await github.rest.actions.getWorkflowRun({...context.repo, run_id: Number(identity)}));
+                  } catch (error) {
+                    if (error.status !== 404) throw error;
+                    priorWriters.set(identity, null); // Deleted runs cannot authenticate a marker.
+                    return null;
+                  }
+                  const authenticated = definition.path === '.github/workflows/castiron-custom-code-comment.yml' &&
+                    writer.workflow_id === definition.id && writer.repository.full_name === repo &&
+                    writer.event === 'workflow_run' && writer.id === Number(identity);
+                  priorWriters.set(identity, authenticated ? {
+                    completed: writer.status === 'completed' && writer.conclusion === 'success',
+                  } : null);
+                }
+                return priorWriters.get(identity);
+              }
+              const names = ['Castiron next / budget-only change', 'Castiron next / custom-code budget'];
+              for (const [sha, event] of targets) {
+                const statuses = await github.paginate(github.rest.repos.listCommitStatusesForRef, {...context.repo, ref: sha});
+                const trusted = statuses.filter(status => status.creator?.login === 'github-actions[bot]' &&
+                  status.target_url?.startsWith(`${context.serverUrl}/${repo}/actions/runs/`));
+                const current = new Map();
+                for (const status of trusted) if (!current.has(status.context)) current.set(status.context, status);
+                // Only current pending markers coalesce. A later publisher failure
+                // supersedes recovery even if a restored review has the same timestamp.
+                const changed = [];
+                for (const name of names) {
+                  const status = current.get(name);
+                  // A failed/cancelled writer may have stopped after pending but
+                  // before dispatch. Re-stamp and retry; only successful writers coalesce.
+                  const writer = status?.state === 'pending' ? await priorWriter(status) : null;
+                  const handled = status?.state === 'success' ||
+                    (status?.state === 'pending' && status.description?.endsWith(marker) && writer?.completed);
+                  if (authorized ? !handled :
+                      status?.state === 'success' || (writer && !writer.completed)) changed.push(name);
+                }
+                if (authorized && names.every(name => current.get(name)?.state === 'success')) continue;
+                for (const name of changed) {
+                  await github.rest.repos.createCommitStatus({...context.repo, sha, context: name, state: 'pending',
+                    description: `Review changed; reevaluation pending. ${marker}`, target_url: url});
+                  dirtyTargets.add(sha);
+                }
+                if (dirtyTargets.has(sha)) activeTargets.set(sha, event);
+              }
+              if (!activeTargets.size) return;
+              const reruns = [];
+              for (const [sha, event] of activeTargets) {
+                const runs = await github.paginate(github.rest.actions.listWorkflowRuns, {
+                  ...context.repo, workflow_id: 'castiron-custom-code.yml', head_sha: sha, event, per_page: 100,
+                });
+                const matches = [];
+                for (const item of runs) {
+                  if (item.repository.full_name !== repo || item.event !== event || item.head_sha !== sha ||
+                      item.path.split('@', 1)[0] !== '.github/workflows/castiron-custom-code.yml') continue;
+                  if (event === 'pull_request') {
+                    let associated = item.pull_requests?.length ? item.pull_requests : await github.paginate(
+                      github.rest.repos.listPullRequestsAssociatedWithCommit, {...context.repo, commit_sha: sha});
+                    if (!associated.length) associated = await github.paginate(github.rest.pulls.list, {
+                      ...context.repo, state: 'open', head: `${item.head_repository.owner.login}:${item.head_branch}`,
+                    });
+                    const live = [];
+                    for (const reference of associated) {
+                      const {data: pull} = await github.rest.pulls.get({...context.repo, pull_number: reference.number});
+                      if (pull.state === 'open' && pull.head.sha === sha && pull.base.repo.full_name === repo &&
+                          ['main', 'next'].includes(pull.base.ref)) live.push(pull);
+                    }
+                    // Match the canonical reporter's main preference for shared-head discovery.
+                    const main = live.filter(pull => pull.base.ref === 'main');
+                    const selected = main.length ? main : live;
+                    if (selected.length !== 1 || selected[0].number !== pr.number) continue;
+                  }
+                  matches.push(item);
+                }
+                matches.sort((a, b) => b.id - a.id);
+                if (matches[0]?.status === 'completed') reruns.push(matches[0].id);
+              }
+              // Retry against the new snapshot; already-observed affected statuses stay pending.
+              const {data: current} = await github.rest.pulls.get({...context.repo, pull_number: pr.number});
+              const {data: base} = await github.rest.git.getRef({...context.repo, ref: 'heads/next'});
+              if (current.state !== 'open' || current.head.sha !== pr.head.sha || current.base.ref !== 'next' ||
+                  current.base.repo.full_name !== repo || current.base.sha !== pr.base.sha || base.object.sha !== pr.base.sha ||
+                  JSON.stringify(await queue()) !== JSON.stringify(entries)) continue;
+              // Only normal authenticated reporter runs may restore success. Never infer approval here.
+              for (const run_id of reruns) await github.rest.actions.reRunWorkflow({...context.repo, run_id});
+              return;
+            }
+
+  compute:
+    name: Compute trusted custom-code report
+    if: contains(fromJSON('["pull_request", "merge_group"]'), github.event.workflow_run.event) && (github.event.workflow_run.path == '.github/workflows/castiron-custom-code.yml' || startsWith(github.event.workflow_run.path, '.github/workflows/castiron-custom-code.yml@'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
+    outputs:
+      selected-policy-sha: ${{ steps.select-policy.outputs.policy_sha }}
+      selected-base-sha: ${{ steps.select-policy.outputs.base_sha }}
+      selected-head-sha: ${{ steps.select-policy.outputs.head_sha }}
+      selected-branch: ${{ steps.select-policy.outputs.target_branch }}
+      policy-reviews: ${{ steps.select-policy.outputs.policy_reviews }}
+      human-review-rules: ${{ steps.select-policy.outputs.human_review_rules }}
+      number: ${{ steps.report.outputs.number }}
+      artifact-id: ${{ steps.artifact.outputs.artifact-id }}
+      artifact-run-attempt: ${{ github.run_attempt }}
+      target-branch: ${{ steps.budget.outputs.target_branch }}
+      policy-sha: ${{ steps.budget.outputs.policy_sha }}
+      base-sha: ${{ steps.budget.outputs.base_sha }}
+      head-sha: ${{ steps.budget.outputs.head_sha }}
+      isolation: ${{ steps.budget.outputs.isolation }}
+      budget: ${{ steps.budget.outputs.budget }}
+    steps:
+      # Selecting main here pins executable checker code and budget policy.
+      # The reporter separately captures the live main/next target baseline.
+      - name: Check out the trusted reporter
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          persist-credentials: false
+
+      # The selector and its module come from current main. The later evaluator
+      # loads its own policy helpers from the immutable pinned checkout.
+      - name: Select reviewed policy from the trusted target base
+        id: select-policy
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          GIT_CONFIG_COUNT: '2'
+          GIT_CONFIG_KEY_0: credential.helper
+          GIT_CONFIG_VALUE_0: ''
+          GIT_CONFIG_KEY_1: credential.https://github.com.helper
+          GIT_CONFIG_VALUE_1: '!gh auth git-credential'
+        run: |
+          python3 -I scripts/castiron/custom_code_budget.py select-policy \
+            --repository "$REPOSITORY" --event-path "$GITHUB_EVENT_PATH" \
+            --trusted-sha "$(git rev-parse HEAD)" \
+            --repo "$RUNNER_TEMP/castiron-policy-objects.git" \
+            --out "$RUNNER_TEMP/castiron-policy-selection.json"
+
+      - name: Check out the authenticated main policy version
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.select-policy.outputs.policy_sha }}
+          path: .castiron-policy-checker
+          persist-credentials: false
+
+      - name: Compute from trusted main and target branch Git objects
+        id: report
+        if: github.event.workflow_run.event == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GIT_CONFIG_COUNT: '2'
+          GIT_CONFIG_KEY_0: credential.helper
+          GIT_CONFIG_VALUE_0: ''
+          GIT_CONFIG_KEY_1: credential.https://github.com.helper
+          GIT_CONFIG_VALUE_1: '!gh auth git-credential'
+          REPOSITORY: ${{ github.repository }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+        run: |
+          python3 -I .castiron-policy-checker/scripts/castiron/custom_code_report.py trusted-report \
+            --repo "$RUNNER_TEMP/castiron-objects.git" \
+            --base "$(git -C .castiron-policy-checker rev-parse HEAD)" \
+            --repository "$REPOSITORY" --run-id "$RUN_ID" --run-attempt "$RUN_ATTEMPT" \
+            --out "$RUNNER_TEMP/castiron-custom-code"
+          if test -f "$RUNNER_TEMP/castiron-custom-code/context.json"; then
+            number=$(jq -er '.pr' "$RUNNER_TEMP/castiron-custom-code/context.json")
+            printf 'number=%s\n' "$number" >> "$GITHUB_OUTPUT"
+            cat "$RUNNER_TEMP/castiron-custom-code/summary.md" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload the trusted report and patch
+        id: artifact
+        if: steps.report.outputs.number != ''
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: castiron-custom-code-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/castiron-custom-code/
+          if-no-files-found: error
+          retention-days: 7
+
+      # The prior step's report was computed here from
+      # Git objects by main's reporter, not downloaded from the candidate run.
+      - name: Evaluate main's custom-code budget
+        id: budget
+        if: always()
+        continue-on-error: true # A budget failure must not suppress the existing report comment.
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          SOURCE_EVENT: ${{ github.event.workflow_run.event }}
+          GIT_CONFIG_COUNT: '2'
+          GIT_CONFIG_KEY_0: credential.helper
+          GIT_CONFIG_VALUE_0: ''
+          GIT_CONFIG_KEY_1: credential.https://github.com.helper
+          GIT_CONFIG_VALUE_1: '!gh auth git-credential'
+        run: |
+          trusted_sha=$(git -C .castiron-policy-checker rev-parse HEAD)
+          reuse=()
+          if [[ "$SOURCE_EVENT" == pull_request ]]; then
+            reuse=(--trusted-report-dir "$RUNNER_TEMP/castiron-custom-code")
+          fi
+          python3 -I .castiron-policy-checker/scripts/castiron/custom_code_budget.py github \
+            --repository "$REPOSITORY" --event-path "$GITHUB_EVENT_PATH" \
+            --trusted-sha "$trusted_sha" --repo "$RUNNER_TEMP/castiron-objects.git" \
+            --selected-policy-json "$RUNNER_TEMP/castiron-policy-selection.json" \
+            "${reuse[@]}" --out "$RUNNER_TEMP/custom-code-budget"
+
+      - name: Add the budget to the run summary
+        if: always()
+        run: |
+          if test -f "$RUNNER_TEMP/custom-code-budget/summary.md"; then
+            cat "$RUNNER_TEMP/custom-code-budget/summary.md" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload trusted budget measurements
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: custom-code-budget-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/custom-code-budget/
+          if-no-files-found: error
+          retention-days: 7
+
+  budget-status:
+    concurrency:
+      group: castiron-budget-writes-${{ github.repository_id }}
+      cancel-in-progress: false
+      queue: max
+    name: Publish custom-code budget checks
+    needs: compute
+    if: always() && !cancelled() && needs.compute.result != 'skipped'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
+      statuses: write
+    steps:
+      # This workflow definition is from main. No candidate checkout/artifacts.
+      - name: Publish exact-head statuses after checking freshness
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          SELECTED_POLICY_SHA: ${{ needs.compute.outputs.selected-policy-sha }}
+          SELECTED_BASE_SHA: ${{ needs.compute.outputs.selected-base-sha }}
+          SELECTED_HEAD_SHA: ${{ needs.compute.outputs.selected-head-sha }}
+          SELECTED_BRANCH: ${{ needs.compute.outputs.selected-branch }}
+          POLICY_REVIEWS: ${{ needs.compute.outputs.policy-reviews }}
+          HUMAN_REVIEW_RULES: ${{ needs.compute.outputs.human-review-rules }}
+          TARGET_BRANCH: ${{ needs.compute.outputs.target-branch }}
+          POLICY_SHA: ${{ needs.compute.outputs.policy-sha }}
+          BASE_SHA: ${{ needs.compute.outputs.base-sha }}
+          HEAD_SHA: ${{ needs.compute.outputs.head-sha }}
+          ISOLATION_RESULT: ${{ needs.compute.outputs.isolation }}
+          BUDGET_RESULT: ${{ needs.compute.outputs.budget }}
+          PUBLISH_ATTEMPT: ${{ github.run_attempt }}
+        with:
+          script: |
+            const event = context.payload.workflow_run;
+            const {data: run} = await github.rest.actions.getWorkflowRun({...context.repo, run_id: event.id});
+            const {data: workflow} = await github.rest.actions.getWorkflow({
+              ...context.repo, workflow_id: 'castiron-custom-code.yml',
+            });
+            if (!Number.isSafeInteger(run.workflow_id) || run.workflow_id !== workflow.id ||
+                workflow.path !== '.github/workflows/castiron-custom-code.yml') return;
+            if (run.event !== event.event || run.head_sha !== event.head_sha || run.run_attempt !== event.run_attempt ||
+                run.status !== 'completed' || run.path.split('@', 1)[0] !== '.github/workflows/castiron-custom-code.yml' ||
+                run.repository.full_name !== `${context.repo.owner}/${context.repo.repo}`) return;
+            const head = run.head_sha;
+            if (!/^[0-9a-f]{40}$/.test(head)) throw new Error('Invalid candidate SHA');
+            const base = process.env.BASE_SHA;
+            const policy = process.env.POLICY_SHA;
+            const evaluatedBranch = process.env.TARGET_BRANCH;
+            let branch, number;
+            let fresh = /^[0-9a-f]{40}$/.test(base) && /^[0-9a-f]{40}$/.test(policy) && head === process.env.HEAD_SHA;
+            if (run.event === 'pull_request') {
+              let pulls = run.pull_requests.length ? run.pull_requests : await github.paginate(
+                github.rest.repos.listPullRequestsAssociatedWithCommit, {...context.repo, commit_sha: head});
+              if (!pulls.length) pulls = await github.paginate(github.rest.pulls.list, {
+                ...context.repo, state: 'open', head: `${run.head_repository.owner.login}:${run.head_branch}`,
+              });
+              const current = [];
+              for (const pull of pulls) {
+                const {data: pr} = await github.rest.pulls.get({...context.repo, pull_number: pull.number});
+                if (pr.state === 'open' && pr.head.sha === head &&
+                    ['main', 'next'].includes(pr.base.ref) && pr.base.repo.full_name === `${context.repo.owner}/${context.repo.repo}`) current.push(pr);
+              }
+              // Match compute's preference for required main checks when
+              // fallback discovery finds an advisory next PR for the same head.
+              const main = current.filter(pr => pr.base.ref === 'main');
+              const selected = main.length ? main : current;
+              if (selected.length !== 1) return;
+              branch = selected[0].base.ref;
+              number = selected[0].number;
+            } else {
+              const match = run.head_branch.match(/^gh-readonly-queue\/(main|next)\//);
+              if (run.event !== 'merge_group' || !match) return;
+              branch = match[1];
+            }
+            // Bind every target to the trusted selector, including next-to-main retargeting.
+            fresh = fresh && process.env.SELECTED_BRANCH === branch &&
+              process.env.SELECTED_BASE_SHA === base && process.env.SELECTED_HEAD_SHA === head &&
+              process.env.SELECTED_POLICY_SHA === policy;
+            fresh = fresh && evaluatedBranch === branch;
+            const url = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            // Concurrency serializes writes, but does not order runs or retries.
+            // Keep an older evaluation from overwriting a newer result for this head.
+            const order = [run.id, run.run_attempt, Number(context.runId), Number(process.env.PUBLISH_ATTEMPT)];
+            const marker = `[evaluation ${order.join(':')}]`;
+            const statuses = await github.paginate(github.rest.repos.listCommitStatusesForRef, {...context.repo, ref: head});
+            const prefix = branch === 'next' ? 'Castiron next' : 'Castiron';
+            const names = [`${prefix} / budget-only change`, `${prefix} / custom-code budget`];
+            for (const status of statuses) {
+              if (!names.includes(status.context) || status.creator?.login !== 'github-actions[bot]') continue;
+              const prior = status.description?.match(/\[evaluation (\d+):(\d+):(\d+):(\d+)\]$/);
+              if (!prior || status.target_url !== `${url.slice(0, url.lastIndexOf('/') + 1)}${prior[3]}`) continue;
+              const previous = prior.slice(1).map(Number);
+              const different = previous.findIndex((value, index) => value !== order[index]);
+              if (different !== -1 && previous[different] > order[different]) return;
+            }
+            // Recheck after pagination, immediately before attaching statuses.
+            if (run.event === 'pull_request') {
+              const {data: pr} = await github.rest.pulls.get({...context.repo, pull_number: number});
+              if (pr.state !== 'open' || pr.head.sha !== head || pr.base.ref !== branch ||
+                  pr.base.repo.full_name !== `${context.repo.owner}/${context.repo.repo}`) return;
+            } else {
+              // A removed/rebuilt queue entry must not receive a passing result.
+              let cursor = null, member = false;
+              do {
+                const response = await github.graphql(`query($owner:String!,$name:String!,$branch:String!,$cursor:String) {
+                  repository(owner:$owner,name:$name) { mergeQueue(branch:$branch) {
+                    entries(first:100,after:$cursor) {
+                      nodes { headCommit { oid } }
+                      pageInfo { hasNextPage endCursor }
+                    }
+                  } }
+                }`, {owner: context.repo.owner, name: context.repo.repo, branch, cursor});
+                const entries = response.repository.mergeQueue?.entries;
+                if (!entries) break;
+                member = entries.nodes.some(entry => entry.headCommit?.oid === head);
+                if (member || !entries.pageInfo.hasNextPage) break;
+                const next = entries.pageInfo.endCursor;
+                if (!next || next === cursor) throw new Error('Invalid queue pagination');
+                cursor = next;
+              } while (true);
+              const {data: target} = await github.rest.git.getRef({...context.repo, ref: `heads/${branch}`});
+              fresh = fresh && base === target.object.sha && (branch === 'next' || policy === target.object.sha);
+              fresh = fresh && member;
+            }
+            if (branch === 'next' && run.event === 'pull_request') {
+              const {data: target} = await github.rest.git.getRef({...context.repo, ref: 'heads/next'});
+              fresh = fresh && base === target.object.sha;
+            }
+            // Selection is not a lasting approval. Recheck live reviews after
+            // compute and immediately before attaching required statuses.
+            if (branch === 'next') {
+              try {
+                const proofs = JSON.parse(process.env.POLICY_REVIEWS);
+                const rules = JSON.parse(process.env.HUMAN_REVIEW_RULES);
+                if (!Array.isArray(proofs) || rules.version !== 2 || !Array.isArray(rules.associations) ||
+                    typeof rules.negative_pattern !== 'string' || typeof rules.attestation_prefix !== 'string' ||
+                    !rules.attestation_prefix) throw new Error('Missing trusted review contract');
+                const negative = new RegExp(rules.negative_pattern, 'i');
+                const seen = new Set();
+                for (const proof of proofs) {
+                  if (!Number.isSafeInteger(proof.number) || proof.number <= 0 || !/^[0-9a-f]{40}$/.test(proof.head_sha) ||
+                      seen.has(proof.number) || (run.event === 'pull_request' && (proof.number !== number || proof.head_sha !== head))) {
+                    throw new Error('Invalid policy review receipt');
+                  }
+                  seen.add(proof.number);
+                  const {data: pr} = await github.rest.pulls.get({...context.repo, pull_number: proof.number});
+                  if (pr.state !== 'open' || pr.head.sha !== proof.head_sha || pr.base.ref !== 'next' ||
+                      pr.base.repo.full_name !== `${context.repo.owner}/${context.repo.repo}`) throw new Error('Policy PR changed');
+                  let reviewCursor = null;
+                  const latest = new Map();
+                  do {
+                    const result = await github.graphql(`query($owner:String!,$name:String!,$number:Int!,$cursor:String) {
+                      repository(owner:$owner,name:$name) { pullRequest(number:$number) {
+                        reviews(first:100,after:$cursor) { nodes { fullDatabaseId state body
+                          author { login __typename } authorAssociation commit { oid } }
+                          pageInfo { hasNextPage endCursor } }
+                      } }
+                    }`, {...context.repo, name: context.repo.repo, number: proof.number, cursor: reviewCursor});
+                    const page = result.repository.pullRequest.reviews;
+                    for (const review of page.nodes) {
+                      const value = review.fullDatabaseId;
+                      if (!(typeof value === 'string' || Number.isSafeInteger(value)) ||
+                          !/^[1-9][0-9]*$/.test(String(value))) throw new Error('Invalid review identity');
+                      const identity = String(value);
+                      if (review.state === 'PENDING' || !review.author) continue;
+                      const previous = latest.get(review.author.login);
+                      if (!previous || BigInt(identity) > BigInt(previous.identity)) latest.set(review.author.login, {...review, identity});
+                    }
+                    if (!page.pageInfo.hasNextPage) break;
+                    if (!page.pageInfo.endCursor || page.pageInfo.endCursor === reviewCursor) throw new Error('Invalid review cursor');
+                    reviewCursor = page.pageInfo.endCursor;
+                  } while (true);
+                  const approved = [...latest.values()].some(review => review.state === 'APPROVED' &&
+                    review.commit?.oid === proof.head_sha && review.author.__typename === 'User' &&
+                    rules.associations.includes(review.authorAssociation) && !review.author.login.endsWith('[bot]') &&
+                    review.author.login !== pr.user.login && typeof review.body === 'string' &&
+                    review.body.trim() === rules.attestation_prefix + proof.head_sha &&
+                    !negative.test(review.body));
+                  if (!approved) throw new Error('Human policy approval is no longer valid');
+                }
+              } catch { fresh = false; }
+            }
+            for (const [name, result] of [
+              [names[0], process.env.ISOLATION_RESULT],
+              [names[1], process.env.BUDGET_RESULT],
+            ]) {
+              const state = fresh && result === 'success' ? 'success' : 'failure';
+              const description = !fresh ? 'Evaluation unavailable or queue base changed; inspect the trusted run and rerun.'
+                : `${state === 'success' ? 'Passed' : 'Failed'}: ${branch} ${base.slice(0, 12)}, policy ${policy.slice(0, 12)}.`;
+              await github.rest.repos.createCommitStatus({...context.repo, sha: head, context: name,
+                state, description: `${description} ${marker}`, target_url: url});
+            }
+
+  comment:
+    name: Update custom-code comment
+    needs: compute
+    if: always() && !cancelled() && github.event.workflow_run.event == 'pull_request' && (needs.compute.result == 'failure' || needs.compute.outputs.number != '')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: write
+    steps:
+      - name: Check out the trusted publisher
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
+
+      - name: Download this workflow's trusted report
+        if: needs.compute.result == 'success'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          artifact-ids: ${{ needs.compute.outputs.artifact-id }}
+          merge-multiple: true
+          path: ${{ runner.temp }}/castiron-custom-code
+
+      - name: Create or update the single report comment
+        id: publish
+        if: needs.compute.result == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ needs.compute.outputs.number }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+          ARTIFACT_RUN_ID: ${{ github.run_id }}
+          ARTIFACT_RUN_ATTEMPT: ${{ needs.compute.outputs.artifact-run-attempt }}
+        run: |
+          python3 -I scripts/castiron/custom_code_report.py comment \
+            --report "$RUNNER_TEMP/castiron-custom-code/report.json" \
+            --repository "$REPOSITORY" --pr "$PR_NUMBER" --run-id "$RUN_ID" \
+            --run-attempt "$RUN_ATTEMPT" \
+            --artifact-run-id "$ARTIFACT_RUN_ID" --artifact-run-attempt "$ARTIFACT_RUN_ATTEMPT"
+
+      - name: Publish a trusted failure status
+        if: always() && !cancelled() && steps.publish.outcome != 'success'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const marker = '<!-- castiron:custom-code-report:v1 -->';
+            const run = context.payload.workflow_run;
+            const {data: workflow} = await github.rest.actions.getWorkflow({
+              ...context.repo, workflow_id: 'castiron-custom-code.yml',
+            });
+            if (!Number.isSafeInteger(run.workflow_id) || run.workflow_id !== workflow.id ||
+                workflow.path !== '.github/workflows/castiron-custom-code.yml') return;
+            if (run.event !== 'pull_request' || run.path.split('@', 1)[0] !== '.github/workflows/castiron-custom-code.yml') return;
+            let pulls = run.pull_requests?.length ? run.pull_requests : await github.paginate(github.rest.repos.listPullRequestsAssociatedWithCommit, {...context.repo, commit_sha: run.head_sha});
+            if (!pulls.length) pulls = await github.paginate(github.rest.pulls.list, {
+              ...context.repo, state: 'open', head: `${run.head_repository.owner.login}:${run.head_branch}`,
+            });
+            const current = [];
+            for (const pull of pulls) {
+              const {data: pr} = await github.rest.pulls.get({...context.repo, pull_number: pull.number});
+              if (pr.state === 'open' && pr.head.sha === run.head_sha &&
+                  ['main', 'next'].includes(pr.base.ref) && pr.base.repo.full_name === `${context.repo.owner}/${context.repo.repo}`) current.push(pr);
+            }
+            // Match trusted compute's supported-target and main-preference selection.
+            const main = current.filter(pr => pr.base.ref === 'main');
+            const selected = main.length ? main : current;
+            if (selected.length !== 1) return;
+            for (const pull of selected) {
+              const comments = await github.paginate(github.rest.issues.listComments, {...context.repo, issue_number: pull.number});
+              const previous = comments.find(c => c.user?.type === 'Bot' && c.user?.login === 'github-actions[bot]' && c.body?.startsWith(marker));
+              const prior = previous?.body?.match(/<!-- castiron:run:v1:(\d+):(\d+) -->/);
+              if (prior && (Number(prior[1]) > run.id || (Number(prior[1]) === run.id && Number(prior[2]) > run.run_attempt))) continue;
+              const url = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${run.id}`;
+              const body = `${marker}\n\n## Castiron custom code\n\n⚠️ Report unavailable for \`${run.head_sha.slice(0, 12)}\`.\n\nThe report setup or validation failed. [Inspect the workflow run](${url}).\n\n<!-- castiron:run:v1:${run.id}:${run.run_attempt} -->`;
+              if (previous) await github.rest.issues.updateComment({...context.repo, comment_id: previous.id, body});
+              else await github.rest.issues.createComment({...context.repo, issue_number: pull.number, body});
+            }

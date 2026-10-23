@@ -7,7 +7,7 @@
     "context": ".."
   },
 
-  "postStartCommand": "rye sync --all-features",
+  "postStartCommand": "./scripts/bootstrap",
 
   "customizations": {
     "vscode": {
@@ -20,13 +20,16 @@
         "python.defaultInterpreterPath": ".venv/bin/python",
         "python.typeChecking": "basic",
         "terminal.integrated.env.linux": {
-          "PATH": "/home/vscode/.rye/shims:${env:PATH}"
+          "PATH": "/home/vscode/.local/bin:${env:PATH}"
         }
       }
     }
   },
   "features": {
-    "ghcr.io/devcontainers/features/node:1": {}
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "22.22.3",
+      "pnpmVersion": "11.19.0"
+    }
   }
 
   // Features to add to the dev container. More info: https://containers.dev/features.

@@ -277,7 +277,6 @@ def run_response(
     connection.response.create(
         model=model,
         input=input_payload,
-        stream=True,
         previous_response_id=previous_response_id,
         tools=tools,
         tool_choice=tool_choice,
@@ -314,8 +313,8 @@ def run_response(
             break
 
         if getattr(event, "type", None) == "response.done":
-            # Responses over WebSocket currently emit `response.done` as the final event.
-            # The payload still includes `response.id`, which we use for chaining.
+            # Preserve compatibility with older response.done event producers.
+            # The payload includes response.id, which we use for chaining.
             event_response = getattr(event, "response", None)
             event_response_id: Optional[str] = None
             if isinstance(event_response, dict):

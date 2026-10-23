@@ -4,6 +4,8 @@ from typing import Any, Dict, cast
 
 import pydantic
 
+from .._types import Omit, omit
+from .._utils import is_given
 from ._pydantic import to_strict_json_schema
 from ..types.chat import ChatCompletionFunctionToolParam
 from ..types.shared_params import FunctionDefinition
@@ -64,3 +66,22 @@ def pydantic_function_tool(
         "type": "function",
         "function": function,
     }
+
+
+def pydantic_responses_function_tool(
+    model: type[pydantic.BaseModel],
+    *,
+    name: str | None = None,
+    description: str | None = None,
+    defer_loading: bool | Omit = omit,
+) -> ResponsesFunctionToolParam:
+    """Build a Responses function tool with automatic Pydantic argument parsing.
+
+    Use with ``responses.parse`` or ``responses.stream``. Set ``defer_loading``
+    alongside a tool-search tool to make the function discoverable on demand.
+    """
+    function = pydantic_function_tool(model, name=name, description=description)["function"]
+    tool = ResponsesPydanticFunctionTool(cast(ResponsesFunctionToolParam, {"type": "function", **function}), model)
+    if is_given(defer_loading):
+        tool["defer_loading"] = defer_loading
+    return tool.cast()

@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import Optional
 from typing_extensions import Literal
@@ -16,6 +16,9 @@ class PromptCacheBreakpoint(BaseModel):
 
     mode: Literal["explicit"]
     """The breakpoint mode. Always `explicit`."""
+
+    ttl: Optional[Literal["30m", "12h"]] = None
+    """The minimum lifetime of this cache breakpoint. Defaults to the request TTL."""
 
 
 class BetaResponseInputFileContent(BaseModel):

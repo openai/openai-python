@@ -1,8 +1,44 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
+
+from typing import Dict, Union, Optional
+from typing_extensions import Literal
 
 from .._models import BaseModel
 
-__all__ = ["VideoCreateError"]
+__all__ = ["VideoCreateError", "Misalignment", "MisalignmentSteer"]
+
+
+class MisalignmentSteer(BaseModel):
+    """An optional public continuation instruction."""
+
+    message: str
+    """The public continuation instruction."""
+
+
+class Misalignment(BaseModel):
+    detailed_explanation: Optional[str] = None
+    """The public explanation for this block."""
+
+    error_type: Union[
+        str,
+        Literal[
+            "potentially_unintended_data_transfer",
+            "potentially_unintended_data_access",
+            "potentially_unintended_destructive_activity",
+            "other",
+        ],
+        None,
+    ] = None
+    """An optional classification; clients must accept additional values."""
+
+    review_target: Optional[str] = None
+    """
+    An opaque target for explicitly continuing this review, or null when
+    unavailable.
+    """
+
+    steer: Optional[MisalignmentSteer] = None
+    """An optional public continuation instruction."""
 
 
 class VideoCreateError(BaseModel):
@@ -13,3 +49,17 @@ class VideoCreateError(BaseModel):
 
     message: str
     """A human-readable description of the error that was returned."""
+
+    headers: Optional[Dict[str, str]] = None
+    """
+    The Retry-After and Retry-After-Ms headers returned with the original error, if
+    any.
+    """
+
+    misalignment: Optional[Misalignment] = None
+
+    param: Optional[str] = None
+    """The request parameter associated with the error, or null if none was recorded."""
+
+    type: Optional[str] = None
+    """The original error type, or null if it was not recorded."""

@@ -1,10 +1,10 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 from typing import Mapping, cast
 
-import httpx
+import httpx2
 
 from ... import _legacy_response
 from ..._files import deepcopy_with_paths
@@ -52,20 +52,21 @@ class Parts(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UploadPart:
         """
         Adds a
-        [Part](https://platform.openai.com/docs/api-reference/uploads/part-object) to an
-        [Upload](https://platform.openai.com/docs/api-reference/uploads/object) object.
-        A Part represents a chunk of bytes from the file you are trying to upload.
+        [Part](https://developers.openai.com/api/reference/resources/uploads/subresources/parts)
+        to an [Upload](https://developers.openai.com/api/reference/resources/uploads)
+        object. A Part represents a chunk of bytes from the file you are trying to
+        upload.
 
         Each Part can be at most 64 MB, and you can add Parts until you hit the Upload
         maximum of 8 GB.
 
         It is possible to add multiple Parts in parallel. You can decide the intended
         order of the Parts when you
-        [complete the Upload](https://platform.openai.com/docs/api-reference/uploads/complete).
+        [complete the Upload](https://developers.openai.com/api/reference/resources/uploads/methods/complete).
 
         Args:
           data: The chunk of bytes for this Part.
@@ -133,20 +134,21 @@ class AsyncParts(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UploadPart:
         """
         Adds a
-        [Part](https://platform.openai.com/docs/api-reference/uploads/part-object) to an
-        [Upload](https://platform.openai.com/docs/api-reference/uploads/object) object.
-        A Part represents a chunk of bytes from the file you are trying to upload.
+        [Part](https://developers.openai.com/api/reference/resources/uploads/subresources/parts)
+        to an [Upload](https://developers.openai.com/api/reference/resources/uploads)
+        object. A Part represents a chunk of bytes from the file you are trying to
+        upload.
 
         Each Part can be at most 64 MB, and you can add Parts until you hit the Upload
         maximum of 8 GB.
 
         It is possible to add multiple Parts in parallel. You can decide the intended
         order of the Parts when you
-        [complete the Upload](https://platform.openai.com/docs/api-reference/uploads/complete).
+        [complete the Upload](https://developers.openai.com/api/reference/resources/uploads/methods/complete).
 
         Args:
           data: The chunk of bytes for this Part.

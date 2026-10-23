@@ -1,0 +1,11 @@
+{
+  "extends": "../pyproject.toml",
+  "include": [
+    "../examples/browser"
+  ],
+  "exclude": [],
+  "extraPaths": [
+    "../examples/browser",
+    "../src"
+  ]
+}

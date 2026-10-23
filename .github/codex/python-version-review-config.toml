@@ -1,0 +1,21 @@
+# Least-privilege profile for the scheduled Python version review. The workflow
+# copies this file into an ignored, disposable Codex home before the action
+# starts, so proxy configuration and session state never enter the repository.
+default_permissions = "python-version-review"
+
+[permissions."python-version-review"]
+description = "Assess Python-version policy without changing the repository"
+extends = ":read-only"
+
+[permissions."python-version-review".filesystem]
+glob_scan_max_depth = 4
+
+[permissions."python-version-review".filesystem.":workspace_roots"]
+"." = "read"
+".codex-automation" = "write"
+"**/*.env" = "deny"
+
+[permissions."python-version-review".network]
+# The workflow snapshots lifecycle and usage data before the API key is passed
+# to the action. Agent-run commands need no internet access.
+enabled = false

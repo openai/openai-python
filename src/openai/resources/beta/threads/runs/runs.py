@@ -1,13 +1,12 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 import typing_extensions
 from typing import List, Union, Iterable, Optional
-from functools import partial
 from typing_extensions import Literal, overload
 
-import httpx
+import httpx2
 
 from ..... import _legacy_response
 from .steps import (
@@ -19,13 +18,7 @@ from .steps import (
     AsyncStepsWithStreamingResponse,
 )
 from ....._types import NOT_GIVEN, Body, Omit, Query, Headers, NotGiven, omit, not_given
-from ....._utils import (
-    is_given,
-    path_template,
-    required_args,
-    maybe_transform,
-    async_maybe_transform,
-)
+from ....._utils import path_template, required_args, maybe_transform, async_maybe_transform
 from ....._compat import cached_property
 from ....._resource import SyncAPIResource, AsyncAPIResource
 from ....._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -45,6 +38,20 @@ from .....types.beta.threads import (
     run_create_params,
     run_update_params,
     run_submit_tool_outputs_params,
+)
+from .....lib._assistants_runs import (
+    runs_poll,
+    runs_stream,
+    async_runs_poll,
+    async_runs_stream,
+    runs_create_and_poll,
+    runs_create_and_stream,
+    async_runs_create_and_poll,
+    async_runs_create_and_stream,
+    runs_submit_tool_outputs_stream,
+    runs_submit_tool_outputs_and_poll,
+    async_runs_submit_tool_outputs_stream,
+    async_runs_submit_tool_outputs_and_poll,
 )
 from .....types.beta.threads.run import Run
 from .....types.shared.chat_model import ChatModel
@@ -115,22 +122,22 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run:
         """
         Create a run.
 
         Args:
           assistant_id: The ID of the
-              [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
-              execute this run.
+              [assistant](https://developers.openai.com/api/docs/assistants/migration) to use
+              to execute this run.
 
           include: A list of additional fields to include in the response. Currently the only
               supported value is `step_details.tool_calls[*].file_search.results[*].content`
               to fetch the file search result content.
 
               See the
-              [file search tool documentation](https://platform.openai.com/docs/assistants/tools/file-search#customizing-file-search-settings)
+              [file search tool documentation](https://developers.openai.com/api/docs/guides/tools-file-search#retrieval-customization)
               for more information.
 
           additional_instructions: Appends additional instructions at the end of the instructions for the run. This
@@ -140,8 +147,8 @@ class Runs(SyncAPIResource):
           additional_messages: Adds additional messages to the thread before creating the run.
 
           instructions: Overrides the
-              [instructions](https://platform.openai.com/docs/api-reference/assistants/createAssistant)
-              of the assistant. This is useful for modifying the behavior on a per-run basis.
+              [instructions](https://developers.openai.com/api/docs/assistants/migration) of
+              the assistant. This is useful for modifying the behavior on a per-run basis.
 
           max_completion_tokens: The maximum number of completion tokens that may be used over the course of the
               run. The run will make a best effort to use only the number of completion tokens
@@ -162,31 +169,32 @@ class Runs(SyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
-              be used to execute this run. If a value is provided here, it will override the
-              model associated with the assistant. If not, the model associated with the
-              assistant will be used.
+          model: The ID of the
+              [Model](https://developers.openai.com/api/reference/resources/models) to be used
+              to execute this run. If a value is provided here, it will override the model
+              associated with the assistant. If not, the model associated with the assistant
+              will be used.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
+              [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
               during tool use.
 
           reasoning_effort: Constrains effort on reasoning for reasoning models. Currently supported values
               are `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, and `max`. Reducing
               reasoning effort can result in faster responses and fewer tokens used on
               reasoning in a response. Not all reasoning models support every value. See the
-              [reasoning guide](https://platform.openai.com/docs/guides/reasoning) for
+              [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
               model-specific support.
 
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
-              and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+              [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://developers.openai.com/api/docs/models/gpt-4-turbo), and
+              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
               Outputs which ensures the model will match your supplied JSON schema. Learn more
               in the
-              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+              [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
               message the model generates is valid JSON.
@@ -266,15 +274,15 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Stream[AssistantStreamEvent]:
         """
         Create a run.
 
         Args:
           assistant_id: The ID of the
-              [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
-              execute this run.
+              [assistant](https://developers.openai.com/api/docs/assistants/migration) to use
+              to execute this run.
 
           stream: If `true`, returns a stream of events that happen during the Run as server-sent
               events, terminating when the Run enters a terminal state with a `data: [DONE]`
@@ -285,7 +293,7 @@ class Runs(SyncAPIResource):
               to fetch the file search result content.
 
               See the
-              [file search tool documentation](https://platform.openai.com/docs/assistants/tools/file-search#customizing-file-search-settings)
+              [file search tool documentation](https://developers.openai.com/api/docs/guides/tools-file-search#retrieval-customization)
               for more information.
 
           additional_instructions: Appends additional instructions at the end of the instructions for the run. This
@@ -295,8 +303,8 @@ class Runs(SyncAPIResource):
           additional_messages: Adds additional messages to the thread before creating the run.
 
           instructions: Overrides the
-              [instructions](https://platform.openai.com/docs/api-reference/assistants/createAssistant)
-              of the assistant. This is useful for modifying the behavior on a per-run basis.
+              [instructions](https://developers.openai.com/api/docs/assistants/migration) of
+              the assistant. This is useful for modifying the behavior on a per-run basis.
 
           max_completion_tokens: The maximum number of completion tokens that may be used over the course of the
               run. The run will make a best effort to use only the number of completion tokens
@@ -317,31 +325,32 @@ class Runs(SyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
-              be used to execute this run. If a value is provided here, it will override the
-              model associated with the assistant. If not, the model associated with the
-              assistant will be used.
+          model: The ID of the
+              [Model](https://developers.openai.com/api/reference/resources/models) to be used
+              to execute this run. If a value is provided here, it will override the model
+              associated with the assistant. If not, the model associated with the assistant
+              will be used.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
+              [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
               during tool use.
 
           reasoning_effort: Constrains effort on reasoning for reasoning models. Currently supported values
               are `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, and `max`. Reducing
               reasoning effort can result in faster responses and fewer tokens used on
               reasoning in a response. Not all reasoning models support every value. See the
-              [reasoning guide](https://platform.openai.com/docs/guides/reasoning) for
+              [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
               model-specific support.
 
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
-              and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+              [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://developers.openai.com/api/docs/models/gpt-4-turbo), and
+              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
               Outputs which ensures the model will match your supplied JSON schema. Learn more
               in the
-              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+              [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
               message the model generates is valid JSON.
@@ -417,15 +426,15 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run | Stream[AssistantStreamEvent]:
         """
         Create a run.
 
         Args:
           assistant_id: The ID of the
-              [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
-              execute this run.
+              [assistant](https://developers.openai.com/api/docs/assistants/migration) to use
+              to execute this run.
 
           stream: If `true`, returns a stream of events that happen during the Run as server-sent
               events, terminating when the Run enters a terminal state with a `data: [DONE]`
@@ -436,7 +445,7 @@ class Runs(SyncAPIResource):
               to fetch the file search result content.
 
               See the
-              [file search tool documentation](https://platform.openai.com/docs/assistants/tools/file-search#customizing-file-search-settings)
+              [file search tool documentation](https://developers.openai.com/api/docs/guides/tools-file-search#retrieval-customization)
               for more information.
 
           additional_instructions: Appends additional instructions at the end of the instructions for the run. This
@@ -446,8 +455,8 @@ class Runs(SyncAPIResource):
           additional_messages: Adds additional messages to the thread before creating the run.
 
           instructions: Overrides the
-              [instructions](https://platform.openai.com/docs/api-reference/assistants/createAssistant)
-              of the assistant. This is useful for modifying the behavior on a per-run basis.
+              [instructions](https://developers.openai.com/api/docs/assistants/migration) of
+              the assistant. This is useful for modifying the behavior on a per-run basis.
 
           max_completion_tokens: The maximum number of completion tokens that may be used over the course of the
               run. The run will make a best effort to use only the number of completion tokens
@@ -468,31 +477,32 @@ class Runs(SyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
-              be used to execute this run. If a value is provided here, it will override the
-              model associated with the assistant. If not, the model associated with the
-              assistant will be used.
+          model: The ID of the
+              [Model](https://developers.openai.com/api/reference/resources/models) to be used
+              to execute this run. If a value is provided here, it will override the model
+              associated with the assistant. If not, the model associated with the assistant
+              will be used.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
+              [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
               during tool use.
 
           reasoning_effort: Constrains effort on reasoning for reasoning models. Currently supported values
               are `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, and `max`. Reducing
               reasoning effort can result in faster responses and fewer tokens used on
               reasoning in a response. Not all reasoning models support every value. See the
-              [reasoning guide](https://platform.openai.com/docs/guides/reasoning) for
+              [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
               model-specific support.
 
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
-              and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+              [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://developers.openai.com/api/docs/models/gpt-4-turbo), and
+              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
               Outputs which ensures the model will match your supplied JSON schema. Learn more
               in the
-              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+              [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
               message the model generates is valid JSON.
@@ -568,7 +578,7 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run | Stream[AssistantStreamEvent]:
         if not thread_id:
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
@@ -577,6 +587,8 @@ class Runs(SyncAPIResource):
             path_template("/threads/{thread_id}/runs", thread_id=thread_id),
             body=maybe_transform(
                 {
+                    "model": model,
+                    "stream": stream,
                     "assistant_id": assistant_id,
                     "additional_instructions": additional_instructions,
                     "additional_messages": additional_messages,
@@ -584,11 +596,9 @@ class Runs(SyncAPIResource):
                     "max_completion_tokens": max_completion_tokens,
                     "max_prompt_tokens": max_prompt_tokens,
                     "metadata": metadata,
-                    "model": model,
                     "parallel_tool_calls": parallel_tool_calls,
                     "reasoning_effort": reasoning_effort,
                     "response_format": response_format,
-                    "stream": stream,
                     "temperature": temperature,
                     "tool_choice": tool_choice,
                     "tools": tools,
@@ -622,7 +632,7 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run:
         """
         Retrieves a run.
@@ -665,7 +675,7 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run:
         """
         Modifies a run.
@@ -718,7 +728,7 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[Run]:
         """
         Returns a list of runs belonging to a thread.
@@ -784,7 +794,7 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run:
         """
         Cancels a run that is `in_progress`.
@@ -838,20 +848,16 @@ class Runs(SyncAPIResource):
         truncation_strategy: Optional[run_create_params.TruncationStrategy] | Omit = omit,
         poll_interval_ms: int | Omit = omit,
         thread_id: str,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Run:
-        """
-        A helper to create a run an poll for a terminal state. More information on Run
+        """A helper to create a run an poll for a terminal state. More information on Run
         lifecycles can be found here:
-        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps
-        """
-        run = self.create(  # pyright: ignore[reportDeprecated]
-            thread_id=thread_id,
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
+        return runs_create_and_poll(
+            self,
             assistant_id=assistant_id,
             include=include,
             additional_instructions=additional_instructions,
@@ -861,28 +867,19 @@ class Runs(SyncAPIResource):
             max_prompt_tokens=max_prompt_tokens,
             metadata=metadata,
             model=model,
+            parallel_tool_calls=parallel_tool_calls,
+            reasoning_effort=reasoning_effort,
             response_format=response_format,
             temperature=temperature,
             tool_choice=tool_choice,
-            parallel_tool_calls=parallel_tool_calls,
-            reasoning_effort=reasoning_effort,
-            # We assume we are not streaming when polling
-            stream=False,
             tools=tools,
-            truncation_strategy=truncation_strategy,
             top_p=top_p,
-            extra_headers=extra_headers,
-            extra_query=extra_query,
-            extra_body=extra_body,
-            timeout=timeout,
-        )
-        return self.poll(  # pyright: ignore[reportDeprecated]
-            run.id,
+            truncation_strategy=truncation_strategy,
+            poll_interval_ms=poll_interval_ms,
             thread_id=thread_id,
             extra_headers=extra_headers,
             extra_query=extra_query,
             extra_body=extra_body,
-            poll_interval_ms=poll_interval_ms,
             timeout=timeout,
         )
 
@@ -908,15 +905,12 @@ class Runs(SyncAPIResource):
         top_p: Optional[float] | Omit = omit,
         truncation_strategy: Optional[run_create_params.TruncationStrategy] | Omit = omit,
         thread_id: str,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AssistantStreamManager[AssistantEventHandler]:
         """Create a Run stream"""
-        ...
 
     @overload
     @typing_extensions.deprecated("use `stream` instead")
@@ -941,15 +935,12 @@ class Runs(SyncAPIResource):
         truncation_strategy: Optional[run_create_params.TruncationStrategy] | Omit = omit,
         thread_id: str,
         event_handler: AssistantEventHandlerT,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AssistantStreamManager[AssistantEventHandlerT]:
         """Create a Run stream"""
-        ...
 
     @typing_extensions.deprecated("use `stream` instead")
     def create_and_stream(
@@ -973,60 +964,37 @@ class Runs(SyncAPIResource):
         truncation_strategy: Optional[run_create_params.TruncationStrategy] | Omit = omit,
         thread_id: str,
         event_handler: AssistantEventHandlerT | None = None,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AssistantStreamManager[AssistantEventHandler] | AssistantStreamManager[AssistantEventHandlerT]:
         """Create a Run stream"""
-        if not thread_id:
-            raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
-
-        extra_headers = {
-            "OpenAI-Beta": "assistants=v2",
-            "X-Stainless-Stream-Helper": "threads.runs.create_and_stream",
-            "X-Stainless-Custom-Event-Handler": "true" if event_handler else "false",
-            **(extra_headers or {}),
-        }
-        make_request = partial(
-            self._post,
-            path_template("/threads/{thread_id}/runs", thread_id=thread_id),
-            body=maybe_transform(
-                {
-                    "assistant_id": assistant_id,
-                    "additional_instructions": additional_instructions,
-                    "additional_messages": additional_messages,
-                    "instructions": instructions,
-                    "max_completion_tokens": max_completion_tokens,
-                    "max_prompt_tokens": max_prompt_tokens,
-                    "metadata": metadata,
-                    "model": model,
-                    "response_format": response_format,
-                    "temperature": temperature,
-                    "tool_choice": tool_choice,
-                    "stream": True,
-                    "tools": tools,
-                    "truncation_strategy": truncation_strategy,
-                    "parallel_tool_calls": parallel_tool_calls,
-                    "reasoning_effort": reasoning_effort,
-                    "top_p": top_p,
-                },
-                run_create_params.RunCreateParams,
-            ),
-            options=make_request_options(
-                extra_headers=extra_headers,
-                extra_query=extra_query,
-                extra_body=extra_body,
-                timeout=timeout,
-                security={"bearer_auth": True},
-            ),
-            cast_to=Run,
-            stream=True,
-            stream_cls=Stream[AssistantStreamEvent],
+        return runs_create_and_stream(
+            self,
+            assistant_id=assistant_id,
+            additional_instructions=additional_instructions,
+            additional_messages=additional_messages,
+            instructions=instructions,
+            max_completion_tokens=max_completion_tokens,
+            max_prompt_tokens=max_prompt_tokens,
+            metadata=metadata,
+            model=model,
+            parallel_tool_calls=parallel_tool_calls,
+            reasoning_effort=reasoning_effort,
+            response_format=response_format,
+            temperature=temperature,
+            tool_choice=tool_choice,
+            tools=tools,
+            top_p=top_p,
+            truncation_strategy=truncation_strategy,
+            thread_id=thread_id,
+            event_handler=event_handler,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
         )
-        return AssistantStreamManager(make_request, event_handler=event_handler or AssistantEventHandler())
 
     @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     def poll(
@@ -1036,43 +1004,22 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
         poll_interval_ms: int | Omit = omit,
     ) -> Run:
-        """
-        A helper to poll a run status until it reaches a terminal state. More
+        """A helper to poll a run status until it reaches a terminal state. More
         information on Run lifecycles can be found here:
-        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps
-        """
-        extra_headers = {"X-Stainless-Poll-Helper": "true", **(extra_headers or {})}
-
-        if is_given(poll_interval_ms):
-            extra_headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
-
-        terminal_states = {"requires_action", "cancelled", "completed", "failed", "expired", "incomplete"}
-        while True:
-            response = self.with_raw_response.retrieve(  # pyright: ignore[reportDeprecated]
-                thread_id=thread_id,
-                run_id=run_id,
-                extra_headers=extra_headers,
-                extra_body=extra_body,
-                extra_query=extra_query,
-                timeout=timeout,
-            )
-
-            run = response.parse()
-            # Return if we reached a terminal state
-            if run.status in terminal_states:
-                return run
-
-            if not is_given(poll_interval_ms):
-                from_header = response.headers.get("openai-poll-after-ms")
-                if from_header is not None:
-                    poll_interval_ms = int(from_header)
-                else:
-                    poll_interval_ms = 1000
-
-            self._sleep(poll_interval_ms / 1000)
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
+        return runs_poll(
+            self,
+            run_id=run_id,
+            thread_id=thread_id,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+            poll_interval_ms=poll_interval_ms,
+        )
 
     @overload
     @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
@@ -1097,15 +1044,12 @@ class Runs(SyncAPIResource):
         top_p: Optional[float] | Omit = omit,
         truncation_strategy: Optional[run_create_params.TruncationStrategy] | Omit = omit,
         thread_id: str,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AssistantStreamManager[AssistantEventHandler]:
         """Create a Run stream"""
-        ...
 
     @overload
     @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
@@ -1131,15 +1075,12 @@ class Runs(SyncAPIResource):
         truncation_strategy: Optional[run_create_params.TruncationStrategy] | Omit = omit,
         thread_id: str,
         event_handler: AssistantEventHandlerT,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AssistantStreamManager[AssistantEventHandlerT]:
         """Create a Run stream"""
-        ...
 
     @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     def stream(
@@ -1164,61 +1105,38 @@ class Runs(SyncAPIResource):
         truncation_strategy: Optional[run_create_params.TruncationStrategy] | Omit = omit,
         thread_id: str,
         event_handler: AssistantEventHandlerT | None = None,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AssistantStreamManager[AssistantEventHandler] | AssistantStreamManager[AssistantEventHandlerT]:
         """Create a Run stream"""
-        if not thread_id:
-            raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
-
-        extra_headers = {
-            "OpenAI-Beta": "assistants=v2",
-            "X-Stainless-Stream-Helper": "threads.runs.create_and_stream",
-            "X-Stainless-Custom-Event-Handler": "true" if event_handler else "false",
-            **(extra_headers or {}),
-        }
-        make_request = partial(
-            self._post,
-            path_template("/threads/{thread_id}/runs", thread_id=thread_id),
-            body=maybe_transform(
-                {
-                    "assistant_id": assistant_id,
-                    "additional_instructions": additional_instructions,
-                    "additional_messages": additional_messages,
-                    "instructions": instructions,
-                    "max_completion_tokens": max_completion_tokens,
-                    "max_prompt_tokens": max_prompt_tokens,
-                    "metadata": metadata,
-                    "model": model,
-                    "response_format": response_format,
-                    "temperature": temperature,
-                    "tool_choice": tool_choice,
-                    "stream": True,
-                    "tools": tools,
-                    "parallel_tool_calls": parallel_tool_calls,
-                    "reasoning_effort": reasoning_effort,
-                    "truncation_strategy": truncation_strategy,
-                    "top_p": top_p,
-                },
-                run_create_params.RunCreateParams,
-            ),
-            options=make_request_options(
-                extra_headers=extra_headers,
-                extra_query=extra_query,
-                extra_body=extra_body,
-                timeout=timeout,
-                query=maybe_transform({"include": include}, run_create_params.RunCreateParams),
-                security={"bearer_auth": True},
-            ),
-            cast_to=Run,
-            stream=True,
-            stream_cls=Stream[AssistantStreamEvent],
+        return runs_stream(
+            self,
+            assistant_id=assistant_id,
+            include=include,
+            additional_instructions=additional_instructions,
+            additional_messages=additional_messages,
+            instructions=instructions,
+            max_completion_tokens=max_completion_tokens,
+            max_prompt_tokens=max_prompt_tokens,
+            metadata=metadata,
+            model=model,
+            parallel_tool_calls=parallel_tool_calls,
+            reasoning_effort=reasoning_effort,
+            response_format=response_format,
+            temperature=temperature,
+            tool_choice=tool_choice,
+            tools=tools,
+            top_p=top_p,
+            truncation_strategy=truncation_strategy,
+            thread_id=thread_id,
+            event_handler=event_handler,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
         )
-        return AssistantStreamManager(make_request, event_handler=event_handler or AssistantEventHandler())
 
     @overload
     @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
@@ -1234,7 +1152,7 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run:
         """
         When a run has the `status: "requires_action"` and `required_action.type` is
@@ -1273,7 +1191,7 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Stream[AssistantStreamEvent]:
         """
         When a run has the `status: "requires_action"` and `required_action.type` is
@@ -1312,7 +1230,7 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run | Stream[AssistantStreamEvent]:
         """
         When a run has the `status: "requires_action"` and `required_action.type` is
@@ -1352,7 +1270,7 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run | Stream[AssistantStreamEvent]:
         if not thread_id:
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
@@ -1363,8 +1281,8 @@ class Runs(SyncAPIResource):
             path_template("/threads/{thread_id}/runs/{run_id}/submit_tool_outputs", thread_id=thread_id, run_id=run_id),
             body=maybe_transform(
                 {
-                    "tool_outputs": tool_outputs,
                     "stream": stream,
+                    "tool_outputs": tool_outputs,
                 },
                 run_submit_tool_outputs_params.RunSubmitToolOutputsParamsStreaming
                 if stream
@@ -1391,36 +1309,24 @@ class Runs(SyncAPIResource):
         run_id: str,
         thread_id: str,
         poll_interval_ms: int | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Run:
-        """
-        A helper to submit a tool output to a run and poll for a terminal run state.
+        """A helper to submit a tool output to a run and poll for a terminal run state.
         More information on Run lifecycles can be found here:
-        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps
-        """
-        run = self.submit_tool_outputs(  # pyright: ignore[reportDeprecated]
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
+        return runs_submit_tool_outputs_and_poll(
+            self,
+            tool_outputs=tool_outputs,
             run_id=run_id,
             thread_id=thread_id,
-            tool_outputs=tool_outputs,
-            stream=False,
-            extra_headers=extra_headers,
-            extra_query=extra_query,
-            extra_body=extra_body,
-            timeout=timeout,
-        )
-        return self.poll(  # pyright: ignore[reportDeprecated]
-            run_id=run.id,
-            thread_id=thread_id,
-            extra_headers=extra_headers,
-            extra_query=extra_query,
-            extra_body=extra_body,
-            timeout=timeout,
             poll_interval_ms=poll_interval_ms,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
         )
 
     @overload
@@ -1431,19 +1337,14 @@ class Runs(SyncAPIResource):
         tool_outputs: Iterable[run_submit_tool_outputs_params.ToolOutput],
         run_id: str,
         thread_id: str,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AssistantStreamManager[AssistantEventHandler]:
-        """
-        Submit the tool outputs from a previous run and stream the run to a terminal
+        """Submit the tool outputs from a previous run and stream the run to a terminal
         state. More information on Run lifecycles can be found here:
-        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps
-        """
-        ...
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
 
     @overload
     @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
@@ -1454,19 +1355,14 @@ class Runs(SyncAPIResource):
         run_id: str,
         thread_id: str,
         event_handler: AssistantEventHandlerT,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AssistantStreamManager[AssistantEventHandlerT]:
-        """
-        Submit the tool outputs from a previous run and stream the run to a terminal
+        """Submit the tool outputs from a previous run and stream the run to a terminal
         state. More information on Run lifecycles can be found here:
-        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps
-        """
-        ...
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
 
     @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     def submit_tool_outputs_stream(
@@ -1476,52 +1372,25 @@ class Runs(SyncAPIResource):
         run_id: str,
         thread_id: str,
         event_handler: AssistantEventHandlerT | None = None,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AssistantStreamManager[AssistantEventHandler] | AssistantStreamManager[AssistantEventHandlerT]:
-        """
-        Submit the tool outputs from a previous run and stream the run to a terminal
+        """Submit the tool outputs from a previous run and stream the run to a terminal
         state. More information on Run lifecycles can be found here:
-        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps
-        """
-        if not run_id:
-            raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
-
-        if not thread_id:
-            raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
-
-        extra_headers = {
-            "OpenAI-Beta": "assistants=v2",
-            "X-Stainless-Stream-Helper": "threads.runs.submit_tool_outputs_stream",
-            "X-Stainless-Custom-Event-Handler": "true" if event_handler else "false",
-            **(extra_headers or {}),
-        }
-        request = partial(
-            self._post,
-            path_template("/threads/{thread_id}/runs/{run_id}/submit_tool_outputs", thread_id=thread_id, run_id=run_id),
-            body=maybe_transform(
-                {
-                    "tool_outputs": tool_outputs,
-                    "stream": True,
-                },
-                run_submit_tool_outputs_params.RunSubmitToolOutputsParams,
-            ),
-            options=make_request_options(
-                extra_headers=extra_headers,
-                extra_query=extra_query,
-                extra_body=extra_body,
-                timeout=timeout,
-                security={"bearer_auth": True},
-            ),
-            cast_to=Run,
-            stream=True,
-            stream_cls=Stream[AssistantStreamEvent],
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
+        return runs_submit_tool_outputs_stream(
+            self,
+            tool_outputs=tool_outputs,
+            run_id=run_id,
+            thread_id=thread_id,
+            event_handler=event_handler,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
         )
-        return AssistantStreamManager(request, event_handler=event_handler or AssistantEventHandler())
 
 
 class AsyncRuns(AsyncAPIResource):
@@ -1580,22 +1449,22 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run:
         """
         Create a run.
 
         Args:
           assistant_id: The ID of the
-              [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
-              execute this run.
+              [assistant](https://developers.openai.com/api/docs/assistants/migration) to use
+              to execute this run.
 
           include: A list of additional fields to include in the response. Currently the only
               supported value is `step_details.tool_calls[*].file_search.results[*].content`
               to fetch the file search result content.
 
               See the
-              [file search tool documentation](https://platform.openai.com/docs/assistants/tools/file-search#customizing-file-search-settings)
+              [file search tool documentation](https://developers.openai.com/api/docs/guides/tools-file-search#retrieval-customization)
               for more information.
 
           additional_instructions: Appends additional instructions at the end of the instructions for the run. This
@@ -1605,8 +1474,8 @@ class AsyncRuns(AsyncAPIResource):
           additional_messages: Adds additional messages to the thread before creating the run.
 
           instructions: Overrides the
-              [instructions](https://platform.openai.com/docs/api-reference/assistants/createAssistant)
-              of the assistant. This is useful for modifying the behavior on a per-run basis.
+              [instructions](https://developers.openai.com/api/docs/assistants/migration) of
+              the assistant. This is useful for modifying the behavior on a per-run basis.
 
           max_completion_tokens: The maximum number of completion tokens that may be used over the course of the
               run. The run will make a best effort to use only the number of completion tokens
@@ -1627,31 +1496,32 @@ class AsyncRuns(AsyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
-              be used to execute this run. If a value is provided here, it will override the
-              model associated with the assistant. If not, the model associated with the
-              assistant will be used.
+          model: The ID of the
+              [Model](https://developers.openai.com/api/reference/resources/models) to be used
+              to execute this run. If a value is provided here, it will override the model
+              associated with the assistant. If not, the model associated with the assistant
+              will be used.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
+              [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
               during tool use.
 
           reasoning_effort: Constrains effort on reasoning for reasoning models. Currently supported values
               are `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, and `max`. Reducing
               reasoning effort can result in faster responses and fewer tokens used on
               reasoning in a response. Not all reasoning models support every value. See the
-              [reasoning guide](https://platform.openai.com/docs/guides/reasoning) for
+              [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
               model-specific support.
 
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
-              and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+              [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://developers.openai.com/api/docs/models/gpt-4-turbo), and
+              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
               Outputs which ensures the model will match your supplied JSON schema. Learn more
               in the
-              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+              [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
               message the model generates is valid JSON.
@@ -1731,15 +1601,15 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncStream[AssistantStreamEvent]:
         """
         Create a run.
 
         Args:
           assistant_id: The ID of the
-              [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
-              execute this run.
+              [assistant](https://developers.openai.com/api/docs/assistants/migration) to use
+              to execute this run.
 
           stream: If `true`, returns a stream of events that happen during the Run as server-sent
               events, terminating when the Run enters a terminal state with a `data: [DONE]`
@@ -1750,7 +1620,7 @@ class AsyncRuns(AsyncAPIResource):
               to fetch the file search result content.
 
               See the
-              [file search tool documentation](https://platform.openai.com/docs/assistants/tools/file-search#customizing-file-search-settings)
+              [file search tool documentation](https://developers.openai.com/api/docs/guides/tools-file-search#retrieval-customization)
               for more information.
 
           additional_instructions: Appends additional instructions at the end of the instructions for the run. This
@@ -1760,8 +1630,8 @@ class AsyncRuns(AsyncAPIResource):
           additional_messages: Adds additional messages to the thread before creating the run.
 
           instructions: Overrides the
-              [instructions](https://platform.openai.com/docs/api-reference/assistants/createAssistant)
-              of the assistant. This is useful for modifying the behavior on a per-run basis.
+              [instructions](https://developers.openai.com/api/docs/assistants/migration) of
+              the assistant. This is useful for modifying the behavior on a per-run basis.
 
           max_completion_tokens: The maximum number of completion tokens that may be used over the course of the
               run. The run will make a best effort to use only the number of completion tokens
@@ -1782,31 +1652,32 @@ class AsyncRuns(AsyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
-              be used to execute this run. If a value is provided here, it will override the
-              model associated with the assistant. If not, the model associated with the
-              assistant will be used.
+          model: The ID of the
+              [Model](https://developers.openai.com/api/reference/resources/models) to be used
+              to execute this run. If a value is provided here, it will override the model
+              associated with the assistant. If not, the model associated with the assistant
+              will be used.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
+              [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
               during tool use.
 
           reasoning_effort: Constrains effort on reasoning for reasoning models. Currently supported values
               are `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, and `max`. Reducing
               reasoning effort can result in faster responses and fewer tokens used on
               reasoning in a response. Not all reasoning models support every value. See the
-              [reasoning guide](https://platform.openai.com/docs/guides/reasoning) for
+              [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
               model-specific support.
 
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
-              and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+              [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://developers.openai.com/api/docs/models/gpt-4-turbo), and
+              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
               Outputs which ensures the model will match your supplied JSON schema. Learn more
               in the
-              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+              [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
               message the model generates is valid JSON.
@@ -1882,15 +1753,15 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run | AsyncStream[AssistantStreamEvent]:
         """
         Create a run.
 
         Args:
           assistant_id: The ID of the
-              [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
-              execute this run.
+              [assistant](https://developers.openai.com/api/docs/assistants/migration) to use
+              to execute this run.
 
           stream: If `true`, returns a stream of events that happen during the Run as server-sent
               events, terminating when the Run enters a terminal state with a `data: [DONE]`
@@ -1901,7 +1772,7 @@ class AsyncRuns(AsyncAPIResource):
               to fetch the file search result content.
 
               See the
-              [file search tool documentation](https://platform.openai.com/docs/assistants/tools/file-search#customizing-file-search-settings)
+              [file search tool documentation](https://developers.openai.com/api/docs/guides/tools-file-search#retrieval-customization)
               for more information.
 
           additional_instructions: Appends additional instructions at the end of the instructions for the run. This
@@ -1911,8 +1782,8 @@ class AsyncRuns(AsyncAPIResource):
           additional_messages: Adds additional messages to the thread before creating the run.
 
           instructions: Overrides the
-              [instructions](https://platform.openai.com/docs/api-reference/assistants/createAssistant)
-              of the assistant. This is useful for modifying the behavior on a per-run basis.
+              [instructions](https://developers.openai.com/api/docs/assistants/migration) of
+              the assistant. This is useful for modifying the behavior on a per-run basis.
 
           max_completion_tokens: The maximum number of completion tokens that may be used over the course of the
               run. The run will make a best effort to use only the number of completion tokens
@@ -1933,31 +1804,32 @@ class AsyncRuns(AsyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
-              be used to execute this run. If a value is provided here, it will override the
-              model associated with the assistant. If not, the model associated with the
-              assistant will be used.
+          model: The ID of the
+              [Model](https://developers.openai.com/api/reference/resources/models) to be used
+              to execute this run. If a value is provided here, it will override the model
+              associated with the assistant. If not, the model associated with the assistant
+              will be used.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
+              [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
               during tool use.
 
           reasoning_effort: Constrains effort on reasoning for reasoning models. Currently supported values
               are `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, and `max`. Reducing
               reasoning effort can result in faster responses and fewer tokens used on
               reasoning in a response. Not all reasoning models support every value. See the
-              [reasoning guide](https://platform.openai.com/docs/guides/reasoning) for
+              [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
               model-specific support.
 
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
-              and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+              [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://developers.openai.com/api/docs/models/gpt-4-turbo), and
+              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
               Outputs which ensures the model will match your supplied JSON schema. Learn more
               in the
-              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+              [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
               message the model generates is valid JSON.
@@ -2034,7 +1906,7 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run | AsyncStream[AssistantStreamEvent]:
         if not thread_id:
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
@@ -2043,6 +1915,8 @@ class AsyncRuns(AsyncAPIResource):
             path_template("/threads/{thread_id}/runs", thread_id=thread_id),
             body=await async_maybe_transform(
                 {
+                    "model": model,
+                    "stream": stream,
                     "assistant_id": assistant_id,
                     "additional_instructions": additional_instructions,
                     "additional_messages": additional_messages,
@@ -2050,11 +1924,9 @@ class AsyncRuns(AsyncAPIResource):
                     "max_completion_tokens": max_completion_tokens,
                     "max_prompt_tokens": max_prompt_tokens,
                     "metadata": metadata,
-                    "model": model,
                     "parallel_tool_calls": parallel_tool_calls,
                     "reasoning_effort": reasoning_effort,
                     "response_format": response_format,
-                    "stream": stream,
                     "temperature": temperature,
                     "tool_choice": tool_choice,
                     "tools": tools,
@@ -2088,7 +1960,7 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run:
         """
         Retrieves a run.
@@ -2131,7 +2003,7 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run:
         """
         Modifies a run.
@@ -2184,7 +2056,7 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[Run, AsyncCursorPage[Run]]:
         """
         Returns a list of runs belonging to a thread.
@@ -2250,7 +2122,7 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run:
         """
         Cancels a run that is `in_progress`.
@@ -2304,20 +2176,16 @@ class AsyncRuns(AsyncAPIResource):
         truncation_strategy: Optional[run_create_params.TruncationStrategy] | Omit = omit,
         poll_interval_ms: int | Omit = omit,
         thread_id: str,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Run:
-        """
-        A helper to create a run an poll for a terminal state. More information on Run
+        """A helper to create a run an poll for a terminal state. More information on Run
         lifecycles can be found here:
-        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps
-        """
-        run = await self.create(  # pyright: ignore[reportDeprecated]
-            thread_id=thread_id,
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
+        return await async_runs_create_and_poll(
+            self,
             assistant_id=assistant_id,
             include=include,
             additional_instructions=additional_instructions,
@@ -2327,28 +2195,19 @@ class AsyncRuns(AsyncAPIResource):
             max_prompt_tokens=max_prompt_tokens,
             metadata=metadata,
             model=model,
+            parallel_tool_calls=parallel_tool_calls,
+            reasoning_effort=reasoning_effort,
             response_format=response_format,
             temperature=temperature,
             tool_choice=tool_choice,
-            parallel_tool_calls=parallel_tool_calls,
-            reasoning_effort=reasoning_effort,
-            # We assume we are not streaming when polling
-            stream=False,
             tools=tools,
-            truncation_strategy=truncation_strategy,
             top_p=top_p,
-            extra_headers=extra_headers,
-            extra_query=extra_query,
-            extra_body=extra_body,
-            timeout=timeout,
-        )
-        return await self.poll(  # pyright: ignore[reportDeprecated]
-            run.id,
+            truncation_strategy=truncation_strategy,
+            poll_interval_ms=poll_interval_ms,
             thread_id=thread_id,
             extra_headers=extra_headers,
             extra_query=extra_query,
             extra_body=extra_body,
-            poll_interval_ms=poll_interval_ms,
             timeout=timeout,
         )
 
@@ -2373,15 +2232,12 @@ class AsyncRuns(AsyncAPIResource):
         top_p: Optional[float] | Omit = omit,
         truncation_strategy: Optional[run_create_params.TruncationStrategy] | Omit = omit,
         thread_id: str,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AsyncAssistantStreamManager[AsyncAssistantEventHandler]:
         """Create a Run stream"""
-        ...
 
     @overload
     @typing_extensions.deprecated("use `stream` instead")
@@ -2405,15 +2261,12 @@ class AsyncRuns(AsyncAPIResource):
         truncation_strategy: Optional[run_create_params.TruncationStrategy] | Omit = omit,
         thread_id: str,
         event_handler: AsyncAssistantEventHandlerT,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AsyncAssistantStreamManager[AsyncAssistantEventHandlerT]:
         """Create a Run stream"""
-        ...
 
     @typing_extensions.deprecated("use `stream` instead")
     def create_and_stream(
@@ -2436,61 +2289,39 @@ class AsyncRuns(AsyncAPIResource):
         truncation_strategy: Optional[run_create_params.TruncationStrategy] | Omit = omit,
         thread_id: str,
         event_handler: AsyncAssistantEventHandlerT | None = None,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> (
         AsyncAssistantStreamManager[AsyncAssistantEventHandler]
         | AsyncAssistantStreamManager[AsyncAssistantEventHandlerT]
     ):
         """Create a Run stream"""
-        if not thread_id:
-            raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
-
-        extra_headers = {
-            "OpenAI-Beta": "assistants=v2",
-            "X-Stainless-Stream-Helper": "threads.runs.create_and_stream",
-            "X-Stainless-Custom-Event-Handler": "true" if event_handler else "false",
-            **(extra_headers or {}),
-        }
-        request = self._post(
-            path_template("/threads/{thread_id}/runs", thread_id=thread_id),
-            body=maybe_transform(
-                {
-                    "assistant_id": assistant_id,
-                    "additional_instructions": additional_instructions,
-                    "additional_messages": additional_messages,
-                    "instructions": instructions,
-                    "max_completion_tokens": max_completion_tokens,
-                    "max_prompt_tokens": max_prompt_tokens,
-                    "metadata": metadata,
-                    "model": model,
-                    "response_format": response_format,
-                    "temperature": temperature,
-                    "tool_choice": tool_choice,
-                    "stream": True,
-                    "tools": tools,
-                    "truncation_strategy": truncation_strategy,
-                    "top_p": top_p,
-                    "parallel_tool_calls": parallel_tool_calls,
-                },
-                run_create_params.RunCreateParams,
-            ),
-            options=make_request_options(
-                extra_headers=extra_headers,
-                extra_query=extra_query,
-                extra_body=extra_body,
-                timeout=timeout,
-                security={"bearer_auth": True},
-            ),
-            cast_to=Run,
-            stream=True,
-            stream_cls=AsyncStream[AssistantStreamEvent],
+        return async_runs_create_and_stream(
+            self,
+            assistant_id=assistant_id,
+            additional_instructions=additional_instructions,
+            additional_messages=additional_messages,
+            instructions=instructions,
+            max_completion_tokens=max_completion_tokens,
+            max_prompt_tokens=max_prompt_tokens,
+            metadata=metadata,
+            model=model,
+            parallel_tool_calls=parallel_tool_calls,
+            response_format=response_format,
+            temperature=temperature,
+            tool_choice=tool_choice,
+            tools=tools,
+            top_p=top_p,
+            truncation_strategy=truncation_strategy,
+            thread_id=thread_id,
+            event_handler=event_handler,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
         )
-        return AsyncAssistantStreamManager(request, event_handler=event_handler or AsyncAssistantEventHandler())
 
     @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     async def poll(
@@ -2500,43 +2331,22 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
         poll_interval_ms: int | Omit = omit,
     ) -> Run:
-        """
-        A helper to poll a run status until it reaches a terminal state. More
+        """A helper to poll a run status until it reaches a terminal state. More
         information on Run lifecycles can be found here:
-        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps
-        """
-        extra_headers = {"X-Stainless-Poll-Helper": "true", **(extra_headers or {})}
-
-        if is_given(poll_interval_ms):
-            extra_headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
-
-        terminal_states = {"requires_action", "cancelled", "completed", "failed", "expired", "incomplete"}
-        while True:
-            response = await self.with_raw_response.retrieve(  # pyright: ignore[reportDeprecated]
-                thread_id=thread_id,
-                run_id=run_id,
-                extra_headers=extra_headers,
-                extra_body=extra_body,
-                extra_query=extra_query,
-                timeout=timeout,
-            )
-
-            run = response.parse()
-            # Return if we reached a terminal state
-            if run.status in terminal_states:
-                return run
-
-            if not is_given(poll_interval_ms):
-                from_header = response.headers.get("openai-poll-after-ms")
-                if from_header is not None:
-                    poll_interval_ms = int(from_header)
-                else:
-                    poll_interval_ms = 1000
-
-            await self._sleep(poll_interval_ms / 1000)
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
+        return await async_runs_poll(
+            self,
+            run_id=run_id,
+            thread_id=thread_id,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+            poll_interval_ms=poll_interval_ms,
+        )
 
     @overload
     @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
@@ -2560,15 +2370,12 @@ class AsyncRuns(AsyncAPIResource):
         top_p: Optional[float] | Omit = omit,
         truncation_strategy: Optional[run_create_params.TruncationStrategy] | Omit = omit,
         thread_id: str,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AsyncAssistantStreamManager[AsyncAssistantEventHandler]:
         """Create a Run stream"""
-        ...
 
     @overload
     @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
@@ -2594,15 +2401,12 @@ class AsyncRuns(AsyncAPIResource):
         truncation_strategy: Optional[run_create_params.TruncationStrategy] | Omit = omit,
         thread_id: str,
         event_handler: AsyncAssistantEventHandlerT,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AsyncAssistantStreamManager[AsyncAssistantEventHandlerT]:
         """Create a Run stream"""
-        ...
 
     @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     def stream(
@@ -2627,63 +2431,41 @@ class AsyncRuns(AsyncAPIResource):
         truncation_strategy: Optional[run_create_params.TruncationStrategy] | Omit = omit,
         thread_id: str,
         event_handler: AsyncAssistantEventHandlerT | None = None,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> (
         AsyncAssistantStreamManager[AsyncAssistantEventHandler]
         | AsyncAssistantStreamManager[AsyncAssistantEventHandlerT]
     ):
         """Create a Run stream"""
-        if not thread_id:
-            raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
-
-        extra_headers = {
-            "OpenAI-Beta": "assistants=v2",
-            "X-Stainless-Stream-Helper": "threads.runs.create_and_stream",
-            "X-Stainless-Custom-Event-Handler": "true" if event_handler else "false",
-            **(extra_headers or {}),
-        }
-        request = self._post(
-            path_template("/threads/{thread_id}/runs", thread_id=thread_id),
-            body=maybe_transform(
-                {
-                    "assistant_id": assistant_id,
-                    "additional_instructions": additional_instructions,
-                    "additional_messages": additional_messages,
-                    "instructions": instructions,
-                    "max_completion_tokens": max_completion_tokens,
-                    "max_prompt_tokens": max_prompt_tokens,
-                    "metadata": metadata,
-                    "model": model,
-                    "response_format": response_format,
-                    "temperature": temperature,
-                    "tool_choice": tool_choice,
-                    "stream": True,
-                    "tools": tools,
-                    "parallel_tool_calls": parallel_tool_calls,
-                    "reasoning_effort": reasoning_effort,
-                    "truncation_strategy": truncation_strategy,
-                    "top_p": top_p,
-                },
-                run_create_params.RunCreateParams,
-            ),
-            options=make_request_options(
-                extra_headers=extra_headers,
-                extra_query=extra_query,
-                extra_body=extra_body,
-                timeout=timeout,
-                query=maybe_transform({"include": include}, run_create_params.RunCreateParams),
-                security={"bearer_auth": True},
-            ),
-            cast_to=Run,
-            stream=True,
-            stream_cls=AsyncStream[AssistantStreamEvent],
+        return async_runs_stream(
+            self,
+            assistant_id=assistant_id,
+            include=include,
+            additional_instructions=additional_instructions,
+            additional_messages=additional_messages,
+            instructions=instructions,
+            max_completion_tokens=max_completion_tokens,
+            max_prompt_tokens=max_prompt_tokens,
+            metadata=metadata,
+            model=model,
+            parallel_tool_calls=parallel_tool_calls,
+            reasoning_effort=reasoning_effort,
+            response_format=response_format,
+            temperature=temperature,
+            tool_choice=tool_choice,
+            tools=tools,
+            top_p=top_p,
+            truncation_strategy=truncation_strategy,
+            thread_id=thread_id,
+            event_handler=event_handler,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
         )
-        return AsyncAssistantStreamManager(request, event_handler=event_handler or AsyncAssistantEventHandler())
 
     @overload
     @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
@@ -2699,7 +2481,7 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run:
         """
         When a run has the `status: "requires_action"` and `required_action.type` is
@@ -2738,7 +2520,7 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncStream[AssistantStreamEvent]:
         """
         When a run has the `status: "requires_action"` and `required_action.type` is
@@ -2777,7 +2559,7 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run | AsyncStream[AssistantStreamEvent]:
         """
         When a run has the `status: "requires_action"` and `required_action.type` is
@@ -2817,7 +2599,7 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run | AsyncStream[AssistantStreamEvent]:
         if not thread_id:
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
@@ -2828,8 +2610,8 @@ class AsyncRuns(AsyncAPIResource):
             path_template("/threads/{thread_id}/runs/{run_id}/submit_tool_outputs", thread_id=thread_id, run_id=run_id),
             body=await async_maybe_transform(
                 {
-                    "tool_outputs": tool_outputs,
                     "stream": stream,
+                    "tool_outputs": tool_outputs,
                 },
                 run_submit_tool_outputs_params.RunSubmitToolOutputsParamsStreaming
                 if stream
@@ -2856,36 +2638,24 @@ class AsyncRuns(AsyncAPIResource):
         run_id: str,
         thread_id: str,
         poll_interval_ms: int | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Run:
-        """
-        A helper to submit a tool output to a run and poll for a terminal run state.
+        """A helper to submit a tool output to a run and poll for a terminal run state.
         More information on Run lifecycles can be found here:
-        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps
-        """
-        run = await self.submit_tool_outputs(  # pyright: ignore[reportDeprecated]
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
+        return await async_runs_submit_tool_outputs_and_poll(
+            self,
+            tool_outputs=tool_outputs,
             run_id=run_id,
             thread_id=thread_id,
-            tool_outputs=tool_outputs,
-            stream=False,
-            extra_headers=extra_headers,
-            extra_query=extra_query,
-            extra_body=extra_body,
-            timeout=timeout,
-        )
-        return await self.poll(  # pyright: ignore[reportDeprecated]
-            run_id=run.id,
-            thread_id=thread_id,
-            extra_headers=extra_headers,
-            extra_query=extra_query,
-            extra_body=extra_body,
-            timeout=timeout,
             poll_interval_ms=poll_interval_ms,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
         )
 
     @overload
@@ -2896,19 +2666,14 @@ class AsyncRuns(AsyncAPIResource):
         tool_outputs: Iterable[run_submit_tool_outputs_params.ToolOutput],
         run_id: str,
         thread_id: str,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AsyncAssistantStreamManager[AsyncAssistantEventHandler]:
-        """
-        Submit the tool outputs from a previous run and stream the run to a terminal
+        """Submit the tool outputs from a previous run and stream the run to a terminal
         state. More information on Run lifecycles can be found here:
-        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps
-        """
-        ...
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
 
     @overload
     @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
@@ -2919,19 +2684,14 @@ class AsyncRuns(AsyncAPIResource):
         run_id: str,
         thread_id: str,
         event_handler: AsyncAssistantEventHandlerT,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AsyncAssistantStreamManager[AsyncAssistantEventHandlerT]:
-        """
-        Submit the tool outputs from a previous run and stream the run to a terminal
+        """Submit the tool outputs from a previous run and stream the run to a terminal
         state. More information on Run lifecycles can be found here:
-        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps
-        """
-        ...
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
 
     @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     def submit_tool_outputs_stream(
@@ -2941,54 +2701,28 @@ class AsyncRuns(AsyncAPIResource):
         run_id: str,
         thread_id: str,
         event_handler: AsyncAssistantEventHandlerT | None = None,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> (
         AsyncAssistantStreamManager[AsyncAssistantEventHandler]
         | AsyncAssistantStreamManager[AsyncAssistantEventHandlerT]
     ):
-        """
-        Submit the tool outputs from a previous run and stream the run to a terminal
+        """Submit the tool outputs from a previous run and stream the run to a terminal
         state. More information on Run lifecycles can be found here:
-        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps
-        """
-        if not run_id:
-            raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
-
-        if not thread_id:
-            raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
-
-        extra_headers = {
-            "OpenAI-Beta": "assistants=v2",
-            "X-Stainless-Stream-Helper": "threads.runs.submit_tool_outputs_stream",
-            "X-Stainless-Custom-Event-Handler": "true" if event_handler else "false",
-            **(extra_headers or {}),
-        }
-        request = self._post(
-            path_template("/threads/{thread_id}/runs/{run_id}/submit_tool_outputs", thread_id=thread_id, run_id=run_id),
-            body=maybe_transform(
-                {
-                    "tool_outputs": tool_outputs,
-                    "stream": True,
-                },
-                run_submit_tool_outputs_params.RunSubmitToolOutputsParams,
-            ),
-            options=make_request_options(
-                extra_headers=extra_headers,
-                extra_query=extra_query,
-                extra_body=extra_body,
-                timeout=timeout,
-                security={"bearer_auth": True},
-            ),
-            cast_to=Run,
-            stream=True,
-            stream_cls=AsyncStream[AssistantStreamEvent],
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
+        return async_runs_submit_tool_outputs_stream(
+            self,
+            tool_outputs=tool_outputs,
+            run_id=run_id,
+            thread_id=thread_id,
+            event_handler=event_handler,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
         )
-        return AsyncAssistantStreamManager(request, event_handler=event_handler or AsyncAssistantEventHandler())
 
 
 class RunsWithRawResponse:

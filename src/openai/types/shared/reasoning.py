@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import Union, Optional
 from typing_extensions import Literal
@@ -10,15 +10,17 @@ __all__ = ["Reasoning"]
 
 
 class Reasoning(BaseModel):
-    """**gpt-5 and o-series models only**
-
+    """
     Configuration options for
-    [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+    [reasoning models](https://developers.openai.com/api/docs/guides/reasoning).
     """
 
     context: Optional[Literal["auto", "current_turn", "all_turns"]] = None
     """
-    Controls which reasoning items are rendered back to the model on later turns.
+    Controls which reasoning items are rendered back to the model on later turns. If
+    omitted or set to `auto`, the model determines the context mode. The `gpt-5.6`
+    model family defaults to `all_turns`; earlier models default to `current_turn`.
+
     When returned on a response, this is the effective reasoning context mode used
     for the response.
     """
@@ -30,7 +32,7 @@ class Reasoning(BaseModel):
     `xhigh`, and `max`. Reducing reasoning effort can result in faster responses and
     fewer tokens used on reasoning in a response. Not all reasoning models support
     every value. See the
-    [reasoning guide](https://platform.openai.com/docs/guides/reasoning) for
+    [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
     model-specific support.
     """
 

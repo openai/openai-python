@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import Optional
 from typing_extensions import Literal
@@ -11,8 +11,8 @@ __all__ = ["CodeInterpreterOutputImage", "Image"]
 class Image(BaseModel):
     file_id: Optional[str] = None
     """
-    The [file](https://platform.openai.com/docs/api-reference/files) ID of the
-    image.
+    The [file](https://developers.openai.com/api/reference/resources/files) ID of
+    the image.
     """
 
 

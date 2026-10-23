@@ -1,25 +1,39 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
-import asyncio
-from typing import Dict, Iterable, Optional
-from typing_extensions import Union, Literal
-from concurrent.futures import Future, ThreadPoolExecutor, as_completed
+from typing import Dict, Union, Iterable, Optional
+from typing_extensions import Literal
 
-import httpx
-import sniffio
+import httpx2
 
 from ... import _legacy_response
 from ...types import FileChunkingStrategyParam
-from ..._types import Body, Omit, Query, Headers, NotGiven, FileTypes, SequenceNotStr, omit, not_given
-from ..._utils import is_given, path_template, maybe_transform, async_maybe_transform
+from ..._types import (
+    Body,
+    Omit,
+    Query,
+    Headers,
+    NotGiven,
+    FileTypes,
+    SequenceNotStr,
+    omit,
+    not_given,
+)
+from ..._utils import path_template, maybe_transform, async_maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ...pagination import SyncCursorPage, AsyncCursorPage
 from ..._base_client import AsyncPaginator, make_request_options
-from ...types.file_object import FileObject
+from ...lib._vector_stores import (
+    poll_vector_store_file_batch as _poll_vector_store_file_batch,
+    async_poll_vector_store_file_batch as _async_poll_vector_store_file_batch,
+    create_and_poll_vector_store_file_batch as _create_and_poll_vector_store_file_batch,
+    upload_and_poll_vector_store_file_batch as _upload_and_poll_vector_store_file_batch,
+    async_create_and_poll_vector_store_file_batch as _async_create_and_poll_vector_store_file_batch,
+    async_upload_and_poll_vector_store_file_batch as _async_upload_and_poll_vector_store_file_batch,
+)
 from ...types.vector_stores import file_batch_create_params, file_batch_list_files_params
 from ...types.file_chunking_strategy_param import FileChunkingStrategyParam
 from ...types.vector_stores.vector_store_file import VectorStoreFile
@@ -61,7 +75,7 @@ class FileBatches(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFileBatch:
         """
         Create a vector store file batch.
@@ -76,12 +90,12 @@ class FileBatches(SyncAPIResource):
           chunking_strategy: The chunking strategy used to chunk the file(s). If not set, will use the `auto`
               strategy. Only applicable if `file_ids` is non-empty.
 
-          file_ids: A list of [File](https://platform.openai.com/docs/api-reference/files) IDs that
-              the vector store should use. Useful for tools like `file_search` that can access
-              files. If `attributes` or `chunking_strategy` are provided, they will be applied
-              to all files in the batch. The maximum batch size is 2000 files. This endpoint
-              is recommended for multi-file ingestion and helps reduce per-vector-store write
-              request pressure. Mutually exclusive with `files`.
+          file_ids: A list of [File](https://developers.openai.com/api/reference/resources/files)
+              IDs that the vector store should use. Useful for tools like `file_search` that
+              can access files. If `attributes` or `chunking_strategy` are provided, they will
+              be applied to all files in the batch. The maximum batch size is 2000 files. This
+              endpoint is recommended for multi-file ingestion and helps reduce
+              per-vector-store write request pressure. Mutually exclusive with `files`.
 
           files: A list of objects that each include a `file_id` plus optional `attributes` or
               `chunking_strategy`. Use this when you need to override metadata for specific
@@ -132,7 +146,7 @@ class FileBatches(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFileBatch:
         """
         Retrieves a vector store file batch.
@@ -177,7 +191,7 @@ class FileBatches(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFileBatch:
         """Cancel a vector store file batch.
 
@@ -214,41 +228,6 @@ class FileBatches(SyncAPIResource):
             cast_to=VectorStoreFileBatch,
         )
 
-    def create_and_poll(
-        self,
-        vector_store_id: str,
-        *,
-        attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
-        chunking_strategy: FileChunkingStrategyParam | Omit = omit,
-        file_ids: SequenceNotStr[str] | Omit = omit,
-        files: Iterable[file_batch_create_params.File] | Omit = omit,
-        poll_interval_ms: int | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> VectorStoreFileBatch:
-        """Create a vector store batch and poll until all files have been processed."""
-        batch = self.create(
-            vector_store_id=vector_store_id,
-            attributes=attributes,
-            chunking_strategy=chunking_strategy,
-            file_ids=file_ids,
-            files=files,
-            extra_headers=extra_headers,
-            extra_query=extra_query,
-            extra_body=extra_body,
-            timeout=timeout,
-        )
-        # TODO: don't poll unless necessary??
-        return self.poll(
-            batch.id,
-            vector_store_id=vector_store_id,
-            poll_interval_ms=poll_interval_ms,
-        )
-
     def list_files(
         self,
         batch_id: str,
@@ -264,7 +243,7 @@ class FileBatches(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[VectorStoreFile]:
         """
         Returns a list of vector store files in a batch.
@@ -328,42 +307,34 @@ class FileBatches(SyncAPIResource):
             model=VectorStoreFile,
         )
 
-    def poll(
+    def create_and_poll(
         self,
-        batch_id: str,
-        *,
         vector_store_id: str,
+        *,
+        attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
+        chunking_strategy: FileChunkingStrategyParam | Omit = omit,
+        file_ids: SequenceNotStr[str] | Omit = omit,
+        files: Iterable[file_batch_create_params.File] | Omit = omit,
         poll_interval_ms: int | Omit = omit,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFileBatch:
-        """Wait for the given file batch to be processed.
-
-        Note: this will return even if one of the files failed to process, you need to
-        check batch.file_counts.failed_count to handle this case.
-        """
-        headers: dict[str, str] = {"X-Stainless-Poll-Helper": "true"}
-        if is_given(poll_interval_ms):
-            headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
-
-        while True:
-            response = self.with_raw_response.retrieve(
-                batch_id,
-                vector_store_id=vector_store_id,
-                extra_headers=headers,
-            )
-
-            batch = response.parse()
-            if batch.file_counts.in_progress > 0:
-                if not is_given(poll_interval_ms):
-                    from_header = response.headers.get("openai-poll-after-ms")
-                    if from_header is not None:
-                        poll_interval_ms = int(from_header)
-                    else:
-                        poll_interval_ms = 1000
-
-                self._sleep(poll_interval_ms / 1000)
-                continue
-
-            return batch
+        "Create a vector store batch and poll until all files have been processed."
+        return _create_and_poll_vector_store_file_batch(
+            self,
+            vector_store_id,
+            attributes=attributes,
+            chunking_strategy=chunking_strategy,
+            file_ids=file_ids,
+            files=files,
+            poll_interval_ms=poll_interval_ms,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
 
     def upload_and_poll(
         self,
@@ -375,45 +346,31 @@ class FileBatches(SyncAPIResource):
         poll_interval_ms: int | Omit = omit,
         chunking_strategy: FileChunkingStrategyParam | Omit = omit,
     ) -> VectorStoreFileBatch:
-        """Uploads the given files concurrently and then creates a vector store file batch.
-
-        If you've already uploaded certain files that you want to include in this batch
-        then you can pass their IDs through the `file_ids` argument.
-
-        By default, if any file upload fails then an exception will be eagerly raised.
-
-        The number of concurrency uploads is configurable using the `max_concurrency`
-        parameter.
-
-        Note: this method only supports `asyncio` or `trio` as the backing async
-        runtime.
-        """
-        results: list[FileObject] = []
-
-        with ThreadPoolExecutor(max_workers=max_concurrency) as executor:
-            futures: list[Future[FileObject]] = [
-                executor.submit(
-                    self._client.files.create,
-                    file=file,
-                    purpose="assistants",
-                )
-                for file in files
-            ]
-
-        for future in as_completed(futures):
-            exc = future.exception()
-            if exc:
-                raise exc
-
-            results.append(future.result())
-
-        batch = self.create_and_poll(
-            vector_store_id=vector_store_id,
-            file_ids=[*file_ids, *(f.id for f in results)],
+        "Uploads the given files concurrently and then creates a vector store file batch.\n\n        If you've already uploaded certain files that you want to include in this batch\n        then you can pass their IDs through the `file_ids` argument.\n\n        By default, if any file upload fails then an exception will be eagerly raised.\n\n        The number of concurrency uploads is configurable using the `max_concurrency`\n        parameter.\n\n        Note: this method only supports `asyncio` or `trio` as the backing async\n        runtime.\n"
+        return _upload_and_poll_vector_store_file_batch(
+            self,
+            vector_store_id,
+            files=files,
+            max_concurrency=max_concurrency,
+            file_ids=file_ids,
             poll_interval_ms=poll_interval_ms,
             chunking_strategy=chunking_strategy,
         )
-        return batch
+
+    def poll(
+        self,
+        batch_id: str,
+        *,
+        vector_store_id: str,
+        poll_interval_ms: int | Omit = omit,
+    ) -> VectorStoreFileBatch:
+        "Wait for the given file batch to be processed.\n\n        Note: this will return even if one of the files failed to process, you need to\n        check batch.file_counts.failed_count to handle this case.\n"
+        return _poll_vector_store_file_batch(
+            self,
+            batch_id,
+            vector_store_id=vector_store_id,
+            poll_interval_ms=poll_interval_ms,
+        )
 
 
 class AsyncFileBatches(AsyncAPIResource):
@@ -449,7 +406,7 @@ class AsyncFileBatches(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFileBatch:
         """
         Create a vector store file batch.
@@ -464,12 +421,12 @@ class AsyncFileBatches(AsyncAPIResource):
           chunking_strategy: The chunking strategy used to chunk the file(s). If not set, will use the `auto`
               strategy. Only applicable if `file_ids` is non-empty.
 
-          file_ids: A list of [File](https://platform.openai.com/docs/api-reference/files) IDs that
-              the vector store should use. Useful for tools like `file_search` that can access
-              files. If `attributes` or `chunking_strategy` are provided, they will be applied
-              to all files in the batch. The maximum batch size is 2000 files. This endpoint
-              is recommended for multi-file ingestion and helps reduce per-vector-store write
-              request pressure. Mutually exclusive with `files`.
+          file_ids: A list of [File](https://developers.openai.com/api/reference/resources/files)
+              IDs that the vector store should use. Useful for tools like `file_search` that
+              can access files. If `attributes` or `chunking_strategy` are provided, they will
+              be applied to all files in the batch. The maximum batch size is 2000 files. This
+              endpoint is recommended for multi-file ingestion and helps reduce
+              per-vector-store write request pressure. Mutually exclusive with `files`.
 
           files: A list of objects that each include a `file_id` plus optional `attributes` or
               `chunking_strategy`. Use this when you need to override metadata for specific
@@ -520,7 +477,7 @@ class AsyncFileBatches(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFileBatch:
         """
         Retrieves a vector store file batch.
@@ -565,7 +522,7 @@ class AsyncFileBatches(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFileBatch:
         """Cancel a vector store file batch.
 
@@ -602,41 +559,6 @@ class AsyncFileBatches(AsyncAPIResource):
             cast_to=VectorStoreFileBatch,
         )
 
-    async def create_and_poll(
-        self,
-        vector_store_id: str,
-        *,
-        attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
-        chunking_strategy: FileChunkingStrategyParam | Omit = omit,
-        file_ids: SequenceNotStr[str] | Omit = omit,
-        files: Iterable[file_batch_create_params.File] | Omit = omit,
-        poll_interval_ms: int | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> VectorStoreFileBatch:
-        """Create a vector store batch and poll until all files have been processed."""
-        batch = await self.create(
-            vector_store_id=vector_store_id,
-            attributes=attributes,
-            chunking_strategy=chunking_strategy,
-            file_ids=file_ids,
-            files=files,
-            extra_headers=extra_headers,
-            extra_query=extra_query,
-            extra_body=extra_body,
-            timeout=timeout,
-        )
-        # TODO: don't poll unless necessary??
-        return await self.poll(
-            batch.id,
-            vector_store_id=vector_store_id,
-            poll_interval_ms=poll_interval_ms,
-        )
-
     def list_files(
         self,
         batch_id: str,
@@ -652,7 +574,7 @@ class AsyncFileBatches(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[VectorStoreFile, AsyncCursorPage[VectorStoreFile]]:
         """
         Returns a list of vector store files in a batch.
@@ -716,42 +638,34 @@ class AsyncFileBatches(AsyncAPIResource):
             model=VectorStoreFile,
         )
 
-    async def poll(
+    async def create_and_poll(
         self,
-        batch_id: str,
-        *,
         vector_store_id: str,
+        *,
+        attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
+        chunking_strategy: FileChunkingStrategyParam | Omit = omit,
+        file_ids: SequenceNotStr[str] | Omit = omit,
+        files: Iterable[file_batch_create_params.File] | Omit = omit,
         poll_interval_ms: int | Omit = omit,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFileBatch:
-        """Wait for the given file batch to be processed.
-
-        Note: this will return even if one of the files failed to process, you need to
-        check batch.file_counts.failed_count to handle this case.
-        """
-        headers: dict[str, str] = {"X-Stainless-Poll-Helper": "true"}
-        if is_given(poll_interval_ms):
-            headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
-
-        while True:
-            response = await self.with_raw_response.retrieve(
-                batch_id,
-                vector_store_id=vector_store_id,
-                extra_headers=headers,
-            )
-
-            batch = response.parse()
-            if batch.file_counts.in_progress > 0:
-                if not is_given(poll_interval_ms):
-                    from_header = response.headers.get("openai-poll-after-ms")
-                    if from_header is not None:
-                        poll_interval_ms = int(from_header)
-                    else:
-                        poll_interval_ms = 1000
-
-                await self._sleep(poll_interval_ms / 1000)
-                continue
-
-            return batch
+        "Create a vector store batch and poll until all files have been processed."
+        return await _async_create_and_poll_vector_store_file_batch(
+            self,
+            vector_store_id,
+            attributes=attributes,
+            chunking_strategy=chunking_strategy,
+            file_ids=file_ids,
+            files=files,
+            poll_interval_ms=poll_interval_ms,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
 
     async def upload_and_poll(
         self,
@@ -763,68 +677,31 @@ class AsyncFileBatches(AsyncAPIResource):
         poll_interval_ms: int | Omit = omit,
         chunking_strategy: FileChunkingStrategyParam | Omit = omit,
     ) -> VectorStoreFileBatch:
-        """Uploads the given files concurrently and then creates a vector store file batch.
-
-        If you've already uploaded certain files that you want to include in this batch
-        then you can pass their IDs through the `file_ids` argument.
-
-        By default, if any file upload fails then an exception will be eagerly raised.
-
-        The number of concurrency uploads is configurable using the `max_concurrency`
-        parameter.
-
-        Note: this method only supports `asyncio` or `trio` as the backing async
-        runtime.
-        """
-        uploaded_files: list[FileObject] = []
-
-        async_library = sniffio.current_async_library()
-
-        if async_library == "asyncio":
-
-            async def asyncio_upload_file(semaphore: asyncio.Semaphore, file: FileTypes) -> None:
-                async with semaphore:
-                    file_obj = await self._client.files.create(
-                        file=file,
-                        purpose="assistants",
-                    )
-                    uploaded_files.append(file_obj)
-
-            semaphore = asyncio.Semaphore(max_concurrency)
-
-            tasks = [asyncio_upload_file(semaphore, file) for file in files]
-
-            await asyncio.gather(*tasks)
-        elif async_library == "trio":
-            # We only import if the library is being used.
-            # We support Python 3.7 so are using an older version of trio that does not have type information
-            import trio  # type: ignore # pyright: ignore[reportMissingTypeStubs]
-
-            async def trio_upload_file(limiter: trio.CapacityLimiter, file: FileTypes) -> None:
-                async with limiter:
-                    file_obj = await self._client.files.create(
-                        file=file,
-                        purpose="assistants",
-                    )
-                    uploaded_files.append(file_obj)
-
-            limiter = trio.CapacityLimiter(max_concurrency)
-
-            async with trio.open_nursery() as nursery:
-                for file in files:
-                    nursery.start_soon(trio_upload_file, limiter, file)  # pyright: ignore [reportUnknownMemberType]
-        else:
-            raise RuntimeError(
-                f"Async runtime {async_library} is not supported yet. Only asyncio or trio is supported",
-            )
-
-        batch = await self.create_and_poll(
-            vector_store_id=vector_store_id,
-            file_ids=[*file_ids, *(f.id for f in uploaded_files)],
+        "Uploads the given files concurrently and then creates a vector store file batch.\n\n        If you've already uploaded certain files that you want to include in this batch\n        then you can pass their IDs through the `file_ids` argument.\n\n        By default, if any file upload fails then an exception will be eagerly raised.\n\n        The number of concurrency uploads is configurable using the `max_concurrency`\n        parameter.\n\n        Note: this method only supports `asyncio` or `trio` as the backing async\n        runtime.\n"
+        return await _async_upload_and_poll_vector_store_file_batch(
+            self,
+            vector_store_id,
+            files=files,
+            max_concurrency=max_concurrency,
+            file_ids=file_ids,
             poll_interval_ms=poll_interval_ms,
             chunking_strategy=chunking_strategy,
         )
-        return batch
+
+    async def poll(
+        self,
+        batch_id: str,
+        *,
+        vector_store_id: str,
+        poll_interval_ms: int | Omit = omit,
+    ) -> VectorStoreFileBatch:
+        "Wait for the given file batch to be processed.\n\n        Note: this will return even if one of the files failed to process, you need to\n        check batch.file_counts.failed_count to handle this case.\n"
+        return await _async_poll_vector_store_file_batch(
+            self,
+            batch_id,
+            vector_store_id=vector_store_id,
+            poll_interval_ms=poll_interval_ms,
+        )
 
 
 class FileBatchesWithRawResponse:

@@ -15,13 +15,16 @@ from typing import List
 from pydantic import BaseModel
 from openai import OpenAI
 
+
 class Step(BaseModel):
     explanation: str
     output: str
 
+
 class MathResponse(BaseModel):
     steps: List[Step]
     final_answer: str
+
 
 client = OpenAI()
 completion = client.chat.completions.parse(
@@ -41,6 +44,25 @@ else:
     print(message.refusal)
 ```
 
+## Parsing Responses API output
+
+Use `client.responses.parse(..., text_format=YourModel)` to parse Responses API
+output into a Pydantic model. The same parsing rules apply to
+`client.responses.stream(..., text_format=YourModel)` and their async equivalents.
+
+- Messages with `phase="final_answer"` are parsed. Messages with no phase or a
+  null phase retain the legacy behavior and are also parsed.
+- Commentary and other explicit phases keep their original text and metadata,
+  with `parsed=None`, even when the text happens to match the schema.
+- `output_parsed` returns the first parsed result, or `None` when there is none.
+  A refusal does not cause commentary to be used as a fallback answer.
+- Invalid JSON or schema-invalid text in an eligible message still raises a
+  validation error. Missing phases are not inferred from the text or model name.
+
+`output_text` continues to concatenate all output text, including commentary.
+Use `output_parsed` for the structured result and retain `output` when replaying
+messages so their phases are preserved.
+
 ## Auto-parsing function tool calls
 
 The `.parse()` method will also automatically parse `function` tool calls if:
@@ -56,10 +78,12 @@ from typing import List, Union
 from pydantic import BaseModel
 import openai
 
+
 class Table(str, Enum):
     orders = "orders"
     customers = "customers"
     products = "products"
+
 
 class Column(str, Enum):
     id = "id"
@@ -70,6 +94,7 @@ class Column(str, Enum):
     ordered_at = "ordered_at"
     canceled_at = "canceled_at"
 
+
 class Operator(str, Enum):
     eq = "="
     gt = ">"
@@ -78,23 +103,28 @@ class Operator(str, Enum):
     ge = ">="
     ne = "!="
 
+
 class OrderBy(str, Enum):
     asc = "asc"
     desc = "desc"
 
+
 class DynamicValue(BaseModel):
     column_name: str
+
 
 class Condition(BaseModel):
     column: str
     operator: Operator
     value: Union[str, int, DynamicValue]
 
+
 class Query(BaseModel):
     table_name: Table
     columns: List[Column]
     conditions: List[Condition]
     order_by: OrderBy
+
 
 client = openai.OpenAI()
 completion = client.chat.completions.parse(
@@ -145,12 +175,12 @@ from openai import AsyncOpenAI
 client = AsyncOpenAI()
 
 async with client.chat.completions.stream(
-    model='gpt-4o-2024-08-06',
+    model="gpt-4o-2024-08-06",
     messages=[...],
 ) as stream:
     async for event in stream:
-        if event.type == 'content.delta':
-            print(event.content, flush=True, end='')
+        if event.type == "content.delta":
+            print(event.delta, flush=True, end="")
 ```
 
 When the context manager is entered, a `ChatCompletionStream` / `AsyncChatCompletionStream` instance is returned which, like `.create(stream=True)` is an iterator in the sync client and an async iterator in the async client. The full list of events that are yielded by the iterator are outlined [below](#chat-completions-events).
@@ -303,40 +333,42 @@ client = openai.OpenAI()
 # First, we create a EventHandler class to define
 # how we want to handle the events in the response stream.
 
+
 class EventHandler(AssistantEventHandler):
-  @override
-  def on_text_created(self, text: Text) -> None:
-    print(f"\nassistant > ", end="", flush=True)
+    @override
+    def on_text_created(self, text: Text) -> None:
+        print(f"\nassistant > ", end="", flush=True)
 
-  @override
-  def on_text_delta(self, delta: TextDelta, snapshot: Text):
-    print(delta.value, end="", flush=True)
+    @override
+    def on_text_delta(self, delta: TextDelta, snapshot: Text):
+        print(delta.value, end="", flush=True)
 
-  @override
-  def on_tool_call_created(self, tool_call: ToolCall):
-    print(f"\nassistant > {tool_call.type}\n", flush=True)
+    @override
+    def on_tool_call_created(self, tool_call: ToolCall):
+        print(f"\nassistant > {tool_call.type}\n", flush=True)
 
-  @override
-  def on_tool_call_delta(self, delta: ToolCallDelta, snapshot: ToolCall):
-    if delta.type == "code_interpreter" and delta.code_interpreter:
-      if delta.code_interpreter.input:
-        print(delta.code_interpreter.input, end="", flush=True)
-      if delta.code_interpreter.outputs:
-        print(f"\n\noutput >", flush=True)
-        for output in delta.code_interpreter.outputs:
-          if output.type == "logs":
-            print(f"\n{output.logs}", flush=True)
+    @override
+    def on_tool_call_delta(self, delta: ToolCallDelta, snapshot: ToolCall):
+        if delta.type == "code_interpreter" and delta.code_interpreter:
+            if delta.code_interpreter.input:
+                print(delta.code_interpreter.input, end="", flush=True)
+            if delta.code_interpreter.outputs:
+                print(f"\n\noutput >", flush=True)
+                for output in delta.code_interpreter.outputs:
+                    if output.type == "logs":
+                        print(f"\n{output.logs}", flush=True)
+
 
 # Then, we use the `stream` SDK helper
 # with the `EventHandler` class to create the Run
 # and stream the response.
 
 with client.beta.threads.runs.stream(
-  thread_id="thread_id",
-  assistant_id="assistant_id",
-  event_handler=EventHandler(),
+    thread_id="thread_id",
+    assistant_id="assistant_id",
+    event_handler=EventHandler(),
 ) as stream:
-  stream.until_done()
+    stream.until_done()
 ```
 
 #### An example of iterating over events
@@ -344,10 +376,7 @@ with client.beta.threads.runs.stream(
 You can also iterate over all the streamed events.
 
 ```python
-with client.beta.threads.runs.stream(
-  thread_id=thread.id,
-  assistant_id=assistant.id
-) as stream:
+with client.beta.threads.runs.stream(thread_id=thread.id, assistant_id=assistant.id) as stream:
     for event in stream:
         # Print the text from text delta events
         if event.event == "thread.message.delta" and event.data.delta.content:
@@ -359,10 +388,7 @@ with client.beta.threads.runs.stream(
 You can also iterate over just the text deltas received
 
 ```python
-with client.beta.threads.runs.stream(
-  thread_id=thread.id,
-  assistant_id=assistant.id
-) as stream:
+with client.beta.threads.runs.stream(thread_id=thread.id, assistant_id=assistant.id) as stream:
     for text in stream.text_deltas:
         print(text)
 ```
@@ -510,9 +536,230 @@ The polling methods are:
 client.beta.threads.create_and_run_poll(...)
 client.beta.threads.runs.create_and_poll(...)
 client.beta.threads.runs.submit_tool_outputs_and_poll(...)
-client.beta.vector_stores.files.upload_and_poll(...)
-client.beta.vector_stores.files.create_and_poll(...)
-client.beta.vector_stores.file_batches.create_and_poll(...)
-client.beta.vector_stores.file_batches.upload_and_poll(...)
+client.vector_stores.files.upload_and_poll(...)
+client.vector_stores.files.create_and_poll(...)
+client.vector_stores.file_batches.create_and_poll(...)
+client.vector_stores.file_batches.upload_and_poll(...)
 client.videos.create_and_poll(...)
 ```
+
+# Beta Agents turn results
+
+Both streamed session creation and the one-turn session helper can collect the final
+answer. Call `get_final_result()` directly, or enable `with_result_collection()`
+before iterating to display progress. Registered tool handlers run while either stream drains.
+
+```python
+with client.beta.agents.sessions.create(
+    agent={"model": MODEL},
+    environment={"type": "none"},
+    input="Explain this policy.",
+    stream=True,
+) as stream:
+    result = stream.get_final_result()
+
+print(result.output_text)
+
+with client.beta.agents.sessions.stream(
+    result.session_id,
+    input="Give me an example.",
+    tool_handlers=handlers,
+).with_result_collection() as stream:
+    for event in stream:
+        show_progress(event)
+    followup = stream.get_final_result()
+
+print(followup.output_text)
+```
+
+With `AsyncOpenAI`, await creation, use `async with` / `async for`, and await
+`get_final_result()`. The result exposes `output_text`, `turn`, final `messages`,
+`session_id`, and `turn_id`. Collection raises `AgentTurnResultError` when a complete
+successful answer cannot be established.
+
+## Deferred typed Responses tools
+
+Use `openai.pydantic_responses_function_tool()` for a flat Responses definition
+that retains Pydantic argument parsing in both `responses.parse()` and
+`responses.stream()`. Enable deferred loading alongside hosted tool search:
+
+```python
+tool = openai.pydantic_responses_function_tool(LookupItem, defer_loading=True)
+response = client.responses.parse(
+    model=MODEL,
+    input="Find catalog item A123.",
+    tools=[{"type": "tool_search"}, tool],
+)
+for item in response.output:
+    if item.type == "function_call":
+        arguments = item.parsed_arguments  # LookupItem
+```
+
+The existing `pydantic_function_tool()` remains available for Chat Completions
+and its Responses compatibility path. The API validates tool-search configuration.
+
+## Typed beta Agents tools
+
+Bind an annotated function or bound method once, then reuse its definition and local handler:
+
+```py
+from openai.lib.beta.agents import function_tool
+
+
+@function_tool(name="lookup_item", description="Look up a catalog item.")
+def lookup(item_id: str) -> dict[str, str]:
+    return {"item_id": item_id, "name": "Notebook"}
+
+
+with client.beta.agents.sessions.create(
+    agent={"model": MODEL, "tools": [lookup.definition]},
+    environment={"type": "none"},
+    input="Find catalog item A123.",
+    stream=True,
+    tool_handlers={lookup.name: lookup},
+) as stream:
+    print(stream.get_final_result().output_text)
+```
+
+For an existing Pydantic argument model, use an explicit binding:
+
+```py
+from pydantic import BaseModel
+from openai.lib.beta.agents import pydantic_function_tool
+
+
+class LookupArguments(BaseModel):
+    item_id: str
+
+
+lookup = pydantic_function_tool(
+    LookupArguments,
+    name="lookup_item",
+    handler=catalog.lookup,
+)
+# catalog.lookup receives a validated LookupArguments instance.
+```
+
+Callbacks run after their call event is yielded. They can be async with `AsyncOpenAI`.
+The same `tool_handlers` mapping works with `sessions.stream()` for follow-up turns;
+creation requires `stream=True`. Existing dictionary handlers still work.
+
+For hosted tool search, set `defer_loading=True` on the Agents decorator,
+`pydantic_function_tool()`, or `FunctionTool` constructor. Register the same
+handler as usual:
+
+```python
+@function_tool(defer_loading=True)
+def lookup_item(item_id: str) -> str:
+    """Look up a catalog item."""
+    return catalog.lookup(item_id)
+
+
+tools = [{"type": "tool_search"}, lookup_item.definition]
+handlers = {lookup_item.name: lookup_item}
+```
+
+### Observing local tool failures
+
+Use `on_tool_error` to log or monitor failures in argument validation, handler
+execution, or output serialization. The callback receives an `AgentToolError`
+from `openai.lib.beta.agents`; its original exception stays local. The model
+still receives the generic tool failure, and the SDK does not log automatically.
+Exception messages and tracebacks may contain sensitive data; apply your
+application’s redaction policy before logging them.
+
+```python
+def report_tool_error(failure):
+    logger.error(
+        "Tool %s failed during %s (call %s)",
+        failure.tool_name,
+        failure.stage,
+        failure.call_id,
+    )
+
+
+with client.beta.agents.sessions.stream(
+    SESSION_ID,
+    input="Find catalog item A123.",
+    tool_handlers=handlers,
+    on_tool_error=report_tool_error,
+) as stream:
+    stream.until_done()
+```
+
+`AsyncOpenAI` also accepts an async observer. Ordinary observer exceptions are
+ignored so the original tool failure can still be submitted; cancellation is
+not suppressed. Submission errors propagate normally without invoking this callback.
+
+### Typed Agents output (beta)
+
+Pass a Pydantic model (or a Pydantic v2 dataclass) to generate the Agents output
+schema and parse the completed answer. Schemas use the same normalization as
+Responses; the API validates which schema features it supports.
+
+```python
+from pydantic import BaseModel
+
+
+class Report(BaseModel):
+    summary: str
+    findings: list[str]
+
+
+with client.beta.agents.sessions.create(
+    agent={"model": MODEL},
+    environment={"type": "none"},
+    input="Summarize the findings.",
+    stream=True,
+    output_type=Report,
+) as stream:
+    result = stream.get_final_result()
+print(result.output_parsed)
+```
+
+For a session already configured with that schema, use
+`sessions.stream(session_id, input="Update the report.", output_type=Report)`.
+This only selects the local parser; it does not change the session's schema.
+`output_parsed` exposes the first parsed final text part; every final text part is validated.
+`result.parse(Report)` parses an existing raw result. `AgentOutputParseError.result`
+retains the completed raw answer if validation fails. With `AsyncOpenAI`, await
+creation and the result getter, and use `async with`.
+
+### Stage files and download a turn artifact
+
+```python
+from pathlib import Path
+
+prepared = client.beta.agents.environments.files.prepare(
+    {
+        "/workspace/source.pdf": Path("source.pdf"),
+    }
+)
+session = client.beta.agents.sessions.create(
+    agent={"model": MODEL},
+    environment={"type": "openai_hosted", "files": prepared.files},
+)
+with client.beta.agents.sessions.stream(
+    session.id, input="Read source.pdf and write /workspace/outputs/report.md."
+) as stream:
+    result = stream.get_final_result()
+
+artifacts = client.beta.agents.sessions.artifacts.for_result(result)
+
+# Read in memory, or stream to an application-owned local path.
+report_bytes = artifacts.content("/workspace/outputs/report.md").content
+artifact = artifacts.download("/workspace/outputs/report.md", to=Path("downloaded-report.md"))
+```
+
+Use `prepare_directory("docs", destination="/workspace/docs", include=["**/*.md"])`
+for a selected directory snapshot, or `files.upload(environment_id, file=Path(...),
+path="/workspace/source.pdf")` to stage a file in an existing environment.
+Directory selection follows `Path.glob` semantics, including skipping unreadable directories.
+Uploads remain caller-owned: use `prepared.uploaded_file_ids` with the ordinary
+Files API when ready to delete them. Preparation errors expose partial uploads
+through `error.prepared`. A batch of multiple uploads cannot share one explicit
+`Idempotency-Key`.
+
+Local path/directory uploads are intended for static application-owned files and
+stable directories. They do not sandbox untrusted path selection or hostile local
+filesystem writers. With `AsyncOpenAI`, await preparation, staging, and artifact downloads.
