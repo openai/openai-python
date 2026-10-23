@@ -391,6 +391,7 @@ ToolParam: TypeAlias = Union[
 
 
 ParseableToolParam: TypeAlias = Union[ToolParam, ChatCompletionFunctionToolParam]
+
 WebSearchTool: TypeAlias = _compat_WebSearchTool
 
 WebSearchToolFilters: TypeAlias = _compat_WebSearchToolFilters

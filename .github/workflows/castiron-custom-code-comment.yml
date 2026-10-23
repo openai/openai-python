@@ -14,6 +14,239 @@ concurrency:
   queue: max # Preserve newer pending evaluations if older runs arrive out of order.
 
 jobs:
+  review-change:
+    name: Invalidate reviewed policy statuses
+    if: github.event.workflow_run.event == 'pull_request_review'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    concurrency:
+      group: castiron-budget-writes-${{ github.repository_id }}
+      cancel-in-progress: false
+      queue: max
+    permissions:
+      actions: write
+      contents: read
+      pull-requests: read
+      statuses: write
+    steps:
+      # Trusted main definition: no candidate checkout, artifacts, or executable inputs.
+      - name: Re-evaluate current PR and queue after review changes
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            // Trusted main orchestration only. Signal fields never choose status targets.
+            const repo = `${context.repo.owner}/${context.repo.repo}`;
+            const signal = context.payload.workflow_run;
+            const {data: run} = await github.rest.actions.getWorkflowRun({...context.repo, run_id: signal.id});
+            const {data: workflow} = await github.rest.actions.getWorkflow({
+              ...context.repo, workflow_id: 'castiron-custom-code.yml',
+            });
+            if (!Number.isSafeInteger(run.workflow_id) || run.workflow_id !== workflow.id ||
+                workflow.path !== '.github/workflows/castiron-custom-code.yml') return;
+            if (run.repository.full_name !== repo || run.event !== 'pull_request_review' ||
+                run.status !== 'completed' || run.id !== signal.id || run.run_attempt !== signal.run_attempt ||
+                run.head_sha !== signal.head_sha || run.path.split('@', 1)[0] !== '.github/workflows/castiron-custom-code.yml') {
+              throw new Error('Unexpected or superseded review signal');
+            }
+            const dirtyTargets = new Set();
+            // Retry discovery within this job timeout while targets are changing.
+            while (true) {
+              const candidates = [];
+              let pulls = run.pull_requests?.length ? run.pull_requests : await github.paginate(
+                github.rest.repos.listPullRequestsAssociatedWithCommit, {...context.repo, commit_sha: run.head_sha});
+              if (!pulls.length) pulls = await github.paginate(github.rest.pulls.list, {
+                ...context.repo, state: 'open', head: `${run.head_repository.owner.login}:${run.head_branch}`,
+              });
+              for (const item of pulls) {
+                const {data: pr} = await github.rest.pulls.get({...context.repo, pull_number: item.number});
+                if (pr.state !== 'open' || pr.base.ref !== 'next' || pr.base.repo.full_name !== repo ||
+                    (item.head?.sha && pr.head.sha !== item.head.sha) || !/^[0-9a-f]{40}$/.test(pr.head.sha)) continue;
+                if (run.head_sha !== pr.head.sha) {
+                  const {data: merge} = await github.rest.git.getRef({...context.repo, ref: `pull/${pr.number}/merge`});
+                  const {data: commit} = await github.rest.repos.getCommit({...context.repo, ref: run.head_sha});
+                  if (merge.object.sha !== run.head_sha || commit.parents.length !== 2 ||
+                      commit.parents[0].sha !== pr.base.sha || commit.parents[1].sha !== pr.head.sha) continue;
+                }
+                candidates.push(pr);
+              }
+              if (!candidates.length) return; // Main, closed, and superseded PR reviews have no next target.
+              if (candidates.length !== 1) throw new Error('Review signal identifies ambiguous next PRs');
+              const pr = candidates[0];
+              const files = await github.paginate(github.rest.pulls.listFiles, {...context.repo, pull_number: pr.number});
+              if (!files.some(file => file.filename === '.castiron-ratchet.json')) return;
+              // Read authoritative reviews, including edits: submittedAt alone misses
+              // removal/restoration of an attestation. Never trust candidate event artifacts.
+              let reviewCursor = null;
+              const latest = new Map();
+              do {
+                const result = await github.graphql(`query($owner:String!,$name:String!,$number:Int!,$cursor:String) {
+                  repository(owner:$owner,name:$name) { pullRequest(number:$number) {
+                    reviews(first:100,after:$cursor) { nodes { fullDatabaseId state body updatedAt
+                      author { login __typename } authorAssociation commit { oid } }
+                      pageInfo { hasNextPage endCursor } }
+                  } }
+                }`, {...context.repo, name: context.repo.repo, number: pr.number, cursor: reviewCursor});
+                const page = result.repository.pullRequest.reviews;
+                for (const review of page.nodes) {
+                  const value = review.fullDatabaseId;
+                  if (!(typeof value === 'string' || Number.isSafeInteger(value)) ||
+                      !/^[1-9][0-9]*$/.test(String(value))) throw new Error('Invalid review identity');
+                  const identity = String(value);
+                  if (review.state === 'PENDING' || !review.author) continue;
+                  const previous = latest.get(review.author.login);
+                  if (!previous || BigInt(identity) > BigInt(previous.identity)) latest.set(review.author.login, {...review, identity});
+                }
+                if (!page.pageInfo.hasNextPage) break;
+                if (!page.pageInfo.endCursor || page.pageInfo.endCursor === reviewCursor) throw new Error('Invalid review cursor');
+                reviewCursor = page.pageInfo.endCursor;
+              } while (true);
+              // Same v2 whole-body contract as the selector/publisher. This can only
+              // request reevaluation; the normal publisher still decides authorization.
+              const approvals = [...latest.values()].filter(review =>
+                review.state === 'APPROVED' && review.commit?.oid === pr.head.sha &&
+                review.author.__typename === 'User' && !review.author.login.endsWith('[bot]') &&
+                review.author.login !== pr.user.login &&
+                ['OWNER', 'MEMBER', 'COLLABORATOR'].includes(review.authorAssociation) &&
+                typeof review.body === 'string' &&
+                review.body.trim() === 'I personally reviewed and approve this policy change as a human: ' + pr.head.sha);
+              const authorized = approvals.length > 0;
+              if (authorized && (run.actor?.type !== 'User' ||
+                  !approvals.some(review => review.author.login === run.actor.login))) return;
+              for (const review of approvals) {
+                if (!Number.isFinite(Date.parse(review.updatedAt))) throw new Error('Missing review update time');
+              }
+              const fingerprint = require('node:crypto').createHash('sha256').update(JSON.stringify(
+                [pr.head.sha, approvals.map(review => [review.identity, review.updatedAt]).sort((a, b) => a[0].localeCompare(b[0]))]
+              )).digest('hex');
+              const marker = `[review ${authorized ? 'approve' : 'revoke'} ${fingerprint}]`;
+              async function queue() {
+                let cursor = null;
+                const entries = [];
+                do {
+                  const result = await github.graphql(`query($owner:String!,$name:String!,$cursor:String) {
+                    repository(owner:$owner,name:$name) { mergeQueue(branch:"next") {
+                      entries(first:100,after:$cursor) { nodes { headCommit { oid } pullRequest { number headRefOid } }
+                        pageInfo { hasNextPage endCursor } }
+                    } }
+                  }`, {...context.repo, name: context.repo.repo, cursor});
+                  const page = result.repository.mergeQueue?.entries;
+                  if (!page) return [];
+                  entries.push(...page.nodes);
+                  if (!page.pageInfo.hasNextPage) return entries;
+                  if (!page.pageInfo.endCursor || page.pageInfo.endCursor === cursor) throw new Error('Invalid queue cursor');
+                  cursor = page.pageInfo.endCursor;
+                } while (true);
+              }
+              const entries = await queue();
+              const index = entries.findIndex(entry => entry.pullRequest?.number === pr.number && entry.pullRequest.headRefOid === pr.head.sha);
+              // Later queue entries can include the affected constituent. Re-evaluate all of them.
+              const targets = new Map([[pr.head.sha, 'pull_request']]);
+              for (const entry of index < 0 ? [] : entries.slice(index)) {
+                if (entry.headCommit === null) continue; // Queue preparation has not produced statuses yet.
+                if (!/^[0-9a-f]{40}$/.test(entry.headCommit.oid)) throw new Error('Invalid queue SHA');
+                targets.set(entry.headCommit.oid, 'merge_group');
+              }
+              // Revoke the authenticated snapshot before slower reads. Pending on an obsolete
+              // affected SHA cannot authorize a merge, and a later race must not retain success.
+              const url = `${context.serverUrl}/${repo}/actions/runs/${context.runId}`;
+              const activeTargets = new Map();
+              const priorWriters = new Map();
+              async function priorWriter(status) {
+                if (!/\[review (?:approve|revoke) [0-9a-f]{64}\]$/.test(status.description || '')) return null;
+                const identity = status.target_url?.slice(`${context.serverUrl}/${repo}/actions/runs/`.length);
+                if (!/^[1-9][0-9]*$/.test(identity || '') || !Number.isSafeInteger(Number(identity))) return null;
+                if (!priorWriters.has(identity)) {
+                  const {data: definition} = await github.rest.actions.getWorkflow({
+                    ...context.repo, workflow_id: 'castiron-custom-code-comment.yml',
+                  });
+                  let writer;
+                  try {
+                    ({data: writer} = await github.rest.actions.getWorkflowRun({...context.repo, run_id: Number(identity)}));
+                  } catch (error) {
+                    if (error.status !== 404) throw error;
+                    priorWriters.set(identity, null); // Deleted runs cannot authenticate a marker.
+                    return null;
+                  }
+                  const authenticated = definition.path === '.github/workflows/castiron-custom-code-comment.yml' &&
+                    writer.workflow_id === definition.id && writer.repository.full_name === repo &&
+                    writer.event === 'workflow_run' && writer.id === Number(identity);
+                  priorWriters.set(identity, authenticated ? {
+                    completed: writer.status === 'completed' && writer.conclusion === 'success',
+                  } : null);
+                }
+                return priorWriters.get(identity);
+              }
+              const names = ['Castiron next / budget-only change', 'Castiron next / custom-code budget'];
+              for (const [sha, event] of targets) {
+                const statuses = await github.paginate(github.rest.repos.listCommitStatusesForRef, {...context.repo, ref: sha});
+                const trusted = statuses.filter(status => status.creator?.login === 'github-actions[bot]' &&
+                  status.target_url?.startsWith(`${context.serverUrl}/${repo}/actions/runs/`));
+                const current = new Map();
+                for (const status of trusted) if (!current.has(status.context)) current.set(status.context, status);
+                // Only current pending markers coalesce. A later publisher failure
+                // supersedes recovery even if a restored review has the same timestamp.
+                const changed = [];
+                for (const name of names) {
+                  const status = current.get(name);
+                  // A failed/cancelled writer may have stopped after pending but
+                  // before dispatch. Re-stamp and retry; only successful writers coalesce.
+                  const writer = status?.state === 'pending' ? await priorWriter(status) : null;
+                  const handled = status?.state === 'success' ||
+                    (status?.state === 'pending' && status.description?.endsWith(marker) && writer?.completed);
+                  if (authorized ? !handled :
+                      status?.state === 'success' || (writer && !writer.completed)) changed.push(name);
+                }
+                if (authorized && names.every(name => current.get(name)?.state === 'success')) continue;
+                for (const name of changed) {
+                  await github.rest.repos.createCommitStatus({...context.repo, sha, context: name, state: 'pending',
+                    description: `Review changed; reevaluation pending. ${marker}`, target_url: url});
+                  dirtyTargets.add(sha);
+                }
+                if (dirtyTargets.has(sha)) activeTargets.set(sha, event);
+              }
+              if (!activeTargets.size) return;
+              const reruns = [];
+              for (const [sha, event] of activeTargets) {
+                const runs = await github.paginate(github.rest.actions.listWorkflowRuns, {
+                  ...context.repo, workflow_id: 'castiron-custom-code.yml', head_sha: sha, event, per_page: 100,
+                });
+                const matches = [];
+                for (const item of runs) {
+                  if (item.repository.full_name !== repo || item.event !== event || item.head_sha !== sha ||
+                      item.path.split('@', 1)[0] !== '.github/workflows/castiron-custom-code.yml') continue;
+                  if (event === 'pull_request') {
+                    let associated = item.pull_requests?.length ? item.pull_requests : await github.paginate(
+                      github.rest.repos.listPullRequestsAssociatedWithCommit, {...context.repo, commit_sha: sha});
+                    if (!associated.length) associated = await github.paginate(github.rest.pulls.list, {
+                      ...context.repo, state: 'open', head: `${item.head_repository.owner.login}:${item.head_branch}`,
+                    });
+                    const live = [];
+                    for (const reference of associated) {
+                      const {data: pull} = await github.rest.pulls.get({...context.repo, pull_number: reference.number});
+                      if (pull.state === 'open' && pull.head.sha === sha && pull.base.repo.full_name === repo &&
+                          ['main', 'next'].includes(pull.base.ref)) live.push(pull);
+                    }
+                    // Match the canonical reporter's main preference for shared-head discovery.
+                    const main = live.filter(pull => pull.base.ref === 'main');
+                    const selected = main.length ? main : live;
+                    if (selected.length !== 1 || selected[0].number !== pr.number) continue;
+                  }
+                  matches.push(item);
+                }
+                matches.sort((a, b) => b.id - a.id);
+                if (matches[0]?.status === 'completed') reruns.push(matches[0].id);
+              }
+              // Retry against the new snapshot; already-observed affected statuses stay pending.
+              const {data: current} = await github.rest.pulls.get({...context.repo, pull_number: pr.number});
+              const {data: base} = await github.rest.git.getRef({...context.repo, ref: 'heads/next'});
+              if (current.state !== 'open' || current.head.sha !== pr.head.sha || current.base.ref !== 'next' ||
+                  current.base.repo.full_name !== repo || current.base.sha !== pr.base.sha || base.object.sha !== pr.base.sha ||
+                  JSON.stringify(await queue()) !== JSON.stringify(entries)) continue;
+              // Only normal authenticated reporter runs may restore success. Never infer approval here.
+              for (const run_id of reruns) await github.rest.actions.reRunWorkflow({...context.repo, run_id});
+              return;
+            }
+
   compute:
     name: Compute trusted custom-code report
     if: contains(fromJSON('["pull_request", "merge_group"]'), github.event.workflow_run.event) && (github.event.workflow_run.path == '.github/workflows/castiron-custom-code.yml' || startsWith(github.event.workflow_run.path, '.github/workflows/castiron-custom-code.yml@'))
@@ -153,6 +386,10 @@ jobs:
           retention-days: 7
 
   budget-status:
+    concurrency:
+      group: castiron-budget-writes-${{ github.repository_id }}
+      cancel-in-progress: false
+      queue: max
     name: Publish custom-code budget checks
     needs: compute
     if: always() && !cancelled() && needs.compute.result != 'skipped'
@@ -284,8 +521,9 @@ jobs:
               try {
                 const proofs = JSON.parse(process.env.POLICY_REVIEWS);
                 const rules = JSON.parse(process.env.HUMAN_REVIEW_RULES);
-                if (!Array.isArray(proofs) || rules.version !== 1 || !Array.isArray(rules.associations) ||
-                    typeof rules.negative_pattern !== 'string') throw new Error('Missing trusted review contract');
+                if (!Array.isArray(proofs) || rules.version !== 2 || !Array.isArray(rules.associations) ||
+                    typeof rules.negative_pattern !== 'string' || typeof rules.attestation_prefix !== 'string' ||
+                    !rules.attestation_prefix) throw new Error('Missing trusted review contract');
                 const negative = new RegExp(rules.negative_pattern, 'i');
                 const seen = new Set();
                 for (const proof of proofs) {
@@ -297,17 +535,36 @@ jobs:
                   const {data: pr} = await github.rest.pulls.get({...context.repo, pull_number: proof.number});
                   if (pr.state !== 'open' || pr.head.sha !== proof.head_sha || pr.base.ref !== 'next' ||
                       pr.base.repo.full_name !== `${context.repo.owner}/${context.repo.repo}`) throw new Error('Policy PR changed');
-                  const reviews = await github.paginate(github.rest.pulls.listReviews, {...context.repo, pull_number: proof.number, per_page: 100});
+                  let reviewCursor = null;
                   const latest = new Map();
-                  for (const review of reviews) {
-                    if (review.state === 'PENDING') continue;
-                    const login = review.user.login;
-                    if (!latest.has(login) || review.id > latest.get(login).id) latest.set(login, review);
-                  }
+                  do {
+                    const result = await github.graphql(`query($owner:String!,$name:String!,$number:Int!,$cursor:String) {
+                      repository(owner:$owner,name:$name) { pullRequest(number:$number) {
+                        reviews(first:100,after:$cursor) { nodes { fullDatabaseId state body
+                          author { login __typename } authorAssociation commit { oid } }
+                          pageInfo { hasNextPage endCursor } }
+                      } }
+                    }`, {...context.repo, name: context.repo.repo, number: proof.number, cursor: reviewCursor});
+                    const page = result.repository.pullRequest.reviews;
+                    for (const review of page.nodes) {
+                      const value = review.fullDatabaseId;
+                      if (!(typeof value === 'string' || Number.isSafeInteger(value)) ||
+                          !/^[1-9][0-9]*$/.test(String(value))) throw new Error('Invalid review identity');
+                      const identity = String(value);
+                      if (review.state === 'PENDING' || !review.author) continue;
+                      const previous = latest.get(review.author.login);
+                      if (!previous || BigInt(identity) > BigInt(previous.identity)) latest.set(review.author.login, {...review, identity});
+                    }
+                    if (!page.pageInfo.hasNextPage) break;
+                    if (!page.pageInfo.endCursor || page.pageInfo.endCursor === reviewCursor) throw new Error('Invalid review cursor');
+                    reviewCursor = page.pageInfo.endCursor;
+                  } while (true);
                   const approved = [...latest.values()].some(review => review.state === 'APPROVED' &&
-                    review.commit_id === proof.head_sha && review.user.type === 'User' &&
-                    rules.associations.includes(review.author_association) && !review.user.login.endsWith('[bot]') &&
-                    review.user.login !== pr.user.login && !negative.test(review.body || ''));
+                    review.commit?.oid === proof.head_sha && review.author.__typename === 'User' &&
+                    rules.associations.includes(review.authorAssociation) && !review.author.login.endsWith('[bot]') &&
+                    review.author.login !== pr.user.login && typeof review.body === 'string' &&
+                    review.body.trim() === rules.attestation_prefix + proof.head_sha &&
+                    !negative.test(review.body));
                   if (!approved) throw new Error('Human policy approval is no longer valid');
                 }
               } catch { fresh = false; }

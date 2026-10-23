@@ -3,11 +3,14 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import io
 import json
 import os
 import struct
 import subprocess
 import unittest
+from pathlib import Path
+from typing import Any
 from unittest import mock
 
 import custom_code_report as report
@@ -1078,6 +1081,492 @@ class CustomCodeTests(GitTestCase):
         )
         self.assertEqual(merged_report["after"]["commit"], advanced["commit"])
         self.assertEqual(merged_report["counts"]["newly_customized"], 1)
+
+
+ADOPTION_GENERATION = "550e8400-e29b-41d4-a716-446655440001"
+
+
+class FirstAdoptionTests(GitTestCase):
+    def setUp(self) -> None:  # pyright: ignore[reportImplicitOverride]
+        super().setUp()
+        self.repository = "openai/openai-java"
+        self.write(".stats.yml", "configured_endpoints: 278\n")
+        self.root = self.commit("legacy root")
+        self.git("remote", "add", "origin", "https://github.com/openai/openai-java.git")
+        self.policy: dict[str, Any] = {"schema_version": 1, "max_custom_patch_lines": 3000}
+        self.write(".castiron-ratchet.json", json.dumps(self.policy) + "\n")
+        self.g0 = self.generated("source\n", GENERATION, False)
+        self.public0 = report.create_public_snapshot(
+            self.repo,
+            self.git("rev-parse", f"{self.g0}^{{tree}}"),
+            GENERATION,
+            report.hash_codegen_commit(self.repo, self.g0),
+            "codegen/main",
+            None,
+        )
+        self.git("update-ref", "refs/remotes/origin/codegen/main", self.public0)
+        self.write("generated.py", "source\n")
+        self.stats(self.g0, self.public0, GENERATION)
+        self.main = self.commit("approved main")
+        self.git("update-ref", "refs/remotes/origin/main", self.main)
+        self.git("checkout", "--detach", self.root)
+        self.pin: dict[str, Any] = {
+            **self.policy,
+            "next_policy": {"repository": self.repository, "main_sha": self.main},
+        }
+        self.write(".castiron-ratchet.json", json.dumps(self.pin) + "\n")
+        self.base = self.commit("separate approved next policy")
+        self.git("update-ref", "refs/remotes/origin/next", self.base)
+
+    def generated(self, text: str, generation: str, next_target: bool) -> str:
+        blob = (
+            report.git(self.repo, "hash-object", "-w", "--stdin", input_bytes=text.encode())
+            .decode()
+            .strip()
+        )
+        tree = (
+            report.git(
+                self.repo,
+                "mktree",
+                input_bytes=f"100644 blob {blob}\tgenerated.py\n".encode(),
+            )
+            .decode()
+            .strip()
+        )
+        record: dict[str, Any] = {
+            "generation_id": generation,
+            "source_branch": "test",
+            "target": self.repository.split("/")[1],
+            "language": self.repository.split("-")[-1],
+        }
+        if next_target:
+            record["public_baseline_commit"] = self.base
+            record = {
+                "schema_version": "castiron-checkpoint/v2",
+                "release_target": "next",
+                "record": record,
+            }
+        encoded = base64.b64encode(json.dumps(record).encode()).decode()
+        commit = (
+            report.git(
+                self.repo,
+                "commit-tree",
+                tree,
+                input_bytes=f"codegen\n\nGeneration metadata: {encoded}\n".encode(),
+            )
+            .decode()
+            .strip()
+        )
+        namespace = "castiron/next/" if next_target else ""
+        self.git("update-ref", f"refs/remotes/origin/codegen/{namespace}test", commit)
+        return commit
+
+    def stats(self, private: str, public: str, generation: str) -> None:
+        self.write(
+            ".castiron.stats.yml",
+            f"schema_version: 1\ngeneration_id: {generation}\ncodegen_sha: {private}\npublic_codegen_sha: {public}\ncodegen_hash: {report.hash_codegen_commit(self.repo, private)}\nconfig_hash: source-config\nopenapi_spec_hash: source-spec\n",
+        )
+
+    def seed(self) -> str:
+        # Synthetic two-parent private seed; production worker initialization is
+        # covered separately in the SDK worker candidate-flow suite.
+        self.git("read-tree", "--reset", "-u", self.main)
+        self.write(".castiron-ratchet.json", json.dumps(self.pin) + "\n")
+        self.git("add", "-A")
+        return self.git(
+            "commit-tree",
+            self.git("write-tree"),
+            "-p",
+            self.base,
+            "-p",
+            self.main,
+            "-m",
+            "approved main adoption fixture",
+        )
+
+    def head(self, *, public_receipt: bool = True, customize: bool = False) -> str:
+        seed = self.seed()
+        self.git("checkout", "--detach", seed)
+        self.g1 = self.generated("next generated\n", ADOPTION_GENERATION, True)
+        snap = report.create_public_snapshot(
+            self.repo,
+            self.git("rev-parse", f"{self.g1}^{{tree}}"),
+            ADOPTION_GENERATION,
+            report.hash_codegen_commit(self.repo, self.g1),
+            "codegen/castiron/next/new",
+            self.public0,
+            (self.base, self.main) if public_receipt else None,
+        )
+        self.git("update-ref", "refs/remotes/origin/codegen/castiron/next/new", snap)
+        self.write(
+            "generated.py",
+            "next generated\n" + ("# customization\n" if customize else ""),
+        )
+        self.stats(self.g1, snap, ADOPTION_GENERATION)
+        return self.commit("next candidate")
+
+    def test_java_public_and_private_report_have_no_fake_before_generation(self) -> None:
+        head = self.head(customize=True)
+        for public in (False, True):
+            result, patch = report.build_report(
+                self.repo,
+                self.base,
+                head,
+                public=public,
+                target_branch="next",
+                require_head_hash=True,
+            )
+            self.assertIsNone(result["before"])
+            self.assertEqual(result["adoption_baseline"]["generation_id"], GENERATION)
+            self.assertEqual(result["files"][0]["added"], "1")
+            self.assertIn(b"# customization", patch)
+            self.assertIn("Legacy before-generation unavailable", report.render_report(result))
+
+    def test_cli_uses_same_protected_pin_path(self) -> None:
+        self.repository = "openai/openai-cli"
+        self.git("remote", "set-url", "origin", "https://github.com/openai/openai-cli.git")
+        self.pin["next_policy"]["repository"] = self.repository
+        self.write(".castiron-ratchet.json", json.dumps(self.pin) + "\n")
+        self.base = self.commit("CLI approved policy fixture")
+        head = self.head()
+        result, _ = report.build_report(
+            self.repo,
+            self.base,
+            head,
+            public=False,
+            target_branch="next",
+            require_head_hash=True,
+        )
+        self.assertIsNone(result["before"])
+
+    def test_promotion_base_cli_recognizes_exact_next_branch(self) -> None:
+        original = report.git
+
+        def offline_git(repo: Path, *args: str, input_bytes: bytes | None = None) -> bytes:
+            if args[0] == "fetch":
+                source, destination = args[-1].lstrip("+").split(":", 1)
+                return original(
+                    repo,
+                    "update-ref",
+                    destination,
+                    source.replace("refs/heads/", "refs/remotes/origin/"),
+                )
+            return original(repo, *args, input_bytes=input_bytes)
+
+        for base, branch, expected in (
+            (self.base, "castiron/next", self.main),
+            (self.base, "castiron/next/child", self.main),
+            (self.base, "castiron/nextish", None),
+            (self.base, "castiron/next-door", None),
+            (self.base, "castiron/promotions/main", None),
+            (self.main, "castiron/promotions/main", self.main),
+        ):
+            with self.subTest(base=base, branch=branch):
+                output, errors = io.StringIO(), io.StringIO()
+                with (
+                    mock.patch.object(report, "git", side_effect=offline_git),
+                    mock.patch.object(
+                        report.sys,
+                        "argv",
+                        [
+                            "custom_code_report.py",
+                            "promotion-base",
+                            "--repo",
+                            str(self.repo),
+                            "--base",
+                            base,
+                            "--branch",
+                            branch,
+                        ],
+                    ),
+                    mock.patch.object(report.sys, "stdout", output),
+                    mock.patch.object(report.sys, "stderr", errors),
+                ):
+                    result = report.main()
+                if expected is None:
+                    self.assertEqual(result, 1)
+                    self.assertEqual(output.getvalue(), "")
+                    self.assertIn("first adoption is next-only", errors.getvalue())
+                else:
+                    self.assertEqual(result, 0, errors.getvalue())
+                    self.assertEqual(output.getvalue(), expected + "\n")
+
+    def test_promotion_prepares_new_snapshot_from_real_main_snapshot(self) -> None:
+        head = self.head()
+        original = report.git
+
+        def offline_git(repo: Path, *args: str, input_bytes: bytes | None = None) -> bytes:
+            if args[0] == "fetch":
+                for arg in args:
+                    if arg.startswith("+refs/") and ":" in arg:
+                        source, destination = arg.lstrip("+").split(":", 1)
+                        original(
+                            repo,
+                            "update-ref",
+                            destination,
+                            source.replace("refs/heads/", "refs/remotes/origin/"),
+                        )
+                return b""
+            if args[0] == "ls-remote":
+                return b""
+            return original(repo, *args, input_bytes=input_bytes)
+
+        with mock.patch.object(report, "git", side_effect=offline_git):
+            prepared = report.prepare_public_snapshot(
+                self.repo, self.base, head, self.repo, self.base, "castiron/next/fresh"
+            )
+        metadata = report.public_metadata(self.repo, prepared["commit"])
+        self.assertEqual(metadata["Target"], "next")
+        self.assertEqual(metadata["Adoption-Base"], self.base)
+        self.assertEqual(metadata["Adoption-Source"], self.main)
+        self.assertEqual(prepared["base_commit"], self.public0)
+        self.assertEqual(self.git("rev-parse", prepared["commit"] + "^"), self.public0)
+
+    def test_missing_receipt_rejected(self) -> None:
+        head = self.head(public_receipt=False)
+        with self.assertRaisesRegex(report.ReportError, "authorized first adoption"):
+            report.build_report(self.repo, self.base, head, public=True, target_branch="next")
+
+    def test_wrong_sdk_record_rejected(self) -> None:
+        head = self.head()
+        self.repository = "openai/openai-cli"
+        wrong = self.generated("next generated\n", ADOPTION_GENERATION, True)
+        self.stats(
+            wrong, report.read_stats(self.repo, head)["public_codegen_sha"], ADOPTION_GENERATION
+        )
+        head = self.commit("wrong SDK binding")
+        with self.assertRaisesRegex(report.ReportError, "SDK mismatch"):
+            report.build_report(self.repo, self.base, head, public=False, target_branch="next")
+
+    def test_config_change_rejected(self) -> None:
+        self.head()
+        path = self.repo / ".castiron.stats.yml"
+        path.write_text(path.read_text().replace("source-config", "wrong-config"))
+        head = self.commit()
+        with self.assertRaisesRegex(report.ReportError, "authenticated main inputs"):
+            report.build_report(self.repo, self.base, head, public=False, target_branch="next")
+
+    def test_existing_corrupt_deleted_stats_rejected(self) -> None:
+        self.write(".castiron.stats.yml", "corrupt: true\n")
+        corrupt = self.commit()
+        with self.assertRaisesRegex(report.ReportError, "existing/corrupt"):
+            report.first_adoption_source(self.repo, corrupt, target_branch="next", fetch=False)
+        self.git("rm", ".castiron.stats.yml")
+        deleted = self.commit()
+        with self.assertRaisesRegex(report.ReportError, "deleted"):
+            report.first_adoption_source(self.repo, deleted, target_branch="next", fetch=False)
+
+    def test_candidate_cannot_select_source_or_remove_policy(self) -> None:
+        self.head()
+        self.write(".castiron-ratchet.json", json.dumps(self.policy) + "\n")
+        head = self.commit()
+        with self.assertRaisesRegex(report.ReportError, "protected target policy"):
+            report.build_report(self.repo, self.base, head, public=True, target_branch="next")
+
+    def test_current_count_and_strict_zero_still_enforced(self) -> None:
+        import custom_code_budget as budget
+
+        head = self.head(customize=True)
+        measurement = report.build_report(
+            self.repo, self.base, head, public=True, target_branch="next"
+        )
+        evaluated, _ = budget.evaluate(
+            self.repo,
+            self.base,
+            head,
+            public=True,
+            policy_sha=self.main,
+            target_branch="next",
+            measurement=measurement,
+        )
+        self.assertEqual(evaluated["total"], 1)
+        self.assertEqual(evaluated["checks"]["budget"]["state"], "success", evaluated)
+        self.write(
+            ".castiron-ratchet.json",
+            '{"schema_version":2,"max_custom_patch_lines":0,"generated_files":"strict"}\n',
+        )
+        strict = self.commit()
+        evaluated, _ = budget.evaluate(
+            self.repo,
+            self.base,
+            head,
+            public=True,
+            policy_sha=strict,
+            target_branch="next",
+            measurement=measurement,
+        )
+        self.assertEqual(evaluated["limit"], 0)
+        self.assertEqual(evaluated["checks"]["budget"]["state"], "failure")
+        self.assertIn("manifest", evaluated["checks"]["budget"]["description"])
+
+    def test_unapproved_source_pin_rejected(self) -> None:
+        self.pin["next_policy"]["main_sha"] = self.base
+        self.write(".castiron-ratchet.json", json.dumps(self.pin) + "\n")
+        invalid = self.commit()
+        with self.assertRaisesRegex(report.ReportError, "authenticated main history"):
+            report.first_adoption_source(self.repo, invalid, target_branch="next", fetch=False)
+
+    def test_advanced_target_requires_fresh_adoption(self) -> None:
+        head = self.head()
+        self.git("checkout", "--detach", self.base)
+        self.write("legacy-note.txt", "another approved target change\n")
+        advanced = self.commit()
+        with self.assertRaisesRegex(report.ReportError, "target advanced"):
+            report.build_report(self.repo, advanced, head, public=True, target_branch="next")
+
+    def test_main_target_rejected(self) -> None:
+        with self.assertRaisesRegex(report.ReportError, "next-only"):
+            report.first_adoption_source(self.repo, self.base, target_branch="main", fetch=False)
+
+    def test_normal_public_main_report_unchanged(self) -> None:
+        self.git("checkout", "--detach", self.main)
+        self.write("generated.py", "source\n# customization\n")
+        head = self.commit()
+        result, _ = report.build_report(
+            self.repo, self.main, head, public=True, target_branch="main"
+        )
+        self.assertIsNotNone(result["before"])
+        self.assertEqual(result["before_status"], "verified")
+
+    def promoted_public_head(self) -> tuple[Path, str, dict[str, Any]]:
+        # Exercise the separate public checkout and the actual single-parent
+        # commit-tree shape in sdk/promote.rs, not the private merge seed.
+        import subprocess
+
+        destination = self.repo / "public-checkout"
+        head = self.head(customize=True)
+        subprocess.run(
+            ["git", "clone", "-q", "--no-hardlinks", str(self.repo), str(destination)], check=True
+        )
+
+        def public_git(*args: str) -> str:
+            return report.git(destination, *args).decode().strip()
+
+        public_git("config", "user.name", "Castiron test")
+        public_git("config", "user.email", "castiron@example.test")
+        public_git("remote", "set-url", "origin", "https://github.com/" + self.repository + ".git")
+        for ref, commit in [
+            ("main", self.main),
+            ("next", self.base),
+            ("codegen/main", self.public0),
+        ]:
+            public_git("update-ref", "refs/remotes/origin/" + ref, commit)
+        public_git("checkout", "--detach", self.base)
+        # Normal promotion applies the reviewed private patch to this index.
+        public_git("read-tree", "--reset", "-u", head)
+        original = report.git
+
+        def offline_git(repo: Path, *args: str, input_bytes: bytes | None = None) -> bytes:
+            if args[0] == "fetch":
+                for arg in args:
+                    if arg.startswith("+refs/") and ":" in arg:
+                        source, target = arg.lstrip("+").split(":", 1)
+                        original(
+                            repo,
+                            "update-ref",
+                            target,
+                            source.replace("refs/heads/", "refs/remotes/origin/"),
+                        )
+                return b""
+            if args[0] == "ls-remote":
+                return b""
+            return original(repo, *args, input_bytes=input_bytes)
+
+        with mock.patch.object(report, "git", side_effect=offline_git):
+            prepared = report.prepare_public_snapshot(
+                self.repo, self.base, head, destination, self.base, "castiron/next/fresh"
+            )
+        public_git("update-ref", "refs/remotes/origin/" + prepared["branch"], prepared["commit"])
+        promoted = public_git(
+            "commit-tree",
+            public_git("write-tree"),
+            "-p",
+            self.base,
+            "-m",
+            "normal public promotion",
+        )
+        self.assertEqual(
+            public_git("rev-list", "--parents", "-n", "1", promoted), promoted + " " + self.base
+        )
+        with self.assertRaises(report.ReportError):
+            public_git("merge-base", "--is-ancestor", self.main, promoted)
+        # Private authorization still retains both parents.
+        self.git("merge-base", "--is-ancestor", self.main, head)
+        self.git("merge-base", "--is-ancestor", self.base, head)
+        return destination, promoted, prepared
+
+    def test_normal_single_parent_public_promotion_reports_first_adoption(self) -> None:
+        destination, promoted, _ = self.promoted_public_head()
+        result, patch = report.build_report(
+            destination,
+            self.base,
+            promoted,
+            public=True,
+            target_branch="next",
+            require_head_hash=True,
+        )
+        self.assertIsNone(result["before"])
+        self.assertEqual(result["adoption_baseline"]["generation_id"], GENERATION)
+        self.assertIn(b"# customization", patch)
+
+    def test_public_adoption_rejects_disconnected_snapshot_with_valid_receipt(self) -> None:
+        destination, promoted, prepared = self.promoted_public_head()
+        # The right receipt/hash alone does not authenticate approved-main lineage.
+        detached = report.create_public_snapshot(
+            destination,
+            report.git(destination, "rev-parse", prepared["commit"] + "^{tree}").decode().strip(),
+            ADOPTION_GENERATION,
+            prepared["hash"],
+            prepared["branch"],
+            None,
+            (self.base, self.main),
+        )
+        report.git(destination, "update-ref", "refs/remotes/origin/" + prepared["branch"], detached)
+        report.git(destination, "checkout", "--detach", promoted)
+        stats = destination / ".castiron.stats.yml"
+        stats.write_text(stats.read_text().replace(prepared["commit"], detached))
+        report.git(destination, "add", ".castiron.stats.yml")
+        invalid = (
+            report.git(
+                destination,
+                "commit-tree",
+                report.git(destination, "write-tree").decode().strip(),
+                "-p",
+                self.base,
+                "-m",
+                "disconnected snapshot",
+            )
+            .decode()
+            .strip()
+        )
+        with self.assertRaises(report.ReportError):
+            report.build_report(
+                destination,
+                self.base,
+                invalid,
+                public=True,
+                target_branch="next",
+                require_head_hash=True,
+            )
+
+    def test_cli_normal_single_parent_public_promotion_reports_first_adoption(self) -> None:
+        self.repository = "openai/openai-cli"
+        self.git("remote", "set-url", "origin", "https://github.com/openai/openai-cli.git")
+        self.pin["next_policy"]["repository"] = self.repository
+        self.write(".castiron-ratchet.json", json.dumps(self.pin) + "\n")
+        self.base = self.commit("CLI approved next policy")
+        self.git("update-ref", "refs/remotes/origin/next", self.base)
+        destination, promoted, _ = self.promoted_public_head()
+        result, _ = report.build_report(
+            destination,
+            self.base,
+            promoted,
+            public=True,
+            target_branch="next",
+            require_head_hash=True,
+        )
+        self.assertIsNone(result["before"])
+        self.assertEqual(result["adoption_baseline"]["generation_id"], GENERATION)
 
 
 if __name__ == "__main__":

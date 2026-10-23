@@ -4,6 +4,8 @@ name: Castiron custom code
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review, edited]
+  pull_request_review:
+    types: [submitted, edited, dismissed]
   # Notify the existing trusted handler for queue candidates.
   merge_group:
     types: [checks_requested]
@@ -16,11 +18,11 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  REPORTER_SHA256: 6b7cfda1f85426daaa2e4f6186e2d1b20ac638dadaa54be8142ecec89fefd880
+  REPORTER_SHA256: a52a1aabf4047f4c20e96d1d788c25a4aa78c1987b4fa73a13d22c92ef213a3f
 
 jobs:
   queue-signal:
-    if: github.event_name == 'merge_group'
+    if: github.event_name == 'merge_group' || github.event_name == 'pull_request_review'
     runs-on: ubuntu-latest
     timeout-minutes: 1
     permissions: {}

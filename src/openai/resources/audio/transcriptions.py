@@ -8,7 +8,10 @@ from typing_extensions import Literal, overload
 
 import httpx2
 
+import openai.lib._parsing._audio
+
 from ... import _legacy_response
+from ...types import AudioResponseFormat
 from ..._files import deepcopy_with_paths
 from ..._types import (
     Body,
@@ -29,9 +32,7 @@ from ..._streaming import Stream, AsyncStream
 from ...types.audio import transcription_create_params
 from ..._base_client import make_request_options
 from ...types.audio_model import AudioModel
-from ...lib._parsing._audio import get_transcription_response_format_type as _get_transcription_response_format_type
 from ...types.audio.transcription import Transcription
-from ...types.audio_response_format import AudioResponseFormat
 from ...types.audio.transcription_include import TranscriptionInclude
 from ...types.audio.transcription_verbose import TranscriptionVerbose
 from ...types.audio.transcription_diarized import TranscriptionDiarized
@@ -40,7 +41,14 @@ from ...types.audio.transcription_create_response import TranscriptionCreateResp
 
 __all__ = ["Transcriptions", "AsyncTranscriptions"]
 
+
 log: logging.Logger = logging.getLogger("openai.audio.transcriptions")
+
+
+def _get_response_format_type(
+    response_format: AudioResponseFormat | Omit,
+) -> type[Transcription | TranscriptionVerbose | TranscriptionDiarized | str]:
+    return openai.lib._parsing._audio.get_transcription_response_format_type(response_format, log=log)
 
 
 class Transcriptions(SyncAPIResource):
@@ -81,8 +89,6 @@ class Transcriptions(SyncAPIResource):
         stream: Optional[Literal[False]] | Omit = omit,
         temperature: float | Omit = omit,
         timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -106,7 +112,7 @@ class Transcriptions(SyncAPIResource):
               (which is powered by our open source Whisper V2 model), and
               `gpt-4o-transcribe-diarize`.
 
-          chunking_strategy: Controls how the audio is cut into chunks. When set to `"auto"`, the server
+          chunking_strategy: Controls how the audio is cut into chunks. When set to `\"auto\"`, the server
               first normalizes loudness and then uses voice activity detection (VAD) to choose
               boundaries. `server_vad` object can be provided to tweak VAD detection
               parameters manually. If unset, the audio is transcribed as a single block.
@@ -178,8 +184,6 @@ class Transcriptions(SyncAPIResource):
         prompt: str | Omit = omit,
         temperature: float | Omit = omit,
         timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -201,8 +205,6 @@ class Transcriptions(SyncAPIResource):
         prompt: str | Omit = omit,
         temperature: float | Omit = omit,
         timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -224,8 +226,6 @@ class Transcriptions(SyncAPIResource):
         languages: SequenceNotStr[str] | Omit = omit,
         temperature: float | Omit = omit,
         timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -250,8 +250,6 @@ class Transcriptions(SyncAPIResource):
         response_format: Union[AudioResponseFormat, Omit] = omit,
         temperature: float | Omit = omit,
         timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -284,7 +282,7 @@ class Transcriptions(SyncAPIResource):
 
               Note: Streaming is not supported for the `whisper-1` model and will be ignored.
 
-          chunking_strategy: Controls how the audio is cut into chunks. When set to `"auto"`, the server
+          chunking_strategy: Controls how the audio is cut into chunks. When set to `\"auto\"`, the server
               first normalizes loudness and then uses voice activity detection (VAD) to choose
               boundaries. `server_vad` object can be provided to tweak VAD detection
               parameters manually. If unset, the audio is transcribed as a single block.
@@ -352,7 +350,6 @@ class Transcriptions(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        ...
 
     @overload
     def create(
@@ -372,8 +369,6 @@ class Transcriptions(SyncAPIResource):
         response_format: Union[AudioResponseFormat, Omit] = omit,
         temperature: float | Omit = omit,
         timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -406,7 +401,7 @@ class Transcriptions(SyncAPIResource):
 
               Note: Streaming is not supported for the `whisper-1` model and will be ignored.
 
-          chunking_strategy: Controls how the audio is cut into chunks. When set to `"auto"`, the server
+          chunking_strategy: Controls how the audio is cut into chunks. When set to `\"auto\"`, the server
               first normalizes loudness and then uses voice activity detection (VAD) to choose
               boundaries. `server_vad` object can be provided to tweak VAD detection
               parameters manually. If unset, the audio is transcribed as a single block.
@@ -474,7 +469,6 @@ class Transcriptions(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        ...
 
     @required_args(["file", "model"], ["file", "model", "stream"])
     def create(
@@ -494,8 +488,6 @@ class Transcriptions(SyncAPIResource):
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
         temperature: float | Omit = omit,
         timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -525,7 +517,7 @@ class Transcriptions(SyncAPIResource):
         # sent to the server will contain a `boundary` parameter, e.g.
         # multipart/form-data; boundary=---abc--
         extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
-        return self._post(  # type: ignore[return-value]
+        return self._post(
             "/audio/transcriptions",
             body=maybe_transform(
                 body,
@@ -587,8 +579,6 @@ class AsyncTranscriptions(AsyncAPIResource):
         stream: Optional[Literal[False]] | Omit = omit,
         temperature: float | Omit = omit,
         timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -612,7 +602,7 @@ class AsyncTranscriptions(AsyncAPIResource):
               (which is powered by our open source Whisper V2 model), and
               `gpt-4o-transcribe-diarize`.
 
-          chunking_strategy: Controls how the audio is cut into chunks. When set to `"auto"`, the server
+          chunking_strategy: Controls how the audio is cut into chunks. When set to `\"auto\"`, the server
               first normalizes loudness and then uses voice activity detection (VAD) to choose
               boundaries. `server_vad` object can be provided to tweak VAD detection
               parameters manually. If unset, the audio is transcribed as a single block.
@@ -701,8 +691,6 @@ class AsyncTranscriptions(AsyncAPIResource):
         prompt: str | Omit = omit,
         temperature: float | Omit = omit,
         timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -724,8 +712,6 @@ class AsyncTranscriptions(AsyncAPIResource):
         prompt: str | Omit = omit,
         temperature: float | Omit = omit,
         timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -750,8 +736,6 @@ class AsyncTranscriptions(AsyncAPIResource):
         response_format: Union[AudioResponseFormat, Omit] = omit,
         temperature: float | Omit = omit,
         timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -784,7 +768,7 @@ class AsyncTranscriptions(AsyncAPIResource):
 
               Note: Streaming is not supported for the `whisper-1` model and will be ignored.
 
-          chunking_strategy: Controls how the audio is cut into chunks. When set to `"auto"`, the server
+          chunking_strategy: Controls how the audio is cut into chunks. When set to `\"auto\"`, the server
               first normalizes loudness and then uses voice activity detection (VAD) to choose
               boundaries. `server_vad` object can be provided to tweak VAD detection
               parameters manually. If unset, the audio is transcribed as a single block.
@@ -852,7 +836,6 @@ class AsyncTranscriptions(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        ...
 
     @overload
     async def create(
@@ -872,8 +855,6 @@ class AsyncTranscriptions(AsyncAPIResource):
         response_format: Union[AudioResponseFormat, Omit] = omit,
         temperature: float | Omit = omit,
         timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -906,7 +887,7 @@ class AsyncTranscriptions(AsyncAPIResource):
 
               Note: Streaming is not supported for the `whisper-1` model and will be ignored.
 
-          chunking_strategy: Controls how the audio is cut into chunks. When set to `"auto"`, the server
+          chunking_strategy: Controls how the audio is cut into chunks. When set to `\"auto\"`, the server
               first normalizes loudness and then uses voice activity detection (VAD) to choose
               boundaries. `server_vad` object can be provided to tweak VAD detection
               parameters manually. If unset, the audio is transcribed as a single block.
@@ -974,7 +955,6 @@ class AsyncTranscriptions(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        ...
 
     @required_args(["file", "model"], ["file", "model", "stream"])
     async def create(
@@ -994,8 +974,6 @@ class AsyncTranscriptions(AsyncAPIResource):
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
         temperature: float | Omit = omit,
         timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -1081,9 +1059,3 @@ class AsyncTranscriptionsWithStreamingResponse:
         self.create = async_to_streamed_response_wrapper(
             transcriptions.create,
         )
-
-
-def _get_response_format_type(
-    response_format: AudioResponseFormat | Omit,
-) -> type[Transcription | TranscriptionVerbose | TranscriptionDiarized | str]:
-    return _get_transcription_response_format_type(response_format, log=log)

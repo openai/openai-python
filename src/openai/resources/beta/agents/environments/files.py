@@ -61,7 +61,7 @@ class Files(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> PreparedAgentFiles:
-        "Beta: upload selected files for a new hosted environment."
+        """Beta: upload selected files for a new hosted environment."""
         return prepare(
             self,
             files,
@@ -79,7 +79,7 @@ class Files(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> PreparedAgentFiles:
-        "Beta: prepare an explicitly selected directory snapshot."
+        """Beta: prepare an explicitly selected directory snapshot."""
         return self.prepare(
             directory_files(
                 root,
@@ -103,7 +103,7 @@ class Files(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> StagedAgentFile:
-        "Beta: upload and stage one file in an existing environment."
+        """Beta: upload and stage one file in an existing environment."""
         return upload(
             self,
             environment_id,
@@ -323,7 +323,7 @@ class AsyncFiles(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> PreparedAgentFiles:
-        "Beta: upload selected files for a new hosted environment."
+        """Beta: upload selected files for a new hosted environment."""
         return await async_prepare(
             self,
             files,
@@ -341,7 +341,7 @@ class AsyncFiles(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> PreparedAgentFiles:
-        "Beta: prepare an explicitly selected directory snapshot."
+        """Beta: prepare an explicitly selected directory snapshot."""
         return await self.prepare(
             await async_directory_files(
                 root,
@@ -365,7 +365,7 @@ class AsyncFiles(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> StagedAgentFile:
-        "Beta: upload and stage one file in an existing environment."
+        """Beta: upload and stage one file in an existing environment."""
         return await async_upload(
             self,
             environment_id,
