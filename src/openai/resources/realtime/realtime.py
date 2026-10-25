@@ -81,7 +81,9 @@ class Realtime(SyncAPIResource):
 
     @cached_property
     def calls(self) -> Calls:
-        return Calls(self._client)
+        from ...lib._realtime import _Calls
+
+        return _Calls(self._client)
 
     @cached_property
     def translations(self) -> Translations:
@@ -153,7 +155,9 @@ class AsyncRealtime(AsyncAPIResource):
 
     @cached_property
     def calls(self) -> AsyncCalls:
-        return AsyncCalls(self._client)
+        from ...lib._realtime import _AsyncCalls
+
+        return _AsyncCalls(self._client)
 
     @cached_property
     def translations(self) -> AsyncTranslations:
@@ -821,7 +825,9 @@ class RealtimeConnection(WebSocketConnectionBase):
         If you want to parse the message into a `RealtimeServerEvent` object like `.recv()` does,
         then you can call `.parse_event(data)`.
         """
-        message = self._connection.recv(decode=False)
+        from ...lib._websocket import _recv_bytes
+
+        message = _recv_bytes(self._connection)
         log.debug("Received WebSocket message: %i bytes", len(message))
         if self._reconnect_attempt:
             # Account for raw application progress without changing frame delivery.

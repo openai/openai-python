@@ -9,7 +9,7 @@ from typing_extensions import Literal
 import httpx2
 
 from ... import _legacy_response
-from ..._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
+from ..._types import Body, Omit, Query, Headers, NotGiven, HeadersLike, omit, not_given
 from ..._utils import path_template, maybe_transform, async_maybe_transform
 from ..._compat import cached_property
 from ..._models import construct_type
@@ -24,7 +24,9 @@ from .event_types import (
     AsyncEventTypesWithStreamingResponse,
 )
 from ...pagination import SyncCursorPage, AsyncCursorPage
+from ..._exceptions import InvalidWebhookSignatureError
 from ..._base_client import AsyncPaginator, make_request_options
+from ...lib._webhooks import webhook_signature_matches as _webhook_signature_matches
 from ...types.webhooks import (
     webhook_list_params,
     webhook_test_params,
@@ -479,7 +481,19 @@ class Webhooks(SyncAPIResource):
             cast_to=WebhookEndpointTestResult,
         )
 
-    def unwrap(self, payload: str) -> UnwrapWebhookEvent:
+    def unwrap(
+        self,
+        payload: str | bytes,
+        headers: HeadersLike,
+        *,
+        secret: str | None = None,
+    ) -> UnwrapWebhookEvent:
+        """Validates that the given payload was sent by OpenAI and parses the payload."""
+        if secret is None:
+            secret = self._client.webhook_secret
+
+        self.verify_signature(payload=payload, headers=headers, secret=secret)
+
         return cast(
             UnwrapWebhookEvent,
             construct_type(
@@ -487,6 +501,36 @@ class Webhooks(SyncAPIResource):
                 value=json.loads(payload),
             ),
         )
+
+    def verify_signature(
+        self,
+        payload: str | bytes,
+        headers: HeadersLike,
+        *,
+        secret: str | None = None,
+        tolerance: int = 300,
+    ) -> None:
+        """Validates whether or not the webhook payload was sent by OpenAI.
+
+        Args:
+            payload: The webhook payload
+            headers: The webhook headers
+            secret: The webhook secret (optional, will use client secret if not provided)
+            tolerance: Maximum age of the webhook in seconds (default: 300 = 5 minutes)
+        """
+        if secret is None:
+            secret = self._client.webhook_secret
+
+        if secret is None:
+            raise ValueError(
+                "The webhook secret must either be set using the env var, OPENAI_WEBHOOK_SECRET, "
+                "on the client class, OpenAI(webhook_secret='123'), or passed to this function"
+            )
+
+        if not _webhook_signature_matches(payload, headers, secret=secret, tolerance=tolerance):
+            raise InvalidWebhookSignatureError(
+                "The given webhook signature does not match the expected signature"
+            ) from None
 
 
 class AsyncWebhooks(AsyncAPIResource):
@@ -927,14 +971,55 @@ class AsyncWebhooks(AsyncAPIResource):
             cast_to=WebhookEndpointTestResult,
         )
 
-    def unwrap(self, payload: str) -> UnwrapWebhookEvent:
+    def unwrap(
+        self,
+        payload: str | bytes,
+        headers: HeadersLike,
+        *,
+        secret: str | None = None,
+    ) -> UnwrapWebhookEvent:
+        """Validates that the given payload was sent by OpenAI and parses the payload."""
+        if secret is None:
+            secret = self._client.webhook_secret
+
+        self.verify_signature(payload=payload, headers=headers, secret=secret)
+
+        body = payload.decode("utf-8") if isinstance(payload, bytes) else payload
         return cast(
             UnwrapWebhookEvent,
             construct_type(
                 type_=UnwrapWebhookEvent,
-                value=json.loads(payload),
+                value=json.loads(body),
             ),
         )
+
+    def verify_signature(
+        self,
+        payload: str | bytes,
+        headers: HeadersLike,
+        *,
+        secret: str | None = None,
+        tolerance: int = 300,
+    ) -> None:
+        """Validates whether or not the webhook payload was sent by OpenAI.
+
+        Args:
+            payload: The webhook payload
+            headers: The webhook headers
+            secret: The webhook secret (optional, will use client secret if not provided)
+            tolerance: Maximum age of the webhook in seconds (default: 300 = 5 minutes)
+        """
+        if secret is None:
+            secret = self._client.webhook_secret
+
+        if secret is None:
+            raise ValueError(
+                "The webhook secret must either be set using the env var, OPENAI_WEBHOOK_SECRET, "
+                "on the client class, OpenAI(webhook_secret='123'), or passed to this function"
+            ) from None
+
+        if not _webhook_signature_matches(payload, headers, secret=secret, tolerance=tolerance):
+            raise InvalidWebhookSignatureError("The given webhook signature does not match the expected signature")
 
 
 class WebhooksWithRawResponse:

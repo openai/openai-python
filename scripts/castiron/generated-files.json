@@ -347,7 +347,7 @@
     },
     "src/openai/resources/beta/agents/sessions/sessions.py": {
       "mode": "100644",
-      "sha256": "d90e9fea54acc7065ed9709e133f4dcad0d31af905e68db7c0d261a4dcbd1d95"
+      "sha256": "65699418bb2e7b847de57b9c2d9c82acf0f94dfb99b46391ab61331580e7032c"
     },
     "src/openai/resources/beta/agents/sessions/subagents/__init__.py": {
       "mode": "100644",
@@ -659,7 +659,7 @@
     },
     "src/openai/resources/realtime/realtime.py": {
       "mode": "100644",
-      "sha256": "a4b57db70118e3d9c468c8f7528a6b4db979fc3b0d5665ef47d7622998f509ca"
+      "sha256": "0285ac5edb9b8b17f296b2d513068cb35c3413895e35424221765cc4a15c8592"
     },
     "src/openai/resources/realtime/translations/__init__.py": {
       "mode": "100644",
@@ -671,7 +671,7 @@
     },
     "src/openai/resources/realtime/translations/translations.py": {
       "mode": "100644",
-      "sha256": "6d8eb9eb1962bd24af7eab0273ed01be77d31012a34c4b99f0f6f381253cb475"
+      "sha256": "805923247278589582e4d4db869aa55f37a18130178d6c467f1c59b67825259c"
     },
     "src/openai/resources/responses/__init__.py": {
       "mode": "100644",
@@ -767,11 +767,11 @@
     },
     "src/openai/resources/webhooks/__init__.py": {
       "mode": "100644",
-      "sha256": "482d8a3740c763b8206f00d09f0fdd5178089ab3beb57d2d3db0c3cc5cc45b65"
+      "sha256": "c1e56f4b97470de30bd95fc65ab4bc5f6c3f2ea37224c3ce4e6dd6db9e2bbb3c"
     },
     "src/openai/resources/webhooks/api.md": {
       "mode": "100644",
-      "sha256": "8f4e49369b4f9cce4968bc67402ffa2b107b0cfb57b8fd81041119e82b8d1ed4"
+      "sha256": "c9525180e201503bb8a958a2768a08b26655106c716569e8f40bb9f15349c365"
     },
     "src/openai/resources/webhooks/event_types.py": {
       "mode": "100644",
@@ -779,7 +779,7 @@
     },
     "src/openai/resources/webhooks/webhooks.py": {
       "mode": "100644",
-      "sha256": "d5214ec6cfdae16f687397dac4e90222c52ee33f4edd209c1f6e614c43014be8"
+      "sha256": "f730653c5937f4c723f5519c7e86823fcba0ee088c270ecbd8e02fd10e49c654"
     },
     "src/openai/types/__init__.py": {
       "mode": "100644",
