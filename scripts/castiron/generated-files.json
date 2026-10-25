@@ -11,7 +11,7 @@
     },
     "api.md": {
       "mode": "100644",
-      "sha256": "1d18f40ba947e3d9630a81c0bba0b37ff21f47d795a7bea1b7249d636e2ef7ea"
+      "sha256": "4edbb78fa580f6b2e35ebd17420826f78f4e0ab98c00c74488be3bd341e75abf"
     },
     "scripts/castiron/CUSTOM_CODE.md": {
       "mode": "100644",
@@ -455,7 +455,7 @@
     },
     "src/openai/resources/beta/threads/runs/runs.py": {
       "mode": "100644",
-      "sha256": "7ba7720d81a72c95a377b62b6454954f9259278b3a18f430f1ae039e729a4288"
+      "sha256": "c99b9afa883afa1c00f38b722ec55a83d10d7f7cc6237f4cd231a9db6f5a5507"
     },
     "src/openai/resources/beta/threads/runs/steps.py": {
       "mode": "100644",
@@ -463,7 +463,7 @@
     },
     "src/openai/resources/beta/threads/threads.py": {
       "mode": "100644",
-      "sha256": "d0b5ae764f84c0933d098fb68d6038f52390630fd0f134f0140e3d7027a96b35"
+      "sha256": "65a29472d6c83a9a94cb5cacaa0e0088034225e9f83feb40fbde09833d68e4ea"
     },
     "src/openai/resources/chat/__init__.py": {
       "mode": "100644",

@@ -25,11 +25,33 @@ from ....._response import to_streamed_response_wrapper, async_to_streamed_respo
 from ....._streaming import Stream, AsyncStream
 from .....pagination import SyncCursorPage, AsyncCursorPage
 from ....._base_client import AsyncPaginator, make_request_options
+from .....lib.streaming import (
+    AssistantEventHandler,
+    AssistantEventHandlerT,
+    AssistantStreamManager,
+    AsyncAssistantEventHandler,
+    AsyncAssistantEventHandlerT,
+    AsyncAssistantStreamManager,
+)
 from .....types.beta.threads import (
     run_list_params,
     run_create_params,
     run_update_params,
     run_submit_tool_outputs_params,
+)
+from .....lib._assistants_runs import (
+    runs_poll,
+    runs_stream,
+    async_runs_poll,
+    async_runs_stream,
+    runs_create_and_poll,
+    runs_create_and_stream,
+    async_runs_create_and_poll,
+    async_runs_create_and_stream,
+    runs_submit_tool_outputs_stream,
+    runs_submit_tool_outputs_and_poll,
+    async_runs_submit_tool_outputs_stream,
+    async_runs_submit_tool_outputs_and_poll,
 )
 from .....types.beta.threads.run import Run
 from .....types.shared.chat_model import ChatModel
@@ -70,6 +92,410 @@ class Runs(SyncAPIResource):
         For more information, see https://www.github.com/openai/openai-python#with_streaming_response
         """
         return RunsWithStreamingResponse(self)
+
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def create_and_poll(
+        self,
+        *,
+        assistant_id: str,
+        include: list[RunStepInclude] | Omit = omit,
+        additional_instructions: str | None | Omit = omit,
+        additional_messages: Iterable[run_create_params.AdditionalMessage] | None | Omit = omit,
+        instructions: str | None | Omit = omit,
+        max_completion_tokens: int | None | Omit = omit,
+        max_prompt_tokens: int | None | Omit = omit,
+        metadata: Metadata | None | Omit = omit,
+        model: str | ChatModel | None | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        reasoning_effort: ReasoningEffort | None | Omit = omit,
+        response_format: AssistantResponseFormatOptionParam | None | Omit = omit,
+        temperature: float | None | Omit = omit,
+        tool_choice: AssistantToolChoiceOptionParam | None | Omit = omit,
+        tools: Iterable[AssistantToolParam] | None | Omit = omit,
+        top_p: float | None | Omit = omit,
+        truncation_strategy: run_create_params.TruncationStrategy | None | Omit = omit,
+        poll_interval_ms: int | Omit = omit,
+        thread_id: str,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Run:
+        """A helper to create a run an poll for a terminal state. More information on Run
+        lifecycles can be found here:
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
+        return runs_create_and_poll(
+            self,
+            assistant_id=assistant_id,
+            include=include,
+            additional_instructions=additional_instructions,
+            additional_messages=additional_messages,
+            instructions=instructions,
+            max_completion_tokens=max_completion_tokens,
+            max_prompt_tokens=max_prompt_tokens,
+            metadata=metadata,
+            model=model,
+            parallel_tool_calls=parallel_tool_calls,
+            reasoning_effort=reasoning_effort,
+            response_format=response_format,
+            temperature=temperature,
+            tool_choice=tool_choice,
+            tools=tools,
+            top_p=top_p,
+            truncation_strategy=truncation_strategy,
+            poll_interval_ms=poll_interval_ms,
+            thread_id=thread_id,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
+
+    @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def create_and_stream(
+        self,
+        *,
+        assistant_id: str,
+        additional_instructions: str | None | Omit = omit,
+        additional_messages: Iterable[run_create_params.AdditionalMessage] | None | Omit = omit,
+        instructions: str | None | Omit = omit,
+        max_completion_tokens: int | None | Omit = omit,
+        max_prompt_tokens: int | None | Omit = omit,
+        metadata: Metadata | None | Omit = omit,
+        model: str | ChatModel | None | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        reasoning_effort: ReasoningEffort | None | Omit = omit,
+        response_format: AssistantResponseFormatOptionParam | None | Omit = omit,
+        temperature: float | None | Omit = omit,
+        tool_choice: AssistantToolChoiceOptionParam | None | Omit = omit,
+        tools: Iterable[AssistantToolParam] | None | Omit = omit,
+        top_p: float | None | Omit = omit,
+        truncation_strategy: run_create_params.TruncationStrategy | None | Omit = omit,
+        thread_id: str,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AssistantStreamManager[AssistantEventHandler]:
+        """Create a Run stream"""
+
+    @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def create_and_stream(
+        self,
+        *,
+        assistant_id: str,
+        additional_instructions: str | None | Omit = omit,
+        additional_messages: Iterable[run_create_params.AdditionalMessage] | None | Omit = omit,
+        instructions: str | None | Omit = omit,
+        max_completion_tokens: int | None | Omit = omit,
+        max_prompt_tokens: int | None | Omit = omit,
+        metadata: Metadata | None | Omit = omit,
+        model: str | ChatModel | None | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        reasoning_effort: ReasoningEffort | None | Omit = omit,
+        response_format: AssistantResponseFormatOptionParam | None | Omit = omit,
+        temperature: float | None | Omit = omit,
+        tool_choice: AssistantToolChoiceOptionParam | None | Omit = omit,
+        tools: Iterable[AssistantToolParam] | None | Omit = omit,
+        top_p: float | None | Omit = omit,
+        truncation_strategy: run_create_params.TruncationStrategy | None | Omit = omit,
+        thread_id: str,
+        event_handler: AssistantEventHandlerT,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AssistantStreamManager[AssistantEventHandlerT]:
+        """Create a Run stream"""
+
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def create_and_stream(
+        self,
+        *,
+        assistant_id: str,
+        additional_instructions: str | None | Omit = omit,
+        additional_messages: Iterable[run_create_params.AdditionalMessage] | None | Omit = omit,
+        instructions: str | None | Omit = omit,
+        max_completion_tokens: int | None | Omit = omit,
+        max_prompt_tokens: int | None | Omit = omit,
+        metadata: Metadata | None | Omit = omit,
+        model: str | ChatModel | None | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        reasoning_effort: ReasoningEffort | None | Omit = omit,
+        response_format: AssistantResponseFormatOptionParam | None | Omit = omit,
+        temperature: float | None | Omit = omit,
+        tool_choice: AssistantToolChoiceOptionParam | None | Omit = omit,
+        tools: Iterable[AssistantToolParam] | None | Omit = omit,
+        top_p: float | None | Omit = omit,
+        truncation_strategy: run_create_params.TruncationStrategy | None | Omit = omit,
+        thread_id: str,
+        event_handler: AssistantEventHandlerT | None = None,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AssistantStreamManager[AssistantEventHandler] | AssistantStreamManager[AssistantEventHandlerT]:
+        """Create a Run stream"""
+        return runs_create_and_stream(
+            self,
+            assistant_id=assistant_id,
+            additional_instructions=additional_instructions,
+            additional_messages=additional_messages,
+            instructions=instructions,
+            max_completion_tokens=max_completion_tokens,
+            max_prompt_tokens=max_prompt_tokens,
+            metadata=metadata,
+            model=model,
+            parallel_tool_calls=parallel_tool_calls,
+            reasoning_effort=reasoning_effort,
+            response_format=response_format,
+            temperature=temperature,
+            tool_choice=tool_choice,
+            tools=tools,
+            top_p=top_p,
+            truncation_strategy=truncation_strategy,
+            thread_id=thread_id,
+            event_handler=event_handler,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
+
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def poll(
+        self,
+        run_id: str,
+        thread_id: str,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+        poll_interval_ms: int | Omit = omit,
+    ) -> Run:
+        """A helper to poll a run status until it reaches a terminal state. More
+        information on Run lifecycles can be found here:
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
+        return runs_poll(
+            self,
+            run_id=run_id,
+            thread_id=thread_id,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+            poll_interval_ms=poll_interval_ms,
+        )
+
+    @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def stream(
+        self,
+        *,
+        assistant_id: str,
+        include: list[RunStepInclude] | Omit = omit,
+        additional_instructions: str | None | Omit = omit,
+        additional_messages: Iterable[run_create_params.AdditionalMessage] | None | Omit = omit,
+        instructions: str | None | Omit = omit,
+        max_completion_tokens: int | None | Omit = omit,
+        max_prompt_tokens: int | None | Omit = omit,
+        metadata: Metadata | None | Omit = omit,
+        model: str | ChatModel | None | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        reasoning_effort: ReasoningEffort | None | Omit = omit,
+        response_format: AssistantResponseFormatOptionParam | None | Omit = omit,
+        temperature: float | None | Omit = omit,
+        tool_choice: AssistantToolChoiceOptionParam | None | Omit = omit,
+        tools: Iterable[AssistantToolParam] | None | Omit = omit,
+        top_p: float | None | Omit = omit,
+        truncation_strategy: run_create_params.TruncationStrategy | None | Omit = omit,
+        thread_id: str,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AssistantStreamManager[AssistantEventHandler]:
+        """Create a Run stream"""
+
+    @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def stream(
+        self,
+        *,
+        assistant_id: str,
+        include: list[RunStepInclude] | Omit = omit,
+        additional_instructions: str | None | Omit = omit,
+        additional_messages: Iterable[run_create_params.AdditionalMessage] | None | Omit = omit,
+        instructions: str | None | Omit = omit,
+        max_completion_tokens: int | None | Omit = omit,
+        max_prompt_tokens: int | None | Omit = omit,
+        metadata: Metadata | None | Omit = omit,
+        model: str | ChatModel | None | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        reasoning_effort: ReasoningEffort | None | Omit = omit,
+        response_format: AssistantResponseFormatOptionParam | None | Omit = omit,
+        temperature: float | None | Omit = omit,
+        tool_choice: AssistantToolChoiceOptionParam | None | Omit = omit,
+        tools: Iterable[AssistantToolParam] | None | Omit = omit,
+        top_p: float | None | Omit = omit,
+        truncation_strategy: run_create_params.TruncationStrategy | None | Omit = omit,
+        thread_id: str,
+        event_handler: AssistantEventHandlerT,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AssistantStreamManager[AssistantEventHandlerT]:
+        """Create a Run stream"""
+
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def stream(
+        self,
+        *,
+        assistant_id: str,
+        include: list[RunStepInclude] | Omit = omit,
+        additional_instructions: str | None | Omit = omit,
+        additional_messages: Iterable[run_create_params.AdditionalMessage] | None | Omit = omit,
+        instructions: str | None | Omit = omit,
+        max_completion_tokens: int | None | Omit = omit,
+        max_prompt_tokens: int | None | Omit = omit,
+        metadata: Metadata | None | Omit = omit,
+        model: str | ChatModel | None | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        reasoning_effort: ReasoningEffort | None | Omit = omit,
+        response_format: AssistantResponseFormatOptionParam | None | Omit = omit,
+        temperature: float | None | Omit = omit,
+        tool_choice: AssistantToolChoiceOptionParam | None | Omit = omit,
+        tools: Iterable[AssistantToolParam] | None | Omit = omit,
+        top_p: float | None | Omit = omit,
+        truncation_strategy: run_create_params.TruncationStrategy | None | Omit = omit,
+        thread_id: str,
+        event_handler: AssistantEventHandlerT | None = None,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AssistantStreamManager[AssistantEventHandler] | AssistantStreamManager[AssistantEventHandlerT]:
+        """Create a Run stream"""
+        return runs_stream(
+            self,
+            assistant_id=assistant_id,
+            include=include,
+            additional_instructions=additional_instructions,
+            additional_messages=additional_messages,
+            instructions=instructions,
+            max_completion_tokens=max_completion_tokens,
+            max_prompt_tokens=max_prompt_tokens,
+            metadata=metadata,
+            model=model,
+            parallel_tool_calls=parallel_tool_calls,
+            reasoning_effort=reasoning_effort,
+            response_format=response_format,
+            temperature=temperature,
+            tool_choice=tool_choice,
+            tools=tools,
+            top_p=top_p,
+            truncation_strategy=truncation_strategy,
+            thread_id=thread_id,
+            event_handler=event_handler,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
+
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def submit_tool_outputs_and_poll(
+        self,
+        *,
+        tool_outputs: Iterable[run_submit_tool_outputs_params.ToolOutput],
+        run_id: str,
+        thread_id: str,
+        poll_interval_ms: int | Omit = omit,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Run:
+        """A helper to submit a tool output to a run and poll for a terminal run state.
+        More information on Run lifecycles can be found here:
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
+        return runs_submit_tool_outputs_and_poll(
+            self,
+            tool_outputs=tool_outputs,
+            run_id=run_id,
+            thread_id=thread_id,
+            poll_interval_ms=poll_interval_ms,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
+
+    @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def submit_tool_outputs_stream(
+        self,
+        *,
+        tool_outputs: Iterable[run_submit_tool_outputs_params.ToolOutput],
+        run_id: str,
+        thread_id: str,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AssistantStreamManager[AssistantEventHandler]:
+        """Submit the tool outputs from a previous run and stream the run to a terminal
+        state. More information on Run lifecycles can be found here:
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
+
+    @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def submit_tool_outputs_stream(
+        self,
+        *,
+        tool_outputs: Iterable[run_submit_tool_outputs_params.ToolOutput],
+        run_id: str,
+        thread_id: str,
+        event_handler: AssistantEventHandlerT,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AssistantStreamManager[AssistantEventHandlerT]:
+        """Submit the tool outputs from a previous run and stream the run to a terminal
+        state. More information on Run lifecycles can be found here:
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
+
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def submit_tool_outputs_stream(
+        self,
+        *,
+        tool_outputs: Iterable[run_submit_tool_outputs_params.ToolOutput],
+        run_id: str,
+        thread_id: str,
+        event_handler: AssistantEventHandlerT | None = None,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AssistantStreamManager[AssistantEventHandler] | AssistantStreamManager[AssistantEventHandlerT]:
+        """Submit the tool outputs from a previous run and stream the run to a terminal
+        state. More information on Run lifecycles can be found here:
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
+        return runs_submit_tool_outputs_stream(
+            self,
+            tool_outputs=tool_outputs,
+            run_id=run_id,
+            thread_id=thread_id,
+            event_handler=event_handler,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
 
     @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     @overload
@@ -992,6 +1418,414 @@ class AsyncRuns(AsyncAPIResource):
         For more information, see https://www.github.com/openai/openai-python#with_streaming_response
         """
         return AsyncRunsWithStreamingResponse(self)
+
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    async def create_and_poll(
+        self,
+        *,
+        assistant_id: str,
+        include: list[RunStepInclude] | Omit = omit,
+        additional_instructions: str | None | Omit = omit,
+        additional_messages: Iterable[run_create_params.AdditionalMessage] | None | Omit = omit,
+        instructions: str | None | Omit = omit,
+        max_completion_tokens: int | None | Omit = omit,
+        max_prompt_tokens: int | None | Omit = omit,
+        metadata: Metadata | None | Omit = omit,
+        model: str | ChatModel | None | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        reasoning_effort: ReasoningEffort | None | Omit = omit,
+        response_format: AssistantResponseFormatOptionParam | None | Omit = omit,
+        temperature: float | None | Omit = omit,
+        tool_choice: AssistantToolChoiceOptionParam | None | Omit = omit,
+        tools: Iterable[AssistantToolParam] | None | Omit = omit,
+        top_p: float | None | Omit = omit,
+        truncation_strategy: run_create_params.TruncationStrategy | None | Omit = omit,
+        poll_interval_ms: int | Omit = omit,
+        thread_id: str,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Run:
+        """A helper to create a run an poll for a terminal state. More information on Run
+        lifecycles can be found here:
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
+        return await async_runs_create_and_poll(
+            self,
+            assistant_id=assistant_id,
+            include=include,
+            additional_instructions=additional_instructions,
+            additional_messages=additional_messages,
+            instructions=instructions,
+            max_completion_tokens=max_completion_tokens,
+            max_prompt_tokens=max_prompt_tokens,
+            metadata=metadata,
+            model=model,
+            parallel_tool_calls=parallel_tool_calls,
+            reasoning_effort=reasoning_effort,
+            response_format=response_format,
+            temperature=temperature,
+            tool_choice=tool_choice,
+            tools=tools,
+            top_p=top_p,
+            truncation_strategy=truncation_strategy,
+            poll_interval_ms=poll_interval_ms,
+            thread_id=thread_id,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
+
+    @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def create_and_stream(
+        self,
+        *,
+        assistant_id: str,
+        additional_instructions: str | None | Omit = omit,
+        additional_messages: Iterable[run_create_params.AdditionalMessage] | None | Omit = omit,
+        instructions: str | None | Omit = omit,
+        max_completion_tokens: int | None | Omit = omit,
+        max_prompt_tokens: int | None | Omit = omit,
+        metadata: Metadata | None | Omit = omit,
+        model: str | ChatModel | None | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        response_format: AssistantResponseFormatOptionParam | None | Omit = omit,
+        temperature: float | None | Omit = omit,
+        tool_choice: AssistantToolChoiceOptionParam | None | Omit = omit,
+        tools: Iterable[AssistantToolParam] | None | Omit = omit,
+        top_p: float | None | Omit = omit,
+        truncation_strategy: run_create_params.TruncationStrategy | None | Omit = omit,
+        thread_id: str,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AsyncAssistantStreamManager[AsyncAssistantEventHandler]:
+        """Create a Run stream"""
+
+    @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def create_and_stream(
+        self,
+        *,
+        assistant_id: str,
+        additional_instructions: str | None | Omit = omit,
+        additional_messages: Iterable[run_create_params.AdditionalMessage] | None | Omit = omit,
+        instructions: str | None | Omit = omit,
+        max_completion_tokens: int | None | Omit = omit,
+        max_prompt_tokens: int | None | Omit = omit,
+        metadata: Metadata | None | Omit = omit,
+        model: str | ChatModel | None | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        response_format: AssistantResponseFormatOptionParam | None | Omit = omit,
+        temperature: float | None | Omit = omit,
+        tool_choice: AssistantToolChoiceOptionParam | None | Omit = omit,
+        tools: Iterable[AssistantToolParam] | None | Omit = omit,
+        top_p: float | None | Omit = omit,
+        truncation_strategy: run_create_params.TruncationStrategy | None | Omit = omit,
+        thread_id: str,
+        event_handler: AsyncAssistantEventHandlerT,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AsyncAssistantStreamManager[AsyncAssistantEventHandlerT]:
+        """Create a Run stream"""
+
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def create_and_stream(
+        self,
+        *,
+        assistant_id: str,
+        additional_instructions: str | None | Omit = omit,
+        additional_messages: Iterable[run_create_params.AdditionalMessage] | None | Omit = omit,
+        instructions: str | None | Omit = omit,
+        max_completion_tokens: int | None | Omit = omit,
+        max_prompt_tokens: int | None | Omit = omit,
+        metadata: Metadata | None | Omit = omit,
+        model: str | ChatModel | None | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        response_format: AssistantResponseFormatOptionParam | None | Omit = omit,
+        temperature: float | None | Omit = omit,
+        tool_choice: AssistantToolChoiceOptionParam | None | Omit = omit,
+        tools: Iterable[AssistantToolParam] | None | Omit = omit,
+        top_p: float | None | Omit = omit,
+        truncation_strategy: run_create_params.TruncationStrategy | None | Omit = omit,
+        thread_id: str,
+        event_handler: AsyncAssistantEventHandlerT | None = None,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> (
+        AsyncAssistantStreamManager[AsyncAssistantEventHandler]
+        | AsyncAssistantStreamManager[AsyncAssistantEventHandlerT]
+    ):
+        """Create a Run stream"""
+        return async_runs_create_and_stream(
+            self,
+            assistant_id=assistant_id,
+            additional_instructions=additional_instructions,
+            additional_messages=additional_messages,
+            instructions=instructions,
+            max_completion_tokens=max_completion_tokens,
+            max_prompt_tokens=max_prompt_tokens,
+            metadata=metadata,
+            model=model,
+            parallel_tool_calls=parallel_tool_calls,
+            response_format=response_format,
+            temperature=temperature,
+            tool_choice=tool_choice,
+            tools=tools,
+            top_p=top_p,
+            truncation_strategy=truncation_strategy,
+            thread_id=thread_id,
+            event_handler=event_handler,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
+
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    async def poll(
+        self,
+        run_id: str,
+        thread_id: str,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+        poll_interval_ms: int | Omit = omit,
+    ) -> Run:
+        """A helper to poll a run status until it reaches a terminal state. More
+        information on Run lifecycles can be found here:
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
+        return await async_runs_poll(
+            self,
+            run_id=run_id,
+            thread_id=thread_id,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+            poll_interval_ms=poll_interval_ms,
+        )
+
+    @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def stream(
+        self,
+        *,
+        assistant_id: str,
+        additional_instructions: str | None | Omit = omit,
+        additional_messages: Iterable[run_create_params.AdditionalMessage] | None | Omit = omit,
+        instructions: str | None | Omit = omit,
+        max_completion_tokens: int | None | Omit = omit,
+        max_prompt_tokens: int | None | Omit = omit,
+        metadata: Metadata | None | Omit = omit,
+        model: str | ChatModel | None | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        reasoning_effort: ReasoningEffort | None | Omit = omit,
+        response_format: AssistantResponseFormatOptionParam | None | Omit = omit,
+        temperature: float | None | Omit = omit,
+        tool_choice: AssistantToolChoiceOptionParam | None | Omit = omit,
+        tools: Iterable[AssistantToolParam] | None | Omit = omit,
+        top_p: float | None | Omit = omit,
+        truncation_strategy: run_create_params.TruncationStrategy | None | Omit = omit,
+        thread_id: str,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AsyncAssistantStreamManager[AsyncAssistantEventHandler]:
+        """Create a Run stream"""
+
+    @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def stream(
+        self,
+        *,
+        assistant_id: str,
+        include: list[RunStepInclude] | Omit = omit,
+        additional_instructions: str | None | Omit = omit,
+        additional_messages: Iterable[run_create_params.AdditionalMessage] | None | Omit = omit,
+        instructions: str | None | Omit = omit,
+        max_completion_tokens: int | None | Omit = omit,
+        max_prompt_tokens: int | None | Omit = omit,
+        metadata: Metadata | None | Omit = omit,
+        model: str | ChatModel | None | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        reasoning_effort: ReasoningEffort | None | Omit = omit,
+        response_format: AssistantResponseFormatOptionParam | None | Omit = omit,
+        temperature: float | None | Omit = omit,
+        tool_choice: AssistantToolChoiceOptionParam | None | Omit = omit,
+        tools: Iterable[AssistantToolParam] | None | Omit = omit,
+        top_p: float | None | Omit = omit,
+        truncation_strategy: run_create_params.TruncationStrategy | None | Omit = omit,
+        thread_id: str,
+        event_handler: AsyncAssistantEventHandlerT,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AsyncAssistantStreamManager[AsyncAssistantEventHandlerT]:
+        """Create a Run stream"""
+
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def stream(
+        self,
+        *,
+        assistant_id: str,
+        include: list[RunStepInclude] | Omit = omit,
+        additional_instructions: str | None | Omit = omit,
+        additional_messages: Iterable[run_create_params.AdditionalMessage] | None | Omit = omit,
+        instructions: str | None | Omit = omit,
+        max_completion_tokens: int | None | Omit = omit,
+        max_prompt_tokens: int | None | Omit = omit,
+        metadata: Metadata | None | Omit = omit,
+        model: str | ChatModel | None | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        reasoning_effort: ReasoningEffort | None | Omit = omit,
+        response_format: AssistantResponseFormatOptionParam | None | Omit = omit,
+        temperature: float | None | Omit = omit,
+        tool_choice: AssistantToolChoiceOptionParam | None | Omit = omit,
+        tools: Iterable[AssistantToolParam] | None | Omit = omit,
+        top_p: float | None | Omit = omit,
+        truncation_strategy: run_create_params.TruncationStrategy | None | Omit = omit,
+        thread_id: str,
+        event_handler: AsyncAssistantEventHandlerT | None = None,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> (
+        AsyncAssistantStreamManager[AsyncAssistantEventHandler]
+        | AsyncAssistantStreamManager[AsyncAssistantEventHandlerT]
+    ):
+        """Create a Run stream"""
+        return async_runs_stream(
+            self,
+            assistant_id=assistant_id,
+            include=include,
+            additional_instructions=additional_instructions,
+            additional_messages=additional_messages,
+            instructions=instructions,
+            max_completion_tokens=max_completion_tokens,
+            max_prompt_tokens=max_prompt_tokens,
+            metadata=metadata,
+            model=model,
+            parallel_tool_calls=parallel_tool_calls,
+            reasoning_effort=reasoning_effort,
+            response_format=response_format,
+            temperature=temperature,
+            tool_choice=tool_choice,
+            tools=tools,
+            top_p=top_p,
+            truncation_strategy=truncation_strategy,
+            thread_id=thread_id,
+            event_handler=event_handler,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
+
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    async def submit_tool_outputs_and_poll(
+        self,
+        *,
+        tool_outputs: Iterable[run_submit_tool_outputs_params.ToolOutput],
+        run_id: str,
+        thread_id: str,
+        poll_interval_ms: int | Omit = omit,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Run:
+        """A helper to submit a tool output to a run and poll for a terminal run state.
+        More information on Run lifecycles can be found here:
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
+        return await async_runs_submit_tool_outputs_and_poll(
+            self,
+            tool_outputs=tool_outputs,
+            run_id=run_id,
+            thread_id=thread_id,
+            poll_interval_ms=poll_interval_ms,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
+
+    @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def submit_tool_outputs_stream(
+        self,
+        *,
+        tool_outputs: Iterable[run_submit_tool_outputs_params.ToolOutput],
+        run_id: str,
+        thread_id: str,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AsyncAssistantStreamManager[AsyncAssistantEventHandler]:
+        """Submit the tool outputs from a previous run and stream the run to a terminal
+        state. More information on Run lifecycles can be found here:
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
+
+    @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def submit_tool_outputs_stream(
+        self,
+        *,
+        tool_outputs: Iterable[run_submit_tool_outputs_params.ToolOutput],
+        run_id: str,
+        thread_id: str,
+        event_handler: AsyncAssistantEventHandlerT,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AsyncAssistantStreamManager[AsyncAssistantEventHandlerT]:
+        """Submit the tool outputs from a previous run and stream the run to a terminal
+        state. More information on Run lifecycles can be found here:
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
+
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def submit_tool_outputs_stream(
+        self,
+        *,
+        tool_outputs: Iterable[run_submit_tool_outputs_params.ToolOutput],
+        run_id: str,
+        thread_id: str,
+        event_handler: AsyncAssistantEventHandlerT | None = None,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> (
+        AsyncAssistantStreamManager[AsyncAssistantEventHandler]
+        | AsyncAssistantStreamManager[AsyncAssistantEventHandlerT]
+    ):
+        """Submit the tool outputs from a previous run and stream the run to a terminal
+        state. More information on Run lifecycles can be found here:
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
+        return async_runs_submit_tool_outputs_stream(
+            self,
+            tool_outputs=tool_outputs,
+            run_id=run_id,
+            thread_id=thread_id,
+            event_handler=event_handler,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
 
     @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     @overload
