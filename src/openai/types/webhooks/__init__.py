@@ -23,9 +23,7 @@ from .response_failed_webhook_event import ResponseFailedWebhookEvent as Respons
 from .eval_run_canceled_webhook_event import EvalRunCanceledWebhookEvent as EvalRunCanceledWebhookEvent
 from .agent_session_idle_webhook_event import AgentSessionIdleWebhookEvent as AgentSessionIdleWebhookEvent
 from .eval_run_succeeded_webhook_event import EvalRunSucceededWebhookEvent as EvalRunSucceededWebhookEvent
-from .live_call_incoming_webhook_event import (
-    LiveCallIncomingWebhookEvent as LiveCallIncomingWebhookEvent,  # pyright: ignore[reportDeprecated]
-)
+from .live_call_incoming_webhook_event import LiveCallIncomingWebhookEvent as LiveCallIncomingWebhookEvent
 from .response_cancelled_webhook_event import ResponseCancelledWebhookEvent as ResponseCancelledWebhookEvent
 from .response_completed_webhook_event import ResponseCompletedWebhookEvent as ResponseCompletedWebhookEvent
 from .response_incomplete_webhook_event import ResponseIncompleteWebhookEvent as ResponseIncompleteWebhookEvent

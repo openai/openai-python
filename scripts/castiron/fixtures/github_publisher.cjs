@@ -47,6 +47,22 @@ const github = {
       }),
     },
     repos: {
+      getContent: async ({ path, ref }) => {
+        if (
+          !['scripts/castiron/custom_code_policy.py', 'scripts/castiron/custom_code_report.py'].includes(path)
+        )
+          throw new Error('Unexpected trusted policy path');
+        const content = Buffer.from(JSON.stringify({ ref, path }));
+        return {
+          data: {
+            type: 'file',
+            encoding: 'base64',
+            size: content.length,
+            content: content.toString('base64'),
+            ...(data.policy_file_override || {}),
+          },
+        };
+      },
       getCommit: async () => ({ data: data.merge_commit }),
       compareCommitsWithBasehead: async ({ basehead }) => ({
         data: data.comparisons?.[basehead] || {
@@ -119,7 +135,7 @@ const exec = {
     if (
       command !== 'python3' ||
       args[0] !== '-I' ||
-      args[1] !== 'scripts/castiron/custom_code_policy.py' ||
+      require('node:path').basename(args[1]) !== 'custom_code_policy.py' ||
       args[2] !== 'review-required' ||
       args[3] !== '--repository' ||
       args[4] !== 'openai/example' ||
@@ -131,8 +147,19 @@ const exec = {
     ) {
       throw new Error('Unexpected trusted policy invocation');
     }
-    if (data.policy_error_sequence?.shift() || data.policy_error) throw new Error('Trusted policy evaluation failed');
-    return { stdout: JSON.stringify({ requires_human: data.requires_human ?? true }) };
+    for (const name of ['custom_code_policy.py', 'custom_code_report.py']) {
+      const file = require('node:path').join(require('node:path').dirname(args[1]), name);
+      const source = JSON.parse(fs.readFileSync(file, 'utf8'));
+      if (source.ref !== args[12] || source.path !== `scripts/castiron/${name}`)
+        throw new Error('Executed stale or mismatched trusted policy');
+    }
+    if (data.policy_error_sequence?.shift() || data.policy_error)
+      throw new Error('Trusted policy evaluation failed');
+    return {
+      stdout: JSON.stringify({
+        requires_human: data.requires_human_by_main?.[args[12]] ?? data.requires_human ?? true,
+      }),
+    };
   },
 };
 const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;

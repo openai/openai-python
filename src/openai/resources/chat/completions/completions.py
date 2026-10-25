@@ -160,7 +160,7 @@ class Completions(SyncAPIResource):
 
         client = OpenAI()
         completion = client.chat.completions.parse(
-            model=\"gpt-4o-2024-08-06\",
+            model=\"{{models.chat.default}}\",
             messages=[
                 {\"role\": \"system\", \"content\": \"You are a helpful math tutor.\"},
                 {\"role\": \"user\", \"content\": \"solve 8x + 31 = 2\"},
@@ -172,9 +172,117 @@ class Completions(SyncAPIResource):
         if message.parsed:
             print(message.parsed.steps)
             print(\"answer: \", message.parsed.final_answer)
-        ```
-        """
+        ```"""
         return parse(
+            self,
+            messages=messages,
+            model=model,
+            audio=audio,
+            response_format=response_format,
+            frequency_penalty=frequency_penalty,
+            function_call=function_call,
+            functions=functions,
+            logit_bias=logit_bias,
+            logprobs=logprobs,
+            max_completion_tokens=max_completion_tokens,
+            max_tokens=max_tokens,
+            metadata=metadata,
+            modalities=modalities,
+            moderation=moderation,
+            n=n,
+            parallel_tool_calls=parallel_tool_calls,
+            prediction=prediction,
+            presence_penalty=presence_penalty,
+            prompt_cache_key=prompt_cache_key,
+            prompt_cache_options=prompt_cache_options,
+            prompt_cache_retention=prompt_cache_retention,
+            reasoning_effort=reasoning_effort,
+            safety_identifier=safety_identifier,
+            seed=seed,
+            service_tier=service_tier,
+            stop=stop,
+            store=store,
+            stream_options=stream_options,
+            temperature=temperature,
+            tool_choice=tool_choice,
+            tools=tools,
+            top_logprobs=top_logprobs,
+            top_p=top_p,
+            user=user,
+            verbosity=verbosity,
+            web_search_options=web_search_options,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
+
+    def stream(
+        self,
+        *,
+        messages: Iterable[ChatCompletionMessageParam],
+        model: Union[str, ChatModel],
+        audio: Optional[ChatCompletionAudioParam] | Omit = omit,
+        response_format: completion_create_params.ResponseFormat | type[ResponseFormatT] | Omit = omit,
+        frequency_penalty: Optional[float] | Omit = omit,
+        function_call: completion_create_params.FunctionCall | Omit = omit,
+        functions: Iterable[completion_create_params.Function] | Omit = omit,
+        logit_bias: Optional[Dict[str, int]] | Omit = omit,
+        logprobs: Optional[bool] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        modalities: Optional[List[Literal["text", "audio"]]] | Omit = omit,
+        moderation: Optional[completion_create_params.Moderation] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
+        presence_penalty: Optional[float] | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
+        prompt_cache_options: completion_create_params.PromptCacheOptions | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
+        reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        seed: Optional[int] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        stop: Union[str, SequenceNotStr[str], None] | Omit = omit,
+        store: Optional[bool] | Omit = omit,
+        stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        tool_choice: ChatCompletionToolChoiceOptionParam | Omit = omit,
+        tools: Iterable[ChatCompletionToolUnionParam] | Omit = omit,
+        top_logprobs: Optional[int] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        user: str | Omit = omit,
+        verbosity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        web_search_options: completion_create_params.WebSearchOptions | Omit = omit,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> ChatCompletionStreamManager[ResponseFormatT]:
+        """Wrapper over the `client.chat.completions.create(stream=True)` method that provides a more granular event API
+        and automatic accumulation of each delta.
+
+        This also supports all of the parsing utilities that `.parse()` does.
+
+        Unlike `.create(stream=True)`, the `.stream()` method requires usage within a context manager to prevent accidental leakage of the response:
+
+        ```py
+        with client.chat.completions.stream(
+            model=\"{{models.chat.default}}\",
+            messages=[...],
+        ) as stream:
+            for event in stream:
+                if event.type == \"content.delta\":
+                    print(event.delta, flush=True, end=\"\")
+        ```
+
+        When the context manager is entered, a `ChatCompletionStream` instance is returned which, like `.create(stream=True)` is an iterator. The full list of events that are yielded by the iterator are outlined in [these docs](https://github.com/openai/openai-python/blob/main/helpers.md#chat-completions-events).
+
+        When the context manager exits, the response will be closed, however the `stream` instance is still available outside
+        the context manager."""
+        return stream(
             self,
             messages=messages,
             model=model,
@@ -1535,116 +1643,6 @@ class Completions(SyncAPIResource):
             cast_to=ChatCompletionDeleted,
         )
 
-    def stream(
-        self,
-        *,
-        messages: Iterable[ChatCompletionMessageParam],
-        model: Union[str, ChatModel],
-        audio: Optional[ChatCompletionAudioParam] | Omit = omit,
-        response_format: completion_create_params.ResponseFormat | type[ResponseFormatT] | Omit = omit,
-        frequency_penalty: Optional[float] | Omit = omit,
-        function_call: completion_create_params.FunctionCall | Omit = omit,
-        functions: Iterable[completion_create_params.Function] | Omit = omit,
-        logit_bias: Optional[Dict[str, int]] | Omit = omit,
-        logprobs: Optional[bool] | Omit = omit,
-        max_completion_tokens: Optional[int] | Omit = omit,
-        max_tokens: Optional[int] | Omit = omit,
-        metadata: Optional[Metadata] | Omit = omit,
-        modalities: Optional[List[Literal["text", "audio"]]] | Omit = omit,
-        moderation: Optional[completion_create_params.Moderation] | Omit = omit,
-        n: Optional[int] | Omit = omit,
-        parallel_tool_calls: bool | Omit = omit,
-        prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
-        presence_penalty: Optional[float] | Omit = omit,
-        prompt_cache_key: Optional[str] | Omit = omit,
-        prompt_cache_options: completion_create_params.PromptCacheOptions | Omit = omit,
-        prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
-        reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
-        safety_identifier: Optional[str] | Omit = omit,
-        seed: Optional[int] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
-        stop: Union[str, SequenceNotStr[str], None] | Omit = omit,
-        store: Optional[bool] | Omit = omit,
-        stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
-        temperature: Optional[float] | Omit = omit,
-        tool_choice: ChatCompletionToolChoiceOptionParam | Omit = omit,
-        tools: Iterable[ChatCompletionToolUnionParam] | Omit = omit,
-        top_logprobs: Optional[int] | Omit = omit,
-        top_p: Optional[float] | Omit = omit,
-        user: str | Omit = omit,
-        verbosity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
-        web_search_options: completion_create_params.WebSearchOptions | Omit = omit,
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> ChatCompletionStreamManager[ResponseFormatT]:
-        """Wrapper over the `client.chat.completions.create(stream=True)` method that provides a more granular event API
-        and automatic accumulation of each delta.
-
-        This also supports all of the parsing utilities that `.parse()` does.
-
-        Unlike `.create(stream=True)`, the `.stream()` method requires usage within a context manager to prevent accidental leakage of the response:
-
-        ```py
-        with client.chat.completions.stream(
-            model=\"gpt-4o-2024-08-06\",
-            messages=[...],
-        ) as stream:
-            for event in stream:
-                if event.type == \"content.delta\":
-                    print(event.delta, flush=True, end=\"\")
-        ```
-
-        When the context manager is entered, a `ChatCompletionStream` instance is returned which, like `.create(stream=True)` is an iterator. The full list of events that are yielded by the iterator are outlined in [these docs](https://github.com/openai/openai-python/blob/main/helpers.md#chat-completions-events).
-
-        When the context manager exits, the response will be closed, however the `stream` instance is still available outside
-        the context manager.
-        """
-        return stream(
-            self,
-            messages=messages,
-            model=model,
-            audio=audio,
-            response_format=response_format,
-            frequency_penalty=frequency_penalty,
-            function_call=function_call,
-            functions=functions,
-            logit_bias=logit_bias,
-            logprobs=logprobs,
-            max_completion_tokens=max_completion_tokens,
-            max_tokens=max_tokens,
-            metadata=metadata,
-            modalities=modalities,
-            moderation=moderation,
-            n=n,
-            parallel_tool_calls=parallel_tool_calls,
-            prediction=prediction,
-            presence_penalty=presence_penalty,
-            prompt_cache_key=prompt_cache_key,
-            prompt_cache_options=prompt_cache_options,
-            prompt_cache_retention=prompt_cache_retention,
-            reasoning_effort=reasoning_effort,
-            safety_identifier=safety_identifier,
-            seed=seed,
-            service_tier=service_tier,
-            stop=stop,
-            store=store,
-            stream_options=stream_options,
-            temperature=temperature,
-            tool_choice=tool_choice,
-            tools=tools,
-            top_logprobs=top_logprobs,
-            top_p=top_p,
-            user=user,
-            verbosity=verbosity,
-            web_search_options=web_search_options,
-            extra_headers=extra_headers,
-            extra_query=extra_query,
-            extra_body=extra_body,
-            timeout=timeout,
-        )
-
 
 class AsyncCompletions(AsyncAPIResource):
     """
@@ -1734,7 +1732,7 @@ class AsyncCompletions(AsyncAPIResource):
         Example usage:
         ```py
         from pydantic import BaseModel
-        from openai import AsyncOpenAI
+        from openai import OpenAI
 
 
         class Step(BaseModel):
@@ -1747,9 +1745,9 @@ class AsyncCompletions(AsyncAPIResource):
             final_answer: str
 
 
-        client = AsyncOpenAI()
-        completion = await client.chat.completions.parse(
-            model=\"gpt-4o-2024-08-06\",
+        client = OpenAI()
+        completion = client.chat.completions.parse(
+            model=\"{{models.chat.default}}\",
             messages=[
                 {\"role\": \"system\", \"content\": \"You are a helpful math tutor.\"},
                 {\"role\": \"user\", \"content\": \"solve 8x + 31 = 2\"},
@@ -1761,9 +1759,117 @@ class AsyncCompletions(AsyncAPIResource):
         if message.parsed:
             print(message.parsed.steps)
             print(\"answer: \", message.parsed.final_answer)
-        ```
-        """
+        ```"""
         return await async_parse(
+            self,
+            messages=messages,
+            model=model,
+            audio=audio,
+            response_format=response_format,
+            frequency_penalty=frequency_penalty,
+            function_call=function_call,
+            functions=functions,
+            logit_bias=logit_bias,
+            logprobs=logprobs,
+            max_completion_tokens=max_completion_tokens,
+            max_tokens=max_tokens,
+            metadata=metadata,
+            modalities=modalities,
+            moderation=moderation,
+            n=n,
+            parallel_tool_calls=parallel_tool_calls,
+            prediction=prediction,
+            presence_penalty=presence_penalty,
+            prompt_cache_key=prompt_cache_key,
+            prompt_cache_options=prompt_cache_options,
+            prompt_cache_retention=prompt_cache_retention,
+            reasoning_effort=reasoning_effort,
+            safety_identifier=safety_identifier,
+            seed=seed,
+            service_tier=service_tier,
+            stop=stop,
+            store=store,
+            stream_options=stream_options,
+            temperature=temperature,
+            tool_choice=tool_choice,
+            tools=tools,
+            top_logprobs=top_logprobs,
+            top_p=top_p,
+            user=user,
+            verbosity=verbosity,
+            web_search_options=web_search_options,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
+
+    def stream(
+        self,
+        *,
+        messages: Iterable[ChatCompletionMessageParam],
+        model: Union[str, ChatModel],
+        audio: Optional[ChatCompletionAudioParam] | Omit = omit,
+        response_format: completion_create_params.ResponseFormat | type[ResponseFormatT] | Omit = omit,
+        frequency_penalty: Optional[float] | Omit = omit,
+        function_call: completion_create_params.FunctionCall | Omit = omit,
+        functions: Iterable[completion_create_params.Function] | Omit = omit,
+        logit_bias: Optional[Dict[str, int]] | Omit = omit,
+        logprobs: Optional[bool] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        modalities: Optional[List[Literal["text", "audio"]]] | Omit = omit,
+        moderation: Optional[completion_create_params.Moderation] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
+        presence_penalty: Optional[float] | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
+        prompt_cache_options: completion_create_params.PromptCacheOptions | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
+        reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        seed: Optional[int] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        stop: Union[str, SequenceNotStr[str], None] | Omit = omit,
+        store: Optional[bool] | Omit = omit,
+        stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        tool_choice: ChatCompletionToolChoiceOptionParam | Omit = omit,
+        tools: Iterable[ChatCompletionToolUnionParam] | Omit = omit,
+        top_logprobs: Optional[int] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        user: str | Omit = omit,
+        verbosity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        web_search_options: completion_create_params.WebSearchOptions | Omit = omit,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AsyncChatCompletionStreamManager[ResponseFormatT]:
+        """Wrapper over the `client.chat.completions.create(stream=True)` method that provides a more granular event API
+        and automatic accumulation of each delta.
+
+        This also supports all of the parsing utilities that `.parse()` does.
+
+        Unlike `.create(stream=True)`, the `.stream()` method requires usage within a context manager to prevent accidental leakage of the response:
+
+        ```py
+        with client.chat.completions.stream(
+            model=\"{{models.chat.default}}\",
+            messages=[...],
+        ) as stream:
+            for event in stream:
+                if event.type == \"content.delta\":
+                    print(event.delta, flush=True, end=\"\")
+        ```
+
+        When the context manager is entered, a `ChatCompletionStream` instance is returned which, like `.create(stream=True)` is an iterator. The full list of events that are yielded by the iterator are outlined in [these docs](https://github.com/openai/openai-python/blob/main/helpers.md#chat-completions-events).
+
+        When the context manager exits, the response will be closed, however the `stream` instance is still available outside
+        the context manager."""
+        return async_stream(
             self,
             messages=messages,
             model=model,
@@ -3124,124 +3230,10 @@ class AsyncCompletions(AsyncAPIResource):
             cast_to=ChatCompletionDeleted,
         )
 
-    def stream(
-        self,
-        *,
-        messages: Iterable[ChatCompletionMessageParam],
-        model: Union[str, ChatModel],
-        audio: Optional[ChatCompletionAudioParam] | Omit = omit,
-        response_format: completion_create_params.ResponseFormat | type[ResponseFormatT] | Omit = omit,
-        frequency_penalty: Optional[float] | Omit = omit,
-        function_call: completion_create_params.FunctionCall | Omit = omit,
-        functions: Iterable[completion_create_params.Function] | Omit = omit,
-        logit_bias: Optional[Dict[str, int]] | Omit = omit,
-        logprobs: Optional[bool] | Omit = omit,
-        max_completion_tokens: Optional[int] | Omit = omit,
-        max_tokens: Optional[int] | Omit = omit,
-        metadata: Optional[Metadata] | Omit = omit,
-        modalities: Optional[List[Literal["text", "audio"]]] | Omit = omit,
-        moderation: Optional[completion_create_params.Moderation] | Omit = omit,
-        n: Optional[int] | Omit = omit,
-        parallel_tool_calls: bool | Omit = omit,
-        prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
-        presence_penalty: Optional[float] | Omit = omit,
-        prompt_cache_key: Optional[str] | Omit = omit,
-        prompt_cache_options: completion_create_params.PromptCacheOptions | Omit = omit,
-        prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
-        reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
-        safety_identifier: Optional[str] | Omit = omit,
-        seed: Optional[int] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
-        stop: Union[str, SequenceNotStr[str], None] | Omit = omit,
-        store: Optional[bool] | Omit = omit,
-        stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
-        temperature: Optional[float] | Omit = omit,
-        tool_choice: ChatCompletionToolChoiceOptionParam | Omit = omit,
-        tools: Iterable[ChatCompletionToolUnionParam] | Omit = omit,
-        top_logprobs: Optional[int] | Omit = omit,
-        top_p: Optional[float] | Omit = omit,
-        user: str | Omit = omit,
-        verbosity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
-        web_search_options: completion_create_params.WebSearchOptions | Omit = omit,
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> AsyncChatCompletionStreamManager[ResponseFormatT]:
-        """Wrapper over the `client.chat.completions.create(stream=True)` method that provides a more granular event API
-        and automatic accumulation of each delta.
-
-        This also supports all of the parsing utilities that `.parse()` does.
-
-        Unlike `.create(stream=True)`, the `.stream()` method requires usage within a context manager to prevent accidental leakage of the response:
-
-        ```py
-        async with client.chat.completions.stream(
-            model=\"gpt-4o-2024-08-06\",
-            messages=[...],
-        ) as stream:
-            async for event in stream:
-                if event.type == \"content.delta\":
-                    print(event.delta, flush=True, end=\"\")
-        ```
-
-        When the context manager is entered, an `AsyncChatCompletionStream` instance is returned which, like `.create(stream=True)` is an async iterator. The full list of events that are yielded by the iterator are outlined in [these docs](https://github.com/openai/openai-python/blob/main/helpers.md#chat-completions-events).
-
-        When the context manager exits, the response will be closed, however the `stream` instance is still available outside
-        the context manager.
-        """
-        return async_stream(
-            self,
-            messages=messages,
-            model=model,
-            audio=audio,
-            response_format=response_format,
-            frequency_penalty=frequency_penalty,
-            function_call=function_call,
-            functions=functions,
-            logit_bias=logit_bias,
-            logprobs=logprobs,
-            max_completion_tokens=max_completion_tokens,
-            max_tokens=max_tokens,
-            metadata=metadata,
-            modalities=modalities,
-            moderation=moderation,
-            n=n,
-            parallel_tool_calls=parallel_tool_calls,
-            prediction=prediction,
-            presence_penalty=presence_penalty,
-            prompt_cache_key=prompt_cache_key,
-            prompt_cache_options=prompt_cache_options,
-            prompt_cache_retention=prompt_cache_retention,
-            reasoning_effort=reasoning_effort,
-            safety_identifier=safety_identifier,
-            seed=seed,
-            service_tier=service_tier,
-            stop=stop,
-            store=store,
-            stream_options=stream_options,
-            temperature=temperature,
-            tool_choice=tool_choice,
-            tools=tools,
-            top_logprobs=top_logprobs,
-            top_p=top_p,
-            user=user,
-            verbosity=verbosity,
-            web_search_options=web_search_options,
-            extra_headers=extra_headers,
-            extra_query=extra_query,
-            extra_body=extra_body,
-            timeout=timeout,
-        )
-
 
 class CompletionsWithRawResponse:
     def __init__(self, completions: Completions) -> None:
         self._completions = completions
-
-        self.parse = _legacy_response.to_raw_response_wrapper(
-            completions.parse,
-        )
 
         self.create = _legacy_response.to_raw_response_wrapper(
             completions.create,
@@ -3259,6 +3251,10 @@ class CompletionsWithRawResponse:
             completions.delete,
         )
 
+        self.parse = _legacy_response.to_raw_response_wrapper(
+            completions.parse,
+        )
+
     @cached_property
     def messages(self) -> MessagesWithRawResponse:
         """
@@ -3270,10 +3266,6 @@ class CompletionsWithRawResponse:
 class AsyncCompletionsWithRawResponse:
     def __init__(self, completions: AsyncCompletions) -> None:
         self._completions = completions
-
-        self.parse = _legacy_response.async_to_raw_response_wrapper(
-            completions.parse,
-        )
 
         self.create = _legacy_response.async_to_raw_response_wrapper(
             completions.create,
@@ -3291,6 +3283,10 @@ class AsyncCompletionsWithRawResponse:
             completions.delete,
         )
 
+        self.parse = _legacy_response.async_to_raw_response_wrapper(
+            completions.parse,
+        )
+
     @cached_property
     def messages(self) -> AsyncMessagesWithRawResponse:
         """
@@ -3302,10 +3298,6 @@ class AsyncCompletionsWithRawResponse:
 class CompletionsWithStreamingResponse:
     def __init__(self, completions: Completions) -> None:
         self._completions = completions
-
-        self.parse = to_streamed_response_wrapper(
-            completions.parse,
-        )
 
         self.create = to_streamed_response_wrapper(
             completions.create,
@@ -3323,6 +3315,10 @@ class CompletionsWithStreamingResponse:
             completions.delete,
         )
 
+        self.parse = to_streamed_response_wrapper(
+            completions.parse,
+        )
+
     @cached_property
     def messages(self) -> MessagesWithStreamingResponse:
         """
@@ -3334,10 +3330,6 @@ class CompletionsWithStreamingResponse:
 class AsyncCompletionsWithStreamingResponse:
     def __init__(self, completions: AsyncCompletions) -> None:
         self._completions = completions
-
-        self.parse = async_to_streamed_response_wrapper(
-            completions.parse,
-        )
 
         self.create = async_to_streamed_response_wrapper(
             completions.create,
@@ -3353,6 +3345,10 @@ class AsyncCompletionsWithStreamingResponse:
         )
         self.delete = async_to_streamed_response_wrapper(
             completions.delete,
+        )
+
+        self.parse = async_to_streamed_response_wrapper(
+            completions.parse,
         )
 
     @cached_property

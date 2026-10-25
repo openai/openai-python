@@ -95,6 +95,30 @@ class ReviewRevocationTests(unittest.TestCase):
         self.assertEqual({item["sha"] for item in result[:4]}, {"a" * 40, "c" * 40})
         self.assertEqual([item["run_id"] for item in result[4:]], [12, 14])
 
+    def test_refreshes_executable_policy_when_main_changes_review_requirement(self) -> None:
+        payload = self.payload()
+        payload["main_sha_sequence"] = ["d" * 40, "e" * 40]
+        payload["main_sha"] = "e" * 40
+        payload["requires_human_by_main"] = {"d" * 40: False, "e" * 40: True}
+        result = self.invoke(payload)
+        self.assertEqual([item.get("state") for item in result[:4]], ["pending"] * 4)
+        self.assertEqual({item["sha"] for item in result[:4]}, {"a" * 40, "c" * 40})
+        self.assertEqual([item["run_id"] for item in result[4:]], [12, 14])
+
+    def test_rejects_invalid_trusted_policy_downloads(self) -> None:
+        for override in [
+            {"type": "symlink"},
+            {"encoding": "none"},
+            {"size": 1048577},
+            {"size": 0},
+            {"content": ""},
+        ]:
+            with self.subTest(override=override):
+                payload = self.payload()
+                payload["policy_file_override"] = override
+                with self.assertRaises(subprocess.CalledProcessError):
+                    self.invoke(payload)
+
     def approval(self) -> dict[str, Any]:
         return {
             "fullDatabaseId": "101",
@@ -582,10 +606,9 @@ class ReviewRevocationTests(unittest.TestCase):
         self.assertNotIn("checkout@", signal)
         handler = WORKFLOW.read_text()
         revoke = handler.split("  review-change:\n", 1)[1].split("  compute:\n", 1)[0]
-        self.assertIn("ref: ${{ github.workflow_sha }}", revoke)
-        self.assertIn("persist-credentials: false", revoke)
+        self.assertNotIn("checkout@", revoke)
         self.assertNotIn("ref: ${{ github.event", revoke)
-        self.assertIn("custom_code_policy.py', 'review-required'", revoke)
+        self.assertIn("path.join(root, 'custom_code_policy.py'), 'review-required'", revoke)
         self.assertNotIn("download-artifact", revoke)
         self.assertEqual(
             handler.count("group: castiron-budget-writes-${{ github.repository_id }}"), 2

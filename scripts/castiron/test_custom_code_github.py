@@ -901,13 +901,19 @@ class GitHubBudgetTests(unittest.TestCase):
         pages = [
             {
                 "nodes": [
-                    {"pullRequest": {"headRefOid": "a" * 40}, "headCommit": {"oid": "c" * 40}}
+                    {
+                        "pullRequest": {"number": 1, "headRefOid": "a" * 40},
+                        "headCommit": {"oid": "c" * 40},
+                    }
                 ],
                 "pageInfo": {"hasNextPage": True, "endCursor": "cursor"},
             },
             {
                 "nodes": [
-                    {"pullRequest": {"headRefOid": "b" * 40}, "headCommit": {"oid": "d" * 40}}
+                    {
+                        "pullRequest": {"number": 2, "headRefOid": "b" * 40},
+                        "headCommit": {"oid": "d" * 40},
+                    }
                 ],
                 "pageInfo": {"hasNextPage": False, "endCursor": None},
             },

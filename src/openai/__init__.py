@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os as _os
 import typing as _t
-import typing_extensions as _te
 from typing_extensions import override
 
 from . import types
@@ -208,7 +207,7 @@ default_query: _t.Mapping[str, object] | None = None
 http_client: _httpx.Client | None = None
 
 
-_ApiType = _te.Literal["openai", "azure", "amazon-bedrock"]
+_ApiType = _t.Literal["openai", "azure", "amazon-bedrock"]
 
 api_type: _ApiType | None = _t.cast(_ApiType, _os.environ.get("OPENAI_API_TYPE"))
 
