@@ -24,6 +24,7 @@ from .web_search_preview_tool_param import WebSearchPreviewToolParam
 from .computer_use_preview_tool_param import ComputerUsePreviewToolParam
 from .container_network_policy_disabled_param import ContainerNetworkPolicyDisabledParam
 from .container_network_policy_allowlist_param import ContainerNetworkPolicyAllowlistParam
+from ..chat.chat_completion_function_tool_param import ChatCompletionFunctionToolParam
 
 __all__ = [
     "ToolParam",
@@ -390,6 +391,9 @@ ToolParam: TypeAlias = Union[
     WebSearchPreviewToolParam,
     ApplyPatchToolParam,
 ]
+
+
+ParseableToolParam: TypeAlias = Union[ToolParam, ChatCompletionFunctionToolParam]
 
 WebSearchTool: TypeAlias = _compat_WebSearchTool
 

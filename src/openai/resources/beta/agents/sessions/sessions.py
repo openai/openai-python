@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Dict, Union, Iterable, Optional
+from typing import Dict, Union, Mapping, Iterable, Optional
 from typing_extensions import Literal, overload
 
 import httpx2
@@ -65,7 +65,10 @@ from .subagents.subagents import (
     AsyncSubagentsWithStreamingResponse,
 )
 from .....types.beta.agents import session_list_params, session_create_params, session_update_params
+from .....lib.streaming.agents import ToolHandler, AsyncToolHandler, AgentSessionStream, AsyncAgentSessionStream
+from .....lib.beta.agents._result import OutputT
 from .....types.beta.agent_session import AgentSession
+from .....lib.beta.agents._tool_error import ToolErrorHandler, AsyncToolErrorHandler
 from .....types.beta.environment_param import EnvironmentParam
 from .....types.beta.agent_session_event import AgentSessionEvent
 from .....types.beta.agent_session_deleted import AgentSessionDeleted
@@ -75,6 +78,38 @@ __all__ = ["Sessions", "AsyncSessions"]
 
 
 class Sessions(SyncAPIResource):
+    def stream(
+        self,
+        session_id: str,
+        *,
+        input: str | Iterable[AgentSessionInputMessageParam],
+        output_type: type[OutputT] | None = None,
+        tool_handlers: Mapping[str, ToolHandler] | None = None,
+        on_tool_error: ToolErrorHandler | None = None,
+        idempotency_key: str | Omit = omit,
+        extra_headers: Headers | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AgentSessionStream[OutputT]:
+        """Stream one turn of an idle session, subscribing before submitting input.
+
+        Use as a context manager. Only one caller may submit input to the session
+        while this helper runs. Optional tool handlers receive an arguments dict;
+        their results are submitted automatically. Use on_tool_error alongside
+        tool_handlers to log or monitor local argument, handler, and output failures.
+        The callback does not receive API or stream errors. Ordinary observer
+        exceptions are ignored. See AgentSessionStream for details."""
+        return AgentSessionStream(
+            self,
+            session_id,
+            input=input,
+            output_type=output_type,
+            tool_handlers=tool_handlers,
+            on_tool_error=on_tool_error,
+            idempotency_key=idempotency_key,
+            extra_headers=extra_headers,
+            timeout=timeout,
+        )
+
     @cached_property
     def subagents(self) -> Subagents:
         return Subagents(self._client)
@@ -549,6 +584,38 @@ class Sessions(SyncAPIResource):
 
 
 class AsyncSessions(AsyncAPIResource):
+    def stream(
+        self,
+        session_id: str,
+        *,
+        input: str | Iterable[AgentSessionInputMessageParam],
+        output_type: type[OutputT] | None = None,
+        tool_handlers: Mapping[str, AsyncToolHandler] | None = None,
+        on_tool_error: AsyncToolErrorHandler | None = None,
+        idempotency_key: str | Omit = omit,
+        extra_headers: Headers | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AsyncAgentSessionStream[OutputT]:
+        """Stream one turn of an idle session, subscribing before submitting input.
+
+        Use as a context manager. Only one caller may submit input to the session
+        while this helper runs. Optional tool handlers receive an arguments dict;
+        their results are submitted automatically. Use on_tool_error alongside
+        tool_handlers to log or monitor local argument, handler, and output failures.
+        The callback does not receive API or stream errors. Ordinary observer
+        exceptions are ignored. See AgentSessionStream for details."""
+        return AsyncAgentSessionStream(
+            self,
+            session_id,
+            input=input,
+            output_type=output_type,
+            tool_handlers=tool_handlers,
+            on_tool_error=on_tool_error,
+            idempotency_key=idempotency_key,
+            extra_headers=extra_headers,
+            timeout=timeout,
+        )
+
     @cached_property
     def subagents(self) -> AsyncSubagents:
         return AsyncSubagents(self._client)

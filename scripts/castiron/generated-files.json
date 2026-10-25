@@ -11,7 +11,7 @@
     },
     "api.md": {
       "mode": "100644",
-      "sha256": "4edbb78fa580f6b2e35ebd17420826f78f4e0ab98c00c74488be3bd341e75abf"
+      "sha256": "82da84d639cb84106f389b001030b0b668eb71122f39c7db598edccc2fcf7b27"
     },
     "scripts/castiron/CUSTOM_CODE.md": {
       "mode": "100644",
@@ -71,7 +71,7 @@
     },
     "src/openai/__init__.py": {
       "mode": "100644",
-      "sha256": "cdede3839e7b5cb1a1f70b83908fb739410d94ee6fc32bc1d2917653bc2c0b4e"
+      "sha256": "7cc1c0f0587ac77b0651af9ab2eeb21d6bfd516fe364d883ca11474b0c2a2552"
     },
     "src/openai/_client.py": {
       "mode": "100644",
@@ -347,7 +347,7 @@
     },
     "src/openai/resources/beta/agents/sessions/sessions.py": {
       "mode": "100644",
-      "sha256": "6b3c6da39e9b5b091f7189f10e850489f3eac854eeb8e7489a6016c61f06a765"
+      "sha256": "d90e9fea54acc7065ed9709e133f4dcad0d31af905e68db7c0d261a4dcbd1d95"
     },
     "src/openai/resources/beta/agents/sessions/subagents/__init__.py": {
       "mode": "100644",
@@ -479,7 +479,7 @@
     },
     "src/openai/resources/chat/completions/completions.py": {
       "mode": "100644",
-      "sha256": "398f77d7d2552b44400cd954ed233cee861839d68e4ab73a95574d2398a07a22"
+      "sha256": "6ccb1e8010cbc16610177e5b7efde5270fc2fff159dc1155108daf2ebc4f3cf5"
     },
     "src/openai/resources/chat/completions/messages.py": {
       "mode": "100644",
@@ -679,7 +679,7 @@
     },
     "src/openai/resources/responses/api.md": {
       "mode": "100644",
-      "sha256": "5e100d14c416564c1c1ba4e9e0d9dbd3e33fab271405473ba77038f645aeb86e"
+      "sha256": "e7815b1278aa2780bb885ac5a249fe00859dff67d3899b708d25d2968e734785"
     },
     "src/openai/resources/responses/input_items.py": {
       "mode": "100644",
@@ -691,7 +691,7 @@
     },
     "src/openai/resources/responses/responses.py": {
       "mode": "100644",
-      "sha256": "730d34b7ec479169c91f15d021b3c3f03de91c52fb4984cc4058b0bc60b9be2b"
+      "sha256": "2080a49503c0780cf6f9432831106dc12bbd8e490c1cc913d2343f66a616d34e"
     },
     "src/openai/resources/safety/__init__.py": {
       "mode": "100644",
@@ -4195,7 +4195,7 @@
     },
     "src/openai/types/decision_input_message_param.py": {
       "mode": "100644",
-      "sha256": "e9ade7d34bef710df6793c812f0855896d1cafb0b835a69de0e0ae4370f6658f"
+      "sha256": "e43afa177d646a58dc53627b8284b281fbc7bec5cd1b99f793eabaf250c319a1"
     },
     "src/openai/types/decision_input_part_union_param.py": {
       "mode": "100644",
@@ -6851,7 +6851,7 @@
     },
     "src/openai/types/responses/tool_param.py": {
       "mode": "100644",
-      "sha256": "43d4a589877155d006ec5ca55eca4d9def30592fc09954a4c92862321e21a9a8"
+      "sha256": "abfa0b97b8b47844cc51c6400c0eab3086c2eba8aa1673e0f78abcd889a24b27"
     },
     "src/openai/types/responses/tool_search_output_namespace_tool.py": {
       "mode": "100644",
