@@ -7,11 +7,11 @@ from ..._utils import PropertyInfo
 from ..._models import BaseModel
 from .decision_input_text import DecisionInputText
 from .decision_stored_user_message import (
-    ContentPart as _compat_ItemContentParts,
-    ContentPartInputText as _compat_ItemContentPartsInputText,
-    ContentPartInputImage as _compat_ItemContentPartsInputImage,
+    ContentPart as ItemContentParts,
+    ContentPartInputText as ItemContentPartsInputText,
+    ContentPartInputImage as ItemContentPartsInputImage,
     DecisionStoredUserMessage,
-    DecisionStoredUserMessage as _compat_Item,
+    DecisionStoredUserMessage as Item,
 )
 from .decision_stored_system_message import DecisionStoredSystemMessage
 from .decision_stored_assistant_message import DecisionStoredAssistantMessage
@@ -171,12 +171,3 @@ class DecisionItemCreatedEvent(BaseModel):
     The event_id of the client command associated with this server event, when
     supplied.
     """
-
-
-Item: TypeAlias = _compat_Item
-
-ItemContentParts: TypeAlias = _compat_ItemContentParts
-
-ItemContentPartsInputImage: TypeAlias = _compat_ItemContentPartsInputImage
-
-ItemContentPartsInputText: TypeAlias = _compat_ItemContentPartsInputText

@@ -55,7 +55,7 @@
     },
     "scripts/castiron/test_custom_code_policy.py": {
       "mode": "100644",
-      "sha256": "77b0a63b682d29173a7a40cbdace0106708a5338f374b236af9f8f2d41d2f323"
+      "sha256": "29b8dde7d69cad22fe6757356fa18ef189d7fc8f9349f65aad641005540faa26"
     },
     "scripts/castiron/test_custom_code_publication.py": {
       "mode": "100644",
@@ -479,7 +479,7 @@
     },
     "src/openai/resources/chat/completions/completions.py": {
       "mode": "100644",
-      "sha256": "6ccb1e8010cbc16610177e5b7efde5270fc2fff159dc1155108daf2ebc4f3cf5"
+      "sha256": "7bc12b0cff8913fd3229ddb9055fdbb187da497a5f2dd0feda637b41235489dc"
     },
     "src/openai/resources/chat/completions/messages.py": {
       "mode": "100644",
@@ -4751,15 +4751,15 @@
     },
     "src/openai/types/live/decision_item_create_event.py": {
       "mode": "100644",
-      "sha256": "caa29f898509d19c2b372acef13fefe92903547462bc87b6b5b7daa0a31bb167"
+      "sha256": "12d31779732644e4cea1c2b50e268d4efca2f0c17020455c7428d3926af57d03"
     },
     "src/openai/types/live/decision_item_create_event_param.py": {
       "mode": "100644",
-      "sha256": "8e38ec82ad5918a86ff22d9f591e0ddd807feb6d0be43a8e96c28327a3235aaf"
+      "sha256": "04a7844ff27b26f9bbcea406a550b43484908364705ac2e9457e9eef4878a37e"
     },
     "src/openai/types/live/decision_item_created_event.py": {
       "mode": "100644",
-      "sha256": "9781ba017476ac2a6cd75f1b12c8f1f731371a6c4ed54ae095d2e567736efc98"
+      "sha256": "15bbd6f351288f163109475de41ebdc7c2f076f2c4970079ea89532e81a05147"
     },
     "src/openai/types/live/decision_item_delete_event.py": {
       "mode": "100644",
@@ -4815,11 +4815,11 @@
     },
     "src/openai/types/live/decision_trigger.py": {
       "mode": "100644",
-      "sha256": "72be396562763740d2957426b642c9551eab8776158034d7915526836857e9f4"
+      "sha256": "b3b3c5b3458434d94ce0b612700ee86611e278fc00d5162a1eecfdb23a77598f"
     },
     "src/openai/types/live/decision_trigger_param.py": {
       "mode": "100644",
-      "sha256": "05fd996c34619dc64fdc8d6d74781c33a34ec260e47ece9814a101153279c7b9"
+      "sha256": "241efd8413f2aedfc0537b0451512a6d76127958746f7a03035c0b6af553bedb"
     },
     "src/openai/types/live/decision_user_message.py": {
       "mode": "100644",
@@ -4831,19 +4831,19 @@
     },
     "src/openai/types/live/decisions_delegation_config.py": {
       "mode": "100644",
-      "sha256": "41bdbad76ddff845a171b2b06c37cace0f61104a80c2f686829755f3417aab31"
+      "sha256": "d599206eb9aa1a1038bbf1c975ae3b514a8a2df640b68a7c4ad3d3427c249515"
     },
     "src/openai/types/live/decisions_delegation_config_param.py": {
       "mode": "100644",
-      "sha256": "8397ade505debf93d68a5efba017ef63f3a1994a40729ecfaf15ecc8a5f5534f"
+      "sha256": "aea4801c6d09d523695feaa9eceb10707e5ec105701662a5304d9bcf85314c86"
     },
     "src/openai/types/live/decisions_delegation_update_config.py": {
       "mode": "100644",
-      "sha256": "4b97d1f6d934b60dece11eaa5e32a6c718341e65d61b3f8729a2f1d2cce189ac"
+      "sha256": "e91699a0b15048a3c25abd694359b94f09dd67e455355266d2e565b89d00076d"
     },
     "src/openai/types/live/decisions_delegation_update_config_param.py": {
       "mode": "100644",
-      "sha256": "6c1362b4c94db78d157d5a3dc49997a3f3403d600d03767173a63cadd0e87d26"
+      "sha256": "08e86bd18b3b532c94f9f97c7843cae27278e88e1487449dfc75dee19e545888"
     },
     "src/openai/types/live/delegation_created_event.py": {
       "mode": "100644",

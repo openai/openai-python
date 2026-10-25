@@ -136,7 +136,7 @@ class ReviewedPinTests(GitTestCase):
         self.write_policy({**self.policy, "next_policy": self.pin, "max_custom_patch_lines": 5000})
         self.head = self.commit("fork increases policy budget")
         review = self.review_api([self.approved()])
-        run = {
+        run: dict[str, Any] = {
             "head_sha": self.head,
             "head_repository": {"owner": {"login": "forker"}},
             "head_branch": "policy",

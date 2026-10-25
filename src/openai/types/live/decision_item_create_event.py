@@ -7,11 +7,11 @@ from ..._utils import PropertyInfo
 from ..._models import BaseModel
 from .decision_input_text import DecisionInputText
 from .decision_user_message import (
-    ContentPart as _compat_ItemContentParts,
+    ContentPart as ItemContentParts,
     DecisionUserMessage,
-    DecisionUserMessage as _compat_Item,
-    ContentPartInputText as _compat_ItemContentPartsInputText,
-    ContentPartInputImage as _compat_ItemContentPartsInputImage,
+    DecisionUserMessage as Item,
+    ContentPartInputText as ItemContentPartsInputText,
+    ContentPartInputImage as ItemContentPartsInputImage,
 )
 from .decision_system_message import DecisionSystemMessage
 from .decision_assistant_message import DecisionAssistantMessage
@@ -174,12 +174,3 @@ class DecisionItemCreateEvent(BaseModel):
     Optional client identifier for correlating this command with a server event's
     client_event_id or error.client_event_id.
     """
-
-
-Item: TypeAlias = _compat_Item
-
-ItemContentParts: TypeAlias = _compat_ItemContentParts
-
-ItemContentPartsInputImage: TypeAlias = _compat_ItemContentPartsInputImage
-
-ItemContentPartsInputText: TypeAlias = _compat_ItemContentPartsInputText

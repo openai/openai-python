@@ -3,19 +3,17 @@
 from __future__ import annotations
 
 from typing import Iterable
-from typing_extensions import Literal, Required, TypeAlias, TypedDict
+from typing_extensions import Literal, Required, TypedDict
 
 from .decision_question_param import (
-    Score as _compat_DecisionsQuestionQuestionParamScore,
-    Choice as _compat_DecisionsQuestionQuestionParamChoice,
-    Predicate as _compat_DecisionsQuestionQuestionParamPredicate,
-    ScoreLevel as _compat_DecisionsQuestionQuestionParamScoreLevel,
+    Score as DecisionsQuestionQuestionParamScore,
+    Choice as DecisionsQuestionQuestionParamChoice,
+    Predicate as DecisionsQuestionQuestionParamPredicate,
+    ScoreLevel as DecisionsQuestionQuestionParamScoreLevel,
     DecisionQuestionParam,
-    DecisionQuestionParam as _compat_DecisionsQuestion,
+    DecisionQuestionParam as DecisionsQuestion,
 )
-from .decision_choice_option_param import (
-    DecisionChoiceOptionParam as _compat_DecisionsQuestionQuestionParamChoiceChoice,
-)
+from .decision_choice_option_param import DecisionChoiceOptionParam as DecisionsQuestionQuestionParamChoiceChoice
 
 __all__ = [
     "DecisionTriggerParam",
@@ -48,16 +46,3 @@ class DecisionTriggerParam(TypedDict, total=False):
     event_type: Required[Literal["session.input_transcript.delta", "session.output_transcript.delta"]]
 
     type: Required[Literal["decisions"]]
-
-
-DecisionsQuestion: TypeAlias = _compat_DecisionsQuestion
-
-DecisionsQuestionQuestionParamChoice: TypeAlias = _compat_DecisionsQuestionQuestionParamChoice
-
-DecisionsQuestionQuestionParamPredicate: TypeAlias = _compat_DecisionsQuestionQuestionParamPredicate
-
-DecisionsQuestionQuestionParamScore: TypeAlias = _compat_DecisionsQuestionQuestionParamScore
-
-DecisionsQuestionQuestionParamScoreLevel: TypeAlias = _compat_DecisionsQuestionQuestionParamScoreLevel
-
-DecisionsQuestionQuestionParamChoiceChoice: TypeAlias = _compat_DecisionsQuestionQuestionParamChoiceChoice

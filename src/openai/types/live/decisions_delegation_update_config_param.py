@@ -3,17 +3,17 @@
 from __future__ import annotations
 
 from typing import Iterable
-from typing_extensions import TypeAlias, TypedDict
+from typing_extensions import TypedDict
 
 from .decision_question_param import (
-    Score as _compat_QuestionQuestionParamScore,
-    Choice as _compat_QuestionQuestionParamChoice,
-    Predicate as _compat_QuestionQuestionParamPredicate,
-    ScoreLevel as _compat_QuestionQuestionParamScoreLevel,
+    Score as QuestionQuestionParamScore,
+    Choice as QuestionQuestionParamChoice,
+    Predicate as QuestionQuestionParamPredicate,
+    ScoreLevel as QuestionQuestionParamScoreLevel,
     DecisionQuestionParam,
-    DecisionQuestionParam as _compat_Question,
+    DecisionQuestionParam as Question,
 )
-from .decision_choice_option_param import DecisionChoiceOptionParam as _compat_QuestionQuestionParamChoiceChoice
+from .decision_choice_option_param import DecisionChoiceOptionParam as QuestionQuestionParamChoiceChoice
 
 __all__ = [
     "DecisionsDelegationUpdateConfigParam",
@@ -31,16 +31,3 @@ class DecisionsDelegationUpdateConfigParam(TypedDict, total=False):
 
     questions: Iterable[DecisionQuestionParam]
     """Native Decision API questions evaluated together, in order."""
-
-
-Question: TypeAlias = _compat_Question
-
-QuestionQuestionParamChoice: TypeAlias = _compat_QuestionQuestionParamChoice
-
-QuestionQuestionParamPredicate: TypeAlias = _compat_QuestionQuestionParamPredicate
-
-QuestionQuestionParamScore: TypeAlias = _compat_QuestionQuestionParamScore
-
-QuestionQuestionParamScoreLevel: TypeAlias = _compat_QuestionQuestionParamScoreLevel
-
-QuestionQuestionParamChoiceChoice: TypeAlias = _compat_QuestionQuestionParamChoiceChoice

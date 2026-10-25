@@ -160,7 +160,7 @@ class Completions(SyncAPIResource):
 
         client = OpenAI()
         completion = client.chat.completions.parse(
-            model=\"gpt-4o-2024-08-06\",
+            model=\"{{models.chat.default}}\",
             messages=[
                 {\"role\": \"system\", \"content\": \"You are a helpful math tutor.\"},
                 {\"role\": \"user\", \"content\": \"solve 8x + 31 = 2\"},
@@ -270,7 +270,7 @@ class Completions(SyncAPIResource):
 
         ```py
         with client.chat.completions.stream(
-            model=\"gpt-4o-2024-08-06\",
+            model=\"{{models.chat.default}}\",
             messages=[...],
         ) as stream:
             for event in stream:
@@ -1747,7 +1747,7 @@ class AsyncCompletions(AsyncAPIResource):
 
         client = OpenAI()
         completion = client.chat.completions.parse(
-            model=\"gpt-4o-2024-08-06\",
+            model=\"{{models.chat.default}}\",
             messages=[
                 {\"role\": \"system\", \"content\": \"You are a helpful math tutor.\"},
                 {\"role\": \"user\", \"content\": \"solve 8x + 31 = 2\"},
@@ -1857,7 +1857,7 @@ class AsyncCompletions(AsyncAPIResource):
 
         ```py
         with client.chat.completions.stream(
-            model=\"gpt-4o-2024-08-06\",
+            model=\"{{models.chat.default}}\",
             messages=[...],
         ) as stream:
             for event in stream:

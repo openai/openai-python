@@ -7,11 +7,11 @@ from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from .decision_input_text_param import DecisionInputTextParam
 from .decision_user_message_param import (
-    ContentPart as _compat_ItemContentParts,
-    ContentPartInputText as _compat_ItemContentPartsInputText,
-    ContentPartInputImage as _compat_ItemContentPartsInputImage,
+    ContentPart as ItemContentParts,
+    ContentPartInputText as ItemContentPartsInputText,
+    ContentPartInputImage as ItemContentPartsInputImage,
     DecisionUserMessageParam,
-    DecisionUserMessageParam as _compat_Item,
+    DecisionUserMessageParam as Item,
 )
 from .decision_system_message_param import DecisionSystemMessageParam
 from .decision_assistant_message_param import DecisionAssistantMessageParam
@@ -171,12 +171,3 @@ class DecisionItemCreateEventParam(TypedDict, total=False):
     Optional client identifier for correlating this command with a server event's
     client_event_id or error.client_event_id.
     """
-
-
-Item: TypeAlias = _compat_Item
-
-ItemContentParts: TypeAlias = _compat_ItemContentParts
-
-ItemContentPartsInputImage: TypeAlias = _compat_ItemContentPartsInputImage
-
-ItemContentPartsInputText: TypeAlias = _compat_ItemContentPartsInputText
