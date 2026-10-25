@@ -16,6 +16,7 @@ from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from .._base_client import make_request_options
 from ..types.embedding_model import EmbeddingModel
+from ..lib._parsing._embeddings import prepare_embedding_request
 from ..types.create_embedding_response import CreateEmbeddingResponse
 
 __all__ = ["Embeddings", "AsyncEmbeddings"]
@@ -98,24 +99,27 @@ class Embeddings(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        _runtime_context = prepare_embedding_request(
+            self,
+            {
+                "model": model,
+                "input": input,
+                "dimensions": dimensions,
+                "encoding_format": encoding_format,
+                "user": user,
+            },
+            encoding_format=encoding_format,
+        )
         return self._post(
             "/embeddings",
-            body=maybe_transform(
-                {
-                    "model": model,
-                    "input": input,
-                    "dimensions": dimensions,
-                    "encoding_format": encoding_format,
-                    "user": user,
-                },
-                embedding_create_params.EmbeddingCreateParams,
-            ),
+            body=maybe_transform(_runtime_context.body, embedding_create_params.EmbeddingCreateParams),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
                 extra_body=extra_body,
                 timeout=timeout,
                 security={"bearer_auth": True},
+                post_parser=_runtime_context.post_parser,
             ),
             cast_to=CreateEmbeddingResponse,
         )
@@ -198,24 +202,27 @@ class AsyncEmbeddings(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        _runtime_context = prepare_embedding_request(
+            self,
+            {
+                "model": model,
+                "input": input,
+                "dimensions": dimensions,
+                "encoding_format": encoding_format,
+                "user": user,
+            },
+            encoding_format=encoding_format,
+        )
         return await self._post(
             "/embeddings",
-            body=await async_maybe_transform(
-                {
-                    "model": model,
-                    "input": input,
-                    "dimensions": dimensions,
-                    "encoding_format": encoding_format,
-                    "user": user,
-                },
-                embedding_create_params.EmbeddingCreateParams,
-            ),
+            body=await async_maybe_transform(_runtime_context.body, embedding_create_params.EmbeddingCreateParams),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
                 extra_body=extra_body,
                 timeout=timeout,
                 security={"bearer_auth": True},
+                post_parser=_runtime_context.post_parser,
             ),
             cast_to=CreateEmbeddingResponse,
         )

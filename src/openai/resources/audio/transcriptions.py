@@ -8,6 +8,8 @@ from typing_extensions import Literal, overload
 
 import httpx2
 
+import openai.lib._parsing._audio
+
 from ... import _legacy_response
 from ...types import AudioResponseFormat
 from ..._files import deepcopy_with_paths
@@ -32,13 +34,22 @@ from ..._base_client import make_request_options
 from ...types.audio_model import AudioModel
 from ...lib._parsing._audio import get_transcription_response_format_type as _create_response_format_type
 from ...types.audio.transcription import Transcription
-from ...types.audio_response_format import AudioResponseFormat
 from ...types.audio.transcription_include import TranscriptionInclude
 from ...types.audio.transcription_verbose import TranscriptionVerbose
 from ...types.audio.transcription_diarized import TranscriptionDiarized
 from ...types.audio.transcription_stream_event import TranscriptionStreamEvent
 
 __all__ = ["Transcriptions", "AsyncTranscriptions"]
+
+
+log: logging.Logger = logging.getLogger("openai.audio.transcriptions")
+
+
+# Retained module entry point; callers may live outside generated resources.
+def _get_response_format_type(  # pyright: ignore[reportUnusedFunction]
+    response_format: AudioResponseFormat | Omit,
+) -> type[Transcription | TranscriptionVerbose | TranscriptionDiarized | str]:
+    return openai.lib._parsing._audio.get_transcription_response_format_type(response_format, log=log)
 
 
 class Transcriptions(SyncAPIResource):

@@ -271,11 +271,11 @@
     },
     "src/openai/resources/audio/transcriptions.py": {
       "mode": "100644",
-      "sha256": "fe8ead64db9643bfb90db794e5cfadda03120eab49210ace7086deef6f1fbb39"
+      "sha256": "b470fe61944498e74e9bc86c5a74763a49646f0e276e7c96ea339ebe0171b404"
     },
     "src/openai/resources/audio/translations.py": {
       "mode": "100644",
-      "sha256": "a2c33a084d2af8fcf46644f536cb6fc5855490b96d3dd37756d7653e2cca2ac6"
+      "sha256": "9643b5ab66d84a9c1e0115e3dcd7e384de371f6eca5c1aac7f5168ce0d7e5245"
     },
     "src/openai/resources/audio/voice_consents.py": {
       "mode": "100644",
@@ -535,7 +535,7 @@
     },
     "src/openai/resources/embeddings.py": {
       "mode": "100644",
-      "sha256": "871fd8d2332be2661c114e8fd135543000f0f3ba586faae742af16be5570bb34"
+      "sha256": "06953746a84dcb6483442f18f69580686d616fd10ad26dacbe4fa9ac8b30f0fd"
     },
     "src/openai/resources/evals/__init__.py": {
       "mode": "100644",
