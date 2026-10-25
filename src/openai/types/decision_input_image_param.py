@@ -10,6 +10,13 @@ from .decision_prompt_cache_breakpoint_param import DecisionPromptCacheBreakpoin
 __all__ = ["DecisionInputImageParam"]
 
 
+class PromptCacheBreakpoint(TypedDict, total=False):
+    """Marks the exact end of a reusable prompt prefix."""
+
+    mode: Required[Literal["explicit"]]
+    """The prompt cache mode."""
+
+
 class DecisionInputImageParam(TypedDict, total=False):
     """An image provided as a base64 data URL or a publicly accessible HTTP(S) URL.
 

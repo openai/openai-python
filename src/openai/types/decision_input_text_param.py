@@ -10,6 +10,13 @@ from .decision_prompt_cache_breakpoint_param import DecisionPromptCacheBreakpoin
 __all__ = ["DecisionInputTextParam"]
 
 
+class PromptCacheBreakpoint(TypedDict, total=False):
+    """Marks the exact end of a reusable prompt prefix."""
+
+    mode: Required[Literal["explicit"]]
+    """The prompt cache mode."""
+
+
 class DecisionInputTextParam(TypedDict, total=False):
     text: Required[str]
 
