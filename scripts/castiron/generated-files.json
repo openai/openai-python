@@ -4191,7 +4191,7 @@
     },
     "src/openai/types/decision_input_image_param.py": {
       "mode": "100644",
-      "sha256": "91815a5b1350cb9161eb9992d4376ac712dcff17dd4e3982a8a8405a1e41ec14"
+      "sha256": "2725722c94f582599f733ccc643da9fee40ac2a49192ce3c56341a957c2fd35f"
     },
     "src/openai/types/decision_input_message_param.py": {
       "mode": "100644",
@@ -4203,7 +4203,7 @@
     },
     "src/openai/types/decision_input_text_param.py": {
       "mode": "100644",
-      "sha256": "81eb2e1dcedcbd9100c1d9015a93b222fe29616688cce5bb3e3d7e4be1ef341d"
+      "sha256": "004eb61b34a71efa494f8927dc2a501e3a259042dbe64514d6f03c30b9deab29"
     },
     "src/openai/types/decision_prompt_cache_breakpoint_param.py": {
       "mode": "100644",

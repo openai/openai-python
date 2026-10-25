@@ -7,7 +7,7 @@ from typing_extensions import Literal, Required, TypedDict
 
 from .decision_prompt_cache_breakpoint_param import DecisionPromptCacheBreakpointParam
 
-__all__ = ["DecisionInputImageParam"]
+__all__ = ["DecisionInputImageParam", "PromptCacheBreakpoint"]
 
 
 class PromptCacheBreakpoint(TypedDict, total=False):
