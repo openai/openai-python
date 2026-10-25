@@ -10,7 +10,6 @@ from .decision_input_part_union_param import DecisionInputPartUnionParam
 
 __all__ = [
     "DecisionInputMessageParam",
-    "DecisionInputMessageUnionParam",
     "DecisionInputUserMessage",
     "DecisionInputDeveloperMessage",
     "DecisionInputSystemMessage",
@@ -30,10 +29,6 @@ class DecisionInputUserMessage(TypedDict, total=False):
     role: Required[Literal["user"]]
 
     type: Literal["message"]
-
-
-class DecisionInputMessageParam(DecisionInputUserMessage, total=False):
-    """A user message, retained for backwards compatibility."""
 
 
 class DecisionInputDeveloperMessage(TypedDict, total=False):
@@ -90,6 +85,6 @@ class DecisionInputAssistantMessage(TypedDict, total=False):
     type: Literal["message"]
 
 
-DecisionInputMessageUnionParam: TypeAlias = Union[
+DecisionInputMessageParam: TypeAlias = Union[
     DecisionInputUserMessage, DecisionInputDeveloperMessage, DecisionInputSystemMessage, DecisionInputAssistantMessage
 ]

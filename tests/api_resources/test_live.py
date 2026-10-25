@@ -65,8 +65,18 @@ class TestLive:
                         "decisions": {
                             "questions": [
                                 {
+                                    "choices": [
+                                        {
+                                            "value": False,
+                                            "description": "description",
+                                        },
+                                        {
+                                            "value": True,
+                                            "description": "description",
+                                        },
+                                    ],
                                     "instructions": "string",
-                                    "type": "predicate",
+                                    "type": "choice",
                                     "name": "name",
                                 }
                             ]
@@ -169,8 +179,18 @@ class TestAsyncLive:
                         "decisions": {
                             "questions": [
                                 {
+                                    "choices": [
+                                        {
+                                            "value": False,
+                                            "description": "description",
+                                        },
+                                        {
+                                            "value": True,
+                                            "description": "description",
+                                        },
+                                    ],
                                     "instructions": "string",
-                                    "type": "predicate",
+                                    "type": "choice",
                                     "name": "name",
                                 }
                             ]

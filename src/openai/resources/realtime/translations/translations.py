@@ -76,7 +76,6 @@ class Translations(SyncAPIResource):
 
     def connect(
         self,
-        model: str,
         extra_query: Query = {},
         extra_headers: Headers = {},
         websocket_connection_options: SyncWebSocketConnectionOptions = {},
@@ -89,7 +88,6 @@ class Translations(SyncAPIResource):
 
         return TranslationsConnectionManager(
             client=self._client,
-            model=model,
             extra_query=extra_query,
             extra_headers=extra_headers,
             websocket_connection_options=websocket_connection_options,
@@ -127,7 +125,6 @@ class AsyncTranslations(AsyncAPIResource):
 
     def connect(
         self,
-        model: str,
         extra_query: Query = {},
         extra_headers: Headers = {},
         websocket_connection_options: WebSocketConnectionOptions = {},
@@ -140,7 +137,6 @@ class AsyncTranslations(AsyncAPIResource):
 
         return AsyncTranslationsConnectionManager(
             client=self._client,
-            model=model,
             extra_query=extra_query,
             extra_headers=extra_headers,
             websocket_connection_options=websocket_connection_options,
@@ -412,7 +408,6 @@ class AsyncTranslationsConnectionManager:
         self,
         *,
         client: AsyncOpenAI,
-        model: str,
         extra_query: Query,
         extra_headers: Headers,
         websocket_connection_options: WebSocketConnectionOptions,
@@ -424,13 +419,9 @@ class AsyncTranslationsConnectionManager:
     ) -> None:
         self.__client = client
         self.__connection: AsyncTranslationsConnection | None = None
-        self.__model = model
         self.__extra_query = extra_query
         self.__extra_headers = extra_headers
-        self.__websocket_connection_options: WebSocketConnectionOptions = {
-            "max_size": None,
-            **websocket_connection_options,
-        }
+        self.__websocket_connection_options = websocket_connection_options
         self.__on_reconnecting = on_reconnecting
         self.__max_retries = max_retries
         self.__initial_delay = initial_delay
@@ -538,17 +529,16 @@ class AsyncTranslationsConnectionManager:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
         url = self._prepare_url()
-        from ....lib.realtime_translation import _PreparedTranslationQuery
-
+        try:
+            # Older runtimes do not declare this optional helper.
+            query_params = getattr(self.__client, "_websocket_query_params")  # noqa: B009
+        except AttributeError:
+            query_params = self.__client._websocket_query_params_fallback
         url = url.copy_with(
-            params=extra_query
-            if isinstance(extra_query, _PreparedTranslationQuery)
-            else self.__client._websocket_query_params(
+            params=query_params(
                 url,
-                httpx2.QueryParams({"model": self.__model}).merge(extra_query)
-                if isinstance(extra_query, httpx2.QueryParams)
-                else {"model": self.__model, **extra_query},
-            )
+                extra_query,
+            ),
         )
         url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
         options = await self.__client._prepare_options(
@@ -828,7 +818,6 @@ class TranslationsConnectionManager:
         self,
         *,
         client: OpenAI,
-        model: str,
         extra_query: Query,
         extra_headers: Headers,
         websocket_connection_options: SyncWebSocketConnectionOptions,
@@ -840,13 +829,9 @@ class TranslationsConnectionManager:
     ) -> None:
         self.__client = client
         self.__connection: TranslationsConnection | None = None
-        self.__model = model
         self.__extra_query = extra_query
         self.__extra_headers = extra_headers
-        self.__websocket_connection_options: WebSocketConnectionOptions = {
-            "max_size": None,
-            **websocket_connection_options,
-        }
+        self.__websocket_connection_options = websocket_connection_options
         self.__on_reconnecting = on_reconnecting
         self.__max_retries = max_retries
         self.__initial_delay = initial_delay
@@ -954,17 +939,16 @@ class TranslationsConnectionManager:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
         url = self._prepare_url()
-        from ....lib.realtime_translation import _PreparedTranslationQuery
-
+        try:
+            # Older runtimes do not declare this optional helper.
+            query_params = getattr(self.__client, "_websocket_query_params")  # noqa: B009
+        except AttributeError:
+            query_params = self.__client._websocket_query_params_fallback
         url = url.copy_with(
-            params=extra_query
-            if isinstance(extra_query, _PreparedTranslationQuery)
-            else self.__client._websocket_query_params(
+            params=query_params(
                 url,
-                httpx2.QueryParams({"model": self.__model}).merge(extra_query)
-                if isinstance(extra_query, httpx2.QueryParams)
-                else {"model": self.__model, **extra_query},
-            )
+                extra_query,
+            ),
         )
         url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
         options = self.__client._prepare_options(

@@ -68,8 +68,18 @@ class TestSessions:
                         "decisions": {
                             "questions": [
                                 {
+                                    "choices": [
+                                        {
+                                            "value": False,
+                                            "description": "description",
+                                        },
+                                        {
+                                            "value": True,
+                                            "description": "description",
+                                        },
+                                    ],
                                     "instructions": "string",
-                                    "type": "predicate",
+                                    "type": "choice",
                                     "name": "name",
                                 }
                             ]
@@ -444,8 +454,18 @@ class TestAsyncSessions:
                         "decisions": {
                             "questions": [
                                 {
+                                    "choices": [
+                                        {
+                                            "value": False,
+                                            "description": "description",
+                                        },
+                                        {
+                                            "value": True,
+                                            "description": "description",
+                                        },
+                                    ],
                                     "instructions": "string",
-                                    "type": "predicate",
+                                    "type": "choice",
                                     "name": "name",
                                 }
                             ]

@@ -189,10 +189,14 @@ def has_human_approval(reviews: list[dict[str, Any]], author: str, head: str) ->
     )
 
 
-def require_human_policy_review(repository: str, head: str) -> int:
+def require_human_policy_review(repository: str, head: str, number: int | None = None) -> int:
     """Only live, exact-head human reviews authorize a next policy activation/update."""
     root = f"repos/{repository}"
-    pulls = report.api("GET", f"{root}/commits/{head}/pulls?per_page=100")
+    pulls = (
+        [{"number": number}]
+        if number is not None
+        else report.api("GET", f"{root}/commits/{head}/pulls?per_page=100")
+    )
     current: list[dict[str, Any]] = []
     for item in pulls:
         pull = report.api("GET", f"{root}/pulls/{item['number']}")
@@ -285,6 +289,7 @@ def select_policy(
     authenticated_main: str,
     *,
     pull_heads: list[str] | None = None,
+    pull_numbers: dict[str, int] | None = None,
 ) -> dict[str, Any]:
     """The trusted selector runs before checking out any pinned executable code."""
     base, head, authenticated_main = map(report.require_sha, (base, head, authenticated_main))
@@ -342,7 +347,9 @@ def select_policy(
         ) != {POLICY.encode()}:
             raise ValueError("each next policy activation or increase must be policy-only")
         if requires_human_policy_review(repo, repository, base, candidate, authenticated_main):
-            number = require_human_policy_review(repository, candidate)
+            number = require_human_policy_review(
+                repository, candidate, pull_numbers[candidate] if pull_numbers is not None else None
+            )
             policy_reviews.append({"number": number, "head_sha": candidate})
     return {
         "schema_version": SELECTION_RECEIPT_VERSION,
@@ -398,11 +405,13 @@ def select_github_policy(
     ):
         raise ValueError("policy source run is not the canonical workflow")
     head = report.require_sha(run["head_sha"])
+    pull_numbers: dict[str, int] = {}
     if run["event"] == "pull_request":
         current = report.current_pull(repository, run)
         if current is None:
             raise ValueError("policy run must identify one current target PR")
-        _, branch = current
+        number, branch = current
+        pull_numbers[head] = number
     elif run["event"] == "merge_group":
         branch = next(
             (
@@ -444,18 +453,23 @@ def select_github_policy(
     if run["event"] == "merge_group":
         if report.git(repo, "merge-base", base, head).decode().strip() != base:
             raise ValueError("policy queue does not contain current next base")
-        entries = queued_entries(repository, branch)
-        if not any(queue == head for _, queue in entries):
+        entries = queued_pull_entries(repository, branch)
+        if not any(queue == head for _, queue, _ in entries):
             raise ValueError("policy queue entry is no longer live")
         heads = []
-        for candidate, queue in entries:
+        for candidate, queue, number in entries:
             report.git(repo, "fetch", "--quiet", "--no-tags", "origin", queue)
             if report.git(repo, "merge-base", queue, head).decode().strip() == queue:
                 report.git(repo, "fetch", "--quiet", "--no-tags", "origin", candidate)
+                if candidate in pull_numbers:
+                    raise ValueError("policy queue has multiple PRs for one head")
+                pull_numbers[candidate] = number
                 heads.append(candidate)
         if not heads:
             raise ValueError("policy queue has no verified constituent PRs")
-    return select_policy(repo, repository, branch, base, head, main, pull_heads=heads)
+    return select_policy(
+        repo, repository, branch, base, head, main, pull_heads=heads, pull_numbers=pull_numbers
+    )
 
 
 def merge_base(repo: Path, base: str, head: str) -> str:
@@ -488,18 +502,22 @@ def changed_paths(repo: Path, base: str, head: str) -> set[bytes]:
 
 
 def queued_entries(repository: str, branch: str) -> list[tuple[str, str]]:
+    return [(head, queue) for head, queue, _ in queued_pull_entries(repository, branch)]
+
+
+def queued_pull_entries(repository: str, branch: str) -> list[tuple[str, str, int]]:
     """Query the actual queue; never infer PR membership from commit messages."""
     owner, name = repository.split("/")
     query = """query($owner:String!,$name:String!,$branch:String!,$cursor:String) {
       repository(owner:$owner,name:$name) { mergeQueue(branch:$branch) {
         entries(first:100,after:$cursor) {
-          nodes { pullRequest { headRefOid } headCommit { oid } }
+          nodes { pullRequest { number headRefOid } headCommit { oid } }
           pageInfo { hasNextPage endCursor }
         }
       } }
     }"""
     cursor = None
-    heads: list[tuple[str, str]] = []
+    heads: list[tuple[str, str, int]] = []
     while True:
         response = report.api(
             "POST",
@@ -517,6 +535,7 @@ def queued_entries(repository: str, branch: str) -> list[tuple[str, str]]:
                     (
                         report.require_sha(node["pullRequest"]["headRefOid"]),
                         report.require_sha(node["headCommit"]["oid"]),
+                        int(node["pullRequest"]["number"]),
                     )
                 )
         page = entries["pageInfo"]
