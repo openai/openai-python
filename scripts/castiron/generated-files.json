@@ -455,7 +455,7 @@
     },
     "src/openai/resources/beta/threads/runs/runs.py": {
       "mode": "100644",
-      "sha256": "55f538c17584fb50ffcf5338ee93cefff56e46ca4610ca45cf33760a56272862"
+      "sha256": "254b4c052c8ca7200f7c63d581895feef54f78db0c50b105e1092dd15d391cf6"
     },
     "src/openai/resources/beta/threads/runs/steps.py": {
       "mode": "100644",
@@ -463,7 +463,7 @@
     },
     "src/openai/resources/beta/threads/threads.py": {
       "mode": "100644",
-      "sha256": "c7a27bc178ef48f7d77cf1c028ea99e8e5fcb5ebe9313427400ec169d123e154"
+      "sha256": "b2834a13b0614f0952168655cc496ff344a766c3e9a92e7ce00b2eea73077430"
     },
     "src/openai/resources/chat/__init__.py": {
       "mode": "100644",

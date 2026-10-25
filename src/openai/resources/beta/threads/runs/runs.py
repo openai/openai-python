@@ -497,8 +497,8 @@ class Runs(SyncAPIResource):
             timeout=timeout,
         )
 
-    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     def create(
         self,
         thread_id: str,
@@ -649,8 +649,8 @@ class Runs(SyncAPIResource):
         """
         ...
 
-    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     def create(
         self,
         thread_id: str,
@@ -801,8 +801,8 @@ class Runs(SyncAPIResource):
         """
         ...
 
-    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     def create(
         self,
         thread_id: str,
@@ -1229,8 +1229,8 @@ class Runs(SyncAPIResource):
             cast_to=Run,
         )
 
-    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     def submit_tool_outputs(
         self,
         run_id: str,
@@ -1268,8 +1268,8 @@ class Runs(SyncAPIResource):
         """
         ...
 
-    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     def submit_tool_outputs(
         self,
         run_id: str,
@@ -1307,8 +1307,8 @@ class Runs(SyncAPIResource):
         """
         ...
 
-    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     def submit_tool_outputs(
         self,
         run_id: str,
@@ -1348,6 +1348,7 @@ class Runs(SyncAPIResource):
 
     @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     @required_args(["thread_id", "tool_outputs"], ["thread_id", "stream", "tool_outputs"])
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     def submit_tool_outputs(
         self,
         run_id: str,
@@ -1827,8 +1828,8 @@ class AsyncRuns(AsyncAPIResource):
             timeout=timeout,
         )
 
-    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     async def create(
         self,
         thread_id: str,
@@ -1979,8 +1980,8 @@ class AsyncRuns(AsyncAPIResource):
         """
         ...
 
-    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     async def create(
         self,
         thread_id: str,
@@ -2131,8 +2132,8 @@ class AsyncRuns(AsyncAPIResource):
         """
         ...
 
-    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     async def create(
         self,
         thread_id: str,
@@ -2285,6 +2286,7 @@ class AsyncRuns(AsyncAPIResource):
 
     @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     @required_args(["assistant_id"], ["assistant_id", "stream"])
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     async def create(
         self,
         thread_id: str,
@@ -2559,8 +2561,8 @@ class AsyncRuns(AsyncAPIResource):
             cast_to=Run,
         )
 
-    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     async def submit_tool_outputs(
         self,
         run_id: str,
@@ -2598,8 +2600,8 @@ class AsyncRuns(AsyncAPIResource):
         """
         ...
 
-    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     async def submit_tool_outputs(
         self,
         run_id: str,
@@ -2637,8 +2639,8 @@ class AsyncRuns(AsyncAPIResource):
         """
         ...
 
-    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     async def submit_tool_outputs(
         self,
         run_id: str,
@@ -2678,6 +2680,7 @@ class AsyncRuns(AsyncAPIResource):
 
     @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     @required_args(["thread_id", "tool_outputs"], ["thread_id", "stream", "tool_outputs"])
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     async def submit_tool_outputs(
         self,
         run_id: str,
