@@ -11,10 +11,8 @@ from typing_extensions import Literal, AsyncIterator, overload
 import httpx2
 from pydantic import BaseModel
 
-import openai.lib._response_resources
-
 from ... import _legacy_response
-from ..._types import NOT_GIVEN, Body, Omit, Query, Headers, NoneType, NotGiven, omit, not_given
+from ..._types import Body, Omit, Query, Headers, NoneType, NotGiven, omit, not_given
 from ..._utils import is_given, path_template, maybe_transform, strip_not_given, async_maybe_transform
 from ..._compat import cached_property
 from ..._httpx2 import normalize_httpx_url
@@ -84,13 +82,6 @@ __all__ = ["Responses", "AsyncResponses"]
 log: logging.Logger = logging.getLogger(__name__)
 
 
-# Retained module entry point; callers may live outside generated resources.
-def _make_tools(  # pyright: ignore[reportUnusedFunction]
-    tools: Iterable[ParseableToolParam] | Omit,
-) -> List[ToolParam] | Omit:
-    return openai.lib._response_resources._make_tools(tools)
-
-
 class Responses(SyncAPIResource):
     """Create and manage model responses."""
 
@@ -122,6 +113,234 @@ class Responses(SyncAPIResource):
         For more information, see https://www.github.com/openai/openai-python#with_streaming_response
         """
         return ResponsesWithStreamingResponse(self)
+
+    def parse(
+        self,
+        *,
+        text_format: type[TextFormatT] | Omit = omit,
+        access_programs: response_create_params.AccessPrograms | Omit = omit,
+        background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
+        conversation: Optional[response_create_params.Conversation] | Omit = omit,
+        include: Optional[List[ResponseIncludable]] | Omit = omit,
+        input: Union[str, ResponseInputParam] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_output_tokens: Optional[int] | Omit = omit,
+        max_tool_calls: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: ResponsesModel | Omit = omit,
+        moderation: Optional[response_create_params.Moderation] | Omit = omit,
+        parallel_tool_calls: Optional[bool] | Omit = omit,
+        previous_response_id: Optional[str] | Omit = omit,
+        prompt: Optional[ResponsePromptParam] | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
+        prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
+        reasoning: Optional[Reasoning] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[ServiceTier] | Omit = omit,
+        store: Optional[bool] | Omit = omit,
+        stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
+        stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        text: ResponseTextConfigParam | Omit = omit,
+        tool_choice: response_create_params.ToolChoice | Omit = omit,
+        tools: Iterable[ParseableToolParam] | Omit = omit,
+        top_logprobs: Optional[int] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
+        user: str | Omit = omit,
+        verbosity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> ParsedResponse[TextFormatT]:
+        """parse"""
+        return parse(
+            self,
+            text_format=text_format,
+            access_programs=access_programs,
+            background=background,
+            context_management=context_management,
+            conversation=conversation,
+            include=include,
+            input=input,
+            instructions=instructions,
+            max_output_tokens=max_output_tokens,
+            max_tool_calls=max_tool_calls,
+            metadata=metadata,
+            model=model,
+            moderation=moderation,
+            parallel_tool_calls=parallel_tool_calls,
+            previous_response_id=previous_response_id,
+            prompt=prompt,
+            prompt_cache_key=prompt_cache_key,
+            prompt_cache_options=prompt_cache_options,
+            prompt_cache_retention=prompt_cache_retention,
+            reasoning=reasoning,
+            safety_identifier=safety_identifier,
+            service_tier=service_tier,
+            store=store,
+            stream=stream,
+            stream_options=stream_options,
+            temperature=temperature,
+            text=text,
+            tool_choice=tool_choice,
+            tools=tools,
+            top_logprobs=top_logprobs,
+            top_p=top_p,
+            truncation=truncation,
+            user=user,
+            verbosity=verbosity,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
+
+    @overload
+    def stream(
+        self,
+        *,
+        response_id: str,
+        text_format: type[TextFormatT] | Omit = omit,
+        starting_after: int | Omit = omit,
+        tools: Iterable[ParseableToolParam] | Omit = omit,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> ResponseStreamManager[TextFormatT]:
+        """stream"""
+
+    @overload
+    def stream(
+        self,
+        *,
+        input: Union[str, ResponseInputParam],
+        model: ResponsesModel,
+        access_programs: response_create_params.AccessPrograms | Omit = omit,
+        background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
+        text_format: type[TextFormatT] | Omit = omit,
+        tools: Iterable[ParseableToolParam] | Omit = omit,
+        conversation: Optional[response_create_params.Conversation] | Omit = omit,
+        include: Optional[List[ResponseIncludable]] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_output_tokens: Optional[int] | Omit = omit,
+        max_tool_calls: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        parallel_tool_calls: Optional[bool] | Omit = omit,
+        moderation: Optional[response_create_params.Moderation] | Omit = omit,
+        previous_response_id: Optional[str] | Omit = omit,
+        prompt: Optional[ResponsePromptParam] | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
+        prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
+        reasoning: Optional[Reasoning] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[ServiceTier] | Omit = omit,
+        store: Optional[bool] | Omit = omit,
+        stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        text: ResponseTextConfigParam | Omit = omit,
+        tool_choice: response_create_params.ToolChoice | Omit = omit,
+        top_logprobs: Optional[int] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
+        user: str | Omit = omit,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> ResponseStreamManager[TextFormatT]:
+        """stream"""
+
+    def stream(
+        self,
+        *,
+        response_id: str | Omit = omit,
+        input: Union[str, ResponseInputParam] | Omit = omit,
+        model: ResponsesModel | Omit = omit,
+        access_programs: response_create_params.AccessPrograms | Omit = omit,
+        background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
+        text_format: type[TextFormatT] | Omit = omit,
+        tools: Iterable[ParseableToolParam] | Omit = omit,
+        conversation: Optional[response_create_params.Conversation] | Omit = omit,
+        include: Optional[List[ResponseIncludable]] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_output_tokens: Optional[int] | Omit = omit,
+        max_tool_calls: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        parallel_tool_calls: Optional[bool] | Omit = omit,
+        moderation: Optional[response_create_params.Moderation] | Omit = omit,
+        previous_response_id: Optional[str] | Omit = omit,
+        prompt: Optional[ResponsePromptParam] | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
+        prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
+        reasoning: Optional[Reasoning] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[ServiceTier] | Omit = omit,
+        store: Optional[bool] | Omit = omit,
+        stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        text: ResponseTextConfigParam | Omit = omit,
+        tool_choice: response_create_params.ToolChoice | Omit = omit,
+        top_logprobs: Optional[int] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
+        user: str | Omit = omit,
+        starting_after: int | Omit = omit,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> ResponseStreamManager[TextFormatT]:
+        """stream"""
+        return stream(
+            self,
+            response_id=response_id,
+            input=input,
+            model=model,
+            access_programs=access_programs,
+            background=background,
+            context_management=context_management,
+            text_format=text_format,
+            tools=tools,
+            conversation=conversation,
+            include=include,
+            instructions=instructions,
+            max_output_tokens=max_output_tokens,
+            max_tool_calls=max_tool_calls,
+            metadata=metadata,
+            parallel_tool_calls=parallel_tool_calls,
+            moderation=moderation,
+            previous_response_id=previous_response_id,
+            prompt=prompt,
+            prompt_cache_key=prompt_cache_key,
+            prompt_cache_options=prompt_cache_options,
+            prompt_cache_retention=prompt_cache_retention,
+            reasoning=reasoning,
+            safety_identifier=safety_identifier,
+            service_tier=service_tier,
+            store=store,
+            stream_options=stream_options,
+            temperature=temperature,
+            text=text,
+            tool_choice=tool_choice,
+            top_logprobs=top_logprobs,
+            top_p=top_p,
+            truncation=truncation,
+            user=user,
+            starting_after=starting_after,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
 
     @overload
     def create(
@@ -1095,230 +1314,6 @@ class Responses(SyncAPIResource):
         )
 
     @overload
-    def stream(
-        self,
-        *,
-        response_id: str,
-        text_format: type[TextFormatT] | Omit = omit,
-        starting_after: int | Omit = omit,
-        tools: Iterable[ParseableToolParam] | Omit = omit,
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> ResponseStreamManager[TextFormatT]: ...
-
-    @overload
-    def stream(
-        self,
-        *,
-        input: Union[str, ResponseInputParam],
-        model: ResponsesModel,
-        access_programs: response_create_params.AccessPrograms | Omit = omit,
-        background: Optional[bool] | Omit = omit,
-        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
-        text_format: type[TextFormatT] | Omit = omit,
-        tools: Iterable[ParseableToolParam] | Omit = omit,
-        conversation: Optional[response_create_params.Conversation] | Omit = omit,
-        include: Optional[List[ResponseIncludable]] | Omit = omit,
-        instructions: Optional[str] | Omit = omit,
-        max_output_tokens: Optional[int] | Omit = omit,
-        max_tool_calls: Optional[int] | Omit = omit,
-        metadata: Optional[Metadata] | Omit = omit,
-        parallel_tool_calls: Optional[bool] | Omit = omit,
-        moderation: Optional[response_create_params.Moderation] | Omit = omit,
-        previous_response_id: Optional[str] | Omit = omit,
-        prompt: Optional[ResponsePromptParam] | Omit = omit,
-        prompt_cache_key: Optional[str] | Omit = omit,
-        prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
-        prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
-        reasoning: Optional[Reasoning] | Omit = omit,
-        safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[ServiceTier] | Omit = omit,
-        store: Optional[bool] | Omit = omit,
-        stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
-        temperature: Optional[float] | Omit = omit,
-        text: ResponseTextConfigParam | Omit = omit,
-        tool_choice: response_create_params.ToolChoice | Omit = omit,
-        top_logprobs: Optional[int] | Omit = omit,
-        top_p: Optional[float] | Omit = omit,
-        truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
-        user: str | Omit = omit,
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> ResponseStreamManager[TextFormatT]: ...
-
-    def stream(
-        self,
-        *,
-        response_id: str | Omit = omit,
-        input: Union[str, ResponseInputParam] | Omit = omit,
-        model: ResponsesModel | Omit = omit,
-        access_programs: response_create_params.AccessPrograms | Omit = omit,
-        background: Optional[bool] | Omit = omit,
-        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
-        text_format: type[TextFormatT] | Omit = omit,
-        tools: Iterable[ParseableToolParam] | Omit = omit,
-        conversation: Optional[response_create_params.Conversation] | Omit = omit,
-        include: Optional[List[ResponseIncludable]] | Omit = omit,
-        instructions: Optional[str] | Omit = omit,
-        max_output_tokens: Optional[int] | Omit = omit,
-        max_tool_calls: Optional[int] | Omit = omit,
-        metadata: Optional[Metadata] | Omit = omit,
-        parallel_tool_calls: Optional[bool] | Omit = omit,
-        moderation: Optional[response_create_params.Moderation] | Omit = omit,
-        previous_response_id: Optional[str] | Omit = omit,
-        prompt: Optional[ResponsePromptParam] | Omit = omit,
-        prompt_cache_key: Optional[str] | Omit = omit,
-        prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
-        prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
-        reasoning: Optional[Reasoning] | Omit = omit,
-        safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[ServiceTier] | Omit = omit,
-        store: Optional[bool] | Omit = omit,
-        stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
-        temperature: Optional[float] | Omit = omit,
-        text: ResponseTextConfigParam | Omit = omit,
-        tool_choice: response_create_params.ToolChoice | Omit = omit,
-        top_logprobs: Optional[int] | Omit = omit,
-        top_p: Optional[float] | Omit = omit,
-        truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
-        user: str | Omit = omit,
-        starting_after: int | Omit = omit,
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> ResponseStreamManager[TextFormatT]:
-        return stream(
-            self,
-            response_id=response_id,
-            input=input,
-            model=model,
-            access_programs=access_programs,
-            background=background,
-            context_management=context_management,
-            text_format=text_format,
-            tools=tools,
-            conversation=conversation,
-            include=include,
-            instructions=instructions,
-            max_output_tokens=max_output_tokens,
-            max_tool_calls=max_tool_calls,
-            metadata=metadata,
-            parallel_tool_calls=parallel_tool_calls,
-            moderation=moderation,
-            previous_response_id=previous_response_id,
-            prompt=prompt,
-            prompt_cache_key=prompt_cache_key,
-            prompt_cache_options=prompt_cache_options,
-            prompt_cache_retention=prompt_cache_retention,
-            reasoning=reasoning,
-            safety_identifier=safety_identifier,
-            service_tier=service_tier,
-            store=store,
-            stream_options=stream_options,
-            temperature=temperature,
-            text=text,
-            tool_choice=tool_choice,
-            top_logprobs=top_logprobs,
-            top_p=top_p,
-            truncation=truncation,
-            user=user,
-            starting_after=starting_after,
-            extra_headers=extra_headers,
-            extra_query=extra_query,
-            extra_body=extra_body,
-            timeout=timeout,
-        )
-
-    def parse(
-        self,
-        *,
-        text_format: type[TextFormatT] | Omit = omit,
-        access_programs: response_create_params.AccessPrograms | Omit = omit,
-        background: Optional[bool] | Omit = omit,
-        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
-        conversation: Optional[response_create_params.Conversation] | Omit = omit,
-        include: Optional[List[ResponseIncludable]] | Omit = omit,
-        input: Union[str, ResponseInputParam] | Omit = omit,
-        instructions: Optional[str] | Omit = omit,
-        max_output_tokens: Optional[int] | Omit = omit,
-        max_tool_calls: Optional[int] | Omit = omit,
-        metadata: Optional[Metadata] | Omit = omit,
-        model: ResponsesModel | Omit = omit,
-        moderation: Optional[response_create_params.Moderation] | Omit = omit,
-        parallel_tool_calls: Optional[bool] | Omit = omit,
-        previous_response_id: Optional[str] | Omit = omit,
-        prompt: Optional[ResponsePromptParam] | Omit = omit,
-        prompt_cache_key: Optional[str] | Omit = omit,
-        prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
-        prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
-        reasoning: Optional[Reasoning] | Omit = omit,
-        safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[ServiceTier] | Omit = omit,
-        store: Optional[bool] | Omit = omit,
-        stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
-        stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
-        temperature: Optional[float] | Omit = omit,
-        text: ResponseTextConfigParam | Omit = omit,
-        tool_choice: response_create_params.ToolChoice | Omit = omit,
-        tools: Iterable[ParseableToolParam] | Omit = omit,
-        top_logprobs: Optional[int] | Omit = omit,
-        top_p: Optional[float] | Omit = omit,
-        truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
-        user: str | Omit = omit,
-        verbosity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> ParsedResponse[TextFormatT]:
-        return parse(
-            self,
-            text_format=text_format,
-            access_programs=access_programs,
-            background=background,
-            context_management=context_management,
-            conversation=conversation,
-            include=include,
-            input=input,
-            instructions=instructions,
-            max_output_tokens=max_output_tokens,
-            max_tool_calls=max_tool_calls,
-            metadata=metadata,
-            model=model,
-            moderation=moderation,
-            parallel_tool_calls=parallel_tool_calls,
-            previous_response_id=previous_response_id,
-            prompt=prompt,
-            prompt_cache_key=prompt_cache_key,
-            prompt_cache_options=prompt_cache_options,
-            prompt_cache_retention=prompt_cache_retention,
-            reasoning=reasoning,
-            safety_identifier=safety_identifier,
-            service_tier=service_tier,
-            store=store,
-            stream=stream,
-            stream_options=stream_options,
-            temperature=temperature,
-            text=text,
-            tool_choice=tool_choice,
-            tools=tools,
-            top_logprobs=top_logprobs,
-            top_p=top_p,
-            truncation=truncation,
-            user=user,
-            verbosity=verbosity,
-            extra_headers=extra_headers,
-            extra_query=extra_query,
-            extra_body=extra_body,
-            timeout=timeout,
-        )
-
-    @overload
     def retrieve(
         self,
         response_id: str,
@@ -1327,53 +1322,13 @@ class Responses(SyncAPIResource):
         include_obfuscation: bool | Omit = omit,
         starting_after: int | Omit = omit,
         stream: Literal[False] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> Response: ...
-
-    @overload
-    def retrieve(
-        self,
-        response_id: str,
-        *,
-        stream: Literal[True],
-        include: List[ResponseIncludable] | Omit = omit,
-        starting_after: int | Omit = omit,
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> Stream[ResponseStreamEvent]: ...
-
-    @overload
-    def retrieve(
-        self,
-        response_id: str,
-        *,
-        stream: bool,
-        include: List[ResponseIncludable] | Omit = omit,
-        starting_after: int | Omit = omit,
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> Response | Stream[ResponseStreamEvent]: ...
-
-    @overload
-    def retrieve(
-        self,
-        response_id: str,
-        *,
-        stream: bool = False,
-        include: List[ResponseIncludable] | Omit = omit,
-        starting_after: int | Omit = omit,
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> Response | Stream[ResponseStreamEvent]:
+    ) -> Response:
         """
         Retrieves a model response with the given ID.
 
@@ -1405,6 +1360,7 @@ class Responses(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        ...
 
     @overload
     def retrieve(
@@ -1415,6 +1371,8 @@ class Responses(SyncAPIResource):
         include: List[ResponseIncludable] | Omit = omit,
         include_obfuscation: bool | Omit = omit,
         starting_after: int | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -1451,6 +1409,7 @@ class Responses(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        ...
 
     @overload
     def retrieve(
@@ -1461,6 +1420,8 @@ class Responses(SyncAPIResource):
         include: List[ResponseIncludable] | Omit = omit,
         include_obfuscation: bool | Omit = omit,
         starting_after: int | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -1497,6 +1458,7 @@ class Responses(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        ...
 
     def retrieve(
         self,
@@ -1506,6 +1468,8 @@ class Responses(SyncAPIResource):
         include_obfuscation: bool | Omit = omit,
         starting_after: int | Omit = omit,
         stream: Literal[False] | Literal[True] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -1897,6 +1861,234 @@ class AsyncResponses(AsyncAPIResource):
         For more information, see https://www.github.com/openai/openai-python#with_streaming_response
         """
         return AsyncResponsesWithStreamingResponse(self)
+
+    async def parse(
+        self,
+        *,
+        text_format: type[TextFormatT] | Omit = omit,
+        access_programs: response_create_params.AccessPrograms | Omit = omit,
+        background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
+        conversation: Optional[response_create_params.Conversation] | Omit = omit,
+        include: Optional[List[ResponseIncludable]] | Omit = omit,
+        input: Union[str, ResponseInputParam] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_output_tokens: Optional[int] | Omit = omit,
+        max_tool_calls: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: ResponsesModel | Omit = omit,
+        moderation: Optional[response_create_params.Moderation] | Omit = omit,
+        parallel_tool_calls: Optional[bool] | Omit = omit,
+        previous_response_id: Optional[str] | Omit = omit,
+        prompt: Optional[ResponsePromptParam] | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
+        prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
+        reasoning: Optional[Reasoning] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[ServiceTier] | Omit = omit,
+        store: Optional[bool] | Omit = omit,
+        stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
+        stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        text: ResponseTextConfigParam | Omit = omit,
+        tool_choice: response_create_params.ToolChoice | Omit = omit,
+        tools: Iterable[ParseableToolParam] | Omit = omit,
+        top_logprobs: Optional[int] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
+        user: str | Omit = omit,
+        verbosity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> ParsedResponse[TextFormatT]:
+        """parse"""
+        return await async_parse(
+            self,
+            text_format=text_format,
+            access_programs=access_programs,
+            background=background,
+            context_management=context_management,
+            conversation=conversation,
+            include=include,
+            input=input,
+            instructions=instructions,
+            max_output_tokens=max_output_tokens,
+            max_tool_calls=max_tool_calls,
+            metadata=metadata,
+            model=model,
+            moderation=moderation,
+            parallel_tool_calls=parallel_tool_calls,
+            previous_response_id=previous_response_id,
+            prompt=prompt,
+            prompt_cache_key=prompt_cache_key,
+            prompt_cache_options=prompt_cache_options,
+            prompt_cache_retention=prompt_cache_retention,
+            reasoning=reasoning,
+            safety_identifier=safety_identifier,
+            service_tier=service_tier,
+            store=store,
+            stream=stream,
+            stream_options=stream_options,
+            temperature=temperature,
+            text=text,
+            tool_choice=tool_choice,
+            tools=tools,
+            top_logprobs=top_logprobs,
+            top_p=top_p,
+            truncation=truncation,
+            user=user,
+            verbosity=verbosity,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
+
+    @overload
+    def stream(
+        self,
+        *,
+        response_id: str,
+        text_format: type[TextFormatT] | Omit = omit,
+        starting_after: int | Omit = omit,
+        tools: Iterable[ParseableToolParam] | Omit = omit,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AsyncResponseStreamManager[TextFormatT]:
+        """stream"""
+
+    @overload
+    def stream(
+        self,
+        *,
+        input: Union[str, ResponseInputParam],
+        model: ResponsesModel,
+        access_programs: response_create_params.AccessPrograms | Omit = omit,
+        background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
+        text_format: type[TextFormatT] | Omit = omit,
+        tools: Iterable[ParseableToolParam] | Omit = omit,
+        conversation: Optional[response_create_params.Conversation] | Omit = omit,
+        include: Optional[List[ResponseIncludable]] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_output_tokens: Optional[int] | Omit = omit,
+        max_tool_calls: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        parallel_tool_calls: Optional[bool] | Omit = omit,
+        moderation: Optional[response_create_params.Moderation] | Omit = omit,
+        previous_response_id: Optional[str] | Omit = omit,
+        prompt: Optional[ResponsePromptParam] | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
+        prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
+        reasoning: Optional[Reasoning] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[ServiceTier] | Omit = omit,
+        store: Optional[bool] | Omit = omit,
+        stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        text: ResponseTextConfigParam | Omit = omit,
+        tool_choice: response_create_params.ToolChoice | Omit = omit,
+        top_logprobs: Optional[int] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
+        user: str | Omit = omit,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AsyncResponseStreamManager[TextFormatT]:
+        """stream"""
+
+    def stream(
+        self,
+        *,
+        response_id: str | Omit = omit,
+        input: Union[str, ResponseInputParam] | Omit = omit,
+        model: ResponsesModel | Omit = omit,
+        access_programs: response_create_params.AccessPrograms | Omit = omit,
+        background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
+        text_format: type[TextFormatT] | Omit = omit,
+        tools: Iterable[ParseableToolParam] | Omit = omit,
+        conversation: Optional[response_create_params.Conversation] | Omit = omit,
+        include: Optional[List[ResponseIncludable]] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_output_tokens: Optional[int] | Omit = omit,
+        max_tool_calls: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        parallel_tool_calls: Optional[bool] | Omit = omit,
+        moderation: Optional[response_create_params.Moderation] | Omit = omit,
+        previous_response_id: Optional[str] | Omit = omit,
+        prompt: Optional[ResponsePromptParam] | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
+        prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
+        reasoning: Optional[Reasoning] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[ServiceTier] | Omit = omit,
+        store: Optional[bool] | Omit = omit,
+        stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        text: ResponseTextConfigParam | Omit = omit,
+        tool_choice: response_create_params.ToolChoice | Omit = omit,
+        top_logprobs: Optional[int] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
+        user: str | Omit = omit,
+        starting_after: int | Omit = omit,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AsyncResponseStreamManager[TextFormatT]:
+        """stream"""
+        return async_stream(
+            self,
+            response_id=response_id,
+            input=input,
+            model=model,
+            access_programs=access_programs,
+            background=background,
+            context_management=context_management,
+            text_format=text_format,
+            tools=tools,
+            conversation=conversation,
+            include=include,
+            instructions=instructions,
+            max_output_tokens=max_output_tokens,
+            max_tool_calls=max_tool_calls,
+            metadata=metadata,
+            parallel_tool_calls=parallel_tool_calls,
+            moderation=moderation,
+            previous_response_id=previous_response_id,
+            prompt=prompt,
+            prompt_cache_key=prompt_cache_key,
+            prompt_cache_options=prompt_cache_options,
+            prompt_cache_retention=prompt_cache_retention,
+            reasoning=reasoning,
+            safety_identifier=safety_identifier,
+            service_tier=service_tier,
+            store=store,
+            stream_options=stream_options,
+            temperature=temperature,
+            text=text,
+            tool_choice=tool_choice,
+            top_logprobs=top_logprobs,
+            top_p=top_p,
+            truncation=truncation,
+            user=user,
+            starting_after=starting_after,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
 
     @overload
     async def create(
@@ -2870,230 +3062,6 @@ class AsyncResponses(AsyncAPIResource):
         )
 
     @overload
-    def stream(
-        self,
-        *,
-        response_id: str,
-        text_format: type[TextFormatT] | Omit = omit,
-        starting_after: int | Omit = omit,
-        tools: Iterable[ParseableToolParam] | Omit = omit,
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> AsyncResponseStreamManager[TextFormatT]: ...
-
-    @overload
-    def stream(
-        self,
-        *,
-        input: Union[str, ResponseInputParam],
-        model: ResponsesModel,
-        access_programs: response_create_params.AccessPrograms | Omit = omit,
-        background: Optional[bool] | Omit = omit,
-        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
-        text_format: type[TextFormatT] | Omit = omit,
-        tools: Iterable[ParseableToolParam] | Omit = omit,
-        conversation: Optional[response_create_params.Conversation] | Omit = omit,
-        include: Optional[List[ResponseIncludable]] | Omit = omit,
-        instructions: Optional[str] | Omit = omit,
-        max_output_tokens: Optional[int] | Omit = omit,
-        max_tool_calls: Optional[int] | Omit = omit,
-        metadata: Optional[Metadata] | Omit = omit,
-        parallel_tool_calls: Optional[bool] | Omit = omit,
-        moderation: Optional[response_create_params.Moderation] | Omit = omit,
-        previous_response_id: Optional[str] | Omit = omit,
-        prompt: Optional[ResponsePromptParam] | Omit = omit,
-        prompt_cache_key: Optional[str] | Omit = omit,
-        prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
-        prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
-        reasoning: Optional[Reasoning] | Omit = omit,
-        safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[ServiceTier] | Omit = omit,
-        store: Optional[bool] | Omit = omit,
-        stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
-        temperature: Optional[float] | Omit = omit,
-        text: ResponseTextConfigParam | Omit = omit,
-        tool_choice: response_create_params.ToolChoice | Omit = omit,
-        top_logprobs: Optional[int] | Omit = omit,
-        top_p: Optional[float] | Omit = omit,
-        truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
-        user: str | Omit = omit,
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> AsyncResponseStreamManager[TextFormatT]: ...
-
-    def stream(
-        self,
-        *,
-        response_id: str | Omit = omit,
-        input: Union[str, ResponseInputParam] | Omit = omit,
-        model: ResponsesModel | Omit = omit,
-        access_programs: response_create_params.AccessPrograms | Omit = omit,
-        background: Optional[bool] | Omit = omit,
-        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
-        text_format: type[TextFormatT] | Omit = omit,
-        tools: Iterable[ParseableToolParam] | Omit = omit,
-        conversation: Optional[response_create_params.Conversation] | Omit = omit,
-        include: Optional[List[ResponseIncludable]] | Omit = omit,
-        instructions: Optional[str] | Omit = omit,
-        max_output_tokens: Optional[int] | Omit = omit,
-        max_tool_calls: Optional[int] | Omit = omit,
-        metadata: Optional[Metadata] | Omit = omit,
-        parallel_tool_calls: Optional[bool] | Omit = omit,
-        moderation: Optional[response_create_params.Moderation] | Omit = omit,
-        previous_response_id: Optional[str] | Omit = omit,
-        prompt: Optional[ResponsePromptParam] | Omit = omit,
-        prompt_cache_key: Optional[str] | Omit = omit,
-        prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
-        prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
-        reasoning: Optional[Reasoning] | Omit = omit,
-        safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[ServiceTier] | Omit = omit,
-        store: Optional[bool] | Omit = omit,
-        stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
-        temperature: Optional[float] | Omit = omit,
-        text: ResponseTextConfigParam | Omit = omit,
-        tool_choice: response_create_params.ToolChoice | Omit = omit,
-        top_logprobs: Optional[int] | Omit = omit,
-        top_p: Optional[float] | Omit = omit,
-        truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
-        user: str | Omit = omit,
-        starting_after: int | Omit = omit,
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> AsyncResponseStreamManager[TextFormatT]:
-        return async_stream(
-            self,
-            response_id=response_id,
-            input=input,
-            model=model,
-            access_programs=access_programs,
-            background=background,
-            context_management=context_management,
-            text_format=text_format,
-            tools=tools,
-            conversation=conversation,
-            include=include,
-            instructions=instructions,
-            max_output_tokens=max_output_tokens,
-            max_tool_calls=max_tool_calls,
-            metadata=metadata,
-            parallel_tool_calls=parallel_tool_calls,
-            moderation=moderation,
-            previous_response_id=previous_response_id,
-            prompt=prompt,
-            prompt_cache_key=prompt_cache_key,
-            prompt_cache_options=prompt_cache_options,
-            prompt_cache_retention=prompt_cache_retention,
-            reasoning=reasoning,
-            safety_identifier=safety_identifier,
-            service_tier=service_tier,
-            store=store,
-            stream_options=stream_options,
-            temperature=temperature,
-            text=text,
-            tool_choice=tool_choice,
-            top_logprobs=top_logprobs,
-            top_p=top_p,
-            truncation=truncation,
-            user=user,
-            starting_after=starting_after,
-            extra_headers=extra_headers,
-            extra_query=extra_query,
-            extra_body=extra_body,
-            timeout=timeout,
-        )
-
-    async def parse(
-        self,
-        *,
-        text_format: type[TextFormatT] | Omit = omit,
-        access_programs: response_create_params.AccessPrograms | Omit = omit,
-        background: Optional[bool] | Omit = omit,
-        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
-        conversation: Optional[response_create_params.Conversation] | Omit = omit,
-        include: Optional[List[ResponseIncludable]] | Omit = omit,
-        input: Union[str, ResponseInputParam] | Omit = omit,
-        instructions: Optional[str] | Omit = omit,
-        max_output_tokens: Optional[int] | Omit = omit,
-        max_tool_calls: Optional[int] | Omit = omit,
-        metadata: Optional[Metadata] | Omit = omit,
-        model: ResponsesModel | Omit = omit,
-        moderation: Optional[response_create_params.Moderation] | Omit = omit,
-        parallel_tool_calls: Optional[bool] | Omit = omit,
-        previous_response_id: Optional[str] | Omit = omit,
-        prompt: Optional[ResponsePromptParam] | Omit = omit,
-        prompt_cache_key: Optional[str] | Omit = omit,
-        prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
-        prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
-        reasoning: Optional[Reasoning] | Omit = omit,
-        safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[ServiceTier] | Omit = omit,
-        store: Optional[bool] | Omit = omit,
-        stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
-        stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
-        temperature: Optional[float] | Omit = omit,
-        text: ResponseTextConfigParam | Omit = omit,
-        tool_choice: response_create_params.ToolChoice | Omit = omit,
-        tools: Iterable[ParseableToolParam] | Omit = omit,
-        top_logprobs: Optional[int] | Omit = omit,
-        top_p: Optional[float] | Omit = omit,
-        truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
-        user: str | Omit = omit,
-        verbosity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> ParsedResponse[TextFormatT]:
-        return await async_parse(
-            self,
-            text_format=text_format,
-            access_programs=access_programs,
-            background=background,
-            context_management=context_management,
-            conversation=conversation,
-            include=include,
-            input=input,
-            instructions=instructions,
-            max_output_tokens=max_output_tokens,
-            max_tool_calls=max_tool_calls,
-            metadata=metadata,
-            model=model,
-            moderation=moderation,
-            parallel_tool_calls=parallel_tool_calls,
-            previous_response_id=previous_response_id,
-            prompt=prompt,
-            prompt_cache_key=prompt_cache_key,
-            prompt_cache_options=prompt_cache_options,
-            prompt_cache_retention=prompt_cache_retention,
-            reasoning=reasoning,
-            safety_identifier=safety_identifier,
-            service_tier=service_tier,
-            store=store,
-            stream=stream,
-            stream_options=stream_options,
-            temperature=temperature,
-            text=text,
-            tool_choice=tool_choice,
-            tools=tools,
-            top_logprobs=top_logprobs,
-            top_p=top_p,
-            truncation=truncation,
-            user=user,
-            verbosity=verbosity,
-            extra_headers=extra_headers,
-            extra_query=extra_query,
-            extra_body=extra_body,
-            timeout=timeout,
-        )
-
-    @overload
     async def retrieve(
         self,
         response_id: str,
@@ -3102,53 +3070,13 @@ class AsyncResponses(AsyncAPIResource):
         include_obfuscation: bool | Omit = omit,
         starting_after: int | Omit = omit,
         stream: Literal[False] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> Response: ...
-
-    @overload
-    async def retrieve(
-        self,
-        response_id: str,
-        *,
-        stream: Literal[True],
-        include: List[ResponseIncludable] | Omit = omit,
-        starting_after: int | Omit = omit,
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> AsyncStream[ResponseStreamEvent]: ...
-
-    @overload
-    async def retrieve(
-        self,
-        response_id: str,
-        *,
-        stream: bool,
-        include: List[ResponseIncludable] | Omit = omit,
-        starting_after: int | Omit = omit,
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> Response | AsyncStream[ResponseStreamEvent]: ...
-
-    @overload
-    async def retrieve(
-        self,
-        response_id: str,
-        *,
-        stream: bool = False,
-        include: List[ResponseIncludable] | Omit = omit,
-        starting_after: int | Omit = omit,
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> Response | AsyncStream[ResponseStreamEvent]:
+    ) -> Response:
         """
         Retrieves a model response with the given ID.
 
@@ -3180,6 +3108,7 @@ class AsyncResponses(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        ...
 
     @overload
     async def retrieve(
@@ -3190,6 +3119,8 @@ class AsyncResponses(AsyncAPIResource):
         include: List[ResponseIncludable] | Omit = omit,
         include_obfuscation: bool | Omit = omit,
         starting_after: int | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -3226,6 +3157,7 @@ class AsyncResponses(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        ...
 
     @overload
     async def retrieve(
@@ -3236,6 +3168,8 @@ class AsyncResponses(AsyncAPIResource):
         include: List[ResponseIncludable] | Omit = omit,
         include_obfuscation: bool | Omit = omit,
         starting_after: int | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -3272,6 +3206,7 @@ class AsyncResponses(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        ...
 
     async def retrieve(
         self,
@@ -3281,6 +3216,8 @@ class AsyncResponses(AsyncAPIResource):
         include_obfuscation: bool | Omit = omit,
         starting_after: int | Omit = omit,
         stream: Literal[False] | Literal[True] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -4604,6 +4541,40 @@ class BaseResponsesConnectionResource:
 
 
 class ResponsesResponseResource(BaseResponsesConnectionResource):
+    def steer(self, *, input: ResponseSteerInputParam, previous_response_id: str) -> None:
+        """Queues user input to steer a response on this WebSocket connection.
+
+        Input
+        can contain text, images, and files. Steering is supported only for
+        single-agent responses on models and execution modes that support steering.
+        Responses bound to a conversation or using automatic compaction do not
+        support steering.
+
+        A `response.steer.accepted` event acknowledges that the server owns the
+        queued input, not that it has been applied. The successor's `response.created`
+        event is the commit point. Input that cannot be committed is returned in
+        `response.steer.failed`.
+
+        Steering may cause the active response to finish at a safe output boundary
+        with `response.incomplete` and `incomplete_details.reason` set to `steered`,
+        followed automatically by a successor `response.created`. Normal completion
+        can also be followed by an automatic successor. Automatic successors inherit
+        the previous response's settings and continue from it with the queued input.
+
+        If the response stops for client-owned tool output or approval, accepted
+        steering input remains queued and `response.steer.pending` is emitted after
+        `response.completed`. Fill the `required_input` stubs from that event with
+        saved tool results or approval decisions, and send one explicit
+        `response.create` per parent with the same `previous_response_id` and
+        WebSocket lane. Do not rerun tools or resend accepted steering input. The
+        queued input is prepended in submission order to that request's input, and
+        the explicit request retains its own settings.
+
+        This event accepts only `type`, `previous_response_id`, and `input`. Do not
+        send `stream_id`; the target response determines the WebSocket lane.
+        """
+        self._connection.send({"type": "response.steer", "input": input, "previous_response_id": previous_response_id})
+
     def create(
         self,
         *,
@@ -4696,7 +4667,14 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
             )
         )
 
-    def steer(self, *, input: ResponseSteerInputParam, previous_response_id: str) -> None:
+
+class BaseAsyncResponsesConnectionResource:
+    def __init__(self, connection: AsyncResponsesConnection) -> None:
+        self._connection = connection
+
+
+class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
+    async def steer(self, *, input: ResponseSteerInputParam, previous_response_id: str) -> None:
         """Queues user input to steer a response on this WebSocket connection.
 
         Input
@@ -4728,15 +4706,10 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
         This event accepts only `type`, `previous_response_id`, and `input`. Do not
         send `stream_id`; the target response determines the WebSocket lane.
         """
-        self._connection.send({"type": "response.steer", "input": input, "previous_response_id": previous_response_id})
+        await self._connection.send(
+            {"type": "response.steer", "input": input, "previous_response_id": previous_response_id}
+        )
 
-
-class BaseAsyncResponsesConnectionResource:
-    def __init__(self, connection: AsyncResponsesConnection) -> None:
-        self._connection = connection
-
-
-class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
     async def create(
         self,
         *,
@@ -4827,40 +4800,4 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
                     }
                 ),
             )
-        )
-
-    async def steer(self, *, input: ResponseSteerInputParam, previous_response_id: str) -> None:
-        """Queues user input to steer a response on this WebSocket connection.
-
-        Input
-        can contain text, images, and files. Steering is supported only for
-        single-agent responses on models and execution modes that support steering.
-        Responses bound to a conversation or using automatic compaction do not
-        support steering.
-
-        A `response.steer.accepted` event acknowledges that the server owns the
-        queued input, not that it has been applied. The successor's `response.created`
-        event is the commit point. Input that cannot be committed is returned in
-        `response.steer.failed`.
-
-        Steering may cause the active response to finish at a safe output boundary
-        with `response.incomplete` and `incomplete_details.reason` set to `steered`,
-        followed automatically by a successor `response.created`. Normal completion
-        can also be followed by an automatic successor. Automatic successors inherit
-        the previous response's settings and continue from it with the queued input.
-
-        If the response stops for client-owned tool output or approval, accepted
-        steering input remains queued and `response.steer.pending` is emitted after
-        `response.completed`. Fill the `required_input` stubs from that event with
-        saved tool results or approval decisions, and send one explicit
-        `response.create` per parent with the same `previous_response_id` and
-        WebSocket lane. Do not rerun tools or resend accepted steering input. The
-        queued input is prepended in submission order to that request's input, and
-        the explicit request retains its own settings.
-
-        This event accepts only `type`, `previous_response_id`, and `input`. Do not
-        send `stream_id`; the target response determines the WebSocket lane.
-        """
-        await self._connection.send(
-            {"type": "response.steer", "input": input, "previous_response_id": previous_response_id}
         )

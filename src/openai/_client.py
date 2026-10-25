@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
-from __future__ import annotations
+from __future__ import annotations, annotations as annotations
 
 import os as os
 from typing import (
@@ -181,6 +181,81 @@ class OpenAI(SyncAPIClient):
         from .lib._client_auth import syncbase_url_set
 
         return syncbase_url_set(self, url)
+
+    def _send_with_auth_retry(
+        self,
+        request: httpx2.Request,
+        *,
+        stream: bool,
+        retried: bool = False,
+        **kwargs: Unpack[HttpxSendArgs],
+    ) -> httpx2.Response:
+        from typing import Any as _RuntimeAny, cast as _runtime_cast
+
+        from .lib._client_auth import sync_send_with_auth_retry
+
+        return sync_send_with_auth_retry(
+            _runtime_cast(_RuntimeAny, super()).__thisclass__, self, request, stream=stream, retried=retried, **kwargs
+        )
+
+    @override
+    def _send_request(
+        self,
+        request: httpx2.Request,
+        *,
+        stream: bool,
+        **kwargs: Unpack[HttpxSendArgs],
+    ) -> httpx2.Response:
+        from .lib._client_auth import sync_send_request
+
+        return sync_send_request(self, request, stream=stream, **kwargs)
+
+    @property
+    @override
+    def auth_headers(
+        self,
+    ) -> dict[str, str]:
+        from .lib._client_auth import syncauth_headers
+
+        return syncauth_headers(self)
+
+    @override
+    def _prepare_options(
+        self,
+        options: FinalRequestOptions,
+    ) -> FinalRequestOptions:
+        from typing import Any as _RuntimeAny, cast as _runtime_cast
+
+        from .lib._client_auth import sync_prepare_options
+
+        return sync_prepare_options(_runtime_cast(_RuntimeAny, super()).__thisclass__, self, options)
+
+    @override
+    def _prepare_request(
+        self,
+        request: httpx2.Request,
+    ) -> None:
+        from .lib._client_auth import sync_prepare_request
+
+        return sync_prepare_request(self, request)
+
+    @override
+    def _custom_auth(
+        self,
+        security: SecurityOptions,
+    ) -> httpx2.Auth | None:
+        from typing import Any as _RuntimeAny, cast as _runtime_cast
+
+        from .lib._client_auth import sync_custom_auth
+
+        return sync_custom_auth(_runtime_cast(_RuntimeAny, super()).__thisclass__, self, security)
+
+    def _refresh_api_key(
+        self,
+    ) -> str:
+        from .lib._client_auth import sync_refresh_api_key
+
+        return sync_refresh_api_key(self)
 
     def _websocket_query_params_fallback(self, url: httpx2.URL, extra_query: Query) -> httpx2.QueryParams:
         # Remove replaced logical defaults before encoding nested query values.
@@ -448,34 +523,6 @@ class OpenAI(SyncAPIClient):
     def qs(self) -> Querystring:
         return Querystring(array_format="brackets")
 
-    def _send_with_auth_retry(
-        self,
-        request: httpx2.Request,
-        *,
-        stream: bool,
-        retried: bool = False,
-        **kwargs: Unpack[HttpxSendArgs],
-    ) -> httpx2.Response:
-        from typing import Any as _RuntimeAny, cast as _runtime_cast
-
-        from .lib._client_auth import sync_send_with_auth_retry
-
-        return sync_send_with_auth_retry(
-            _runtime_cast(_RuntimeAny, super()).__thisclass__, self, request, stream=stream, retried=retried, **kwargs
-        )
-
-    @override
-    def _send_request(
-        self,
-        request: httpx2.Request,
-        *,
-        stream: bool,
-        **kwargs: Unpack[HttpxSendArgs],
-    ) -> httpx2.Response:
-        from .lib._client_auth import sync_send_request
-
-        return sync_send_request(self, request, stream=stream, **kwargs)
-
     @override
     def _auth_headers(
         self,
@@ -492,15 +539,6 @@ class OpenAI(SyncAPIClient):
         from .lib._client_auth import sync_bearer_auth
 
         return sync_bearer_auth(self)
-
-    @property
-    @override
-    def auth_headers(
-        self,
-    ) -> dict[str, str]:
-        from .lib._client_auth import syncauth_headers
-
-        return syncauth_headers(self)
 
     @property
     def _admin_api_key_auth(self) -> dict[str, str]:
@@ -529,44 +567,6 @@ class OpenAI(SyncAPIClient):
         from .lib._client_auth import sync_validate_headers
 
         return sync_validate_headers(self, headers, custom_headers)
-
-    @override
-    def _prepare_options(
-        self,
-        options: FinalRequestOptions,
-    ) -> FinalRequestOptions:
-        from typing import Any as _RuntimeAny, cast as _runtime_cast
-
-        from .lib._client_auth import sync_prepare_options
-
-        return sync_prepare_options(_runtime_cast(_RuntimeAny, super()).__thisclass__, self, options)
-
-    @override
-    def _prepare_request(
-        self,
-        request: httpx2.Request,
-    ) -> None:
-        from .lib._client_auth import sync_prepare_request
-
-        return sync_prepare_request(self, request)
-
-    @override
-    def _custom_auth(
-        self,
-        security: SecurityOptions,
-    ) -> httpx2.Auth | None:
-        from typing import Any as _RuntimeAny, cast as _runtime_cast
-
-        from .lib._client_auth import sync_custom_auth
-
-        return sync_custom_auth(_runtime_cast(_RuntimeAny, super()).__thisclass__, self, security)
-
-    def _refresh_api_key(
-        self,
-    ) -> str:
-        from .lib._client_auth import sync_refresh_api_key
-
-        return sync_refresh_api_key(self)
 
     def copy(
         self,
@@ -701,6 +701,81 @@ class AsyncOpenAI(AsyncAPIClient):
         from .lib._client_auth import asyncbase_url_set
 
         return asyncbase_url_set(self, url)
+
+    async def _send_with_auth_retry(
+        self,
+        request: httpx2.Request,
+        *,
+        stream: bool,
+        retried: bool = False,
+        **kwargs: Unpack[HttpxSendArgs],
+    ) -> httpx2.Response:
+        from typing import Any as _RuntimeAny, cast as _runtime_cast
+
+        from .lib._client_auth import async_send_with_auth_retry
+
+        return await async_send_with_auth_retry(
+            _runtime_cast(_RuntimeAny, super()).__thisclass__, self, request, stream=stream, retried=retried, **kwargs
+        )
+
+    @override
+    async def _send_request(
+        self,
+        request: httpx2.Request,
+        *,
+        stream: bool,
+        **kwargs: Unpack[HttpxSendArgs],
+    ) -> httpx2.Response:
+        from .lib._client_auth import async_send_request
+
+        return await async_send_request(self, request, stream=stream, **kwargs)
+
+    @property
+    @override
+    def auth_headers(
+        self,
+    ) -> dict[str, str]:
+        from .lib._client_auth import asyncauth_headers
+
+        return asyncauth_headers(self)
+
+    @override
+    async def _prepare_options(
+        self,
+        options: FinalRequestOptions,
+    ) -> FinalRequestOptions:
+        from typing import Any as _RuntimeAny, cast as _runtime_cast
+
+        from .lib._client_auth import async_prepare_options
+
+        return await async_prepare_options(_runtime_cast(_RuntimeAny, super()).__thisclass__, self, options)
+
+    @override
+    async def _prepare_request(
+        self,
+        request: httpx2.Request,
+    ) -> None:
+        from .lib._client_auth import async_prepare_request
+
+        return await async_prepare_request(self, request)
+
+    @property
+    @override
+    def custom_auth(
+        self,
+    ) -> httpx2.Auth | None:
+        from typing import Any as _RuntimeAny, cast as _runtime_cast
+
+        from .lib._client_auth import asynccustom_auth
+
+        return asynccustom_auth(_runtime_cast(_RuntimeAny, super()).__thisclass__, self)
+
+    async def _refresh_api_key(
+        self,
+    ) -> str:
+        from .lib._client_auth import async_refresh_api_key
+
+        return await async_refresh_api_key(self)
 
     def _websocket_query_params_fallback(self, url: httpx2.URL, extra_query: Query) -> httpx2.QueryParams:
         # Remove replaced logical defaults before encoding nested query values.
@@ -968,34 +1043,6 @@ class AsyncOpenAI(AsyncAPIClient):
     def qs(self) -> Querystring:
         return Querystring(array_format="brackets")
 
-    async def _send_with_auth_retry(
-        self,
-        request: httpx2.Request,
-        *,
-        stream: bool,
-        retried: bool = False,
-        **kwargs: Unpack[HttpxSendArgs],
-    ) -> httpx2.Response:
-        from typing import Any as _RuntimeAny, cast as _runtime_cast
-
-        from .lib._client_auth import async_send_with_auth_retry
-
-        return await async_send_with_auth_retry(
-            _runtime_cast(_RuntimeAny, super()).__thisclass__, self, request, stream=stream, retried=retried, **kwargs
-        )
-
-    @override
-    async def _send_request(
-        self,
-        request: httpx2.Request,
-        *,
-        stream: bool,
-        **kwargs: Unpack[HttpxSendArgs],
-    ) -> httpx2.Response:
-        from .lib._client_auth import async_send_request
-
-        return await async_send_request(self, request, stream=stream, **kwargs)
-
     @override
     def _auth_headers(
         self,
@@ -1012,15 +1059,6 @@ class AsyncOpenAI(AsyncAPIClient):
         from .lib._client_auth import async_bearer_auth
 
         return async_bearer_auth(self)
-
-    @property
-    @override
-    def auth_headers(
-        self,
-    ) -> dict[str, str]:
-        from .lib._client_auth import asyncauth_headers
-
-        return asyncauth_headers(self)
 
     @property
     def _admin_api_key_auth(self) -> dict[str, str]:
@@ -1049,44 +1087,6 @@ class AsyncOpenAI(AsyncAPIClient):
         from .lib._client_auth import async_validate_headers
 
         return async_validate_headers(self, headers, custom_headers)
-
-    @override
-    async def _prepare_options(
-        self,
-        options: FinalRequestOptions,
-    ) -> FinalRequestOptions:
-        from typing import Any as _RuntimeAny, cast as _runtime_cast
-
-        from .lib._client_auth import async_prepare_options
-
-        return await async_prepare_options(_runtime_cast(_RuntimeAny, super()).__thisclass__, self, options)
-
-    @override
-    async def _prepare_request(
-        self,
-        request: httpx2.Request,
-    ) -> None:
-        from .lib._client_auth import async_prepare_request
-
-        return await async_prepare_request(self, request)
-
-    @property
-    @override
-    def custom_auth(
-        self,
-    ) -> httpx2.Auth | None:
-        from typing import Any as _RuntimeAny, cast as _runtime_cast
-
-        from .lib._client_auth import asynccustom_auth
-
-        return asynccustom_auth(_runtime_cast(_RuntimeAny, super()).__thisclass__, self)
-
-    async def _refresh_api_key(
-        self,
-    ) -> str:
-        from .lib._client_auth import async_refresh_api_key
-
-        return await async_refresh_api_key(self)
 
     def copy(
         self,

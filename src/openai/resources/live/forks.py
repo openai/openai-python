@@ -1174,7 +1174,9 @@ class ForksDecisionItemResource(BaseForksConnectionResource):
             )
         )
 
-    def create(self, *, item: decision_item_create_event_param.Item, event_id: Optional[str] | Omit = omit) -> None:
+    def create(
+        self, *, item: decision_item_create_event_param.ItemUnion, event_id: Optional[str] | Omit = omit
+    ) -> None:
         """
         Append an input item for future decisions without starting an evaluation or changing Live voice context.
         """
@@ -1433,7 +1435,7 @@ class AsyncForksDecisionItemResource(BaseAsyncForksConnectionResource):
         )
 
     async def create(
-        self, *, item: decision_item_create_event_param.Item, event_id: Optional[str] | Omit = omit
+        self, *, item: decision_item_create_event_param.ItemUnion, event_id: Optional[str] | Omit = omit
     ) -> None:
         """
         Append an input item for future decisions without starting an evaluation or changing Live voice context.

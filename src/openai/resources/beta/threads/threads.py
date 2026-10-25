@@ -17,7 +17,7 @@ from .messages import (
     MessagesWithStreamingResponse,
     AsyncMessagesWithStreamingResponse,
 )
-from ...._types import NOT_GIVEN, Body, Omit, Query, Headers, NotGiven, omit, not_given
+from ...._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
 from ...._utils import path_template, required_args, maybe_transform, async_maybe_transform
 from .runs.runs import (
     Runs,
@@ -95,6 +95,163 @@ class Threads(SyncAPIResource):
         For more information, see https://www.github.com/openai/openai-python#with_streaming_response
         """
         return ThreadsWithStreamingResponse(self)
+
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def create_and_run_poll(
+        self,
+        *,
+        assistant_id: str,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        thread: thread_create_and_run_params.Thread | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tool_resources: Optional[thread_create_and_run_params.ToolResources] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | Omit = omit,
+        poll_interval_ms: int | Omit = omit,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Run:
+        """A helper to create a thread, start a run and then poll for a terminal state.
+        More information on Run lifecycles can be found here:
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
+        return threads_create_and_run_poll(
+            self,
+            assistant_id=assistant_id,
+            instructions=instructions,
+            max_completion_tokens=max_completion_tokens,
+            max_prompt_tokens=max_prompt_tokens,
+            metadata=metadata,
+            model=model,
+            parallel_tool_calls=parallel_tool_calls,
+            response_format=response_format,
+            temperature=temperature,
+            thread=thread,
+            tool_choice=tool_choice,
+            tool_resources=tool_resources,
+            tools=tools,
+            top_p=top_p,
+            truncation_strategy=truncation_strategy,
+            poll_interval_ms=poll_interval_ms,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
+
+    @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def create_and_run_stream(
+        self,
+        *,
+        assistant_id: str,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        thread: thread_create_and_run_params.Thread | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tool_resources: Optional[thread_create_and_run_params.ToolResources] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | Omit = omit,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AssistantStreamManager[AssistantEventHandler]:
+        """Create a thread and stream the run back"""
+
+    @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def create_and_run_stream(
+        self,
+        *,
+        assistant_id: str,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        thread: thread_create_and_run_params.Thread | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tool_resources: Optional[thread_create_and_run_params.ToolResources] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | Omit = omit,
+        event_handler: AssistantEventHandlerT,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AssistantStreamManager[AssistantEventHandlerT]:
+        """Create a thread and stream the run back"""
+
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def create_and_run_stream(
+        self,
+        *,
+        assistant_id: str,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        thread: thread_create_and_run_params.Thread | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tool_resources: Optional[thread_create_and_run_params.ToolResources] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | Omit = omit,
+        event_handler: AssistantEventHandlerT | None = None,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AssistantStreamManager[AssistantEventHandler] | AssistantStreamManager[AssistantEventHandlerT]:
+        """Create a thread and stream the run back"""
+        return threads_create_and_run_stream(
+            self,
+            assistant_id=assistant_id,
+            instructions=instructions,
+            max_completion_tokens=max_completion_tokens,
+            max_prompt_tokens=max_prompt_tokens,
+            metadata=metadata,
+            model=model,
+            parallel_tool_calls=parallel_tool_calls,
+            response_format=response_format,
+            temperature=temperature,
+            thread=thread,
+            tool_choice=tool_choice,
+            tool_resources=tool_resources,
+            tools=tools,
+            top_p=top_p,
+            truncation_strategy=truncation_strategy,
+            event_handler=event_handler,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
 
     @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     def create(
@@ -770,159 +927,6 @@ class Threads(SyncAPIResource):
             stream_cls=Stream[AssistantStreamEvent],
         )
 
-    def create_and_run_poll(
-        self,
-        *,
-        assistant_id: str,
-        instructions: Optional[str] | Omit = omit,
-        max_completion_tokens: Optional[int] | Omit = omit,
-        max_prompt_tokens: Optional[int] | Omit = omit,
-        metadata: Optional[Metadata] | Omit = omit,
-        model: Union[str, ChatModel, None] | Omit = omit,
-        parallel_tool_calls: bool | Omit = omit,
-        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
-        temperature: Optional[float] | Omit = omit,
-        thread: thread_create_and_run_params.Thread | Omit = omit,
-        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
-        tool_resources: Optional[thread_create_and_run_params.ToolResources] | Omit = omit,
-        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
-        top_p: Optional[float] | Omit = omit,
-        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | Omit = omit,
-        poll_interval_ms: int | Omit = omit,
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> Run:
-        """A helper to create a thread, start a run and then poll for a terminal state.
-        More information on Run lifecycles can be found here:
-        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
-        return threads_create_and_run_poll(
-            self,
-            assistant_id=assistant_id,
-            instructions=instructions,
-            max_completion_tokens=max_completion_tokens,
-            max_prompt_tokens=max_prompt_tokens,
-            metadata=metadata,
-            model=model,
-            parallel_tool_calls=parallel_tool_calls,
-            response_format=response_format,
-            temperature=temperature,
-            thread=thread,
-            tool_choice=tool_choice,
-            tool_resources=tool_resources,
-            tools=tools,
-            top_p=top_p,
-            truncation_strategy=truncation_strategy,
-            poll_interval_ms=poll_interval_ms,
-            extra_headers=extra_headers,
-            extra_query=extra_query,
-            extra_body=extra_body,
-            timeout=timeout,
-        )
-
-    @overload
-    def create_and_run_stream(
-        self,
-        *,
-        assistant_id: str,
-        instructions: Optional[str] | Omit = omit,
-        max_completion_tokens: Optional[int] | Omit = omit,
-        max_prompt_tokens: Optional[int] | Omit = omit,
-        metadata: Optional[Metadata] | Omit = omit,
-        model: Union[str, ChatModel, None] | Omit = omit,
-        parallel_tool_calls: bool | Omit = omit,
-        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
-        temperature: Optional[float] | Omit = omit,
-        thread: thread_create_and_run_params.Thread | Omit = omit,
-        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
-        tool_resources: Optional[thread_create_and_run_params.ToolResources] | Omit = omit,
-        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
-        top_p: Optional[float] | Omit = omit,
-        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | Omit = omit,
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> AssistantStreamManager[AssistantEventHandler]:
-        """Create a thread and stream the run back"""
-
-    @overload
-    def create_and_run_stream(
-        self,
-        *,
-        assistant_id: str,
-        instructions: Optional[str] | Omit = omit,
-        max_completion_tokens: Optional[int] | Omit = omit,
-        max_prompt_tokens: Optional[int] | Omit = omit,
-        metadata: Optional[Metadata] | Omit = omit,
-        model: Union[str, ChatModel, None] | Omit = omit,
-        parallel_tool_calls: bool | Omit = omit,
-        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
-        temperature: Optional[float] | Omit = omit,
-        thread: thread_create_and_run_params.Thread | Omit = omit,
-        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
-        tool_resources: Optional[thread_create_and_run_params.ToolResources] | Omit = omit,
-        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
-        top_p: Optional[float] | Omit = omit,
-        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | Omit = omit,
-        event_handler: AssistantEventHandlerT,
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> AssistantStreamManager[AssistantEventHandlerT]:
-        """Create a thread and stream the run back"""
-
-    def create_and_run_stream(
-        self,
-        *,
-        assistant_id: str,
-        instructions: Optional[str] | Omit = omit,
-        max_completion_tokens: Optional[int] | Omit = omit,
-        max_prompt_tokens: Optional[int] | Omit = omit,
-        metadata: Optional[Metadata] | Omit = omit,
-        model: Union[str, ChatModel, None] | Omit = omit,
-        parallel_tool_calls: bool | Omit = omit,
-        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
-        temperature: Optional[float] | Omit = omit,
-        thread: thread_create_and_run_params.Thread | Omit = omit,
-        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
-        tool_resources: Optional[thread_create_and_run_params.ToolResources] | Omit = omit,
-        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
-        top_p: Optional[float] | Omit = omit,
-        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | Omit = omit,
-        event_handler: AssistantEventHandlerT | None = None,
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> AssistantStreamManager[AssistantEventHandler] | AssistantStreamManager[AssistantEventHandlerT]:
-        """Create a thread and stream the run back"""
-        return threads_create_and_run_stream(
-            self,
-            assistant_id=assistant_id,
-            instructions=instructions,
-            max_completion_tokens=max_completion_tokens,
-            max_prompt_tokens=max_prompt_tokens,
-            metadata=metadata,
-            model=model,
-            parallel_tool_calls=parallel_tool_calls,
-            response_format=response_format,
-            temperature=temperature,
-            thread=thread,
-            tool_choice=tool_choice,
-            tool_resources=tool_resources,
-            tools=tools,
-            top_p=top_p,
-            truncation_strategy=truncation_strategy,
-            event_handler=event_handler,
-            extra_headers=extra_headers,
-            extra_query=extra_query,
-            extra_body=extra_body,
-            timeout=timeout,
-        )
-
 
 class AsyncThreads(AsyncAPIResource):
     """Build Assistants that can call models and use tools."""
@@ -955,6 +959,166 @@ class AsyncThreads(AsyncAPIResource):
         For more information, see https://www.github.com/openai/openai-python#with_streaming_response
         """
         return AsyncThreadsWithStreamingResponse(self)
+
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    async def create_and_run_poll(
+        self,
+        *,
+        assistant_id: str,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        thread: thread_create_and_run_params.Thread | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tool_resources: Optional[thread_create_and_run_params.ToolResources] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | Omit = omit,
+        poll_interval_ms: int | Omit = omit,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Run:
+        """A helper to create a thread, start a run and then poll for a terminal state.
+        More information on Run lifecycles can be found here:
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
+        return await async_threads_create_and_run_poll(
+            self,
+            assistant_id=assistant_id,
+            instructions=instructions,
+            max_completion_tokens=max_completion_tokens,
+            max_prompt_tokens=max_prompt_tokens,
+            metadata=metadata,
+            model=model,
+            parallel_tool_calls=parallel_tool_calls,
+            response_format=response_format,
+            temperature=temperature,
+            thread=thread,
+            tool_choice=tool_choice,
+            tool_resources=tool_resources,
+            tools=tools,
+            top_p=top_p,
+            truncation_strategy=truncation_strategy,
+            poll_interval_ms=poll_interval_ms,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
+
+    @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def create_and_run_stream(
+        self,
+        *,
+        assistant_id: str,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        thread: thread_create_and_run_params.Thread | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tool_resources: Optional[thread_create_and_run_params.ToolResources] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | Omit = omit,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AsyncAssistantStreamManager[AsyncAssistantEventHandler]:
+        """Create a thread and stream the run back"""
+
+    @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def create_and_run_stream(
+        self,
+        *,
+        assistant_id: str,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        thread: thread_create_and_run_params.Thread | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tool_resources: Optional[thread_create_and_run_params.ToolResources] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | Omit = omit,
+        event_handler: AsyncAssistantEventHandlerT,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AsyncAssistantStreamManager[AsyncAssistantEventHandlerT]:
+        """Create a thread and stream the run back"""
+
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def create_and_run_stream(
+        self,
+        *,
+        assistant_id: str,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        thread: thread_create_and_run_params.Thread | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tool_resources: Optional[thread_create_and_run_params.ToolResources] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | Omit = omit,
+        event_handler: AsyncAssistantEventHandlerT | None = None,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> (
+        AsyncAssistantStreamManager[AsyncAssistantEventHandler]
+        | AsyncAssistantStreamManager[AsyncAssistantEventHandlerT]
+    ):
+        """Create a thread and stream the run back"""
+        return async_threads_create_and_run_stream(
+            self,
+            assistant_id=assistant_id,
+            instructions=instructions,
+            max_completion_tokens=max_completion_tokens,
+            max_prompt_tokens=max_prompt_tokens,
+            metadata=metadata,
+            model=model,
+            parallel_tool_calls=parallel_tool_calls,
+            response_format=response_format,
+            temperature=temperature,
+            thread=thread,
+            tool_choice=tool_choice,
+            tool_resources=tool_resources,
+            tools=tools,
+            top_p=top_p,
+            truncation_strategy=truncation_strategy,
+            event_handler=event_handler,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
 
     @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     async def create(
@@ -1628,162 +1792,6 @@ class AsyncThreads(AsyncAPIResource):
             cast_to=Run,
             stream=stream or False,
             stream_cls=AsyncStream[AssistantStreamEvent],
-        )
-
-    async def create_and_run_poll(
-        self,
-        *,
-        assistant_id: str,
-        instructions: Optional[str] | Omit = omit,
-        max_completion_tokens: Optional[int] | Omit = omit,
-        max_prompt_tokens: Optional[int] | Omit = omit,
-        metadata: Optional[Metadata] | Omit = omit,
-        model: Union[str, ChatModel, None] | Omit = omit,
-        parallel_tool_calls: bool | Omit = omit,
-        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
-        temperature: Optional[float] | Omit = omit,
-        thread: thread_create_and_run_params.Thread | Omit = omit,
-        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
-        tool_resources: Optional[thread_create_and_run_params.ToolResources] | Omit = omit,
-        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
-        top_p: Optional[float] | Omit = omit,
-        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | Omit = omit,
-        poll_interval_ms: int | Omit = omit,
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> Run:
-        """A helper to create a thread, start a run and then poll for a terminal state.
-        More information on Run lifecycles can be found here:
-        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
-        return await async_threads_create_and_run_poll(
-            self,
-            assistant_id=assistant_id,
-            instructions=instructions,
-            max_completion_tokens=max_completion_tokens,
-            max_prompt_tokens=max_prompt_tokens,
-            metadata=metadata,
-            model=model,
-            parallel_tool_calls=parallel_tool_calls,
-            response_format=response_format,
-            temperature=temperature,
-            thread=thread,
-            tool_choice=tool_choice,
-            tool_resources=tool_resources,
-            tools=tools,
-            top_p=top_p,
-            truncation_strategy=truncation_strategy,
-            poll_interval_ms=poll_interval_ms,
-            extra_headers=extra_headers,
-            extra_query=extra_query,
-            extra_body=extra_body,
-            timeout=timeout,
-        )
-
-    @overload
-    def create_and_run_stream(
-        self,
-        *,
-        assistant_id: str,
-        instructions: Optional[str] | Omit = omit,
-        max_completion_tokens: Optional[int] | Omit = omit,
-        max_prompt_tokens: Optional[int] | Omit = omit,
-        metadata: Optional[Metadata] | Omit = omit,
-        model: Union[str, ChatModel, None] | Omit = omit,
-        parallel_tool_calls: bool | Omit = omit,
-        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
-        temperature: Optional[float] | Omit = omit,
-        thread: thread_create_and_run_params.Thread | Omit = omit,
-        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
-        tool_resources: Optional[thread_create_and_run_params.ToolResources] | Omit = omit,
-        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
-        top_p: Optional[float] | Omit = omit,
-        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | Omit = omit,
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> AsyncAssistantStreamManager[AsyncAssistantEventHandler]:
-        """Create a thread and stream the run back"""
-
-    @overload
-    def create_and_run_stream(
-        self,
-        *,
-        assistant_id: str,
-        instructions: Optional[str] | Omit = omit,
-        max_completion_tokens: Optional[int] | Omit = omit,
-        max_prompt_tokens: Optional[int] | Omit = omit,
-        metadata: Optional[Metadata] | Omit = omit,
-        model: Union[str, ChatModel, None] | Omit = omit,
-        parallel_tool_calls: bool | Omit = omit,
-        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
-        temperature: Optional[float] | Omit = omit,
-        thread: thread_create_and_run_params.Thread | Omit = omit,
-        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
-        tool_resources: Optional[thread_create_and_run_params.ToolResources] | Omit = omit,
-        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
-        top_p: Optional[float] | Omit = omit,
-        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | Omit = omit,
-        event_handler: AsyncAssistantEventHandlerT,
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> AsyncAssistantStreamManager[AsyncAssistantEventHandlerT]:
-        """Create a thread and stream the run back"""
-
-    def create_and_run_stream(
-        self,
-        *,
-        assistant_id: str,
-        instructions: Optional[str] | Omit = omit,
-        max_completion_tokens: Optional[int] | Omit = omit,
-        max_prompt_tokens: Optional[int] | Omit = omit,
-        metadata: Optional[Metadata] | Omit = omit,
-        model: Union[str, ChatModel, None] | Omit = omit,
-        parallel_tool_calls: bool | Omit = omit,
-        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
-        temperature: Optional[float] | Omit = omit,
-        thread: thread_create_and_run_params.Thread | Omit = omit,
-        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
-        tool_resources: Optional[thread_create_and_run_params.ToolResources] | Omit = omit,
-        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
-        top_p: Optional[float] | Omit = omit,
-        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | Omit = omit,
-        event_handler: AsyncAssistantEventHandlerT | None = None,
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> (
-        AsyncAssistantStreamManager[AsyncAssistantEventHandler]
-        | AsyncAssistantStreamManager[AsyncAssistantEventHandlerT]
-    ):
-        """Create a thread and stream the run back"""
-        return async_threads_create_and_run_stream(
-            self,
-            assistant_id=assistant_id,
-            instructions=instructions,
-            max_completion_tokens=max_completion_tokens,
-            max_prompt_tokens=max_prompt_tokens,
-            metadata=metadata,
-            model=model,
-            parallel_tool_calls=parallel_tool_calls,
-            response_format=response_format,
-            temperature=temperature,
-            thread=thread,
-            tool_choice=tool_choice,
-            tool_resources=tool_resources,
-            tools=tools,
-            top_p=top_p,
-            truncation_strategy=truncation_strategy,
-            event_handler=event_handler,
-            extra_headers=extra_headers,
-            extra_query=extra_query,
-            extra_body=extra_body,
-            timeout=timeout,
         )
 
 

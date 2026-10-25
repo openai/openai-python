@@ -29,13 +29,6 @@ jobs:
       pull-requests: read
       statuses: write
     steps:
-      # Execute only the helper belonging to this immutable workflow revision.
-      - name: Check out the trusted review policy
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ github.workflow_sha }}
-          persist-credentials: false
-
       - name: Re-evaluate current PR and queue after review changes
         env:
           GH_TOKEN: ${{ github.token }}
@@ -70,12 +63,26 @@ jobs:
               return sha;
             }
             async function requiresHuman(pr, mainSha) {
+              if (!/^[0-9a-f]{40}$/.test(mainSha || '')) throw new Error('Invalid authenticated main');
               const path = require('node:path');
               const fs = require('node:fs');
               const root = fs.mkdtempSync(path.join(process.env.RUNNER_TEMP, 'castiron-review-'));
               try {
+                // Bind executable policy and its dependency to the authenticated
+                // main snapshot for this decision, including after a retry.
+                for (const name of ['custom_code_policy.py', 'custom_code_report.py']) {
+                  const {data: file} = await github.rest.repos.getContent({
+                    ...context.repo, path: `scripts/castiron/${name}`, ref: mainSha,
+                  });
+                  if (file.type !== 'file' || file.encoding !== 'base64' ||
+                      !Number.isSafeInteger(file.size) || file.size <= 0 || file.size > 1048576 ||
+                      typeof file.content !== 'string') throw new Error('Invalid trusted policy file');
+                  const content = Buffer.from(file.content, 'base64');
+                  if (content.length !== file.size) throw new Error('Invalid trusted policy content');
+                  fs.writeFileSync(path.join(root, name), content, {flag: 'wx'});
+                }
                 const result = await exec.getExecOutput('python3', ['-I',
-                  'scripts/castiron/custom_code_policy.py', 'review-required',
+                  path.join(root, 'custom_code_policy.py'), 'review-required',
                   '--repository', repo, '--repo', path.join(root, 'objects.git'),
                   '--base', pr.base.sha, '--head', pr.head.sha, '--main', mainSha], {silent: true});
                 const decision = JSON.parse(result.stdout);

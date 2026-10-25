@@ -33,7 +33,7 @@ class DecisionInputUserMessage(TypedDict, total=False):
 
 
 class DecisionInputMessageParam(DecisionInputUserMessage, total=False):
-    """A user message, retained for backwards compatibility."""
+    """A user message containing input text, images, or JSON."""
 
 
 class DecisionInputDeveloperMessage(TypedDict, total=False):

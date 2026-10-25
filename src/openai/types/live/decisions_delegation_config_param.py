@@ -2,80 +2,32 @@
 
 from __future__ import annotations
 
-from typing import Union, Iterable
-from typing_extensions import Literal, Required, TypeAlias, TypedDict
+from typing import Iterable
+from typing_extensions import Required, TypedDict
 
-from ..shared_params.decision_question_input_part import DecisionQuestionInputPart
+from .decision_question_param import (
+    Score as QuestionQuestionParamScore,
+    Choice as QuestionQuestionParamChoice,
+    Predicate as QuestionQuestionParamPredicate,
+    ScoreLevel as QuestionQuestionParamScoreLevel,
+    DecisionQuestionParam,
+    DecisionQuestionParam as Question,
+)
+from .decision_choice_option_param import DecisionChoiceOptionParam as QuestionQuestionParamChoiceChoice
 
 __all__ = [
     "DecisionsDelegationConfigParam",
     "Question",
-    "QuestionQuestionParamPredicate",
     "QuestionQuestionParamChoice",
-    "QuestionQuestionParamChoiceChoice",
+    "QuestionQuestionParamPredicate",
     "QuestionQuestionParamScore",
     "QuestionQuestionParamScoreLevel",
+    "QuestionQuestionParamChoiceChoice",
 ]
-
-
-class QuestionQuestionParamPredicate(TypedDict, total=False):
-    """Estimate how likely it is that a statement about the input is true."""
-
-    instructions: Required[Union[str, Iterable[DecisionQuestionInputPart]]]
-
-    type: Required[Literal["predicate"]]
-    """The type of the object. Always `predicate`."""
-
-    name: str
-
-
-class QuestionQuestionParamChoiceChoice(TypedDict, total=False):
-    value: Required[Union[str, bool]]
-    """
-    Choice values are typed: a string and a boolean with the same text are distinct.
-    """
-
-    description: str
-
-
-class QuestionQuestionParamChoice(TypedDict, total=False):
-    """Choose from the supplied options based on the input."""
-
-    choices: Required[Iterable[QuestionQuestionParamChoiceChoice]]
-    """Provide between 2 and 255 choices. Each choice must be unique."""
-
-    instructions: Required[Union[str, Iterable[DecisionQuestionInputPart]]]
-
-    type: Required[Literal["choice"]]
-    """The type of the object. Always `choice`."""
-
-    name: str
-
-
-class QuestionQuestionParamScoreLevel(TypedDict, total=False):
-    label: Required[str]
-
-    description: str
-
-
-class QuestionQuestionParamScore(TypedDict, total=False):
-    """Rate the input against the supplied ordered levels."""
-
-    instructions: Required[Union[str, Iterable[DecisionQuestionInputPart]]]
-
-    levels: Required[Iterable[QuestionQuestionParamScoreLevel]]
-
-    type: Required[Literal["score"]]
-    """The type of the object. Always `score`."""
-
-    name: str
-
-
-Question: TypeAlias = Union[QuestionQuestionParamPredicate, QuestionQuestionParamChoice, QuestionQuestionParamScore]
 
 
 class DecisionsDelegationConfigParam(TypedDict, total=False):
     model: Required[str]
 
-    questions: Required[Iterable[Question]]
+    questions: Required[Iterable[DecisionQuestionParam]]
     """Native Decision API questions evaluated together, in order."""
