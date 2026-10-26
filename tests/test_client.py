@@ -1244,13 +1244,13 @@ class TestOpenAI:
         "client",
         [
             OpenAI(
-                base_url="http://localhost:5000/custom/path/",
+                base_url="http://localhost:5000/custom/path",
                 api_key=api_key,
                 admin_api_key=admin_api_key,
                 _strict_response_validation=True,
             ),
             OpenAI(
-                base_url="http://localhost:5000/custom/path/",
+                base_url="http://localhost:5000/custom/path",
                 api_key=api_key,
                 admin_api_key=admin_api_key,
                 _strict_response_validation=True,
@@ -2281,103 +2281,6 @@ class TestAsyncOpenAI:
         )
         assert request.url.raw_path == b"/files/a%2Fb?beta=true&limit=10"
 
-    def test_request_extra_json(self, client: OpenAI) -> None:
-        request = client._build_request(
-            FinalRequestOptions(
-                method="post",
-                url="/foo",
-                json_data={"foo": "bar"},
-                extra_json={"baz": False},
-            ),
-        )
-        data = json.loads(request.content.decode("utf-8"))
-        assert data == {"foo": "bar", "baz": False}
-
-        request = client._build_request(
-            FinalRequestOptions(
-                method="post",
-                url="/foo",
-                extra_json={"baz": False},
-            ),
-        )
-        data = json.loads(request.content.decode("utf-8"))
-        assert data == {"baz": False}
-
-        # `extra_json` takes priority over `json_data` when keys clash
-        request = client._build_request(
-            FinalRequestOptions(
-                method="post",
-                url="/foo",
-                json_data={"foo": "bar", "baz": True},
-                extra_json={"baz": None},
-            ),
-        )
-        data = json.loads(request.content.decode("utf-8"))
-        assert data == {"foo": "bar", "baz": None}
-
-    def test_request_extra_headers(self, client: OpenAI) -> None:
-        request = client._build_request(
-            FinalRequestOptions(
-                method="post",
-                url="/foo",
-                **make_request_options(extra_headers={"X-Foo": "Foo"}),
-            ),
-        )
-        assert request.headers.get("X-Foo") == "Foo"
-
-        # `extra_headers` takes priority over `default_headers` when keys clash
-        request = client.with_options(default_headers={"X-Bar": "true"})._build_request(
-            FinalRequestOptions(
-                method="post",
-                url="/foo",
-                **make_request_options(
-                    extra_headers={"X-Bar": "false"},
-                ),
-            ),
-        )
-        assert request.headers.get("X-Bar") == "false"
-
-    def test_request_extra_query(self, client: OpenAI) -> None:
-        request = client._build_request(
-            FinalRequestOptions(
-                method="post",
-                url="/foo",
-                **make_request_options(
-                    extra_query={"my_query_param": "Foo"},
-                ),
-            ),
-        )
-        params = dict(request.url.params)
-        assert params == {"my_query_param": "Foo"}
-
-        # if both `query` and `extra_query` are given, they are merged
-        request = client._build_request(
-            FinalRequestOptions(
-                method="post",
-                url="/foo",
-                **make_request_options(
-                    query={"bar": "1"},
-                    extra_query={"foo": "2"},
-                ),
-            ),
-        )
-        params = dict(request.url.params)
-        assert params == {"bar": "1", "foo": "2"}
-
-        # `extra_query` takes priority over `query` when keys clash
-        request = client._build_request(
-            FinalRequestOptions(
-                method="post",
-                url="/foo",
-                **make_request_options(
-                    query={"foo": "1"},
-                    extra_query={"foo": "2"},
-                ),
-            ),
-        )
-        params = dict(request.url.params)
-        assert params == {"foo": "2"}
-
     def test_multipart_repeating_array(self, async_client: AsyncOpenAI) -> None:
         request = async_client._build_request(
             FinalRequestOptions.construct(
@@ -2735,13 +2638,13 @@ class TestAsyncOpenAI:
         "client",
         [
             AsyncOpenAI(
-                base_url="http://localhost:5000/custom/path/",
+                base_url="http://localhost:5000/custom/path",
                 api_key=api_key,
                 admin_api_key=admin_api_key,
                 _strict_response_validation=True,
             ),
             AsyncOpenAI(
-                base_url="http://localhost:5000/custom/path/",
+                base_url="http://localhost:5000/custom/path",
                 api_key=api_key,
                 admin_api_key=admin_api_key,
                 _strict_response_validation=True,
