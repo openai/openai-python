@@ -260,9 +260,16 @@ class OpenAI(SyncAPIClient):
     def _websocket_query_params_fallback(self, url: httpx2.URL, extra_query: Query) -> httpx2.QueryParams:
         # Remove replaced logical defaults before encoding nested query values.
         overridden = dict.fromkeys(extra_query, omit)
+        overridden_prefixes = tuple(f"{key}[" for key in overridden)
         defaults = _merge_mappings(self.default_query, overridden)
         params = httpx2.QueryParams(self.qs.stringify(cast(Any, defaults))).merge(url.params)
-        params = httpx2.QueryParams([(key, value) for key, value in params.multi_items() if key not in overridden])
+        params = httpx2.QueryParams(
+            [
+                (key, value)
+                for key, value in params.multi_items()
+                if key not in overridden and not key.startswith(overridden_prefixes)
+            ]
+        )
         if isinstance(extra_query, httpx2.QueryParams):
             return params.merge(extra_query)
         # Per-call None and sequences retain blank values and repeated keys;
@@ -780,9 +787,16 @@ class AsyncOpenAI(AsyncAPIClient):
     def _websocket_query_params_fallback(self, url: httpx2.URL, extra_query: Query) -> httpx2.QueryParams:
         # Remove replaced logical defaults before encoding nested query values.
         overridden = dict.fromkeys(extra_query, omit)
+        overridden_prefixes = tuple(f"{key}[" for key in overridden)
         defaults = _merge_mappings(self.default_query, overridden)
         params = httpx2.QueryParams(self.qs.stringify(cast(Any, defaults))).merge(url.params)
-        params = httpx2.QueryParams([(key, value) for key, value in params.multi_items() if key not in overridden])
+        params = httpx2.QueryParams(
+            [
+                (key, value)
+                for key, value in params.multi_items()
+                if key not in overridden and not key.startswith(overridden_prefixes)
+            ]
+        )
         if isinstance(extra_query, httpx2.QueryParams):
             return params.merge(extra_query)
         # Per-call None and sequences retain blank values and repeated keys;

@@ -11,7 +11,7 @@ const github = {
           throw Object.assign(new Error('Workflow run lookup failed'), {
             status: data.run_errors[run_id],
           });
-        return { data: data.runs_by_id?.[run_id] || data.run };
+        return { data: data.runs_by_id?.[run_id] || data.run || data.context?.payload?.workflow_run };
       },
       getWorkflow: async ({ workflow_id }) => ({
         data: {
@@ -41,7 +41,9 @@ const github = {
               ? data.merge_sha
               : ref === 'heads/main' && (data.main_sha_sequence?.length || data.main_sha)
                 ? data.main_sha_sequence?.shift() || data.main_sha
-                : data.current.base.sha,
+                : ref === 'heads/next' && (data.target_sha_sequence?.length || data.target_sha)
+                  ? data.target_sha_sequence?.shift() || data.target_sha
+                  : data.current.base.sha,
           },
         },
       }),
@@ -90,6 +92,7 @@ const github = {
     if (_query.includes('reviews(first:100')) {
       const page = data.review_pages?.shift();
       if (page && page.expected_cursor !== cursor) throw new Error('Wrong review cursor');
+      if (page?.after_read) Object.assign(data, page.after_read);
       return {
         repository: {
           pullRequest: {
@@ -122,7 +125,7 @@ const github = {
     if (method === 'workflow-runs') return data.runs_by_sha?.[params.head_sha] || [];
     if (method === 'reviews') return data.reviews_by_number?.[params.pull_number] || data.reviews || [];
     if (method === 'statuses') return data.statuses_by_sha?.[params.ref] || data.previous_statuses || [];
-    if (method === 'comments') return data.comments || [];
+    if (method === 'comments') return data.comments_by_number?.[params.issue_number] || data.comments || [];
     if (method === 'associations') return data.associated_pulls || [];
     if (method === 'pulls' && params.head === 'contributor:sdk' && params.state === 'open') {
       return data.fallback_pulls || [];
@@ -155,6 +158,8 @@ const exec = {
     }
     if (data.policy_error_sequence?.shift() || data.policy_error)
       throw new Error('Trusted policy evaluation failed');
+    const expectedBase = data.expected_policy_bases?.shift() || data.expected_policy_base;
+    if (expectedBase && args[8] !== expectedBase) throw new Error('Evaluated stale target policy');
     return {
       stdout: JSON.stringify({
         requires_human: data.requires_human_by_main?.[args[12]] ?? data.requires_human ?? true,
