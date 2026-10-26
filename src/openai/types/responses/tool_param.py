@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import Dict, List, Union, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
-from ..chat import ChatCompletionFunctionToolParam
 from ..._types import SequenceNotStr
 from .custom_tool_param import CustomToolParam
 from .computer_tool_param import ComputerToolParam
@@ -25,6 +24,7 @@ from .web_search_preview_tool_param import WebSearchPreviewToolParam
 from .computer_use_preview_tool_param import ComputerUsePreviewToolParam
 from .container_network_policy_disabled_param import ContainerNetworkPolicyDisabledParam
 from .container_network_policy_allowlist_param import ContainerNetworkPolicyAllowlistParam
+from ..chat.chat_completion_function_tool_param import ChatCompletionFunctionToolParam
 
 __all__ = [
     "ToolParam",
@@ -314,11 +314,14 @@ class ImageGeneration(TypedDict, total=False):
     ]
     """The image generation model to use.
 
-    One of `gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+    One of `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
     `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
     `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`,
     `gpt-image-2.5-flare-2026-09-08`, or `chatgpt-image-latest`. Default:
-    `gpt-image-1`.
+    `gpt-image-2`.
+
+    `gpt-image-1` was shut down on October 23, 2026. Use `gpt-image-2.5-sunburst` or
+    `gpt-image-2.5-flare` instead.
     """
 
     moderation: Literal["auto", "low"]
@@ -391,6 +394,7 @@ ToolParam: TypeAlias = Union[
 
 
 ParseableToolParam: TypeAlias = Union[ToolParam, ChatCompletionFunctionToolParam]
+
 WebSearchTool: TypeAlias = _compat_WebSearchTool
 
 WebSearchToolFilters: TypeAlias = _compat_WebSearchToolFilters

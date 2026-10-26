@@ -18,14 +18,11 @@ class Delegation(BaseModel):
     """The unique ID of the delegation.
 
     Use this as delegation_id when replying to client-owned work or correlating
-    Responses events.
+    backend events.
     """
 
-    target: Literal["client", "responses"]
-    """
-    Where the Live model delegated the work: `client` for your application, or
-    `responses` for the configured Responses backend.
-    """
+    target: Literal["client", "responses", "decisions"]
+    """Where the Live model delegated the work: `client`, `responses`, or `decisions`."""
 
     type: Literal["delegation"]
     """The object type, always `delegation`."""
@@ -39,7 +36,7 @@ class Delegation(BaseModel):
 
 class DelegationCreatedEvent(BaseModel):
     """
-    Returned when the Live model delegates work to your application or a Responses backend. Contains delegation metadata and the position on the session timeline where the work was delegated.
+    Returned when the Live model delegates work to your application, Responses, or Decisions. Contains delegation metadata and the position on the session timeline where the work was delegated.
     """
 
     delegation: Delegation

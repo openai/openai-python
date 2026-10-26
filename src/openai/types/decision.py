@@ -112,6 +112,8 @@ class UsageOutputTokensDetails(BaseModel):
 
 
 class Usage(BaseModel):
+    """Token usage for the request."""
+
     input_tokens: int
 
     input_tokens_details: UsageInputTokensDetails
@@ -125,7 +127,15 @@ class Usage(BaseModel):
 
 class Decision(BaseModel):
     answers: List[Answer]
+    """Answers in question order.
+
+    Any question can return a refusal instead of an answer; other questions can
+    still receive answers. A refusal has `type: "refusal"` and the question's
+    `name`, or `null` if it was unnamed.
+    """
 
     model: str
+    """The model used."""
 
     usage: Usage
+    """Token usage for the request."""

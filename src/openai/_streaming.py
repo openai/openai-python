@@ -13,6 +13,7 @@ import httpx2
 from ._utils import is_mapping, extract_type_var_from_base
 from ._httpx2 import request_exceptions, timeout_exceptions
 from ._exceptions import APIError, APITimeoutError, APIConnectionError
+from ._streaming_cleanup import drain_response_async
 
 if TYPE_CHECKING:
     from ._client import OpenAI, AsyncOpenAI
@@ -183,6 +184,11 @@ class AsyncStream(Generic[_T]):
         try:
             async for sse in iterator:
                 if sse.data.startswith("[DONE]"):
+                    # HTTP/1.1 needs the remaining body consumed for connection reuse.
+                    # HTTP/2 can close this stream and keep the connection, so draining
+                    # it would add unnecessary latency after [DONE].
+                    if response.http_version == "HTTP/1.1":
+                        await drain_response_async(response)
                     break
 
                 # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data

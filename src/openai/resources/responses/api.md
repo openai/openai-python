@@ -50,7 +50,6 @@ from openai.types.responses import (
     ResponseConfigurationUpdateItem,
     ResponseConfigurationUpdateItemParam,
     ResponseContainerReference,
-    ResponseContent,
     ResponseContentPartAddedEvent,
     ResponseContentPartDoneEvent,
     ResponseConversationParam,
@@ -110,7 +109,6 @@ from openai.types.responses import (
     ResponseMcpListToolsCompletedEvent,
     ResponseMcpListToolsFailedEvent,
     ResponseMcpListToolsInProgressEvent,
-    ResponseOutputAudio,
     ResponseOutputItem,
     ResponseOutputItemAddedEvent,
     ResponseOutputItemDoneEvent,
@@ -182,6 +180,8 @@ Methods:
 - <code title="delete /responses/{response_id}">client.responses.<a href="./src/openai/resources/responses/responses.py">delete</a>(response_id) -> None</code>
 - <code title="post /responses/{response_id}/cancel">client.responses.<a href="./src/openai/resources/responses/responses.py">cancel</a>(response_id) -> <a href="./src/openai/types/responses/response.py">Response</a></code>
 - <code title="post /responses/compact">client.responses.<a href="./src/openai/resources/responses/responses.py">compact</a>(\*\*<a href="src/openai/types/responses/response_compact_params.py">params</a>) -> <a href="./src/openai/types/responses/compacted_response.py">CompactedResponse</a></code>
+- <code>client.responses.<a href="responses.py">parse</a>(\*, text_format=..., access_programs=..., background=..., context_management=..., conversation=..., include=..., input=..., instructions=..., max_output_tokens=..., max_tool_calls=..., metadata=..., model=..., moderation=..., parallel_tool_calls=..., previous_response_id=..., prompt=..., prompt_cache_key=..., prompt_cache_options=..., prompt_cache_retention=..., reasoning=..., safety_identifier=..., service_tier=..., store=..., stream=..., stream_options=..., temperature=..., text=..., tool_choice=..., tools=..., top_logprobs=..., top_p=..., truncation=..., user=..., verbosity=..., extra_headers=..., extra_query=..., extra_body=..., timeout=...) -> ParsedResponse[TextFormatT]</code>
+- <code>client.responses.<a href="responses.py">stream</a>(\*, response_id=..., input=..., model=..., access_programs=..., background=..., context_management=..., text_format=..., tools=..., conversation=..., include=..., instructions=..., max_output_tokens=..., max_tool_calls=..., metadata=..., parallel_tool_calls=..., moderation=..., previous_response_id=..., prompt=..., prompt_cache_key=..., prompt_cache_options=..., prompt_cache_retention=..., reasoning=..., safety_identifier=..., service_tier=..., store=..., stream_options=..., temperature=..., text=..., tool_choice=..., top_logprobs=..., top_p=..., truncation=..., user=..., starting_after=..., extra_headers=..., extra_query=..., extra_body=..., timeout=...) -> ResponseStreamManager[TextFormatT]</code>
 
 ## InputItems
 

@@ -74,7 +74,17 @@ class TestAPIKeys:
         api_key = client.admin.organization.projects.api_keys.update(
             api_key_id="api_key_id",
             project_id="project_id",
+            scopes=["api.all.read"],
+        )
+        assert_matches_type(ProjectAPIKey, api_key, path=["response"])
+
+    @parametrize
+    def test_method_update_with_all_params(self, client: OpenAI) -> None:
+        api_key = client.admin.organization.projects.api_keys.update(
+            api_key_id="api_key_id",
+            project_id="project_id",
             expires_in_seconds=1,
+            scopes=["api.all.read"],
         )
         assert_matches_type(ProjectAPIKey, api_key, path=["response"])
 
@@ -83,7 +93,7 @@ class TestAPIKeys:
         response = client.admin.organization.projects.api_keys.with_raw_response.update(
             api_key_id="api_key_id",
             project_id="project_id",
-            expires_in_seconds=1,
+            scopes=["api.all.read"],
         )
 
         assert response.is_closed is True
@@ -96,7 +106,7 @@ class TestAPIKeys:
         with client.admin.organization.projects.api_keys.with_streaming_response.update(
             api_key_id="api_key_id",
             project_id="project_id",
-            expires_in_seconds=1,
+            scopes=["api.all.read"],
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -112,14 +122,14 @@ class TestAPIKeys:
             client.admin.organization.projects.api_keys.with_raw_response.update(
                 api_key_id="api_key_id",
                 project_id="",
-                expires_in_seconds=1,
+                scopes=["api.all.read"],
             )
 
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `api_key_id` but received ''"):
             client.admin.organization.projects.api_keys.with_raw_response.update(
                 api_key_id="",
                 project_id="project_id",
-                expires_in_seconds=1,
+                scopes=["api.all.read"],
             )
 
     @parametrize
@@ -277,7 +287,17 @@ class TestAsyncAPIKeys:
         api_key = await async_client.admin.organization.projects.api_keys.update(
             api_key_id="api_key_id",
             project_id="project_id",
+            scopes=["api.all.read"],
+        )
+        assert_matches_type(ProjectAPIKey, api_key, path=["response"])
+
+    @parametrize
+    async def test_method_update_with_all_params(self, async_client: AsyncOpenAI) -> None:
+        api_key = await async_client.admin.organization.projects.api_keys.update(
+            api_key_id="api_key_id",
+            project_id="project_id",
             expires_in_seconds=1,
+            scopes=["api.all.read"],
         )
         assert_matches_type(ProjectAPIKey, api_key, path=["response"])
 
@@ -286,7 +306,7 @@ class TestAsyncAPIKeys:
         response = await async_client.admin.organization.projects.api_keys.with_raw_response.update(
             api_key_id="api_key_id",
             project_id="project_id",
-            expires_in_seconds=1,
+            scopes=["api.all.read"],
         )
 
         assert response.is_closed is True
@@ -299,7 +319,7 @@ class TestAsyncAPIKeys:
         async with async_client.admin.organization.projects.api_keys.with_streaming_response.update(
             api_key_id="api_key_id",
             project_id="project_id",
-            expires_in_seconds=1,
+            scopes=["api.all.read"],
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -315,14 +335,14 @@ class TestAsyncAPIKeys:
             await async_client.admin.organization.projects.api_keys.with_raw_response.update(
                 api_key_id="api_key_id",
                 project_id="",
-                expires_in_seconds=1,
+                scopes=["api.all.read"],
             )
 
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `api_key_id` but received ''"):
             await async_client.admin.organization.projects.api_keys.with_raw_response.update(
                 api_key_id="",
                 project_id="project_id",
-                expires_in_seconds=1,
+                scopes=["api.all.read"],
             )
 
     @parametrize

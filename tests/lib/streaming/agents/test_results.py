@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from typing import Any, Iterator, cast
 from typing_extensions import override
 
@@ -145,6 +146,42 @@ async def test_empty_success(sdk: OpenAI | AsyncOpenAI, creation: bool) -> None:
     result = await collect(sdk, creation)
     assert result.output_text == ""
     assert result.messages == []
+
+
+async def test_result_schema_warning(sdk: OpenAI | AsyncOpenAI, server: ResultServer, creation: bool) -> None:
+    sdk._strict_response_validation = False
+    event = message()
+    event["item"]["content"][0]["text"] = ["synthetic-answer"]
+
+    def reset() -> None:
+        server.body = EventBody([turn_event("created"), event, turn_event("completed"), idle()])
+
+    reset()
+    with pytest.warns(
+        UserWarning, match=r"^Unexpected response type at content\[0\]\.text: expected a string\.$"
+    ) as captured:
+        result = await collect(sdk, creation)
+    assert len(captured) == 1
+    warning = captured[0].message
+    assert "synthetic-answer" not in str(warning)
+    content = result.messages[0].content[0]
+    assert content.type == "output_text"
+    assert content.text == ["synthetic-answer"]
+
+    reset()
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", UserWarning)
+        with pytest.raises(AgentTurnResultError) as exc:
+            await collect(sdk, creation)
+    assert isinstance(exc.value.__cause__, UserWarning)
+    assert exc.value.__cause__.__context__ is None
+
+    event["item"]["content"][0]["text"] = "synthetic-answer"
+    reset()
+    with warnings.catch_warnings(record=True) as captured_valid:
+        warnings.simplefilter("always")
+        assert (await collect(sdk, creation)).output_text == "synthetic-answer"
+    assert not captured_valid
 
 
 @pytest.mark.parametrize("status", ["failed", "cancelled"])

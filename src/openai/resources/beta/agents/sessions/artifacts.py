@@ -32,10 +32,6 @@ __all__ = ["Artifacts", "AsyncArtifacts"]
 
 
 class Artifacts(SyncAPIResource):
-    def for_result(self, result: AgentTurnResult) -> AgentResultArtifacts:
-        """Beta: download artifacts scoped to the exact completed result turn."""
-        return AgentResultArtifacts(self, result)
-
     @cached_property
     def with_raw_response(self) -> ArtifactsWithRawResponse:
         """
@@ -54,6 +50,16 @@ class Artifacts(SyncAPIResource):
         For more information, see https://www.github.com/openai/openai-python#with_streaming_response
         """
         return ArtifactsWithStreamingResponse(self)
+
+    def for_result(
+        self,
+        result: AgentTurnResult,
+    ) -> AgentResultArtifacts:
+        """Beta: download artifacts scoped to the exact completed result turn."""
+        return AgentResultArtifacts(
+            self,
+            result,
+        )
 
     def retrieve(
         self,
@@ -260,10 +266,6 @@ class Artifacts(SyncAPIResource):
 
 
 class AsyncArtifacts(AsyncAPIResource):
-    def for_result(self, result: AgentTurnResult) -> AsyncAgentResultArtifacts:
-        """Beta: download artifacts scoped to the exact completed result turn."""
-        return AsyncAgentResultArtifacts(self, result)
-
     @cached_property
     def with_raw_response(self) -> AsyncArtifactsWithRawResponse:
         """
@@ -282,6 +284,16 @@ class AsyncArtifacts(AsyncAPIResource):
         For more information, see https://www.github.com/openai/openai-python#with_streaming_response
         """
         return AsyncArtifactsWithStreamingResponse(self)
+
+    def for_result(
+        self,
+        result: AgentTurnResult,
+    ) -> AsyncAgentResultArtifacts:
+        """Beta: download artifacts scoped to the exact completed result turn."""
+        return AsyncAgentResultArtifacts(
+            self,
+            result,
+        )
 
     async def retrieve(
         self,

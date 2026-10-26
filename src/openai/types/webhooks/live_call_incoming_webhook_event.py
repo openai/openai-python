@@ -1,7 +1,7 @@
 # File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import List, Union, Optional
-from typing_extensions import Literal, deprecated
+from typing_extensions import Literal
 
 from ..._models import BaseModel
 
@@ -44,7 +44,6 @@ class Data(BaseModel):
     """
 
 
-@deprecated("Use LiveTransportIncomingWebhookEvent (live.transport.incoming) instead.", category=None)
 class LiveCallIncomingWebhookEvent(BaseModel):
     """Deprecated: use `live.transport.incoming`.
 

@@ -17,6 +17,7 @@ __all__ = [
     "AgentToolConfigParamWebSearch",
     "AgentToolConfigParamWebSearchLocation",
     "AgentToolConfigParamComputerUse",
+    "AgentToolConfigParamAutomations",
 ]
 
 
@@ -150,6 +151,13 @@ class AgentToolConfigParamComputerUse(TypedDict, total=False):
     """Whether computer tool outputs include screenshots. Defaults to `false`."""
 
 
+class AgentToolConfigParamAutomations(TypedDict, total=False):
+    """Lets the agent manage its own scheduled wakeups."""
+
+    type: Required[Literal["automations"]]
+    """The type of the object. Always `automations`."""
+
+
 AgentToolParam: TypeAlias = Union[
     AgentToolConfigParamFunction,
     AgentToolConfigParamToolSearch,
@@ -157,4 +165,5 @@ AgentToolParam: TypeAlias = Union[
     AgentToolConfigParamMcp,
     AgentToolConfigParamWebSearch,
     AgentToolConfigParamComputerUse,
+    AgentToolConfigParamAutomations,
 ]

@@ -11,6 +11,9 @@ import pytest
 from openai import OpenAI, AsyncOpenAI
 from openai._exceptions import WebSocketQueueFullError
 from openai._send_queue import SendQueue
+from openai.resources.live.live import LiveConnection
+from openai.resources.live.forks import ForksConnection
+from openai.resources.live.sideband import SidebandConnection
 from openai.resources.realtime.realtime import RealtimeConnection, AsyncRealtimeConnection
 from openai.resources.responses.responses import ResponsesConnection, AsyncResponsesConnection
 from openai.resources.beta.responses.responses import (
@@ -19,6 +22,30 @@ from openai.resources.beta.responses.responses import (
 )
 
 from .lib.test_websocket_redirects import options, resource, reconnect, unexpected_http, async_http_client
+
+
+@pytest.mark.parametrize(
+    "connection_type",
+    [
+        ResponsesConnection,
+        RealtimeConnection,
+        LiveConnection,
+        ForksConnection,
+        SidebandConnection,
+        BetaResponsesConnection,
+    ],
+)
+def test_close_during_replacement_retires_the_new_socket(connection_type: type[Any]) -> None:
+    original, replacement = MagicMock(), MagicMock()
+
+    def open_replacement(*_args: Any) -> MagicMock:
+        connection.close()
+        return replacement
+
+    connection = connection_type(original, make_ws=open_replacement, on_reconnecting=reconnect, initial_delay=0)
+    assert not connection._reconnect(RuntimeError("fake disconnect"))
+    original.close.assert_called_once_with(code=1000, reason="")
+    replacement.close.assert_called_once_with()
 
 
 @pytest.mark.parametrize("name", ["realtime", "responses", "beta.responses"])

@@ -77,6 +77,21 @@ from openai.types.realtime import (
     RealtimeTranscriptionSessionAudioInput,
     RealtimeTranscriptionSessionAudioInputTurnDetection,
     RealtimeTranscriptionSessionCreateRequest,
+    RealtimeTranslationClientEvent,
+    RealtimeTranslationClientSecretCreateResponse,
+    RealtimeTranslationInputAudioBufferAppendEvent,
+    RealtimeTranslationInputTranscriptDeltaEvent,
+    RealtimeTranslationOutputAudioDeltaEvent,
+    RealtimeTranslationOutputTranscriptDeltaEvent,
+    RealtimeTranslationServerEvent,
+    RealtimeTranslationSession,
+    RealtimeTranslationSessionCloseEvent,
+    RealtimeTranslationSessionClosedEvent,
+    RealtimeTranslationSessionCreateRequestParam,
+    RealtimeTranslationSessionCreatedEvent,
+    RealtimeTranslationSessionUpdateEvent,
+    RealtimeTranslationSessionUpdateRequest,
+    RealtimeTranslationSessionUpdatedEvent,
     RealtimeTruncation,
     RealtimeTruncationRetentionRatio,
     ResponseAudioDeltaEvent,
@@ -134,6 +149,13 @@ Methods:
 - <code title="post /realtime/calls/{call_id}/reject">client.realtime.calls.<a href="./src/openai/resources/realtime/calls.py">reject</a>(call_id, \*\*<a href="src/openai/types/realtime/call_reject_params.py">params</a>) -> None</code>
 
 ## Translations
+
+Types:
+
+```python
+from openai.types.realtime import ConnectClientEventParam
+```
+
 
 ### ClientSecrets
 

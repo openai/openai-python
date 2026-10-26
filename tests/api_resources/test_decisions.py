@@ -24,7 +24,7 @@ class TestDecisions:
             model="model",
             questions=[
                 {
-                    "instructions": "instructions",
+                    "instructions": "string",
                     "type": "predicate",
                 }
             ],
@@ -38,11 +38,16 @@ class TestDecisions:
             model="model",
             questions=[
                 {
-                    "instructions": "instructions",
+                    "instructions": "string",
                     "type": "predicate",
                     "name": "name",
                 }
             ],
+            prompt_cache_key="prompt_cache_key",
+            prompt_cache_options={
+                "mode": "implicit",
+                "ttl": "30m",
+            },
             safety_identifier="safety_identifier",
         )
         assert_matches_type(Decision, decision, path=["response"])
@@ -54,7 +59,7 @@ class TestDecisions:
             model="model",
             questions=[
                 {
-                    "instructions": "instructions",
+                    "instructions": "string",
                     "type": "predicate",
                 }
             ],
@@ -72,7 +77,7 @@ class TestDecisions:
             model="model",
             questions=[
                 {
-                    "instructions": "instructions",
+                    "instructions": "string",
                     "type": "predicate",
                 }
             ],
@@ -98,7 +103,7 @@ class TestAsyncDecisions:
             model="model",
             questions=[
                 {
-                    "instructions": "instructions",
+                    "instructions": "string",
                     "type": "predicate",
                 }
             ],
@@ -112,11 +117,16 @@ class TestAsyncDecisions:
             model="model",
             questions=[
                 {
-                    "instructions": "instructions",
+                    "instructions": "string",
                     "type": "predicate",
                     "name": "name",
                 }
             ],
+            prompt_cache_key="prompt_cache_key",
+            prompt_cache_options={
+                "mode": "implicit",
+                "ttl": "30m",
+            },
             safety_identifier="safety_identifier",
         )
         assert_matches_type(Decision, decision, path=["response"])
@@ -128,7 +138,7 @@ class TestAsyncDecisions:
             model="model",
             questions=[
                 {
-                    "instructions": "instructions",
+                    "instructions": "string",
                     "type": "predicate",
                 }
             ],
@@ -146,7 +156,7 @@ class TestAsyncDecisions:
             model="model",
             questions=[
                 {
-                    "instructions": "instructions",
+                    "instructions": "string",
                     "type": "predicate",
                 }
             ],

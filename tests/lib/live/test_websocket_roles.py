@@ -18,6 +18,7 @@ from openai.types.live import (
     SessionStartedEvent,
     SessionUpdatedEvent,
     OutputTranscriptDeltaEvent,
+    OutputAudioFixturePlayEventParam,
 )
 from openai._exceptions import WebSocketQueueFullError
 from openai.resources.live.live import LiveConnection, AsyncLiveConnection
@@ -32,6 +33,33 @@ from ..responses.test_websocket_session import script_server
 def bypass_loopback_proxy(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("NO_PROXY", "127.0.0.1")
     monkeypatch.setenv("no_proxy", "127.0.0.1")
+
+
+@pytest.mark.parametrize("client_type", [OpenAI, AsyncOpenAI])
+async def test_default_live_queue_accepts_a_full_size_audio_fixture(
+    client_type: type[OpenAI] | type[AsyncOpenAI],
+) -> None:
+    fixture: OutputAudioFixturePlayEventParam = {
+        "type": "session.output_audio.fixture.play",
+        "audio": "A" * (30 * 24_000 * 2 * 4 // 3),
+    }
+    client = (
+        OpenAI(api_key="fake-live-key", http_client=httpx2.Client(trust_env=False))
+        if client_type is OpenAI
+        else AsyncOpenAI(api_key="fake-live-key", http_client=httpx2.AsyncClient(trust_env=False))
+    )
+    try:
+        for manager in (
+            client.live.connect(),
+            client.live.forks.connect(session_id="stored"),
+            client.live.sideband.connect(session_id="stored"),
+        ):
+            manager.send(fixture)
+    finally:
+        if isinstance(client, AsyncOpenAI):
+            await client.close()
+        else:
+            client.close()
 
 
 @pytest.mark.parametrize("role", ["primary", "fork", "sideband"])

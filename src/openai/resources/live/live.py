@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import json
-import time
-import random
 import logging
 from types import TracebackType
 from typing import TYPE_CHECKING, Any, Union, Callable, Iterator, Optional, Awaitable, cast
@@ -30,19 +28,21 @@ from ..._compat import cached_property
 from ..._models import FinalRequestOptions, construct_type_unchecked
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
-from ...types.live import live_create_params
+from ..._constants import DEFAULT_LIVE_SEND_QUEUE_MAX_BYTES
+from ...types.live import live_create_params, decision_item_create_event_param
 from ..._exceptions import OpenAIError, WebSocketConnectionClosedError
 from ..._send_queue import SendQueue
 from ..._base_client import _merge_mappings, make_request_options
 from ..._event_handler import EventHandlerRegistry
+from ..._websocket_connection import WebSocketConnectionBase, AsyncWebSocketConnectionBase
 from ...types.live.error_event import ErrorEvent
 from ...types.live.client_event import ClientEvent
 from ...types.live.server_event import ServerEvent
-from ...types.websocket_reconnection import ReconnectingEvent, ReconnectingOverrides, is_recoverable_close
+from ...types.websocket_reconnection import ReconnectingEvent, ReconnectingOverrides
 from ...types.live.client_event_param import ClientEventParam
 from ...types.live.live_create_response import LiveCreateResponse
 from ...types.live.session_config_param import SessionConfigParam
-from ...types.websocket_connection_options import WebSocketConnectionOptions
+from ...types.websocket_connection_options import WebSocketConnectionOptions, SyncWebSocketConnectionOptions
 from ...types.live.media_session_config_param import MediaSessionConfigParam
 from ...types.live.session_update_config_param import SessionUpdateConfigParam
 from ...types.responses.response_input_item_param import ResponseInputItemParam
@@ -143,12 +143,12 @@ class Live(SyncAPIResource):
         self,
         extra_query: Query = {},
         extra_headers: Headers = {},
-        websocket_connection_options: WebSocketConnectionOptions = {},
+        websocket_connection_options: SyncWebSocketConnectionOptions = {},
         on_reconnecting: Callable[[ReconnectingEvent], ReconnectingOverrides | None] | None = None,
         max_retries: int = 5,
         initial_delay: float = 0.5,
         max_delay: float = 8.0,
-        max_queue_size: int = 1_048_576,
+        max_queue_size: int = DEFAULT_LIVE_SEND_QUEUE_MAX_BYTES,
     ) -> LiveConnectionManager:
         """Connect to Live without query parameters.
 
@@ -257,7 +257,7 @@ class AsyncLive(AsyncAPIResource):
         max_retries: int = 5,
         initial_delay: float = 0.5,
         max_delay: float = 8.0,
-        max_queue_size: int = 1_048_576,
+        max_queue_size: int = DEFAULT_LIVE_SEND_QUEUE_MAX_BYTES,
     ) -> AsyncLiveConnectionManager:
         """Connect to Live without query parameters.
 
@@ -328,10 +328,11 @@ class AsyncLiveWithStreamingResponse:
         return AsyncSessionsWithStreamingResponse(self._live.sessions)
 
 
-class AsyncLiveConnection:
+class AsyncLiveConnection(AsyncWebSocketConnectionBase):
     """Represents a live WebSocket connection to the Live API"""
 
     session: AsyncLiveSessionResource
+    decision: AsyncLiveDecisionResource
     response: AsyncLiveResponseResource
 
     _connection: AsyncWebSocketConnection
@@ -349,21 +350,22 @@ class AsyncLiveConnection:
         extra_headers: Headers = {},
         send_queue: SendQueue | None = None,
     ) -> None:
-        self._connection = connection
-        self._make_ws = make_ws
-        self._on_reconnecting = on_reconnecting
-        self._max_retries = max_retries
-        self._reconnect_attempt = 0
-        self._initial_delay = initial_delay
-        self._max_delay = max_delay
-        self._extra_query = extra_query
-        self._extra_headers = extra_headers
-        self._intentionally_closed = False
-        self._is_reconnecting = False
-        self._send_queue = send_queue if send_queue is not None else SendQueue()
+        super().__init__(
+            connection,
+            make_ws=make_ws,
+            on_reconnecting=on_reconnecting,
+            max_retries=max_retries,
+            initial_delay=initial_delay,
+            max_delay=max_delay,
+            extra_query=extra_query,
+            extra_headers=extra_headers,
+            send_queue=send_queue if send_queue is not None else SendQueue(max_bytes=DEFAULT_LIVE_SEND_QUEUE_MAX_BYTES),
+            logger=log,
+        )
         self._event_handler_registry = EventHandlerRegistry(use_lock=False)
 
         self.session = AsyncLiveSessionResource(self)
+        self.decision = AsyncLiveDecisionResource(self)
         self.response = AsyncLiveResponseResource(self)
 
     async def __aiter__(self) -> AsyncIterator[ServerEvent]:
@@ -438,17 +440,6 @@ class AsyncLiveConnection:
             return
         await self._connection.send(data)
 
-    async def send_raw(self, data: bytes | str) -> None:
-        if self._is_reconnecting:
-            raw = data if isinstance(data, str) else data.decode("utf-8")
-            self._send_queue.enqueue(raw)
-            return
-        await self._connection.send(data)
-
-    async def close(self, *, code: int = 1000, reason: str = "") -> None:
-        self._intentionally_closed = True
-        await self._connection.close(code=code, reason=reason)
-
     def parse_event(self, data: str | bytes) -> ServerEvent:
         """
         Converts a raw `str` or `bytes` message into a `ServerEvent` object.
@@ -456,94 +447,6 @@ class AsyncLiveConnection:
         This is helpful if you're using `.recv_bytes()`.
         """
         return cast(ServerEvent, construct_type_unchecked(value=json.loads(data), type_=cast(Any, ServerEvent)))
-
-    async def _reconnect(self, exc: Exception) -> bool:
-        """Attempt to reconnect after a connection failure.
-
-        Returns ``True`` if a new connection was established, ``False`` if the
-        caller should re-raise the original exception.
-        """
-        import asyncio
-
-        if self._on_reconnecting is None or self._make_ws is None:
-            return False
-
-        from websockets.exceptions import ConnectionClosedError
-
-        close_code = 1006
-        if isinstance(exc, ConnectionClosedError) and exc.rcvd is not None:
-            close_code = exc.rcvd.code
-
-        if not is_recoverable_close(close_code):
-            return False
-
-        self._is_reconnecting = True
-
-        for attempt in range(self._reconnect_attempt + 1, self._max_retries + 1):
-            self._reconnect_attempt = attempt
-            base_delay = min(self._initial_delay * (2 ** (attempt - 1)), self._max_delay)
-            jitter = 0.75 + random.random() * 0.25
-            delay = base_delay * jitter
-
-            event = ReconnectingEvent(
-                attempt=attempt,
-                max_attempts=self._max_retries,
-                delay=delay,
-                close_code=close_code,
-                extra_query=self._extra_query,
-                extra_headers=self._extra_headers,
-            )
-
-            try:
-                result = self._on_reconnecting(event)
-            except Exception:
-                self._is_reconnecting = False
-                return False
-
-            if result is not None and result.get("abort"):
-                self._is_reconnecting = False
-                return False
-
-            if result is not None:
-                if "extra_query" in result:
-                    self._extra_query = result["extra_query"]
-                if "extra_headers" in result:
-                    self._extra_headers = result["extra_headers"]
-
-            log.info(
-                "Reconnecting to WebSocket API (attempt %d/%d) after %.1fs delay",
-                attempt,
-                self._max_retries,
-                delay,
-            )
-            await asyncio.sleep(delay)
-
-            if self._intentionally_closed:
-                self._is_reconnecting = False
-                return False
-
-            try:
-                self._connection = await self._make_ws(self._extra_query, self._extra_headers)
-                log.info("Reconnected to WebSocket API")
-                self._is_reconnecting = False
-                await self._flush_send_queue()
-                return True
-            except Exception:
-                pass
-
-        self._is_reconnecting = False
-        return False
-
-    async def _flush_send_queue(self) -> None:
-        """Send all queued messages over the current connection."""
-
-        async def _send(data: str) -> None:
-            await self._connection.send(data)
-
-        try:
-            await self._send_queue.flush_async(_send, requeue_failed=False)
-        except Exception:
-            log.warning("Failed to flush send queue after reconnect")
 
     def on(
         self, event_type: str, handler: Callable[..., Any] | None = None
@@ -657,7 +560,7 @@ class AsyncLiveConnectionManager:
         max_retries: int = 5,
         initial_delay: float = 0.5,
         max_delay: float = 8.0,
-        max_queue_size: int = 1_048_576,
+        max_queue_size: int = DEFAULT_LIVE_SEND_QUEUE_MAX_BYTES,
     ) -> None:
         self.__client = client
         self.__connection: AsyncLiveConnection | None = None
@@ -736,20 +639,29 @@ class AsyncLiveConnectionManager:
         """
         ws = await self._connect_ws(self.__extra_query, self.__extra_headers)
 
-        self.__connection = AsyncLiveConnection(
-            ws,
-            make_ws=self._connect_ws if self.__on_reconnecting is not None else None,
-            on_reconnecting=self.__on_reconnecting,
-            max_retries=self.__max_retries,
-            initial_delay=self.__initial_delay,
-            max_delay=self.__max_delay,
-            extra_query=self.__extra_query,
-            extra_headers=self.__extra_headers,
-            send_queue=self.__send_queue,
-        )
+        try:
+            self.__connection = AsyncLiveConnection(
+                ws,
+                make_ws=self._connect_ws if self.__on_reconnecting is not None else None,
+                on_reconnecting=self.__on_reconnecting,
+                max_retries=self.__max_retries,
+                initial_delay=self.__initial_delay,
+                max_delay=self.__max_delay,
+                extra_query=self.__extra_query,
+                extra_headers=self.__extra_headers,
+                send_queue=self.__send_queue,
+            )
 
-        self.__event_handler_registry.merge_into(self.__connection._event_handler_registry)
-        await self.__connection._flush_send_queue()
+            self.__event_handler_registry.merge_into(self.__connection._event_handler_registry)
+            await self.__connection._flush_send_queue()
+        except BaseException:
+            self.__connection = None
+            try:
+                await ws.close()
+            except BaseException:
+                # Preserve the exception that prevented successful entry.
+                pass
+            raise
 
         return self.__connection
 
@@ -762,10 +674,16 @@ class AsyncLiveConnectionManager:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
         url = self._prepare_url()
+        try:
+            # Older runtimes do not declare this optional helper.
+            query_params = getattr(self.__client, "_websocket_query_params")  # noqa: B009
+        except AttributeError:
+            query_params = self.__client._websocket_query_params_fallback
         url = url.copy_with(
-            params=httpx2.QueryParams(self.__client.qs.stringify(cast(Any, self.__client.default_query)))
-            .merge(url.params)
-            .merge(cast(Any, extra_query)),
+            params=query_params(
+                url,
+                extra_query,
+            ),
         )
         url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
         options = await self.__client._prepare_options(
@@ -794,11 +712,16 @@ class AsyncLiveConnectionManager:
         if self.__websocket_connection_options:
             log.debug("Custom WebSocket connection options provided")
 
+        websocket_options = self.__websocket_connection_options.copy()
+        websocket_options.setdefault("max_size", None)
+        if websocket_options.get("max_size") is None:
+            websocket_options.setdefault("compression", None)
+
         return await connect(
             str(url),
             user_agent_header=None,
             additional_headers=_merge_mappings(dict(headers.values()), {}),
-            **self.__websocket_connection_options,
+            **websocket_options,
         )
 
     def _prepare_url(self) -> httpx2.URL:
@@ -820,10 +743,11 @@ class AsyncLiveConnectionManager:
             await self.__connection.close()
 
 
-class LiveConnection:
+class LiveConnection(WebSocketConnectionBase):
     """Represents a live WebSocket connection to the Live API"""
 
     session: LiveSessionResource
+    decision: LiveDecisionResource
     response: LiveResponseResource
 
     _connection: WebSocketConnection
@@ -841,21 +765,22 @@ class LiveConnection:
         extra_headers: Headers = {},
         send_queue: SendQueue | None = None,
     ) -> None:
-        self._connection = connection
-        self._make_ws = make_ws
-        self._on_reconnecting = on_reconnecting
-        self._max_retries = max_retries
-        self._reconnect_attempt = 0
-        self._initial_delay = initial_delay
-        self._max_delay = max_delay
-        self._extra_query = extra_query
-        self._extra_headers = extra_headers
-        self._intentionally_closed = False
-        self._is_reconnecting = False
-        self._send_queue = send_queue if send_queue is not None else SendQueue()
+        super().__init__(
+            connection,
+            make_ws=make_ws,
+            on_reconnecting=on_reconnecting,
+            max_retries=max_retries,
+            initial_delay=initial_delay,
+            max_delay=max_delay,
+            extra_query=extra_query,
+            extra_headers=extra_headers,
+            send_queue=send_queue if send_queue is not None else SendQueue(max_bytes=DEFAULT_LIVE_SEND_QUEUE_MAX_BYTES),
+            logger=log,
+        )
         self._event_handler_registry = EventHandlerRegistry(use_lock=True)
 
         self.session = LiveSessionResource(self)
+        self.decision = LiveDecisionResource(self)
         self.response = LiveResponseResource(self)
 
     def __iter__(self) -> Iterator[ServerEvent]:
@@ -906,7 +831,9 @@ class LiveConnection:
         If you want to parse the message into a `ServerEvent` object like `.recv()` does,
         then you can call `.parse_event(data)`.
         """
-        message = self._connection.recv(decode=False)
+        from ...lib._websocket import _recv_bytes
+
+        message = _recv_bytes(self._connection)
         log.debug("Received WebSocket message: %i bytes", len(message))
         if self._reconnect_attempt:
             # Account for raw application progress without changing frame delivery.
@@ -930,17 +857,6 @@ class LiveConnection:
             return
         self._connection.send(data)
 
-    def send_raw(self, data: bytes | str) -> None:
-        if self._is_reconnecting:
-            raw = data if isinstance(data, str) else data.decode("utf-8")
-            self._send_queue.enqueue(raw)
-            return
-        self._connection.send(data)
-
-    def close(self, *, code: int = 1000, reason: str = "") -> None:
-        self._intentionally_closed = True
-        self._connection.close(code=code, reason=reason)
-
     def parse_event(self, data: str | bytes) -> ServerEvent:
         """
         Converts a raw `str` or `bytes` message into a `ServerEvent` object.
@@ -948,88 +864,6 @@ class LiveConnection:
         This is helpful if you're using `.recv_bytes()`.
         """
         return cast(ServerEvent, construct_type_unchecked(value=json.loads(data), type_=cast(Any, ServerEvent)))
-
-    def _reconnect(self, exc: Exception) -> bool:
-        """Attempt to reconnect after a connection failure.
-
-        Returns ``True`` if a new connection was established, ``False`` if the
-        caller should re-raise the original exception.
-        """
-        if self._on_reconnecting is None or self._make_ws is None:
-            return False
-
-        from websockets.exceptions import ConnectionClosedError
-
-        close_code = 1006
-        if isinstance(exc, ConnectionClosedError) and exc.rcvd is not None:
-            close_code = exc.rcvd.code
-
-        if not is_recoverable_close(close_code):
-            return False
-
-        self._is_reconnecting = True
-
-        for attempt in range(self._reconnect_attempt + 1, self._max_retries + 1):
-            self._reconnect_attempt = attempt
-            base_delay = min(self._initial_delay * (2 ** (attempt - 1)), self._max_delay)
-            jitter = 0.75 + random.random() * 0.25
-            delay = base_delay * jitter
-
-            event = ReconnectingEvent(
-                attempt=attempt,
-                max_attempts=self._max_retries,
-                delay=delay,
-                close_code=close_code,
-                extra_query=self._extra_query,
-                extra_headers=self._extra_headers,
-            )
-
-            try:
-                result = self._on_reconnecting(event)
-            except Exception:
-                self._is_reconnecting = False
-                return False
-
-            if result is not None and result.get("abort"):
-                self._is_reconnecting = False
-                return False
-
-            if result is not None:
-                if "extra_query" in result:
-                    self._extra_query = result["extra_query"]
-                if "extra_headers" in result:
-                    self._extra_headers = result["extra_headers"]
-
-            log.info(
-                "Reconnecting to WebSocket API (attempt %d/%d) after %.1fs delay",
-                attempt,
-                self._max_retries,
-                delay,
-            )
-            time.sleep(delay)
-
-            if self._intentionally_closed:
-                self._is_reconnecting = False
-                return False
-
-            try:
-                self._connection = self._make_ws(self._extra_query, self._extra_headers)
-                log.info("Reconnected to WebSocket API")
-                self._is_reconnecting = False
-                self._flush_send_queue()
-                return True
-            except Exception:
-                pass
-
-        self._is_reconnecting = False
-        return False
-
-    def _flush_send_queue(self) -> None:
-        """Send all queued messages over the current connection."""
-        try:
-            self._send_queue.flush_sync(lambda data: self._connection.send(data), requeue_failed=False)
-        except Exception:
-            log.warning("Failed to flush send queue after reconnect")
 
     def on(
         self, event_type: str, handler: Callable[..., Any] | None = None
@@ -1131,12 +965,12 @@ class LiveConnectionManager:
         client: OpenAI,
         extra_query: Query,
         extra_headers: Headers,
-        websocket_connection_options: WebSocketConnectionOptions,
+        websocket_connection_options: SyncWebSocketConnectionOptions,
         on_reconnecting: Callable[[ReconnectingEvent], ReconnectingOverrides | None] | None = None,
         max_retries: int = 5,
         initial_delay: float = 0.5,
         max_delay: float = 8.0,
-        max_queue_size: int = 1_048_576,
+        max_queue_size: int = DEFAULT_LIVE_SEND_QUEUE_MAX_BYTES,
     ) -> None:
         self.__client = client
         self.__connection: LiveConnection | None = None
@@ -1215,20 +1049,29 @@ class LiveConnectionManager:
         """
         ws = self._connect_ws(self.__extra_query, self.__extra_headers)
 
-        self.__connection = LiveConnection(
-            ws,
-            make_ws=self._connect_ws if self.__on_reconnecting is not None else None,
-            on_reconnecting=self.__on_reconnecting,
-            max_retries=self.__max_retries,
-            initial_delay=self.__initial_delay,
-            max_delay=self.__max_delay,
-            extra_query=self.__extra_query,
-            extra_headers=self.__extra_headers,
-            send_queue=self.__send_queue,
-        )
+        try:
+            self.__connection = LiveConnection(
+                ws,
+                make_ws=self._connect_ws if self.__on_reconnecting is not None else None,
+                on_reconnecting=self.__on_reconnecting,
+                max_retries=self.__max_retries,
+                initial_delay=self.__initial_delay,
+                max_delay=self.__max_delay,
+                extra_query=self.__extra_query,
+                extra_headers=self.__extra_headers,
+                send_queue=self.__send_queue,
+            )
 
-        self.__event_handler_registry.merge_into(self.__connection._event_handler_registry)
-        self.__connection._flush_send_queue()
+            self.__event_handler_registry.merge_into(self.__connection._event_handler_registry)
+            self.__connection._flush_send_queue()
+        except BaseException:
+            self.__connection = None
+            try:
+                ws.close()
+            except BaseException:
+                # Preserve the exception that prevented successful entry.
+                pass
+            raise
 
         return self.__connection
 
@@ -1241,10 +1084,16 @@ class LiveConnectionManager:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
         url = self._prepare_url()
+        try:
+            # Older runtimes do not declare this optional helper.
+            query_params = getattr(self.__client, "_websocket_query_params")  # noqa: B009
+        except AttributeError:
+            query_params = self.__client._websocket_query_params_fallback
         url = url.copy_with(
-            params=httpx2.QueryParams(self.__client.qs.stringify(cast(Any, self.__client.default_query)))
-            .merge(url.params)
-            .merge(cast(Any, extra_query)),
+            params=query_params(
+                url,
+                extra_query,
+            ),
         )
         url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
         options = self.__client._prepare_options(
@@ -1273,11 +1122,16 @@ class LiveConnectionManager:
         if self.__websocket_connection_options:
             log.debug("Custom WebSocket connection options provided")
 
+        websocket_options = self.__websocket_connection_options.copy()
+        websocket_options.setdefault("max_size", None)
+        if websocket_options.get("max_size") is None:
+            websocket_options.setdefault("compression", None)
+
         return connect(
             str(url),
             user_agent_header=None,
             additional_headers=_merge_mappings(dict(headers.values()), {}),
-            **self.__websocket_connection_options,
+            **websocket_options,
         )
 
     def _prepare_url(self) -> httpx2.URL:
@@ -1318,6 +1172,10 @@ class LiveSessionResource(BaseLiveConnectionResource):
         return LiveSessionInstructionsResource(self._connection)
 
     @cached_property
+    def output_audio(self) -> LiveSessionOutputAudioResource:
+        return LiveSessionOutputAudioResource(self._connection)
+
+    @cached_property
     def thinking(self) -> LiveSessionThinkingResource:
         return LiveSessionThinkingResource(self._connection)
 
@@ -1329,7 +1187,8 @@ class LiveSessionResource(BaseLiveConnectionResource):
         self._connection.send(cast(ClientEventParam, strip_not_given({"type": "session.close", "event_id": event_id})))
 
     def update(self, *, session: SessionUpdateConfigParam, event_id: Optional[str] | Omit = omit) -> None:
-        """Update the delegation settings of an active Live session.
+        """
+        Update the delegation settings or transcript triggers of an active Live session.
 
         The server acknowledges accepted changes with `session.updated`.
         """
@@ -1352,7 +1211,10 @@ class LiveSessionResource(BaseLiveConnectionResource):
 class LiveSessionCommentaryResource(BaseLiveConnectionResource):
     def append(self, *, content: str, delegation_id: Optional[str], event_id: Optional[str] | Omit = omit) -> None:
         """
-        Provide context the Live model can communicate to the user, optionally for an existing client delegation.
+        Provide context the Live model can communicate to the user, optionally for an
+        existing client delegation.
+
+        Rejected while an audio fixture is active.
         """
         self._connection.send(
             cast(
@@ -1394,7 +1256,7 @@ class LiveSessionInputAudioResource(BaseLiveConnectionResource):
     def unmute(self, *, event_id: Optional[str] | Omit = omit) -> None:
         """Resume audio input to a Live model after muting it.
 
-        The server acknowledges with `session.input_audio.unmuted`.
+        The server acknowledges with `session.input_audio.unmuted`. An active audio fixture still pauses inference until playback finishes.
         """
         self._connection.send(
             cast(ClientEventParam, strip_not_given({"type": "session.input_audio.unmute", "event_id": event_id}))
@@ -1403,8 +1265,10 @@ class LiveSessionInputAudioResource(BaseLiveConnectionResource):
 
 class LiveSessionInstructionsResource(BaseLiveConnectionResource):
     def append(self, *, content: str, delegation_id: Optional[str], event_id: Optional[str] | Omit = omit) -> None:
-        """
-        Append instructions to the Live conversation while it is running, optionally associating them with an existing client delegation.
+        """Append developer instructions to the Live conversation while it is running,
+        optionally associating them with an existing client delegation.
+
+        Rejected while an audio fixture is active. These instructions remain in conversation history through compaction and are included in future backend delegations. For external audio, describe content already delivered so the assistant does not repeat it.
         """
         self._connection.send(
             cast(
@@ -1421,10 +1285,19 @@ class LiveSessionInstructionsResource(BaseLiveConnectionResource):
         )
 
 
+class LiveSessionOutputAudioResource(BaseLiveConnectionResource):
+    @cached_property
+    def fixture(self) -> LiveSessionOutputAudioFixtureResource:
+        return LiveSessionOutputAudioFixtureResource(self._connection)
+
+
 class LiveSessionThinkingResource(BaseLiveConnectionResource):
     def append(self, *, content: str, delegation_id: Optional[str], event_id: Optional[str] | Omit = omit) -> None:
         """
-        Provide silent reasoning or progress context to the Live model, optionally for an existing client delegation.
+        Provide silent reasoning or progress context to the Live model, optionally for
+        an existing client delegation.
+
+        Rejected while an audio fixture is active.
         """
         self._connection.send(
             cast(
@@ -1437,6 +1310,60 @@ class LiveSessionThinkingResource(BaseLiveConnectionResource):
                         "event_id": event_id,
                     }
                 ),
+            )
+        )
+
+
+class LiveSessionOutputAudioFixtureResource(BaseLiveConnectionResource):
+    def play(self, *, audio: str, event_id: Optional[str] | Omit = omit) -> None:
+        """Play one complete audio fixture through the session output.
+
+        Send this event over the primary WebSocket or a server sideband. Audio must be raw mono PCM16 little-endian at 24 kHz, regardless of the session audio format, and at most 30 seconds. The entire payload is validated before model speech is interrupted and input is muted. Only one fixture can be active. fixture.playing acknowledges acceptance and fixture.played reports server mixer drain. These notifications are not exact transport-media boundaries. Input arriving during playback is dropped and not replayed.
+        """
+        self._connection.send(
+            cast(
+                ClientEventParam,
+                strip_not_given({"type": "session.output_audio.fixture.play", "audio": audio, "event_id": event_id}),
+            )
+        )
+
+
+class LiveDecisionResource(BaseLiveConnectionResource):
+    @cached_property
+    def item(self) -> LiveDecisionItemResource:
+        return LiveDecisionItemResource(self._connection)
+
+    def create(self, *, event_id: str) -> None:
+        """
+        Evaluate the configured questions using the current conversation and Decision
+        inputs.
+
+        Reusing an event_id is rejected for the lifetime of the session.
+        """
+        self._connection.send({"type": "decision.create", "event_id": event_id})
+
+
+class LiveDecisionItemResource(BaseLiveConnectionResource):
+    def delete(self, *, item_id: str, event_id: Optional[str] | Omit = omit) -> None:
+        """
+        Delete an input item from future decisions without starting an evaluation or changing Live voice context.
+        """
+        self._connection.send(
+            cast(
+                ClientEventParam,
+                strip_not_given({"type": "decision.item.delete", "item_id": item_id, "event_id": event_id}),
+            )
+        )
+
+    def create(
+        self, *, item: decision_item_create_event_param.ItemUnion, event_id: Optional[str] | Omit = omit
+    ) -> None:
+        """
+        Append an input item for future decisions without starting an evaluation or changing Live voice context.
+        """
+        self._connection.send(
+            cast(
+                ClientEventParam, strip_not_given({"type": "decision.item.create", "item": item, "event_id": event_id})
             )
         )
 
@@ -1490,6 +1417,10 @@ class AsyncLiveSessionResource(BaseAsyncLiveConnectionResource):
         return AsyncLiveSessionInstructionsResource(self._connection)
 
     @cached_property
+    def output_audio(self) -> AsyncLiveSessionOutputAudioResource:
+        return AsyncLiveSessionOutputAudioResource(self._connection)
+
+    @cached_property
     def thinking(self) -> AsyncLiveSessionThinkingResource:
         return AsyncLiveSessionThinkingResource(self._connection)
 
@@ -1503,7 +1434,8 @@ class AsyncLiveSessionResource(BaseAsyncLiveConnectionResource):
         )
 
     async def update(self, *, session: SessionUpdateConfigParam, event_id: Optional[str] | Omit = omit) -> None:
-        """Update the delegation settings of an active Live session.
+        """
+        Update the delegation settings or transcript triggers of an active Live session.
 
         The server acknowledges accepted changes with `session.updated`.
         """
@@ -1528,7 +1460,10 @@ class AsyncLiveSessionCommentaryResource(BaseAsyncLiveConnectionResource):
         self, *, content: str, delegation_id: Optional[str], event_id: Optional[str] | Omit = omit
     ) -> None:
         """
-        Provide context the Live model can communicate to the user, optionally for an existing client delegation.
+        Provide context the Live model can communicate to the user, optionally for an
+        existing client delegation.
+
+        Rejected while an audio fixture is active.
         """
         await self._connection.send(
             cast(
@@ -1570,7 +1505,7 @@ class AsyncLiveSessionInputAudioResource(BaseAsyncLiveConnectionResource):
     async def unmute(self, *, event_id: Optional[str] | Omit = omit) -> None:
         """Resume audio input to a Live model after muting it.
 
-        The server acknowledges with `session.input_audio.unmuted`.
+        The server acknowledges with `session.input_audio.unmuted`. An active audio fixture still pauses inference until playback finishes.
         """
         await self._connection.send(
             cast(ClientEventParam, strip_not_given({"type": "session.input_audio.unmute", "event_id": event_id}))
@@ -1581,8 +1516,10 @@ class AsyncLiveSessionInstructionsResource(BaseAsyncLiveConnectionResource):
     async def append(
         self, *, content: str, delegation_id: Optional[str], event_id: Optional[str] | Omit = omit
     ) -> None:
-        """
-        Append instructions to the Live conversation while it is running, optionally associating them with an existing client delegation.
+        """Append developer instructions to the Live conversation while it is running,
+        optionally associating them with an existing client delegation.
+
+        Rejected while an audio fixture is active. These instructions remain in conversation history through compaction and are included in future backend delegations. For external audio, describe content already delivered so the assistant does not repeat it.
         """
         await self._connection.send(
             cast(
@@ -1599,12 +1536,21 @@ class AsyncLiveSessionInstructionsResource(BaseAsyncLiveConnectionResource):
         )
 
 
+class AsyncLiveSessionOutputAudioResource(BaseAsyncLiveConnectionResource):
+    @cached_property
+    def fixture(self) -> AsyncLiveSessionOutputAudioFixtureResource:
+        return AsyncLiveSessionOutputAudioFixtureResource(self._connection)
+
+
 class AsyncLiveSessionThinkingResource(BaseAsyncLiveConnectionResource):
     async def append(
         self, *, content: str, delegation_id: Optional[str], event_id: Optional[str] | Omit = omit
     ) -> None:
         """
-        Provide silent reasoning or progress context to the Live model, optionally for an existing client delegation.
+        Provide silent reasoning or progress context to the Live model, optionally for
+        an existing client delegation.
+
+        Rejected while an audio fixture is active.
         """
         await self._connection.send(
             cast(
@@ -1617,6 +1563,60 @@ class AsyncLiveSessionThinkingResource(BaseAsyncLiveConnectionResource):
                         "event_id": event_id,
                     }
                 ),
+            )
+        )
+
+
+class AsyncLiveSessionOutputAudioFixtureResource(BaseAsyncLiveConnectionResource):
+    async def play(self, *, audio: str, event_id: Optional[str] | Omit = omit) -> None:
+        """Play one complete audio fixture through the session output.
+
+        Send this event over the primary WebSocket or a server sideband. Audio must be raw mono PCM16 little-endian at 24 kHz, regardless of the session audio format, and at most 30 seconds. The entire payload is validated before model speech is interrupted and input is muted. Only one fixture can be active. fixture.playing acknowledges acceptance and fixture.played reports server mixer drain. These notifications are not exact transport-media boundaries. Input arriving during playback is dropped and not replayed.
+        """
+        await self._connection.send(
+            cast(
+                ClientEventParam,
+                strip_not_given({"type": "session.output_audio.fixture.play", "audio": audio, "event_id": event_id}),
+            )
+        )
+
+
+class AsyncLiveDecisionResource(BaseAsyncLiveConnectionResource):
+    @cached_property
+    def item(self) -> AsyncLiveDecisionItemResource:
+        return AsyncLiveDecisionItemResource(self._connection)
+
+    async def create(self, *, event_id: str) -> None:
+        """
+        Evaluate the configured questions using the current conversation and Decision
+        inputs.
+
+        Reusing an event_id is rejected for the lifetime of the session.
+        """
+        await self._connection.send({"type": "decision.create", "event_id": event_id})
+
+
+class AsyncLiveDecisionItemResource(BaseAsyncLiveConnectionResource):
+    async def delete(self, *, item_id: str, event_id: Optional[str] | Omit = omit) -> None:
+        """
+        Delete an input item from future decisions without starting an evaluation or changing Live voice context.
+        """
+        await self._connection.send(
+            cast(
+                ClientEventParam,
+                strip_not_given({"type": "decision.item.delete", "item_id": item_id, "event_id": event_id}),
+            )
+        )
+
+    async def create(
+        self, *, item: decision_item_create_event_param.ItemUnion, event_id: Optional[str] | Omit = omit
+    ) -> None:
+        """
+        Append an input item for future decisions without starting an evaluation or changing Live voice context.
+        """
+        await self._connection.send(
+            cast(
+                ClientEventParam, strip_not_given({"type": "decision.item.create", "item": item, "event_id": event_id})
             )
         )
 

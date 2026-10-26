@@ -9,9 +9,9 @@ __all__ = ["InputAudioMutedEvent"]
 
 
 class InputAudioMutedEvent(BaseModel):
-    """Returned when a session.input_audio.mute command is accepted.
+    """Acknowledges a session.input_audio.mute command.
 
-    Input audio is no longer sent to the model; sideband audio reflection continues.
+    An independent input mute sends silence to the model and preserves sideband audio reflection. Fixture playback does not emit this event.
     """
 
     event_id: str

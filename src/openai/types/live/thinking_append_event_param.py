@@ -10,7 +10,7 @@ __all__ = ["ThinkingAppendEventParam"]
 
 class ThinkingAppendEventParam(TypedDict, total=False):
     """
-    Provide silent reasoning or progress context to the Live model, optionally for an existing client delegation.
+    Provide silent reasoning or progress context to the Live model, optionally for an existing client delegation. Rejected while an audio fixture is active.
     """
 
     content: Required[str]

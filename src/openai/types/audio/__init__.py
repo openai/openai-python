@@ -6,6 +6,8 @@ from .voice import Voice as Voice
 from .translation import Translation as Translation
 from .speech_model import SpeechModel as SpeechModel
 from .transcription import Transcription as Transcription
+from .voice_consent import VoiceConsent as VoiceConsent
+from .voice_deleted import VoiceDeleted as VoiceDeleted
 from .transcription_word import TranscriptionWord as TranscriptionWord
 from .translation_verbose import TranslationVerbose as TranslationVerbose
 from .voice_create_params import VoiceCreateParams as VoiceCreateParams
@@ -13,12 +15,16 @@ from .speech_create_params import SpeechCreateParams as SpeechCreateParams
 from .transcription_include import TranscriptionInclude as TranscriptionInclude
 from .transcription_segment import TranscriptionSegment as TranscriptionSegment
 from .transcription_verbose import TranscriptionVerbose as TranscriptionVerbose
+from .voice_consent_deleted import VoiceConsentDeleted as VoiceConsentDeleted
 from .transcription_diarized import TranscriptionDiarized as TranscriptionDiarized
 from .transcription_language import TranscriptionLanguage as TranscriptionLanguage
 from .translation_create_params import TranslationCreateParams as TranslationCreateParams
+from .voice_consent_list_params import VoiceConsentListParams as VoiceConsentListParams
 from .transcription_stream_event import TranscriptionStreamEvent as TranscriptionStreamEvent
 from .transcription_create_params import TranscriptionCreateParams as TranscriptionCreateParams
 from .translation_create_response import TranslationCreateResponse as TranslationCreateResponse
+from .voice_consent_create_params import VoiceConsentCreateParams as VoiceConsentCreateParams
+from .voice_consent_update_params import VoiceConsentUpdateParams as VoiceConsentUpdateParams
 from .transcription_create_response import TranscriptionCreateResponse as TranscriptionCreateResponse
 from .transcription_text_done_event import TranscriptionTextDoneEvent as TranscriptionTextDoneEvent
 from .transcription_diarized_segment import TranscriptionDiarizedSegment as TranscriptionDiarizedSegment

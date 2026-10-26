@@ -139,6 +139,43 @@ async def test_realtime_error_keeps_connection_open(mode: str, base_query: str) 
                     }
 
 
+@pytest.mark.parametrize("beta", [False, True], ids=["realtime", "beta-realtime"])
+@pytest.mark.parametrize("legacy_recv", [False, True], ids=["native", "websockets-13-signature"])
+def test_realtime_recv_bytes_preserves_text_and_binary(
+    monkeypatch: pytest.MonkeyPatch, legacy_recv: bool, beta: bool
+) -> None:
+    if legacy_recv:
+        original_recv = ClientConnection.recv
+
+        # Exercise the websockets 13 signature even when CI installs a newer version.
+        def recv(connection: ClientConnection, timeout: float | None = None) -> str | bytes:
+            return original_recv(connection, timeout=timeout)
+
+        monkeypatch.setattr(ClientConnection, "recv", recv)
+        monkeypatch.setattr("openai.lib._websocket.websockets_version", "13.1")
+
+    frames: list[str | bytes] = [' { "type": "realtime.future", "text": "東京🙂" }\n', b"\x00\xff", b""]
+
+    def script(socket: ServerConnection) -> None:
+        for frame in frames:
+            socket.send(frame)
+
+    with script_server(script) as url:
+        with OpenAI(
+            api_key="synthetic",
+            base_url=url,
+            websocket_base_url=url.replace("http://", "ws://"),
+            http_client=httpx2.Client(trust_env=False),
+        ) as client:
+            resource = client.beta.realtime if beta else client.realtime
+            with resource.connect(model="gpt-realtime") as connection:
+                for frame in frames:
+                    expected = frame.encode("utf-8") if isinstance(frame, str) else frame
+                    received = connection.recv_bytes()
+                    assert isinstance(received, bytes)
+                    assert received == expected
+
+
 @pytest.mark.parametrize("mode", ["sync", "async"])
 async def test_realtime_empty_manager_queue_keeps_budget_after_open(mode: str) -> None:
     opened = 0
