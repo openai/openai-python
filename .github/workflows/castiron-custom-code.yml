@@ -14,11 +14,11 @@ permissions:
   contents: read
 
 concurrency:
-  group: castiron-custom-code-${{ github.event.pull_request.number || github.event.merge_group.head_ref }}
+  group: castiron-custom-code-${{ github.event_name }}-${{ github.event.pull_request.number || github.event.merge_group.head_ref }}
   cancel-in-progress: false
 
 env:
-  REPORTER_SHA256: a52a1aabf4047f4c20e96d1d788c25a4aa78c1987b4fa73a13d22c92ef213a3f
+  REPORTER_SHA256: c243015818640b1e7068605c5352fcb770d406202ee4e75316fe0ca85d06a1cc
 
 jobs:
   queue-signal:
