@@ -15,6 +15,8 @@ __all__ = [
     "PersistedAgentToolResourceMcp",
     "PersistedAgentToolResourceWebSearch",
     "PersistedAgentToolResourceWebSearchLocation",
+    "PersistedAgentToolResourceComputerUse",
+    "PersistedAgentToolResourceAutomations",
 ]
 
 
@@ -83,7 +85,7 @@ class PersistedAgentToolResourceMcp(BaseModel):
 
 
 class PersistedAgentToolResourceWebSearchLocation(BaseModel):
-    """Approximate user location used to localize web search results."""
+    """Approximate location used to localize search results, if provided."""
 
     city: Optional[str] = None
     """The city name."""
@@ -108,13 +110,30 @@ class PersistedAgentToolResourceWebSearch(BaseModel):
     """The amount of search context made available to the model. Defaults to `medium`."""
 
     location: Optional[PersistedAgentToolResourceWebSearchLocation] = None
-    """Approximate user location used to localize web search results."""
+    """Approximate location used to localize search results, if provided."""
 
     mode: Literal["disabled", "cached", "live"]
     """The source used for web search results."""
 
     type: Literal["web_search"]
     """The type of the object. Always `web_search`."""
+
+
+class PersistedAgentToolResourceComputerUse(BaseModel):
+    """Browser use in an OpenAI-hosted session."""
+
+    include_screenshots: bool
+    """Whether computer tool outputs include screenshots."""
+
+    type: Literal["computer_use"]
+    """The type of the object. Always `computer_use`."""
+
+
+class PersistedAgentToolResourceAutomations(BaseModel):
+    """Lets the agent manage its own scheduled wakeups."""
+
+    type: Literal["automations"]
+    """The type of the object. Always `automations`."""
 
 
 PersistedAgentTool: TypeAlias = Annotated[
@@ -124,6 +143,8 @@ PersistedAgentTool: TypeAlias = Annotated[
         PersistedAgentToolResourceProgrammaticToolCalling,
         PersistedAgentToolResourceMcp,
         PersistedAgentToolResourceWebSearch,
+        PersistedAgentToolResourceComputerUse,
+        PersistedAgentToolResourceAutomations,
     ],
     PropertyInfo(discriminator="type"),
 ]

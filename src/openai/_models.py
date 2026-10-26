@@ -53,6 +53,7 @@ from ._types import (
 )
 from ._utils import (
     PropertyInfo,
+    is_dict,
     is_list,
     is_given,
     json_safe,
@@ -119,6 +120,26 @@ class BaseModel(pydantic.BaseModel):
 
         class Config(pydantic.BaseConfig):  # pyright: ignore[reportDeprecated]
             extra: Any = pydantic.Extra.allow  # type: ignore
+
+        @pydantic.root_validator(pre=True)  # pyright: ignore[reportDeprecated]
+        @classmethod
+        def _preserve_wire_aliases(cls, values: Any) -> Any:
+            if not is_dict(values):
+                return values
+
+            fields = get_model_fields(cls)
+            collisions = {
+                name
+                for name, field in fields.items()
+                if field.alias != name and name in values and field.alias in values
+            }
+            if not collisions:
+                return values
+
+            # A field's Python name can be a different field's wire alias.
+            # In that case Pydantic consumes it as a declared field, not an extra.
+            collisions.difference_update(field.alias for field in fields.values())
+            return {key: value for key, value in values.items() if key not in collisions}
 
         @override
         def __repr_args__(self) -> ReprArgs:
@@ -756,7 +777,11 @@ class DiscriminatorDetails:
 
 
 def _build_discriminated_union_meta(*, union: type, meta_annotations: tuple[Any, ...]) -> DiscriminatorDetails | None:
-    cached = DISCRIMINATOR_CACHE.get(union)
+    try:
+        cached = DISCRIMINATOR_CACHE.get(union)
+    except TypeError:
+        # PEP 604 unions cannot be weakly referenced on Python < 3.14.
+        cached = None
     if cached is not None:
         return cached
 
@@ -811,7 +836,11 @@ def _build_discriminated_union_meta(*, union: type, meta_annotations: tuple[Any,
         discriminator_field=discriminator_field_name,
         discriminator_alias=discriminator_alias,
     )
-    DISCRIMINATOR_CACHE.setdefault(union, details)
+    try:
+        DISCRIMINATOR_CACHE.setdefault(union, details)
+    except TypeError:
+        # Caching is optional; still return the discriminator for unsupported keys.
+        pass
     return details
 
 

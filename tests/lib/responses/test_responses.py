@@ -205,5 +205,5 @@ def test_stream_state_ignores_output_item_added_with_null_item() -> None:
 
     events = state.handle_event(added)
 
-    assert events == [added]
+    assert events == []
     assert state.accumulate_event(added).output == []

@@ -19,9 +19,9 @@ class ImageCreateVariationParams(TypedDict, total=False):
     """
 
     model: Union[str, ImageModel, None]
-    """The model to use for image generation.
+    """The legacy model used by the retired image variations endpoint.
 
-    Only `dall-e-2` is supported at this time.
+    This endpoint no longer accepts requests.
     """
 
     n: Optional[int]

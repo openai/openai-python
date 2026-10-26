@@ -521,13 +521,14 @@ class AzureOpenAI(BaseAzureClient[httpx2.Client, Stream[Any]], OpenAI):
 
         if self.websocket_base_url is not None:
             base_url = normalize_httpx_url(self.websocket_base_url)
-            merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/realtime"
+            path, separator, url_query = base_url.raw_path.partition(b"?")
+            merge_raw_path = path.rstrip(b"/") + b"/realtime" + separator + url_query
             realtime_url = base_url.copy_with(raw_path=merge_raw_path)
         else:
             base_url = self._prepare_url("/realtime")
             realtime_url = base_url.copy_with(scheme="wss")
 
-        url = realtime_url.copy_with(params={**query})
+        url = realtime_url.copy_with(params=self._websocket_query_params(realtime_url, query))
         return url, auth_headers
 
 
@@ -883,11 +884,12 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx2.AsyncClient, AsyncStream[Any]], As
 
         if self.websocket_base_url is not None:
             base_url = normalize_httpx_url(self.websocket_base_url)
-            merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/realtime"
+            path, separator, url_query = base_url.raw_path.partition(b"?")
+            merge_raw_path = path.rstrip(b"/") + b"/realtime" + separator + url_query
             realtime_url = base_url.copy_with(raw_path=merge_raw_path)
         else:
             base_url = self._prepare_url("/realtime")
             realtime_url = base_url.copy_with(scheme="wss")
 
-        url = realtime_url.copy_with(params={**query})
+        url = realtime_url.copy_with(params=self._websocket_query_params(realtime_url, query))
         return url, auth_headers

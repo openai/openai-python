@@ -17,6 +17,9 @@ class PromptCacheBreakpoint(BaseModel):
     mode: Literal["explicit"]
     """The breakpoint mode. Always `explicit`."""
 
+    ttl: Optional[Literal["30m", "12h"]] = None
+    """The minimum lifetime of this cache breakpoint. Defaults to the request TTL."""
+
 
 class ChatCompletionContentPartText(BaseModel):
     """Learn about [text inputs](https://developers.openai.com/api/docs/guides/text)."""

@@ -26,6 +26,7 @@ from .beta_response_conversation_param import BetaResponseConversationParam
 __all__ = [
     "BetaResponsesClientEvent",
     "ResponseCreate",
+    "ResponseCreateAccessPrograms",
     "ResponseCreateContextManagement",
     "ResponseCreateConversation",
     "ResponseCreateModeration",
@@ -39,6 +40,24 @@ __all__ = [
     "ResponseCreateToolChoice",
     "ResponseCreateToolChoiceBetaSpecificProgrammaticToolCallingParam",
 ]
+
+
+class ResponseCreateAccessPrograms(BaseModel):
+    """Domain-specific access programs to use for this request."""
+
+    cyber: Optional[Literal["standard", "daybreak_blue", "daybreak_red"]] = None
+    """The Cyber access program to use for this request.
+
+    Supported values are `standard`, `daybreak_blue`, and `daybreak_red`. If
+    omitted, the API resolves the program from the model's Cyber tier and your
+    organization and project access, subject to model-specific eligibility
+    restrictions. By default, models without a Cyber tier use Standard. Blue-tier
+    models use Daybreak Blue when authorized; otherwise they fall back to Standard
+    unless the model requires Daybreak access. Red-tier models use Daybreak Red and
+    require authorization. Requests that require unavailable Daybreak access
+    return 403. An implicit Standard fallback is represented by null in the
+    response's access_programs field, rather than an explicit Standard selection.
+    """
 
 
 class ResponseCreateContextManagement(BaseModel):
@@ -242,6 +261,9 @@ class ResponseCreate(BaseModel):
     type: Literal["response.create"]
     """The type of the client event. Always `response.create`."""
 
+    access_programs: Optional[ResponseCreateAccessPrograms] = None
+    """Domain-specific access programs to use for this request."""
+
     background: Optional[bool] = None
     """
     Whether to run the model response in the background.
@@ -329,6 +351,10 @@ class ResponseCreate(BaseModel):
     model: Union[
         Literal[
             "gpt-6-astra",
+            "gpt-6.1-sol",
+            "gpt-6.1-terra",
+            "gpt-6-sol",
+            "gpt-6-luna",
             "gpt-5.6-sol",
             "gpt-5.6-terra",
             "gpt-5.6-luna",
@@ -348,6 +374,7 @@ class ResponseCreate(BaseModel):
             "gpt-5.1",
             "gpt-5.1-2025-11-13",
             "gpt-5.1-codex",
+            "gpt-5.1-mini",
             "gpt-5.1-chat-latest",
             "gpt-5",
             "gpt-5-mini",
@@ -413,7 +440,6 @@ class ResponseCreate(BaseModel):
             "gpt-3.5-turbo-1106",
             "gpt-3.5-turbo-0125",
             "gpt-3.5-turbo-16k-0613",
-            "gpt-5.1-mini",
             "o1-pro",
             "o1-pro-2025-03-19",
             "o3-pro",
@@ -433,6 +459,7 @@ class ResponseCreate(BaseModel):
             "gpt-daybreak-blue-latest",
             "gpt-daybreak-red-latest",
             "gpt-5.6-cyber",
+            "gpt-rosalind-research",
         ],
         str,
         None,
@@ -519,7 +546,7 @@ class ResponseCreate(BaseModel):
     """
     A stable identifier used to help detect users of your application that may be
     violating OpenAI's usage policies. The IDs should be a string that uniquely
-    identifies each user, with a maximum length of 64 characters. We recommend
+    identifies each user, with a maximum length of 128 characters. We recommend
     hashing their username or email address, in order to avoid sending us any
     identifying information.
     [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).

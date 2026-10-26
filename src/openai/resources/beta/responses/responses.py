@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import json
-import time
-import random
 import logging
 from types import TracebackType
 from typing import TYPE_CHECKING, Any, Dict, List, Union, Callable, Iterable, Iterator, Optional, Awaitable, cast
@@ -48,12 +46,13 @@ from ...._exceptions import OpenAIError, WebSocketConnectionClosedError
 from ...._send_queue import SendQueue
 from ...._base_client import _merge_mappings, make_request_options
 from ...._event_handler import EventHandlerRegistry
+from ...._websocket_connection import WebSocketConnectionBase, AsyncWebSocketConnectionBase
 from ....types.beta.beta_response import BetaResponse
 from ....types.beta.beta_tool_param import BetaToolParam
 from ....types.beta.beta_service_tier import BetaServiceTier
-from ....types.websocket_reconnection import ReconnectingEvent, ReconnectingOverrides, is_recoverable_close
+from ....types.websocket_reconnection import ReconnectingEvent, ReconnectingOverrides
 from ....types.beta.beta_compacted_response import BetaCompactedResponse
-from ....types.websocket_connection_options import WebSocketConnectionOptions
+from ....types.websocket_connection_options import WebSocketConnectionOptions, SyncWebSocketConnectionOptions
 from ....types.beta.beta_response_includable import BetaResponseIncludable
 from ....types.beta.beta_response_input_param import BetaResponseInputParam
 from ....types.beta.beta_response_prompt_param import BetaResponsePromptParam
@@ -77,12 +76,16 @@ log: logging.Logger = logging.getLogger(__name__)
 
 
 class Responses(SyncAPIResource):
+    """Create and manage model responses."""
+
     @cached_property
     def input_items(self) -> InputItems:
+        """Create and manage model responses."""
         return InputItems(self._client)
 
     @cached_property
     def input_tokens(self) -> InputTokens:
+        """Create and manage model responses."""
         return InputTokens(self._client)
 
     @cached_property
@@ -108,6 +111,7 @@ class Responses(SyncAPIResource):
     def create(
         self,
         *,
+        access_programs: response_create_params.AccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
         context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
@@ -120,6 +124,10 @@ class Responses(SyncAPIResource):
         model: Union[
             Literal[
                 "gpt-6-astra",
+                "gpt-6.1-sol",
+                "gpt-6.1-terra",
+                "gpt-6-sol",
+                "gpt-6-luna",
                 "gpt-5.6-sol",
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
@@ -139,6 +147,7 @@ class Responses(SyncAPIResource):
                 "gpt-5.1",
                 "gpt-5.1-2025-11-13",
                 "gpt-5.1-codex",
+                "gpt-5.1-mini",
                 "gpt-5.1-chat-latest",
                 "gpt-5",
                 "gpt-5-mini",
@@ -204,7 +213,6 @@ class Responses(SyncAPIResource):
                 "gpt-3.5-turbo-1106",
                 "gpt-3.5-turbo-0125",
                 "gpt-3.5-turbo-16k-0613",
-                "gpt-5.1-mini",
                 "o1-pro",
                 "o1-pro-2025-03-19",
                 "o3-pro",
@@ -224,6 +232,7 @@ class Responses(SyncAPIResource):
                 "gpt-daybreak-blue-latest",
                 "gpt-daybreak-red-latest",
                 "gpt-5.6-cyber",
+                "gpt-rosalind-research",
             ],
             str,
         ]
@@ -273,6 +282,8 @@ class Responses(SyncAPIResource):
         to use your own data as input for the model's response.
 
         Args:
+          access_programs: Domain-specific access programs to use for this request.
+
           background: Whether to run the model response in the background.
               [Learn more](https://developers.openai.com/api/docs/guides/background).
 
@@ -391,7 +402,7 @@ class Responses(SyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user, with a maximum length of 64 characters. We recommend
+              identifies each user, with a maximum length of 128 characters. We recommend
               hashing their username or email address, in order to avoid sending us any
               identifying information.
               [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
@@ -512,6 +523,7 @@ class Responses(SyncAPIResource):
         self,
         *,
         stream: Literal[True],
+        access_programs: response_create_params.AccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
         context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
@@ -524,6 +536,10 @@ class Responses(SyncAPIResource):
         model: Union[
             Literal[
                 "gpt-6-astra",
+                "gpt-6.1-sol",
+                "gpt-6.1-terra",
+                "gpt-6-sol",
+                "gpt-6-luna",
                 "gpt-5.6-sol",
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
@@ -543,6 +559,7 @@ class Responses(SyncAPIResource):
                 "gpt-5.1",
                 "gpt-5.1-2025-11-13",
                 "gpt-5.1-codex",
+                "gpt-5.1-mini",
                 "gpt-5.1-chat-latest",
                 "gpt-5",
                 "gpt-5-mini",
@@ -608,7 +625,6 @@ class Responses(SyncAPIResource):
                 "gpt-3.5-turbo-1106",
                 "gpt-3.5-turbo-0125",
                 "gpt-3.5-turbo-16k-0613",
-                "gpt-5.1-mini",
                 "o1-pro",
                 "o1-pro-2025-03-19",
                 "o3-pro",
@@ -628,6 +644,7 @@ class Responses(SyncAPIResource):
                 "gpt-daybreak-blue-latest",
                 "gpt-daybreak-red-latest",
                 "gpt-5.6-cyber",
+                "gpt-rosalind-research",
             ],
             str,
         ]
@@ -682,6 +699,8 @@ class Responses(SyncAPIResource):
               See the
               [Streaming section below](https://developers.openai.com/api/reference/resources/responses/streaming-events)
               for more information.
+
+          access_programs: Domain-specific access programs to use for this request.
 
           background: Whether to run the model response in the background.
               [Learn more](https://developers.openai.com/api/docs/guides/background).
@@ -801,7 +820,7 @@ class Responses(SyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user, with a maximum length of 64 characters. We recommend
+              identifies each user, with a maximum length of 128 characters. We recommend
               hashing their username or email address, in order to avoid sending us any
               identifying information.
               [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
@@ -915,6 +934,7 @@ class Responses(SyncAPIResource):
         self,
         *,
         stream: bool,
+        access_programs: response_create_params.AccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
         context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
@@ -927,6 +947,10 @@ class Responses(SyncAPIResource):
         model: Union[
             Literal[
                 "gpt-6-astra",
+                "gpt-6.1-sol",
+                "gpt-6.1-terra",
+                "gpt-6-sol",
+                "gpt-6-luna",
                 "gpt-5.6-sol",
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
@@ -946,6 +970,7 @@ class Responses(SyncAPIResource):
                 "gpt-5.1",
                 "gpt-5.1-2025-11-13",
                 "gpt-5.1-codex",
+                "gpt-5.1-mini",
                 "gpt-5.1-chat-latest",
                 "gpt-5",
                 "gpt-5-mini",
@@ -1011,7 +1036,6 @@ class Responses(SyncAPIResource):
                 "gpt-3.5-turbo-1106",
                 "gpt-3.5-turbo-0125",
                 "gpt-3.5-turbo-16k-0613",
-                "gpt-5.1-mini",
                 "o1-pro",
                 "o1-pro-2025-03-19",
                 "o3-pro",
@@ -1031,6 +1055,7 @@ class Responses(SyncAPIResource):
                 "gpt-daybreak-blue-latest",
                 "gpt-daybreak-red-latest",
                 "gpt-5.6-cyber",
+                "gpt-rosalind-research",
             ],
             str,
         ]
@@ -1085,6 +1110,8 @@ class Responses(SyncAPIResource):
               See the
               [Streaming section below](https://developers.openai.com/api/reference/resources/responses/streaming-events)
               for more information.
+
+          access_programs: Domain-specific access programs to use for this request.
 
           background: Whether to run the model response in the background.
               [Learn more](https://developers.openai.com/api/docs/guides/background).
@@ -1204,7 +1231,7 @@ class Responses(SyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user, with a maximum length of 64 characters. We recommend
+              identifies each user, with a maximum length of 128 characters. We recommend
               hashing their username or email address, in order to avoid sending us any
               identifying information.
               [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
@@ -1316,6 +1343,7 @@ class Responses(SyncAPIResource):
     def create(
         self,
         *,
+        access_programs: response_create_params.AccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
         context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
@@ -1328,6 +1356,10 @@ class Responses(SyncAPIResource):
         model: Union[
             Literal[
                 "gpt-6-astra",
+                "gpt-6.1-sol",
+                "gpt-6.1-terra",
+                "gpt-6-sol",
+                "gpt-6-luna",
                 "gpt-5.6-sol",
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
@@ -1347,6 +1379,7 @@ class Responses(SyncAPIResource):
                 "gpt-5.1",
                 "gpt-5.1-2025-11-13",
                 "gpt-5.1-codex",
+                "gpt-5.1-mini",
                 "gpt-5.1-chat-latest",
                 "gpt-5",
                 "gpt-5-mini",
@@ -1412,7 +1445,6 @@ class Responses(SyncAPIResource):
                 "gpt-3.5-turbo-1106",
                 "gpt-3.5-turbo-0125",
                 "gpt-3.5-turbo-16k-0613",
-                "gpt-5.1-mini",
                 "o1-pro",
                 "o1-pro-2025-03-19",
                 "o3-pro",
@@ -1432,6 +1464,7 @@ class Responses(SyncAPIResource):
                 "gpt-daybreak-blue-latest",
                 "gpt-daybreak-red-latest",
                 "gpt-5.6-cyber",
+                "gpt-rosalind-research",
             ],
             str,
         ]
@@ -1474,6 +1507,10 @@ class Responses(SyncAPIResource):
             "/responses?beta=true",
             body=maybe_transform(
                 {
+                    "model": model,
+                    "stream": stream,
+                    "service_tier": service_tier,
+                    "access_programs": access_programs,
                     "background": background,
                     "context_management": context_management,
                     "conversation": conversation,
@@ -1483,7 +1520,6 @@ class Responses(SyncAPIResource):
                     "max_output_tokens": max_output_tokens,
                     "max_tool_calls": max_tool_calls,
                     "metadata": metadata,
-                    "model": model,
                     "moderation": moderation,
                     "multi_agent": multi_agent,
                     "parallel_tool_calls": parallel_tool_calls,
@@ -1494,9 +1530,7 @@ class Responses(SyncAPIResource):
                     "prompt_cache_retention": prompt_cache_retention,
                     "reasoning": reasoning,
                     "safety_identifier": safety_identifier,
-                    "service_tier": service_tier,
                     "store": store,
-                    "stream": stream,
                     "stream_options": stream_options,
                     "temperature": temperature,
                     "text": text,
@@ -1812,6 +1846,10 @@ class Responses(SyncAPIResource):
         model: Union[
             Literal[
                 "gpt-6-astra",
+                "gpt-6.1-sol",
+                "gpt-6.1-terra",
+                "gpt-6-sol",
+                "gpt-6-luna",
                 "gpt-5.6-sol",
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
@@ -1831,6 +1869,7 @@ class Responses(SyncAPIResource):
                 "gpt-5.1",
                 "gpt-5.1-2025-11-13",
                 "gpt-5.1-codex",
+                "gpt-5.1-mini",
                 "gpt-5.1-chat-latest",
                 "gpt-5",
                 "gpt-5-mini",
@@ -1896,7 +1935,6 @@ class Responses(SyncAPIResource):
                 "gpt-3.5-turbo-1106",
                 "gpt-3.5-turbo-0125",
                 "gpt-3.5-turbo-16k-0613",
-                "gpt-5.1-mini",
                 "o1-pro",
                 "o1-pro-2025-03-19",
                 "o3-pro",
@@ -1916,6 +1954,7 @@ class Responses(SyncAPIResource):
                 "gpt-daybreak-blue-latest",
                 "gpt-daybreak-red-latest",
                 "gpt-5.6-cyber",
+                "gpt-rosalind-research",
             ],
             str,
             None,
@@ -2011,13 +2050,13 @@ class Responses(SyncAPIResource):
             body=maybe_transform(
                 {
                     "model": model,
+                    "service_tier": service_tier,
                     "input": input,
                     "instructions": instructions,
                     "previous_response_id": previous_response_id,
                     "prompt_cache_key": prompt_cache_key,
                     "prompt_cache_options": prompt_cache_options,
                     "prompt_cache_retention": prompt_cache_retention,
-                    "service_tier": service_tier,
                 },
                 response_compact_params.ResponseCompactParams,
             ),
@@ -2035,7 +2074,7 @@ class Responses(SyncAPIResource):
         self,
         extra_query: Query = {},
         extra_headers: Headers = {},
-        websocket_connection_options: WebSocketConnectionOptions = {},
+        websocket_connection_options: SyncWebSocketConnectionOptions = {},
         on_reconnecting: Callable[[ReconnectingEvent], ReconnectingOverrides | None] | None = None,
         max_retries: int = 5,
         initial_delay: float = 0.5,
@@ -2060,12 +2099,16 @@ class Responses(SyncAPIResource):
 
 
 class AsyncResponses(AsyncAPIResource):
+    """Create and manage model responses."""
+
     @cached_property
     def input_items(self) -> AsyncInputItems:
+        """Create and manage model responses."""
         return AsyncInputItems(self._client)
 
     @cached_property
     def input_tokens(self) -> AsyncInputTokens:
+        """Create and manage model responses."""
         return AsyncInputTokens(self._client)
 
     @cached_property
@@ -2091,6 +2134,7 @@ class AsyncResponses(AsyncAPIResource):
     async def create(
         self,
         *,
+        access_programs: response_create_params.AccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
         context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
@@ -2103,6 +2147,10 @@ class AsyncResponses(AsyncAPIResource):
         model: Union[
             Literal[
                 "gpt-6-astra",
+                "gpt-6.1-sol",
+                "gpt-6.1-terra",
+                "gpt-6-sol",
+                "gpt-6-luna",
                 "gpt-5.6-sol",
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
@@ -2122,6 +2170,7 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-5.1",
                 "gpt-5.1-2025-11-13",
                 "gpt-5.1-codex",
+                "gpt-5.1-mini",
                 "gpt-5.1-chat-latest",
                 "gpt-5",
                 "gpt-5-mini",
@@ -2187,7 +2236,6 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-3.5-turbo-1106",
                 "gpt-3.5-turbo-0125",
                 "gpt-3.5-turbo-16k-0613",
-                "gpt-5.1-mini",
                 "o1-pro",
                 "o1-pro-2025-03-19",
                 "o3-pro",
@@ -2207,6 +2255,7 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-daybreak-blue-latest",
                 "gpt-daybreak-red-latest",
                 "gpt-5.6-cyber",
+                "gpt-rosalind-research",
             ],
             str,
         ]
@@ -2256,6 +2305,8 @@ class AsyncResponses(AsyncAPIResource):
         to use your own data as input for the model's response.
 
         Args:
+          access_programs: Domain-specific access programs to use for this request.
+
           background: Whether to run the model response in the background.
               [Learn more](https://developers.openai.com/api/docs/guides/background).
 
@@ -2374,7 +2425,7 @@ class AsyncResponses(AsyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user, with a maximum length of 64 characters. We recommend
+              identifies each user, with a maximum length of 128 characters. We recommend
               hashing their username or email address, in order to avoid sending us any
               identifying information.
               [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
@@ -2495,6 +2546,7 @@ class AsyncResponses(AsyncAPIResource):
         self,
         *,
         stream: Literal[True],
+        access_programs: response_create_params.AccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
         context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
@@ -2507,6 +2559,10 @@ class AsyncResponses(AsyncAPIResource):
         model: Union[
             Literal[
                 "gpt-6-astra",
+                "gpt-6.1-sol",
+                "gpt-6.1-terra",
+                "gpt-6-sol",
+                "gpt-6-luna",
                 "gpt-5.6-sol",
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
@@ -2526,6 +2582,7 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-5.1",
                 "gpt-5.1-2025-11-13",
                 "gpt-5.1-codex",
+                "gpt-5.1-mini",
                 "gpt-5.1-chat-latest",
                 "gpt-5",
                 "gpt-5-mini",
@@ -2591,7 +2648,6 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-3.5-turbo-1106",
                 "gpt-3.5-turbo-0125",
                 "gpt-3.5-turbo-16k-0613",
-                "gpt-5.1-mini",
                 "o1-pro",
                 "o1-pro-2025-03-19",
                 "o3-pro",
@@ -2611,6 +2667,7 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-daybreak-blue-latest",
                 "gpt-daybreak-red-latest",
                 "gpt-5.6-cyber",
+                "gpt-rosalind-research",
             ],
             str,
         ]
@@ -2665,6 +2722,8 @@ class AsyncResponses(AsyncAPIResource):
               See the
               [Streaming section below](https://developers.openai.com/api/reference/resources/responses/streaming-events)
               for more information.
+
+          access_programs: Domain-specific access programs to use for this request.
 
           background: Whether to run the model response in the background.
               [Learn more](https://developers.openai.com/api/docs/guides/background).
@@ -2784,7 +2843,7 @@ class AsyncResponses(AsyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user, with a maximum length of 64 characters. We recommend
+              identifies each user, with a maximum length of 128 characters. We recommend
               hashing their username or email address, in order to avoid sending us any
               identifying information.
               [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
@@ -2898,6 +2957,7 @@ class AsyncResponses(AsyncAPIResource):
         self,
         *,
         stream: bool,
+        access_programs: response_create_params.AccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
         context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
@@ -2910,6 +2970,10 @@ class AsyncResponses(AsyncAPIResource):
         model: Union[
             Literal[
                 "gpt-6-astra",
+                "gpt-6.1-sol",
+                "gpt-6.1-terra",
+                "gpt-6-sol",
+                "gpt-6-luna",
                 "gpt-5.6-sol",
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
@@ -2929,6 +2993,7 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-5.1",
                 "gpt-5.1-2025-11-13",
                 "gpt-5.1-codex",
+                "gpt-5.1-mini",
                 "gpt-5.1-chat-latest",
                 "gpt-5",
                 "gpt-5-mini",
@@ -2994,7 +3059,6 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-3.5-turbo-1106",
                 "gpt-3.5-turbo-0125",
                 "gpt-3.5-turbo-16k-0613",
-                "gpt-5.1-mini",
                 "o1-pro",
                 "o1-pro-2025-03-19",
                 "o3-pro",
@@ -3014,6 +3078,7 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-daybreak-blue-latest",
                 "gpt-daybreak-red-latest",
                 "gpt-5.6-cyber",
+                "gpt-rosalind-research",
             ],
             str,
         ]
@@ -3068,6 +3133,8 @@ class AsyncResponses(AsyncAPIResource):
               See the
               [Streaming section below](https://developers.openai.com/api/reference/resources/responses/streaming-events)
               for more information.
+
+          access_programs: Domain-specific access programs to use for this request.
 
           background: Whether to run the model response in the background.
               [Learn more](https://developers.openai.com/api/docs/guides/background).
@@ -3187,7 +3254,7 @@ class AsyncResponses(AsyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user, with a maximum length of 64 characters. We recommend
+              identifies each user, with a maximum length of 128 characters. We recommend
               hashing their username or email address, in order to avoid sending us any
               identifying information.
               [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
@@ -3299,6 +3366,7 @@ class AsyncResponses(AsyncAPIResource):
     async def create(
         self,
         *,
+        access_programs: response_create_params.AccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
         context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
@@ -3311,6 +3379,10 @@ class AsyncResponses(AsyncAPIResource):
         model: Union[
             Literal[
                 "gpt-6-astra",
+                "gpt-6.1-sol",
+                "gpt-6.1-terra",
+                "gpt-6-sol",
+                "gpt-6-luna",
                 "gpt-5.6-sol",
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
@@ -3330,6 +3402,7 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-5.1",
                 "gpt-5.1-2025-11-13",
                 "gpt-5.1-codex",
+                "gpt-5.1-mini",
                 "gpt-5.1-chat-latest",
                 "gpt-5",
                 "gpt-5-mini",
@@ -3395,7 +3468,6 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-3.5-turbo-1106",
                 "gpt-3.5-turbo-0125",
                 "gpt-3.5-turbo-16k-0613",
-                "gpt-5.1-mini",
                 "o1-pro",
                 "o1-pro-2025-03-19",
                 "o3-pro",
@@ -3415,6 +3487,7 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-daybreak-blue-latest",
                 "gpt-daybreak-red-latest",
                 "gpt-5.6-cyber",
+                "gpt-rosalind-research",
             ],
             str,
         ]
@@ -3457,6 +3530,10 @@ class AsyncResponses(AsyncAPIResource):
             "/responses?beta=true",
             body=await async_maybe_transform(
                 {
+                    "model": model,
+                    "stream": stream,
+                    "service_tier": service_tier,
+                    "access_programs": access_programs,
                     "background": background,
                     "context_management": context_management,
                     "conversation": conversation,
@@ -3466,7 +3543,6 @@ class AsyncResponses(AsyncAPIResource):
                     "max_output_tokens": max_output_tokens,
                     "max_tool_calls": max_tool_calls,
                     "metadata": metadata,
-                    "model": model,
                     "moderation": moderation,
                     "multi_agent": multi_agent,
                     "parallel_tool_calls": parallel_tool_calls,
@@ -3477,9 +3553,7 @@ class AsyncResponses(AsyncAPIResource):
                     "prompt_cache_retention": prompt_cache_retention,
                     "reasoning": reasoning,
                     "safety_identifier": safety_identifier,
-                    "service_tier": service_tier,
                     "store": store,
-                    "stream": stream,
                     "stream_options": stream_options,
                     "temperature": temperature,
                     "text": text,
@@ -3795,6 +3869,10 @@ class AsyncResponses(AsyncAPIResource):
         model: Union[
             Literal[
                 "gpt-6-astra",
+                "gpt-6.1-sol",
+                "gpt-6.1-terra",
+                "gpt-6-sol",
+                "gpt-6-luna",
                 "gpt-5.6-sol",
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
@@ -3814,6 +3892,7 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-5.1",
                 "gpt-5.1-2025-11-13",
                 "gpt-5.1-codex",
+                "gpt-5.1-mini",
                 "gpt-5.1-chat-latest",
                 "gpt-5",
                 "gpt-5-mini",
@@ -3879,7 +3958,6 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-3.5-turbo-1106",
                 "gpt-3.5-turbo-0125",
                 "gpt-3.5-turbo-16k-0613",
-                "gpt-5.1-mini",
                 "o1-pro",
                 "o1-pro-2025-03-19",
                 "o3-pro",
@@ -3899,6 +3977,7 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-daybreak-blue-latest",
                 "gpt-daybreak-red-latest",
                 "gpt-5.6-cyber",
+                "gpt-rosalind-research",
             ],
             str,
             None,
@@ -3994,13 +4073,13 @@ class AsyncResponses(AsyncAPIResource):
             body=await async_maybe_transform(
                 {
                     "model": model,
+                    "service_tier": service_tier,
                     "input": input,
                     "instructions": instructions,
                     "previous_response_id": previous_response_id,
                     "prompt_cache_key": prompt_cache_key,
                     "prompt_cache_options": prompt_cache_options,
                     "prompt_cache_retention": prompt_cache_retention,
-                    "service_tier": service_tier,
                 },
                 response_compact_params.ResponseCompactParams,
             ),
@@ -4064,10 +4143,12 @@ class ResponsesWithRawResponse:
 
     @cached_property
     def input_items(self) -> InputItemsWithRawResponse:
+        """Create and manage model responses."""
         return InputItemsWithRawResponse(self._responses.input_items)
 
     @cached_property
     def input_tokens(self) -> InputTokensWithRawResponse:
+        """Create and manage model responses."""
         return InputTokensWithRawResponse(self._responses.input_tokens)
 
 
@@ -4093,10 +4174,12 @@ class AsyncResponsesWithRawResponse:
 
     @cached_property
     def input_items(self) -> AsyncInputItemsWithRawResponse:
+        """Create and manage model responses."""
         return AsyncInputItemsWithRawResponse(self._responses.input_items)
 
     @cached_property
     def input_tokens(self) -> AsyncInputTokensWithRawResponse:
+        """Create and manage model responses."""
         return AsyncInputTokensWithRawResponse(self._responses.input_tokens)
 
 
@@ -4122,10 +4205,12 @@ class ResponsesWithStreamingResponse:
 
     @cached_property
     def input_items(self) -> InputItemsWithStreamingResponse:
+        """Create and manage model responses."""
         return InputItemsWithStreamingResponse(self._responses.input_items)
 
     @cached_property
     def input_tokens(self) -> InputTokensWithStreamingResponse:
+        """Create and manage model responses."""
         return InputTokensWithStreamingResponse(self._responses.input_tokens)
 
 
@@ -4151,14 +4236,16 @@ class AsyncResponsesWithStreamingResponse:
 
     @cached_property
     def input_items(self) -> AsyncInputItemsWithStreamingResponse:
+        """Create and manage model responses."""
         return AsyncInputItemsWithStreamingResponse(self._responses.input_items)
 
     @cached_property
     def input_tokens(self) -> AsyncInputTokensWithStreamingResponse:
+        """Create and manage model responses."""
         return AsyncInputTokensWithStreamingResponse(self._responses.input_tokens)
 
 
-class AsyncResponsesConnection:
+class AsyncResponsesConnection(AsyncWebSocketConnectionBase):
     """Represents a live WebSocket connection to the Responses API"""
 
     response: AsyncResponsesResponseResource
@@ -4178,18 +4265,18 @@ class AsyncResponsesConnection:
         extra_headers: Headers = {},
         send_queue: SendQueue | None = None,
     ) -> None:
-        self._connection = connection
-        self._make_ws = make_ws
-        self._on_reconnecting = on_reconnecting
-        self._max_retries = max_retries
-        self._reconnect_attempt = 0
-        self._initial_delay = initial_delay
-        self._max_delay = max_delay
-        self._extra_query = extra_query
-        self._extra_headers = extra_headers
-        self._intentionally_closed = False
-        self._is_reconnecting = False
-        self._send_queue = send_queue or SendQueue()
+        super().__init__(
+            connection,
+            make_ws=make_ws,
+            on_reconnecting=on_reconnecting,
+            max_retries=max_retries,
+            initial_delay=initial_delay,
+            max_delay=max_delay,
+            extra_query=extra_query,
+            extra_headers=extra_headers,
+            send_queue=send_queue,
+            logger=log,
+        )
         self._event_handler_registry = EventHandlerRegistry(use_lock=False)
 
         self.response = AsyncResponsesResponseResource(self)
@@ -4257,29 +4344,14 @@ class AsyncResponsesConnection:
 
     async def send(self, event: BetaResponsesClientEvent | BetaResponsesClientEventParam) -> None:
         data = (
-            event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
+            event.to_json(use_api_names=True, exclude_unset=True)
             if isinstance(event, BaseModel)
             else json.dumps(await async_maybe_transform(event, BetaResponsesClientEventParam))
         )
         if self._is_reconnecting:
             self._send_queue.enqueue(data)
             return
-        try:
-            await self._connection.send(data)
-        except Exception:
-            self._send_queue.enqueue(data)
-            raise
-
-    async def send_raw(self, data: bytes | str) -> None:
-        if self._is_reconnecting:
-            raw = data if isinstance(data, str) else data.decode("utf-8")
-            self._send_queue.enqueue(raw)
-            return
         await self._connection.send(data)
-
-    async def close(self, *, code: int = 1000, reason: str = "") -> None:
-        self._intentionally_closed = True
-        await self._connection.close(code=code, reason=reason)
 
     def parse_event(self, data: str | bytes) -> BetaResponsesServerEvent:
         """
@@ -4291,94 +4363,6 @@ class AsyncResponsesConnection:
             BetaResponsesServerEvent,
             construct_type_unchecked(value=json.loads(data), type_=cast(Any, BetaResponsesServerEvent)),
         )
-
-    async def _reconnect(self, exc: Exception) -> bool:
-        """Attempt to reconnect after a connection failure.
-
-        Returns ``True`` if a new connection was established, ``False`` if the
-        caller should re-raise the original exception.
-        """
-        import asyncio
-
-        if self._on_reconnecting is None or self._make_ws is None:
-            return False
-
-        from websockets.exceptions import ConnectionClosedError
-
-        close_code = 1006
-        if isinstance(exc, ConnectionClosedError) and exc.rcvd is not None:
-            close_code = exc.rcvd.code
-
-        if not is_recoverable_close(close_code):
-            return False
-
-        self._is_reconnecting = True
-
-        for attempt in range(self._reconnect_attempt + 1, self._max_retries + 1):
-            self._reconnect_attempt = attempt
-            base_delay = min(self._initial_delay * (2 ** (attempt - 1)), self._max_delay)
-            jitter = 0.75 + random.random() * 0.25
-            delay = base_delay * jitter
-
-            event = ReconnectingEvent(
-                attempt=attempt,
-                max_attempts=self._max_retries,
-                delay=delay,
-                close_code=close_code,
-                extra_query=self._extra_query,
-                extra_headers=self._extra_headers,
-            )
-
-            try:
-                result = self._on_reconnecting(event)
-            except Exception:
-                self._is_reconnecting = False
-                return False
-
-            if result is not None and result.get("abort"):
-                self._is_reconnecting = False
-                return False
-
-            if result is not None:
-                if "extra_query" in result:
-                    self._extra_query = result["extra_query"]
-                if "extra_headers" in result:
-                    self._extra_headers = result["extra_headers"]
-
-            log.info(
-                "Reconnecting to WebSocket API (attempt %d/%d) after %.1fs delay",
-                attempt,
-                self._max_retries,
-                delay,
-            )
-            await asyncio.sleep(delay)
-
-            if self._intentionally_closed:
-                self._is_reconnecting = False
-                return False
-
-            try:
-                self._connection = await self._make_ws(self._extra_query, self._extra_headers)
-                log.info("Reconnected to WebSocket API")
-                self._is_reconnecting = False
-                await self._flush_send_queue()
-                return True
-            except Exception:
-                pass
-
-        self._is_reconnecting = False
-        return False
-
-    async def _flush_send_queue(self) -> None:
-        """Send all queued messages over the current connection."""
-
-        async def _send(data: str) -> None:
-            await self._connection.send(data)
-
-        try:
-            await self._send_queue.flush_async(_send)
-        except Exception:
-            log.warning("Failed to flush send queue after reconnect")
 
     def on(
         self, event_type: str, handler: Callable[..., Any] | None = None
@@ -4513,9 +4497,9 @@ class AsyncResponsesConnectionManager:
         are automatically sent once the WebSocket connection opens.
         """
         data = (
-            event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
+            event.to_json(use_api_names=True, exclude_unset=True)
             if isinstance(event, BaseModel)
-            else json.dumps(event)
+            else json.dumps(maybe_transform(event, BetaResponsesClientEventParam))
         )
         self.__send_queue.enqueue(data)
 
@@ -4571,20 +4555,29 @@ class AsyncResponsesConnectionManager:
         """
         ws = await self._connect_ws(self.__extra_query, self.__extra_headers)
 
-        self.__connection = AsyncResponsesConnection(
-            ws,
-            make_ws=self._connect_ws if self.__on_reconnecting is not None else None,
-            on_reconnecting=self.__on_reconnecting,
-            max_retries=self.__max_retries,
-            initial_delay=self.__initial_delay,
-            max_delay=self.__max_delay,
-            extra_query=self.__extra_query,
-            extra_headers=self.__extra_headers,
-            send_queue=self.__send_queue,
-        )
+        try:
+            self.__connection = AsyncResponsesConnection(
+                ws,
+                make_ws=self._connect_ws if self.__on_reconnecting is not None else None,
+                on_reconnecting=self.__on_reconnecting,
+                max_retries=self.__max_retries,
+                initial_delay=self.__initial_delay,
+                max_delay=self.__max_delay,
+                extra_query=self.__extra_query,
+                extra_headers=self.__extra_headers,
+                send_queue=self.__send_queue,
+            )
 
-        self.__event_handler_registry.merge_into(self.__connection._event_handler_registry)
-        await self.__connection._flush_send_queue()
+            self.__event_handler_registry.merge_into(self.__connection._event_handler_registry)
+            await self.__connection._flush_send_queue()
+        except BaseException:
+            self.__connection = None
+            try:
+                await ws.close()
+            except BaseException:
+                # Preserve the exception that prevented successful entry.
+                pass
+            raise
 
         return self.__connection
 
@@ -4596,11 +4589,17 @@ class AsyncResponsesConnectionManager:
         except ImportError as exc:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
-        url = self._prepare_url().copy_with(
-            params={
-                **self.__client.base_url.params,
-                **extra_query,
-            },
+        url = self._prepare_url()
+        try:
+            # Older runtimes do not declare this optional helper.
+            query_params = getattr(self.__client, "_websocket_query_params")  # noqa: B009
+        except AttributeError:
+            query_params = self.__client._websocket_query_params_fallback
+        url = url.copy_with(
+            params=query_params(
+                url,
+                extra_query,
+            ),
         )
         url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
         options = await self.__client._prepare_options(
@@ -4629,11 +4628,16 @@ class AsyncResponsesConnectionManager:
         if self.__websocket_connection_options:
             log.debug("Custom WebSocket connection options provided")
 
+        websocket_options = self.__websocket_connection_options.copy()
+        websocket_options.setdefault("max_size", None)
+        if websocket_options.get("max_size") is None:
+            websocket_options.setdefault("compression", None)
+
         return await connect(
             str(url),
             user_agent_header=None,
             additional_headers=_merge_mappings(dict(headers.values()), {}),
-            **self.__websocket_connection_options,
+            **websocket_options,
         )
 
     def _prepare_url(self) -> httpx2.URL:
@@ -4644,7 +4648,8 @@ class AsyncResponsesConnectionManager:
             ws_scheme = "ws" if scheme == "http" else "wss"
             base_url = self.__client._base_url.copy_with(scheme=ws_scheme)
 
-        merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/responses"
+        path, separator, query = base_url.raw_path.partition(b"?")
+        merge_raw_path = path.rstrip(b"/") + b"/responses" + separator + query
         return base_url.copy_with(raw_path=merge_raw_path)
 
     async def __aexit__(
@@ -4654,7 +4659,7 @@ class AsyncResponsesConnectionManager:
             await self.__connection.close()
 
 
-class ResponsesConnection:
+class ResponsesConnection(WebSocketConnectionBase):
     """Represents a live WebSocket connection to the Responses API"""
 
     response: ResponsesResponseResource
@@ -4674,18 +4679,18 @@ class ResponsesConnection:
         extra_headers: Headers = {},
         send_queue: SendQueue | None = None,
     ) -> None:
-        self._connection = connection
-        self._make_ws = make_ws
-        self._on_reconnecting = on_reconnecting
-        self._max_retries = max_retries
-        self._reconnect_attempt = 0
-        self._initial_delay = initial_delay
-        self._max_delay = max_delay
-        self._extra_query = extra_query
-        self._extra_headers = extra_headers
-        self._intentionally_closed = False
-        self._is_reconnecting = False
-        self._send_queue = send_queue or SendQueue()
+        super().__init__(
+            connection,
+            make_ws=make_ws,
+            on_reconnecting=on_reconnecting,
+            max_retries=max_retries,
+            initial_delay=initial_delay,
+            max_delay=max_delay,
+            extra_query=extra_query,
+            extra_headers=extra_headers,
+            send_queue=send_queue,
+            logger=log,
+        )
         self._event_handler_registry = EventHandlerRegistry(use_lock=True)
 
         self.response = ResponsesResponseResource(self)
@@ -4755,29 +4760,14 @@ class ResponsesConnection:
 
     def send(self, event: BetaResponsesClientEvent | BetaResponsesClientEventParam) -> None:
         data = (
-            event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
+            event.to_json(use_api_names=True, exclude_unset=True)
             if isinstance(event, BaseModel)
             else json.dumps(maybe_transform(event, BetaResponsesClientEventParam))
         )
         if self._is_reconnecting:
             self._send_queue.enqueue(data)
             return
-        try:
-            self._connection.send(data)
-        except Exception:
-            self._send_queue.enqueue(data)
-            raise
-
-    def send_raw(self, data: bytes | str) -> None:
-        if self._is_reconnecting:
-            raw = data if isinstance(data, str) else data.decode("utf-8")
-            self._send_queue.enqueue(raw)
-            return
         self._connection.send(data)
-
-    def close(self, *, code: int = 1000, reason: str = "") -> None:
-        self._intentionally_closed = True
-        self._connection.close(code=code, reason=reason)
 
     def parse_event(self, data: str | bytes) -> BetaResponsesServerEvent:
         """
@@ -4789,88 +4779,6 @@ class ResponsesConnection:
             BetaResponsesServerEvent,
             construct_type_unchecked(value=json.loads(data), type_=cast(Any, BetaResponsesServerEvent)),
         )
-
-    def _reconnect(self, exc: Exception) -> bool:
-        """Attempt to reconnect after a connection failure.
-
-        Returns ``True`` if a new connection was established, ``False`` if the
-        caller should re-raise the original exception.
-        """
-        if self._on_reconnecting is None or self._make_ws is None:
-            return False
-
-        from websockets.exceptions import ConnectionClosedError
-
-        close_code = 1006
-        if isinstance(exc, ConnectionClosedError) and exc.rcvd is not None:
-            close_code = exc.rcvd.code
-
-        if not is_recoverable_close(close_code):
-            return False
-
-        self._is_reconnecting = True
-
-        for attempt in range(self._reconnect_attempt + 1, self._max_retries + 1):
-            self._reconnect_attempt = attempt
-            base_delay = min(self._initial_delay * (2 ** (attempt - 1)), self._max_delay)
-            jitter = 0.75 + random.random() * 0.25
-            delay = base_delay * jitter
-
-            event = ReconnectingEvent(
-                attempt=attempt,
-                max_attempts=self._max_retries,
-                delay=delay,
-                close_code=close_code,
-                extra_query=self._extra_query,
-                extra_headers=self._extra_headers,
-            )
-
-            try:
-                result = self._on_reconnecting(event)
-            except Exception:
-                self._is_reconnecting = False
-                return False
-
-            if result is not None and result.get("abort"):
-                self._is_reconnecting = False
-                return False
-
-            if result is not None:
-                if "extra_query" in result:
-                    self._extra_query = result["extra_query"]
-                if "extra_headers" in result:
-                    self._extra_headers = result["extra_headers"]
-
-            log.info(
-                "Reconnecting to WebSocket API (attempt %d/%d) after %.1fs delay",
-                attempt,
-                self._max_retries,
-                delay,
-            )
-            time.sleep(delay)
-
-            if self._intentionally_closed:
-                self._is_reconnecting = False
-                return False
-
-            try:
-                self._connection = self._make_ws(self._extra_query, self._extra_headers)
-                log.info("Reconnected to WebSocket API")
-                self._is_reconnecting = False
-                self._flush_send_queue()
-                return True
-            except Exception:
-                pass
-
-        self._is_reconnecting = False
-        return False
-
-    def _flush_send_queue(self) -> None:
-        """Send all queued messages over the current connection."""
-        try:
-            self._send_queue.flush_sync(lambda data: self._connection.send(data))
-        except Exception:
-            log.warning("Failed to flush send queue after reconnect")
 
     def on(
         self, event_type: str, handler: Callable[..., Any] | None = None
@@ -4973,7 +4881,7 @@ class ResponsesConnectionManager:
         client: OpenAI,
         extra_query: Query,
         extra_headers: Headers,
-        websocket_connection_options: WebSocketConnectionOptions,
+        websocket_connection_options: SyncWebSocketConnectionOptions,
         on_reconnecting: Callable[[ReconnectingEvent], ReconnectingOverrides | None] | None = None,
         max_retries: int = 5,
         initial_delay: float = 0.5,
@@ -4999,9 +4907,9 @@ class ResponsesConnectionManager:
         are automatically sent once the WebSocket connection opens.
         """
         data = (
-            event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
+            event.to_json(use_api_names=True, exclude_unset=True)
             if isinstance(event, BaseModel)
-            else json.dumps(event)
+            else json.dumps(maybe_transform(event, BetaResponsesClientEventParam))
         )
         self.__send_queue.enqueue(data)
 
@@ -5057,20 +4965,29 @@ class ResponsesConnectionManager:
         """
         ws = self._connect_ws(self.__extra_query, self.__extra_headers)
 
-        self.__connection = ResponsesConnection(
-            ws,
-            make_ws=self._connect_ws if self.__on_reconnecting is not None else None,
-            on_reconnecting=self.__on_reconnecting,
-            max_retries=self.__max_retries,
-            initial_delay=self.__initial_delay,
-            max_delay=self.__max_delay,
-            extra_query=self.__extra_query,
-            extra_headers=self.__extra_headers,
-            send_queue=self.__send_queue,
-        )
+        try:
+            self.__connection = ResponsesConnection(
+                ws,
+                make_ws=self._connect_ws if self.__on_reconnecting is not None else None,
+                on_reconnecting=self.__on_reconnecting,
+                max_retries=self.__max_retries,
+                initial_delay=self.__initial_delay,
+                max_delay=self.__max_delay,
+                extra_query=self.__extra_query,
+                extra_headers=self.__extra_headers,
+                send_queue=self.__send_queue,
+            )
 
-        self.__event_handler_registry.merge_into(self.__connection._event_handler_registry)
-        self.__connection._flush_send_queue()
+            self.__event_handler_registry.merge_into(self.__connection._event_handler_registry)
+            self.__connection._flush_send_queue()
+        except BaseException:
+            self.__connection = None
+            try:
+                ws.close()
+            except BaseException:
+                # Preserve the exception that prevented successful entry.
+                pass
+            raise
 
         return self.__connection
 
@@ -5082,11 +4999,17 @@ class ResponsesConnectionManager:
         except ImportError as exc:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
-        url = self._prepare_url().copy_with(
-            params={
-                **self.__client.base_url.params,
-                **extra_query,
-            },
+        url = self._prepare_url()
+        try:
+            # Older runtimes do not declare this optional helper.
+            query_params = getattr(self.__client, "_websocket_query_params")  # noqa: B009
+        except AttributeError:
+            query_params = self.__client._websocket_query_params_fallback
+        url = url.copy_with(
+            params=query_params(
+                url,
+                extra_query,
+            ),
         )
         url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
         options = self.__client._prepare_options(
@@ -5115,11 +5038,16 @@ class ResponsesConnectionManager:
         if self.__websocket_connection_options:
             log.debug("Custom WebSocket connection options provided")
 
+        websocket_options = self.__websocket_connection_options.copy()
+        websocket_options.setdefault("max_size", None)
+        if websocket_options.get("max_size") is None:
+            websocket_options.setdefault("compression", None)
+
         return connect(
             str(url),
             user_agent_header=None,
             additional_headers=_merge_mappings(dict(headers.values()), {}),
-            **self.__websocket_connection_options,
+            **websocket_options,
         )
 
     def _prepare_url(self) -> httpx2.URL:
@@ -5130,7 +5058,8 @@ class ResponsesConnectionManager:
             ws_scheme = "ws" if scheme == "http" else "wss"
             base_url = self.__client._base_url.copy_with(scheme=ws_scheme)
 
-        merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/responses"
+        path, separator, query = base_url.raw_path.partition(b"?")
+        merge_raw_path = path.rstrip(b"/") + b"/responses" + separator + query
         return base_url.copy_with(raw_path=merge_raw_path)
 
     def __exit__(
@@ -5149,6 +5078,7 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
     def create(
         self,
         *,
+        access_programs: beta_responses_client_event_param.ResponseCreateAccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
         context_management: Optional[Iterable[beta_responses_client_event_param.ResponseCreateContextManagement]]
         | Omit = omit,
@@ -5162,6 +5092,10 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
         model: Union[
             Literal[
                 "gpt-6-astra",
+                "gpt-6.1-sol",
+                "gpt-6.1-terra",
+                "gpt-6-sol",
+                "gpt-6-luna",
                 "gpt-5.6-sol",
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
@@ -5181,6 +5115,7 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
                 "gpt-5.1",
                 "gpt-5.1-2025-11-13",
                 "gpt-5.1-codex",
+                "gpt-5.1-mini",
                 "gpt-5.1-chat-latest",
                 "gpt-5",
                 "gpt-5-mini",
@@ -5246,7 +5181,6 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
                 "gpt-3.5-turbo-1106",
                 "gpt-3.5-turbo-0125",
                 "gpt-3.5-turbo-16k-0613",
-                "gpt-5.1-mini",
                 "o1-pro",
                 "o1-pro-2025-03-19",
                 "o3-pro",
@@ -5266,6 +5200,7 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
                 "gpt-daybreak-blue-latest",
                 "gpt-daybreak-red-latest",
                 "gpt-5.6-cyber",
+                "gpt-rosalind-research",
             ],
             str,
         ]
@@ -5310,6 +5245,7 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
                 strip_not_given(
                     {
                         "type": "response.create",
+                        "access_programs": access_programs,
                         "background": background,
                         "context_management": context_management,
                         "conversation": conversation,
@@ -5400,6 +5336,7 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
     async def create(
         self,
         *,
+        access_programs: beta_responses_client_event_param.ResponseCreateAccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
         context_management: Optional[Iterable[beta_responses_client_event_param.ResponseCreateContextManagement]]
         | Omit = omit,
@@ -5413,6 +5350,10 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
         model: Union[
             Literal[
                 "gpt-6-astra",
+                "gpt-6.1-sol",
+                "gpt-6.1-terra",
+                "gpt-6-sol",
+                "gpt-6-luna",
                 "gpt-5.6-sol",
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
@@ -5432,6 +5373,7 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
                 "gpt-5.1",
                 "gpt-5.1-2025-11-13",
                 "gpt-5.1-codex",
+                "gpt-5.1-mini",
                 "gpt-5.1-chat-latest",
                 "gpt-5",
                 "gpt-5-mini",
@@ -5497,7 +5439,6 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
                 "gpt-3.5-turbo-1106",
                 "gpt-3.5-turbo-0125",
                 "gpt-3.5-turbo-16k-0613",
-                "gpt-5.1-mini",
                 "o1-pro",
                 "o1-pro-2025-03-19",
                 "o3-pro",
@@ -5517,6 +5458,7 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
                 "gpt-daybreak-blue-latest",
                 "gpt-daybreak-red-latest",
                 "gpt-5.6-cyber",
+                "gpt-rosalind-research",
             ],
             str,
         ]
@@ -5561,6 +5503,7 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
                 strip_not_given(
                     {
                         "type": "response.create",
+                        "access_programs": access_programs,
                         "background": background,
                         "context_management": context_management,
                         "conversation": conversation,

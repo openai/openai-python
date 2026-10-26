@@ -45,7 +45,7 @@ class Agent(BaseModel):
     effort.
     """
 
-    service_tier: Literal["auto", "default", "flex", "priority", "fast"]
+    service_tier: Literal["auto", "default", "flex", "priority", "fast", "ultrafast"]
     """The resolved service-tier policy used for model requests."""
 
     text: AgentText

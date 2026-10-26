@@ -10,10 +10,20 @@ from .audio_format_param import AudioFormatParam
 from .custom_voice_param import CustomVoiceParam
 from .initial_item_param import InitialItemParam
 from .client_config_param import ClientConfigParam
+from .decision_trigger_param import DecisionTriggerParam
 from .client_delegation_param import ClientDelegationParam
+from .decisions_delegation_config_param import DecisionsDelegationConfigParam
 from .responses_delegation_config_param import ResponsesDelegationConfigParam
 
-__all__ = ["SessionConfigParam", "Audio", "AudioOutput", "AudioOutputVoice", "Delegation", "DelegationResponses"]
+__all__ = [
+    "SessionConfigParam",
+    "Audio",
+    "AudioOutput",
+    "AudioOutputVoice",
+    "Delegation",
+    "DelegationResponses",
+    "DelegationDecisions",
+]
 
 AudioOutputVoice: TypeAlias = Union[str, BuiltInVoice, CustomVoiceParam]
 
@@ -59,8 +69,33 @@ class DelegationResponses(TypedDict, total=False):
     Always `responses` for tasks handled by the Responses API.
     """
 
+    acknowledgement_delay_ms: int
+    """
+    Milliseconds to wait before requesting an automatic spoken acknowledgement for a
+    delegation. The model may still speak before this delay. Any commentary or
+    thinking appended to the session cancels all pending acknowledgements, including
+    those for other delegations. Defaults to 400 for Decisions sessions and 0
+    (request immediately) for other sessions. Omission in a session update preserves
+    the current value. Updates apply to subsequent delegations.
+    """
 
-Delegation: TypeAlias = Union[ClientDelegationParam, DelegationResponses]
+
+class DelegationDecisions(TypedDict, total=False):
+    decisions: Required[DecisionsDelegationConfigParam]
+
+    type: Required[Literal["decisions"]]
+
+    acknowledgement_delay_ms: int
+    """
+    Milliseconds to wait before requesting an automatic spoken acknowledgement for a
+    delegation. The model may still speak before this delay. Any commentary or
+    thinking appended to the session cancels all pending acknowledgements, including
+    those for other delegations. Defaults to 400. Updates apply to subsequent
+    delegations.
+    """
+
+
+Delegation: TypeAlias = Union[ClientDelegationParam, DelegationResponses, DelegationDecisions]
 
 
 class SessionConfigParam(TypedDict, total=False):
@@ -91,15 +126,15 @@ class SessionConfigParam(TypedDict, total=False):
     delegation: Optional[Delegation]
     """Who handles tasks delegated by the Live model.
 
-    Omitted or null selects your application; use `responses` to let the API manage
-    a Responses backend.
+    Omitted or null selects your application; use `responses` or `decisions` to
+    delegate to the corresponding API.
     """
 
     input: Iterable[InitialItemParam]
     """Ordered text-only history supplied before startup.
 
     Supports developer, user, and assistant messages with one text part each; at
-    most 128 messages and 8,192 rendered tokens in total.
+    most 128 messages and a configured rendered-token limit (8,192 by default).
     """
 
     instructions: Optional[str]
@@ -117,4 +152,12 @@ class SessionConfigParam(TypedDict, total=False):
     """Whether to store the session for later forking and recording download.
 
     Defaults to false for new sessions.
+    """
+
+    triggers: Iterable[DecisionTriggerParam]
+    """At most one Decisions trigger per transcript event type.
+
+    Triggers run independently of delegation. On update, omit triggers to keep the
+    current configuration, send a list to replace it, or send an empty list to
+    disable triggers.
     """

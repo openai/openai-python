@@ -1,9 +1,8 @@
-<!-- Thank you for contributing to this project! -->
-<!-- The code in this repository is all auto-generated, and is not meant to be edited manually. -->
-<!-- We recommend opening an Issue instead, but you are still welcome to open a PR to share for -->
-<!-- an improvement if you wish, just note that we are unlikely to merge it as-is. -->
-
-- [ ] I understand that this repository is auto-generated and my pull request may not be merged
+<!-- Pull requests are limited to repository collaborators. -->
+<!-- For community bug reports and feature requests, open an issue: -->
+<!-- https://github.com/openai/openai-python/issues -->
+<!-- Read the contribution policy and development guide: -->
+<!-- https://github.com/openai/openai-python/blob/main/CONTRIBUTING.md -->
 
 ## Changes being requested
 

@@ -7,7 +7,9 @@ for cross-SDK improvements; repository-specific customizations use the normal
 three-way merge and are allowed.
 The reporter uses Python 3.10+, Git, and `gh`; it does not import SDK code.
 
-Run `python3 scripts/castiron/test_custom_code_report.py` for focused tests.
+Run `python3 -m unittest discover -s scripts/castiron -p 'test_custom_code*.py'`
+for the offline suite. Install Node.js to exercise the workflow publishers too.
+See [CUSTOM_CODE.md](CUSTOM_CODE.md) for budget policy and activation.
 The report comment includes commands to inspect the exact custom-code patch.
 Public reporting uses only public snapshots and needs no private repository access.
 
@@ -17,8 +19,8 @@ Its hash format is documented in the reporter. Only `.github/actions/` and
 
 The read-only pull-request workflow runs on every branch, including drafts and
 forks. A separate read-only `workflow_run` job computes the authoritative report from
-current, GitHub-associated base/head Git objects using the trusted workflow
-revision. It fetches those objects into a new bare repository and never checks
+the captured main checkout and GitHub-associated PR head. Merge groups are
+checked independently against current main. It fetches those objects into a new bare repository and never checks
 out or executes PR code. The comment-writing job consumes only the artifact
 from that trusted job, rechecks freshness, and links to its report and patch.
 PR-produced reports are advisory run output, not the published assessment. The

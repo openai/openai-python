@@ -19,6 +19,14 @@ if _t.TYPE_CHECKING:
         SpeechWithStreamingResponse as SpeechWithStreamingResponse,
         AsyncSpeechWithStreamingResponse as AsyncSpeechWithStreamingResponse,
     )
+    from .voices import (
+        Voices as Voices,
+        AsyncVoices as AsyncVoices,
+        VoicesWithRawResponse as VoicesWithRawResponse,
+        AsyncVoicesWithRawResponse as AsyncVoicesWithRawResponse,
+        VoicesWithStreamingResponse as VoicesWithStreamingResponse,
+        AsyncVoicesWithStreamingResponse as AsyncVoicesWithStreamingResponse,
+    )
     from .translations import (
         Translations as Translations,
         AsyncTranslations as AsyncTranslations,
@@ -34,6 +42,14 @@ if _t.TYPE_CHECKING:
         AsyncTranscriptionsWithRawResponse as AsyncTranscriptionsWithRawResponse,
         TranscriptionsWithStreamingResponse as TranscriptionsWithStreamingResponse,
         AsyncTranscriptionsWithStreamingResponse as AsyncTranscriptionsWithStreamingResponse,
+    )
+    from .voice_consents import (
+        VoiceConsents as VoiceConsents,
+        AsyncVoiceConsents as AsyncVoiceConsents,
+        VoiceConsentsWithRawResponse as VoiceConsentsWithRawResponse,
+        AsyncVoiceConsentsWithRawResponse as AsyncVoiceConsentsWithRawResponse,
+        VoiceConsentsWithStreamingResponse as VoiceConsentsWithStreamingResponse,
+        AsyncVoiceConsentsWithStreamingResponse as AsyncVoiceConsentsWithStreamingResponse,
     )
 
 else:
@@ -56,6 +72,18 @@ else:
         "AsyncSpeechWithRawResponse": (".speech", "AsyncSpeechWithRawResponse"),
         "SpeechWithStreamingResponse": (".speech", "SpeechWithStreamingResponse"),
         "AsyncSpeechWithStreamingResponse": (".speech", "AsyncSpeechWithStreamingResponse"),
+        "Voices": (".voices", "Voices"),
+        "AsyncVoices": (".voices", "AsyncVoices"),
+        "VoicesWithRawResponse": (".voices", "VoicesWithRawResponse"),
+        "AsyncVoicesWithRawResponse": (".voices", "AsyncVoicesWithRawResponse"),
+        "VoicesWithStreamingResponse": (".voices", "VoicesWithStreamingResponse"),
+        "AsyncVoicesWithStreamingResponse": (".voices", "AsyncVoicesWithStreamingResponse"),
+        "VoiceConsents": (".voice_consents", "VoiceConsents"),
+        "AsyncVoiceConsents": (".voice_consents", "AsyncVoiceConsents"),
+        "VoiceConsentsWithRawResponse": (".voice_consents", "VoiceConsentsWithRawResponse"),
+        "AsyncVoiceConsentsWithRawResponse": (".voice_consents", "AsyncVoiceConsentsWithRawResponse"),
+        "VoiceConsentsWithStreamingResponse": (".voice_consents", "VoiceConsentsWithStreamingResponse"),
+        "AsyncVoiceConsentsWithStreamingResponse": (".voice_consents", "AsyncVoiceConsentsWithStreamingResponse"),
         "Audio": (".audio", "Audio"),
         "AsyncAudio": (".audio", "AsyncAudio"),
         "AudioWithRawResponse": (".audio", "AudioWithRawResponse"),
@@ -68,6 +96,8 @@ else:
         "speech",
         "transcriptions",
         "translations",
+        "voice_consents",
+        "voices",
     }
 
     def __getattr__(name: str) -> _t.Any:
@@ -106,6 +136,18 @@ __all__ = [
     "AsyncSpeechWithRawResponse",
     "SpeechWithStreamingResponse",
     "AsyncSpeechWithStreamingResponse",
+    "Voices",
+    "AsyncVoices",
+    "VoicesWithRawResponse",
+    "AsyncVoicesWithRawResponse",
+    "VoicesWithStreamingResponse",
+    "AsyncVoicesWithStreamingResponse",
+    "VoiceConsents",
+    "AsyncVoiceConsents",
+    "VoiceConsentsWithRawResponse",
+    "AsyncVoiceConsentsWithRawResponse",
+    "VoiceConsentsWithStreamingResponse",
+    "AsyncVoiceConsentsWithStreamingResponse",
     "Audio",
     "AsyncAudio",
     "AudioWithRawResponse",

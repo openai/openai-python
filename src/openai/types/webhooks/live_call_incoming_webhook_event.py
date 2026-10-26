@@ -1,7 +1,7 @@
 # File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
-from typing import List, Optional
-from typing_extensions import Literal, deprecated
+from typing import List, Union, Optional
+from typing_extensions import Literal
 
 from ..._models import BaseModel
 
@@ -35,8 +35,15 @@ class Data(BaseModel):
     untrusted call metadata.
     """
 
+    sip_media_security: Union[Literal["rtp", "srtp"], str, None] = None
+    """Media protection selected on the SIP leg during SDP negotiation.
 
-@deprecated("Use LiveTransportIncomingWebhookEvent (live.transport.incoming) instead.", category=None)
+    `srtp` indicates SRTP; `rtp` indicates unencrypted RTP. Omitted when unknown.
+    This does not describe SIP signaling security or confirm that media has flowed.
+    Clients should handle unrecognized values as unknown.
+    """
+
+
 class LiveCallIncomingWebhookEvent(BaseModel):
     """Deprecated: use `live.transport.incoming`.
 

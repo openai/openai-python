@@ -7,3 +7,8 @@ from ._session import (
     ResponsesWebSocketBufferError as ResponsesWebSocketBufferError,
     AsyncResponsesWebSocketSession as AsyncResponsesWebSocketSession,
 )
+from ._accumulator import (
+    ResponsesWebSocketOutput as ResponsesWebSocketOutput,
+    ResponsesWebSocketSnapshot as ResponsesWebSocketSnapshot,
+    ResponsesWebSocketAccumulator as ResponsesWebSocketAccumulator,
+)

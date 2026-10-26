@@ -96,10 +96,11 @@ class TranscriptGrouping:
         return events
 
     def advance(self, time_ms: float, has_incoming_user: bool = False) -> list[GroupingUpdate]:
+        # Use the same sums as deadline() so fractional deadlines remain reachable.
         if (
             self._current is not None
             and self._buffered is not None
-            and time_ms - self._current.end_ms >= self._options.min_turn_separation_ms
+            and time_ms >= self._current.end_ms + self._options.min_turn_separation_ms
             and not self._keep_backchannel(time_ms)
         ):
             self._buffered = self._maybe_drop_backchannel(time_ms)
@@ -109,7 +110,7 @@ class TranscriptGrouping:
             self._current is not None
             and self._current.speaker == "assistant"
             and not has_incoming_user
-            and time_ms - self._current.end_ms >= self._options.assistant_silence_ms
+            and time_ms >= self._current.end_ms + self._options.assistant_silence_ms
         ):
             return self._finish_current("inactivity")
         return []
@@ -274,7 +275,7 @@ class TranscriptGrouping:
             and self._buffered.can_drop_as_backchannel
             and not self._user_continued()
             and not self._recent_assistant()
-            and time_ms - self._buffered.end_ms < self._options.backchannel_isolation_ms
+            and time_ms < self._buffered.end_ms + self._options.backchannel_isolation_ms
         )
 
     def _maybe_drop_backchannel(
@@ -292,7 +293,7 @@ class TranscriptGrouping:
         ):
             return self._buffered
         if next_fragment is None and (
-            time_ms is None or time_ms - self._buffered.end_ms < self._options.backchannel_isolation_ms
+            time_ms is None or time_ms < self._buffered.end_ms + self._options.backchannel_isolation_ms
         ):
             return self._buffered
         return None if self._buffered.can_drop_as_backchannel else self._buffered

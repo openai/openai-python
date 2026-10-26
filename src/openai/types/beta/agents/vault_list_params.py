@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import Dict
 from typing_extensions import Literal, TypedDict
 
 from .vault_status_filter_param import VaultStatusFilterParam
@@ -14,17 +14,19 @@ class VaultListParams(TypedDict, total=False):
     after: str
     """Return resources after this resource ID in the selected order."""
 
-    limit: Optional[int]
-    """The maximum number of resources to return.
+    limit: int
+    """The maximum number of resources to return, between 1 and 100. Defaults to 20."""
 
-    Defaults to 20. Values are clamped between 1 and 100.
+    metadata: Dict[str, str]
+    """Exact string matches supplied as `metadata[key]=value`.
+
+    All supplied pairs must match. Up to 16 pairs, with keys from 1 to 64 characters
+    and values up to 512 characters. Filtering is eventually consistent; metadata
+    changes may take time to appear.
     """
 
     order: Literal["asc", "desc"]
-    """Sort order by the `created_at` timestamp.
-
-    Use `asc` for ascending order or `desc` for descending order. Defaults to
-    `desc`.
+    """The order in which resources are returned. Defaults to `desc`.
 
     - `asc` - Returns resources in ascending order.
     - `desc` - Returns resources in descending order.

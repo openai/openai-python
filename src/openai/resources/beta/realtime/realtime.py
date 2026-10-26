@@ -30,7 +30,7 @@ from ...._httpx2 import normalize_httpx_url
 from ...._models import construct_type_unchecked
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._exceptions import OpenAIError
-from ...._base_client import _merge_mappings
+from ...._base_client import _merge_headers
 from ....types.beta.realtime import (
     session_update_event_param,
     response_create_event_param,
@@ -44,7 +44,7 @@ from .transcription_sessions import (
     TranscriptionSessionsWithStreamingResponse,
     AsyncTranscriptionSessionsWithStreamingResponse,
 )
-from ....types.websocket_connection_options import WebsocketConnectionOptions
+from ....types.websocket_connection_options import WebsocketConnectionOptions, SyncWebSocketConnectionOptions
 from ....types.beta.realtime.realtime_client_event import RealtimeClientEvent
 from ....types.beta.realtime.realtime_server_event import RealtimeServerEvent
 from ....types.beta.realtime.conversation_item_param import ConversationItemParam
@@ -95,7 +95,7 @@ class Realtime(SyncAPIResource):
         model: str,
         extra_query: Query = {},
         extra_headers: Headers = {},
-        websocket_connection_options: WebsocketConnectionOptions = {},
+        websocket_connection_options: SyncWebSocketConnectionOptions = {},
     ) -> RealtimeConnectionManager:
         """
         The Realtime API enables you to build low-latency, multi-modal conversational experiences. It currently supports text and audio as both input and output, as well as function calling.
@@ -364,29 +364,28 @@ class AsyncRealtimeConnectionManager:
 
             url, auth_headers = await self.__client._configure_realtime(self.__model, extra_query)
         else:
-            url = self._prepare_url().copy_with(
-                params={
-                    **self.__client.base_url.params,
-                    "model": self.__model,
-                    **extra_query,
-                },
+            url = self._prepare_url()
+            url = url.copy_with(
+                params=self.__client._websocket_query_params(url, {"model": self.__model, **extra_query}),
             )
         log.debug("Connecting to WebSocket API")
         if self.__websocket_connection_options:
             log.debug("Custom WebSocket connection options provided")
 
+        options: WebsocketConnectionOptions = {"max_size": None, **self.__websocket_connection_options}
+        if options["max_size"] is None:
+            options.setdefault("compression", None)
         self.__connection = AsyncRealtimeConnection(
             await connect(
                 str(url),
-                user_agent_header=self.__client.user_agent,
-                additional_headers=_merge_mappings(
-                    {
-                        **auth_headers,
-                        "OpenAI-Beta": "realtime=v1",
-                    },
+                user_agent_header=None,
+                additional_headers=_merge_headers(
+                    auth_headers,
+                    self.__client.default_headers,
+                    {"OpenAI-Beta": "realtime=v1"},
                     self.__extra_headers,
                 ),
-                **self.__websocket_connection_options,
+                **options,
             )
         )
 
@@ -400,7 +399,8 @@ class AsyncRealtimeConnectionManager:
         else:
             base_url = self.__client._base_url.copy_with(scheme="wss")
 
-        merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/realtime"
+        path, separator, query = base_url.raw_path.partition(b"?")
+        merge_raw_path = path.rstrip(b"/") + b"/realtime" + separator + query
         return base_url.copy_with(raw_path=merge_raw_path)
 
     async def __aexit__(
@@ -461,7 +461,9 @@ class RealtimeConnection:
         If you want to parse the message into a `RealtimeServerEvent` object like `.recv()` does,
         then you can call `.parse_event(data)`.
         """
-        message = self._connection.recv(decode=False)
+        from ....lib._websocket import _recv_bytes
+
+        message = _recv_bytes(self._connection)
         log.debug("Received WebSocket message: %i bytes", len(message))
         return message
 
@@ -514,7 +516,7 @@ class RealtimeConnectionManager:
         model: str,
         extra_query: Query,
         extra_headers: Headers,
-        websocket_connection_options: WebsocketConnectionOptions,
+        websocket_connection_options: SyncWebSocketConnectionOptions,
     ) -> None:
         self.__client = client
         self.__model = model
@@ -547,29 +549,28 @@ class RealtimeConnectionManager:
         if is_azure_client(self.__client):
             url, auth_headers = self.__client._configure_realtime(self.__model, extra_query)
         else:
-            url = self._prepare_url().copy_with(
-                params={
-                    **self.__client.base_url.params,
-                    "model": self.__model,
-                    **extra_query,
-                },
+            url = self._prepare_url()
+            url = url.copy_with(
+                params=self.__client._websocket_query_params(url, {"model": self.__model, **extra_query}),
             )
         log.debug("Connecting to WebSocket API")
         if self.__websocket_connection_options:
             log.debug("Custom WebSocket connection options provided")
 
+        options: SyncWebSocketConnectionOptions = {"max_size": None, **self.__websocket_connection_options}
+        if options["max_size"] is None:
+            options.setdefault("compression", None)
         self.__connection = RealtimeConnection(
             connect(
                 str(url),
-                user_agent_header=self.__client.user_agent,
-                additional_headers=_merge_mappings(
-                    {
-                        **auth_headers,
-                        "OpenAI-Beta": "realtime=v1",
-                    },
+                user_agent_header=None,
+                additional_headers=_merge_headers(
+                    auth_headers,
+                    self.__client.default_headers,
+                    {"OpenAI-Beta": "realtime=v1"},
                     self.__extra_headers,
                 ),
-                **self.__websocket_connection_options,
+                **options,
             )
         )
 
@@ -583,7 +584,8 @@ class RealtimeConnectionManager:
         else:
             base_url = self.__client._base_url.copy_with(scheme="wss")
 
-        merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/realtime"
+        path, separator, query = base_url.raw_path.partition(b"?")
+        merge_raw_path = path.rstrip(b"/") + b"/realtime" + separator + query
         return base_url.copy_with(raw_path=merge_raw_path)
 
     def __exit__(

@@ -5,14 +5,17 @@ from __future__ import annotations
 from typing import Dict, List, Union, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
-from . import web_search_tool_param
-from ..chat import ChatCompletionFunctionToolParam
 from ..._types import SequenceNotStr
 from .custom_tool_param import CustomToolParam
 from .computer_tool_param import ComputerToolParam
 from .function_tool_param import FunctionToolParam
 from .namespace_tool_param import NamespaceToolParam
-from .web_search_tool_param import WebSearchToolParam
+from .web_search_tool_param import (
+    Filters as _compat_WebSearchToolFilters,
+    UserLocation as _compat_WebSearchToolUserLocation,
+    WebSearchToolParam,
+    WebSearchToolParam as _compat_WebSearchTool,
+)
 from .apply_patch_tool_param import ApplyPatchToolParam
 from .file_search_tool_param import FileSearchToolParam
 from .tool_search_tool_param import ToolSearchToolParam
@@ -21,6 +24,7 @@ from .web_search_preview_tool_param import WebSearchPreviewToolParam
 from .computer_use_preview_tool_param import ComputerUsePreviewToolParam
 from .container_network_policy_disabled_param import ContainerNetworkPolicyDisabledParam
 from .container_network_policy_allowlist_param import ContainerNetworkPolicyAllowlistParam
+from ..chat.chat_completion_function_tool_param import ChatCompletionFunctionToolParam
 
 __all__ = [
     "ToolParam",
@@ -40,10 +44,6 @@ __all__ = [
     "ImageGenerationInputImageMask",
     "LocalShell",
 ]
-
-WebSearchTool = web_search_tool_param.WebSearchToolParam
-WebSearchToolFilters = web_search_tool_param.Filters
-WebSearchToolUserLocation = web_search_tool_param.UserLocation
 
 
 class McpAllowedToolsMcpToolFilter(TypedDict, total=False):
@@ -286,9 +286,9 @@ class ImageGeneration(TypedDict, total=False):
     input_fidelity: Optional[Literal["high", "low"]]
     """
     Control how much effort the model will exert to match the style and features,
-    especially facial features, of input images. This parameter is only supported
-    for `gpt-image-1` and `gpt-image-1.5` and later models, unsupported for
-    `gpt-image-1-mini`. Supports `high` and `low`. Defaults to `low`.
+    especially facial features, of input images. Supports `high` and `low` on
+    `gpt-image-1` and `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For
+    `gpt-image-2`, omit this parameter. Defaults to `low` on supported models.
     """
 
     input_image_mask: ImageGenerationInputImageMask
@@ -314,11 +314,14 @@ class ImageGeneration(TypedDict, total=False):
     ]
     """The image generation model to use.
 
-    One of `gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+    One of `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
     `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
     `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`,
     `gpt-image-2.5-flare-2026-09-08`, or `chatgpt-image-latest`. Default:
-    `gpt-image-1`.
+    `gpt-image-2`.
+
+    `gpt-image-1` was shut down on October 23, 2026. Use `gpt-image-2.5-sunburst` or
+    `gpt-image-2.5-flare` instead.
     """
 
     moderation: Literal["auto", "low"]
@@ -359,9 +362,7 @@ class ImageGeneration(TypedDict, total=False):
     resolution is `3840x2160`. The requested size must also satisfy the model's
     current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and
     `1024x1536` are supported by the GPT image models; `auto` is supported for
-    models that allow automatic sizing. For `dall-e-2`, use one of `256x256`,
-    `512x512`, or `1024x1024`. For `dall-e-3`, use one of `1024x1024`, `1792x1024`,
-    or `1024x1792`.
+    models that allow automatic sizing.
     """
 
 
@@ -393,3 +394,9 @@ ToolParam: TypeAlias = Union[
 
 
 ParseableToolParam: TypeAlias = Union[ToolParam, ChatCompletionFunctionToolParam]
+
+WebSearchTool: TypeAlias = _compat_WebSearchTool
+
+WebSearchToolFilters: TypeAlias = _compat_WebSearchToolFilters
+
+WebSearchToolUserLocation: TypeAlias = _compat_WebSearchToolUserLocation

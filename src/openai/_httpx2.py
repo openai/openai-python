@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import ssl
 import sys
 from typing import Any, Protocol, cast
 
+import anyio
 import httpx2
 
 from ._constants import DEFAULT_TIMEOUT, DEFAULT_CONNECTION_LIMITS
@@ -100,9 +102,11 @@ def timeout_exceptions() -> tuple[type[httpx2.TimeoutException], ...]:
     return (httpx2.TimeoutException,) if module is None else (httpx2.TimeoutException, module.TimeoutException)
 
 
-def request_exceptions() -> tuple[type[httpx2.RequestError], ...]:
+def request_exceptions() -> tuple[type[Exception], ...]:
     module = _loaded_legacy_httpx()
-    return (httpx2.RequestError,) if module is None else (httpx2.RequestError, module.RequestError)
+    # Shim unmapped AnyIO TLS failures pending https://github.com/pydantic/httpx2/issues/854.
+    errors = (httpx2.RequestError, ssl.SSLError, anyio.EndOfStream)
+    return errors if module is None else (*errors, module.RequestError)
 
 
 def status_exceptions() -> tuple[type[httpx2.HTTPStatusError], ...]:

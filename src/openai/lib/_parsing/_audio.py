@@ -32,7 +32,7 @@ def get_transcription_response_format_type(
     elif TYPE_CHECKING:  # type: ignore[unreachable]
         assert_never(response_format)
     else:
-        log.warn("Unexpected audio response format: %s", response_format)
+        log.warning("Unexpected audio response format: %s", response_format)
         return Transcription
 
 

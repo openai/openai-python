@@ -281,9 +281,9 @@ class ImageGeneration(BaseModel):
     input_fidelity: Optional[Literal["high", "low"]] = None
     """
     Control how much effort the model will exert to match the style and features,
-    especially facial features, of input images. This parameter is only supported
-    for `gpt-image-1` and `gpt-image-1.5` and later models, unsupported for
-    `gpt-image-1-mini`. Supports `high` and `low`. Defaults to `low`.
+    especially facial features, of input images. Supports `high` and `low` on
+    `gpt-image-1` and `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For
+    `gpt-image-2`, omit this parameter. Defaults to `low` on supported models.
     """
 
     input_image_mask: Optional[ImageGenerationInputImageMask] = None
@@ -310,11 +310,14 @@ class ImageGeneration(BaseModel):
     ] = None
     """The image generation model to use.
 
-    One of `gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+    One of `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
     `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
     `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`,
     `gpt-image-2.5-flare-2026-09-08`, or `chatgpt-image-latest`. Default:
-    `gpt-image-1`.
+    `gpt-image-2`.
+
+    `gpt-image-1` was shut down on October 23, 2026. Use `gpt-image-2.5-sunburst` or
+    `gpt-image-2.5-flare` instead.
     """
 
     moderation: Optional[Literal["auto", "low"]] = None
@@ -355,9 +358,7 @@ class ImageGeneration(BaseModel):
     resolution is `3840x2160`. The requested size must also satisfy the model's
     current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and
     `1024x1536` are supported by the GPT image models; `auto` is supported for
-    models that allow automatic sizing. For `dall-e-2`, use one of `256x256`,
-    `512x512`, or `1024x1024`. For `dall-e-3`, use one of `1024x1024`, `1792x1024`,
-    or `1024x1792`.
+    models that allow automatic sizing.
     """
 
 

@@ -17,7 +17,7 @@ class AgentReasoningItem(BaseModel):
     """The ID of the reasoning item."""
 
     status: Optional[AgentOutputItemStatus] = None
-    """The status of an agent output item."""
+    """The status of the reasoning item."""
 
     summary: List[SummaryText]
     """The reasoning summaries produced by the agent."""

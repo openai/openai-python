@@ -246,6 +246,8 @@ async def test_async_response_parse_annotated_type(async_client: AsyncOpenAI) ->
         ("True", True),
         ("TrUe", True),
         ("FalSe", False),
+        (" \ttrue\r\n", True),
+        (" \tfalse\r\n", False),
     ],
 )
 def test_response_parse_bool(client: OpenAI, content: str, expected: bool) -> None:
@@ -271,6 +273,8 @@ def test_response_parse_bool(client: OpenAI, content: str, expected: bool) -> No
         ("True", True),
         ("TrUe", True),
         ("FalSe", False),
+        (" \ttrue\r\n", True),
+        (" \tfalse\r\n", False),
     ],
 )
 async def test_async_response_parse_bool(client: AsyncOpenAI, content: str, expected: bool) -> None:

@@ -1,0 +1,14 @@
+{
+  "reservation": {
+    "title": "Book a table",
+    "summary": "Fill a reservation and ask before submitting it.",
+    "icon": "02",
+    "instruction": "Reserve an indoor table for Ada, party of 2, at 18:00. Fill the guest name, party size, time, and seating fields. Submit the reservation; the operator must approve the submission. Finish only when the page shows the confirmation.",
+    "fields": {
+      "Guest name": "Ada",
+      "Party size": "2",
+      "Time": "18:00",
+      "Seating": "Indoor"
+    }
+  }
+}

@@ -22,6 +22,8 @@ from ....._response import (
 )
 from .....pagination import SyncCursorPage, AsyncCursorPage
 from ....._base_client import AsyncPaginator, make_request_options
+from .....lib.beta.agents._result import AgentTurnResult
+from .....lib.beta.agents._artifacts import AgentResultArtifacts, AsyncAgentResultArtifacts
 from .....types.beta.agents.sessions import artifact_list_params
 from .....types.beta.agents.sessions.session_artifact import SessionArtifact
 from .....types.beta.agents.sessions.session_artifact_deleted import SessionArtifactDeleted
@@ -48,6 +50,16 @@ class Artifacts(SyncAPIResource):
         For more information, see https://www.github.com/openai/openai-python#with_streaming_response
         """
         return ArtifactsWithStreamingResponse(self)
+
+    def for_result(
+        self,
+        result: AgentTurnResult,
+    ) -> AgentResultArtifacts:
+        """Beta: download artifacts scoped to the exact completed result turn."""
+        return AgentResultArtifacts(
+            self,
+            result,
+        )
 
     def retrieve(
         self,
@@ -98,9 +110,9 @@ class Artifacts(SyncAPIResource):
         self,
         session_id: str,
         *,
-        after: Optional[str] | Omit = omit,
+        after: str | Omit = omit,
         environment_id: Optional[str] | Omit = omit,
-        limit: Optional[int] | Omit = omit,
+        limit: int | Omit = omit,
         order: Literal["asc", "desc"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -115,13 +127,13 @@ class Artifacts(SyncAPIResource):
         [session artifacts](https://developers.openai.com/api/docs/guides/agents-api/environments/files#openai-hosted-artifacts).
 
         Args:
-          after: Return artifacts after this immutable artifact ID.
+          after: Return resources after this resource ID in the selected order.
 
           environment_id: Restrict the listing to artifacts produced by this environment.
 
-          limit: The maximum number of artifacts to return, between 1 and 100.
+          limit: The maximum number of resources to return, between 1 and 100. Defaults to 20.
 
-          order: Sort by creation time and ID. Defaults to descending.
+          order: The order in which resources are returned. Defaults to `desc`.
 
               - `asc` - Returns resources in ascending order.
               - `desc` - Returns resources in descending order.
@@ -273,6 +285,16 @@ class AsyncArtifacts(AsyncAPIResource):
         """
         return AsyncArtifactsWithStreamingResponse(self)
 
+    def for_result(
+        self,
+        result: AgentTurnResult,
+    ) -> AsyncAgentResultArtifacts:
+        """Beta: download artifacts scoped to the exact completed result turn."""
+        return AsyncAgentResultArtifacts(
+            self,
+            result,
+        )
+
     async def retrieve(
         self,
         artifact_id: str,
@@ -322,9 +344,9 @@ class AsyncArtifacts(AsyncAPIResource):
         self,
         session_id: str,
         *,
-        after: Optional[str] | Omit = omit,
+        after: str | Omit = omit,
         environment_id: Optional[str] | Omit = omit,
-        limit: Optional[int] | Omit = omit,
+        limit: int | Omit = omit,
         order: Literal["asc", "desc"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -339,13 +361,13 @@ class AsyncArtifacts(AsyncAPIResource):
         [session artifacts](https://developers.openai.com/api/docs/guides/agents-api/environments/files#openai-hosted-artifacts).
 
         Args:
-          after: Return artifacts after this immutable artifact ID.
+          after: Return resources after this resource ID in the selected order.
 
           environment_id: Restrict the listing to artifacts produced by this environment.
 
-          limit: The maximum number of artifacts to return, between 1 and 100.
+          limit: The maximum number of resources to return, between 1 and 100. Defaults to 20.
 
-          order: Sort by creation time and ID. Defaults to descending.
+          order: The order in which resources are returned. Defaults to `desc`.
 
               - `asc` - Returns resources in ascending order.
               - `desc` - Returns resources in descending order.

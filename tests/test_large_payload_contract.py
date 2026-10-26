@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import gzip
 import json
 from typing import Any, Callable, Iterator, AsyncIterator
 from typing_extensions import override
@@ -224,9 +225,87 @@ def check_chat_stream() -> None:
             assert_intact(message.parsed.value, value)
 
 
+class CompressedStream(httpx2.SyncByteStream):
+    def __init__(self, data: bytes) -> None:
+        self.data = data
+        self.closed = False
+
+    @override
+    def __iter__(self) -> Iterator[bytes]:
+        # One small network chunk must not inflate into one enormous chunk.
+        yield self.data
+
+    @override
+    def close(self) -> None:
+        self.closed = True
+
+
+class AsyncCompressedStream(httpx2.AsyncByteStream):
+    def __init__(self, data: bytes) -> None:
+        self.data = data
+        self.closed = False
+
+    @override
+    async def __aiter__(self) -> AsyncIterator[bytes]:
+        yield self.data
+
+    @override
+    async def aclose(self) -> None:
+        self.closed = True
+
+
+def compressed_response(stream: CompressedStream | AsyncCompressedStream, encoding: str) -> httpx2.Response:
+    # Passing a stream avoids eager decoding in Response's constructor.
+    return httpx2.Response(
+        200, headers={"content-encoding": encoding, "content-type": "application/json"}, stream=stream
+    )
+
+
+async def check_large_compressed_responses() -> None:
+    text = "x" * PAYLOAD_SIZE
+    body = json.dumps(response_body(text)).encode()
+    data = gzip.compress(body)
+    stream = CompressedStream(data)
+    with OpenAI(
+        api_key="test-key",
+        max_retries=0,
+        http_client=httpx2.Client(transport=httpx2.MockTransport(lambda _: compressed_response(stream, "gzip"))),
+    ) as client:
+        with client.responses.with_streaming_response.create(model="gpt-4o-mini", input="Hello") as response:
+            size = 0
+            for chunk in response.iter_bytes():
+                # The upstream decoder's chunk bound is not a response-size cap.
+                assert len(chunk) <= 1024 * 1024
+                assert chunk == body[size : size + len(chunk)]
+                size += len(chunk)
+            assert size == len(body)
+        assert stream.closed
+
+    async_stream = AsyncCompressedStream(data)
+    async with AsyncOpenAI(
+        api_key="test-key",
+        max_retries=0,
+        http_client=httpx2.AsyncClient(
+            transport=httpx2.MockTransport(lambda _: compressed_response(async_stream, "gzip"))
+        ),
+    ) as async_client:
+        async with async_client.responses.with_streaming_response.create(
+            model="gpt-4o-mini", input="Hello"
+        ) as async_response:
+            size = 0
+            async for chunk in async_response.iter_bytes():
+                assert len(chunk) <= 1024 * 1024
+                assert chunk == body[size : size + len(chunk)]
+                size += len(chunk)
+            assert size == len(body)
+        assert async_stream.closed
+
+
 async def test_large_payload_contract() -> None:
     # One test prevents pytest-xdist from running high-memory cases together.
     check_blocking_json()
     await check_structured_json()
     await check_responses_stream()
     check_chat_stream()
+
+    await check_large_compressed_responses()

@@ -1,5 +1,6 @@
 import json
-from typing import TYPE_CHECKING, Any, Dict, List, Union, Iterable, Optional, cast
+from copy import deepcopy
+from typing import TYPE_CHECKING, Any, Dict, List, Union, Generic, TypeVar, Iterable, Optional, cast
 from datetime import datetime, timezone
 from collections import deque
 from typing_extensions import Literal, Annotated, TypedDict, TypeAliasType
@@ -10,7 +11,7 @@ from pydantic import Field
 
 from openai._utils import PropertyInfo
 from openai._compat import PYDANTIC_V1, parse_obj, model_dump, model_json
-from openai._models import DISCRIMINATOR_CACHE, BaseModel, EagerIterable, construct_type
+from openai._models import DISCRIMINATOR_CACHE, BaseModel, GenericModel, EagerIterable, construct_type
 
 
 class BasicModel(BaseModel):
@@ -179,6 +180,54 @@ def test_aliases() -> None:
     # mismatched types
     m = Model.construct(myField={"hello": False})
     assert cast(Any, m.my_field) == {"hello": False}
+
+
+def test_validated_alias_keeps_wire_field_and_leaves_input_unchanged() -> None:
+    class Model(BaseModel):
+        enabled_: bool = Field(alias="enabled")
+
+    values = {"enabled": True, "enabled_": "future spelling", "future": {"nested": [1, 2]}}
+    original = deepcopy(values)
+    model = parse_obj(Model, values)
+    assert model.enabled_ is True
+    assert cast(Any, model).future == {"nested": [1, 2]}
+    assert values == original
+    emitted = model.to_dict()
+    assert emitted["enabled"] is True
+    assert emitted["future"] == {"nested": [1, 2]}
+
+
+def test_validated_alias_keeps_keys_used_as_other_fields_wire_names() -> None:
+    class Model(BaseModel):
+        name: bool = Field(alias="wire_name")
+        other: str = Field(alias="name")
+
+    values = {"wire_name": True, "name": "second field", "future": [3]}
+    original = deepcopy(values)
+    model = parse_obj(Model, values)
+    assert model.name is True
+    assert model.other == "second field"
+    assert values == original
+    assert model.to_dict() == {"wire_name": True, "name": "second field", "future": [3]}
+
+
+def test_validated_alias_in_generic_container() -> None:
+    item_type = TypeVar("item_type")
+
+    class Model(BaseModel):
+        schema_: Dict[str, object] = Field(alias="schema")
+
+    class Envelope(GenericModel, Generic[item_type]):
+        data: item_type
+
+    values = {"data": {"schema": {"type": "object"}, "schema_": "future", "later": {"nested": [4]}}}
+    original = deepcopy(values)
+    envelope = parse_obj(Envelope[Model], values)
+    assert envelope.data.schema_ == {"type": "object"}
+    assert values == original
+    emitted = cast(Dict[str, Any], envelope.to_dict()["data"])
+    assert emitted["schema"] == {"type": "object"}
+    assert emitted["later"] == {"nested": [4]}
 
 
 def test_repr() -> None:

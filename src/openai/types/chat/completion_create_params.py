@@ -175,8 +175,11 @@ class CompletionCreateParamsBase(TypedDict, total=False):
 
     prediction: Optional[ChatCompletionPredictionContentParam]
     """
-    Static predicted output content, such as the content of a text file that is
-    being regenerated.
+    Configuration for a
+    [Predicted Output](https://developers.openai.com/api/docs/guides/predicted-outputs),
+    which can greatly improve response times when large parts of the model response
+    are known ahead of time. This is most common when you are regenerating a file
+    with only minor changes to most of the content.
     """
 
     presence_penalty: Optional[float]
@@ -255,7 +258,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     """
     A stable identifier used to help detect users of your application that may be
     violating OpenAI's usage policies. The IDs should be a string that uniquely
-    identifies each user, with a maximum length of 64 characters. We recommend
+    identifies each user, with a maximum length of 128 characters. We recommend
     hashing their username or email address, in order to avoid sending us any
     identifying information.
     [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
@@ -295,7 +298,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     parameter.
     """
 
-    stop: Union[Optional[str], SequenceNotStr[str], None]
+    stop: Union[str, SequenceNotStr[str], None]
     """Not supported with latest reasoning models `o3` and `o4-mini`.
 
     Up to 4 sequences where the API will stop generating further tokens. The

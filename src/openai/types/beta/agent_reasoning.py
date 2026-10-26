@@ -12,10 +12,13 @@ class AgentReasoning(BaseModel):
     """The reasoning configuration used by an agent."""
 
     effort: Optional[Literal["none", "minimal", "low", "medium", "high", "xhigh", "max"]] = None
-    """The amount of reasoning effort used by an agent."""
+    """
+    The requested reasoning effort, or `null` when the model selects its own
+    default.
+    """
 
     summary: Optional[Literal["concise", "detailed", "auto"]] = None
-    """The reasoning summary format requested from an agent.
+    """The requested reasoning summary format, or `null` when summaries are disabled.
 
     - `concise` - Returns a concise reasoning summary when supported.
     - `detailed` - Returns a detailed reasoning summary when supported.

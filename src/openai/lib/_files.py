@@ -19,13 +19,13 @@ def wait_for_file_processing(
     """Poll a file using the caller's resource and sleep hooks."""
     TERMINAL_STATES = {"processed", "error", "deleted"}
 
-    start = time.time()
+    start = time.monotonic()
     file = files.retrieve(id)
     while file.status not in TERMINAL_STATES:
         files._sleep(poll_interval)
 
         file = files.retrieve(id)
-        if time.time() - start > max_wait_seconds:
+        if time.monotonic() - start > max_wait_seconds:
             raise RuntimeError(
                 f"Giving up on waiting for file {id} to finish processing after {max_wait_seconds} seconds."
             )
@@ -43,13 +43,13 @@ async def async_wait_for_file_processing(
     """Poll a file using the caller's async resource and sleep hooks."""
     TERMINAL_STATES = {"processed", "error", "deleted"}
 
-    start = time.time()
+    start = time.monotonic()
     file = await files.retrieve(id)
     while file.status not in TERMINAL_STATES:
         await files._sleep(poll_interval)
 
         file = await files.retrieve(id)
-        if time.time() - start > max_wait_seconds:
+        if time.monotonic() - start > max_wait_seconds:
             raise RuntimeError(
                 f"Giving up on waiting for file {id} to finish processing after {max_wait_seconds} seconds."
             )

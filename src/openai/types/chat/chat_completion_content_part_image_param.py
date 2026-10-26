@@ -11,7 +11,7 @@ class ImageURL(TypedDict, total=False):
     url: Required[str]
     """Either a URL of the image or the base64 encoded image data."""
 
-    detail: Literal["auto", "low", "high"]
+    detail: Literal["auto", "low", "high", "original"]
     """Specifies the detail level of the image.
 
     Learn more in the
@@ -27,6 +27,9 @@ class PromptCacheBreakpoint(TypedDict, total=False):
 
     mode: Required[Literal["explicit"]]
     """The breakpoint mode. Always `explicit`."""
+
+    ttl: Literal["30m", "12h"]
+    """The minimum lifetime of this cache breakpoint. Defaults to the request TTL."""
 
 
 class ChatCompletionContentPartImageParam(TypedDict, total=False):

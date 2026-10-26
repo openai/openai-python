@@ -28,6 +28,15 @@ class WebhookUpdateParams(TypedDict, total=False):
             "realtime.call.incoming",
             "video.completed",
             "video.failed",
+            "agent.environment.ready",
+            "agent.environment.failed",
+            "agent.environment.suspended",
+            "agent.environment.expired",
+            "agent.session.created",
+            "agent.session.action_required",
+            "agent.session.in_progress",
+            "agent.session.idle",
+            "agent.session.failed",
             "safety.alert.created",
         ]
     ]

@@ -83,6 +83,8 @@ class Speech(SyncAPIResource):
               object with an `id`, for example `{ "id": "voice_1234" }`. Previews of the
               voices are available in the
               [Text to speech guide](https://developers.openai.com/api/docs/guides/text-to-speech#voice-options).
+              Custom voices must be created from audio samples. Voices created from text
+              prompts are supported only in Live.
 
           instructions: Control the voice of your generated audio with additional instructions. Does not
               work with `tts-1` or `tts-1-hd`.
@@ -109,8 +111,8 @@ class Speech(SyncAPIResource):
             "/audio/speech",
             body=maybe_transform(
                 {
-                    "input": input,
                     "model": model,
+                    "input": input,
                     "voice": voice,
                     "instructions": instructions,
                     "response_format": response_format,
@@ -188,6 +190,8 @@ class AsyncSpeech(AsyncAPIResource):
               object with an `id`, for example `{ "id": "voice_1234" }`. Previews of the
               voices are available in the
               [Text to speech guide](https://developers.openai.com/api/docs/guides/text-to-speech#voice-options).
+              Custom voices must be created from audio samples. Voices created from text
+              prompts are supported only in Live.
 
           instructions: Control the voice of your generated audio with additional instructions. Does not
               work with `tts-1` or `tts-1-hd`.
@@ -214,8 +218,8 @@ class AsyncSpeech(AsyncAPIResource):
             "/audio/speech",
             body=await async_maybe_transform(
                 {
-                    "input": input,
                     "model": model,
+                    "input": input,
                     "voice": voice,
                     "instructions": instructions,
                     "response_format": response_format,

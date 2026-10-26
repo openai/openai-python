@@ -17,6 +17,7 @@ __all__ = [
     "Skill",
     "SkillHostedTemplateSkillResourceSkillReference",
     "SkillHostedTemplateSkillResourceInline",
+    "Desktop",
 ]
 
 
@@ -60,7 +61,7 @@ class Network(BaseModel):
 
     - `enabled` - Allows unrestricted network access.
     - `disabled` - Disables network access.
-    - `restricted` - Allows access only to configured domains.
+    - `restricted` - Applies the configured domain restrictions.
     """
 
     allowed_domains: List[str]
@@ -112,6 +113,13 @@ Skill: TypeAlias = Annotated[
 ]
 
 
+class Desktop(BaseModel):
+    """Desktop configuration for each OpenAI-hosted environment."""
+
+    enabled: bool
+    """Whether the environment provisions a desktop and browser proxy."""
+
+
 class EnvironmentTemplate(BaseModel):
     """
     Reusable configuration that provisions a fresh OpenAI-hosted environment for each session.
@@ -149,3 +157,6 @@ class EnvironmentTemplate(BaseModel):
 
     updated_at: int
     """The Unix timestamp, in seconds, when the template was last updated."""
+
+    desktop: Optional[Desktop] = None
+    """Desktop configuration for each OpenAI-hosted environment."""

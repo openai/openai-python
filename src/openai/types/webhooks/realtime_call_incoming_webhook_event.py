@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
-from typing import List, Optional
+from typing import List, Union, Optional
 from typing_extensions import Literal
 
 from ..._models import BaseModel
@@ -34,6 +34,14 @@ class Data(BaseModel):
     Headers from the SIP INVITE, excluding SIP authorization headers. Retained
     names, values, repeated entries, and order are preserved. Treat these values as
     untrusted call metadata.
+    """
+
+    sip_media_security: Union[Literal["rtp", "srtp"], str, None] = None
+    """Media protection selected on the SIP leg during SDP negotiation.
+
+    `srtp` indicates SRTP; `rtp` indicates unencrypted RTP. Omitted when unknown.
+    This does not describe SIP signaling security or confirm that media has flowed.
+    Clients should handle unrecognized values as unknown.
     """
 
 

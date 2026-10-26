@@ -84,21 +84,17 @@ def test_fallback_keeps_resource_logger_and_method(
 
     assert select_response_type(resource, response_format) is expected_type
 
-    if resource == "transcriptions":
-        logger.warn.assert_called_once_with("Unexpected audio response format: %s", response_format)
-        logger.warning.assert_not_called()
-    else:
-        logger.warning.assert_called_once_with("Unexpected audio response format: %s", response_format)
-        logger.warn.assert_not_called()
+    logger.warning.assert_called_once_with("Unexpected audio response format: %s", response_format)
+    logger.warn.assert_not_called()
 
 
+@pytest.mark.filterwarnings("error::DeprecationWarning")
 def test_fallback_keeps_historical_logger_name_and_warning(caplog: pytest.LogCaptureFixture) -> None:
     logger = logging.getLogger("openai.audio.transcriptions")
     assert transcriptions.log is logger
     assert translations.log is logger
 
-    with pytest.warns(DeprecationWarning, match="deprecated"):
-        assert select_response_type("transcriptions", "future-format") is Transcription
+    assert select_response_type("transcriptions", "future-format") is Transcription
     assert select_response_type("translations", "future-format") is Translation
 
     records = [record for record in caplog.records if record.name == logger.name]

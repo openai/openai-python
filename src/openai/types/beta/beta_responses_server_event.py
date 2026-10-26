@@ -814,6 +814,12 @@ class BetaResponseWsErrorErrorMisalignment(BaseModel):
     ] = None
     """An optional classification; clients must accept additional values."""
 
+    review_target: Optional[str] = None
+    """
+    An opaque target for explicitly continuing this review, or null when
+    unavailable.
+    """
+
     steer: Optional[BetaResponseWsErrorErrorMisalignmentSteer] = None
     """An optional public continuation instruction."""
 

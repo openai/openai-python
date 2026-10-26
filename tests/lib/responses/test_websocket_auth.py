@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import socket
 import asyncio
 from typing import Any
 from typing_extensions import override
@@ -165,12 +166,22 @@ async def test_handshake_honors_prepared_url_query_and_headers(mode: str) -> Non
 
 @pytest.mark.parametrize("mode", ["sync", "async"])
 @pytest.mark.parametrize("authentication", ["provider", "workload_identity"])
-async def test_http_only_auth_refused_before_credentials_or_transport(mode: str, authentication: str) -> None:
+async def test_http_only_auth_refused_before_credentials_or_transport(
+    mode: str, authentication: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
     credential_calls: list[bool] = []
+    transport_calls: list[bool] = []
 
     def forbidden_provider() -> str:
         credential_calls.append(True)
         raise AssertionError("WebSocket must refuse HTTP-only authentication before credential resolution")
+
+    def forbidden_connect(*_args: Any, **_kwargs: Any) -> None:
+        transport_calls.append(True)
+        raise AssertionError("Unsupported authentication attempted a socket connection")
+
+    monkeypatch.setattr(socket.socket, "connect", forbidden_connect)
+    monkeypatch.setattr(socket.socket, "connect_ex", forbidden_connect)
 
     auth: dict[str, Any]
     if authentication == "provider":
@@ -184,17 +195,18 @@ async def test_http_only_auth_refused_before_credentials_or_transport(mode: str,
             )
         }
 
-    with script_server(lambda _: None, expected_connections=0) as url:
-        if mode == "sync":
-            with OpenAI(**auth, websocket_base_url=url, http_client=httpx2.Client(trust_env=False)) as client:
-                with pytest.raises(OpenAIError, match="not supported by WebSocket"):
-                    with client.responses.connect():
-                        pytest.fail("Unsupported authentication opened a socket")
-        else:
-            async with AsyncOpenAI(
-                **auth, websocket_base_url=url, http_client=httpx2.AsyncClient(trust_env=False)
-            ) as async_client:
-                with pytest.raises(OpenAIError, match="not supported by WebSocket"):
-                    async with async_client.responses.connect():
-                        pytest.fail("Unsupported authentication opened a socket")
+    url = "http://127.0.0.1:1/v1"
+    if mode == "sync":
+        with OpenAI(**auth, websocket_base_url=url, http_client=httpx2.Client(trust_env=False)) as client:
+            with pytest.raises(OpenAIError, match="not supported by WebSocket"):
+                with client.responses.connect():
+                    pytest.fail("Unsupported authentication opened a socket")
+    else:
+        async with AsyncOpenAI(
+            **auth, websocket_base_url=url, http_client=httpx2.AsyncClient(trust_env=False)
+        ) as async_client:
+            with pytest.raises(OpenAIError, match="not supported by WebSocket"):
+                async with async_client.responses.connect():
+                    pytest.fail("Unsupported authentication opened a socket")
     assert not credential_calls
+    assert not transport_calls

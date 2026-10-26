@@ -21,6 +21,7 @@ BuiltInVoice: TypeAlias = Literal[
     "quartz",
     "ripple",
     "sage",
+    "shida",
     "shimmer",
     "stone",
     "tempo",

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import Dict
 from typing_extensions import Required, TypedDict
 
 from .credential_auth_create_param import CredentialAuthCreateParam
@@ -11,10 +12,16 @@ __all__ = ["CredentialCreateParams"]
 
 class CredentialCreateParams(TypedDict, total=False):
     auth: Required[CredentialAuthCreateParam]
-    """The authentication method and secret values to store for the MCP server."""
+    """The authentication method and write-only secret values to store."""
 
     name: Required[str]
     """The name is trimmed before storage.
 
     It must contain 1 to 256 UTF-8 bytes after trimming.
+    """
+
+    metadata: Dict[str, str]
+    """
+    Up to 16 string key-value pairs, with keys up to 64 and values up to 512
+    characters. Defaults to an empty map.
     """

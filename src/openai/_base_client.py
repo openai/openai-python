@@ -59,6 +59,7 @@ from ._types import (
     AsyncBinaryTypes,
     HttpxRequestFiles,
     ModelBuilderProtocol,
+    omit,
     not_given,
 )
 from ._utils import SensitiveHeadersFilter, is_dict, is_list, asyncify, is_given, lru_cache, is_mapping
@@ -110,6 +111,66 @@ from ._legacy_response import LegacyAPIResponse
 
 log: logging.Logger = logging.getLogger(__name__)
 log.addFilter(SensitiveHeadersFilter())
+
+
+class _RequestBodyReplay:
+    def __init__(self, options: FinalRequestOptions) -> None:
+        self._positions: list[tuple[object, int]] = []
+        self._replayable = all(
+            self._capture(content) for content in (options.content, *_iter_file_contents(options.files))
+        )
+
+    def _capture(self, content: object) -> bool:
+        if content is None or isinstance(content, (bytes, bytearray)):
+            return True
+
+        if not callable(getattr(content, "read", None)):
+            # Iterable protocols do not guarantee a fresh iterator: a wrapper can
+            # return the same stored generator. Only trust known concrete containers.
+            return type(content) in (list, tuple)
+
+        seekable = getattr(content, "seekable", None)
+        tell = getattr(content, "tell", None)
+        seek = getattr(content, "seek", None)
+        if not callable(seekable) or not callable(tell) or not callable(seek):
+            return False
+        try:
+            if not seekable():
+                return False
+            position = tell()
+        except (OSError, ValueError):
+            return False
+        if not isinstance(position, int):
+            return False
+        self._positions.append((content, position))
+        return True
+
+    def rewind(self) -> bool:
+        # Reject a non-replayable body before moving any of its streams.
+        if not self._replayable:
+            return False
+        for content, position in self._positions:
+            seek = getattr(content, "seek", None)
+            if not callable(seek):
+                return False
+            try:
+                seek(position)
+            except (OSError, ValueError):
+                return False
+        return True
+
+
+def _iter_file_contents(files: HttpxRequestFiles | None) -> Iterator[object]:
+    if files is None:
+        return
+
+    entries = files.items() if isinstance(files, Mapping) else files
+    for _, file in entries:
+        if isinstance(file, tuple) and len(file) > 1:
+            yield file[1]
+        else:
+            yield file
+
 
 # TODO: make base page type vars covariant
 SyncPageT = TypeVar("SyncPageT", bound="BaseSyncPage[Any]")
@@ -415,29 +476,36 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         self._validate_max_retries(max_retries)
 
     def _enforce_trailing_slash(self, url: URL) -> URL:
-        if url.raw_path.endswith(b"/"):
+        path, separator, query = url.raw_path.partition(b"?")
+        if path.endswith(b"/"):
             return url
-        return url.copy_with(raw_path=url.raw_path + b"/")
+        return url.copy_with(raw_path=path + b"/" + separator + query)
 
     def _make_status_error_from_response(
         self,
         response: httpx2.Response,
     ) -> APIStatusError:
+        err_msg = f"Error code: {response.status_code}"
         if response.is_closed and not response.is_stream_consumed:
             # We can't read the response body as it has been closed
             # before it was read. This can happen if an event hook
             # raises a status error.
             body = None
-            err_msg = f"Error code: {response.status_code}"
         else:
             err_text = response.text.strip()
             body = err_text
 
             try:
                 body = json.loads(err_text)
-                err_msg = f"Error code: {response.status_code} - {body}"
             except Exception:
-                err_msg = err_text or f"Error code: {response.status_code}"
+                pass
+            else:
+                # Keep full response details available through the error attributes,
+                # but only include the designated message field in exception text.
+                error = body.get("error", body) if is_mapping(body) else None
+                message = error.get("message") if is_mapping(error) else None
+                if isinstance(message, str) and message:
+                    err_msg += f" - {message}"
 
         return self._make_status_error(err_msg, body=body, response=response)
 
@@ -470,7 +538,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
 
     def _build_headers(self, options: FinalRequestOptions, *, retries_taken: int = 0) -> httpx2.Headers:
         custom_headers = options.headers or {}
-        headers_dict = _merge_mappings({**self._auth_headers(options.security), **self.default_headers}, custom_headers)
+        headers_dict = _merge_headers(self._auth_headers(options.security), self.default_headers, custom_headers)
         self._validate_headers(headers_dict, custom_headers)
 
         # headers are case-insensitive while dictionaries are not.
@@ -508,6 +576,25 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
             return self.base_url.copy_with(raw_path=merge_raw_path)
 
         return merge_url
+
+    def _websocket_query_params(self, url: URL, extra_query: Query) -> httpx2.QueryParams:
+        # Retire logical defaults before encoding so replacing a nested value
+        # cannot leave behind fields from the old value.
+        overridden = dict.fromkeys(extra_query, omit)
+        defaults = _merge_mappings(self.default_query, overridden)
+        params = httpx2.QueryParams(self.qs.stringify(cast(Any, defaults))).merge(url.params)
+        params = httpx2.QueryParams([(key, value) for key, value in params.multi_items() if key not in overridden])
+        if isinstance(extra_query, httpx2.QueryParams):
+            return params.merge(extra_query)
+        # WebSocket per-call None and sequences historically used httpx's
+        # blank values and repeated keys, while defaults use the REST encoder.
+        values = _merge_mappings({}, extra_query)
+        for key, value in values.items():
+            if value is None:
+                values[key] = ""
+            elif isinstance(value, (list, tuple)):
+                values[key] = ["" if item is None else item for item in cast(Iterable[object], value)]
+        return params.merge(self.qs.stringify(cast(Any, values), array_format="repeat"))
 
     def _make_sse_decoder(self) -> SSEDecoder | SSEBytesDecoder:
         return SSEDecoder()
@@ -685,6 +772,20 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
                 return cast(ResponseT, cast_to.build(response=response, data=data))
 
             if self._strict_response_validation:
+                # Temporary compatibility for the file-batch discriminator typo. Keep
+                # the published Literal until the next major, but validate real responses.
+                # Remove when VectorStoreFileBatch accepts the canonical spelling.
+                if is_dict(data) and data.get("object") == "vector_store.file_batch":
+                    from .types.vector_stores import VectorStoreFileBatch
+
+                    if cast_to is VectorStoreFileBatch:
+                        validated = validate_type(
+                            type_=VectorStoreFileBatch, value={**data, "object": "vector_store.files_batch"}
+                        )
+                        # Restore only this field on the validated instance; do not mutate
+                        # the response or skip validation of any other field.
+                        object.__setattr__(validated, "object", data["object"])
+                        return cast(ResponseT, validated)
                 return cast(ResponseT, validate_type(type_=cast_to, value=data))
 
             return cast(ResponseT, construct_type(type_=cast_to, value=data))
@@ -1062,6 +1163,7 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
         for retries_taken in range(max_retries + 1):
             options = model_copy(input_options)
             options = self._prepare_options(options)
+            request_body_replay = _RequestBodyReplay(options)
 
             remaining_retries = max_retries - retries_taken
             request = self._build_request(options, retries_taken=retries_taken)
@@ -1091,7 +1193,7 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
             except timeout_exceptions() as err:
                 log.debug("Encountered a timeout exception: %s", type(err).__name__)
 
-                if remaining_retries > 0:
+                if remaining_retries > 0 and request_body_replay.rewind():
                     self._sleep_for_retry(
                         retries_taken=retries_taken,
                         max_retries=max_retries,
@@ -1108,7 +1210,7 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
             except request_exceptions() as err:
                 log.debug("Encountered exception: %s", type(err).__name__)
 
-                if remaining_retries > 0:
+                if remaining_retries > 0 and request_body_replay.rewind():
                     self._sleep_for_retry(
                         retries_taken=retries_taken,
                         max_retries=max_retries,
@@ -1132,7 +1234,7 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
             except status_exceptions() as err:  # thrown on 4xx and 5xx status code
                 log.debug("Encountered an HTTP status error: %i", response.status_code)
 
-                if remaining_retries > 0 and self._should_retry(err.response):
+                if remaining_retries > 0 and self._should_retry(err.response) and request_body_replay.rewind():
                     err.response.close()
                     self._sleep_for_retry(
                         retries_taken=retries_taken,
@@ -1687,6 +1789,7 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
         for retries_taken in range(max_retries + 1):
             options = model_copy(input_options)
             options = await self._prepare_options(options)
+            request_body_replay = _RequestBodyReplay(options)
 
             remaining_retries = max_retries - retries_taken
             request = self._build_request(options, retries_taken=retries_taken)
@@ -1715,7 +1818,7 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
             except timeout_exceptions() as err:
                 log.debug("Encountered a timeout exception: %s", type(err).__name__)
 
-                if remaining_retries > 0:
+                if remaining_retries > 0 and request_body_replay.rewind():
                     await self._sleep_for_retry(
                         retries_taken=retries_taken,
                         max_retries=max_retries,
@@ -1732,7 +1835,7 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
             except request_exceptions() as err:
                 log.debug("Encountered exception: %s", type(err).__name__)
 
-                if remaining_retries > 0:
+                if remaining_retries > 0 and request_body_replay.rewind():
                     await self._sleep_for_retry(
                         retries_taken=retries_taken,
                         max_retries=max_retries,
@@ -1756,7 +1859,7 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
             except status_exceptions() as err:  # thrown on 4xx and 5xx status code
                 log.debug("Encountered an HTTP status error: %i", response.status_code)
 
-                if remaining_retries > 0 and self._should_retry(err.response):
+                if remaining_retries > 0 and self._should_retry(err.response) and request_body_replay.rewind():
                     await err.response.aclose()
                     await self._sleep_for_retry(
                         retries_taken=retries_taken,
@@ -2280,3 +2383,17 @@ def _merge_mappings(
     """
     merged = {**obj1, **obj2}
     return {key: value for key, value in merged.items() if not isinstance(value, Omit)}
+
+
+def _merge_headers(*mappings: Headers) -> dict[str, str]:
+    """Merge headers case-insensitively, with later mappings taking precedence."""
+    merged: dict[str, tuple[str, str]] = {}
+    for mapping in mappings:
+        for name, value in mapping.items():
+            normalized_name = name.lower()
+            if isinstance(value, Omit):
+                merged.pop(normalized_name, None)
+            else:
+                merged[normalized_name] = (name, value)
+
+    return {name: value for name, value in merged.values()}

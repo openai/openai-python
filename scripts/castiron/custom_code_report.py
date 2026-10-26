@@ -33,6 +33,7 @@ RUN_MARKER = re.compile(r"<!-- castiron:run:v1:(\d+):(\d+) -->")
 SHA = re.compile(r"[0-9a-f]{40}\Z")
 HASH = re.compile(r"[0-9a-f]{64}\Z")
 REPOSITORY = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\Z")
+TARGET_BRANCHES = ("main", "next")
 EXCLUDED = (b".github/actions/", b".github/workflows/")
 PUBLIC_BLOCKED_PATHS = {
     b".castiron",
@@ -47,6 +48,7 @@ LABELS = {
     "newly_customized": "Newly customized",
     "removed": "Customization removed",
     "existing_changed": "Existing customization changed",
+    "first_adoption": "Current customization; legacy baseline unavailable",
     "baseline_changed": "Generated baseline changed",
     "unchanged": "Existing customization unchanged",
     "no_longer_generated": "No longer generated",
@@ -82,8 +84,7 @@ def git(repo: Path, *args: str, input_bytes: bytes | None = None) -> bytes:
     result = subprocess.run(
         ["git", "--no-replace-objects", "-C", str(repo), *args],
         input=input_bytes,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         env=env,
         check=False,
     )
@@ -102,14 +103,14 @@ def included(path: bytes) -> bool:
     return not path.startswith(EXCLUDED)
 
 
-def tree_entries(repo: Path, commit: str) -> dict[bytes, Entry]:
+def tree_entries(repo: Path, commit: str, *, include_workflows: bool = False) -> dict[bytes, Entry]:
     result: dict[bytes, Entry] = {}
     for record in git(repo, "ls-tree", "-r", "-z", require_sha(commit)).split(b"\0"):
         if not record:
             continue
         metadata, path = record.split(b"\t", 1)
         mode, kind, oid = metadata.split(b" ")
-        if not included(path):
+        if not include_workflows and not included(path):
             continue
         if kind != b"blob" or mode not in {b"100644", b"100755", b"120000"}:
             raise ReportError(f"unsupported Git entry: {path!r}")
@@ -193,14 +194,102 @@ def public_metadata(repo: Path, commit: str) -> dict[str, str]:
         fields[key] = matches[0]
     if fields["Version"] != "1" or not HASH.fullmatch(fields["Hash"]):
         raise ReportError("unsupported public codegen metadata")
+    targets = re.findall(r"^Castiron-Public-Codegen-Target: (.*)$", message, re.MULTILINE)
+    if targets:
+        if len(targets) != 1 or targets[0] not in TARGET_BRANCHES:
+            raise ReportError("invalid public codegen target")
+        fields["Target"] = targets[0]
     if not fields["Branch"].startswith("codegen/"):
         raise ReportError("invalid public codegen branch")
     git(repo, "check-ref-format", f"refs/heads/{fields['Branch']}")
+    for key in ("Adoption-Base", "Adoption-Source"):
+        values = re.findall(rf"^Castiron-Public-Codegen-{key}: (.+)$", message, re.MULTILINE)
+        if values:
+            if len(values) != 1:
+                raise ReportError("duplicate adoption metadata")
+            fields[key] = require_sha(values[0])
+    if ("Adoption-Base" in fields) != ("Adoption-Source" in fields):
+        raise ReportError("incomplete adoption metadata")
     return fields
 
 
+def legacy_snapshot_on_main(repo: Path, commit: str, *, fetch: bool) -> bool:
+    """Legacy snapshots have no target; trust only adoption in public main history."""
+    if fetch:
+        git(
+            repo,
+            "fetch",
+            "--quiet",
+            "--no-tags",
+            "origin",
+            "+refs/heads/main:refs/remotes/origin/main",
+        )
+    revisions = (
+        git(
+            repo,
+            "log",
+            "--first-parent",
+            "--format=%H",
+            f"-G{require_sha(commit)}",
+            "refs/remotes/origin/main",
+            "--",
+            ".castiron.stats.yml",
+        )
+        .decode()
+        .splitlines()
+    )
+    for revision in revisions:
+        try:
+            if read_stats(repo, revision).get("public_codegen_sha") == commit:
+                return True
+        except ReportError:
+            continue
+    return False
+
+
+def validate_public_target(
+    repo: Path,
+    commit: str,
+    metadata: dict[str, str],
+    *,
+    target_branch: str,
+    fetch: bool,
+    bootstrap_lineage: str | None = None,
+) -> None:
+    if target_branch not in TARGET_BRANCHES:
+        raise ReportError("unsupported report target")
+    if target_branch != "next" and (
+        metadata["Branch"] == "codegen/castiron/next"
+        or metadata["Branch"].startswith("codegen/castiron/next/")
+    ):
+        raise ReportError("next checkpoint cannot authorize a main report")
+    if target_branch == "main":
+        if metadata.get("Target") == "next":
+            raise ReportError("next checkpoint cannot authorize a main report")
+        if "Target" not in metadata and not legacy_snapshot_on_main(repo, commit, fetch=fetch):
+            if bootstrap_lineage is None:
+                raise ReportError("legacy snapshot has no verified main adoption")
+            # Pre-bootstrap SDK stats have no public snapshot pointer. Their
+            # baseline may be an ancestor of an adopted snapshot, never adopted
+            # directly. Validate the lineage independently before trusting it.
+            validate_public_target(
+                repo,
+                bootstrap_lineage,
+                public_metadata(repo, bootstrap_lineage),
+                target_branch=target_branch,
+                fetch=fetch,
+            )
+            git(repo, "merge-base", "--is-ancestor", commit, bootstrap_lineage)
+
+
 def resolve_public_baseline(
-    repo: Path, revision: str, *, fetch: bool, require_hash: bool, lineage: str | None = None
+    repo: Path,
+    revision: str,
+    *,
+    fetch: bool,
+    require_hash: bool,
+    lineage: str | None = None,
+    target_branch: str = "main",
 ) -> dict[str, Any]:
     stats = read_stats(repo, revision)
     commit = stats.get("public_codegen_sha")
@@ -218,6 +307,14 @@ def resolve_public_baseline(
     elif fetch:
         git(repo, "fetch", "--quiet", "--no-tags", "origin", commit)
     metadata = public_metadata(repo, commit)
+    validate_public_target(
+        repo,
+        commit,
+        metadata,
+        target_branch=target_branch,
+        fetch=fetch,
+        bootstrap_lineage=lineage if stats.get("public_codegen_sha") is None else None,
+    )
     if metadata["Generation-ID"] != stats["generation_id"]:
         raise ReportError("public codegen generation ID does not match stats")
     ref = f"refs/heads/{metadata['Branch']}"
@@ -304,14 +401,26 @@ def create_public_snapshot(
     content_hash: str,
     branch: str,
     parent: str | None,
+    adoption: tuple[str, str] | None = None,
 ) -> str:
+    target = (
+        "next"
+        if branch == "codegen/castiron/next" or branch.startswith("codegen/castiron/next/")
+        else "main"
+    )
     message = (
         "Castiron generated snapshot\n\n"
         "Castiron-Public-Codegen-Version: 1\n"
         f"Castiron-Public-Codegen-Generation-ID: {generation}\n"
         f"Castiron-Public-Codegen-Hash: {content_hash}\n"
         f"Castiron-Public-Codegen-Branch: {branch}\n"
+        f"Castiron-Public-Codegen-Target: {target}\n"
     )
+    if adoption is not None:
+        if target != "next":
+            raise ReportError("adoption snapshot must target next")
+        message += f"Castiron-Public-Codegen-Adoption-Base: {require_sha(adoption[0])}\n"
+        message += f"Castiron-Public-Codegen-Adoption-Source: {require_sha(adoption[1])}\n"
     parents = ["-p", require_sha(parent)] if parent is not None else []
     snapshot = (
         git(
@@ -335,6 +444,124 @@ def create_public_snapshot(
     return snapshot
 
 
+def first_adoption_source(repo: Path, base: str, *, target_branch: str, fetch: bool) -> str:
+    """Authority is the protected target base policy, never a candidate receipt."""
+    base = require_sha(base)
+    if target_branch != "next":
+        raise ReportError("first adoption is next-only")
+    if git(repo, "ls-tree", base, "--", ".castiron.stats.yml"):
+        raise ReportError("existing/corrupt Castiron stats require ordinary recovery")
+    if git(repo, "log", "--full-history", "--format=%H", base, "--", ".castiron.stats.yml").strip():
+        raise ReportError("deleted Castiron stats cannot authorize first adoption")
+    if not git(repo, "ls-tree", base, "--", ".stats.yml").startswith(b"100644 blob "):
+        raise ReportError("first adoption requires a legacy SDK target")
+    if not git(repo, "ls-tree", base, "--", ".castiron-ratchet.json").startswith(b"100644 blob "):
+        raise ReportError("first adoption requires an approved target policy")
+
+    def unique(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+        result: dict[str, Any] = {}
+        for key, value in pairs:
+            if key in result:
+                raise ReportError("duplicate policy field")
+            result[key] = value
+        return result
+
+    policy = json.loads(
+        git(repo, "show", f"{base}:.castiron-ratchet.json"), object_pairs_hook=unique
+    )
+    pin = policy.get("next_policy")
+    if not isinstance(pin, dict) or set(cast(dict[str, Any], pin)) != {"repository", "main_sha"}:
+        raise ReportError("first adoption requires the protected next-policy pin")
+    pin = cast(dict[str, Any], pin)
+    repository = pin["repository"]
+    if repository not in {"openai/openai-java", "openai/openai-cli"}:
+        raise ReportError("first adoption is only supported for legacy Java/CLI")
+    remote = git(repo, "remote", "get-url", "origin").decode().strip()
+    allowed = {
+        f"https://github.com/{repository}.git",
+        f"https://github.com/{repository}",
+        f"git@github.com:{repository}.git",
+        f"https://github.com/{repository}-internal.git",
+        f"https://github.com/{repository}-internal",
+        f"git@github.com:{repository}-internal.git",
+    }
+    if remote not in allowed:
+        raise ReportError("adoption policy repository does not match SDK origin")
+    source = require_sha(pin["main_sha"])
+    main_ref = "refs/castiron/adoption-main" if fetch else "refs/remotes/origin/main"
+    if fetch:
+        git(
+            repo,
+            "fetch",
+            "--quiet",
+            "--no-tags",
+            f"https://github.com/{repository}.git",
+            f"+refs/heads/main:{main_ref}",
+        )
+    if source not in git(repo, "rev-list", "--first-parent", main_ref).decode().splitlines():
+        raise ReportError("adoption source is not on authenticated main history")
+    source_policy = json.loads(
+        git(repo, "show", f"{source}:.castiron-ratchet.json"), object_pairs_hook=unique
+    )
+    if {key: value for key, value in policy.items() if key != "next_policy"} != source_policy:
+        raise ReportError("first adoption must preserve approved policy limits")
+    if not read_stats(repo, source).get("public_codegen_sha"):
+        raise ReportError(
+            "approved main must have a genuine public checkpoint before first adoption"
+        )
+    return source
+
+
+def adoption_head(
+    repo: Path,
+    base: str,
+    source: str,
+    head: str,
+    after: dict[str, Any],
+    *,
+    public: bool,
+) -> None:
+    git(repo, "merge-base", "--is-ancestor", base, head)
+    if not public:
+        # Private initialization retains the authenticated source parent. Normal
+        # promotion deliberately publishes a single-parent target-branch commit.
+        git(repo, "merge-base", "--is-ancestor", source, head)
+    if git(repo, "show", f"{base}:.castiron-ratchet.json") != git(
+        repo, "show", f"{head}:.castiron-ratchet.json"
+    ):
+        raise ReportError("first adoption must preserve protected target policy")
+    original, current = read_stats(repo, source), read_stats(repo, head)
+    if original["generation_id"] == current["generation_id"]:
+        raise ReportError("first adoption requires a new generation")
+    for key in ("config_hash", "openapi_spec_hash"):
+        if not original.get(key) or current.get(key) != original[key]:
+            raise ReportError("first adoption must preserve authenticated main inputs")
+    if public:
+        # Public authorization comes from the protected pin and verified public
+        # snapshot ancestry, never from a candidate-supplied adoption receipt.
+        git(repo, "merge-base", "--is-ancestor", original["public_codegen_sha"], after["commit"])
+        metadata = public_metadata(repo, after["commit"])
+        if (
+            metadata.get("Target") != "next"
+            or metadata.get("Adoption-Base") != base
+            or metadata.get("Adoption-Source") != source
+        ):
+            raise ReportError("snapshot does not bind the authorized first adoption")
+    else:
+        message = git(repo, "show", "-s", "--format=%B", current["codegen_sha"]).decode()
+        bindings = re.findall(r"^Generation metadata: ([A-Za-z0-9+/=]+)$", message, re.MULTILINE)
+        if len(bindings) != 1:
+            raise ReportError("invalid adoption generation binding")
+        envelope = json.loads(base64.b64decode(bindings[0], validate=True))
+        record = envelope.get("record", {})
+        if envelope.get("release_target") != "next" or record.get("public_baseline_commit") != base:
+            raise ReportError("new checkpoint must bind the old target base")
+        pin = json.loads(git(repo, "show", f"{base}:.castiron-ratchet.json"))["next_policy"]
+        sdk = pin["repository"].split("/")[1]
+        if record.get("target") != sdk or record.get("language") != sdk.removeprefix("openai-"):
+            raise ReportError("adoption generation SDK mismatch")
+
+
 def prepare_public_snapshot(
     source: Path,
     source_base: str,
@@ -344,18 +571,46 @@ def prepare_public_snapshot(
     branch: str,
 ) -> dict[str, Any]:
     """Prepare public-only generated history; never push anything."""
-    read_stats(source, source_base)
     after = read_stats(source, source_head)
-    public = read_stats(destination, public_base)
-    baseline = resolve_checkpoint(source, after, fetch=True, require_hash=True)
+    target_branch = (
+        "next" if branch == "castiron/next" or branch.startswith("castiron/next/") else "main"
+    )
+    adoption_source = None
+    if not git(destination, "ls-tree", public_base, "--", ".castiron.stats.yml"):
+        adoption_source = first_adoption_source(
+            destination, public_base, target_branch=target_branch, fetch=True
+        )
+    else:
+        read_stats(source, source_base)
+    public = read_stats(destination, adoption_source or public_base)
+    baseline = resolve_checkpoint(
+        source, after, fetch=True, require_hash=True, target_branch=target_branch
+    )
+    if adoption_source:
+        # Public source commit is already fetched into the private promotion clone.
+        adoption_head(source, public_base, adoption_source, source_head, baseline, public=False)
+
     codegen_branch = f"codegen/{branch}"
     ref = f"refs/heads/{codegen_branch}"
     git(destination, "check-ref-format", ref)
     remote = git(destination, "ls-remote", "--refs", "origin", ref).decode().splitlines()
     previous = require_sha(remote[0].split()[0]) if remote else ""
+    upgrade_legacy_parent = False
     if previous:
         git(destination, "fetch", "--quiet", "--no-tags", "origin", previous)
         metadata = public_metadata(destination, previous)
+        # A pending legacy promotion has not been adopted on main. It may be
+        # retained as public history, but never reused to authorize the new
+        # snapshot: rebuild that from the verified private checkpoint below.
+        upgrade_legacy_parent = (
+            target_branch == "main"
+            and "Target" not in metadata
+            and metadata["Branch"] == codegen_branch
+        )
+        if not upgrade_legacy_parent:
+            validate_public_target(
+                destination, previous, metadata, target_branch=target_branch, fetch=True
+            )
         # Stats pin the snapshot, not the SDK branch that currently uses it.
         # Another promotion may legitimately reuse this public commit; its
         # original branch remains the locator used by resolve_public_baseline.
@@ -365,17 +620,28 @@ def prepare_public_snapshot(
     base_snapshot = public.get("public_codegen_sha")
     if base_snapshot:
         base_snapshot = resolve_public_baseline(
-            destination, public_base, fetch=True, require_hash=False
+            destination,
+            adoption_source or public_base,
+            fetch=True,
+            require_hash=False,
+            target_branch="main" if adoption_source else target_branch,
         )["commit"]
     elif previous:
         try:
             base_snapshot = resolve_public_baseline(
-                destination, public_base, fetch=True, require_hash=False, lineage=previous
+                destination,
+                public_base,
+                fetch=True,
+                require_hash=False,
+                lineage=previous,
+                target_branch=target_branch,
             )["commit"]
         except ReportError:
             base_snapshot = None
     if base_snapshot is None:
-        old = resolve_checkpoint(source, public, fetch=True, require_hash=False)
+        old = resolve_checkpoint(
+            source, public, fetch=True, require_hash=False, target_branch=target_branch
+        )
         # Initial bootstrap is limited to paths already present on public main.
         tree = copy_generated_tree(source, old["commit"], destination, public_base)
         base_snapshot = create_public_snapshot(
@@ -394,7 +660,15 @@ def prepare_public_snapshot(
             parent = previous
         metadata = public_metadata(destination, previous)
         if (
-            metadata["Generation-ID"] == after["generation_id"]
+            not upgrade_legacy_parent
+            and metadata["Generation-ID"] == after["generation_id"]
+            and (
+                not adoption_source
+                or (
+                    metadata.get("Adoption-Base") == public_base
+                    and metadata.get("Adoption-Source") == adoption_source
+                )
+            )
             and metadata["Hash"] == baseline["hash"]
             and git(destination, "rev-parse", f"{previous}^{{tree}}").decode().strip() == tree
             and base_snapshot in ancestors
@@ -402,7 +676,13 @@ def prepare_public_snapshot(
             snapshot = previous
         else:
             snapshot = create_public_snapshot(
-                destination, tree, after["generation_id"], baseline["hash"], codegen_branch, parent
+                destination,
+                tree,
+                after["generation_id"],
+                baseline["hash"],
+                codegen_branch,
+                parent,
+                (public_base, adoption_source) if adoption_source else None,
             )
     elif (
         public_metadata(destination, base_snapshot)["Generation-ID"] == after["generation_id"]
@@ -411,7 +691,13 @@ def prepare_public_snapshot(
         snapshot = base_snapshot
     else:
         snapshot = create_public_snapshot(
-            destination, tree, after["generation_id"], baseline["hash"], codegen_branch, parent
+            destination,
+            tree,
+            after["generation_id"],
+            baseline["hash"],
+            codegen_branch,
+            parent,
+            (public_base, adoption_source) if adoption_source else None,
         )
     stats_path = destination / ".castiron.stats.yml"
     current = git(source, "show", f"{require_sha(source_head)}:.castiron.stats.yml").decode("utf-8")
@@ -420,6 +706,7 @@ def prepare_public_snapshot(
     git(destination, "add", "--", ".castiron.stats.yml")
     return {
         "commit": snapshot,
+        "base_commit": base_snapshot,
         "branch": codegen_branch,
         "previous": previous,
         "hash": baseline["hash"],
@@ -427,16 +714,27 @@ def prepare_public_snapshot(
 
 
 def resolve_baseline(
-    repo: Path, revision: str, *, fetch: bool, require_hash: bool
+    repo: Path, revision: str, *, fetch: bool, require_hash: bool, target_branch: str = "main"
 ) -> dict[str, Any]:
     return resolve_checkpoint(
-        repo, read_stats(repo, revision), fetch=fetch, require_hash=require_hash
+        repo,
+        read_stats(repo, revision),
+        fetch=fetch,
+        require_hash=require_hash,
+        target_branch=target_branch,
     )
 
 
 def resolve_checkpoint(
-    repo: Path, stats: dict[str, str], *, fetch: bool, require_hash: bool
+    repo: Path,
+    stats: dict[str, str],
+    *,
+    fetch: bool,
+    require_hash: bool,
+    target_branch: str = "main",
 ) -> dict[str, Any]:
+    if target_branch not in TARGET_BRANCHES:
+        raise ReportError("unsupported report target")
     commit = stats["codegen_sha"]
     if fetch:
         git(repo, "fetch", "--quiet", "--no-tags", "origin", commit)
@@ -451,18 +749,35 @@ def resolve_checkpoint(
     if not isinstance(decoded, dict):
         raise ReportError("invalid codegen checkpoint metadata")
     metadata = cast(dict[str, Any], decoded)
+    namespace = ""
+    if "schema_version" in metadata:
+        if (
+            set(metadata) != {"schema_version", "release_target", "record"}
+            or metadata["schema_version"] != "castiron-checkpoint/v2"
+            or metadata["release_target"] != "next"
+            or not isinstance(metadata["record"], dict)
+        ):
+            raise ReportError("invalid versioned checkpoint envelope")
+        if target_branch != "next":
+            raise ReportError("next checkpoint cannot authorize a main report")
+        metadata = cast(dict[str, Any], metadata["record"])
+        namespace = "castiron/next/"
+    if {"release_target", "schema_version", "record"}.intersection(metadata):
+        raise ReportError("checkpoint target metadata must use the versioned envelope")
     if metadata.get("generation_id") != stats["generation_id"]:
         raise ReportError("codegen checkpoint generation ID does not match stats")
     branch = metadata.get("source_branch")
     if not isinstance(branch, str) or not branch:
         raise ReportError("codegen checkpoint has no source branch")
-    ref = f"refs/heads/codegen/{branch}"
+    if not namespace and (branch == "castiron/next" or branch.startswith("castiron/next/")):
+        raise ReportError("legacy checkpoint cannot use the reserved next namespace")
+    ref = f"refs/heads/codegen/{namespace}{branch}"
     git(repo, "check-ref-format", ref)
     tracking = f"refs/castiron/report/{hashlib.sha256(ref.encode()).hexdigest()}"
     if fetch:
         git(repo, "fetch", "--quiet", "--no-tags", "origin", f"+{ref}:{tracking}")
     else:
-        tracking = f"refs/remotes/origin/codegen/{branch}"
+        tracking = f"refs/remotes/origin/codegen/{namespace}{branch}"
     git(repo, "merge-base", "--is-ancestor", commit, tracking)
     actual = hash_codegen_commit(repo, commit)
     expected = stats.get("codegen_hash")
@@ -525,18 +840,57 @@ def build_report(
     fetch: bool = False,
     require_head_hash: bool = False,
     public: bool = False,
+    target_branch: str = "main",
 ) -> tuple[dict[str, Any], bytes]:
     base, head = require_sha(base), require_sha(head)
     comparison_base = git(repo, "merge-base", base, head).decode().strip()
+    adoption_source = None
+    if not git(repo, "ls-tree", comparison_base, "--", ".castiron.stats.yml"):
+        if comparison_base != base:
+            raise ReportError(
+                "first-adoption target advanced; regenerate against the protected base"
+            )
+        adoption_source = first_adoption_source(
+            repo, comparison_base, target_branch=target_branch, fetch=fetch
+        )
     if public:
-        after = resolve_public_baseline(repo, head, fetch=fetch, require_hash=require_head_hash)
+        after = resolve_public_baseline(
+            repo,
+            head,
+            fetch=fetch,
+            require_hash=require_head_hash,
+            target_branch=target_branch,
+        )
         before = resolve_public_baseline(
-            repo, comparison_base, fetch=fetch, require_hash=False, lineage=after["commit"]
+            repo,
+            adoption_source or comparison_base,
+            fetch=fetch,
+            require_hash=False,
+            lineage=after["commit"],
+            target_branch="main" if adoption_source else target_branch,
         )
     else:
-        before = resolve_baseline(repo, comparison_base, fetch=fetch, require_hash=False)
-        after = resolve_baseline(repo, head, fetch=fetch, require_hash=require_head_hash)
-    g0, i0 = tree_entries(repo, before["commit"]), tree_entries(repo, comparison_base)
+        before = resolve_baseline(
+            repo,
+            adoption_source or comparison_base,
+            fetch=fetch,
+            require_hash=False,
+            target_branch="main" if adoption_source else target_branch,
+        )
+        after = resolve_baseline(
+            repo,
+            head,
+            fetch=fetch,
+            require_hash=require_head_hash,
+            target_branch=target_branch,
+        )
+    if adoption_source:
+        adoption_head(repo, comparison_base, adoption_source, head, after, public=public)
+    g0, i0 = (
+        ({}, {})
+        if adoption_source
+        else (tree_entries(repo, before["commit"]), tree_entries(repo, comparison_base))
+    )
     g1, i1 = tree_entries(repo, after["commit"]), tree_entries(repo, head)
     stats = numstats(repo, after["commit"], head)
     files: list[dict[str, Any]] = []
@@ -551,8 +905,12 @@ def build_report(
         files.append(
             {
                 "path": path.decode("utf-8"),
-                "category": category,
-                "custom_before": custom_before,
+                "category": (
+                    ("first_adoption" if custom_after else "unchanged")
+                    if adoption_source
+                    else category
+                ),
+                "custom_before": None if adoption_source else custom_before,
                 "custom_after": custom_after,
                 "added": added,
                 "removed": removed,
@@ -584,11 +942,14 @@ def build_report(
         "target_base_sha": base,
         "base_sha": comparison_base,
         "head_sha": head,
-        "before": before,
+        "before": None if adoption_source else before,
+        "adoption_baseline": before if adoption_source else None,
+        "adoption_source": adoption_source,
+        "before_status": "legacy_generation_unavailable" if adoption_source else "verified",
         "after": after,
         "files": files,
         "counts": {
-            "before": sum(f["custom_before"] for f in files),
+            "before": None if adoption_source else sum(f["custom_before"] for f in files),
             "after": sum(f["custom_after"] for f in files),
             **dict(collections.Counter(f["category"] for f in files)),
         },
@@ -605,6 +966,12 @@ def render_report(
 ) -> str:
     head = require_sha(report["head_sha"])
     lines = [MARKER, "", "## Castiron custom code", ""]
+    branch = report.get("target_branch", "main")
+    if branch not in TARGET_BRANCHES:
+        raise ReportError("unsupported report target")
+    lines.extend([f"Evaluated {branch}: `{require_sha(report['target_base_sha'])}`.", ""])
+    if "policy_sha" in report:
+        lines.extend([f"Trusted main policy: `{require_sha(report['policy_sha'])}`.", ""])
     if report.get("status") != "ok":
         reason = html.escape(str(report.get("error", "Report could not be computed")))
         lines.extend([f"⚠️ Report unavailable for `{head[:12]}`.", "", reason])
@@ -627,7 +994,15 @@ def render_report(
             and file["category"] != "no_longer_generated"
             for file in files
         )
-        if newly_customized == 0:
+        if report.get("before_status") == "legacy_generation_unavailable":
+            lines.extend(
+                [
+                    "Legacy before-generation unavailable; no historical customization claim.",
+                    "",
+                    f"Current mixed files: {after}. Approved main reference: `{require_sha(report['adoption_source'])}`.",
+                ]
+            )
+        elif newly_customized == 0:
             remaining = (
                 f"{after} mixed file{'s' if after != 1 else ''} remain{'s' if after == 1 else ''}"
             )
@@ -655,8 +1030,16 @@ def render_report(
                     ),
                 ]
             )
-        lines.extend(["", f"Compared `{base[:12]}` → `{head[:12]}`. Generated baselines verified."])
-        if not report["before"]["hash_recorded"] or not report["after"]["hash_recorded"]:
+        verification = (
+            "Current generation and approved main reference verified."
+            if report["before"] is None
+            else "Generated baselines verified."
+        )
+        lines.extend(["", f"Compared `{base[:12]}` → `{head[:12]}`. {verification}"])
+        if (
+            not (report["before"] or report["adoption_baseline"])["hash_recorded"]
+            or not report["after"]["hash_recorded"]
+        ):
             lines.extend(
                 [
                     "",
@@ -731,7 +1114,7 @@ def render_report(
                 f"git fetch --no-tags origin {target_base} {head}",
                 "python3 scripts/castiron/custom_code_report.py report \\",
                 f"  --base {target_base} \\",
-                f"  --head {head} --fetch --require-head-hash{' --public' if report.get('public') else ''} \\",
+                f"  --head {head} --target-branch {branch} --fetch --require-head-hash{' --public' if report.get('public') else ''} \\",
                 f"  --out /tmp/castiron-custom-code-{head[:12]}",
                 f"cat /tmp/castiron-custom-code-{head[:12]}/custom-code.patch",
                 "```",
@@ -786,6 +1169,29 @@ def associated_pulls(repository: str, run: dict[str, Any]) -> list[dict[str, Any
     raise ReportError("too many pull requests for source branch")
 
 
+def current_pull(repository: str, run: dict[str, Any]) -> tuple[int, str] | None:
+    """Resolve one live supported target; association metadata is discovery only."""
+    current: list[tuple[int, str]] = []
+    for number in sorted({int(pr["number"]) for pr in associated_pulls(repository, run)}):
+        if number <= 0:
+            raise ReportError("invalid associated pull request")
+        pull = api("GET", f"repos/{repository}/pulls/{number}")
+        if (
+            pull["state"] == "open"
+            and pull["head"]["sha"] == run["head_sha"]
+            and pull["base"]["repo"]["full_name"] == repository
+            and pull["base"]["ref"] in TARGET_BRANCHES
+        ):
+            current.append((number, pull["base"]["ref"]))
+    # Fallback discovery can find both targets for one head. Main's required
+    # checks take precedence over next's advisory report; keep same-target
+    # ambiguity fail-closed. Explicit run associations still limit discovery.
+    current = [pull for pull in current if pull[1] == "main"] or current
+    if len(current) > 1:
+        raise ReportError("workflow run has multiple current pull requests")
+    return current[0] if current else None
+
+
 def publish_comment(
     report: dict[str, Any],
     repository: str,
@@ -803,7 +1209,9 @@ def publish_comment(
     if (
         pull["state"] != "open"
         or pull["head"]["sha"] != report["head_sha"]
-        or pull["base"]["sha"] != report["target_base_sha"]
+        or pull["base"]["ref"] != report.get("target_branch", "main")
+        or pull["base"]["ref"] not in TARGET_BRANCHES
+        or pull["base"]["repo"]["full_name"] != repository
     ):
         return "Skipped stale report"
     run = api("GET", f"{root}/actions/runs/{run_id}")
@@ -850,7 +1258,9 @@ def publish_comment(
     if (
         pull["state"] != "open"
         or pull["head"]["sha"] != report["head_sha"]
-        or pull["base"]["sha"] != report["target_base_sha"]
+        or pull["base"]["ref"] != report.get("target_branch", "main")
+        or pull["base"]["ref"] not in TARGET_BRANCHES
+        or pull["base"]["repo"]["full_name"] != repository
     ):
         return "Skipped stale report"
     if found is not None:
@@ -869,11 +1279,19 @@ def write_report(
     fetch: bool,
     require_head_hash: bool,
     public: bool,
+    target_branch: str = "main",
+    policy_sha: str | None = None,
 ) -> dict[str, Any]:
     out.mkdir(parents=True, exist_ok=True)
     try:
         report, patch = build_report(
-            repo, base, head, fetch=fetch, require_head_hash=require_head_hash, public=public
+            repo,
+            base,
+            head,
+            fetch=fetch,
+            require_head_hash=require_head_hash,
+            public=public,
+            target_branch=target_branch,
         )
     except (ReportError, UnicodeError, KeyError, ValueError) as exc:
         report = {
@@ -884,6 +1302,9 @@ def write_report(
             "error": str(exc),
         }
         patch = b""
+    report["target_branch"] = target_branch
+    if policy_sha is not None:
+        report["policy_sha"] = require_sha(policy_sha)
     (out / "report.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
     (out / "custom-code.patch").write_bytes(patch)
     summary = render_report(report)
@@ -893,9 +1314,12 @@ def write_report(
 
 
 def trusted_report(
-    repo: Path, repository: str, run_id: int, run_attempt: int, out: Path
+    repo: Path, repository: str, run_id: int, run_attempt: int, out: Path, *, base: str
 ) -> None:
     """Recompute from GitHub-associated Git objects, never from PR-produced artifacts."""
+    # Executable code and policy always come from the pinned main checkout.
+    # The target branch is independently resolved from live GitHub metadata.
+    policy_sha = require_sha(base)
     if not REPOSITORY.fullmatch(repository) or min(run_id, run_attempt) <= 0:
         raise ReportError("invalid GitHub report target")
     root = f"repos/{repository}"
@@ -909,35 +1333,38 @@ def trusted_report(
     if run["run_attempt"] != run_attempt:
         return
     head = require_sha(run["head_sha"])
-    associated = associated_pulls(repository, run)
-    current: list[tuple[int, str]] = []
-    for number in sorted({int(pr["number"]) for pr in associated}):
-        if number <= 0:
-            raise ReportError("invalid associated pull request")
-        pull = api("GET", f"{root}/pulls/{number}")
-        if (
-            pull["state"] == "open"
-            and pull["head"]["sha"] == head
-            and pull["base"]["repo"]["full_name"] == repository
-        ):
-            current.append((number, require_sha(pull["base"]["sha"])))
-    if not current:
+    current = current_pull(repository, run)
+    if current is None:
         return
-    if len(current) != 1:
-        raise ReportError("workflow run has multiple current pull requests")
-    number, base = current[0]
-    public = not api("GET", root)["private"]
+    number, branch = current
+    metadata = api("GET", root)
+    if metadata["default_branch"] != "main" or run["repository"]["full_name"] != repository:
+        raise ReportError("trusted reports require the repository's main default branch")
+    public = not metadata["private"]
+    base = (
+        policy_sha
+        if branch == "main"
+        else require_sha(api("GET", f"{root}/git/ref/heads/{branch}")["object"]["sha"])
+    )
     # This must be a new, bare repository: no PR worktree, hooks, configuration,
     # submodules, or Python imports can affect the trusted reporter.
     repo.mkdir()
     git(repo, "init", "--quiet", "--bare")
     git(repo, "remote", "add", "origin", f"https://github.com/{repository}.git")
-    git(repo, "fetch", "--quiet", "--no-tags", "origin", base, head)
-    write_report(repo, base, head, out, fetch=True, require_head_hash=True, public=public)
+    git(repo, "fetch", "--quiet", "--no-tags", "origin", *dict.fromkeys((base, head, policy_sha)))
+    write_report(
+        repo,
+        base,
+        head,
+        out,
+        fetch=True,
+        require_head_hash=True,
+        public=public,
+        target_branch=branch,
+        policy_sha=policy_sha,
+    )
     (out / "context.json").write_text(
-        json.dumps(
-            {"pr": number, "repository": repository, "run": run_id, "attempt": run_attempt}
-        )
+        json.dumps({"pr": number, "repository": repository, "run": run_id, "attempt": run_attempt})
         + "\n"
     )
 
@@ -956,12 +1383,18 @@ def main() -> int:
     reporting.add_argument("--fetch", action="store_true")
     reporting.add_argument("--require-head-hash", action="store_true")
     reporting.add_argument("--public", action="store_true")
+    reporting.add_argument("--target-branch", choices=sorted(TARGET_BRANCHES), default="main")
     trusted = commands.add_parser("trusted-report")
     trusted.add_argument("--repo", type=Path, required=True)
     trusted.add_argument("--repository", required=True)
     trusted.add_argument("--run-id", type=int, required=True)
     trusted.add_argument("--run-attempt", type=int, required=True)
     trusted.add_argument("--out", type=Path, required=True)
+    trusted.add_argument("--base", required=True, help="immutable main SHA of the trusted checkout")
+    selecting = commands.add_parser("promotion-base")
+    selecting.add_argument("--repo", type=Path, required=True)
+    selecting.add_argument("--base", required=True)
+    selecting.add_argument("--branch", required=True)
     preparing = commands.add_parser("prepare-public")
     preparing.add_argument("--source-repo", type=Path, required=True)
     preparing.add_argument("--source-base", required=True)
@@ -981,6 +1414,16 @@ def main() -> int:
     try:
         if args.command == "hash":
             sys.stdout.write(hash_codegen_commit(args.repo, args.commit) + "\n")
+        elif args.command == "promotion-base":
+            base = require_sha(args.base)
+            if not git(args.repo, "ls-tree", base, "--", ".castiron.stats.yml"):
+                target = (
+                    "next"
+                    if args.branch == "castiron/next" or args.branch.startswith("castiron/next/")
+                    else "main"
+                )
+                base = first_adoption_source(args.repo, base, target_branch=target, fetch=True)
+            sys.stdout.write(base + "\n")
         elif args.command == "prepare-public":
             sys.stdout.write(
                 json.dumps(
@@ -996,7 +1439,14 @@ def main() -> int:
                 + "\n"
             )
         elif args.command == "trusted-report":
-            trusted_report(args.repo, args.repository, args.run_id, args.run_attempt, args.out)
+            trusted_report(
+                args.repo,
+                args.repository,
+                args.run_id,
+                args.run_attempt,
+                args.out,
+                base=args.base,
+            )
         elif args.command == "comment":
             if args.report.stat().st_size > 5_000_000:
                 raise ReportError("report artifact is too large")
@@ -1022,6 +1472,7 @@ def main() -> int:
                 fetch=args.fetch,
                 require_head_hash=args.require_head_hash,
                 public=args.public,
+                target_branch=args.target_branch,
             )
             return 0 if report["status"] == "ok" else 1
     except (ReportError, OSError, subprocess.TimeoutExpired) as exc:

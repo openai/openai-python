@@ -12,7 +12,7 @@ class ImageURL(BaseModel):
     url: str
     """Either a URL of the image or the base64 encoded image data."""
 
-    detail: Optional[Literal["auto", "low", "high"]] = None
+    detail: Optional[Literal["auto", "low", "high", "original"]] = None
     """Specifies the detail level of the image.
 
     Learn more in the
@@ -28,6 +28,9 @@ class PromptCacheBreakpoint(BaseModel):
 
     mode: Literal["explicit"]
     """The breakpoint mode. Always `explicit`."""
+
+    ttl: Optional[Literal["30m", "12h"]] = None
+    """The minimum lifetime of this cache breakpoint. Defaults to the request TTL."""
 
 
 class ChatCompletionContentPartImage(BaseModel):

@@ -3,6 +3,14 @@
 import typing as _t
 
 if _t.TYPE_CHECKING:
+    from .cases import (
+        Cases as Cases,
+        AsyncCases as AsyncCases,
+        CasesWithRawResponse as CasesWithRawResponse,
+        AsyncCasesWithRawResponse as AsyncCasesWithRawResponse,
+        CasesWithStreamingResponse as CasesWithStreamingResponse,
+        AsyncCasesWithStreamingResponse as AsyncCasesWithStreamingResponse,
+    )
     from .alerts import (
         Alerts as Alerts,
         AsyncAlerts as AsyncAlerts,
@@ -22,6 +30,12 @@ if _t.TYPE_CHECKING:
 
 else:
     _EXPORTS = {
+        "Cases": (".cases", "Cases"),
+        "AsyncCases": (".cases", "AsyncCases"),
+        "CasesWithRawResponse": (".cases", "CasesWithRawResponse"),
+        "AsyncCasesWithRawResponse": (".cases", "AsyncCasesWithRawResponse"),
+        "CasesWithStreamingResponse": (".cases", "CasesWithStreamingResponse"),
+        "AsyncCasesWithStreamingResponse": (".cases", "AsyncCasesWithStreamingResponse"),
         "Alerts": (".alerts", "Alerts"),
         "AsyncAlerts": (".alerts", "AsyncAlerts"),
         "AlertsWithRawResponse": (".alerts", "AlertsWithRawResponse"),
@@ -37,6 +51,7 @@ else:
     }
     _SUBMODULES = {
         "alerts",
+        "cases",
         "safety",
     }
 
@@ -58,6 +73,12 @@ else:
 
 
 __all__ = [
+    "Cases",
+    "AsyncCases",
+    "CasesWithRawResponse",
+    "AsyncCasesWithRawResponse",
+    "CasesWithStreamingResponse",
+    "AsyncCasesWithStreamingResponse",
     "Alerts",
     "AsyncAlerts",
     "AlertsWithRawResponse",

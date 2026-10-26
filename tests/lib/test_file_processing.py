@@ -56,15 +56,23 @@ async def test_poll_until_processed(files_resource: Files | AsyncFiles) -> None:
         sleep.assert_called_once_with(0.25)
 
 
-async def test_timeout(files_resource: Files | AsyncFiles) -> None:
+async def test_timeout_after_wall_clock_rollback(files_resource: Files | AsyncFiles) -> None:
     with (
         mock.patch.object(file_helpers, "time") as clock,
         mock.patch.object(files_resource, "retrieve", return_value=make_file("uploaded")),
-        mock.patch.object(files_resource, "_sleep"),
+        mock.patch.object(
+            files_resource,
+            "_sleep",
+            side_effect=[None, AssertionError("poll continued after the deadline")],
+        ) as sleep,
     ):
-        clock.time.side_effect = [0.0, 11.0]
+        clock.time.side_effect = [100.0, 90.0]
+        clock.monotonic.side_effect = [100.0, 102.0]
+
         with pytest.raises(RuntimeError, match=f"Giving up on waiting for file {FILE_ID}"):
-            await wait(files_resource, max_wait_seconds=10)
+            await wait(files_resource, poll_interval=5.0, max_wait_seconds=1.0)
+
+        sleep.assert_called_once_with(5.0)
 
 
 async def test_retrieve_error_propagates(files_resource: Files | AsyncFiles) -> None:

@@ -380,10 +380,10 @@ class Assistants(SyncAPIResource):
             path_template("/assistants/{assistant_id}", assistant_id=assistant_id),
             body=maybe_transform(
                 {
+                    "model": model,
                     "description": description,
                     "instructions": instructions,
                     "metadata": metadata,
-                    "model": model,
                     "name": name,
                     "reasoning_effort": reasoning_effort,
                     "response_format": response_format,
@@ -859,10 +859,10 @@ class AsyncAssistants(AsyncAPIResource):
             path_template("/assistants/{assistant_id}", assistant_id=assistant_id),
             body=await async_maybe_transform(
                 {
+                    "model": model,
                     "description": description,
                     "instructions": instructions,
                     "metadata": metadata,
-                    "model": model,
                     "name": name,
                     "reasoning_effort": reasoning_effort,
                     "response_format": response_format,

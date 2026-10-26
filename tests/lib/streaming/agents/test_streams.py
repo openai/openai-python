@@ -481,7 +481,8 @@ async def test_long_stream_bounds_event_cache_without_repeating_tools(
 
     repeated_call = {"event_id": "original-call", **call()}
     payloads = [turn_event("created"), repeated_call]
-    for index in range(5000):
+    delta_count = 5000
+    for index in range(delta_count):
         delta_event: dict[str, object] = {
             "type": "agent.session.turn.output_text.delta",
             "event_id": f"delta-{index}",
@@ -492,10 +493,12 @@ async def test_long_stream_bounds_event_cache_without_repeating_tools(
             "content_index": 0,
             "delta": str(index),
         }
-        payloads.extend([delta_event, delta_event])
+        payloads.append(delta_event)
+    payloads.append(payloads[-1])  # Repeat the last delta after sustained cache eviction.
     payloads.extend([repeated_call, turn_event("completed"), idle()])
     server.body = EventBody(payloads)
     deltas: list[str] = []
+    tool_event_deliveries = 0
     if isinstance(sdk, AsyncOpenAI):
         async with sdk.beta.agents.sessions.stream(
             "session_test", input="Hello", tool_handlers={"search": handler}
@@ -503,6 +506,8 @@ async def test_long_stream_bounds_event_cache_without_repeating_tools(
             async for event in stream:
                 if event.type == "agent.session.turn.output_text.delta":
                     deltas.append(event.delta)
+                elif event.event_id == repeated_call["event_id"]:
+                    tool_event_deliveries += 1
             assert len(stream._state.event_ids) <= 1024
             assert len(stream._state.recent_events) <= 1024
     else:
@@ -512,9 +517,12 @@ async def test_long_stream_bounds_event_cache_without_repeating_tools(
             for event in sync_stream:
                 if event.type == "agent.session.turn.output_text.delta":
                     deltas.append(event.delta)
+                elif event.event_id == repeated_call["event_id"]:
+                    tool_event_deliveries += 1
             assert len(sync_stream._state.event_ids) <= 1024
             assert len(sync_stream._state.recent_events) <= 1024
-    assert deltas == [str(index) for index in range(5000)]
+    assert deltas == [str(index) for index in range(delta_count)]
+    assert tool_event_deliveries == 2
     assert calls == [{"query": "test"}]
     assert len(server.inputs()) == 2
     assert server.body.closed
@@ -580,3 +588,213 @@ async def test_consumer_mutation_does_not_redirect_tool(sdk: OpenAI | AsyncOpenA
         "output": "result",
     }
     assert server.body.closed
+
+
+@pytest.mark.parametrize(
+    "failure", ["json", "typed_arguments", "execution", "output", "typed_output", "unicode", "success"]
+)
+async def test_tool_error_observer(sdk: OpenAI | AsyncOpenAI, server: Server, failure: str) -> None:
+    from openai.lib.beta.agents import AgentToolError, function_tool
+
+    original = RuntimeError("private diagnostic")
+    observed: list[AgentToolError] = []
+
+    def handler(arguments: dict[str, Any]) -> Any:
+        assert arguments["query"] == "test"
+        if failure == "execution":
+            raise original
+        if failure in {"output", "typed_output"}:
+            return {"value": object()}
+        if failure == "unicode":
+            return "\ud800"
+        return "found"
+
+    @function_tool
+    def typed(query: str) -> Any:
+        return handler({"query": query})
+
+    server.body = EventBody(
+        [
+            turn_event("created"),
+            call("invalid json" if failure == "json" else {} if failure == "typed_arguments" else '{"query":"test"}'),
+            turn_event("completed"),
+            idle(),
+        ]
+    )
+    await consume(
+        sdk,
+        input="Search",
+        tool_handlers={"search": typed if failure.startswith("typed_") else handler},
+        on_tool_error=observed.append,
+    )
+    if failure == "success":
+        assert observed == []
+        assert server.inputs()[1]["success"] is True
+        return
+    assert len(observed) == 1
+    error = observed[0]
+    assert (error.session_id, error.turn_id, error.call_id, error.tool_name) == (
+        "session_test",
+        "turn_root",
+        "call_test",
+        "search",
+    )
+    assert error.stage == (
+        "arguments" if failure in {"json", "typed_arguments"} else "execution" if failure == "execution" else "output"
+    )
+    if failure == "execution":
+        assert error.error is original
+    elif failure == "json":
+        assert isinstance(error.error, json.JSONDecodeError)
+    elif failure == "typed_arguments":
+        from pydantic import ValidationError
+
+        assert isinstance(error.error, ValidationError)
+    elif failure == "unicode":
+        assert isinstance(error.error, UnicodeEncodeError)
+    else:
+        assert isinstance(error.error, TypeError)
+    assert server.inputs()[1] == {
+        "type": "agent.session.input.tool_result",
+        "turn_id": "turn_root",
+        "call_id": "call_test",
+        "success": False,
+        "error": "Tool handler failed.",
+    }
+
+
+async def test_tool_error_observer_failure_and_submission_retry(sdk: OpenAI | AsyncOpenAI, server: Server) -> None:
+    from openai.lib.beta.agents import AgentToolError
+
+    observed: list[AgentToolError] = []
+    server.body = EventBody([turn_event("created"), call("bad json"), turn_event("completed"), idle()])
+    server.tool_errors = ["Unknown pending tool call: call_test"]
+
+    def observer(error: AgentToolError) -> None:
+        observed.append(error)
+        raise RuntimeError("observer failure")
+
+    async def async_observer(error: AgentToolError) -> None:
+        await asyncio.sleep(0)
+        observer(error)
+
+    await consume(
+        sdk,
+        input="Search",
+        tool_handlers={"search": str},
+        on_tool_error=async_observer if isinstance(sdk, AsyncOpenAI) else observer,
+    )
+    assert len(observed) == 1
+    assert len(server.inputs()) == 3
+    assert server.inputs()[1] == server.inputs()[2]
+    assert server.inputs()[2]["error"] == "Tool handler failed."
+
+
+@pytest.mark.parametrize("failure", ["execution", "output", "cancelled"])
+async def test_async_typed_tool_error(sdk: OpenAI | AsyncOpenAI, server: Server, failure: str) -> None:
+    from openai.lib.beta.agents import AgentToolError, function_tool
+
+    if not isinstance(sdk, AsyncOpenAI):
+        pytest.skip("async handler requires AsyncOpenAI")
+    original = RuntimeError("private diagnostic")
+    observed: list[AgentToolError] = []
+
+    @function_tool
+    async def typed(query: str) -> object:
+        assert query == "test"
+        await asyncio.sleep(0)
+        if failure == "execution":
+            raise original
+        if failure == "cancelled":
+            raise asyncio.CancelledError()
+        return {"value": object()}
+
+    server.body = EventBody([turn_event("created"), call(), turn_event("completed"), idle()])
+    if failure == "cancelled":
+        with pytest.raises(asyncio.CancelledError):
+            await consume(sdk, input="Search", tool_handlers={"search": typed}, on_tool_error=observed.append)
+        assert not observed
+        assert len(server.inputs()) == 1
+    else:
+        await consume(sdk, input="Search", tool_handlers={"search": typed}, on_tool_error=observed.append)
+        assert observed[0].stage == failure
+        if failure == "execution":
+            assert observed[0].error is original
+        assert server.inputs()[1]["error"] == "Tool handler failed."
+
+
+async def test_async_observer_cancellation(sdk: OpenAI | AsyncOpenAI, server: Server) -> None:
+    from openai.lib.beta.agents import AgentToolError
+
+    if not isinstance(sdk, AsyncOpenAI):
+        pytest.skip("async observer requires AsyncOpenAI")
+    server.body = EventBody([turn_event("created"), call("bad json"), turn_event("completed"), idle()])
+
+    async def observer(error: AgentToolError) -> None:
+        assert error.stage == "arguments"
+        raise asyncio.CancelledError()
+
+    with pytest.raises(asyncio.CancelledError):
+        await consume(sdk, input="Search", tool_handlers={"search": str}, on_tool_error=observer)
+    assert len(server.inputs()) == 1
+    assert server.body.closed
+
+
+def test_sync_stream_closes_async_observer(server: Server) -> None:
+    from openai.lib.beta.agents import AgentToolError
+
+    async def observer(error: AgentToolError) -> None:
+        raise AssertionError(f"Must not run an async observer in a sync stream: {error.stage}")
+
+    server.body = EventBody([turn_event("created"), call("bad json"), turn_event("completed"), idle()])
+    with OpenAI(
+        api_key="synthetic", http_client=httpx2.Client(transport=httpx2.MockTransport(server.handle))
+    ) as client:
+        with client.beta.agents.sessions.stream(
+            "session_test",
+            input="Search",
+            tool_handlers={"search": str},
+            on_tool_error=observer,  # type: ignore[arg-type]
+        ) as stream:
+            stream.until_done()
+    assert server.inputs()[1]["error"] == "Tool handler failed."
+
+
+@pytest.mark.parametrize("override_call", [False, True])
+async def test_function_tool_subclass_error_stage(
+    sdk: OpenAI | AsyncOpenAI, server: Server, override_call: bool
+) -> None:
+    from pydantic import BaseModel, ValidationError
+
+    from openai.lib.beta.agents import FunctionTool, AgentToolError
+
+    class Arguments(BaseModel):
+        query: str
+
+    class InheritedTool(FunctionTool[str]):
+        pass
+
+    original = RuntimeError("custom invocation")
+
+    class OverriddenTool(FunctionTool[str]):
+        @override
+        def __call__(self, arguments: dict[str, Any]) -> str:
+            assert arguments == {}
+            raise original
+
+    def handler(arguments: Arguments) -> str:
+        return arguments.query
+
+    tool = (OverriddenTool if override_call else InheritedTool)(
+        Arguments, handler, name="search", description="Search catalog"
+    )
+    observed: list[AgentToolError] = []
+    server.body = EventBody([turn_event("created"), call({}), turn_event("completed"), idle()])
+    await consume(sdk, input="Search", tool_handlers={"search": tool}, on_tool_error=observed.append)
+    assert len(observed) == 1
+    assert observed[0].stage == ("execution" if override_call else "arguments")
+    if override_call:
+        assert observed[0].error is original
+    else:
+        assert isinstance(observed[0].error, ValidationError)
+    assert server.inputs()[1]["error"] == "Tool handler failed."

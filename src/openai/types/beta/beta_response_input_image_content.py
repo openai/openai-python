@@ -18,6 +18,9 @@ class PromptCacheBreakpoint(BaseModel):
     mode: Literal["explicit"]
     """The breakpoint mode. Always `explicit`."""
 
+    ttl: Optional[Literal["30m", "12h"]] = None
+    """The minimum lifetime of this cache breakpoint. Defaults to the request TTL."""
+
 
 class BetaResponseInputImageContent(BaseModel):
     """An image input to the model.

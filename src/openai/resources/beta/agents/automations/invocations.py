@@ -14,49 +14,84 @@ from ....._resource import SyncAPIResource, AsyncAPIResource
 from ....._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from .....pagination import SyncCursorPage, AsyncCursorPage
 from ....._base_client import AsyncPaginator, make_request_options
-from .....types.beta.agents.sessions import turn_list_params
-from .....types.beta.agents.sessions.turn import Turn
+from .....types.beta.agents.automations import invocation_list_params
+from .....types.beta.agents.automations.automation_invocation import AutomationInvocation
 
-__all__ = ["Turns", "AsyncTurns"]
+__all__ = ["Invocations", "AsyncInvocations"]
 
 
-class Turns(SyncAPIResource):
+class Invocations(SyncAPIResource):
     @cached_property
-    def with_raw_response(self) -> TurnsWithRawResponse:
+    def with_raw_response(self) -> InvocationsWithRawResponse:
         """
         This property can be used as a prefix for any HTTP method call to return
         the raw response object instead of the parsed content.
 
         For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
         """
-        return TurnsWithRawResponse(self)
+        return InvocationsWithRawResponse(self)
 
     @cached_property
-    def with_streaming_response(self) -> TurnsWithStreamingResponse:
+    def with_streaming_response(self) -> InvocationsWithStreamingResponse:
         """
         An alternative to `.with_raw_response` that doesn't eagerly read the response body.
 
         For more information, see https://www.github.com/openai/openai-python#with_streaming_response
         """
-        return TurnsWithStreamingResponse(self)
+        return InvocationsWithStreamingResponse(self)
+
+    def create(
+        self,
+        automation_id: str,
+        *,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AutomationInvocation:
+        """
+        Queues a manual delivery without changing the saved schedule.
+
+        Args:
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not automation_id:
+            raise ValueError(f"Expected a non-empty value for `automation_id` but received {automation_id!r}")
+        extra_headers = {"OpenAI-Beta": "agents=v1", **(extra_headers or {})}
+        return self._post(
+            path_template("/agents/automations/{automation_id}/invocations", automation_id=automation_id),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+            ),
+            cast_to=AutomationInvocation,
+        )
 
     def retrieve(
         self,
-        turn_id: str,
+        invocation_id: str,
         *,
-        session_id: str,
+        automation_id: str,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> Turn:
-        """Retrieves a turn's current status, timestamps, usage, and error.
-
-        Returns 404 if
-        the turn does not belong to the session. See
-        [session turns](https://developers.openai.com/api/docs/guides/agents-api/sessions/manage#inspect-session-turns).
+    ) -> AutomationInvocation:
+        """
+        Retrieves a delivery record for a project-owned automation.
 
         Args:
           extra_headers: Send extra headers
@@ -67,13 +102,17 @@ class Turns(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        if not session_id:
-            raise ValueError(f"Expected a non-empty value for `session_id` but received {session_id!r}")
-        if not turn_id:
-            raise ValueError(f"Expected a non-empty value for `turn_id` but received {turn_id!r}")
+        if not automation_id:
+            raise ValueError(f"Expected a non-empty value for `automation_id` but received {automation_id!r}")
+        if not invocation_id:
+            raise ValueError(f"Expected a non-empty value for `invocation_id` but received {invocation_id!r}")
         extra_headers = {"OpenAI-Beta": "agents=v1", **(extra_headers or {})}
         return self._get(
-            path_template("/agents/sessions/{session_id}/turns/{turn_id}", session_id=session_id, turn_id=turn_id),
+            path_template(
+                "/agents/automations/{automation_id}/invocations/{invocation_id}",
+                automation_id=automation_id,
+                invocation_id=invocation_id,
+            ),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -81,12 +120,12 @@ class Turns(SyncAPIResource):
                 timeout=timeout,
                 security={"bearer_auth": True},
             ),
-            cast_to=Turn,
+            cast_to=AutomationInvocation,
         )
 
     def list(
         self,
-        session_id: str,
+        automation_id: str,
         *,
         after: str | Omit = omit,
         limit: int | Omit = omit,
@@ -97,12 +136,9 @@ class Turns(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> SyncCursorPage[Turn]:
-        """Lists turns by creation time and turn ID.
-
-        The after cursor is exclusive in the
-        selected order. See
-        [session turns](https://developers.openai.com/api/docs/guides/agents-api/sessions/manage#inspect-session-turns).
+    ) -> SyncCursorPage[AutomationInvocation]:
+        """
+        Lists delivery records for a project-owned automation.
 
         Args:
           after: Return resources after this resource ID in the selected order.
@@ -122,12 +158,12 @@ class Turns(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        if not session_id:
-            raise ValueError(f"Expected a non-empty value for `session_id` but received {session_id!r}")
+        if not automation_id:
+            raise ValueError(f"Expected a non-empty value for `automation_id` but received {automation_id!r}")
         extra_headers = {"OpenAI-Beta": "agents=v1", **(extra_headers or {})}
         return self._get_api_list(
-            path_template("/agents/sessions/{session_id}/turns", session_id=session_id),
-            page=SyncCursorPage[Turn],
+            path_template("/agents/automations/{automation_id}/invocations", automation_id=automation_id),
+            page=SyncCursorPage[AutomationInvocation],
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -139,51 +175,47 @@ class Turns(SyncAPIResource):
                         "limit": limit,
                         "order": order,
                     },
-                    turn_list_params.TurnListParams,
+                    invocation_list_params.InvocationListParams,
                 ),
                 security={"bearer_auth": True},
             ),
-            model=Turn,
+            model=AutomationInvocation,
         )
 
 
-class AsyncTurns(AsyncAPIResource):
+class AsyncInvocations(AsyncAPIResource):
     @cached_property
-    def with_raw_response(self) -> AsyncTurnsWithRawResponse:
+    def with_raw_response(self) -> AsyncInvocationsWithRawResponse:
         """
         This property can be used as a prefix for any HTTP method call to return
         the raw response object instead of the parsed content.
 
         For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
         """
-        return AsyncTurnsWithRawResponse(self)
+        return AsyncInvocationsWithRawResponse(self)
 
     @cached_property
-    def with_streaming_response(self) -> AsyncTurnsWithStreamingResponse:
+    def with_streaming_response(self) -> AsyncInvocationsWithStreamingResponse:
         """
         An alternative to `.with_raw_response` that doesn't eagerly read the response body.
 
         For more information, see https://www.github.com/openai/openai-python#with_streaming_response
         """
-        return AsyncTurnsWithStreamingResponse(self)
+        return AsyncInvocationsWithStreamingResponse(self)
 
-    async def retrieve(
+    async def create(
         self,
-        turn_id: str,
+        automation_id: str,
         *,
-        session_id: str,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> Turn:
-        """Retrieves a turn's current status, timestamps, usage, and error.
-
-        Returns 404 if
-        the turn does not belong to the session. See
-        [session turns](https://developers.openai.com/api/docs/guides/agents-api/sessions/manage#inspect-session-turns).
+    ) -> AutomationInvocation:
+        """
+        Queues a manual delivery without changing the saved schedule.
 
         Args:
           extra_headers: Send extra headers
@@ -194,13 +226,11 @@ class AsyncTurns(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        if not session_id:
-            raise ValueError(f"Expected a non-empty value for `session_id` but received {session_id!r}")
-        if not turn_id:
-            raise ValueError(f"Expected a non-empty value for `turn_id` but received {turn_id!r}")
+        if not automation_id:
+            raise ValueError(f"Expected a non-empty value for `automation_id` but received {automation_id!r}")
         extra_headers = {"OpenAI-Beta": "agents=v1", **(extra_headers or {})}
-        return await self._get(
-            path_template("/agents/sessions/{session_id}/turns/{turn_id}", session_id=session_id, turn_id=turn_id),
+        return await self._post(
+            path_template("/agents/automations/{automation_id}/invocations", automation_id=automation_id),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -208,12 +238,57 @@ class AsyncTurns(AsyncAPIResource):
                 timeout=timeout,
                 security={"bearer_auth": True},
             ),
-            cast_to=Turn,
+            cast_to=AutomationInvocation,
+        )
+
+    async def retrieve(
+        self,
+        invocation_id: str,
+        *,
+        automation_id: str,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AutomationInvocation:
+        """
+        Retrieves a delivery record for a project-owned automation.
+
+        Args:
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not automation_id:
+            raise ValueError(f"Expected a non-empty value for `automation_id` but received {automation_id!r}")
+        if not invocation_id:
+            raise ValueError(f"Expected a non-empty value for `invocation_id` but received {invocation_id!r}")
+        extra_headers = {"OpenAI-Beta": "agents=v1", **(extra_headers or {})}
+        return await self._get(
+            path_template(
+                "/agents/automations/{automation_id}/invocations/{invocation_id}",
+                automation_id=automation_id,
+                invocation_id=invocation_id,
+            ),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+            ),
+            cast_to=AutomationInvocation,
         )
 
     def list(
         self,
-        session_id: str,
+        automation_id: str,
         *,
         after: str | Omit = omit,
         limit: int | Omit = omit,
@@ -224,12 +299,9 @@ class AsyncTurns(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> AsyncPaginator[Turn, AsyncCursorPage[Turn]]:
-        """Lists turns by creation time and turn ID.
-
-        The after cursor is exclusive in the
-        selected order. See
-        [session turns](https://developers.openai.com/api/docs/guides/agents-api/sessions/manage#inspect-session-turns).
+    ) -> AsyncPaginator[AutomationInvocation, AsyncCursorPage[AutomationInvocation]]:
+        """
+        Lists delivery records for a project-owned automation.
 
         Args:
           after: Return resources after this resource ID in the selected order.
@@ -249,12 +321,12 @@ class AsyncTurns(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        if not session_id:
-            raise ValueError(f"Expected a non-empty value for `session_id` but received {session_id!r}")
+        if not automation_id:
+            raise ValueError(f"Expected a non-empty value for `automation_id` but received {automation_id!r}")
         extra_headers = {"OpenAI-Beta": "agents=v1", **(extra_headers or {})}
         return self._get_api_list(
-            path_template("/agents/sessions/{session_id}/turns", session_id=session_id),
-            page=AsyncCursorPage[Turn],
+            path_template("/agents/automations/{automation_id}/invocations", automation_id=automation_id),
+            page=AsyncCursorPage[AutomationInvocation],
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -266,57 +338,69 @@ class AsyncTurns(AsyncAPIResource):
                         "limit": limit,
                         "order": order,
                     },
-                    turn_list_params.TurnListParams,
+                    invocation_list_params.InvocationListParams,
                 ),
                 security={"bearer_auth": True},
             ),
-            model=Turn,
+            model=AutomationInvocation,
         )
 
 
-class TurnsWithRawResponse:
-    def __init__(self, turns: Turns) -> None:
-        self._turns = turns
+class InvocationsWithRawResponse:
+    def __init__(self, invocations: Invocations) -> None:
+        self._invocations = invocations
 
+        self.create = _legacy_response.to_raw_response_wrapper(
+            invocations.create,
+        )
         self.retrieve = _legacy_response.to_raw_response_wrapper(
-            turns.retrieve,
+            invocations.retrieve,
         )
         self.list = _legacy_response.to_raw_response_wrapper(
-            turns.list,
+            invocations.list,
         )
 
 
-class AsyncTurnsWithRawResponse:
-    def __init__(self, turns: AsyncTurns) -> None:
-        self._turns = turns
+class AsyncInvocationsWithRawResponse:
+    def __init__(self, invocations: AsyncInvocations) -> None:
+        self._invocations = invocations
 
+        self.create = _legacy_response.async_to_raw_response_wrapper(
+            invocations.create,
+        )
         self.retrieve = _legacy_response.async_to_raw_response_wrapper(
-            turns.retrieve,
+            invocations.retrieve,
         )
         self.list = _legacy_response.async_to_raw_response_wrapper(
-            turns.list,
+            invocations.list,
         )
 
 
-class TurnsWithStreamingResponse:
-    def __init__(self, turns: Turns) -> None:
-        self._turns = turns
+class InvocationsWithStreamingResponse:
+    def __init__(self, invocations: Invocations) -> None:
+        self._invocations = invocations
 
+        self.create = to_streamed_response_wrapper(
+            invocations.create,
+        )
         self.retrieve = to_streamed_response_wrapper(
-            turns.retrieve,
+            invocations.retrieve,
         )
         self.list = to_streamed_response_wrapper(
-            turns.list,
+            invocations.list,
         )
 
 
-class AsyncTurnsWithStreamingResponse:
-    def __init__(self, turns: AsyncTurns) -> None:
-        self._turns = turns
+class AsyncInvocationsWithStreamingResponse:
+    def __init__(self, invocations: AsyncInvocations) -> None:
+        self._invocations = invocations
 
+        self.create = async_to_streamed_response_wrapper(
+            invocations.create,
+        )
         self.retrieve = async_to_streamed_response_wrapper(
-            turns.retrieve,
+            invocations.retrieve,
         )
         self.list = async_to_streamed_response_wrapper(
-            turns.list,
+            invocations.list,
         )

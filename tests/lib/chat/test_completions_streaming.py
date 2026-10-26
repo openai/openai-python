@@ -12,7 +12,7 @@ from inline_snapshot import (
     external,
     snapshot,
     outsource,  # pyright: ignore[reportUnknownVariableType]
-    get_snapshot_value,
+    get_snapshot_value,  # pyright: ignore[reportUnknownVariableType]
 )
 
 import openai
@@ -1170,7 +1170,7 @@ def _make_stream_snapshot_request(
         respx2_mock.post("/chat/completions").mock(
             return_value=httpx2.Response(
                 200,
-                content=get_snapshot_value(content_snapshot),
+                content=cast("str | bytes", get_snapshot_value(content_snapshot)),
                 headers={"content-type": "text/event-stream"},
             )
         )
@@ -1217,7 +1217,7 @@ def _make_raw_stream_snapshot_request(
         respx2_mock.post("/chat/completions").mock(
             return_value=httpx2.Response(
                 200,
-                content=get_snapshot_value(content_snapshot),
+                content=cast("str | bytes", get_snapshot_value(content_snapshot)),
                 headers={"content-type": "text/event-stream"},
             )
         )

@@ -30,6 +30,7 @@ class TestTemplates:
     def test_method_create_with_all_params(self, client: OpenAI) -> None:
         template = client.beta.agents.environments.templates.create(
             capability_directories=["string"],
+            desktop={"enabled": True},
             env={"foo": "string"},
             files=[
                 {
@@ -39,10 +40,7 @@ class TestTemplates:
                 }
             ],
             name="x",
-            network={
-                "access": "enabled",
-                "allowed_domains": ["string"],
-            },
+            network={"access": "restricted", "allowed_domains": ["example.com"], "blocked_domains": []},
             packages={
                 "npm": ["string"],
                 "python": ["string"],
@@ -148,6 +146,7 @@ class TestTemplates:
         template = client.beta.agents.environments.templates.update(
             environment_template_id="environment_template_id",
             capability_directories=["string"],
+            desktop={"enabled": True},
             env={"foo": "string"},
             files=[
                 {
@@ -157,10 +156,7 @@ class TestTemplates:
                 }
             ],
             name="x",
-            network={
-                "access": "enabled",
-                "allowed_domains": ["string"],
-            },
+            network={"access": "restricted", "allowed_domains": ["example.com"], "blocked_domains": []},
             packages={
                 "npm": ["string"],
                 "python": ["string"],
@@ -316,6 +312,7 @@ class TestAsyncTemplates:
     async def test_method_create_with_all_params(self, async_client: AsyncOpenAI) -> None:
         template = await async_client.beta.agents.environments.templates.create(
             capability_directories=["string"],
+            desktop={"enabled": True},
             env={"foo": "string"},
             files=[
                 {
@@ -325,10 +322,7 @@ class TestAsyncTemplates:
                 }
             ],
             name="x",
-            network={
-                "access": "enabled",
-                "allowed_domains": ["string"],
-            },
+            network={"access": "restricted", "allowed_domains": ["example.com"], "blocked_domains": []},
             packages={
                 "npm": ["string"],
                 "python": ["string"],
@@ -434,6 +428,7 @@ class TestAsyncTemplates:
         template = await async_client.beta.agents.environments.templates.update(
             environment_template_id="environment_template_id",
             capability_directories=["string"],
+            desktop={"enabled": True},
             env={"foo": "string"},
             files=[
                 {
@@ -443,10 +438,7 @@ class TestAsyncTemplates:
                 }
             ],
             name="x",
-            network={
-                "access": "enabled",
-                "allowed_domains": ["string"],
-            },
+            network={"access": "restricted", "allowed_domains": ["example.com"], "blocked_domains": []},
             packages={
                 "npm": ["string"],
                 "python": ["string"],

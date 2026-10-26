@@ -3,65 +3,21 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import io
 import json
 import os
-import shutil
 import struct
 import subprocess
-import tempfile
-import textwrap
 import unittest
-import unittest.mock as mock
 from pathlib import Path
 from typing import Any
+from unittest import mock
 
 import custom_code_report as report
+from custom_code_test_support import GENERATION, GitTestCase
 
-GENERATION = "550e8400-e29b-41d4-a716-446655440000"
 
-
-class CustomCodeTests(unittest.TestCase):
-    # Keep the vendored test stdlib-only on Python 3.10 (no typing.override yet).
-    def setUp(self) -> None:  # pyright: ignore[reportImplicitOverride]
-        self.temporary = tempfile.TemporaryDirectory()
-        self.addCleanup(self.temporary.cleanup)
-        self.repo = Path(self.temporary.name)
-        self.git("init", "-q", "-b", "main")
-        self.git("config", "user.name", "Castiron test")
-        self.git("config", "user.email", "castiron@example.test")
-
-    def git(self, *args: str) -> str:
-        return subprocess.run(
-            ["git", "-C", str(self.repo), *args], check=True, capture_output=True, text=True
-        ).stdout.strip()
-
-    def write(self, path: str, body: str) -> None:
-        target = self.repo / path
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(body)
-
-    def commit(self, message: str = "fixture") -> str:
-        self.git("add", "-A")
-        self.git("commit", "-q", "--allow-empty", "-m", message)
-        return self.git("rev-parse", "HEAD")
-
-    def baseline(self) -> tuple[str, str]:
-        self.write("generated.py", "generated\n")
-        metadata = {
-            "generation_id": GENERATION,
-            "source_branch": "test",
-            "target": "openai-python",
-            "language": "python",
-        }
-        encoded = base64.b64encode(json.dumps(metadata).encode()).decode()
-        generated = self.commit(f"codegen\n\nGeneration metadata: {encoded}")
-        self.git("update-ref", "refs/remotes/origin/codegen/test", generated)
-        self.write(
-            ".castiron.stats.yml",
-            f"schema_version: 1\ngeneration_id: {GENERATION}\ncodegen_sha: {generated}\ncodegen_hash: {report.hash_codegen_commit(self.repo, generated)}\n",
-        )
-        return generated, self.commit("integrated")
-
+class CustomCodeTests(GitTestCase):
     def test_git_preserves_authentication_without_inherited_repository_routing(self) -> None:
         environment = {
             "GIT_CONFIG_GLOBAL": "/ordinary/gitconfig",
@@ -142,6 +98,11 @@ class CustomCodeTests(unittest.TestCase):
         self.write(".github/actions/test/action.yml", "ignored\n")
         second = self.commit()
         self.assertEqual(report.hash_codegen_commit(self.repo, second), expected)
+        self.assertEqual(set(report.tree_entries(self.repo, second)), {b"a"})
+        self.assertEqual(
+            set(report.tree_entries(self.repo, second, include_workflows=True)),
+            {b"a", b".github/workflows/test.yml", b".github/actions/test/action.yml"},
+        )
         os.chmod(self.repo / "a", 0o755)
         self.assertNotEqual(report.hash_codegen_commit(self.repo, self.commit()), expected)
         self.write(".github/CODEOWNERS", "not ignored\n")
@@ -208,6 +169,500 @@ class CustomCodeTests(unittest.TestCase):
         with self.assertRaisesRegex(report.ReportError, "regular Git file"):
             report.read_stats(self.repo, self.commit())
 
+    def test_next_checkpoint_uses_its_namespaced_ref(self) -> None:
+        generated, base = self.baseline()
+        self.git("checkout", "--detach", generated)
+        metadata = {
+            "schema_version": "castiron-checkpoint/v2",
+            "release_target": "next",
+            "record": {"generation_id": GENERATION, "source_branch": "test"},
+        }
+        encoded = base64.b64encode(json.dumps(metadata).encode()).decode()
+        checkpoint = self.commit(f"codegen\n\nGeneration metadata: {encoded}")
+        ref = "refs/remotes/origin/codegen/castiron/next/test"
+        self.git("update-ref", ref, checkpoint)
+        stats = report.read_stats(self.repo, base) | {
+            "codegen_sha": checkpoint,
+            "codegen_hash": report.hash_codegen_commit(self.repo, checkpoint),
+        }
+        result = report.resolve_checkpoint(
+            self.repo, stats, fetch=False, require_hash=True, target_branch="next"
+        )
+        self.assertEqual(result["commit"], checkpoint)
+        self.git("update-ref", "refs/remotes/origin/codegen/test", checkpoint)
+        self.git("update-ref", "-d", ref)
+        with self.assertRaises(report.ReportError):
+            report.resolve_checkpoint(
+                self.repo, stats, fetch=False, require_hash=True, target_branch="next"
+            )
+
+    def test_next_checkpoint_cannot_authorize_main_reports(self) -> None:
+        import custom_code_budget as budget
+
+        generated, base = self.baseline()
+        self.write(
+            ".castiron-ratchet.json", '{"schema_version": 1, "max_custom_patch_lines": 10000}\n'
+        )
+        base = self.commit("policy")
+        self.git("checkout", "--detach", generated)
+        metadata = {
+            "schema_version": "castiron-checkpoint/v2",
+            "release_target": "next",
+            "record": {"generation_id": GENERATION, "source_branch": "test"},
+        }
+        encoded = base64.b64encode(json.dumps(metadata).encode()).decode()
+        checkpoint = self.commit(f"codegen\n\nGeneration metadata: {encoded}")
+        self.git("update-ref", "refs/remotes/origin/codegen/castiron/next/test", checkpoint)
+        self.git("checkout", "--detach", base)
+        stats = report.read_stats(self.repo, base) | {
+            "codegen_sha": checkpoint,
+            "codegen_hash": report.hash_codegen_commit(self.repo, checkpoint),
+        }
+        self.write(".castiron.stats.yml", "".join(f"{k}: {v}\n" for k, v in stats.items()))
+        head = self.commit("next checkpoint")
+        for target, expected in (("main", "error"), ("next", "ok")):
+            with self.subTest(target=target):
+                result = report.write_report(
+                    self.repo,
+                    base,
+                    head,
+                    self.repo / "report-output",
+                    fetch=False,
+                    require_head_hash=True,
+                    public=False,
+                    target_branch=target,
+                )
+                self.assertEqual(result["status"], expected)
+                measured, _ = budget.evaluate(
+                    self.repo,
+                    base,
+                    head,
+                    public=False,
+                    target_branch=target,
+                )
+                self.assertEqual(measured["target_branch"], target)
+                self.assertEqual(
+                    measured["checks"]["budget"]["state"],
+                    "success" if target == "next" else "failure",
+                )
+                if target == "next":
+                    output = self.repo / "budget-output"
+                    budget.write_result(output, measured)
+                    self.assertEqual(
+                        json.loads((output / "budget.json").read_text())["target_branch"], "next"
+                    )
+                    self.assertIn("Target next:", (output / "summary.md").read_text())
+        snapshot = report.create_public_snapshot(
+            self.repo,
+            self.git("rev-parse", f"{checkpoint}^{{tree}}"),
+            GENERATION,
+            stats["codegen_hash"],
+            "codegen/castiron/next/test",
+            None,
+        )
+        self.git("update-ref", "refs/remotes/origin/codegen/castiron/next/test", snapshot)
+        stats["public_codegen_sha"] = snapshot
+        self.write(".castiron.stats.yml", "".join(f"{k}: {v}\n" for k, v in stats.items()))
+        public_head = self.commit("public next snapshot")
+        with self.assertRaisesRegex(report.ReportError, "cannot authorize a main"):
+            report.build_report(self.repo, base, public_head, public=True)
+        accepted, _ = report.build_report(
+            self.repo, base, public_head, public=True, target_branch="next"
+        )
+        self.assertEqual(accepted["status"], "ok")
+
+    def test_public_next_namespace_root_remains_reserved(self) -> None:
+        generated, _ = self.baseline()
+        branch = "codegen/castiron/next"
+        snapshot = report.create_public_snapshot(
+            self.repo,
+            self.git("rev-parse", f"{generated}^{{tree}}"),
+            GENERATION,
+            report.hash_codegen_commit(self.repo, generated),
+            branch,
+            None,
+        )
+        metadata = report.public_metadata(self.repo, snapshot)
+        self.assertEqual(metadata["Target"], "next")
+        for target in ("main", "next"):
+            with self.subTest(target=target):
+                metadata["Target"] = target
+                with self.assertRaisesRegex(report.ReportError, "cannot authorize a main"):
+                    report.validate_public_target(
+                        self.repo, snapshot, metadata, target_branch="main", fetch=False
+                    )
+                report.validate_public_target(
+                    self.repo, snapshot, metadata, target_branch="next", fetch=False
+                )
+
+    def test_prepare_public_next_root_and_descendant(self) -> None:
+        generated, base = self.baseline()
+        self.git("branch", "codegen/test", generated)
+        self.git("checkout", "--detach", generated)
+        metadata = {
+            "schema_version": "castiron-checkpoint/v2",
+            "release_target": "next",
+            "record": {"generation_id": GENERATION, "source_branch": "test"},
+        }
+        encoded = base64.b64encode(json.dumps(metadata).encode()).decode()
+        checkpoint = self.commit(f"codegen\n\nGeneration metadata: {encoded}")
+        self.git("branch", "codegen/castiron/next/test", checkpoint)
+        self.git("checkout", "--detach", base)
+        stats = report.read_stats(self.repo, base) | {
+            "codegen_sha": checkpoint,
+            "codegen_hash": report.hash_codegen_commit(self.repo, checkpoint),
+        }
+        self.write(".castiron.stats.yml", "".join(f"{k}: {v}\n" for k, v in stats.items()))
+        head = self.commit("next checkpoint")
+        self.git("remote", "add", "origin", str(self.repo))
+        public = self.repo / "public"
+        self.git("clone", "--no-local", str(self.repo), str(public))
+        report.git(public, "checkout", "--detach", base)
+        public_remote = self.repo / "public.git"
+        report.git(public, "init", "--bare", str(public_remote))
+        report.git(public, "remote", "set-url", "origin", str(public_remote))
+        report.git(public, "push", "origin", f"{base}:refs/heads/main")
+        for branch in ("castiron/next", "castiron/next/test"):
+            with self.subTest(branch=branch):
+                snapshot = report.prepare_public_snapshot(
+                    self.repo, base, head, public, base, branch
+                )
+                self.assertEqual(snapshot["branch"], f"codegen/{branch}")
+                public_metadata = report.public_metadata(public, snapshot["commit"])
+                self.assertEqual(public_metadata["Target"], "next")
+                with self.assertRaisesRegex(report.ReportError, "cannot authorize a main"):
+                    report.validate_public_target(
+                        public,
+                        snapshot["commit"],
+                        public_metadata,
+                        target_branch="main",
+                        fetch=False,
+                    )
+        with self.assertRaises(report.ReportError):
+            report.prepare_public_snapshot(self.repo, base, head, public, base, "castiron/nextish")
+
+    def test_legacy_public_snapshot_requires_trusted_main_adoption(self) -> None:
+        generated, base = self.baseline()
+        branch = "codegen/castiron/promotions/pr-42"
+        content_hash = report.hash_codegen_commit(self.repo, generated)
+        tree = self.git("rev-parse", f"{generated}^{{tree}}")
+        message = (
+            "Castiron generated snapshot\n\n"
+            "Castiron-Public-Codegen-Version: 1\n"
+            f"Castiron-Public-Codegen-Generation-ID: {GENERATION}\n"
+            f"Castiron-Public-Codegen-Hash: {content_hash}\n"
+            f"Castiron-Public-Codegen-Branch: {branch}\n"
+        )
+        legacy = self.git("commit-tree", tree, "-m", message)
+        self.git("update-ref", f"refs/remotes/origin/{branch}", legacy)
+        self.git("update-ref", "refs/remotes/origin/main", base)
+        stats = report.read_stats(self.repo, base) | {"public_codegen_sha": legacy}
+        self.write(".castiron.stats.yml", "".join(f"{k}: {v}\n" for k, v in stats.items()))
+        head = self.commit("untrusted legacy snapshot adoption")
+        with self.assertRaisesRegex(report.ReportError, "no verified main adoption"):
+            report.resolve_public_baseline(self.repo, head, fetch=False, require_hash=True)
+        report.resolve_public_baseline(
+            self.repo, head, fetch=False, require_hash=True, target_branch="next"
+        )
+        # A side branch can add then remove the reference before merging. None
+        # of its intermediate stats were ever adopted on main's first-parent line.
+        base_tree = self.git("rev-parse", f"{base}^{{tree}}")
+        removed = self.git("commit-tree", base_tree, "-p", head, "-m", "remove reference")
+        self.write(
+            ".castiron.stats.yml",
+            self.git("show", f"{base}:.castiron.stats.yml") + "\n# main metadata retained\n",
+        )
+        self.git("add", ".castiron.stats.yml")
+        merged = self.git(
+            "commit-tree",
+            self.git("write-tree"),
+            "-p",
+            base,
+            "-p",
+            removed,
+            "-m",
+            "merge clean tip with main metadata update",
+        )
+        self.git("update-ref", "refs/remotes/origin/main", merged)
+        with self.assertRaisesRegex(report.ReportError, "no verified main adoption"):
+            report.resolve_public_baseline(self.repo, head, fetch=False, require_hash=True)
+        # A merge that actually adopts the snapshot on main is sufficient.
+        adopted = self.git(
+            "commit-tree",
+            self.git("rev-parse", f"{head}^{{tree}}"),
+            "-p",
+            merged,
+            "-p",
+            head,
+            "-m",
+            "adopt snapshot on main",
+        )
+        self.git("update-ref", "refs/remotes/origin/main", adopted)
+        report.resolve_public_baseline(self.repo, head, fetch=False, require_hash=True)
+        for spelling in (f'"{legacy}"', f"   {legacy}"):
+            with self.subTest(spelling=spelling):
+                self.write(
+                    ".castiron.stats.yml",
+                    "".join(
+                        f"{key}: {spelling if key == 'public_codegen_sha' else value}\n"
+                        for key, value in stats.items()
+                    ),
+                )
+                self.git("add", ".castiron.stats.yml")
+                formatted = self.git(
+                    "commit-tree", self.git("write-tree"), "-p", base, "-m", "formatted adoption"
+                )
+                self.git("update-ref", "refs/remotes/origin/main", formatted)
+                report.resolve_public_baseline(self.repo, formatted, fetch=False, require_hash=True)
+
+        # Replacing a comment with the field preserves the SHA occurrence count.
+        original_stats = self.git("show", f"{base}:.castiron.stats.yml") + "\n"
+        self.write(".castiron.stats.yml", original_stats + f"# candidate: {legacy}\n")
+        self.git("add", ".castiron.stats.yml")
+        mentioned = self.git(
+            "commit-tree", self.git("write-tree"), "-p", base, "-m", "mention candidate"
+        )
+        self.git("update-ref", "refs/remotes/origin/main", mentioned)
+        self.assertFalse(report.legacy_snapshot_on_main(self.repo, legacy, fetch=False))
+        with self.assertRaisesRegex(report.ReportError, "no verified main adoption"):
+            report.resolve_public_baseline(self.repo, head, fetch=False, require_hash=True)
+        self.write(".castiron.stats.yml", original_stats + f"public_codegen_sha: {legacy}\n")
+        self.git("add", ".castiron.stats.yml")
+        adopted = self.git(
+            "commit-tree", self.git("write-tree"), "-p", mentioned, "-m", "adopt candidate"
+        )
+        self.git("update-ref", "refs/remotes/origin/main", adopted)
+        report.resolve_public_baseline(self.repo, adopted, fetch=False, require_hash=True)
+
+        # Explicit next metadata cannot be grandfathered, even with an old locator.
+        explicit_next = self.git(
+            "commit-tree", tree, "-m", message + "Castiron-Public-Codegen-Target: next\n"
+        )
+        self.git("update-ref", f"refs/remotes/origin/{branch}", explicit_next)
+        stats["public_codegen_sha"] = explicit_next
+        self.write(".castiron.stats.yml", "".join(f"{k}: {v}\n" for k, v in stats.items()))
+        head = self.commit("explicit next target")
+        self.git("update-ref", "refs/remotes/origin/main", head)
+        with self.assertRaisesRegex(report.ReportError, "cannot authorize a main"):
+            report.resolve_public_baseline(self.repo, head, fetch=False, require_hash=True)
+
+    def test_legacy_bootstrap_baseline_uses_verified_main_lineage(self) -> None:
+        generated, base = self.baseline()
+        tree = self.git("rev-parse", f"{generated}^{{tree}}")
+        content_hash = report.hash_codegen_commit(self.repo, generated)
+        branch = "codegen/castiron/promotions/pr-1"
+
+        def legacy_snapshot(generation: str, parent: str | None = None) -> str:
+            message = (
+                "Castiron generated snapshot\n\n"
+                "Castiron-Public-Codegen-Version: 1\n"
+                f"Castiron-Public-Codegen-Generation-ID: {generation}\n"
+                f"Castiron-Public-Codegen-Hash: {content_hash}\n"
+                f"Castiron-Public-Codegen-Branch: {branch}\n"
+            )
+            return self.git("commit-tree", tree, *(["-p", parent] if parent else []), "-m", message)
+
+        bootstrap = legacy_snapshot(GENERATION)
+        generation = "650e8400-e29b-41d4-a716-446655440000"
+        adopted = legacy_snapshot(generation, bootstrap)
+        self.git("update-ref", f"refs/remotes/origin/{branch}", adopted)
+        stats = report.read_stats(self.repo, base) | {
+            "generation_id": generation,
+            "public_codegen_sha": adopted,
+        }
+        self.write(".castiron.stats.yml", "".join(f"{k}: {v}\n" for k, v in stats.items()))
+        head = self.commit("adopt first public checkpoint")
+        self.git("update-ref", "refs/remotes/origin/main", head)
+        result, _ = report.build_report(self.repo, base, head, public=True, require_head_hash=True)
+        self.assertEqual(result["before"]["commit"], bootstrap)
+        self.assertEqual(result["after"]["commit"], adopted)
+        self.assertFalse(report.legacy_snapshot_on_main(self.repo, bootstrap, fetch=False))
+
+        # An unadopted legacy head cannot authorize its own bootstrap lineage.
+        with self.assertRaisesRegex(report.ReportError, "no verified main adoption"):
+            report.resolve_public_baseline(
+                self.repo, base, fetch=False, require_hash=False, lineage=bootstrap
+            )
+
+    def test_public_next_namespace_root_is_reserved(self) -> None:
+        generated, _ = self.baseline()
+        tree = self.git("rev-parse", f"{generated}^{{tree}}")
+        content_hash = report.hash_codegen_commit(self.repo, generated)
+        for branch, target in (
+            ("codegen/castiron/next", "next"),
+            ("codegen/castiron/next/child", "next"),
+            ("codegen/castiron/next-door", "main"),
+        ):
+            with self.subTest(branch=branch):
+                snapshot = report.create_public_snapshot(
+                    self.repo, tree, GENERATION, content_hash, branch, None
+                )
+                metadata = report.public_metadata(self.repo, snapshot)
+                self.assertEqual(metadata["Target"], target)
+                # A misleading explicit target cannot authorize the reserved root.
+                metadata["Target"] = "main"
+                if target == "next":
+                    with self.assertRaisesRegex(report.ReportError, "cannot authorize a main"):
+                        report.validate_public_target(
+                            self.repo, snapshot, metadata, target_branch="main", fetch=False
+                        )
+                else:
+                    report.validate_public_target(
+                        self.repo, snapshot, metadata, target_branch="main", fetch=False
+                    )
+
+    def test_legacy_main_adoption_accepts_stats_formatting(self) -> None:
+        generated, base = self.baseline()
+        branch = "codegen/castiron/promotions/pr-42"
+        content_hash = report.hash_codegen_commit(self.repo, generated)
+        message = (
+            "Castiron generated snapshot\n\n"
+            "Castiron-Public-Codegen-Version: 1\n"
+            f"Castiron-Public-Codegen-Generation-ID: {GENERATION}\n"
+            f"Castiron-Public-Codegen-Hash: {content_hash}\n"
+            f"Castiron-Public-Codegen-Branch: {branch}\n"
+        )
+        snapshot = self.git(
+            "commit-tree", self.git("rev-parse", f"{generated}^{{tree}}"), "-m", message
+        )
+        self.git("update-ref", f"refs/remotes/origin/{branch}", snapshot)
+        for value in (f"'{snapshot}'", f'"{snapshot}"', f"   {snapshot}"):
+            with self.subTest(value=value):
+                self.git("checkout", "--detach", "-q", base)
+                stats = self.git("show", f"{base}:.castiron.stats.yml")
+                self.write(".castiron.stats.yml", stats + f"\n# pending snapshot: {snapshot}\n")
+                commented = self.commit("mention snapshot without adopting it")
+                self.git("update-ref", "refs/remotes/origin/main", commented)
+                self.assertFalse(report.legacy_snapshot_on_main(self.repo, snapshot, fetch=False))
+                self.write(".castiron.stats.yml", stats + f"\npublic_codegen_sha: {value}\n")
+                adopted = self.commit("adopt formatted snapshot")
+                self.git("update-ref", "refs/remotes/origin/main", adopted)
+                resolved = report.resolve_public_baseline(
+                    self.repo, adopted, fetch=False, require_hash=True
+                )
+                self.assertEqual(resolved["commit"], snapshot)
+
+    def test_legacy_bootstrap_parent_uses_main_adopted_lineage(self) -> None:
+        generated, base = self.baseline()
+        tree = self.git("rev-parse", f"{generated}^{{tree}}")
+        content_hash = report.hash_codegen_commit(self.repo, generated)
+        child_generation = "550e8400-e29b-41d4-a716-446655440001"
+        for parent_branch, parent_target, allowed in (
+            ("codegen/castiron/bootstrap", "", True),
+            ("codegen/castiron/bootstrap", "next", False),
+            ("codegen/castiron/next", "", False),
+            ("codegen/castiron/next/bootstrap", "", False),
+        ):
+            with self.subTest(branch=parent_branch, target=parent_target):
+                for reserved in self.git(
+                    "for-each-ref",
+                    "--format=%(refname)",
+                    "refs/remotes/origin/codegen/castiron/next",
+                ).splitlines():
+                    self.git("update-ref", "-d", reserved)
+                self.git("checkout", "--detach", "-q", base)
+                self.git("update-ref", "refs/remotes/origin/main", base)
+                parent_message = (
+                    "Castiron generated snapshot\n\n"
+                    "Castiron-Public-Codegen-Version: 1\n"
+                    f"Castiron-Public-Codegen-Generation-ID: {GENERATION}\n"
+                    f"Castiron-Public-Codegen-Hash: {content_hash}\n"
+                    f"Castiron-Public-Codegen-Branch: {parent_branch}\n"
+                )
+                if parent_target:
+                    parent_message += f"Castiron-Public-Codegen-Target: {parent_target}\n"
+                parent = self.git("commit-tree", tree, "-m", parent_message)
+                self.git("update-ref", f"refs/remotes/origin/{parent_branch}", parent)
+                child_branch = "codegen/castiron/promotions/test"
+                child_message = (
+                    "Castiron generated snapshot\n\n"
+                    "Castiron-Public-Codegen-Version: 1\n"
+                    f"Castiron-Public-Codegen-Generation-ID: {child_generation}\n"
+                    f"Castiron-Public-Codegen-Hash: {content_hash}\n"
+                    f"Castiron-Public-Codegen-Branch: {child_branch}\n"
+                )
+                child = self.git("commit-tree", tree, "-p", parent, "-m", child_message)
+                self.git("update-ref", f"refs/remotes/origin/{child_branch}", child)
+                stats = report.read_stats(self.repo, base) | {
+                    "generation_id": child_generation,
+                    "public_codegen_sha": child,
+                }
+                self.write(".castiron.stats.yml", "".join(f"{k}: {v}\n" for k, v in stats.items()))
+                head = self.commit("adopt only the legacy descendant")
+                with self.assertRaisesRegex(report.ReportError, "no verified main adoption"):
+                    report.build_report(self.repo, base, head, public=True, require_head_hash=True)
+                self.git("update-ref", "refs/remotes/origin/main", head)
+                if allowed:
+                    result, _ = report.build_report(
+                        self.repo, base, head, public=True, require_head_hash=True
+                    )
+                    self.assertEqual(result["status"], "ok")
+                    self.assertEqual(
+                        report.resolve_public_baseline(
+                            self.repo, base, fetch=False, require_hash=False, lineage=child
+                        )["commit"],
+                        parent,
+                    )
+                    # Adoption of a descendant never authorizes a direct parent reference.
+                    direct = report.read_stats(self.repo, base) | {"public_codegen_sha": parent}
+                    self.write(
+                        ".castiron.stats.yml", "".join(f"{k}: {v}\n" for k, v in direct.items())
+                    )
+                    direct_head = self.commit("reference an unadopted parent directly")
+                    with self.assertRaisesRegex(report.ReportError, "no verified main adoption"):
+                        report.resolve_public_baseline(
+                            self.repo, direct_head, fetch=False, require_hash=True, lineage=child
+                        )
+                else:
+                    with self.assertRaisesRegex(report.ReportError, "cannot authorize a main"):
+                        report.build_report(
+                            self.repo, base, head, public=True, require_head_hash=True
+                        )
+
+    def test_legacy_checkpoint_cannot_use_next_namespace(self) -> None:
+        generated, base = self.baseline()
+        self.git("checkout", "--detach", generated)
+        metadata = {"generation_id": GENERATION, "source_branch": "castiron/next/test"}
+        encoded = base64.b64encode(json.dumps(metadata).encode()).decode()
+        checkpoint = self.commit(f"codegen\n\nGeneration metadata: {encoded}")
+        self.git("update-ref", "refs/remotes/origin/codegen/castiron/next/test", checkpoint)
+        stats = report.read_stats(self.repo, base) | {
+            "codegen_sha": checkpoint,
+            "codegen_hash": report.hash_codegen_commit(self.repo, checkpoint),
+        }
+        for target in ("main", "next"):
+            with (
+                self.subTest(target=target),
+                self.assertRaisesRegex(report.ReportError, "reserved next"),
+            ):
+                report.resolve_checkpoint(
+                    self.repo, stats, fetch=False, require_hash=True, target_branch=target
+                )
+
+    def test_invalid_checkpoint_envelopes_are_rejected(self) -> None:
+        _, base = self.baseline()
+        record = {"generation_id": GENERATION, "source_branch": "test"}
+        envelope = {
+            "schema_version": "castiron-checkpoint/v2",
+            "release_target": "next",
+            "record": record,
+        }
+        for metadata in (
+            envelope | {"schema_version": "unknown"},
+            envelope | {"release_target": "main"},
+            envelope | {"extra": True},
+            envelope | {"record": record | {"release_target": "next"}},
+            record | {"release_target": "next"},
+        ):
+            with self.subTest(metadata=metadata):
+                encoded = base64.b64encode(json.dumps(metadata).encode()).decode()
+                checkpoint = self.commit(f"codegen\n\nGeneration metadata: {encoded}")
+                stats = report.read_stats(self.repo, base) | {"codegen_sha": checkpoint}
+                with self.assertRaisesRegex(report.ReportError, "envelope"):
+                    report.resolve_checkpoint(
+                        self.repo, stats, fetch=False, require_hash=True, target_branch="next"
+                    )
+
     def test_public_snapshot_rejects_private_governance_and_unpublished_paths(self) -> None:
         entry = report.Entry(b"100644", "a" * 40)
         blocked = [
@@ -272,363 +727,6 @@ class CustomCodeTests(unittest.TestCase):
             self.assertNotIn("No new custom-code files", body)
             self.assertIn("1 newly customized", body)
 
-    @unittest.skipUnless(shutil.which("node"), "GitHub Actions JavaScript runtime")
-    def test_trusted_failure_publisher_updates_one_current_comment(self) -> None:
-        workflow = (
-            Path(__file__).resolve().parents[2]
-            / ".github/workflows/castiron-custom-code-comment.yml"
-        )
-        section = workflow.read_text().split("- name: Publish a trusted failure status\n", 1)[1]
-        script = textwrap.dedent(section.split("script: |\n", 1)[1])
-        harness = r"""
-const assert = require('node:assert/strict');
-const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
-async function check(stale, exists, priorRun, expected, missing = false) {
-  const writes = [];
-  const event = {id: 20, run_attempt: 1, event: 'pull_request', path: '.github/workflows/castiron-custom-code.yml', head_sha: 'a'.repeat(40), pull_requests: [{number: 1}]};
-  if (missing) Object.assign(event, {pull_requests: [], head_repository: {owner: {login: 'contributor'}}, head_branch: 'sdk'});
-  const current = {state: 'open', head: {sha: (stale ? 'c' : 'a').repeat(40)}};
-  const previous = {id: 42, user: {type: 'Bot', login: 'github-actions[bot]'},
-    body: `<!-- castiron:custom-code-report:v1 -->\n<!-- castiron:run:v1:${priorRun}:1 -->`};
-  const github = {paginate: async method => method === 'associations' ? []
-    : method === 'pulls' ? [{number: 1}] : exists ? [previous] : [], rest: {
-    repos: {listPullRequestsAssociatedWithCommit: 'associations'},
-    pulls: {get: async () => ({data: current}), list: 'pulls'},
-    issues: {listComments() {}, updateComment: async x => writes.push(['update', x]),
-      createComment: async x => writes.push(['create', x])}}};
-  const context = {payload: {workflow_run: event}, repo: {owner: 'openai', repo: 'example'},
-    runId: 20, serverUrl: 'https://github.com'};
-  await new AsyncFunction('github', 'context', SCRIPT)(github, context);
-  assert.equal(writes.length, expected ? 1 : 0);
-  if (expected) {
-    assert.equal(writes[0][0], expected);
-    assert.match(writes[0][1].body, /Report unavailable/);
-    assert.match(writes[0][1].body, /castiron:run:v1:20:1/);
-  }
-}
-(async () => {
-  await check(false, true, 10, 'update');
-  await check(false, false, 10, 'create');
-  await check(true, true, 10, null);
-  await check(false, true, 21, null);
-  await check(false, true, 10, 'update', true);
-  await check(true, true, 10, null, true);
-})().catch(error => { console.error(error); process.exitCode = 1; });
-"""
-        subprocess.run(
-            ["node", "-e", "const SCRIPT = " + json.dumps(script) + ";\n" + harness],
-            check=True,
-            env={**os.environ, "GITHUB_RUN_ATTEMPT": "1"},
-        )
-
-    def test_workflow_reports_all_branches_without_write_credentials(self) -> None:
-        workflows = Path(__file__).resolve().parents[2] / ".github/workflows"
-        producer = (workflows / "castiron-custom-code.yml").read_text()
-        publisher = (workflows / "castiron-custom-code-comment.yml").read_text()
-        self.assertIn("pull_request:", producer)
-        self.assertNotIn("CASTIRON_CUSTOM_CODE_BRANCHES", producer + publisher)
-        self.assertNotIn("pull-requests: write", producer)
-        self.assertNotIn("head.repo.full_name ==", producer)
-        self.assertIn("workflow_run:", publisher)
-        self.assertIn("ref: ${{ github.workflow_sha }}", publisher)
-        self.assertNotIn("ref: ${{ github.event.pull_request.head.sha }}", publisher)
-        self.assertIn("persist-credentials: false", publisher)
-        self.assertIn("--report", publisher)
-        compute, comment = publisher.split("\n  comment:\n", 1)
-        self.assertNotIn("pull-requests: write", compute)
-        self.assertIn("pull-requests: read", compute)
-        self.assertIn(" trusted-report ", compute)
-        self.assertNotIn("download-artifact@", compute)
-        self.assertNotIn("unittest", compute)
-        self.assertIn("needs: compute", comment)
-        self.assertIn("artifact-ids: ${{ needs.compute.outputs.artifact-id }}", comment)
-        self.assertNotIn("run-id: ${{ github.event.workflow_run.id }}", comment)
-        self.assertNotIn("git fetch", comment)
-        self.assertIn("--artifact-run-id", comment)
-        digest = hashlib.sha256(
-            (workflows.parents[1] / "scripts/castiron/custom_code_report.py").read_bytes()
-        ).hexdigest()
-        self.assertIn(f"REPORTER_SHA256: {digest}", producer)
-
-    def test_comment_only_rerun_links_to_the_compute_artifact_attempt(self) -> None:
-        workflow = (
-            Path(__file__).resolve().parents[2]
-            / ".github/workflows/castiron-custom-code-comment.yml"
-        ).read_text()
-        compute, comment = workflow.split("\n  comment:\n", 1)
-
-        def field(section: str, prefix: str) -> str:
-            return next(
-                line.removeprefix(prefix)
-                for line in section.splitlines()
-                if line.startswith(prefix)
-            )
-
-        def resolve(value: str, context: dict[str, str]) -> str:
-            for key, replacement in context.items():
-                value = value.replace("${{ " + key + " }}", replacement)
-            self.assertNotIn("${{", value)
-            return value
-
-        # A successful compute job's outputs survive a comment-only rerun.
-        compute_context = {"github.run_id": "9", "github.run_attempt": "3"}
-        uploaded_name = resolve(field(compute, "          name: "), compute_context)
-        saved_attempt = resolve(field(compute, "      artifact-run-attempt: "), compute_context)
-        comment_context = {
-            "github.run_id": "9",
-            "github.run_attempt": "4",
-            "needs.compute.outputs.artifact-run-attempt": saved_attempt,
-        }
-        artifact_attempt = resolve(
-            field(comment, "          ARTIFACT_RUN_ATTEMPT: "), comment_context
-        )
-        self.assertEqual(uploaded_name, "castiron-custom-code-9-3")
-        self.assertEqual(artifact_attempt, "3")
-
-        _, base = self.baseline()
-        result, _ = report.build_report(self.repo, base, base)
-        pull = {"state": "open", "head": {"sha": base}, "base": {"sha": base}}
-        run = {
-            "event": "pull_request",
-            "path": ".github/workflows/castiron-custom-code.yml",
-            "head_sha": base,
-            "run_attempt": 1,
-            "pull_requests": [{"number": 1}],
-        }
-        with mock.patch.object(
-            report, "api", side_effect=[pull, run, [], pull, {"html_url": "published"}]
-        ) as api:
-            self.assertEqual(
-                report.publish_comment(
-                    result,
-                    "openai/example",
-                    1,
-                    2,
-                    1,
-                    artifact_run_id=9,
-                    artifact_run_attempt=int(artifact_attempt),
-                ),
-                "published",
-            )
-        body = api.call_args.args[2]["body"]
-        self.assertIn(f"--name {uploaded_name}", body)
-        self.assertNotIn("--name castiron-custom-code-9-4", body)
-        self.assertIn("castiron:run:v1:2:1", body)
-
-    def test_trusted_report_recomputes_pr_output_in_a_bare_repository(self) -> None:
-        generated, _ = self.baseline()
-        content_hash = report.hash_codegen_commit(self.repo, generated)
-        snapshot = report.create_public_snapshot(
-            self.repo,
-            self.git("rev-parse", f"{generated}^{{tree}}"),
-            GENERATION,
-            content_hash,
-            "codegen/public-test",
-            None,
-        )
-        self.git("branch", "codegen/public-test", snapshot)
-        stats = (self.repo / ".castiron.stats.yml").read_text()
-        self.write(".castiron.stats.yml", stats + f"public_codegen_sha: {snapshot}\n")
-        base = self.commit()
-        legitimate, _ = report.build_report(self.repo, base, base, require_head_hash=True)
-        self.write("generated.py", "generated\n# custom\n")
-        # Neither a replacement reporter nor its claimed result may be executed
-        # or read by the trusted job.
-        self.write("scripts/castiron/custom_code_report.py", "raise RuntimeError('PR code ran')\n")
-        self.write("report.json", json.dumps(legitimate))
-        head = self.commit()
-        broken_stats = (
-            (self.repo / ".castiron.stats.yml").read_text().replace(content_hash, "0" * 64)
-        )
-        self.write(".castiron.stats.yml", broken_stats)
-        broken = self.commit()
-        remote = self.repo / "public.git"
-        self.git("clone", "--bare", str(self.repo), str(remote))
-        real_git = report.git
-
-        def local_git(repo: Path, *args: str, input_bytes: bytes | None = None) -> bytes:
-            if args[:3] == ("remote", "add", "origin"):
-                self.assertEqual(args[3], "https://github.com/openai/example.git")
-                args = (*args[:3], str(remote))
-            self.assertNotIn("checkout", args)
-            return real_git(repo, *args, input_bytes=input_bytes)
-
-        for label, revision in (
-            ("genuine", base),
-            ("custom", head),
-            ("fork", head),
-            ("broken", broken),
-        ):
-            with self.subTest(label=label):
-                calls: list[tuple[str, str]] = []
-                bodies: list[str] = []
-                pull = {
-                    "state": "open",
-                    "head": {"sha": revision},
-                    "base": {"sha": base, "repo": {"full_name": "openai/example"}},
-                }
-                run: dict[str, Any] = {
-                    "event": "pull_request",
-                    "status": "completed",
-                    "path": ".github/workflows/castiron-custom-code.yml",
-                    "head_sha": revision,
-                    "run_attempt": 1,
-                    "pull_requests": [],
-                    "head_repository": {"owner": {"login": "contributor"}},
-                    "head_branch": "fix/branch",
-                }
-                forged: dict[str, Any] = {**legitimate, "head_sha": revision, "files": []}
-                self.assertIn("Generated baselines verified", report.render_report(forged))
-                producer = self.repo / f"producer-{label}"
-                producer.mkdir()
-                (producer / "report.json").write_text(json.dumps(forged))
-
-                def fake_api(method: str, path: str, payload: dict[str, Any] | None = None) -> Any:
-                    calls.append((method, path))
-                    if method == "GET":
-                        responses: dict[str, Any] = {
-                            "repos/openai/example": {"private": False},
-                            "repos/openai/example/actions/runs/2": run,
-                            f"repos/openai/example/commits/{revision}/pulls?per_page=100": (
-                                [] if label == "fork" else [{"number": 1}]
-                            ),
-                            "repos/openai/example/pulls?state=open&head=contributor%3Afix%2Fbranch&per_page=100&page=1": [
-                                {"number": 1}
-                            ],
-                            "repos/openai/example/pulls/1": pull,
-                            "repos/openai/example/issues/1/comments?per_page=100&page=1": [],
-                        }
-                        if path in responses:
-                            return responses[path]
-                    if (
-                        method == "POST"
-                        and path == "repos/openai/example/issues/1/comments"
-                        and payload
-                    ):
-                        bodies.append(payload["body"])
-                        return {
-                            "html_url": "https://github.com/openai/example/pull/1#issuecomment-1"
-                        }
-                    raise AssertionError(f"unexpected API call: {method} {path}")
-
-                objects = self.repo / f"objects-{label}.git"
-                out = self.repo / f"trusted-{label}"
-                with (
-                    mock.patch.object(report, "api", side_effect=fake_api),
-                    mock.patch.object(report, "git", side_effect=local_git),
-                ):
-                    report.trusted_report(objects, "openai/example", 2, 1, out)
-                    self.assertTrue(all(method == "GET" for method, _ in calls))
-                    self.assertEqual(
-                        real_git(objects, "rev-parse", "--is-bare-repository"), b"true\n"
-                    )
-                    self.assertFalse((objects / "scripts").exists())
-                    actual = json.loads((out / "report.json").read_text())
-                    report.publish_comment(
-                        actual,
-                        "openai/example",
-                        1,
-                        2,
-                        1,
-                        artifact_run_id=9,
-                        artifact_run_attempt=3,
-                    )
-                self.assertEqual(len(bodies), 1)
-                body = bodies[0]
-                self.assertIn("castiron:run:v1:2:1", body)
-                self.assertIn("/actions/runs/9", body)
-                if label == "broken":
-                    self.assertIn("Report unavailable", body)
-                    self.assertNotIn("Generated baselines verified", body)
-                elif label in ("custom", "fork"):
-                    self.assertIn("1 newly customized", body)
-                    self.assertIn("generated.py", body)
-                    self.assertIn(b"+# custom", (out / "custom-code.patch").read_bytes())
-                    self.assertNotIn("No new custom-code files detected", body)
-                else:
-                    self.assertIn("No new custom-code files detected", body)
-                    self.assertIn("Generated baselines verified", body)
-                    self.assertIn("--name castiron-custom-code-9-3", body)
-
-    def test_fork_association_fallback_paginates_candidates(self) -> None:
-        run: dict[str, Any] = {
-            "head_sha": "a" * 40,
-            "pull_requests": [],
-            "head_repository": {"owner": {"login": "contributor"}},
-            "head_branch": "fix/branch&other=value",
-        }
-        first = [{"number": number} for number in range(1, 101)]
-        with mock.patch.object(report, "api", side_effect=[[], first, [{"number": 101}]]) as api:
-            self.assertEqual(len(report.associated_pulls("openai/example", run)), 101)
-        self.assertEqual(
-            api.call_args.args,
-            (
-                "GET",
-                "repos/openai/example/pulls?state=open&head=contributor%3Afix%2Fbranch%26other%3Dvalue&per_page=100&page=2",
-            ),
-        )
-
-    def test_trusted_report_rejects_invalid_or_stale_association_before_fetch(self) -> None:
-        run = {
-            "event": "pull_request",
-            "status": "completed",
-            "path": ".github/workflows/castiron-custom-code.yml",
-            "head_sha": "a" * 40,
-            "run_attempt": 1,
-            "pull_requests": [{"number": 1}],
-            "head_repository": {"owner": {"login": "contributor"}},
-            "head_branch": "fix/branch",
-        }
-        pull = {
-            "state": "open",
-            "head": {"sha": "a" * 40},
-            "base": {"sha": "b" * 40, "repo": {"full_name": "openai/example"}},
-        }
-        cases: list[tuple[list[Any], bool]] = [
-            ([{**run, "path": "other.yml"}], True),
-            ([{**run, "status": "in_progress"}], True),
-            ([{**run, "run_attempt": 2}], False),
-            ([run, {**pull, "state": "closed"}], False),
-            ([run, {**pull, "head": {"sha": "c" * 40}}], False),
-            (
-                [run, {**pull, "base": {"sha": "b" * 40, "repo": {"full_name": "other/repo"}}}],
-                False,
-            ),
-            ([{**run, "pull_requests": []}, [], []], False),
-            (
-                [{**run, "pull_requests": []}, [], [{"number": 1}], {**pull, "state": "closed"}],
-                False,
-            ),
-            (
-                [
-                    {**run, "pull_requests": []},
-                    [],
-                    [{"number": 1}],
-                    {**pull, "head": {"sha": "c" * 40}},
-                ],
-                False,
-            ),
-            ([{**run, "pull_requests": []}, [], [{"number": 1}, {"number": 2}], pull, pull], True),
-            ([{**run, "pull_requests": [{"number": 1}, {"number": 2}]}, pull, pull], True),
-        ]
-        for responses, raises in cases:
-            with (
-                self.subTest(responses=responses),
-                mock.patch.object(report, "api", side_effect=responses),
-                mock.patch.object(report, "git") as git,
-            ):
-                if raises:
-                    with self.assertRaises(report.ReportError):
-                        report.trusted_report(
-                            self.repo / "objects", "openai/example", 2, 1, self.repo / "out"
-                        )
-                else:
-                    report.trusted_report(
-                        self.repo / "objects", "openai/example", 2, 1, self.repo / "out"
-                    )
-                git.assert_not_called()
-                self.assertFalse((self.repo / "out").exists())
-
     def test_removals_include_changed_baselines_but_not_handwritten_only_files(self) -> None:
         _, base = self.baseline()
         result, _ = report.build_report(self.repo, base, base)
@@ -655,6 +753,129 @@ async function check(stale, exists, priorRun, expected, missing = false) {
             }
         )
         self.assertIn("1 customizations removed", report.render_report(result))
+
+    def test_pending_legacy_promotion_is_upgraded_without_authorizing_legacy_reports(self) -> None:
+        generated, source_base = self.baseline()
+        self.git("branch", "codegen/test", generated)
+        private_remote = self.repo / "private.git"
+        self.git("clone", "--bare", str(self.repo), str(private_remote))
+        self.git("remote", "add", "origin", str(private_remote))
+        public = self.repo / "public"
+        public.mkdir()
+        report.git(public, "init", "-q", "-b", "main")
+        report.git(public, "config", "user.name", "Public test")
+        report.git(public, "config", "user.email", "public@example.test")
+        (public / "generated.py").write_text("generated\n")
+        (public / ".castiron.stats.yml").write_text((self.repo / ".castiron.stats.yml").read_text())
+        report.git(public, "add", ".")
+        report.git(public, "commit", "-qm", "public baseline")
+        initial = report.git(public, "rev-parse", "HEAD").decode().strip()
+        branch = "castiron/promotions/legacy-retry"
+        codegen_branch = f"codegen/{branch}"
+
+        def legacy_snapshot(
+            tree: str, generation: str, content_hash: str, parent: str | None
+        ) -> str:
+            message = (
+                "Castiron generated snapshot\n\nCastiron-Public-Codegen-Version: 1\n"
+                f"Castiron-Public-Codegen-Generation-ID: {generation}\n"
+                f"Castiron-Public-Codegen-Hash: {content_hash}\n"
+                f"Castiron-Public-Codegen-Branch: {codegen_branch}\n"
+            )
+            parents = ["-p", parent] if parent is not None else []
+            return report.git(public, "commit-tree", tree, *parents, "-m", message).decode().strip()
+
+        base_tree = report.copy_generated_tree(self.repo, generated, public, initial)
+        legacy_base = legacy_snapshot(
+            base_tree, GENERATION, report.hash_codegen_commit(self.repo, generated), None
+        )
+        with (public / ".castiron.stats.yml").open("a") as stats:
+            stats.write(f"public_codegen_sha: {legacy_base}\n")
+        report.git(public, "add", ".castiron.stats.yml")
+        report.git(public, "commit", "-qm", "adopt legacy baseline")
+        public_base = report.git(public, "rev-parse", "HEAD").decode().strip()
+        public_remote = self.repo / "public.git"
+        report.git(public, "clone", "--bare", str(public), str(public_remote))
+        report.git(public, "remote", "add", "origin", str(public_remote))
+        report.git(public, "push", "origin", f"{legacy_base}:refs/heads/{codegen_branch}")
+
+        generation = "650e8400-e29b-41d4-a716-446655440000"
+        self.git("checkout", "--detach", generated)
+        self.write("generated.py", "regenerated\n")
+        self.git("add", "generated.py")
+        metadata = base64.b64encode(
+            json.dumps({"generation_id": generation, "source_branch": "test"}).encode()
+        ).decode()
+        self.git("commit", "-qm", f"updated codegen\n\nGeneration metadata: {metadata}")
+        updated = self.git("rev-parse", "HEAD")
+        self.git("push", "origin", f"{updated}:refs/heads/codegen/test")
+        content_hash = report.hash_codegen_commit(self.repo, updated)
+        self.write(
+            ".castiron.stats.yml",
+            f"schema_version: 1\ngeneration_id: {generation}\ncodegen_sha: {updated}\ncodegen_hash: {content_hash}\n",
+        )
+        self.git("add", ".castiron.stats.yml")
+        self.git("commit", "-qm", "updated integrated SDK")
+        source_head = self.git("rev-parse", "HEAD")
+        tree = report.copy_generated_tree(self.repo, updated, public, public_base)
+        pending = legacy_snapshot(tree, generation, content_hash, legacy_base)
+        report.git(public, "push", "origin", f"{pending}:refs/heads/{codegen_branch}")
+        self.assertTrue(report.legacy_snapshot_on_main(public, legacy_base, fetch=True))
+        self.assertFalse(report.legacy_snapshot_on_main(public, pending, fetch=False))
+        (public / "generated.py").write_text("regenerated\n")
+        report.git(public, "add", "generated.py")
+
+        message = report.git(public, "show", "-s", "--format=%B", pending).decode()
+        for invalid_message, error in (
+            (message + "Castiron-Public-Codegen-Target: next\n", "next checkpoint"),
+            (message.replace(content_hash, "f" * 64), "invalid provenance"),
+            (
+                message.replace(codegen_branch, "codegen/another-promotion"),
+                "no verified main adoption",
+            ),
+        ):
+            with self.subTest(error=error):
+                invalid = (
+                    report.git(
+                        public, "commit-tree", tree, "-p", legacy_base, "-m", invalid_message
+                    )
+                    .decode()
+                    .strip()
+                )
+                report.git(
+                    public, "push", "--force", "origin", f"{invalid}:refs/heads/{codegen_branch}"
+                )
+                with self.assertRaisesRegex(report.ReportError, error):
+                    report.prepare_public_snapshot(
+                        self.repo, source_base, source_head, public, public_base, branch
+                    )
+        report.git(public, "push", "--force", "origin", f"{pending}:refs/heads/{codegen_branch}")
+        upgraded = report.prepare_public_snapshot(
+            self.repo, source_base, source_head, public, public_base, branch
+        )
+        self.assertNotEqual(upgraded["commit"], pending)
+        self.assertEqual(upgraded["base_commit"], legacy_base)
+        self.assertEqual(upgraded["previous"], pending)
+        self.assertEqual(
+            report.git(public, "rev-parse", upgraded["commit"] + "^1").decode().strip(), pending
+        )
+        self.assertEqual(report.public_metadata(public, upgraded["commit"])["Target"], "main")
+        self.assertEqual(report.hash_codegen_commit(public, upgraded["commit"]), content_hash)
+        with self.assertRaisesRegex(report.ReportError, "no verified main adoption"):
+            report.validate_public_target(
+                public,
+                pending,
+                report.public_metadata(public, pending),
+                target_branch="main",
+                fetch=False,
+            )
+        report.git(public, "push", "origin", f"{upgraded['commit']}:refs/heads/{codegen_branch}")
+        report.git(public, "commit", "-qm", "upgraded public SDK")
+        head = report.git(public, "rev-parse", "HEAD").decode().strip()
+        result, _ = report.build_report(
+            public, public_base, head, fetch=True, require_head_hash=True, public=True
+        )
+        self.assertEqual(result["after"]["generation_id"], generation)
 
     def test_public_snapshot_has_no_private_history_and_reports_without_private_remote(
         self,
@@ -686,7 +907,9 @@ async function check(stale, exists, priorRun, expected, missing = false) {
         snapshot = report.prepare_public_snapshot(
             self.repo, base, base, public, public_base, "castiron/promotions/pr-1"
         )
+        self.assertEqual(snapshot["base_commit"], snapshot["commit"])
         self.assertNotEqual(snapshot["commit"], generated)
+        self.assertEqual(snapshot["base_commit"], snapshot["commit"])
         self.assertEqual(report.git(public, "rev-list", "--count", snapshot["commit"]), b"1\n")
         self.assertEqual(report.hash_codegen_commit(public, snapshot["commit"]), snapshot["hash"])
         with self.assertRaises(report.ReportError):
@@ -711,7 +934,9 @@ async function check(stale, exists, priorRun, expected, missing = false) {
         again = report.prepare_public_snapshot(
             self.repo, base, base, public, public_base, "castiron/promotions/pr-1"
         )
+        self.assertEqual(again["base_commit"], snapshot["base_commit"])
         self.assertEqual(again["commit"], snapshot["commit"])
+        self.assertEqual(again["base_commit"], snapshot["base_commit"])
         tree = report.git(public, "rev-parse", f"{snapshot['commit']}^{{tree}}").decode().strip()
         message = report.git(public, "show", "-s", "--format=%B", snapshot["commit"])
         chained = (
@@ -857,101 +1082,491 @@ async function check(stale, exists, priorRun, expected, missing = false) {
         self.assertEqual(merged_report["after"]["commit"], advanced["commit"])
         self.assertEqual(merged_report["counts"]["newly_customized"], 1)
 
-    def test_comment_updates_existing_bot_comment_and_skips_stale(self) -> None:
-        _, base = self.baseline()
-        result, _ = report.build_report(self.repo, base, base)
-        calls: list[tuple[str, str, object]] = []
 
-        def fake_api(method: str, path: str, payload: object = None) -> object:
-            calls.append((method, path, payload))
-            if "/pulls/" in path:
-                return {"state": "open", "head": {"sha": base}, "base": {"sha": base}}
-            if "/actions/runs/" in path:
-                return {
-                    "event": "pull_request",
-                    "path": ".github/workflows/castiron-custom-code.yml",
-                    "head_sha": base,
-                    "run_attempt": 1,
-                    "pull_requests": [{"number": 1}],
-                }
-            if "/comments?" in path:
-                return [
-                    {"id": 7, "user": {"login": "someone"}, "body": report.MARKER},
-                    {
-                        "id": 8,
-                        "user": {"login": "github-actions[bot]"},
-                        "body": report.MARKER,
-                        "html_url": "existing",
-                    },
-                ]
-            return {"html_url": "updated"}
+ADOPTION_GENERATION = "550e8400-e29b-41d4-a716-446655440001"
 
-        with mock.patch.object(report, "api", side_effect=fake_api):
-            self.assertEqual(report.publish_comment(result, "openai/example", 1, 2, 1), "updated")
-            self.assertEqual(calls[-1][:2], ("PATCH", "repos/openai/example/issues/comments/8"))
-            calls.clear()
-            result["head_sha"] = "f" * 40
-            self.assertEqual(
-                report.publish_comment(result, "openai/example", 1, 2, 1), "Skipped stale report"
-            )
-            self.assertEqual(len(calls), 1)
 
-    def test_comment_rejects_older_runs_attempts_and_wrong_pr(self) -> None:
-        _, base = self.baseline()
-        result, _ = report.build_report(self.repo, base, base)
-        pull = {"state": "open", "head": {"sha": base}, "base": {"sha": base}}
-        run = {
-            "event": "pull_request",
-            "path": ".github/workflows/castiron-custom-code.yml",
-            "head_sha": base,
-            "run_attempt": 2,
-            "pull_requests": [{"number": 1}],
-            "head_repository": {"owner": {"login": "contributor"}},
-            "head_branch": "fix/branch",
+class FirstAdoptionTests(GitTestCase):
+    def setUp(self) -> None:  # pyright: ignore[reportImplicitOverride]
+        super().setUp()
+        self.repository = "openai/openai-java"
+        self.write(".stats.yml", "configured_endpoints: 278\n")
+        self.root = self.commit("legacy root")
+        self.git("remote", "add", "origin", "https://github.com/openai/openai-java.git")
+        self.policy: dict[str, Any] = {"schema_version": 1, "max_custom_patch_lines": 3000}
+        self.write(".castiron-ratchet.json", json.dumps(self.policy) + "\n")
+        self.g0 = self.generated("source\n", GENERATION, False)
+        self.public0 = report.create_public_snapshot(
+            self.repo,
+            self.git("rev-parse", f"{self.g0}^{{tree}}"),
+            GENERATION,
+            report.hash_codegen_commit(self.repo, self.g0),
+            "codegen/main",
+            None,
+        )
+        self.git("update-ref", "refs/remotes/origin/codegen/main", self.public0)
+        self.write("generated.py", "source\n")
+        self.stats(self.g0, self.public0, GENERATION)
+        self.main = self.commit("approved main")
+        self.git("update-ref", "refs/remotes/origin/main", self.main)
+        self.git("checkout", "--detach", self.root)
+        self.pin: dict[str, Any] = {
+            **self.policy,
+            "next_policy": {"repository": self.repository, "main_sha": self.main},
         }
-        comment = {
-            "id": 8,
-            "user": {"login": "github-actions[bot]"},
-            "body": report.MARKER + "\n<!-- castiron:run:v1:3:1 -->",
-            "html_url": "existing",
+        self.write(".castiron-ratchet.json", json.dumps(self.pin) + "\n")
+        self.base = self.commit("separate approved next policy")
+        self.git("update-ref", "refs/remotes/origin/next", self.base)
+
+    def generated(self, text: str, generation: str, next_target: bool) -> str:
+        blob = (
+            report.git(self.repo, "hash-object", "-w", "--stdin", input_bytes=text.encode())
+            .decode()
+            .strip()
+        )
+        tree = (
+            report.git(
+                self.repo,
+                "mktree",
+                input_bytes=f"100644 blob {blob}\tgenerated.py\n".encode(),
+            )
+            .decode()
+            .strip()
+        )
+        record: dict[str, Any] = {
+            "generation_id": generation,
+            "source_branch": "test",
+            "target": self.repository.split("/")[1],
+            "language": self.repository.split("-")[-1],
         }
-        with mock.patch.object(report, "api", side_effect=[pull, run]) as api:
-            self.assertEqual(
-                report.publish_comment(result, "openai/example", 1, 2, 1), "Skipped stale report"
+        if next_target:
+            record["public_baseline_commit"] = self.base
+            record = {
+                "schema_version": "castiron-checkpoint/v2",
+                "release_target": "next",
+                "record": record,
+            }
+        encoded = base64.b64encode(json.dumps(record).encode()).decode()
+        commit = (
+            report.git(
+                self.repo,
+                "commit-tree",
+                tree,
+                input_bytes=f"codegen\n\nGeneration metadata: {encoded}\n".encode(),
             )
-            self.assertEqual(api.call_count, 2)
-        with mock.patch.object(report, "api", side_effect=[pull, run, [comment]]) as api:
-            self.assertEqual(
-                report.publish_comment(result, "openai/example", 1, 2, 2), "Skipped stale report"
+            .decode()
+            .strip()
+        )
+        namespace = "castiron/next/" if next_target else ""
+        self.git("update-ref", f"refs/remotes/origin/codegen/{namespace}test", commit)
+        return commit
+
+    def stats(self, private: str, public: str, generation: str) -> None:
+        self.write(
+            ".castiron.stats.yml",
+            f"schema_version: 1\ngeneration_id: {generation}\ncodegen_sha: {private}\npublic_codegen_sha: {public}\ncodegen_hash: {report.hash_codegen_commit(self.repo, private)}\nconfig_hash: source-config\nopenapi_spec_hash: source-spec\n",
+        )
+
+    def seed(self) -> str:
+        # Synthetic two-parent private seed; production worker initialization is
+        # covered separately in the SDK worker candidate-flow suite.
+        self.git("read-tree", "--reset", "-u", self.main)
+        self.write(".castiron-ratchet.json", json.dumps(self.pin) + "\n")
+        self.git("add", "-A")
+        return self.git(
+            "commit-tree",
+            self.git("write-tree"),
+            "-p",
+            self.base,
+            "-p",
+            self.main,
+            "-m",
+            "approved main adoption fixture",
+        )
+
+    def head(self, *, public_receipt: bool = True, customize: bool = False) -> str:
+        seed = self.seed()
+        self.git("checkout", "--detach", seed)
+        self.g1 = self.generated("next generated\n", ADOPTION_GENERATION, True)
+        snap = report.create_public_snapshot(
+            self.repo,
+            self.git("rev-parse", f"{self.g1}^{{tree}}"),
+            ADOPTION_GENERATION,
+            report.hash_codegen_commit(self.repo, self.g1),
+            "codegen/castiron/next/new",
+            self.public0,
+            (self.base, self.main) if public_receipt else None,
+        )
+        self.git("update-ref", "refs/remotes/origin/codegen/castiron/next/new", snap)
+        self.write(
+            "generated.py",
+            "next generated\n" + ("# customization\n" if customize else ""),
+        )
+        self.stats(self.g1, snap, ADOPTION_GENERATION)
+        return self.commit("next candidate")
+
+    def test_java_public_and_private_report_have_no_fake_before_generation(self) -> None:
+        head = self.head(customize=True)
+        for public in (False, True):
+            result, patch = report.build_report(
+                self.repo,
+                self.base,
+                head,
+                public=public,
+                target_branch="next",
+                require_head_hash=True,
             )
-            self.assertEqual(api.call_count, 3)
-        with (
-            mock.patch.object(
-                report, "api", side_effect=[pull, {**run, "pull_requests": []}, [], []]
-            ),
-            self.assertRaisesRegex(report.ReportError, "does not match report PR"),
+            self.assertIsNone(result["before"])
+            self.assertEqual(result["adoption_baseline"]["generation_id"], GENERATION)
+            self.assertEqual(result["files"][0]["added"], "1")
+            self.assertIn(b"# customization", patch)
+            self.assertIn("Legacy before-generation unavailable", report.render_report(result))
+
+    def test_cli_uses_same_protected_pin_path(self) -> None:
+        self.repository = "openai/openai-cli"
+        self.git("remote", "set-url", "origin", "https://github.com/openai/openai-cli.git")
+        self.pin["next_policy"]["repository"] = self.repository
+        self.write(".castiron-ratchet.json", json.dumps(self.pin) + "\n")
+        self.base = self.commit("CLI approved policy fixture")
+        head = self.head()
+        result, _ = report.build_report(
+            self.repo,
+            self.base,
+            head,
+            public=False,
+            target_branch="next",
+            require_head_hash=True,
+        )
+        self.assertIsNone(result["before"])
+
+    def test_promotion_base_cli_recognizes_exact_next_branch(self) -> None:
+        original = report.git
+
+        def offline_git(repo: Path, *args: str, input_bytes: bytes | None = None) -> bytes:
+            if args[0] == "fetch":
+                source, destination = args[-1].lstrip("+").split(":", 1)
+                return original(
+                    repo,
+                    "update-ref",
+                    destination,
+                    source.replace("refs/heads/", "refs/remotes/origin/"),
+                )
+            return original(repo, *args, input_bytes=input_bytes)
+
+        for base, branch, expected in (
+            (self.base, "castiron/next", self.main),
+            (self.base, "castiron/next/child", self.main),
+            (self.base, "castiron/nextish", None),
+            (self.base, "castiron/next-door", None),
+            (self.base, "castiron/promotions/main", None),
+            (self.main, "castiron/promotions/main", self.main),
         ):
-            report.publish_comment(result, "openai/example", 1, 2, 2)
-        with (
-            mock.patch.object(report, "api", side_effect=[pull, {**run, "path": "other.yml"}]),
-            self.assertRaisesRegex(report.ReportError, "does not match report PR"),
-        ):
-            report.publish_comment(result, "openai/example", 1, 2, 2)
-        with mock.patch.object(
-            report,
-            "api",
-            side_effect=[pull, {**run, "pull_requests": []}, [{"number": 1}], [comment]],
-        ) as api:
-            self.assertEqual(
-                report.publish_comment(result, "openai/example", 1, 2, 2), "Skipped stale report"
+            with self.subTest(base=base, branch=branch):
+                output, errors = io.StringIO(), io.StringIO()
+                with (
+                    mock.patch.object(report, "git", side_effect=offline_git),
+                    mock.patch.object(
+                        report.sys,
+                        "argv",
+                        [
+                            "custom_code_report.py",
+                            "promotion-base",
+                            "--repo",
+                            str(self.repo),
+                            "--base",
+                            base,
+                            "--branch",
+                            branch,
+                        ],
+                    ),
+                    mock.patch.object(report.sys, "stdout", output),
+                    mock.patch.object(report.sys, "stderr", errors),
+                ):
+                    result = report.main()
+                if expected is None:
+                    self.assertEqual(result, 1)
+                    self.assertEqual(output.getvalue(), "")
+                    self.assertIn("first adoption is next-only", errors.getvalue())
+                else:
+                    self.assertEqual(result, 0, errors.getvalue())
+                    self.assertEqual(output.getvalue(), expected + "\n")
+
+    def test_promotion_prepares_new_snapshot_from_real_main_snapshot(self) -> None:
+        head = self.head()
+        original = report.git
+
+        def offline_git(repo: Path, *args: str, input_bytes: bytes | None = None) -> bytes:
+            if args[0] == "fetch":
+                for arg in args:
+                    if arg.startswith("+refs/") and ":" in arg:
+                        source, destination = arg.lstrip("+").split(":", 1)
+                        original(
+                            repo,
+                            "update-ref",
+                            destination,
+                            source.replace("refs/heads/", "refs/remotes/origin/"),
+                        )
+                return b""
+            if args[0] == "ls-remote":
+                return b""
+            return original(repo, *args, input_bytes=input_bytes)
+
+        with mock.patch.object(report, "git", side_effect=offline_git):
+            prepared = report.prepare_public_snapshot(
+                self.repo, self.base, head, self.repo, self.base, "castiron/next/fresh"
             )
-            self.assertIn(f"/commits/{base}/pulls", api.call_args_list[2].args[1])
-        changed = {**pull, "head": {"sha": "f" * 40}}
-        with mock.patch.object(report, "api", side_effect=[pull, run, [], changed]) as api:
-            self.assertEqual(
-                report.publish_comment(result, "openai/example", 1, 2, 2), "Skipped stale report"
+        metadata = report.public_metadata(self.repo, prepared["commit"])
+        self.assertEqual(metadata["Target"], "next")
+        self.assertEqual(metadata["Adoption-Base"], self.base)
+        self.assertEqual(metadata["Adoption-Source"], self.main)
+        self.assertEqual(prepared["base_commit"], self.public0)
+        self.assertEqual(self.git("rev-parse", prepared["commit"] + "^"), self.public0)
+
+    def test_missing_receipt_rejected(self) -> None:
+        head = self.head(public_receipt=False)
+        with self.assertRaisesRegex(report.ReportError, "authorized first adoption"):
+            report.build_report(self.repo, self.base, head, public=True, target_branch="next")
+
+    def test_wrong_sdk_record_rejected(self) -> None:
+        head = self.head()
+        self.repository = "openai/openai-cli"
+        wrong = self.generated("next generated\n", ADOPTION_GENERATION, True)
+        self.stats(
+            wrong, report.read_stats(self.repo, head)["public_codegen_sha"], ADOPTION_GENERATION
+        )
+        head = self.commit("wrong SDK binding")
+        with self.assertRaisesRegex(report.ReportError, "SDK mismatch"):
+            report.build_report(self.repo, self.base, head, public=False, target_branch="next")
+
+    def test_config_change_rejected(self) -> None:
+        self.head()
+        path = self.repo / ".castiron.stats.yml"
+        path.write_text(path.read_text().replace("source-config", "wrong-config"))
+        head = self.commit()
+        with self.assertRaisesRegex(report.ReportError, "authenticated main inputs"):
+            report.build_report(self.repo, self.base, head, public=False, target_branch="next")
+
+    def test_existing_corrupt_deleted_stats_rejected(self) -> None:
+        self.write(".castiron.stats.yml", "corrupt: true\n")
+        corrupt = self.commit()
+        with self.assertRaisesRegex(report.ReportError, "existing/corrupt"):
+            report.first_adoption_source(self.repo, corrupt, target_branch="next", fetch=False)
+        self.git("rm", ".castiron.stats.yml")
+        deleted = self.commit()
+        with self.assertRaisesRegex(report.ReportError, "deleted"):
+            report.first_adoption_source(self.repo, deleted, target_branch="next", fetch=False)
+
+    def test_candidate_cannot_select_source_or_remove_policy(self) -> None:
+        self.head()
+        self.write(".castiron-ratchet.json", json.dumps(self.policy) + "\n")
+        head = self.commit()
+        with self.assertRaisesRegex(report.ReportError, "protected target policy"):
+            report.build_report(self.repo, self.base, head, public=True, target_branch="next")
+
+    def test_current_count_and_strict_zero_still_enforced(self) -> None:
+        import custom_code_budget as budget
+
+        head = self.head(customize=True)
+        measurement = report.build_report(
+            self.repo, self.base, head, public=True, target_branch="next"
+        )
+        evaluated, _ = budget.evaluate(
+            self.repo,
+            self.base,
+            head,
+            public=True,
+            policy_sha=self.main,
+            target_branch="next",
+            measurement=measurement,
+        )
+        self.assertEqual(evaluated["total"], 1)
+        self.assertEqual(evaluated["checks"]["budget"]["state"], "success", evaluated)
+        self.write(
+            ".castiron-ratchet.json",
+            '{"schema_version":2,"max_custom_patch_lines":0,"generated_files":"strict"}\n',
+        )
+        strict = self.commit()
+        evaluated, _ = budget.evaluate(
+            self.repo,
+            self.base,
+            head,
+            public=True,
+            policy_sha=strict,
+            target_branch="next",
+            measurement=measurement,
+        )
+        self.assertEqual(evaluated["limit"], 0)
+        self.assertEqual(evaluated["checks"]["budget"]["state"], "failure")
+        self.assertIn("manifest", evaluated["checks"]["budget"]["description"])
+
+    def test_unapproved_source_pin_rejected(self) -> None:
+        self.pin["next_policy"]["main_sha"] = self.base
+        self.write(".castiron-ratchet.json", json.dumps(self.pin) + "\n")
+        invalid = self.commit()
+        with self.assertRaisesRegex(report.ReportError, "authenticated main history"):
+            report.first_adoption_source(self.repo, invalid, target_branch="next", fetch=False)
+
+    def test_advanced_target_requires_fresh_adoption(self) -> None:
+        head = self.head()
+        self.git("checkout", "--detach", self.base)
+        self.write("legacy-note.txt", "another approved target change\n")
+        advanced = self.commit()
+        with self.assertRaisesRegex(report.ReportError, "target advanced"):
+            report.build_report(self.repo, advanced, head, public=True, target_branch="next")
+
+    def test_main_target_rejected(self) -> None:
+        with self.assertRaisesRegex(report.ReportError, "next-only"):
+            report.first_adoption_source(self.repo, self.base, target_branch="main", fetch=False)
+
+    def test_normal_public_main_report_unchanged(self) -> None:
+        self.git("checkout", "--detach", self.main)
+        self.write("generated.py", "source\n# customization\n")
+        head = self.commit()
+        result, _ = report.build_report(
+            self.repo, self.main, head, public=True, target_branch="main"
+        )
+        self.assertIsNotNone(result["before"])
+        self.assertEqual(result["before_status"], "verified")
+
+    def promoted_public_head(self) -> tuple[Path, str, dict[str, Any]]:
+        # Exercise the separate public checkout and the actual single-parent
+        # commit-tree shape in sdk/promote.rs, not the private merge seed.
+        import subprocess
+
+        destination = self.repo / "public-checkout"
+        head = self.head(customize=True)
+        subprocess.run(
+            ["git", "clone", "-q", "--no-hardlinks", str(self.repo), str(destination)], check=True
+        )
+
+        def public_git(*args: str) -> str:
+            return report.git(destination, *args).decode().strip()
+
+        public_git("config", "user.name", "Castiron test")
+        public_git("config", "user.email", "castiron@example.test")
+        public_git("remote", "set-url", "origin", "https://github.com/" + self.repository + ".git")
+        for ref, commit in [
+            ("main", self.main),
+            ("next", self.base),
+            ("codegen/main", self.public0),
+        ]:
+            public_git("update-ref", "refs/remotes/origin/" + ref, commit)
+        public_git("checkout", "--detach", self.base)
+        # Normal promotion applies the reviewed private patch to this index.
+        public_git("read-tree", "--reset", "-u", head)
+        original = report.git
+
+        def offline_git(repo: Path, *args: str, input_bytes: bytes | None = None) -> bytes:
+            if args[0] == "fetch":
+                for arg in args:
+                    if arg.startswith("+refs/") and ":" in arg:
+                        source, target = arg.lstrip("+").split(":", 1)
+                        original(
+                            repo,
+                            "update-ref",
+                            target,
+                            source.replace("refs/heads/", "refs/remotes/origin/"),
+                        )
+                return b""
+            if args[0] == "ls-remote":
+                return b""
+            return original(repo, *args, input_bytes=input_bytes)
+
+        with mock.patch.object(report, "git", side_effect=offline_git):
+            prepared = report.prepare_public_snapshot(
+                self.repo, self.base, head, destination, self.base, "castiron/next/fresh"
             )
-            self.assertEqual(api.call_count, 4)
+        public_git("update-ref", "refs/remotes/origin/" + prepared["branch"], prepared["commit"])
+        promoted = public_git(
+            "commit-tree",
+            public_git("write-tree"),
+            "-p",
+            self.base,
+            "-m",
+            "normal public promotion",
+        )
+        self.assertEqual(
+            public_git("rev-list", "--parents", "-n", "1", promoted), promoted + " " + self.base
+        )
+        with self.assertRaises(report.ReportError):
+            public_git("merge-base", "--is-ancestor", self.main, promoted)
+        # Private authorization still retains both parents.
+        self.git("merge-base", "--is-ancestor", self.main, head)
+        self.git("merge-base", "--is-ancestor", self.base, head)
+        return destination, promoted, prepared
+
+    def test_normal_single_parent_public_promotion_reports_first_adoption(self) -> None:
+        destination, promoted, _ = self.promoted_public_head()
+        result, patch = report.build_report(
+            destination,
+            self.base,
+            promoted,
+            public=True,
+            target_branch="next",
+            require_head_hash=True,
+        )
+        self.assertIsNone(result["before"])
+        self.assertEqual(result["adoption_baseline"]["generation_id"], GENERATION)
+        self.assertIn(b"# customization", patch)
+
+    def test_public_adoption_rejects_disconnected_snapshot_with_valid_receipt(self) -> None:
+        destination, promoted, prepared = self.promoted_public_head()
+        # The right receipt/hash alone does not authenticate approved-main lineage.
+        detached = report.create_public_snapshot(
+            destination,
+            report.git(destination, "rev-parse", prepared["commit"] + "^{tree}").decode().strip(),
+            ADOPTION_GENERATION,
+            prepared["hash"],
+            prepared["branch"],
+            None,
+            (self.base, self.main),
+        )
+        report.git(destination, "update-ref", "refs/remotes/origin/" + prepared["branch"], detached)
+        report.git(destination, "checkout", "--detach", promoted)
+        stats = destination / ".castiron.stats.yml"
+        stats.write_text(stats.read_text().replace(prepared["commit"], detached))
+        report.git(destination, "add", ".castiron.stats.yml")
+        invalid = (
+            report.git(
+                destination,
+                "commit-tree",
+                report.git(destination, "write-tree").decode().strip(),
+                "-p",
+                self.base,
+                "-m",
+                "disconnected snapshot",
+            )
+            .decode()
+            .strip()
+        )
+        with self.assertRaises(report.ReportError):
+            report.build_report(
+                destination,
+                self.base,
+                invalid,
+                public=True,
+                target_branch="next",
+                require_head_hash=True,
+            )
+
+    def test_cli_normal_single_parent_public_promotion_reports_first_adoption(self) -> None:
+        self.repository = "openai/openai-cli"
+        self.git("remote", "set-url", "origin", "https://github.com/openai/openai-cli.git")
+        self.pin["next_policy"]["repository"] = self.repository
+        self.write(".castiron-ratchet.json", json.dumps(self.pin) + "\n")
+        self.base = self.commit("CLI approved next policy")
+        self.git("update-ref", "refs/remotes/origin/next", self.base)
+        destination, promoted, _ = self.promoted_public_head()
+        result, _ = report.build_report(
+            destination,
+            self.base,
+            promoted,
+            public=True,
+            target_branch="next",
+            require_head_hash=True,
+        )
+        self.assertIsNone(result["before"])
+        self.assertEqual(result["adoption_baseline"]["generation_id"], GENERATION)
 
 
 if __name__ == "__main__":

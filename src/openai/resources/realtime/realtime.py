@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import json
-import time
-import random
 import logging
 from types import TracebackType
 from typing import TYPE_CHECKING, Any, Union, Callable, Iterator, Awaitable, cast
@@ -47,8 +45,17 @@ from .client_secrets import (
 )
 from ..._event_handler import EventHandlerRegistry
 from ...types.realtime import session_update_event_param
-from ...types.websocket_reconnection import ReconnectingEvent, ReconnectingOverrides, is_recoverable_close
-from ...types.websocket_connection_options import WebSocketConnectionOptions
+from ..._websocket_connection import WebSocketConnectionBase, AsyncWebSocketConnectionBase
+from .translations.translations import (
+    Translations,
+    AsyncTranslations,
+    TranslationsWithRawResponse,
+    AsyncTranslationsWithRawResponse,
+    TranslationsWithStreamingResponse,
+    AsyncTranslationsWithStreamingResponse,
+)
+from ...types.websocket_reconnection import ReconnectingEvent, ReconnectingOverrides
+from ...types.websocket_connection_options import WebSocketConnectionOptions, SyncWebSocketConnectionOptions
 from ...types.realtime.realtime_error_event import RealtimeErrorEvent
 from ...types.realtime.realtime_client_event import RealtimeClientEvent
 from ...types.realtime.realtime_server_event import RealtimeServerEvent
@@ -79,6 +86,10 @@ class Realtime(SyncAPIResource):
         return _Calls(self._client)
 
     @cached_property
+    def translations(self) -> Translations:
+        return Translations(self._client)
+
+    @cached_property
     def with_raw_response(self) -> RealtimeWithRawResponse:
         """
         This property can be used as a prefix for any HTTP method call to return
@@ -104,7 +115,7 @@ class Realtime(SyncAPIResource):
         model: str | Omit = omit,
         extra_query: Query = {},
         extra_headers: Headers = {},
-        websocket_connection_options: WebSocketConnectionOptions = {},
+        websocket_connection_options: SyncWebSocketConnectionOptions = {},
         on_reconnecting: Callable[[ReconnectingEvent], ReconnectingOverrides | None] | None = None,
         max_retries: int = 5,
         initial_delay: float = 0.5,
@@ -147,6 +158,10 @@ class AsyncRealtime(AsyncAPIResource):
         from ...lib._realtime import _AsyncCalls
 
         return _AsyncCalls(self._client)
+
+    @cached_property
+    def translations(self) -> AsyncTranslations:
+        return AsyncTranslations(self._client)
 
     @cached_property
     def with_raw_response(self) -> AsyncRealtimeWithRawResponse:
@@ -219,6 +234,10 @@ class RealtimeWithRawResponse:
     def calls(self) -> CallsWithRawResponse:
         return CallsWithRawResponse(self._realtime.calls)
 
+    @cached_property
+    def translations(self) -> TranslationsWithRawResponse:
+        return TranslationsWithRawResponse(self._realtime.translations)
+
 
 class AsyncRealtimeWithRawResponse:
     def __init__(self, realtime: AsyncRealtime) -> None:
@@ -231,6 +250,10 @@ class AsyncRealtimeWithRawResponse:
     @cached_property
     def calls(self) -> AsyncCallsWithRawResponse:
         return AsyncCallsWithRawResponse(self._realtime.calls)
+
+    @cached_property
+    def translations(self) -> AsyncTranslationsWithRawResponse:
+        return AsyncTranslationsWithRawResponse(self._realtime.translations)
 
 
 class RealtimeWithStreamingResponse:
@@ -245,6 +268,10 @@ class RealtimeWithStreamingResponse:
     def calls(self) -> CallsWithStreamingResponse:
         return CallsWithStreamingResponse(self._realtime.calls)
 
+    @cached_property
+    def translations(self) -> TranslationsWithStreamingResponse:
+        return TranslationsWithStreamingResponse(self._realtime.translations)
+
 
 class AsyncRealtimeWithStreamingResponse:
     def __init__(self, realtime: AsyncRealtime) -> None:
@@ -258,8 +285,12 @@ class AsyncRealtimeWithStreamingResponse:
     def calls(self) -> AsyncCallsWithStreamingResponse:
         return AsyncCallsWithStreamingResponse(self._realtime.calls)
 
+    @cached_property
+    def translations(self) -> AsyncTranslationsWithStreamingResponse:
+        return AsyncTranslationsWithStreamingResponse(self._realtime.translations)
 
-class AsyncRealtimeConnection:
+
+class AsyncRealtimeConnection(AsyncWebSocketConnectionBase):
     """Represents a live WebSocket connection to the Realtime API"""
 
     session: AsyncRealtimeSessionResource
@@ -283,18 +314,18 @@ class AsyncRealtimeConnection:
         extra_headers: Headers = {},
         send_queue: SendQueue | None = None,
     ) -> None:
-        self._connection = connection
-        self._make_ws = make_ws
-        self._on_reconnecting = on_reconnecting
-        self._max_retries = max_retries
-        self._reconnect_attempt = 0
-        self._initial_delay = initial_delay
-        self._max_delay = max_delay
-        self._extra_query = extra_query
-        self._extra_headers = extra_headers
-        self._intentionally_closed = False
-        self._is_reconnecting = False
-        self._send_queue = send_queue or SendQueue()
+        super().__init__(
+            connection,
+            make_ws=make_ws,
+            on_reconnecting=on_reconnecting,
+            max_retries=max_retries,
+            initial_delay=initial_delay,
+            max_delay=max_delay,
+            extra_query=extra_query,
+            extra_headers=extra_headers,
+            send_queue=send_queue,
+            logger=log,
+        )
         self._event_handler_registry = EventHandlerRegistry(use_lock=False)
 
         self.session = AsyncRealtimeSessionResource(self)
@@ -366,29 +397,14 @@ class AsyncRealtimeConnection:
 
     async def send(self, event: RealtimeClientEvent | RealtimeClientEventParam) -> None:
         data = (
-            event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
+            event.to_json(use_api_names=True, exclude_unset=True)
             if isinstance(event, BaseModel)
             else json.dumps(await async_maybe_transform(event, RealtimeClientEventParam))
         )
         if self._is_reconnecting:
             self._send_queue.enqueue(data)
             return
-        try:
-            await self._connection.send(data)
-        except Exception:
-            self._send_queue.enqueue(data)
-            raise
-
-    async def send_raw(self, data: bytes | str) -> None:
-        if self._is_reconnecting:
-            raw = data if isinstance(data, str) else data.decode("utf-8")
-            self._send_queue.enqueue(raw)
-            return
         await self._connection.send(data)
-
-    async def close(self, *, code: int = 1000, reason: str = "") -> None:
-        self._intentionally_closed = True
-        await self._connection.close(code=code, reason=reason)
 
     def parse_event(self, data: str | bytes) -> RealtimeServerEvent:
         """
@@ -399,94 +415,6 @@ class AsyncRealtimeConnection:
         return cast(
             RealtimeServerEvent, construct_type_unchecked(value=json.loads(data), type_=cast(Any, RealtimeServerEvent))
         )
-
-    async def _reconnect(self, exc: Exception) -> bool:
-        """Attempt to reconnect after a connection failure.
-
-        Returns ``True`` if a new connection was established, ``False`` if the
-        caller should re-raise the original exception.
-        """
-        import asyncio
-
-        if self._on_reconnecting is None or self._make_ws is None:
-            return False
-
-        from websockets.exceptions import ConnectionClosedError
-
-        close_code = 1006
-        if isinstance(exc, ConnectionClosedError) and exc.rcvd is not None:
-            close_code = exc.rcvd.code
-
-        if not is_recoverable_close(close_code):
-            return False
-
-        self._is_reconnecting = True
-
-        for attempt in range(self._reconnect_attempt + 1, self._max_retries + 1):
-            self._reconnect_attempt = attempt
-            base_delay = min(self._initial_delay * (2 ** (attempt - 1)), self._max_delay)
-            jitter = 0.75 + random.random() * 0.25
-            delay = base_delay * jitter
-
-            event = ReconnectingEvent(
-                attempt=attempt,
-                max_attempts=self._max_retries,
-                delay=delay,
-                close_code=close_code,
-                extra_query=self._extra_query,
-                extra_headers=self._extra_headers,
-            )
-
-            try:
-                result = self._on_reconnecting(event)
-            except Exception:
-                self._is_reconnecting = False
-                return False
-
-            if result is not None and result.get("abort"):
-                self._is_reconnecting = False
-                return False
-
-            if result is not None:
-                if "extra_query" in result:
-                    self._extra_query = result["extra_query"]
-                if "extra_headers" in result:
-                    self._extra_headers = result["extra_headers"]
-
-            log.info(
-                "Reconnecting to WebSocket API (attempt %d/%d) after %.1fs delay",
-                attempt,
-                self._max_retries,
-                delay,
-            )
-            await asyncio.sleep(delay)
-
-            if self._intentionally_closed:
-                self._is_reconnecting = False
-                return False
-
-            try:
-                self._connection = await self._make_ws(self._extra_query, self._extra_headers)
-                log.info("Reconnected to WebSocket API")
-                self._is_reconnecting = False
-                await self._flush_send_queue()
-                return True
-            except Exception:
-                pass
-
-        self._is_reconnecting = False
-        return False
-
-    async def _flush_send_queue(self) -> None:
-        """Send all queued messages over the current connection."""
-
-        async def _send(data: str) -> None:
-            await self._connection.send(data)
-
-        try:
-            await self._send_queue.flush_async(_send)
-        except Exception:
-            log.warning("Failed to flush send queue after reconnect")
 
     def on(
         self, event_type: str, handler: Callable[..., Any] | None = None
@@ -625,9 +553,9 @@ class AsyncRealtimeConnectionManager:
         are automatically sent once the WebSocket connection opens.
         """
         data = (
-            event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
+            event.to_json(use_api_names=True, exclude_unset=True)
             if isinstance(event, BaseModel)
-            else json.dumps(event)
+            else json.dumps(maybe_transform(event, RealtimeClientEventParam))
         )
         self.__send_queue.enqueue(data)
 
@@ -683,20 +611,29 @@ class AsyncRealtimeConnectionManager:
         """
         ws = await self._connect_ws(self.__extra_query, self.__extra_headers)
 
-        self.__connection = AsyncRealtimeConnection(
-            ws,
-            make_ws=self._connect_ws if self.__on_reconnecting is not None else None,
-            on_reconnecting=self.__on_reconnecting,
-            max_retries=self.__max_retries,
-            initial_delay=self.__initial_delay,
-            max_delay=self.__max_delay,
-            extra_query=self.__extra_query,
-            extra_headers=self.__extra_headers,
-            send_queue=self.__send_queue,
-        )
+        try:
+            self.__connection = AsyncRealtimeConnection(
+                ws,
+                make_ws=self._connect_ws if self.__on_reconnecting is not None else None,
+                on_reconnecting=self.__on_reconnecting,
+                max_retries=self.__max_retries,
+                initial_delay=self.__initial_delay,
+                max_delay=self.__max_delay,
+                extra_query=self.__extra_query,
+                extra_headers=self.__extra_headers,
+                send_queue=self.__send_queue,
+            )
 
-        self.__event_handler_registry.merge_into(self.__connection._event_handler_registry)
-        await self.__connection._flush_send_queue()
+            self.__event_handler_registry.merge_into(self.__connection._event_handler_registry)
+            await self.__connection._flush_send_queue()
+        except BaseException:
+            self.__connection = None
+            try:
+                await ws.close()
+            except BaseException:
+                # Preserve the exception that prevented successful entry.
+                pass
+            raise
 
         return self.__connection
 
@@ -721,12 +658,20 @@ class AsyncRealtimeConnectionManager:
                 url, auth_headers = await self.__client._configure_realtime(model, extra_query)
             prepared_headers: Headers = extra_headers
         else:
-            url = self._prepare_url().copy_with(
-                params={
-                    **self.__client.base_url.params,
-                    **({"model": self.__model} if self.__model is not omit else {}),
-                    **extra_query,
-                },
+            url = self._prepare_url()
+            try:
+                # Older runtimes do not declare this optional helper.
+                query_params = getattr(self.__client, "_websocket_query_params")  # noqa: B009
+            except AttributeError:
+                query_params = self.__client._websocket_query_params_fallback
+            url = url.copy_with(
+                params=query_params(
+                    url,
+                    {
+                        **({"model": self.__model} if self.__model is not omit else {}),
+                        **extra_query,
+                    },
+                ),
             )
             url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
             options = await self.__client._prepare_options(
@@ -757,11 +702,16 @@ class AsyncRealtimeConnectionManager:
         if self.__websocket_connection_options:
             log.debug("Custom WebSocket connection options provided")
 
+        websocket_options = self.__websocket_connection_options.copy()
+        websocket_options.setdefault("max_size", None)
+        if websocket_options.get("max_size") is None:
+            websocket_options.setdefault("compression", None)
+
         return await connect(
             str(url),
             user_agent_header=None,
             additional_headers=_merge_mappings(dict(headers.values()), {}),
-            **self.__websocket_connection_options,
+            **websocket_options,
         )
 
     def _prepare_url(self) -> httpx2.URL:
@@ -772,7 +722,8 @@ class AsyncRealtimeConnectionManager:
             ws_scheme = "ws" if scheme == "http" else "wss"
             base_url = self.__client._base_url.copy_with(scheme=ws_scheme)
 
-        merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/realtime"
+        path, separator, query = base_url.raw_path.partition(b"?")
+        merge_raw_path = path.rstrip(b"/") + b"/realtime" + separator + query
         return base_url.copy_with(raw_path=merge_raw_path)
 
     async def __aexit__(
@@ -782,7 +733,7 @@ class AsyncRealtimeConnectionManager:
             await self.__connection.close()
 
 
-class RealtimeConnection:
+class RealtimeConnection(WebSocketConnectionBase):
     """Represents a live WebSocket connection to the Realtime API"""
 
     session: RealtimeSessionResource
@@ -806,18 +757,18 @@ class RealtimeConnection:
         extra_headers: Headers = {},
         send_queue: SendQueue | None = None,
     ) -> None:
-        self._connection = connection
-        self._make_ws = make_ws
-        self._on_reconnecting = on_reconnecting
-        self._max_retries = max_retries
-        self._reconnect_attempt = 0
-        self._initial_delay = initial_delay
-        self._max_delay = max_delay
-        self._extra_query = extra_query
-        self._extra_headers = extra_headers
-        self._intentionally_closed = False
-        self._is_reconnecting = False
-        self._send_queue = send_queue or SendQueue()
+        super().__init__(
+            connection,
+            make_ws=make_ws,
+            on_reconnecting=on_reconnecting,
+            max_retries=max_retries,
+            initial_delay=initial_delay,
+            max_delay=max_delay,
+            extra_query=extra_query,
+            extra_headers=extra_headers,
+            send_queue=send_queue,
+            logger=log,
+        )
         self._event_handler_registry = EventHandlerRegistry(use_lock=True)
 
         self.session = RealtimeSessionResource(self)
@@ -874,7 +825,9 @@ class RealtimeConnection:
         If you want to parse the message into a `RealtimeServerEvent` object like `.recv()` does,
         then you can call `.parse_event(data)`.
         """
-        message = self._connection.recv(decode=False)
+        from ...lib._websocket import _recv_bytes
+
+        message = _recv_bytes(self._connection)
         log.debug("Received WebSocket message: %i bytes", len(message))
         if self._reconnect_attempt:
             # Account for raw application progress without changing frame delivery.
@@ -889,29 +842,14 @@ class RealtimeConnection:
 
     def send(self, event: RealtimeClientEvent | RealtimeClientEventParam) -> None:
         data = (
-            event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
+            event.to_json(use_api_names=True, exclude_unset=True)
             if isinstance(event, BaseModel)
             else json.dumps(maybe_transform(event, RealtimeClientEventParam))
         )
         if self._is_reconnecting:
             self._send_queue.enqueue(data)
             return
-        try:
-            self._connection.send(data)
-        except Exception:
-            self._send_queue.enqueue(data)
-            raise
-
-    def send_raw(self, data: bytes | str) -> None:
-        if self._is_reconnecting:
-            raw = data if isinstance(data, str) else data.decode("utf-8")
-            self._send_queue.enqueue(raw)
-            return
         self._connection.send(data)
-
-    def close(self, *, code: int = 1000, reason: str = "") -> None:
-        self._intentionally_closed = True
-        self._connection.close(code=code, reason=reason)
 
     def parse_event(self, data: str | bytes) -> RealtimeServerEvent:
         """
@@ -922,88 +860,6 @@ class RealtimeConnection:
         return cast(
             RealtimeServerEvent, construct_type_unchecked(value=json.loads(data), type_=cast(Any, RealtimeServerEvent))
         )
-
-    def _reconnect(self, exc: Exception) -> bool:
-        """Attempt to reconnect after a connection failure.
-
-        Returns ``True`` if a new connection was established, ``False`` if the
-        caller should re-raise the original exception.
-        """
-        if self._on_reconnecting is None or self._make_ws is None:
-            return False
-
-        from websockets.exceptions import ConnectionClosedError
-
-        close_code = 1006
-        if isinstance(exc, ConnectionClosedError) and exc.rcvd is not None:
-            close_code = exc.rcvd.code
-
-        if not is_recoverable_close(close_code):
-            return False
-
-        self._is_reconnecting = True
-
-        for attempt in range(self._reconnect_attempt + 1, self._max_retries + 1):
-            self._reconnect_attempt = attempt
-            base_delay = min(self._initial_delay * (2 ** (attempt - 1)), self._max_delay)
-            jitter = 0.75 + random.random() * 0.25
-            delay = base_delay * jitter
-
-            event = ReconnectingEvent(
-                attempt=attempt,
-                max_attempts=self._max_retries,
-                delay=delay,
-                close_code=close_code,
-                extra_query=self._extra_query,
-                extra_headers=self._extra_headers,
-            )
-
-            try:
-                result = self._on_reconnecting(event)
-            except Exception:
-                self._is_reconnecting = False
-                return False
-
-            if result is not None and result.get("abort"):
-                self._is_reconnecting = False
-                return False
-
-            if result is not None:
-                if "extra_query" in result:
-                    self._extra_query = result["extra_query"]
-                if "extra_headers" in result:
-                    self._extra_headers = result["extra_headers"]
-
-            log.info(
-                "Reconnecting to WebSocket API (attempt %d/%d) after %.1fs delay",
-                attempt,
-                self._max_retries,
-                delay,
-            )
-            time.sleep(delay)
-
-            if self._intentionally_closed:
-                self._is_reconnecting = False
-                return False
-
-            try:
-                self._connection = self._make_ws(self._extra_query, self._extra_headers)
-                log.info("Reconnected to WebSocket API")
-                self._is_reconnecting = False
-                self._flush_send_queue()
-                return True
-            except Exception:
-                pass
-
-        self._is_reconnecting = False
-        return False
-
-    def _flush_send_queue(self) -> None:
-        """Send all queued messages over the current connection."""
-        try:
-            self._send_queue.flush_sync(lambda data: self._connection.send(data))
-        except Exception:
-            log.warning("Failed to flush send queue after reconnect")
 
     def on(
         self, event_type: str, handler: Callable[..., Any] | None = None
@@ -1108,7 +964,7 @@ class RealtimeConnectionManager:
         model: str | Omit = omit,
         extra_query: Query,
         extra_headers: Headers,
-        websocket_connection_options: WebSocketConnectionOptions,
+        websocket_connection_options: SyncWebSocketConnectionOptions,
         on_reconnecting: Callable[[ReconnectingEvent], ReconnectingOverrides | None] | None = None,
         max_retries: int = 5,
         initial_delay: float = 0.5,
@@ -1136,9 +992,9 @@ class RealtimeConnectionManager:
         are automatically sent once the WebSocket connection opens.
         """
         data = (
-            event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
+            event.to_json(use_api_names=True, exclude_unset=True)
             if isinstance(event, BaseModel)
-            else json.dumps(event)
+            else json.dumps(maybe_transform(event, RealtimeClientEventParam))
         )
         self.__send_queue.enqueue(data)
 
@@ -1194,20 +1050,29 @@ class RealtimeConnectionManager:
         """
         ws = self._connect_ws(self.__extra_query, self.__extra_headers)
 
-        self.__connection = RealtimeConnection(
-            ws,
-            make_ws=self._connect_ws if self.__on_reconnecting is not None else None,
-            on_reconnecting=self.__on_reconnecting,
-            max_retries=self.__max_retries,
-            initial_delay=self.__initial_delay,
-            max_delay=self.__max_delay,
-            extra_query=self.__extra_query,
-            extra_headers=self.__extra_headers,
-            send_queue=self.__send_queue,
-        )
+        try:
+            self.__connection = RealtimeConnection(
+                ws,
+                make_ws=self._connect_ws if self.__on_reconnecting is not None else None,
+                on_reconnecting=self.__on_reconnecting,
+                max_retries=self.__max_retries,
+                initial_delay=self.__initial_delay,
+                max_delay=self.__max_delay,
+                extra_query=self.__extra_query,
+                extra_headers=self.__extra_headers,
+                send_queue=self.__send_queue,
+            )
 
-        self.__event_handler_registry.merge_into(self.__connection._event_handler_registry)
-        self.__connection._flush_send_queue()
+            self.__event_handler_registry.merge_into(self.__connection._event_handler_registry)
+            self.__connection._flush_send_queue()
+        except BaseException:
+            self.__connection = None
+            try:
+                ws.close()
+            except BaseException:
+                # Preserve the exception that prevented successful entry.
+                pass
+            raise
 
         return self.__connection
 
@@ -1230,12 +1095,20 @@ class RealtimeConnectionManager:
                 url, auth_headers = self.__client._configure_realtime(model, extra_query)
             prepared_headers: Headers = extra_headers
         else:
-            url = self._prepare_url().copy_with(
-                params={
-                    **self.__client.base_url.params,
-                    **({"model": self.__model} if self.__model is not omit else {}),
-                    **extra_query,
-                },
+            url = self._prepare_url()
+            try:
+                # Older runtimes do not declare this optional helper.
+                query_params = getattr(self.__client, "_websocket_query_params")  # noqa: B009
+            except AttributeError:
+                query_params = self.__client._websocket_query_params_fallback
+            url = url.copy_with(
+                params=query_params(
+                    url,
+                    {
+                        **({"model": self.__model} if self.__model is not omit else {}),
+                        **extra_query,
+                    },
+                ),
             )
             url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
             options = self.__client._prepare_options(
@@ -1266,11 +1139,16 @@ class RealtimeConnectionManager:
         if self.__websocket_connection_options:
             log.debug("Custom WebSocket connection options provided")
 
+        websocket_options = self.__websocket_connection_options.copy()
+        websocket_options.setdefault("max_size", None)
+        if websocket_options.get("max_size") is None:
+            websocket_options.setdefault("compression", None)
+
         return connect(
             str(url),
             user_agent_header=None,
             additional_headers=_merge_mappings(dict(headers.values()), {}),
-            **self.__websocket_connection_options,
+            **websocket_options,
         )
 
     def _prepare_url(self) -> httpx2.URL:
@@ -1281,7 +1159,8 @@ class RealtimeConnectionManager:
             ws_scheme = "ws" if scheme == "http" else "wss"
             base_url = self.__client._base_url.copy_with(scheme=ws_scheme)
 
-        merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/realtime"
+        path, separator, query = base_url.raw_path.partition(b"?")
+        merge_raw_path = path.rstrip(b"/") + b"/realtime" + separator + query
         return base_url.copy_with(raw_path=merge_raw_path)
 
     def __exit__(
@@ -1308,6 +1187,15 @@ class RealtimeSessionResource(BaseRealtimeConnectionResource):
         Only the fields that are present in the `session.update` are updated. To clear a field like
         `instructions`, pass an empty string. To clear a field like `tools`, pass an empty array.
         To clear a field like `turn_detection`, pass `null`.
+
+        To turn off input audio noise reduction, send this Realtime event:
+
+        ```json
+        {"type":"session.update","session":{"type":"realtime","audio":{"input":{"noise_reduction":null}}}}
+        ```
+
+        For a transcription session, use `"type":"transcription"` inside `session`.
+        Omitting `audio.input.noise_reduction` from an update leaves its current setting unchanged.
         """
         self._connection.send(
             cast(
@@ -1447,8 +1335,9 @@ class RealtimeConversationItemResource(BaseRealtimeConnectionResource):
         "history" of the conversation and to add new items mid-stream, but has the
         current limitation that it cannot populate assistant audio messages.
 
-        If successful, the server will respond with a `conversation.item.created`
-        event, otherwise an `error` event will be sent.
+        If successful, the server will emit a `conversation.item.added` event and,
+        when the item is finalized, a `conversation.item.done` event. Otherwise, an
+        `error` event will be sent.
         """
         self._connection.send(
             cast(
@@ -1541,6 +1430,15 @@ class AsyncRealtimeSessionResource(BaseAsyncRealtimeConnectionResource):
         Only the fields that are present in the `session.update` are updated. To clear a field like
         `instructions`, pass an empty string. To clear a field like `tools`, pass an empty array.
         To clear a field like `turn_detection`, pass `null`.
+
+        To turn off input audio noise reduction, send this Realtime event:
+
+        ```json
+        {"type":"session.update","session":{"type":"realtime","audio":{"input":{"noise_reduction":null}}}}
+        ```
+
+        For a transcription session, use `"type":"transcription"` inside `session`.
+        Omitting `audio.input.noise_reduction` from an update leaves its current setting unchanged.
         """
         await self._connection.send(
             cast(
@@ -1682,8 +1580,9 @@ class AsyncRealtimeConversationItemResource(BaseAsyncRealtimeConnectionResource)
         "history" of the conversation and to add new items mid-stream, but has the
         current limitation that it cannot populate assistant audio messages.
 
-        If successful, the server will respond with a `conversation.item.created`
-        event, otherwise an `error` event will be sent.
+        If successful, the server will emit a `conversation.item.added` event and,
+        when the item is finalized, a `conversation.item.done` event. Otherwise, an
+        `error` event will be sent.
         """
         await self._connection.send(
             cast(

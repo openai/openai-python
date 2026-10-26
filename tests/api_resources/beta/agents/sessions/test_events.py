@@ -21,18 +21,18 @@ class TestEvents:
             session_id="session_id",
             events=[
                 {
-                    "input": [
-                        {
-                            "content": [
-                                {
-                                    "text": "text",
-                                    "type": "input_text",
-                                }
-                            ],
-                            "role": "user",
-                        }
-                    ],
-                    "type": "agent.session.input.message",
+                    "request_id": "request_id",
+                    "response": {
+                        "action": "submit",
+                        "fields": [
+                            {
+                                "field_id": "field_id",
+                                "value": "value",
+                            }
+                        ],
+                        "type": "browser_authentication",
+                    },
+                    "type": "agent.session.input.computer_use_approval_request_result",
                 }
             ],
         )
@@ -44,19 +44,19 @@ class TestEvents:
             session_id="session_id",
             events=[
                 {
-                    "input": [
-                        {
-                            "content": [
-                                {
-                                    "text": "text",
-                                    "type": "input_text",
-                                }
-                            ],
-                            "role": "user",
-                            "type": "message",
-                        }
-                    ],
-                    "type": "agent.session.input.message",
+                    "request_id": "request_id",
+                    "response": {
+                        "action": "submit",
+                        "fields": [
+                            {
+                                "field_id": "field_id",
+                                "value": "value",
+                            }
+                        ],
+                        "type": "browser_authentication",
+                        "selected_option": "selected_option",
+                    },
+                    "type": "agent.session.input.computer_use_approval_request_result",
                 }
             ],
             idempotency_key="x",
@@ -69,18 +69,18 @@ class TestEvents:
             session_id="session_id",
             events=[
                 {
-                    "input": [
-                        {
-                            "content": [
-                                {
-                                    "text": "text",
-                                    "type": "input_text",
-                                }
-                            ],
-                            "role": "user",
-                        }
-                    ],
-                    "type": "agent.session.input.message",
+                    "request_id": "request_id",
+                    "response": {
+                        "action": "submit",
+                        "fields": [
+                            {
+                                "field_id": "field_id",
+                                "value": "value",
+                            }
+                        ],
+                        "type": "browser_authentication",
+                    },
+                    "type": "agent.session.input.computer_use_approval_request_result",
                 }
             ],
         )
@@ -96,18 +96,18 @@ class TestEvents:
             session_id="session_id",
             events=[
                 {
-                    "input": [
-                        {
-                            "content": [
-                                {
-                                    "text": "text",
-                                    "type": "input_text",
-                                }
-                            ],
-                            "role": "user",
-                        }
-                    ],
-                    "type": "agent.session.input.message",
+                    "request_id": "request_id",
+                    "response": {
+                        "action": "submit",
+                        "fields": [
+                            {
+                                "field_id": "field_id",
+                                "value": "value",
+                            }
+                        ],
+                        "type": "browser_authentication",
+                    },
+                    "type": "agent.session.input.computer_use_approval_request_result",
                 }
             ],
         ) as response:
@@ -126,18 +126,18 @@ class TestEvents:
                 session_id="",
                 events=[
                     {
-                        "input": [
-                            {
-                                "content": [
-                                    {
-                                        "text": "text",
-                                        "type": "input_text",
-                                    }
-                                ],
-                                "role": "user",
-                            }
-                        ],
-                        "type": "agent.session.input.message",
+                        "request_id": "request_id",
+                        "response": {
+                            "action": "submit",
+                            "fields": [
+                                {
+                                    "field_id": "field_id",
+                                    "value": "value",
+                                }
+                            ],
+                            "type": "browser_authentication",
+                        },
+                        "type": "agent.session.input.computer_use_approval_request_result",
                     }
                 ],
             )
@@ -191,18 +191,18 @@ class TestAsyncEvents:
             session_id="session_id",
             events=[
                 {
-                    "input": [
-                        {
-                            "content": [
-                                {
-                                    "text": "text",
-                                    "type": "input_text",
-                                }
-                            ],
-                            "role": "user",
-                        }
-                    ],
-                    "type": "agent.session.input.message",
+                    "request_id": "request_id",
+                    "response": {
+                        "action": "submit",
+                        "fields": [
+                            {
+                                "field_id": "field_id",
+                                "value": "value",
+                            }
+                        ],
+                        "type": "browser_authentication",
+                    },
+                    "type": "agent.session.input.computer_use_approval_request_result",
                 }
             ],
         )
@@ -214,19 +214,19 @@ class TestAsyncEvents:
             session_id="session_id",
             events=[
                 {
-                    "input": [
-                        {
-                            "content": [
-                                {
-                                    "text": "text",
-                                    "type": "input_text",
-                                }
-                            ],
-                            "role": "user",
-                            "type": "message",
-                        }
-                    ],
-                    "type": "agent.session.input.message",
+                    "request_id": "request_id",
+                    "response": {
+                        "action": "submit",
+                        "fields": [
+                            {
+                                "field_id": "field_id",
+                                "value": "value",
+                            }
+                        ],
+                        "type": "browser_authentication",
+                        "selected_option": "selected_option",
+                    },
+                    "type": "agent.session.input.computer_use_approval_request_result",
                 }
             ],
             idempotency_key="x",
@@ -239,18 +239,18 @@ class TestAsyncEvents:
             session_id="session_id",
             events=[
                 {
-                    "input": [
-                        {
-                            "content": [
-                                {
-                                    "text": "text",
-                                    "type": "input_text",
-                                }
-                            ],
-                            "role": "user",
-                        }
-                    ],
-                    "type": "agent.session.input.message",
+                    "request_id": "request_id",
+                    "response": {
+                        "action": "submit",
+                        "fields": [
+                            {
+                                "field_id": "field_id",
+                                "value": "value",
+                            }
+                        ],
+                        "type": "browser_authentication",
+                    },
+                    "type": "agent.session.input.computer_use_approval_request_result",
                 }
             ],
         )
@@ -266,18 +266,18 @@ class TestAsyncEvents:
             session_id="session_id",
             events=[
                 {
-                    "input": [
-                        {
-                            "content": [
-                                {
-                                    "text": "text",
-                                    "type": "input_text",
-                                }
-                            ],
-                            "role": "user",
-                        }
-                    ],
-                    "type": "agent.session.input.message",
+                    "request_id": "request_id",
+                    "response": {
+                        "action": "submit",
+                        "fields": [
+                            {
+                                "field_id": "field_id",
+                                "value": "value",
+                            }
+                        ],
+                        "type": "browser_authentication",
+                    },
+                    "type": "agent.session.input.computer_use_approval_request_result",
                 }
             ],
         ) as response:
@@ -296,18 +296,18 @@ class TestAsyncEvents:
                 session_id="",
                 events=[
                     {
-                        "input": [
-                            {
-                                "content": [
-                                    {
-                                        "text": "text",
-                                        "type": "input_text",
-                                    }
-                                ],
-                                "role": "user",
-                            }
-                        ],
-                        "type": "agent.session.input.message",
+                        "request_id": "request_id",
+                        "response": {
+                            "action": "submit",
+                            "fields": [
+                                {
+                                    "field_id": "field_id",
+                                    "value": "value",
+                                }
+                            ],
+                            "type": "browser_authentication",
+                        },
+                        "type": "agent.session.input.computer_use_approval_request_result",
                     }
                 ],
             )

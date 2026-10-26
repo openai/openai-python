@@ -27,7 +27,13 @@ else:
 
 ROOT = Path(__file__).resolve().parents[1]
 
+ci_only = pytest.mark.skipif(
+    os.environ.get("CI") != "true",
+    reason="Packaging policy check runs only in CI; set CI=true to run locally",
+)
 
+
+@ci_only
 def test_lockfile_uses_public_package_sources() -> None:
     lock = tomllib.loads((ROOT / "uv.lock").read_text())
     for package in lock["package"]:
@@ -461,6 +467,7 @@ def test_source_build_exemption_only_covers_the_unique_reviewed_editable_root(
         assert "Use only the public PyPI registry" in result.stderr
 
 
+@ci_only
 def test_dependency_lock_source_check_accepts_the_committed_lock() -> None:
     result = subprocess.run(
         [sys.executable, "-c", dependency_lock_source_command()],
@@ -980,7 +987,16 @@ def test_dependency_provenance_runs_before_tool_setup() -> None:
 def test_untrusted_provenance_leaves_no_dependency_install_reachable(tmp_path: Path, source: dict[str, str]) -> None:
     jobs = dependency_workflow_jobs()
     installers = dependency_installer_jobs(jobs)
-    assert installers == {"lint", "build", "test", "test-httpx2", "examples", "compatibility"}
+    assert installers == {
+        "lint",
+        "build",
+        "browser-demo-types",
+        "optional-provider-types",
+        "test",
+        "test-httpx2",
+        "examples",
+        "compatibility",
+    }
 
     needs = {name: re.findall(r"^    needs:\s*([^\s#]+)", jobs[name], re.MULTILINE) for name in installers}
     project = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]
@@ -1048,6 +1064,7 @@ def test_source_builds_only_allowed_in_trusted_experimental_compatibility(
     assert (experimental and event in {"schedule", "workflow_dispatch"}) is allowed
 
 
+@ci_only
 def test_editable_project_sync_requires_only_the_reviewed_root_build_exemption() -> None:
     uv = shutil.which("uv")
     if uv is None:
@@ -1082,6 +1099,7 @@ def test_editable_project_sync_requires_only_the_reviewed_root_build_exemption()
     assert accepted.returncode == 0, accepted.stdout + accepted.stderr
 
 
+@ci_only
 def test_explicit_root_build_keeps_every_public_dependency_source_build_disabled(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

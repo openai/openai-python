@@ -107,6 +107,14 @@ if _t.TYPE_CHECKING:
         DataRetentionWithStreamingResponse as DataRetentionWithStreamingResponse,
         AsyncDataRetentionWithStreamingResponse as AsyncDataRetentionWithStreamingResponse,
     )
+    from .external_storage import (
+        ExternalStorage as ExternalStorage,
+        AsyncExternalStorage as AsyncExternalStorage,
+        ExternalStorageWithRawResponse as ExternalStorageWithRawResponse,
+        AsyncExternalStorageWithRawResponse as AsyncExternalStorageWithRawResponse,
+        ExternalStorageWithStreamingResponse as ExternalStorageWithStreamingResponse,
+        AsyncExternalStorageWithStreamingResponse as AsyncExternalStorageWithStreamingResponse,
+    )
 
 else:
     _EXPORTS = {
@@ -158,6 +166,12 @@ else:
         "AsyncDataRetentionWithRawResponse": (".data_retention", "AsyncDataRetentionWithRawResponse"),
         "DataRetentionWithStreamingResponse": (".data_retention", "DataRetentionWithStreamingResponse"),
         "AsyncDataRetentionWithStreamingResponse": (".data_retention", "AsyncDataRetentionWithStreamingResponse"),
+        "ExternalStorage": (".external_storage", "ExternalStorage"),
+        "AsyncExternalStorage": (".external_storage", "AsyncExternalStorage"),
+        "ExternalStorageWithRawResponse": (".external_storage", "ExternalStorageWithRawResponse"),
+        "AsyncExternalStorageWithRawResponse": (".external_storage", "AsyncExternalStorageWithRawResponse"),
+        "ExternalStorageWithStreamingResponse": (".external_storage", "ExternalStorageWithStreamingResponse"),
+        "AsyncExternalStorageWithStreamingResponse": (".external_storage", "AsyncExternalStorageWithStreamingResponse"),
         "SpendLimit": (".spend_limit", "SpendLimit"),
         "AsyncSpendLimit": (".spend_limit", "AsyncSpendLimit"),
         "SpendLimitWithRawResponse": (".spend_limit", "SpendLimitWithRawResponse"),
@@ -194,6 +208,7 @@ else:
         "audit_logs",
         "certificates",
         "data_retention",
+        "external_storage",
         "groups",
         "invites",
         "organization",
@@ -271,6 +286,12 @@ __all__ = [
     "AsyncDataRetentionWithRawResponse",
     "DataRetentionWithStreamingResponse",
     "AsyncDataRetentionWithStreamingResponse",
+    "ExternalStorage",
+    "AsyncExternalStorage",
+    "ExternalStorageWithRawResponse",
+    "AsyncExternalStorageWithRawResponse",
+    "ExternalStorageWithStreamingResponse",
+    "AsyncExternalStorageWithStreamingResponse",
     "SpendLimit",
     "AsyncSpendLimit",
     "SpendLimitWithRawResponse",

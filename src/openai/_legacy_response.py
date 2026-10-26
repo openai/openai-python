@@ -265,7 +265,7 @@ class LegacyAPIResponse(Generic[R]):
             return cast(R, float(response.text))
 
         if cast_to == bool:
-            return cast(R, response.text.lower() == "true")
+            return cast(R, response.text.strip().lower() == "true")
 
         if inspect.isclass(origin) and issubclass(origin, HttpxBinaryResponseContent):
             return cast(R, cast_to(response))  # type: ignore

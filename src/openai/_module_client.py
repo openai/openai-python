@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from .resources.batches import Batches
     from .resources.beta.beta import Beta
     from .resources.chat.chat import Chat
+    from .resources.decisions import Decisions
     from .resources.live.live import Live
     from .resources.embeddings import Embeddings
     from .resources.admin.admin import Admin
@@ -132,6 +133,12 @@ class RealtimeProxy(LazyProxy["Realtime"]):
         return _load_client().realtime
 
 
+class DecisionsProxy(LazyProxy["Decisions"]):
+    @override
+    def __load__(self) -> Decisions:
+        return _load_client().decisions
+
+
 class ResponsesProxy(LazyProxy["Responses"]):
     @override
     def __load__(self) -> Responses:
@@ -202,6 +209,7 @@ batches: Batches = BatchesProxy().__as_proxied__()
 uploads: Uploads = UploadsProxy().__as_proxied__()
 webhooks: Webhooks = WebhooksProxy().__as_proxied__()
 realtime: Realtime = RealtimeProxy().__as_proxied__()
+decisions: Decisions = DecisionsProxy().__as_proxied__()
 responses: Responses = ResponsesProxy().__as_proxied__()
 embeddings: Embeddings = EmbeddingsProxy().__as_proxied__()
 containers: Containers = ContainersProxy().__as_proxied__()
