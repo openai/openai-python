@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# WebSocket reconnection policy and types are maintained by the SDK.
 
 from __future__ import annotations
 

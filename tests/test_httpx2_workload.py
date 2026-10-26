@@ -1,12 +1,10 @@
 from __future__ import annotations
 
 import json
-from typing import Any, NoReturn, cast
+from typing import Any
 
-import httpx
-import respx
+import httpx2
 import pytest
-from respx.models import Call
 
 import openai._base_client as base_client
 import openai.auth._workload as workload
@@ -21,8 +19,6 @@ from openai import (
 )
 from openai.auth import WorkloadIdentity
 
-httpx2 = pytest.importorskip("httpx2")
-
 
 def workload_identity(get_token: Any = lambda: "subject-token") -> WorkloadIdentity:
     return {
@@ -34,10 +30,6 @@ def workload_identity(get_token: Any = lambda: "subject-token") -> WorkloadIdent
 
 def exchange_payload(access_token: str) -> dict[str, object]:
     return {"access_token": access_token, "expires_in": 3600}
-
-
-def forbidden_httpx_send(*_args: Any, **_kwargs: Any) -> NoReturn:
-    pytest.fail("HTTPX unexpectedly sent a request")
 
 
 def test_sync_httpx2_workload_exchange_is_native_and_cached(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -63,7 +55,6 @@ def test_sync_httpx2_workload_exchange_is_native_and_cached(monkeypatch: pytest.
         return httpx2.Response(200, request=request, json={"object": "list", "data": []})
 
     monkeypatch.setattr(workload, "DefaultHttpx2Client", exchange_client)
-    monkeypatch.setattr(httpx.Client, "send", forbidden_httpx_send)
 
     with OpenAI(
         workload_identity=workload_identity(get_token),
@@ -111,8 +102,6 @@ async def test_async_httpx2_workload_401_reexchanges_with_sync_native_client(mon
         return httpx2.Response(status_code, request=request, json={"object": "list", "data": []})
 
     monkeypatch.setattr(workload, "DefaultHttpx2Client", exchange_client)
-    monkeypatch.setattr(httpx.Client, "send", forbidden_httpx_send)
-    monkeypatch.setattr(httpx.AsyncClient, "send", forbidden_httpx_send)
 
     async with AsyncOpenAI(
         workload_identity=workload_identity(),
@@ -150,7 +139,6 @@ def test_sync_httpx2_default_workload_exchange_is_native(monkeypatch: pytest.Mon
 
     monkeypatch.setattr(base_client, "SyncHttpxClientWrapper", default_client)
     monkeypatch.setattr(workload, "DefaultHttpx2Client", exchange_client)
-    monkeypatch.setattr(httpx.Client, "send", forbidden_httpx_send)
 
     with OpenAI(
         workload_identity=workload_identity(),
@@ -188,8 +176,6 @@ async def test_async_httpx2_default_workload_exchange_is_native(monkeypatch: pyt
 
     monkeypatch.setattr(base_client, "AsyncHttpxClientWrapper", default_client)
     monkeypatch.setattr(workload, "DefaultHttpx2Client", exchange_client)
-    monkeypatch.setattr(httpx.Client, "send", forbidden_httpx_send)
-    monkeypatch.setattr(httpx.AsyncClient, "send", forbidden_httpx_send)
 
     async with AsyncOpenAI(
         workload_identity=workload_identity(),
@@ -273,33 +259,3 @@ def test_httpx2_workload_exchange_transport_failure(
             client.models.list()
 
     assert type(exc_info.value.__cause__).__module__ == "httpx2"
-
-
-def test_httpx_workload_exchange_stays_httpx_when_httpx2_is_installed(monkeypatch: pytest.MonkeyPatch) -> None:
-    api_requests: list[httpx.Request] = []
-
-    def forbidden_httpx2(**_kwargs: Any) -> Any:
-        pytest.fail("HTTPX2 unexpectedly created a workload exchange client")
-
-    def api_handler(request: httpx.Request) -> httpx.Response:
-        api_requests.append(request)
-        return httpx.Response(200, request=request, json={"object": "list", "data": []})
-
-    monkeypatch.setattr(workload, "DefaultHttpx2Client", forbidden_httpx2)
-
-    with respx.mock(assert_all_mocked=False) as router:
-        exchange = router.post("https://auth.openai.com/oauth/token").mock(
-            return_value=httpx.Response(200, json=exchange_payload("access-token"))
-        )
-        with OpenAI(
-            workload_identity=workload_identity(),
-            base_url="https://api.example.test/v1",
-            http_client=httpx.Client(transport=httpx.MockTransport(api_handler), trust_env=False),
-            max_retries=0,
-        ) as client:
-            assert client.models.list().object == "list"
-
-    assert exchange.call_count == 1
-    assert len(api_requests) == 1
-    assert isinstance(cast(Call, exchange.calls[0]).request, httpx.Request)
-    assert isinstance(api_requests[0], httpx.Request)

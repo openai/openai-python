@@ -1,4 +1,4 @@
-#!/usr/bin/env uv run
+#!/usr/bin/env -S uv run
 ####################################################################
 # Sample TUI app with a push to talk interface to the Realtime API #
 # If you have `uv` installed and the `OPENAI_API_KEY`              #
@@ -20,6 +20,9 @@
 #     "openai[realtime]",
 # ]
 #
+# [tool.uv]
+# exclude-newer = "P8D"
+#
 # [tool.uv.sources]
 # openai = { path = "../../", editable = true }
 # ///
@@ -38,8 +41,8 @@ from textual.reactive import reactive
 from textual.containers import Container
 
 from openai import AsyncOpenAI
-from openai.types.realtime.session import Session
 from openai.resources.realtime.realtime import AsyncRealtimeConnection
+from openai.types.realtime.session_created_event import Session
 
 
 class SessionDisplay(Static):
@@ -140,6 +143,7 @@ class RealtimeApp(App[None]):
         self.last_audio_item_id = None
         self.should_send_audio = asyncio.Event()
         self.connected = asyncio.Event()
+        self._mic_stream: Any = None
 
     @override
     def compose(self) -> ComposeResult:
@@ -176,8 +180,10 @@ class RealtimeApp(App[None]):
                 if event.type == "session.created":
                     self.session = event.session
                     session_display = self.query_one(SessionDisplay)
-                    assert event.session.id is not None
-                    session_display.session_id = event.session.id
+                    # The session ID is returned as an extra field on the session configuration.
+                    session_id = getattr(event.session, "id", None)
+                    assert isinstance(session_id, str)
+                    session_display.session_id = session_id
                     continue
 
                 if event.type == "session.updated":
@@ -222,27 +228,30 @@ class RealtimeApp(App[None]):
 
         read_size = int(SAMPLE_RATE * 0.02)
 
-        stream = sd.InputStream(
-            channels=CHANNELS,
-            samplerate=SAMPLE_RATE,
-            dtype="int16",
-        )
-        stream.start()
-
-        status_indicator = self.query_one(AudioStatusIndicator)
-
         try:
             while True:
+                await self.should_send_audio.wait()
+                connection = await self._get_connection()
+                if not self.should_send_audio.is_set():
+                    continue
+
+                if self._mic_stream is None:
+                    # Use a fresh stream for each recording so buffered audio from
+                    # a previous recording cannot be sent when recording resumes.
+                    self._mic_stream = sd.InputStream(
+                        channels=CHANNELS,
+                        samplerate=SAMPLE_RATE,
+                        dtype="int16",
+                    )
+                    self._mic_stream.start()
+
+                stream = self._mic_stream
                 if stream.read_available < read_size:
                     await asyncio.sleep(0)
                     continue
 
-                await self.should_send_audio.wait()
-                status_indicator.is_recording = True
-
                 data, _ = stream.read(read_size)
 
-                connection = await self._get_connection()
                 if not sent_audio:
                     asyncio.create_task(connection.send({"type": "response.cancel"}))
                     sent_audio = True
@@ -253,8 +262,15 @@ class RealtimeApp(App[None]):
         except KeyboardInterrupt:
             pass
         finally:
-            stream.stop()
-            stream.close()
+            self._stop_mic_stream()
+
+    def _stop_mic_stream(self) -> None:
+        if self._mic_stream is not None:
+            try:
+                self._mic_stream.abort()
+            finally:
+                self._mic_stream.close()
+                self._mic_stream = None
 
     async def on_key(self, event: events.Key) -> None:
         """Handle key press events."""
@@ -270,9 +286,15 @@ class RealtimeApp(App[None]):
             status_indicator = self.query_one(AudioStatusIndicator)
             if status_indicator.is_recording:
                 self.should_send_audio.clear()
+                self._stop_mic_stream()
                 status_indicator.is_recording = False
 
-                if self.session and self.session.turn_detection is None:
+                if (
+                    self.session
+                    and self.session.audio
+                    and self.session.audio.input
+                    and self.session.audio.input.turn_detection is None
+                ):
                     # The default in the API is that the model will automatically detect when the user has
                     # stopped talking and then start responding itself.
                     #

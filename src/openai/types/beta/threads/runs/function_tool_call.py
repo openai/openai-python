@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import Optional
 from typing_extensions import Literal
@@ -21,8 +21,7 @@ class Function(BaseModel):
     """The output of the function.
 
     This will be `null` if the outputs have not been
-    [submitted](https://platform.openai.com/docs/api-reference/runs/submitToolOutputs)
-    yet.
+    [submitted](https://developers.openai.com/api/docs/assistants/migration) yet.
     """
 
 

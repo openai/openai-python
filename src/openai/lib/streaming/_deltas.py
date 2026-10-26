@@ -3,16 +3,22 @@ from __future__ import annotations
 from ..._utils import is_dict, is_list
 
 
+def _has_indexed_entries(value: object) -> bool:
+    return is_list(value) and any(is_dict(entry) and "index" in entry for entry in value)
+
+
 def accumulate_delta(acc: dict[object, object], delta: dict[object, object]) -> dict[object, object]:
     for key, delta_value in delta.items():
-        if key not in acc:
-            acc[key] = delta_value
-            continue
+        if key not in acc or acc[key] is None:
+            if _has_indexed_entries(delta_value):
+                # Even the first indexed list must be merged: one chunk can
+                # contain several fragments for the same index.
+                acc[key] = []
+            else:
+                acc[key] = delta_value
+                continue
 
         acc_value = acc[key]
-        if acc_value is None:
-            acc[key] = delta_value
-            continue
 
         # the `index` property is used in arrays of objects so it should
         # not be accumulated like other values e.g.
@@ -33,7 +39,11 @@ def accumulate_delta(acc: dict[object, object], delta: dict[object, object]) -> 
         elif is_list(acc_value) and is_list(delta_value):
             # for lists of non-dictionary items we'll only ever get new entries
             # in the array, existing entries will never be changed
-            if all(isinstance(x, (str, int, float)) for x in acc_value):
+            # An empty accumulator cannot tell us whether this is an indexed
+            # list. Inspect the delta before taking the append-only path.
+            if all(isinstance(x, (str, int, float)) for x in acc_value) and (
+                acc_value or not _has_indexed_entries(delta_value)
+            ):
                 acc_value.extend(delta_value)
                 continue
 

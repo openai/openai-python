@@ -1,0 +1,11 @@
+[Unit]
+Description=One task-owned native-action port, without an IP listener
+
+[Socket]
+ListenStream=vsock::4050
+Accept=yes
+MaxConnections=8
+Backlog=8
+
+[Install]
+WantedBy=sockets.target

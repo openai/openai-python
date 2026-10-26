@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing_extensions import Literal
 
@@ -10,7 +10,7 @@ __all__ = ["ToolChoiceTypes"]
 class ToolChoiceTypes(BaseModel):
     """
     Indicates that the model should use a built-in tool to generate a response.
-    [Learn more about built-in tools](https://platform.openai.com/docs/guides/tools).
+    [Learn more about built-in tools](https://developers.openai.com/api/docs/guides/tools).
     """
 
     type: Literal[
@@ -26,7 +26,7 @@ class ToolChoiceTypes(BaseModel):
     """The type of hosted tool the model should to use.
 
     Learn more about
-    [built-in tools](https://platform.openai.com/docs/guides/tools).
+    [built-in tools](https://developers.openai.com/api/docs/guides/tools).
 
     Allowed values are:
 

@@ -8,11 +8,9 @@ SUPPORTED = ("3.10", "3.11", "3.12", "3.13", "3.14")
 MINIMUM = SUPPORTED[0]
 CURRENT_STABLE = SUPPORTED[-1]
 PRERELEASE = "3.15"
-UNMARKED_OPTIONAL_DEPENDENCIES = (
-    "aiohttp>=3.14.1",
-    "httpx_aiohttp>=0.1.9",
-    "httpx>=0.25.1, <1",
-    "httpx2>=2.7.0, <3",
+UNMARKED_DEPENDENCIES = (
+    "aiohttp>=3.14.3",
+    "httpx2>=2.12.0, <3",
     "anyio>=4.10.0, <5",
     "botocore>=1.40.0,<2",
 )
@@ -45,12 +43,12 @@ def matrix_body(job: str) -> str:
     return match.group("body")
 
 
-def check_pr_runtimes(workflow: str) -> None:
-    for version in (MINIMUM, CURRENT_STABLE):
-        name = f"test-python{version.replace('.', '')}"
-        job = workflow_job(workflow, name)
-        versions = re.findall(r"^ +python-version: ['\"](3\.\d+)['\"]$", job, re.MULTILINE)
-        require(versions == [version], f"CI job {name!r} runtimes are {versions}, expected {[version]}")
+def matrix_versions(job: str) -> tuple[str, ...]:
+    versions: list[str] = []
+    for line in matrix_body(job).splitlines():
+        if re.match(r"^\s+(?:-\s+)?python-version:", line):
+            versions.extend(re.findall(r'"(3\.\d+)"', line))
+    return tuple(versions)
 
 
 def compatibility_matrix(job: str) -> tuple[tuple[str, bool], ...]:
@@ -96,7 +94,12 @@ def main() -> None:
         "Realtime example metadata does not state the minimum Python",
     )
 
-    check_pr_runtimes(workflow)
+    pr_versions = matrix_versions(workflow_job(workflow, "test"))
+    expected_pr_versions = (MINIMUM, CURRENT_STABLE)
+    require(
+        pr_versions == expected_pr_versions,
+        f"PR test matrix is {pr_versions}, expected {expected_pr_versions}",
+    )
 
     compatibility_job = workflow_job(workflow, "compatibility")
     require(
@@ -118,8 +121,8 @@ def main() -> None:
         "Policy current-compatibility text does not match the supported matrix",
     )
 
-    project_metadata = pyproject.split("[tool.rye]", 1)[0]
-    for requirement in UNMARKED_OPTIONAL_DEPENDENCIES:
+    project_metadata = pyproject.split("[dependency-groups]", 1)[0]
+    for requirement in UNMARKED_DEPENDENCIES:
         require(
             f'"{requirement}"' in project_metadata,
             f"Package metadata does not contain the unmarked requirement {requirement!r}",

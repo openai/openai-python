@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+STEADY_ROOT="$(cd "$(dirname "$0")/../.." && pwd -P)"
+source "$STEADY_ROOT/scripts/steady/settings"
+
+mkdir -p "$STEADY_CACHE"
+[[ "$(cd "$STEADY_CACHE" && pwd -P)" == "$STEADY_CACHE" ]] || steady_fail 'Steady cache cannot be a symlink.'
+temporary="$(mktemp -d "$STEADY_CACHE/install.XXXXXXXX")"
+trap 'rm -rf "$temporary"' EXIT
+
+publish_directory() {
+  node "$STEADY_ROOT/scripts/steady/publish.cjs" "$1" "$2"
+}
+
+if [[ ! -e "$STEADY_SOURCE" ]]; then
+  git init --quiet "$temporary/source" >&2
+  git -C "$temporary/source" fetch --quiet --no-tags "$STEADY_REPOSITORY" "$STEADY_REVISION" >&2
+  git -C "$temporary/source" -c advice.detachedHead=false -c core.autocrlf=false -c core.eol=lf checkout --quiet --detach "$STEADY_REVISION" >&2
+  # Atomic publication also handles concurrent bootstraps.
+  publish_directory "$temporary/source" "$STEADY_SOURCE"
+fi
+
+if [[ ! -e "$DENO_DIRECTORY" ]]; then
+  mkdir "$temporary/deno"
+  curl --fail --location --proto '=https' --proto-redir '=https' --silent --show-error \
+    "https://github.com/denoland/deno/releases/download/v$DENO_VERSION/deno-$DENO_TARGET.zip" \
+    -o "$temporary/deno/deno.zip"
+  [[ "$(steady_sha256 < "$temporary/deno/deno.zip")" == "$DENO_SHA256" ]] || steady_fail 'Deno download checksum mismatch.'
+  unzip -q "$temporary/deno/deno.zip" -d "$temporary/deno"
+  publish_directory "$temporary/deno" "$DENO_DIRECTORY"
+fi
+
+steady_verify
+"$DENO_DIRECTORY/$DENO_BINARY" cache --frozen --config "$STEADY_SOURCE/deno.json" "$STEADY_SOURCE/cmd/steady.ts" >&2
+
+if [[ "${1:-}" == '--print-executable' ]]; then
+  printf '%s\n' "$STEADY_ROOT/scripts/run-steady"
+fi

@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ class ModerationCreateParams(TypedDict, total=False):
     """The content moderation model you would like to use.
 
     Learn more in
-    [the moderation guide](https://platform.openai.com/docs/guides/moderation), and
-    learn about available models
-    [here](https://platform.openai.com/docs/models#moderation).
+    [the moderation guide](https://developers.openai.com/api/docs/guides/moderation),
+    and learn about available models
+    [here](https://developers.openai.com/api/docs/guides/moderation).
     """

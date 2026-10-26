@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing_extensions import Literal
 
@@ -12,7 +12,7 @@ class RealtimeErrorEvent(BaseModel):
     """
     Returned when an error occurs, which could be a client problem or a server
     problem. Most errors are recoverable and the session will stay open, we
-    recommend to implementors to monitor and log error messages by default.
+    recommend to implementers to monitor and log error messages by default.
     """
 
     error: RealtimeError

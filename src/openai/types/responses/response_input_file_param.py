@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -16,6 +16,9 @@ class PromptCacheBreakpoint(TypedDict, total=False):
 
     mode: Required[Literal["explicit"]]
     """The breakpoint mode. Always `explicit`."""
+
+    ttl: Literal["30m", "12h"]
+    """The minimum lifetime of this cache breakpoint. Defaults to the request TTL."""
 
 
 class ResponseInputFileParam(TypedDict, total=False):

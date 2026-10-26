@@ -1,7 +1,8 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
+from ..chat import Chat, AsyncChat
 from ..._compat import cached_property
 from .assistants import (
     Assistants,
@@ -12,6 +13,14 @@ from .assistants import (
     AsyncAssistantsWithStreamingResponse,
 )
 from ..._resource import SyncAPIResource, AsyncAPIResource
+from .agents.agents import (
+    Agents,
+    AsyncAgents,
+    AgentsWithRawResponse,
+    AsyncAgentsWithRawResponse,
+    AgentsWithStreamingResponse,
+    AsyncAgentsWithStreamingResponse,
+)
 from .chatkit.chatkit import (
     ChatKit,
     AsyncChatKit,
@@ -28,11 +37,7 @@ from .threads.threads import (
     ThreadsWithStreamingResponse,
     AsyncThreadsWithStreamingResponse,
 )
-from ...resources.chat import Chat, AsyncChat
-from .realtime.realtime import (
-    Realtime,
-    AsyncRealtime,
-)
+from .realtime.realtime import Realtime, AsyncRealtime
 from .responses.responses import (
     Responses,
     AsyncResponses,
@@ -55,7 +60,12 @@ class Beta(SyncAPIResource):
         return Realtime(self._client)
 
     @cached_property
+    def agents(self) -> Agents:
+        return Agents(self._client)
+
+    @cached_property
     def responses(self) -> Responses:
+        """Create and manage model responses."""
         return Responses(self._client)
 
     @cached_property
@@ -102,7 +112,12 @@ class AsyncBeta(AsyncAPIResource):
         return AsyncRealtime(self._client)
 
     @cached_property
+    def agents(self) -> AsyncAgents:
+        return AsyncAgents(self._client)
+
+    @cached_property
     def responses(self) -> AsyncResponses:
+        """Create and manage model responses."""
         return AsyncResponses(self._client)
 
     @cached_property
@@ -144,7 +159,12 @@ class BetaWithRawResponse:
         self._beta = beta
 
     @cached_property
+    def agents(self) -> AgentsWithRawResponse:
+        return AgentsWithRawResponse(self._beta.agents)
+
+    @cached_property
     def responses(self) -> ResponsesWithRawResponse:
+        """Create and manage model responses."""
         return ResponsesWithRawResponse(self._beta.responses)
 
     @cached_property
@@ -167,7 +187,12 @@ class AsyncBetaWithRawResponse:
         self._beta = beta
 
     @cached_property
+    def agents(self) -> AsyncAgentsWithRawResponse:
+        return AsyncAgentsWithRawResponse(self._beta.agents)
+
+    @cached_property
     def responses(self) -> AsyncResponsesWithRawResponse:
+        """Create and manage model responses."""
         return AsyncResponsesWithRawResponse(self._beta.responses)
 
     @cached_property
@@ -190,7 +215,12 @@ class BetaWithStreamingResponse:
         self._beta = beta
 
     @cached_property
+    def agents(self) -> AgentsWithStreamingResponse:
+        return AgentsWithStreamingResponse(self._beta.agents)
+
+    @cached_property
     def responses(self) -> ResponsesWithStreamingResponse:
+        """Create and manage model responses."""
         return ResponsesWithStreamingResponse(self._beta.responses)
 
     @cached_property
@@ -213,7 +243,12 @@ class AsyncBetaWithStreamingResponse:
         self._beta = beta
 
     @cached_property
+    def agents(self) -> AsyncAgentsWithStreamingResponse:
+        return AsyncAgentsWithStreamingResponse(self._beta.agents)
+
+    @cached_property
     def responses(self) -> AsyncResponsesWithStreamingResponse:
+        """Create and manage model responses."""
         return AsyncResponsesWithStreamingResponse(self._beta.responses)
 
     @cached_property

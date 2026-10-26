@@ -30,6 +30,8 @@ _spec.loader.exec_module(report)
 
 POLICY = ".castiron-ratchet.json"
 NEXT_POLICY_VERSION = 1
+# Inert capability marker read by trusted review invalidation at this exact revision.
+PIN_REVIEW_POLICY = "effective-policy-v1"
 SELECTION_RECEIPT_VERSION = 1
 
 
@@ -59,6 +61,10 @@ def read_policy(repo: Path, revision: str) -> dict[str, Any]:
     if type(version) is not int or version not in (1, 2):
         raise ValueError("unsupported budget schema_version")
     keys = {"schema_version", "max_custom_patch_lines"}
+    if "ratchet" in value:
+        keys.add("ratchet")
+        if value["ratchet"] != "go":
+            raise ValueError("ratchet must be go")
     if version == 2:
         keys.add("generated_files")
     if "next_policy" in value:
@@ -129,14 +135,28 @@ def next_policy_sha(repo: Path, repository: str, base: str, authenticated_main: 
     return cast(str, policy)
 
 
+def supports_effective_pin_review(repo: Path, revision: str) -> bool:
+    """Read the effective checker's inert contract; never execute its source."""
+    revision = report.require_sha(revision)
+    path = "scripts/castiron/custom_code_policy.py"
+    entry = report.git(repo, "ls-tree", revision, "--", path).split()
+    if len(entry) != 4 or entry[0] not in (b"100644", b"100755") or entry[1] != b"blob":
+        return False
+    source = report.git(repo, "show", f"{revision}:{path}")
+    declarations = re.findall(rb"^PIN_REVIEW_POLICY = .*$", source, re.MULTILINE)
+    return declarations == [b'PIN_REVIEW_POLICY = "effective-policy-v1"']
+
+
 class HumanReviewRules(TypedDict):
     version: int
     associations: list[str]
     negative_pattern: str
+    attestation_prefix: str
 
 
 HUMAN_REVIEW_RULES: HumanReviewRules = {
-    "version": 1,
+    "version": 2,
+    "attestation_prefix": "I personally reviewed and approve this policy change as a human: ",
     "associations": ["OWNER", "MEMBER", "COLLABORATOR"],
     "negative_pattern": (
         r"automated[\s_:-]*(?:source[\s_:-]*)?review|source[- ]only review|"
@@ -150,7 +170,7 @@ def has_human_approval(reviews: list[dict[str, Any]], author: str, head: str) ->
     """Versioned review predicate; publisher consumes these same trusted rules."""
     latest: dict[str, dict[str, Any]] = {}
     for review in reviews:
-        if review["state"] != "PENDING":
+        if review["state"] != "PENDING" and review.get("user") is not None:
             login = review["user"]["login"]
             if login not in latest or review["id"] > latest[login]["id"]:
                 latest[login] = review
@@ -161,6 +181,7 @@ def has_human_approval(reviews: list[dict[str, Any]], author: str, head: str) ->
         and review.get("author_association") in HUMAN_REVIEW_RULES["associations"]
         and not review["user"]["login"].endswith("[bot]")
         and review["user"]["login"] != author
+        and (review.get("body") or "").strip() == HUMAN_REVIEW_RULES["attestation_prefix"] + head
         and not re.search(
             HUMAN_REVIEW_RULES["negative_pattern"], review.get("body") or "", re.IGNORECASE
         )
@@ -168,10 +189,14 @@ def has_human_approval(reviews: list[dict[str, Any]], author: str, head: str) ->
     )
 
 
-def require_human_policy_review(repository: str, head: str) -> int:
+def require_human_policy_review(repository: str, head: str, number: int | None = None) -> int:
     """Only live, exact-head human reviews authorize a next policy activation/update."""
     root = f"repos/{repository}"
-    pulls = report.api("GET", f"{root}/commits/{head}/pulls?per_page=100")
+    pulls = (
+        [{"number": number}]
+        if number is not None
+        else report.api("GET", f"{root}/commits/{head}/pulls?per_page=100")
+    )
     current: list[dict[str, Any]] = []
     for item in pulls:
         pull = report.api("GET", f"{root}/pulls/{item['number']}")
@@ -200,6 +225,61 @@ def require_human_policy_review(repository: str, head: str) -> int:
     return int(pull["number"])
 
 
+def requires_human_policy_review(
+    repo: Path, repository: str, base: str, head: str, authenticated_main: str
+) -> bool:
+    """Decide review requirements from Git data using the selector's policy rules."""
+    base_policy = read_policy(repo, base)
+    candidate_policy = read_policy(repo, head)
+    candidate_base_policy = read_policy(repo, merge_base(repo, base, head))
+    budget_increased = (
+        candidate_policy["max_custom_patch_lines"] > candidate_base_policy["max_custom_patch_lines"]
+    )
+    ratchet_activated = (
+        candidate_policy.get("ratchet") == "go" and candidate_base_policy.get("ratchet") != "go"
+    )
+    pin_changed = candidate_policy.get("next_policy") != candidate_base_policy.get("next_policy")
+    if not pin_changed:
+        return budget_increased or ratchet_activated
+    policy = (
+        next_policy_sha(repo, repository, base, authenticated_main)
+        if "next_policy" in base_policy
+        else authenticated_main
+    )
+    candidate = head
+    proposed = read_policy(repo, next_policy_sha(repo, repository, candidate, authenticated_main))
+    # Authored changes come from the merge base, but their safety must be
+    # measured against the active policy: the protected target's pin, or
+    # authenticated main during bootstrap.
+    previous = read_policy(repo, policy)
+    # Bootstrap executes authenticated main; initial adoption must not silently
+    # replace it with older checker code, even when policy fields match.
+    previous_checker = (
+        base_policy["next_policy"]["main_sha"]
+        if "next_policy" in base_policy
+        else authenticated_main
+    )
+    rolled_back = bool(
+        report.git(
+            repo,
+            "rev-list",
+            "--first-parent",
+            f"{candidate_policy['next_policy']['main_sha']}..{previous_checker}",
+        ).strip()
+    )
+    # Compare effective policies, not the candidate's unchanged local ceiling.
+    # Schema/strictness or ratchet transitions also retain human authorization.
+    pin_requires_human = (
+        not supports_effective_pin_review(repo, previous_checker)
+        or rolled_back
+        or proposed["max_custom_patch_lines"] > previous["max_custom_patch_lines"]
+        or proposed["schema_version"] != previous["schema_version"]
+        or proposed.get("generated_files") != previous.get("generated_files")
+        or proposed.get("ratchet") != previous.get("ratchet")
+    )
+    return budget_increased or ratchet_activated or pin_requires_human
+
+
 def select_policy(
     repo: Path,
     repository: str,
@@ -209,6 +289,7 @@ def select_policy(
     authenticated_main: str,
     *,
     pull_heads: list[str] | None = None,
+    pull_numbers: dict[str, int] | None = None,
 ) -> dict[str, Any]:
     """The trusted selector runs before checking out any pinned executable code."""
     base, head, authenticated_main = map(report.require_sha, (base, head, authenticated_main))
@@ -228,7 +309,9 @@ def select_policy(
     head_policy = read_policy(repo, head)
     bootstrap = "next_policy" not in base_policy
     if bootstrap:
-        if "next_policy" not in head_policy or changed_paths(repo, base, head) != {POLICY.encode()}:
+        if "next_policy" not in head_policy or (
+            pull_heads is None and changed_paths(repo, base, head) != {POLICY.encode()}
+        ):
             raise ValueError("missing next pin allows only reviewed policy-only initialization")
         policy = authenticated_main
     else:
@@ -247,7 +330,8 @@ def select_policy(
         raise ValueError("next evaluation has no verified constituent PR")
     for candidate in candidates:
         candidate_policy = read_policy(repo, candidate)
-        candidate_base_policy = read_policy(repo, merge_base(repo, base, candidate))
+        candidate_base = merge_base(repo, base, candidate)
+        candidate_base_policy = read_policy(repo, candidate_base)
         pin_changed = candidate_policy.get("next_policy") != candidate_base_policy.get(
             "next_policy"
         )
@@ -255,10 +339,17 @@ def select_policy(
             candidate_policy["max_custom_patch_lines"]
             > candidate_base_policy["max_custom_patch_lines"]
         )
-        if pin_changed or budget_increased:
-            if changed_paths(repo, base, candidate) != {POLICY.encode()}:
-                raise ValueError("each next policy activation or increase must be policy-only")
-            number = require_human_policy_review(repository, candidate)
+        ratchet_activated = (
+            candidate_policy.get("ratchet") == "go" and candidate_base_policy.get("ratchet") != "go"
+        )
+        if (pin_changed or budget_increased or ratchet_activated) and changed_paths(
+            repo, base, candidate
+        ) != {POLICY.encode()}:
+            raise ValueError("each next policy activation or increase must be policy-only")
+        if requires_human_policy_review(repo, repository, base, candidate, authenticated_main):
+            number = require_human_policy_review(
+                repository, candidate, pull_numbers[candidate] if pull_numbers is not None else None
+            )
             policy_reviews.append({"number": number, "head_sha": candidate})
     return {
         "schema_version": SELECTION_RECEIPT_VERSION,
@@ -306,12 +397,21 @@ def select_github_policy(
         or run["path"].split("@", 1)[0] != source_workflow
     ):
         raise ValueError("unexpected or superseded policy source run")
+    workflow = report.api("GET", f"{root}/actions/workflows/{source_workflow.rsplit('/', 1)[1]}")
+    if (
+        type(run.get("workflow_id")) is not int
+        or run["workflow_id"] != workflow["id"]
+        or workflow["path"] != source_workflow
+    ):
+        raise ValueError("policy source run is not the canonical workflow")
     head = report.require_sha(run["head_sha"])
+    pull_numbers: dict[str, int] = {}
     if run["event"] == "pull_request":
         current = report.current_pull(repository, run)
         if current is None:
             raise ValueError("policy run must identify one current target PR")
-        _, branch = current
+        number, branch = current
+        pull_numbers[head] = number
     elif run["event"] == "merge_group":
         branch = next(
             (
@@ -353,18 +453,23 @@ def select_github_policy(
     if run["event"] == "merge_group":
         if report.git(repo, "merge-base", base, head).decode().strip() != base:
             raise ValueError("policy queue does not contain current next base")
-        entries = queued_entries(repository, branch)
-        if not any(queue == head for _, queue in entries):
+        entries = queued_pull_entries(repository, branch)
+        if not any(queue == head for _, queue, _ in entries):
             raise ValueError("policy queue entry is no longer live")
         heads = []
-        for candidate, queue in entries:
+        for candidate, queue, number in entries:
             report.git(repo, "fetch", "--quiet", "--no-tags", "origin", queue)
             if report.git(repo, "merge-base", queue, head).decode().strip() == queue:
                 report.git(repo, "fetch", "--quiet", "--no-tags", "origin", candidate)
+                if candidate in pull_numbers:
+                    raise ValueError("policy queue has multiple PRs for one head")
+                pull_numbers[candidate] = number
                 heads.append(candidate)
         if not heads:
             raise ValueError("policy queue has no verified constituent PRs")
-    return select_policy(repo, repository, branch, base, head, main, pull_heads=heads)
+    return select_policy(
+        repo, repository, branch, base, head, main, pull_heads=heads, pull_numbers=pull_numbers
+    )
 
 
 def merge_base(repo: Path, base: str, head: str) -> str:
@@ -397,18 +502,22 @@ def changed_paths(repo: Path, base: str, head: str) -> set[bytes]:
 
 
 def queued_entries(repository: str, branch: str) -> list[tuple[str, str]]:
+    return [(head, queue) for head, queue, _ in queued_pull_entries(repository, branch)]
+
+
+def queued_pull_entries(repository: str, branch: str) -> list[tuple[str, str, int]]:
     """Query the actual queue; never infer PR membership from commit messages."""
     owner, name = repository.split("/")
     query = """query($owner:String!,$name:String!,$branch:String!,$cursor:String) {
       repository(owner:$owner,name:$name) { mergeQueue(branch:$branch) {
         entries(first:100,after:$cursor) {
-          nodes { pullRequest { headRefOid } headCommit { oid } }
+          nodes { pullRequest { number headRefOid } headCommit { oid } }
           pageInfo { hasNextPage endCursor }
         }
       } }
     }"""
     cursor = None
-    heads: list[tuple[str, str]] = []
+    heads: list[tuple[str, str, int]] = []
     while True:
         response = report.api(
             "POST",
@@ -426,6 +535,7 @@ def queued_entries(repository: str, branch: str) -> list[tuple[str, str]]:
                     (
                         report.require_sha(node["pullRequest"]["headRefOid"]),
                         report.require_sha(node["headCommit"]["oid"]),
+                        int(node["pullRequest"]["number"]),
                     )
                 )
         page = entries["pageInfo"]
@@ -439,6 +549,12 @@ def queued_entries(repository: str, branch: str) -> list[tuple[str, str]]:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
+    review = commands.add_parser("review-required")
+    review.add_argument("--repo", type=Path, required=True)
+    review.add_argument("--repository", required=True)
+    review.add_argument("--base", required=True)
+    review.add_argument("--head", required=True)
+    review.add_argument("--main", required=True)
     selection = commands.add_parser("select-policy")
     selection.add_argument("--repo", type=Path, required=True)
     selection.add_argument("--repository", required=True)
@@ -451,6 +567,39 @@ def main(argv: list[str] | None = None) -> int:
         default=".github/workflows/castiron-custom-code.yml",
     )
     args = parser.parse_args(argv)
+    if args.command == "review-required":
+        if not report.REPOSITORY.fullmatch(args.repository):
+            raise ValueError("invalid policy repository")
+        base, head, main = map(report.require_sha, (args.base, args.head, args.main))
+        if args.repo.exists():
+            raise ValueError("policy object directory must be fresh")
+        args.repo.mkdir()
+        report.git(args.repo, "init", "--quiet", "--bare")
+        report.git(
+            args.repo, "remote", "add", "origin", f"https://github.com/{args.repository}.git"
+        )
+        report.git(
+            args.repo,
+            "fetch",
+            "--quiet",
+            "--no-tags",
+            "origin",
+            "+refs/heads/main:refs/remotes/origin/main",
+            base,
+            head,
+        )
+        if report.git(args.repo, "rev-parse", "refs/remotes/origin/main").decode().strip() != main:
+            raise ValueError("authenticated main changed during review evaluation; retry")
+        print(
+            json.dumps(
+                {
+                    "requires_human": requires_human_policy_review(
+                        args.repo, args.repository, base, head, main
+                    )
+                }
+            )
+        )
+        return 0
     selected = select_github_policy(
         args.repo,
         args.repository,

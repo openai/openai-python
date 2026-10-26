@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import Optional
 from typing_extensions import Literal
@@ -12,11 +12,11 @@ class ImageURL(BaseModel):
     url: str
     """Either a URL of the image or the base64 encoded image data."""
 
-    detail: Optional[Literal["auto", "low", "high"]] = None
+    detail: Optional[Literal["auto", "low", "high", "original"]] = None
     """Specifies the detail level of the image.
 
     Learn more in the
-    [Vision guide](https://platform.openai.com/docs/guides/vision#low-or-high-fidelity-image-understanding).
+    [Vision guide](https://developers.openai.com/api/docs/guides/images-vision#choose-an-image-detail-level).
     """
 
 
@@ -29,9 +29,14 @@ class PromptCacheBreakpoint(BaseModel):
     mode: Literal["explicit"]
     """The breakpoint mode. Always `explicit`."""
 
+    ttl: Optional[Literal["30m", "12h"]] = None
+    """The minimum lifetime of this cache breakpoint. Defaults to the request TTL."""
+
 
 class ChatCompletionContentPartImage(BaseModel):
-    """Learn about [image inputs](https://platform.openai.com/docs/guides/vision)."""
+    """
+    Learn about [image inputs](https://developers.openai.com/api/docs/guides/images-vision).
+    """
 
     image_url: ImageURL
 

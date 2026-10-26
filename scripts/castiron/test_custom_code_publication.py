@@ -6,41 +6,20 @@ from __future__ import annotations
 import hashlib
 import json
 import shutil
-import subprocess
 import unittest
 from pathlib import Path
-from typing import Any, cast
+from typing import Any
 from unittest import mock
 
 import custom_code_policy as policy
 import custom_code_report as report
-from custom_code_test_support import GitTestCase, source_run
-
-WORKFLOW = (
-    Path(__file__).resolve().parents[2] / ".github/workflows/castiron-custom-code-comment.yml"
+from custom_code_test_support import (
+    WORKFLOW,
+    GitTestCase,
+    run_publisher,
+    run_workflow_script,
+    source_run,
 )
-
-
-def run_publisher(step: str, payload: dict[str, Any]) -> list[dict[str, Any]]:
-    section = WORKFLOW.read_text().split(f"- name: {step}\n", 1)[1]
-    script = section.split("          script: |\n", 1)[1]
-    lines: list[str] = []
-    for line in script.splitlines():
-        if line and not line.startswith("            "):
-            break
-        lines.append(line[12:])
-    return run_workflow_script("\n".join(lines), payload)
-
-
-def run_workflow_script(script: str, payload: dict[str, Any]) -> list[dict[str, Any]]:
-    output = subprocess.run(
-        ["node", str(Path(__file__).with_name("fixtures") / "github_publisher.cjs")],
-        input=json.dumps({**payload, "script": script}),
-        text=True,
-        capture_output=True,
-        check=True,
-    )
-    return cast(list[dict[str, Any]], json.loads(output.stdout))
 
 
 class WorkflowTests(unittest.TestCase):
@@ -455,8 +434,11 @@ class StatusPublisherTests(unittest.TestCase):
         same_head_next_pr: bool = False,
         policy_reviews: list[dict[str, Any]] | None = None,
         reviews: list[dict[str, Any]] | None = None,
+        review_nodes: list[dict[str, Any]] | None = None,
+        review_pages: list[dict[str, Any]] | None = None,
         policy_pull: dict[str, Any] | None = None,
         missing_review_contract: bool = False,
+        review_contract: dict[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
         base, head = "a" * 40, "b" * 40
         run = source_run(head, event_name)
@@ -464,6 +446,23 @@ class StatusPublisherTests(unittest.TestCase):
             run["head_branch"] = f"gh-readonly-queue/{branch}/pr-7-example"
         payload: dict[str, Any] = {
             "reviews": reviews or [],
+            "review_nodes": review_nodes
+            if review_nodes is not None
+            else [
+                {
+                    "fullDatabaseId": str(review["id"]),
+                    "state": review["state"],
+                    "body": review.get("body"),
+                    "commit": {"oid": review.get("commit_id")},
+                    "author": {
+                        "login": review["user"]["login"],
+                        "__typename": review["user"]["type"],
+                    },
+                    "authorAssociation": review.get("author_association"),
+                }
+                for review in reviews or []
+            ],
+            "review_pages": review_pages,
             "main_sha": "d" * 40
             if policy_changed
             else (policy_sha or ("c" * 40 if branch == "main" and base_changed else base)),
@@ -496,7 +495,9 @@ class StatusPublisherTests(unittest.TestCase):
                 "POLICY_REVIEWS": json.dumps(policy_reviews or []),
                 "HUMAN_REVIEW_RULES": ""
                 if missing_review_contract
-                else json.dumps(policy.HUMAN_REVIEW_RULES),
+                else json.dumps(
+                    policy.HUMAN_REVIEW_RULES if review_contract is None else review_contract
+                ),
                 "SELECTED_BRANCH": branch,
                 "SELECTED_BASE_SHA": base,
                 "SELECTED_HEAD_SHA": head,
@@ -536,7 +537,7 @@ class StatusPublisherTests(unittest.TestCase):
             "commit_id": head,
             "user": {"login": "human", "type": "User"},
             "author_association": "MEMBER",
-            "body": "",
+            "body": policy.HUMAN_REVIEW_RULES["attestation_prefix"] + head,
         }
         cases = [
             [approved],
@@ -550,6 +551,10 @@ class StatusPublisherTests(unittest.TestCase):
             [{**approved, "author_association": "NONE"}],
         ]
         for body in [
+            "",
+            "Looks good to me",
+            policy.HUMAN_REVIEW_RULES["attestation_prefix"] + "f" * 40,
+            "> " + policy.HUMAN_REVIEW_RULES["attestation_prefix"] + head,
             "<!-- pr-review:automated-review:v1 -->",
             "Automated source review.",
             "Source-only review; I did not execute candidate code or workflows.",
@@ -567,6 +572,80 @@ class StatusPublisherTests(unittest.TestCase):
                 )
                 self.assertEqual([w["state"] for w in writes], [expected, expected])
 
+    def test_final_publisher_preserves_review_identity_precision(self) -> None:
+        head = "b" * 40
+        approval = {
+            "id": 9007199254740992,
+            "state": "APPROVED",
+            "commit_id": head,
+            "user": {"login": "human", "type": "User"},
+            "author_association": "MEMBER",
+            "body": policy.HUMAN_REVIEW_RULES["attestation_prefix"] + head,
+        }
+        replacement = {**approval, "id": 9007199254740993, "state": "COMMENTED"}
+        for reviews in ([approval, replacement], [replacement, approval]):
+            with self.subTest(reviews=reviews):
+                writes = self.publish(
+                    branch="next",
+                    policy_reviews=[{"number": 3, "head_sha": head}],
+                    reviews=reviews,
+                )
+                self.assertEqual([w["state"] for w in writes], ["failure"] * 2)
+        writes = self.publish(
+            branch="next",
+            policy_reviews=[{"number": 3, "head_sha": head}],
+            reviews=[{**replacement, "state": "APPROVED"}, {**approval, "state": "DISMISSED"}],
+        )
+        self.assertEqual([w["state"] for w in writes], ["success"] * 2)
+
+    def test_final_publisher_review_pages_and_malformed_identity(self) -> None:
+        head = "b" * 40
+        approval = {
+            "fullDatabaseId": "9007199254740992",
+            "state": "APPROVED",
+            "commit": {"oid": head},
+            "author": {"login": "human", "__typename": "User"},
+            "authorAssociation": "MEMBER",
+            "body": policy.HUMAN_REVIEW_RULES["attestation_prefix"] + head,
+        }
+
+        def publish(**kwargs: Any) -> list[str]:
+            return [
+                w["state"]
+                for w in self.publish(
+                    branch="next",
+                    policy_reviews=[{"number": 3, "head_sha": head}],
+                    **kwargs,
+                )
+            ]
+
+        self.assertEqual(publish(review_nodes=[approval]), ["success"] * 2)
+        for identity in (None, "", "1.5", "-1", "0", 9007199254740992):
+            with self.subTest(identity=identity):
+                self.assertEqual(
+                    publish(review_nodes=[{**approval, "fullDatabaseId": identity}]),
+                    ["failure"] * 2,
+                )
+        pages: list[dict[str, Any]] = [
+            {
+                "expected_cursor": None,
+                "nodes": [approval],
+                "pageInfo": {"hasNextPage": True, "endCursor": "page2"},
+            },
+            {
+                "expected_cursor": "page2",
+                "nodes": [{**approval, "fullDatabaseId": "9007199254740993", "state": "DISMISSED"}],
+                "pageInfo": {"hasNextPage": False, "endCursor": None},
+            },
+        ]
+        self.assertEqual(publish(review_pages=pages), ["failure"] * 2)
+        self.assertEqual(
+            publish(
+                review_pages=[{**pages[0], "pageInfo": {"hasNextPage": True, "endCursor": None}}]
+            ),
+            ["failure"] * 2,
+        )
+
     def test_queue_policy_approval_dismissal_after_selection_fails(self) -> None:
         candidate = "e" * 40
         pull: dict[str, Any] = {
@@ -582,7 +661,7 @@ class StatusPublisherTests(unittest.TestCase):
             "commit_id": candidate,
             "user": {"login": "human", "type": "User"},
             "author_association": "MEMBER",
-            "body": "",
+            "body": policy.HUMAN_REVIEW_RULES["attestation_prefix"] + candidate,
         }
         for state in ("APPROVED", "DISMISSED", "CHANGES_REQUESTED"):
             with self.subTest(state=state):
@@ -631,7 +710,7 @@ class StatusPublisherTests(unittest.TestCase):
             "commit_id": candidate,
             "user": {"login": "human", "type": "User"},
             "author_association": "MEMBER",
-            "body": "",
+            "body": policy.HUMAN_REVIEW_RULES["attestation_prefix"] + candidate,
         }
         for changed in [
             {**pull, "state": "closed"},
@@ -653,6 +732,20 @@ class StatusPublisherTests(unittest.TestCase):
             [w["state"] for w in self.publish(branch="next", missing_review_contract=True)],
             ["failure", "failure"],
         )
+
+    def test_legacy_review_contract_fails_closed_only_on_next(self) -> None:
+        legacy = {
+            key: value
+            for key, value in policy.HUMAN_REVIEW_RULES.items()
+            if key != "attestation_prefix"
+        }
+        legacy["version"] = 1
+        for branch, expected in (("next", "failure"), ("main", "success")):
+            with self.subTest(branch=branch):
+                self.assertEqual(
+                    [w["state"] for w in self.publish(branch=branch, review_contract=legacy)],
+                    [expected, expected],
+                )
 
     def test_statuses_attach_to_candidate_not_main(self) -> None:
         for event in ("pull_request", "merge_group"):
@@ -801,6 +894,22 @@ class StatusPublisherTests(unittest.TestCase):
                 self.assertEqual(result["state"], "failure")
                 self.assertIn("inspect the trusted run", result["description"])
                 self.assertTrue(result["target_url"].endswith("/actions/runs/123"))
+
+    def test_main_rejects_mismatched_selector_receipt(self) -> None:
+        results = self.publish(selected_policy_matches=False)
+        self.assertTrue(results)
+        self.assertTrue(all(result["state"] != "success" for result in results))
+
+    def test_lookalike_workflow_cannot_publish(self) -> None:
+        self.assertEqual(
+            self.publish(
+                run_overrides={
+                    "path": ".github/workflows/castiron-custom-code.yml@evil.yml",
+                    "workflow_id": 789,
+                }
+            ),
+            [],
+        )
 
     def test_superseded_or_wrong_source_run_cannot_publish(self) -> None:
         for overrides in (

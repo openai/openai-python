@@ -1,0 +1,920 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Browser work, made visible</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        color: #1d2c24;
+        background: #f9faf7;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+      }
+      header {
+        padding: 24px 4%;
+        border-bottom: 1px solid #dfe5dc;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .wordmark {
+        font-weight: 650;
+        font-size: 18px;
+        letter-spacing: -0.5px;
+      }
+      .eyebrow {
+        color: #6b7c6b;
+        font:
+          11px ui-monospace,
+          monospace;
+        text-transform: uppercase;
+        letter-spacing: 1.6px;
+      }
+      main {
+        max-width: 1480px;
+        padding: 35px 4% 40px;
+        margin: auto;
+      }
+      .intro {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 24px;
+      }
+      h1 {
+        margin: 9px 0 8px;
+        font-size: clamp(30px, 3.2vw, 44px);
+        line-height: 1.08;
+        font-weight: 550;
+        letter-spacing: -1.6px;
+      }
+      .lead {
+        margin: 0;
+        color: #718073;
+        font-size: 15px;
+        line-height: 1.6;
+      }
+      .pill {
+        border: 1px solid #d7e2d2;
+        color: #52674f;
+        padding: 8px 12px;
+        border-radius: 30px;
+        font:
+          11px ui-monospace,
+          monospace;
+        white-space: nowrap;
+      }
+      .tasks {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 13px;
+        margin: 26px 0 22px;
+      }
+      .task {
+        background: white;
+        text-align: left;
+        border: 1px solid #dce4d7;
+        border-radius: 11px;
+        padding: 18px;
+        color: inherit;
+        cursor: pointer;
+      }
+      .task[aria-pressed='true'] {
+        background: #eef5e8;
+        border-color: #77936b;
+        box-shadow: inset 0 0 0 1px #77936b;
+      }
+      .number {
+        font:
+          11px ui-monospace,
+          monospace;
+        color: #769165;
+      }
+      .task strong {
+        display: block;
+        margin: 10px 0 5px;
+        font-size: 15px;
+        font-weight: 600;
+      }
+      .task p {
+        color: #74806f;
+        font:
+          12px/1.6 -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          sans-serif;
+        margin: 0;
+      }
+      .controls {
+        display: flex;
+        gap: 14px;
+        align-items: flex-end;
+        margin-bottom: 18px;
+        flex-wrap: wrap;
+      }
+      label {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        font-size: 11px;
+        color: #71806b;
+      }
+      #files-opt-in {
+        flex-basis: 100%;
+        flex-direction: row;
+        align-items: center;
+        font-size: 13px;
+      }
+      select {
+        padding: 10px 34px 10px 12px;
+        min-width: 175px;
+        font: 13px inherit;
+        font-family: inherit;
+        color: #293d2b;
+        background: white;
+        border: 1px solid #d8e1d3;
+        border-radius: 7px;
+      }
+      button {
+        font-family: inherit;
+      }
+      .button {
+        padding: 11px 18px;
+        font-size: 13px;
+        border: 1px solid #d1decb;
+        border-radius: 7px;
+        cursor: pointer;
+        background: white;
+        color: #40583a;
+      }
+      .button.primary {
+        background: #274e32;
+        color: white;
+        border-color: #274e32;
+      }
+      button:disabled {
+        opacity: 0.45;
+        cursor: default;
+      }
+      .availability {
+        color: #7b8775;
+        font-size: 11px;
+        flex: 1;
+        text-align: right;
+        padding-bottom: 10px;
+      }
+      .workspace {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 310px;
+        gap: 16px;
+      }
+      .viewer,
+      .sidebar {
+        background: white;
+        border: 1px solid #dce4d7;
+        border-radius: 11px;
+        overflow: hidden;
+      }
+      .bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 13px 17px;
+        border-bottom: 1px solid #e7ece2;
+        font:
+          11px ui-monospace,
+          monospace;
+        color: #7c8876;
+      }
+      #dimensions {
+        white-space: nowrap;
+      }
+      .dots {
+        display: flex;
+        gap: 5px;
+      }
+      .dots i {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #d9e3d2;
+      }
+      .view {
+        min-height: 385px;
+        background: #f1f4ed;
+        position: relative;
+        display: grid;
+        place-items: center;
+      }
+      #screen {
+        width: 100%;
+        height: auto;
+        display: none;
+      }
+      #screen[src] {
+        display: block;
+      }
+      #screen[aria-disabled='false'] {
+        cursor: crosshair;
+        outline: 2px solid #527d43;
+        outline-offset: -2px;
+      }
+      .handoff {
+        margin-top: 17px;
+        padding: 14px 0;
+        border-block: 1px solid #e5ebdf;
+      }
+      .handoff .buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        margin-top: 10px;
+      }
+      .handoff .button {
+        font-size: 11px;
+        padding: 8px 10px;
+      }
+      #owner-status {
+        display: block;
+        color: #355632;
+        font-size: 13px;
+      }
+      #session-expiry {
+        color: #788872;
+        font-size: 11px;
+        display: block;
+        margin-top: 4px;
+      }
+      #human-controls {
+        min-width: 0;
+        margin: 12px 0 0;
+        padding: 0;
+        border: 0;
+      }
+      #human-controls label {
+        display: block;
+        margin: 9px 0;
+        color: #617259;
+        font-size: 11px;
+      }
+      #human-controls input,
+      #human-controls textarea,
+      #human-controls select {
+        box-sizing: border-box;
+        display: block;
+        width: 100%;
+        min-width: 0;
+        margin-top: 4px;
+        padding: 8px;
+        font: inherit;
+        border: 1px solid #d9e3d2;
+        border-radius: 5px;
+        background: white;
+      }
+      #human-controls textarea {
+        resize: vertical;
+      }
+      .scroll-fields {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 8px;
+      }
+      .empty {
+        text-align: center;
+        color: #90a083;
+        padding: 50px;
+      }
+      .empty .symbol {
+        font:
+          64px Georgia,
+          serif;
+        color: #b9c8ae;
+        line-height: 1;
+        margin-bottom: 20px;
+      }
+      .empty strong {
+        display: block;
+        color: #718367;
+        font-size: 15px;
+        font-weight: 500;
+      }
+      .empty p {
+        font-size: 12px;
+      }
+      .viewer-footer {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 17px;
+        color: #7a8774;
+        font-size: 10px;
+        border-top: 1px solid #e5eade;
+      }
+      .history {
+        padding: 12px 17px;
+        border-top: 1px solid #e5eade;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: 12px;
+      }
+      .history label {
+        flex: 1;
+        min-width: min(230px, 100%);
+      }
+      #history-note {
+        flex-basis: 100%;
+        color: #7a8774;
+        font-size: 11px;
+      }
+      .sidebar {
+        padding: 18px;
+      }
+      .status-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+      #status {
+        color: #355632;
+        font:
+          11px ui-monospace,
+          monospace;
+        background: #eef5e9;
+        border-radius: 20px;
+        padding: 5px 9px;
+      }
+      #status[data-tone='failed'] {
+        color: #8d2727;
+        background: #fceaea;
+      }
+      #status[data-tone='unverified'] {
+        color: #80590b;
+        background: #fff3d5;
+      }
+      .metrics {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+        padding-bottom: 17px;
+        border-bottom: 1px solid #e5ebdf;
+      }
+      .metric strong {
+        font-size: 23px;
+        letter-spacing: -0.6px;
+        font-weight: 500;
+        display: block;
+      }
+      .metric span {
+        font-size: 10px;
+        color: #83907b;
+      }
+      .section-label {
+        font:
+          10px ui-monospace,
+          monospace;
+        color: #839079;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        margin: 19px 0 13px;
+      }
+      #timeline {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        max-height: 370px;
+        overflow-y: auto;
+      }
+      #timeline li {
+        padding: 0 0 14px 16px;
+        border-left: 1px solid #dae4d2;
+        position: relative;
+        font-size: 11px;
+        line-height: 1.5;
+      }
+      #timeline li::before {
+        content: '';
+        position: absolute;
+        width: 5px;
+        height: 5px;
+        top: 5px;
+        left: -3px;
+        background: #89a078;
+        border-radius: 100%;
+      }
+      #timeline small {
+        display: block;
+        color: #99a38f;
+        font:
+          9px ui-monospace,
+          monospace;
+        margin-top: 2px;
+      }
+      #tool-inspector {
+        margin-top: 1rem;
+      }
+      #tool-fields {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+        gap: 0.6rem;
+      }
+      #tool-fields label {
+        display: grid;
+        gap: 0.2rem;
+      }
+      #tool-fields input,
+      #tool-fields select,
+      #tool-fields textarea,
+      #tool-name {
+        font: inherit;
+        max-width: 100%;
+        padding: 0.5rem;
+        border: 1px solid var(--line);
+        border-radius: 0.3rem;
+      }
+      #tool-result {
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        max-height: 21rem;
+        overflow: auto;
+      }
+      .approval {
+        margin-top: 16px;
+        border: 1px solid #d7b968;
+        background: #fffcf0;
+        padding: 15px;
+        border-radius: 8px;
+      }
+      .approval strong {
+        font-size: 13px;
+        color: #67582b;
+      }
+      .approval p {
+        font-size: 12px;
+        color: #88773d;
+        line-height: 1.5;
+      }
+      .approval .buttons {
+        display: flex;
+        gap: 8px;
+      }
+      .approval .button {
+        font-size: 11px;
+        padding: 8px 11px;
+      }
+      #message {
+        font-size: 12px;
+        color: #71806a;
+        min-height: 20px;
+        margin: 12px 0 0;
+      }
+      footer {
+        display: flex;
+        justify-content: space-between;
+        gap: 24px;
+        padding-top: 19px;
+        color: #8b9782;
+        font-size: 10px;
+        line-height: 1.7;
+      }
+      footer span {
+        max-width: 550px;
+      }
+      a {
+        color: #526f44;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      @media (max-width: 900px) {
+        .tasks {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .workspace {
+          grid-template-columns: minmax(0, 1fr) 260px;
+        }
+        .availability {
+          width: 100%;
+          text-align: left;
+        }
+      }
+      @media (max-width: 700px) {
+        .intro {
+          display: block;
+        }
+        .intro .pill {
+          display: none;
+        }
+        .tasks {
+          grid-template-columns: 1fr;
+        }
+        .task {
+          padding: 12px 16px;
+        }
+        .task strong {
+          margin: 4px 0;
+        }
+        .workspace {
+          grid-template-columns: 1fr;
+        }
+        .view {
+          min-height: 220px;
+        }
+        footer {
+          display: block;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <span class="wordmark">OpenAI <span style="color: #9ba68f; font-weight: 400">/ Fieldwork</span></span>
+      <span class="eyebrow">SDK example</span>
+    </header>
+    <main>
+      <section class="intro">
+        <div>
+          <div class="eyebrow">A working browser. A visible result.</div>
+          <h1>Book a table.</h1>
+          <p class="lead">
+            Watch the agent fill a local reservation. Approve its submission or take control.
+          </p>
+        </div>
+        <span class="pill">Isolated · Synthetic · Local</span>
+      </section>
+      <div class="controls">
+        <label
+          >API<select id="api">
+            <option value="responses">Responses · Open-ended (default)</option>
+            <option value="decisions">Decisions · Known candidates</option>
+          </select></label
+        >
+        <label
+          >Run mode<select id="mode">
+            <option value="live">Live API</option>
+            <option value="rehearsal">Local rehearsal · Decisions, no API</option>
+          </select></label
+        >
+        <button id="start" class="button primary">Start task →</button>
+        <button id="stop" class="button" disabled>Stop</button>
+        <span class="availability" id="availability"></span>
+      </div>
+      <div class="workspace">
+        <section class="viewer" aria-label="Actual workspace view">
+          <div class="bar">
+            <span class="dots"><i></i><i></i><i></i></span> <span id="address">Local reservation</span
+            ><span>1024 × 720</span>
+          </div>
+          <div class="view">
+            <div class="empty" id="empty">
+              <div class="symbol">⌘</div>
+              <strong>Your browser is ready.</strong>
+              <p>Start a task to see the actual browser screen.</p>
+            </div>
+            <img id="screen" alt="Current pixels from the isolated task browser" aria-disabled="true" />
+          </div>
+          <div class="viewer-footer">
+            <span id="view-kind">Actual browser · view only</span>
+            <span id="snapshot-time">No run yet</span>
+          </div>
+        </section>
+        <aside class="sidebar">
+          <div class="status-row">
+            <span class="eyebrow">Run activity</span><span id="status" role="status">Ready</span>
+          </div>
+          <div class="metrics">
+            <div class="metric"><strong id="elapsed">—</strong><span>elapsed time</span></div>
+            <div class="metric"><strong id="requests">—</strong><span>API attempts</span></div>
+          </div>
+          <section class="handoff" aria-label="Browser control">
+            <strong id="owner-status" role="status">No active browser</strong>
+            <span id="session-expiry"></span>
+            <div class="buttons">
+              <button id="take-control" class="button" disabled>Take control</button>
+              <button id="return-control" class="button" disabled>Return to agent</button>
+            </div>
+            <fieldset id="human-controls" disabled hidden>
+              <legend class="section-label">Your input</legend>
+              <label
+                >Text to type<textarea
+                  id="human-text"
+                  rows="2"
+                  maxlength="2000"
+                  autocomplete="off"
+                ></textarea>
+              </label>
+              <button id="send-text" class="button">Type text</button>
+              <label
+                >Key<select id="human-key">
+                  <option>Enter</option>
+                  <option>Tab</option>
+                  <option>Backspace</option>
+                  <option>Delete</option>
+                  <option>Escape</option>
+                  <option>ArrowUp</option>
+                  <option>ArrowDown</option>
+                  <option>ArrowLeft</option>
+                  <option>ArrowRight</option>
+                  <option>Home</option>
+                  <option>End</option>
+                  <option>PageUp</option>
+                  <option>PageDown</option>
+                  <option>Space</option>
+                  <option>ControlOrMeta+A</option>
+                </select></label
+              >
+              <button id="send-key" class="button">Send key</button>
+              <div class="scroll-fields">
+                <label
+                  >Scroll<select id="scroll-direction">
+                    <option value="down">Down</option>
+                    <option value="up">Up</option>
+                    <option value="left">Left</option>
+                    <option value="right">Right</option>
+                  </select></label
+                >
+                <label>Pixels<input id="scroll-amount" type="number" min="1" max="2048" value="512" /></label>
+              </div>
+              <button id="send-scroll" class="button">Scroll</button>
+            </fieldset>
+          </section>
+          <div class="section-label">Action timeline</div>
+          <ol id="timeline">
+            <li>Actions will appear here.<small>Start a task to begin</small></li>
+          </ol>
+          <section class="approval" id="approval" hidden>
+            <strong>Approval needed</strong>
+            <p id="approval-text"></p>
+            <div class="buttons">
+              <button id="approve" class="button primary">Approve action</button>
+              <button id="refuse" class="button">Refuse</button>
+            </div>
+          </section>
+        </aside>
+      </div>
+      <p id="message" role="alert"></p>
+      <footer>
+        <span>The page checks the four fields and the final confirmation. No real booking is made.</span>
+        <span>Rehearsal makes no API request; it is not a live benchmark.</span>
+      </footer>
+    </main>
+    <script type="module" nonce="__NONCE__">
+      const byId = (id) => document.getElementById(id);
+      const token = new URLSearchParams(location.hash.slice(1)).get('token') || '';
+      history.replaceState(null, '', location.pathname);
+      let current = null;
+      let liveAvailable = {};
+      let busy = false;
+      let pictureURL = null;
+      let displayed = null;
+      let polling = false;
+      const binding = (run) => ({
+        runId: run.id,
+        ownerVersion: run.ownerVersion,
+        tabId: run.browser?.tabId ?? null,
+        sequence: run.browser?.sequence ?? null,
+      });
+      async function request(path, body) {
+        const response = await fetch(path, {
+          method: body === undefined ? 'GET' : 'POST',
+          headers: {
+            'X-Demo-Token': token,
+            ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
+          },
+          ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+          cache: 'no-store',
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'The request did not finish.');
+        return result;
+      }
+      function discardFrame() {
+        byId('screen').removeAttribute('src');
+        if (pictureURL) URL.revokeObjectURL(pictureURL);
+        pictureURL = null;
+        displayed = null;
+        byId('empty').hidden = false;
+      }
+      function render() {
+        const active = Boolean(current && (current.owner !== 'stopped' || current.closing));
+        const configured = liveAvailable[byId('api').value] === true;
+        byId('mode').disabled = active || busy;
+        byId('api').disabled = active || busy || byId('mode').value === 'rehearsal';
+        byId('start').disabled = active || busy || (byId('mode').value === 'live' && !configured);
+        byId('stop').disabled = !active || busy;
+        byId('availability').textContent =
+          byId('mode').value === 'rehearsal'
+            ? 'Scripted locally. No API key or request.'
+            : configured
+              ? 'Live API configured on the local server.'
+              : 'Configure a server key and model, or choose rehearsal.';
+        const human = current?.owner === 'human' && !current.humanInputBusy && !current.uncertainEffects;
+        const frameCurrent = Boolean(
+          current?.browser &&
+          displayed?.runId === current.id &&
+          displayed.ownerVersion === current.ownerVersion &&
+          displayed.tabId === current.browser.tabId &&
+          displayed.sequence === current.browser.sequence,
+        );
+        byId('take-control').disabled =
+          busy || current?.owner !== 'agent' || current?.humanInputBusy || !frameCurrent;
+        byId('return-control').disabled = busy || !human;
+        byId('human-controls').hidden = !human;
+        byId('human-controls').disabled = busy || !human || !frameCurrent;
+        byId('screen').setAttribute('aria-disabled', String(!human || busy || !frameCurrent));
+        byId('approval').hidden = !current?.approval;
+        byId('approve').disabled = busy || !current?.approval || !frameCurrent;
+        byId('refuse').disabled = busy || !current?.approval;
+        if (!current) return;
+        byId('status').textContent =
+          current.status === 'complete' &&
+          current.owner === 'stopped' &&
+          !current.closing &&
+          current.result === 'verified'
+            ? 'Verified'
+            : current.status;
+        byId('elapsed').textContent = `${(current.elapsedMs / 1000).toFixed(1)}s`;
+        byId('requests').textContent = String(current.requests);
+        byId('owner-status').textContent = {
+          agent: 'Agent working',
+          human: 'You control the browser',
+          'draining-to-human': 'Waiting for agent work to finish…',
+          'draining-to-agent': 'Reading the current page…',
+          stopped: 'Session ended',
+        }[current.owner];
+        byId('session-expiry').textContent = current.sessionExpiresAt
+          ? `Human control expires at ${new Date(current.sessionExpiresAt).toLocaleTimeString()}.`
+          : '';
+        byId('view-kind').textContent = human
+          ? 'Live browser · click to interact'
+          : current.owner === 'stopped'
+            ? 'Final checked browser image'
+            : 'Live browser · view only';
+        byId('snapshot-time').textContent = current.screenshotAt
+          ? new Date(current.screenshotAt).toLocaleTimeString()
+          : '';
+        byId('approval-text').textContent = current.approval
+          ? `Approve “${current.approval.label}” for this synthetic reservation?`
+          : '';
+        byId('timeline').replaceChildren(
+          ...current.events.map((event) => {
+            const line = document.createElement('li');
+            const at = document.createElement('small');
+            line.textContent = event.text;
+            at.textContent = `${event.kind} · ${(event.atMs / 1000).toFixed(1)}s`;
+            line.append(at);
+            return line;
+          }),
+        );
+      }
+      async function refreshFrame(run) {
+        const pair = run.owner === 'stopped' ? run.screenshotBinding : run.browser;
+        if (!pair) {
+          discardFrame();
+          return;
+        }
+        const endpoint = run.owner === 'stopped' ? 'screenshot' : 'view';
+        const response = await fetch(
+          `/api/${endpoint}?run=${encodeURIComponent(run.id)}&tabId=${encodeURIComponent(pair.tabId)}&sequence=${pair.sequence}`,
+          { headers: { 'X-Demo-Token': token }, cache: 'no-store' },
+        );
+        if (!response.ok) {
+          if (current?.id === run.id) discardFrame();
+          return;
+        }
+        const image = await response.blob();
+        if (
+          current?.id !== run.id ||
+          current.ownerVersion !== run.ownerVersion ||
+          (current.owner !== 'stopped' &&
+            (current.browser?.tabId !== pair.tabId || current.browser?.sequence !== pair.sequence))
+        )
+          return;
+        const previous = pictureURL;
+        const next = URL.createObjectURL(image);
+        const screen = byId('screen');
+        displayed = null;
+        render();
+        pictureURL = next;
+        screen.src = next;
+        if (previous) URL.revokeObjectURL(previous);
+        await screen.decode();
+        if (current !== run || pictureURL !== next) return;
+        displayed = binding(run);
+        byId('empty').hidden = true;
+        render();
+      }
+      async function poll() {
+        if (polling) return;
+        polling = true;
+        try {
+          const state = await request('/api/state');
+          liveAvailable = state.liveAvailable;
+          const previous = current;
+          current = state.run;
+          if (!current || previous?.id !== current.id || previous.ownerVersion !== current.ownerVersion)
+            discardFrame();
+          render();
+          if (current) await refreshFrame(current);
+        } catch (error) {
+          byId('message').textContent = error.message;
+          discardFrame();
+        } finally {
+          polling = false;
+        }
+      }
+      async function control(path, extra = {}) {
+        const frameControl =
+          path === '/api/input'
+            ? 'human-controls'
+            : path === '/api/approval' && extra.approved === true
+              ? 'approve'
+              : null;
+        if (!current || busy || (frameControl && byId(frameControl).disabled)) return;
+        busy = true;
+        const run = current;
+        render();
+        try {
+          await request(path, { ...(frameControl ? displayed : binding(run)), ...extra });
+          byId('message').textContent = '';
+        } catch (error) {
+          byId('message').textContent = error.message;
+        } finally {
+          busy = false;
+          await poll();
+          render();
+        }
+      }
+      byId('mode').addEventListener('change', () => {
+        byId('api').value = byId('mode').value === 'rehearsal' ? 'decisions' : 'responses';
+        render();
+      });
+      byId('api').addEventListener('change', render);
+      byId('start').addEventListener('click', async () => {
+        if (busy || byId('start').disabled) return;
+        busy = true;
+        render();
+        try {
+          current = await request('/api/start', {
+            taskId: 'reservation',
+            api: byId('api').value,
+            mode: byId('mode').value,
+          });
+          byId('message').textContent = '';
+        } catch (error) {
+          byId('message').textContent = error.message;
+        } finally {
+          busy = false;
+          await poll();
+          render();
+        }
+      });
+      byId('stop').addEventListener('click', () => control('/api/stop'));
+      byId('take-control').addEventListener('click', () => control('/api/take-control'));
+      byId('return-control').addEventListener('click', () => control('/api/return-control'));
+      byId('approve').addEventListener('click', () =>
+        control('/api/approval', { approvalId: current.approval.id, approved: true }),
+      );
+      byId('refuse').addEventListener('click', () =>
+        control('/api/approval', { approvalId: current.approval.id, approved: false }),
+      );
+      byId('screen').addEventListener('click', (event) => {
+        if (byId('screen').getAttribute('aria-disabled') !== 'false') return;
+        const rect = byId('screen').getBoundingClientRect();
+        return control('/api/input', {
+          action: 'click',
+          x: Math.floor(((event.clientX - rect.left) * 1024) / rect.width),
+          y: Math.floor(((event.clientY - rect.top) * 720) / rect.height),
+        });
+      });
+      byId('send-text').addEventListener('click', () =>
+        control('/api/input', { action: 'type', text: byId('human-text').value }),
+      );
+      byId('send-key').addEventListener('click', () =>
+        control('/api/input', { action: 'key', key: byId('human-key').value }),
+      );
+      byId('send-scroll').addEventListener('click', () =>
+        control('/api/input', {
+          action: 'scroll',
+          direction: byId('scroll-direction').value,
+          amount: Number(byId('scroll-amount').value),
+        }),
+      );
+      addEventListener('pagehide', discardFrame);
+      if (!token) {
+        byId('message').textContent = 'Open the private link printed in your server terminal.';
+        for (const id of ['start', 'mode', 'api']) byId(id).disabled = true;
+      } else {
+        await poll();
+        setInterval(poll, 300);
+      }
+    </script>
+  </body>
+</html>
