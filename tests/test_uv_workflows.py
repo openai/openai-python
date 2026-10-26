@@ -1434,7 +1434,10 @@ def run_security_dependency_floor_check(
                     json.dumps(entry)
                     if not isinstance(entry, dict)
                     else "{ "
-                    + ", ".join(json.dumps(key) + " = " + json.dumps(value) for key, value in entry.items())
+                    + ", ".join(
+                        json.dumps(key) + " = " + json.dumps(value)
+                        for key, value in cast(dict[str, Any], entry).items()
+                    )
                     + " }"
                     for entry in dependencies
                 ]

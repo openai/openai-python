@@ -193,10 +193,14 @@ def dependency_group_requirements(project: dict[str, Any], name: str, active: tu
     if not isinstance(entries, list):
         raise SystemExit("Invalid security dependency group")
     result: list[str] = []
-    for entry in entries:
+    for entry in cast(list[Any], entries):
         if isinstance(entry, str):
             result.append(entry)
-        elif isinstance(entry, dict) and set(entry) == {"include-group"} and isinstance(entry["include-group"], str):
+        elif (
+            isinstance(entry, dict)
+            and set(cast(dict[str, Any], entry)) == {"include-group"}
+            and isinstance(entry["include-group"], str)
+        ):
             result.extend(dependency_group_requirements(project, entry["include-group"], (*active, key)))
         else:
             raise SystemExit("Invalid security dependency group entry")
