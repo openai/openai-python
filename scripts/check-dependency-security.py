@@ -183,30 +183,6 @@ def direct_marker_contexts(marker: str) -> tuple[MarkerContext, ...]:
     return tuple(unique)
 
 
-def dependency_group_requirements(project: dict[str, Any], name: str, active: tuple[str, ...] = ()) -> list[str]:
-    groups = project.get("dependency-groups", {})
-    normalized = {canonical(group): group for group in groups}
-    key = canonical(name)
-    if len(normalized) != len(groups) or key not in normalized or key in active:
-        raise SystemExit("Invalid or cyclic security dependency group inclusion")
-    entries = groups[normalized[key]]
-    if not isinstance(entries, list):
-        raise SystemExit("Invalid security dependency group")
-    result: list[str] = []
-    for entry in cast(list[Any], entries):
-        if isinstance(entry, str):
-            result.append(entry)
-        elif (
-            isinstance(entry, dict)
-            and set(cast(dict[str, Any], entry)) == {"include-group"}
-            and isinstance(entry["include-group"], str)
-        ):
-            result.extend(dependency_group_requirements(project, entry["include-group"], (*active, key)))
-        else:
-            raise SystemExit("Invalid security dependency group entry")
-    return result
-
-
 def direct(project: dict[str, Any], *, protected: bool = False) -> tuple[RequirementMap, ContextsByName]:
     if protected:
         uv = project.get("tool", {}).get("uv", {})
@@ -215,8 +191,8 @@ def direct(project: dict[str, Any], *, protected: bool = False) -> tuple[Require
             ("uv-build-constraint", "", uv.get("build-constraint-dependencies", [])),
         ]
         groups.extend(
-            ("dependency-group", canonical(group), dependency_group_requirements(project, group))
-            for group in project.get("dependency-groups", {})
+            ("dependency-group", canonical(group), requirements)
+            for group, requirements in project.get("dependency-groups", {}).items()
         )
     else:
         groups = [("runtime", "", project["project"].get("dependencies", []))]
