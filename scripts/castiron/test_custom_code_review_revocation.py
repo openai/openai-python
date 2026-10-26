@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any
 
 import custom_code_policy as policy
-from custom_code_test_support import WORKFLOW, run_publisher, source_run
+from custom_code_test_support import WORKFLOW, run_publisher, source_head, source_run
 
 
 @unittest.skipUnless(
@@ -25,7 +25,7 @@ class ReviewRevocationTests(unittest.TestCase):
             "number": 3,
             "user": {"login": "author"},
             "state": "open",
-            "head": {"sha": head},
+            "head": source_head(head),
             "base": {"ref": "next", "sha": base, "repo": {"full_name": "openai/example"}},
         }
         run = {
@@ -94,6 +94,39 @@ class ReviewRevocationTests(unittest.TestCase):
         self.assertEqual([item.get("state") for item in result[:4]], ["pending"] * 4)
         self.assertEqual({item["sha"] for item in result[:4]}, {"a" * 40, "c" * 40})
         self.assertEqual([item["run_id"] for item in result[4:]], [12, 14])
+
+    def test_uses_live_target_when_pull_base_snapshot_lags(self) -> None:
+        for requires_human in (False, True):
+            with self.subTest(requires_human=requires_human):
+                payload = self.payload()
+                payload["target_sha"] = "e" * 40
+                payload["expected_policy_base"] = "e" * 40
+                payload["requires_human"] = requires_human
+                result = self.invoke(payload)
+                if requires_human:
+                    self.assertEqual([item.get("state") for item in result[:4]], ["pending"] * 4)
+                    self.assertEqual([item["run_id"] for item in result[4:]], [12, 14])
+                else:
+                    self.assertEqual(result, [])
+
+    def test_retries_when_live_target_advances_during_evaluation(self) -> None:
+        for requires_human in (False, True):
+            with self.subTest(requires_human=requires_human):
+                payload = self.payload()
+                payload["target_sha_sequence"] = ["d" * 40, "e" * 40]
+                payload["target_sha"] = "e" * 40
+                payload["expected_policy_bases"] = ["d" * 40, "e" * 40]
+                payload["requires_human"] = requires_human
+                result = self.invoke(payload)
+                if requires_human:
+                    self.assertEqual(
+                        [item["run_id"] for item in result if "run_id" in item], [12, 14]
+                    )
+                    self.assertTrue(
+                        all(item.get("state") == "pending" for item in result if "state" in item)
+                    )
+                else:
+                    self.assertEqual(result, [])
 
     def test_refreshes_executable_policy_when_main_changes_review_requirement(self) -> None:
         payload = self.payload()
@@ -421,7 +454,7 @@ class ReviewRevocationTests(unittest.TestCase):
             payload["run"].update(
                 {
                     "pull_requests": [],
-                    "head_repository": {"owner": {"login": "contributor"}},
+                    "head_repository": source_run("a" * 40)["head_repository"],
                     "head_branch": "sdk",
                 }
             )
@@ -437,7 +470,9 @@ class ReviewRevocationTests(unittest.TestCase):
         payload = self.payload()
         payload["run"]["pull_requests"] = []
         payload["run"]["head_repository"]["id"] = 101
-        payload["current"]["head"].update(ref="sdk", repo={"id": 101})
+        payload["current"]["head"].update(
+            ref="sdk", repo={"id": 101, "full_name": "contributor/example"}
+        )
         payload["associated_pulls"] = [{"number": number} for number in (3, 4, 5)]
         payload["pulls_by_number"] = {
             str(number): {
@@ -559,7 +594,7 @@ class ReviewRevocationTests(unittest.TestCase):
         fork: dict[str, Any] = {
             **correct,
             "pull_requests": [],
-            "head_repository": {"owner": {"login": "contributor"}},
+            "head_repository": source_run("a" * 40)["head_repository"],
             "head_branch": "sdk",
         }
         payload["fallback_pulls"] = [{"number": 3}]
@@ -613,6 +648,199 @@ class ReviewRevocationTests(unittest.TestCase):
         self.assertEqual(
             handler.count("group: castiron-budget-writes-${{ github.repository_id }}"), 2
         )
+
+    def test_direct_head_review_discovery_rejects_shared_commit_from_other_sources(
+        self,
+    ) -> None:
+        for field, value in (
+            ("id", 99),
+            ("full_name", "other/example"),
+            ("ref", "other-branch"),
+        ):
+            with self.subTest(field=field):
+                payload = self.payload()
+                payload["run"]["pull_requests"] = []
+                head = source_head("a" * 40)
+                if field == "ref":
+                    head[field] = value
+                else:
+                    head["repo"][field] = value
+                other = {**payload["current"], "number": 4, "head": head}
+                payload["pulls_by_number"] = {"4": other}
+                for discovery in ("associated_pulls", "fallback_pulls"):
+                    payload["associated_pulls"] = []
+                    payload[discovery] = [{"number": 4}, {"number": 3}]
+                    result = self.invoke(payload)
+                    self.assertEqual(len(result), 6)
+                    self.assertEqual(
+                        [item["run_id"] for item in result if "run_id" in item], [12, 14]
+                    )
+
+    def test_foreign_only_associations_retry_revocation_and_reporter_discovery(self) -> None:
+        for explicit in (False, True):
+            with self.subTest(explicit=explicit):
+                payload = self.payload()
+                payload["run"]["pull_requests"] = [{"number": 4}] if explicit else []
+                payload["runs_by_sha"]["a" * 40][0]["pull_requests"] = []
+                payload["associated_pulls"] = [{"number": 4}]
+                payload["fallback_pulls"] = [{"number": 3}]
+                own = payload["current"]
+                foreign: dict[str, Any] = {
+                    **own,
+                    "number": 4,
+                    "head": {**own["head"], "ref": "other"},
+                }
+                payload["pulls_by_number"] = {"4": foreign}
+                payload["review_nodes"] = [{**self.approval(), "state": "DISMISSED"}]
+                writes = self.invoke(payload)
+                self.assertEqual(
+                    [w["state"] for w in writes if "state" in w],
+                    [] if explicit else ["pending"] * 4,
+                )
+                self.assertEqual(
+                    [w["run_id"] for w in writes if "run_id" in w], [] if explicit else [12, 14]
+                )
+        # A fallback reached through unrelated commit associations is still branch-only:
+        # an old synthetic merge must not gain the association-only exemption.
+        payload["run"]["pull_requests"] = []
+        payload["run"]["head_sha"] = payload["context"]["payload"]["workflow_run"]["head_sha"] = (
+            "e" * 40
+        )
+        payload["merge_sha"] = "d" * 40
+        payload["merge_commit"] = {"parents": [{"sha": "b" * 40}, {"sha": "a" * 40}]}
+        payload["pulls_by_number"]["4"]["head"]["sha"] = "f" * 40
+        self.assertEqual(self.invoke(payload), [])
+
+    def test_merge_review_filters_foreign_sources_before_branch_fallback(self) -> None:
+        for field, value in (("ref", "other"), ("id", 99), ("full_name", "other/example")):
+            for explicit in (False, True):
+                with self.subTest(field=field, explicit=explicit):
+                    payload = self.payload()
+                    payload["run"]["head_sha"] = "e" * 40
+                    payload["context"]["payload"]["workflow_run"]["head_sha"] = "e" * 40
+                    payload["run"]["pull_requests"] = [{"number": 4}] if explicit else []
+                    payload["associated_pulls"] = [{"number": 4}]
+                    payload["fallback_pulls"] = [{"number": 3}]
+                    payload["merge_sha"] = "e" * 40
+                    payload["merge_commit"] = {"parents": [{"sha": "b" * 40}, {"sha": "a" * 40}]}
+                    head = source_head("a" * 40)
+                    if field == "ref":
+                        head[field] = value
+                    else:
+                        head["repo"][field] = value
+                    payload["pulls_by_number"] = {
+                        "4": {**payload["current"], "number": 4, "head": head}
+                    }
+                    writes = self.invoke(payload)
+                    self.assertEqual(
+                        [w["state"] for w in writes if "state" in w],
+                        [] if explicit else ["pending"] * 4,
+                    )
+                    self.assertEqual(
+                        [w["run_id"] for w in writes if "run_id" in w],
+                        [] if explicit else [12, 14],
+                    )
+                    # Filtering a foreign association must not exempt fallback from freshness.
+                    payload["merge_sha"] = "f" * 40
+                    self.assertEqual(self.invoke(payload), [])
+
+    def test_review_requires_complete_source_identity(self) -> None:
+        for overrides in (
+            {"head_repository": None},
+            {"head_repository": {"id": 10}},
+            {"head_repository": {"full_name": "contributor/example"}},
+            {"head_branch": None},
+            {"head_branch": "refs/pull/3/merge"},
+        ):
+            for merge in (False, True):
+                with self.subTest(overrides=overrides, merge=merge):
+                    payload = self.payload()
+                    if merge:
+                        payload["run"]["head_sha"] = "e" * 40
+                        payload["context"]["payload"]["workflow_run"]["head_sha"] = "e" * 40
+                        payload["merge_commit"] = {
+                            "parents": [{"sha": "b" * 40}, {"sha": "a" * 40}]
+                        }
+                    payload["run"].update(overrides)
+                    self.assertEqual(self.invoke(payload), [])
+
+    def test_merge_sha_signal_requires_exact_live_merge_and_parents(self) -> None:
+        payload = self.payload()
+        payload["run"]["head_sha"] = payload["context"]["payload"]["workflow_run"]["head_sha"] = (
+            "e" * 40
+        )
+        payload["merge_sha"] = "e" * 40
+        payload["merge_commit"] = {"parents": [{"sha": "b" * 40}, {"sha": "a" * 40}]}
+        self.assertEqual(len(self.invoke(payload)), 6)
+        payload["merge_commit"]["parents"].reverse()
+        self.assertEqual(self.invoke(payload), [])
+
+    def test_historical_merge_revocation_after_base_advance(self) -> None:
+        for discovery in ("run", "commit", "branch"):
+            for revoked in ({"state": "DISMISSED"}, {"body": ""}):
+                with self.subTest(discovery=discovery, revoked=revoked):
+                    payload = self.payload()
+                    payload["review_nodes"] = [{**self.approval(), **revoked}]
+                    payload["run"]["head_sha"] = "e" * 40
+                    payload["context"]["payload"]["workflow_run"]["head_sha"] = "e" * 40
+                    payload["current"]["base"]["sha"] = "f" * 40
+                    payload["comparisons"] = {
+                        f"{'f' * 40}...{'a' * 40}": {"merge_base_commit": {"sha": "b" * 40}}
+                    }
+                    payload["merge_sha"] = "d" * 40
+                    payload["merge_commit"] = {"parents": [{"sha": "b" * 40}, {"sha": "a" * 40}]}
+                    if discovery != "run":
+                        payload["run"]["pull_requests"] = []
+                        payload["associated_pulls"] = (
+                            [{"number": 3}] if discovery == "commit" else []
+                        )
+                        payload["fallback_pulls"] = [{"number": 3}]
+                    result = self.invoke(payload)
+                    if discovery == "branch":
+                        self.assertEqual(result, [])
+                    else:
+                        self.assertEqual(
+                            [item.get("state") for item in result[:4]], ["pending"] * 4
+                        )
+                        self.assertEqual({item["sha"] for item in result[:4]}, {"a" * 40, "c" * 40})
+                        self.assertEqual([item["run_id"] for item in result[4:]], [12, 14])
+
+    def test_rerun_ignores_same_sha_main_from_another_source(self) -> None:
+        for changes in (
+            {"ref": "other"},
+            {"repo": {**source_head("a" * 40)["repo"], "id": 11}},
+            {"repo": {**source_head("a" * 40)["repo"], "full_name": "other/repo"}},
+            {"repo": None},
+        ):
+            with self.subTest(changes=changes):
+                payload = self.payload()
+                reporter = payload["runs_by_sha"]["a" * 40][0]
+                reporter["pull_requests"] = []
+                current = payload["current"]
+                main = {
+                    **current,
+                    "number": 4,
+                    "head": {**current["head"], **changes},
+                    "base": {**current["base"], "ref": "main"},
+                }
+                payload["pulls_by_number"] = {"4": main}
+                payload["associated_pulls"] = [{"number": 3}, {"number": 4}]
+                result = self.invoke(payload)
+                self.assertEqual([item["run_id"] for item in result if "run_id" in item], [12, 14])
+
+    def test_rerun_rejects_missing_reporter_source_identity(self) -> None:
+        for changes in (
+            {"head_repository": None},
+            {"head_repository": {"full_name": "contributor/example"}},
+            {"head_repository": {"id": 10}},
+            {"head_branch": ""},
+        ):
+            with self.subTest(changes=changes):
+                payload = self.payload()
+                payload["runs_by_sha"]["a" * 40][0].update(changes)
+                result = self.invoke(payload)
+                self.assertEqual([item["run_id"] for item in result if "run_id" in item], [14])
+                self.assertTrue(all(item["state"] == "pending" for item in result[:4]))
 
 
 if __name__ == "__main__":

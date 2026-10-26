@@ -244,6 +244,16 @@ for its own initialization. A malformed base pin cannot enter this path; other
 changes without a base pin fail closed. Ordinary pin updates execute under the
 previous approved version and cannot include SDK/tooling changes.
 
+An existing unpinned `next` may instead adopt the complete authenticated current-main
+snapshot when next is an ancestor of main and main already uses strict ownership
+with zero custom lines. The canonical `sdk prepare-next-baseline` command preserves
+all main bytes, modes and existing public checkpoints, adding only the exact
+same-main policy pin. This exception cannot include additional edits, a different
+pin, a relaxed policy or multiple queue constituents. Ordinary checkpoint, manifest,
+zero-budget and repository review checks remain mandatory. Main must still match
+at final publication; if it moves, prepare and qualify a fresh candidate. This is
+adoption of already-public output, not regeneration or a budget increase.
+
 Keep required status activation separate until hosted tests have exercised main
 and next PRs, forks, retargeting, policy changes, and both merge queues. Require
 the target-specific next contexts after observing their genuine producers;

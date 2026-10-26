@@ -18,6 +18,7 @@ from custom_code_test_support import (
     GitTestCase,
     run_publisher,
     run_workflow_script,
+    source_head,
     source_run,
 )
 
@@ -47,7 +48,7 @@ class WorkflowTests(unittest.TestCase):
         pull = {
             "number": 3,
             "state": "open",
-            "head": {"sha": head},
+            "head": source_head(head),
             "base": {"ref": "next", "repo": {"full_name": "openai/example"}},
         }
         for path, accepted in cases:
@@ -100,7 +101,7 @@ class WorkflowTests(unittest.TestCase):
         current = {
             "number": 3,
             "state": "open",
-            "head": {"sha": head},
+            "head": source_head(head),
             "base": {"ref": "main", "repo": {"full_name": "openai/example"}},
         }
         previous = {
@@ -151,7 +152,7 @@ class WorkflowTests(unittest.TestCase):
             return {
                 "number": number,
                 "state": "open",
-                "head": {"sha": head},
+                "head": source_head(head),
                 "base": {"ref": branch, "repo": {"full_name": repo}},
             }
 
@@ -223,6 +224,95 @@ class WorkflowTests(unittest.TestCase):
         ).hexdigest()
         self.assertIn(f"REPORTER_SHA256: {digest}", producer)
 
+    @unittest.skipUnless(shutil.which("node"), "GitHub Actions JavaScript runtime")
+    def test_review_signals_cannot_replace_pending_candidate_validation(self) -> None:
+        producer = (WORKFLOW.parent / "castiron-custom-code.yml").read_text()
+        group = producer.split("concurrency:\n", 1)[1].splitlines()[0].removeprefix("  group: ")
+        expression = group.replace("${{", "${").replace("}}", "}")
+        groups: list[str] = []
+        for event in ("pull_request", "pull_request_review", "pull_request"):
+            payload = {"context": {"payload": {"pull_request": {"number": 42}}}}
+            script = (
+                "github.event = context.payload;\n"
+                f"github.event_name = {json.dumps(event)};\n"
+                f"await github.rest.issues.createComment({{body: `{expression}`}});"
+            )
+            groups.append(run_workflow_script(script, payload)[0]["body"])
+        self.assertNotEqual(groups[0], groups[1])
+        self.assertEqual(groups[0], groups[2])
+
+    @unittest.skipUnless(shutil.which("node"), "GitHub Actions JavaScript runtime")
+    def test_failure_publisher_binds_one_source_before_writing(self) -> None:
+        head = "a" * 40
+        run: dict[str, Any] = {**source_run(head), "id": 20, "pull_requests": []}
+        own: dict[str, Any] = {
+            "number": 3,
+            "state": "open",
+            "head": source_head(head),
+            "base": {"ref": "main", "repo": {"full_name": "openai/example"}},
+        }
+        previous = {
+            "id": 42,
+            "user": {"type": "Bot", "login": "github-actions[bot]"},
+            "body": report.MARKER + "\n<!-- castiron:run:v1:10:1 -->",
+        }
+
+        def publish(**overrides: Any) -> list[dict[str, Any]]:
+            return run_publisher(
+                "Publish a trusted failure status",
+                {
+                    "context": {
+                        "payload": {"workflow_run": run},
+                        "runId": 30,
+                        "repo": {"owner": "openai", "repo": "example"},
+                        "serverUrl": "https://github.com",
+                    },
+                    "run": run,
+                    "current": own,
+                    "comments": [previous],
+                    "comments_by_number": {3: [previous], 4: [{**previous, "id": 43}]},
+                    "associated_pulls": [{"number": 3}, {"number": 4}],
+                    **overrides,
+                },
+            )
+
+        for foreign_head in (
+            {**own["head"], "ref": "victim"},
+            {**own["head"], "repo": {"id": 11, "full_name": "victim/example"}},
+        ):
+            victim = {**own, "number": 4, "head": foreign_head}
+            with self.subTest(head=foreign_head):
+                writes = publish(pulls_by_number={3: own, 4: victim})
+                self.assertEqual([write["comment_id"] for write in writes], [42])
+                writes = publish(
+                    associated_pulls=[{"number": 4}],
+                    fallback_pulls=[{"number": 3}],
+                    pulls_by_number={3: own, 4: victim},
+                )
+                self.assertEqual([write["comment_id"] for write in writes], [42])
+                self.assertEqual(
+                    publish(
+                        run={**run, "pull_requests": [{"number": 4}]},
+                        fallback_pulls=[{"number": 3}],
+                        pulls_by_number={3: own, 4: victim},
+                    ),
+                    [],
+                )
+        # Even two equally authorized PRs are ambiguous: no write to either.
+        self.assertEqual(publish(), [])
+        for changed_run in (
+            {**run, "run_attempt": 2},
+            {**run, "status": "in_progress"},
+            {**run, "head_repository": None},
+            {**run, "repository": {"full_name": "other/repo"}},
+        ):
+            with self.subTest(run=changed_run):
+                self.assertEqual(publish(run=changed_run), [])
+        changed = {**own, "head": {**own["head"], "ref": "other"}}
+        self.assertEqual(
+            publish(associated_pulls=[{"number": 3}], current_sequence=[own, changed]), []
+        )
+
 
 class CommentTests(GitTestCase):
     def test_comment_only_rerun_links_to_the_compute_artifact_attempt(self) -> None:
@@ -264,10 +354,11 @@ class CommentTests(GitTestCase):
         result, _ = report.build_report(self.repo, base, base)
         pull: dict[str, Any] = {
             "state": "open",
-            "head": {"sha": base},
+            "head": source_head(base),
             "base": {"sha": base, "ref": "main", "repo": {"full_name": "openai/example"}},
         }
         run = {
+            **source_run(base),
             "event": "pull_request",
             "path": ".github/workflows/castiron-custom-code.yml",
             "head_sha": base,
@@ -275,7 +366,7 @@ class CommentTests(GitTestCase):
             "pull_requests": [{"number": 1}],
         }
         with mock.patch.object(
-            report, "api", side_effect=[pull, run, [], pull, {"html_url": "published"}]
+            report, "api", side_effect=[pull, run, pull, [], pull, {"html_url": "published"}]
         ) as api:
             self.assertEqual(
                 report.publish_comment(
@@ -304,11 +395,16 @@ class CommentTests(GitTestCase):
             if "/pulls/" in path:
                 return {
                     "state": "open",
-                    "head": {"sha": base},
-                    "base": {"sha": base, "ref": "main", "repo": {"full_name": "openai/example"}},
+                    "head": source_head(base),
+                    "base": {
+                        "sha": base,
+                        "ref": "main",
+                        "repo": {"full_name": "openai/example"},
+                    },
                 }
             if "/actions/runs/" in path:
                 return {
+                    **source_run(base),
                     "event": "pull_request",
                     "path": ".github/workflows/castiron-custom-code.yml",
                     "head_sha": base,
@@ -333,7 +429,8 @@ class CommentTests(GitTestCase):
             calls.clear()
             result["head_sha"] = "f" * 40
             self.assertEqual(
-                report.publish_comment(result, "openai/example", 1, 2, 1), "Skipped stale report"
+                report.publish_comment(result, "openai/example", 1, 2, 1),
+                "Skipped stale report",
             )
             self.assertEqual(len(calls), 1)
 
@@ -342,17 +439,18 @@ class CommentTests(GitTestCase):
         result, _ = report.build_report(self.repo, base, base)
         pull: dict[str, Any] = {
             "state": "open",
-            "head": {"sha": base},
+            "head": source_head(base),
             "base": {"sha": base, "ref": "main", "repo": {"full_name": "openai/example"}},
         }
         run = {
+            **source_run(base),
             "event": "pull_request",
             "path": ".github/workflows/castiron-custom-code.yml",
             "head_sha": base,
             "run_attempt": 2,
             "pull_requests": [{"number": 1}],
-            "head_repository": {"owner": {"login": "contributor"}},
-            "head_branch": "fix/branch",
+            "head_repository": source_run(base)["head_repository"],
+            "head_branch": "sdk",
         }
         comment = {
             "id": 8,
@@ -362,17 +460,19 @@ class CommentTests(GitTestCase):
         }
         with mock.patch.object(report, "api", side_effect=[pull, run]) as api:
             self.assertEqual(
-                report.publish_comment(result, "openai/example", 1, 2, 1), "Skipped stale report"
+                report.publish_comment(result, "openai/example", 1, 2, 1),
+                "Skipped stale report",
             )
             self.assertEqual(api.call_count, 2)
-        with mock.patch.object(report, "api", side_effect=[pull, run, [comment]]) as api:
+        with mock.patch.object(report, "api", side_effect=[pull, run, pull, [comment]]) as api:
             self.assertEqual(
-                report.publish_comment(result, "openai/example", 1, 2, 2), "Skipped stale report"
+                report.publish_comment(result, "openai/example", 1, 2, 2),
+                "Skipped stale report",
             )
-            self.assertEqual(api.call_count, 3)
+            self.assertEqual(api.call_count, 4)
         with (
             mock.patch.object(
-                report, "api", side_effect=[pull, {**run, "pull_requests": []}, [], []]
+                report, "api", side_effect=[pull, {**run, "pull_requests": []}, [], [], []]
             ),
             self.assertRaisesRegex(report.ReportError, "does not match report PR"),
         ):
@@ -385,29 +485,116 @@ class CommentTests(GitTestCase):
         with mock.patch.object(
             report,
             "api",
-            side_effect=[pull, {**run, "pull_requests": []}, [{"number": 1}], [comment]],
+            side_effect=[pull, {**run, "pull_requests": []}, [{"number": 1}], pull, [comment]],
         ) as api:
             self.assertEqual(
-                report.publish_comment(result, "openai/example", 1, 2, 2), "Skipped stale report"
+                report.publish_comment(result, "openai/example", 1, 2, 2),
+                "Skipped stale report",
             )
             self.assertIn(f"/commits/{base}/pulls", api.call_args_list[2].args[1])
-        changed = {**pull, "head": {"sha": "f" * 40}}
-        with mock.patch.object(report, "api", side_effect=[pull, run, [], changed]) as api:
+        changed = {**pull, "head": source_head("f" * 40)}
+        with mock.patch.object(report, "api", side_effect=[pull, run, pull, [], changed]) as api:
             self.assertEqual(
-                report.publish_comment(result, "openai/example", 1, 2, 2), "Skipped stale report"
+                report.publish_comment(result, "openai/example", 1, 2, 2),
+                "Skipped stale report",
             )
-            self.assertEqual(api.call_count, 4)
+            self.assertEqual(api.call_count, 5)
         for target in (
             {**pull["base"], "ref": "other"},
             {**pull["base"], "repo": {"full_name": "other/repo"}},
         ):
             with mock.patch.object(
-                report, "api", side_effect=[pull, run, [], {**pull, "base": target}]
+                report, "api", side_effect=[pull, run, pull, [], {**pull, "base": target}]
             ):
                 self.assertEqual(
                     report.publish_comment(result, "openai/example", 1, 2, 2),
                     "Skipped stale report",
                 )
+
+    def test_comment_uses_canonical_branch_fallback(self) -> None:
+        run = source_run("a" * 40)
+        run["pull_requests"] = []
+        own: dict[str, Any] = {
+            "state": "open",
+            "head": source_head("a" * 40),
+            "base": {"ref": "main", "repo": {"full_name": "openai/example"}},
+        }
+        foreign = {**own, "head": {**own["head"], "ref": "other"}}
+        branches = [{"number": 3}]
+        writes: list[str] = []
+        measured = {
+            "schema_version": 1,
+            "status": "error",
+            "head_sha": "a" * 40,
+            "target_base_sha": "b" * 40,
+            "error": "synthetic failure",
+        }
+
+        def api(method: str, path: str, payload: Any = None) -> Any:
+            if method == "POST":
+                writes.append(path)
+                return {"html_url": "published"}
+            if "/actions/runs/" in path:
+                return run
+            if "/commits/" in path:
+                return [{"number": 4}]
+            if "/pulls?" in path:
+                return branches
+            if "/comments?" in path:
+                return []
+            return {"3": own, "4": foreign, "5": own}[path.rsplit("/", 1)[1]]
+
+        with mock.patch.object(report, "api", side_effect=api):
+            self.assertEqual(report.current_pull("openai/example", run), (3, "main"))
+            self.assertEqual(
+                report.publish_comment(measured, "openai/example", 3, 123, 1), "published"
+            )
+            self.assertEqual(writes, ["repos/openai/example/issues/3/comments"])
+            writes.clear()
+            run["pull_requests"] = [{"number": 4}]
+            with self.assertRaisesRegex(report.ReportError, "does not match report PR"):
+                report.publish_comment(measured, "openai/example", 3, 123, 1)
+            run["pull_requests"] = []
+            branches.append({"number": 5})
+            with self.assertRaisesRegex(report.ReportError, "multiple current"):
+                report.publish_comment(measured, "openai/example", 3, 123, 1)
+            self.assertEqual(writes, [])
+
+    def test_successful_comment_rejects_another_source_before_and_after_pagination(
+        self,
+    ) -> None:
+        head = "a" * 40
+        run = source_run(head)
+        own: dict[str, Any] = {
+            "state": "open",
+            "head": source_head(head),
+            "base": {"ref": "main", "repo": {"full_name": "openai/example"}},
+        }
+        measured = {
+            "schema_version": 1,
+            "status": "error",
+            "head_sha": head,
+            "target_base_sha": "b" * 40,
+            "error": "synthetic failure",
+        }
+        for foreign_head in (
+            {**own["head"], "ref": "other"},
+            {**own["head"], "repo": {**own["head"]["repo"], "id": 11}},
+            {**own["head"], "repo": {**own["head"]["repo"], "full_name": "other/repo"}},
+            {**own["head"], "repo": None},
+        ):
+            foreign = {**own, "head": foreign_head}
+            cases: tuple[list[Any], ...] = ([foreign, run], [own, run, own, [], foreign])
+            for states in cases:
+                with (
+                    self.subTest(head=foreign_head, reads=len(states)),
+                    mock.patch.object(report, "api", side_effect=states) as api,
+                ):
+                    self.assertEqual(
+                        report.publish_comment(measured, "openai/example", 3, 123, 1),
+                        "Skipped stale report",
+                    )
+                    self.assertTrue(all(call.args[0] == "GET" for call in api.call_args_list))
 
 
 @unittest.skipUnless(shutil.which("node"), "Node is needed to execute the status-publisher fixture")
@@ -428,6 +615,7 @@ class StatusPublisherTests(unittest.TestCase):
         policy_changed: bool = False,
         policy_sha: str | None = None,
         selected_policy_matches: bool = True,
+        main_snapshot: str = "",
         queue_absent: bool = False,
         queue_pages: list[dict[str, Any]] | None = None,
         retarget_during_publication: bool = False,
@@ -484,7 +672,7 @@ class StatusPublisherTests(unittest.TestCase):
                 "number": 3,
                 "user": {"login": "author"},
                 "state": "open",
-                "head": {"sha": "c" * 40 if head_changed else head},
+                "head": source_head("c" * 40 if head_changed else head),
                 "base": {
                     "sha": "c" * 40 if base_changed else base,
                     "ref": branch,
@@ -498,7 +686,9 @@ class StatusPublisherTests(unittest.TestCase):
                 else json.dumps(
                     policy.HUMAN_REVIEW_RULES if review_contract is None else review_contract
                 ),
+                "MAIN_SNAPSHOT": main_snapshot,
                 "SELECTED_BRANCH": branch,
+                "SELECTED_BOOTSTRAP": "false",
                 "SELECTED_BASE_SHA": base,
                 "SELECTED_HEAD_SHA": head,
                 "SELECTED_POLICY_SHA": (policy_sha or base)
@@ -652,7 +842,7 @@ class StatusPublisherTests(unittest.TestCase):
             "number": 7,
             "user": {"login": "author"},
             "state": "open",
-            "head": {"sha": candidate},
+            "head": source_head(candidate),
             "base": {"ref": "next", "repo": {"full_name": "openai/example"}},
         }
         approved = {
@@ -701,7 +891,7 @@ class StatusPublisherTests(unittest.TestCase):
             "number": 7,
             "user": {"login": "author"},
             "state": "open",
-            "head": {"sha": candidate},
+            "head": source_head(candidate),
             "base": {"ref": "next", "repo": {"full_name": "openai/example"}},
         }
         approved = {
@@ -810,6 +1000,22 @@ class StatusPublisherTests(unittest.TestCase):
             self.assertEqual([r["state"] for r in results], ["success", "success"])
         results = self.publish(event_name="merge_group", branch="next", queue_absent=True)
         self.assertEqual([r["state"] for r in results], ["failure", "failure"])
+
+    def test_main_snapshot_publication_rechecks_live_main(self) -> None:
+        for event in ("pull_request", "merge_group"):
+            for moved in (False, True):
+                with self.subTest(event=event, moved=moved):
+                    writes = self.publish(
+                        event_name=event,
+                        branch="next",
+                        policy_sha="e" * 40,
+                        main_snapshot="e" * 40,
+                        policy_changed=moved,
+                    )
+                    self.assertEqual(
+                        [w["state"] for w in writes],
+                        ["failure", "failure"] if moved else ["success", "success"],
+                    )
 
     def test_main_statuses_bind_target_policy_and_queue_membership(self) -> None:
         for event in ("pull_request", "merge_group"):

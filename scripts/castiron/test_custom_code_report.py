@@ -18,6 +18,24 @@ from custom_code_test_support import GENERATION, GitTestCase
 
 
 class CustomCodeTests(GitTestCase):
+    def test_large_blob_batches_preserve_every_object_byte(self) -> None:
+        commands: list[bytes] = []
+        expected: dict[str, bytes] = {}
+        entries: dict[bytes, report.Entry] = {}
+        for index in range(2048):
+            content = f"synthetic object {index}\n".encode() + b"x" * 1024
+            oid = hashlib.sha1(
+                f"blob {len(content)}\0".encode() + content, usedforsecurity=False
+            ).hexdigest()
+            expected[oid] = content
+            entries[f"file-{index}".encode()] = report.Entry(b"100644", oid)
+            commands.extend([b"blob\n", f"data {len(content)}\n".encode(), content, b"\n"])
+        report.git(self.repo, "fast-import", "--quiet", input_bytes=b"".join(commands))
+        actual = report.read_blobs(self.repo, entries)
+        self.assertEqual(actual.keys(), expected.keys())
+        for oid, content in expected.items():
+            self.assertEqual(actual[oid], content)
+
     def test_git_preserves_authentication_without_inherited_repository_routing(self) -> None:
         environment = {
             "GIT_CONFIG_GLOBAL": "/ordinary/gitconfig",

@@ -6,7 +6,25 @@ Eliminate handwritten patches in generated-owned files while preserving every ex
 
 No removals or renames of public symbols, new required arguments, narrower input/return types, dependency or Python-floor changes, altered defaults, new payload limits, changed warnings, or changed sync/async behavior are authorized by this transition. Deprecated methods and compatibility import paths remain supported.
 
-## Current public baseline and measured final candidate — 2026-10-22
+## Verified public baseline — 2026-10-26
+
+The strict public report at `904ed3f6ba0f2351af67c9456e9f020401a8a7f8` measured **0 generated files with custom edits / 0 custom patch lines**. These counts carry forward to public main `06dbb5d019d7b6870b5898bf5df579ca60b61d28`: a full-tree comparison found only a change to the SDK-owned `create-releases.yml` workflow, outside generated ownership. All other paths, including all **2,025 generated manifest entries**, retain identical bytes and Git modes. The report verified the generated snapshot hash; its two omitted generated workflows were separately authenticated against the manifest and private checkpoint.
+
+The original `cfa0a79b6395bb0561b28879122a9f90a87cdada` audit measured **41 mixed files / 7,409 custom patch lines**, comprising 4,890 additions and 2,519 deletions. Patch lines measure differences from generated output, including removed lines; they are not the total size of handwritten runtime modules or compiler templates.
+
+## Current incremental plan
+
+The mixed-file count reached zero before this follow-up. Remaining work simplifies how the compiler expresses the preserved SDK interfaces: ordinary templates consume native compiler facts, while runtime algorithms remain in wholly handwritten modules. Do not introduce a new facade framework or developer-facing breaking changes.
+
+The first slice covers Chat parsing/streaming and chunked uploads, with separate compiler reviews followed by private SDK adoption and public promotion where there is an actual SDK change. Subsequent small slices cover Files/Artifacts, Sessions, Threads/Runs, Responses, and client/package wiring, followed by removal of unused declaration machinery after a compatibility audit.
+
+The remaining inventory contains nine declaration blocks totaling **16,555 authored YAML lines**, plus **75 residual binding lines** tracked separately. These measure compiler configuration still to simplify, not custom patches in SDK files.
+
+For each slice, compare generated output against the existing implementation using the same API/configuration inputs. Preserve method signatures, annotations, defaults, imports, sync/async behavior, and runtime algorithms. Review any other generated drift separately, run the relevant compatibility and repository checks, keep the verified mixed-file and patch-line counts at zero, and satisfy ordinary review and merge gates.
+
+The dated audits and original work tracks below are historical records. Their pending-delivery statements and proposed declaration machinery describe the earlier approach; this incremental plan supersedes them.
+
+## Historical public baseline and candidate — 2026-10-22
 
 The released baseline `cfa0a79b6395bb0561b28879122a9f90a87cdada` (3.37.0) contains **41 mixed files / 7,409 custom patch lines** (4,890 additions and 2,519 deletions), spanning **39,960 physical lines**. Its public generated checkpoint is `992b9cbba312b4bf10128b9f1d36112b48340363`.
 
