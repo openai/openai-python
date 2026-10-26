@@ -481,7 +481,7 @@ async def test_long_stream_bounds_event_cache_without_repeating_tools(
 
     repeated_call = {"event_id": "original-call", **call()}
     payloads = [turn_event("created"), repeated_call]
-    delta_count = 1026  # Evict the tool event from the 1,024-event cache.
+    delta_count = 5000
     for index in range(delta_count):
         delta_event: dict[str, object] = {
             "type": "agent.session.turn.output_text.delta",
@@ -493,7 +493,8 @@ async def test_long_stream_bounds_event_cache_without_repeating_tools(
             "content_index": 0,
             "delta": str(index),
         }
-        payloads.extend([delta_event, delta_event])
+        payloads.append(delta_event)
+    payloads.append(payloads[-1])  # Repeat the last delta after sustained cache eviction.
     payloads.extend([repeated_call, turn_event("completed"), idle()])
     server.body = EventBody(payloads)
     deltas: list[str] = []
