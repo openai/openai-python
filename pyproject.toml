@@ -41,7 +41,9 @@ Repository = "https://github.com/openai/openai-python"
 
 [project.optional-dependencies]
 aiohttp = [
-  "aiohttp>=3.14.3",
+  "aiohttp>=3.14.4",
+  "multidict>=6.9.1",
+  "yarl>=1.25.1",
 ]
 realtime = ["websockets >= 13, < 16"]
 datalib = ["numpy >= 1", "pandas >= 1.2.3"]
@@ -101,7 +103,7 @@ constraint-dependencies = [
     "cryptography>=50.0.0",
     "msal>=1.37.0",
     "pygments>=2.20.0",
-    "pyjwt>=2.14.0",
+    "pyjwt>=2.15.0",
     "requests>=2.33.0",
 ]
 # Also constrain editable/source builds performed by uv sync.

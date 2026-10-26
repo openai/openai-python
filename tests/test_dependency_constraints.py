@@ -9,7 +9,9 @@ from packaging.requirements import Requirement
 @pytest.mark.parametrize(
     ("name", "extra", "affected", "patched"),
     [
-        ("aiohttp", "aiohttp", "3.14.2", "3.14.3"),
+        ("aiohttp", "aiohttp", "3.14.3", "3.14.4"),
+        ("multidict", "aiohttp", "6.7.1", "6.9.1"),
+        ("yarl", "aiohttp", "1.24.2", "1.25.1"),
         ("urllib3", "bedrock", "2.6.3", "2.7.0"),
     ],
 )
