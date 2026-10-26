@@ -1401,8 +1401,8 @@ def run_security_dependency_floor_check(
     head_constraints: list[str] | None = None,
     base_build_constraints: list[str] | None = None,
     head_build_constraints: list[str] | None = None,
-    base_dependency_groups: dict[str, list[str]] | None = None,
-    head_dependency_groups: dict[str, list[str]] | None = None,
+    base_dependency_groups: dict[str, list[Any]] | None = None,
+    head_dependency_groups: dict[str, list[Any]] | None = None,
     base_resolution_markers: dict[tuple[str, str], list[str]] | None = None,
     head_resolution_markers: dict[tuple[str, str], list[str]] | None = None,
     base_lock_dependencies: dict[tuple[str, str], list[dict[str, object]]] | None = None,
@@ -1417,7 +1417,7 @@ def run_security_dependency_floor_check(
         groups: dict[str, list[str]] | None,
         constraints: list[str] | None,
         build_constraints: list[str] | None,
-        dependency_groups: dict[str, list[str]] | None,
+        dependency_groups: dict[str, list[Any]] | None,
     ) -> str:
         if optional:
             groups = {"feature": requirements}
@@ -1430,7 +1430,15 @@ def run_security_dependency_floor_check(
         if dependency_groups:
             result += "[dependency-groups]\n"
             for group, dependencies in dependency_groups.items():
-                result += group + " = " + json.dumps(dependencies) + "\n"
+                entries = [
+                    json.dumps(entry)
+                    if not isinstance(entry, dict)
+                    else "{ "
+                    + ", ".join(json.dumps(key) + " = " + json.dumps(value) for key, value in entry.items())
+                    + " }"
+                    for entry in dependencies
+                ]
+                result += json.dumps(group) + " = [" + ", ".join(entries) + "]\n"
         if constraints is not None or build_constraints is not None:
             result += "[tool.uv]\n"
             if constraints is not None:
@@ -8425,3 +8433,53 @@ def test_new_arbitrary_equality_bound_cannot_narrow_existing_published_source(
         optional=optional,
     )
     assert result.returncode != 0
+
+
+@pytest.mark.parametrize("minimum,accepted", [("danger>=2", True), ("danger>=1", False)])
+def test_security_floor_checker_expands_nested_dependency_groups(tmp_path: Path, minimum: str, accepted: bool) -> None:
+    def groups(requirement: str) -> dict[str, list[Any]]:
+        return {
+            "provider-browser": [requirement],
+            "browser-demo": [{"include-group": "Provider_Browser"}],
+            "all-demos": [{"include-group": "browser-demo"}],
+        }
+
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=[],
+        head_requirements=[],
+        base_packages=[("danger", "1")],
+        head_packages=[("danger", "2")],
+        base_dependency_groups=groups("danger>=1"),
+        head_dependency_groups=groups(minimum),
+        run_in_subprocess=True,
+    )
+    assert (result.returncode == 0) is accepted, result.stderr
+
+
+@pytest.mark.parametrize(
+    "groups",
+    [
+        {"demo": [{"include-group": "missing"}]},
+        {"demo": [{"include-group": "demo"}]},
+        {"demo": [{"include-group": "other"}], "other": [{"include-group": "demo"}]},
+        {"demo": [{"include-group": "other", "unexpected": "value"}], "other": []},
+        {"demo": [{"include-group": 123}]},
+        {"demo": [123]},
+        {"demo-one": [], "demo_one": []},
+    ],
+)
+def test_security_floor_checker_rejects_invalid_dependency_group_includes(
+    tmp_path: Path, groups: dict[str, list[Any]]
+) -> None:
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=[],
+        head_requirements=[],
+        base_packages=[("unchanged", "1")],
+        head_packages=[("unchanged", "1")],
+        base_dependency_groups=groups,
+        head_dependency_groups=groups,
+    )
+    assert result.returncode != 0
+    assert "Invalid" in result.stderr
