@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import io
 import wave
+from types import SimpleNamespace
 from typing import Any, Generator
 from contextlib import contextmanager
-from unittest.mock import Mock
 
 import numpy as np
 import pytest
@@ -33,7 +33,7 @@ def recorder(monkeypatch: pytest.MonkeyPatch, samples: npt.NDArray[Any]) -> micr
             callback(samples, len(samples), None, None)
         yield
 
-    monkeypatch.setattr(microphone, "sd", Mock(InputStream=input_stream, CallbackStop=CallbackStop))
+    monkeypatch.setattr(microphone, "sd", SimpleNamespace(InputStream=input_stream, CallbackStop=CallbackStop))
     decisions = iter([True, False])
     return microphone.Microphone(
         channels=samples.shape[1], dtype=samples.dtype.type, should_record=lambda: next(decisions)
@@ -43,7 +43,7 @@ def recorder(monkeypatch: pytest.MonkeyPatch, samples: npt.NDArray[Any]) -> micr
 @pytest.mark.parametrize(
     "samples,sample_width,expected",
     [
-        ((np.float32, [-1, -0.5, 0, 0.25, 0.5, 1]), 2, [-32767, -16383, 0, 8191, 16383, 32767]),
+        ((np.float32, [-2, -1, -0.5, 0, 0.25, 0.5, 1, 2]), 2, [-32767, -32767, -16383, 0, 8191, 16383, 32767, 32767]),
         ((np.int8, [-128, -64, 0, 32, 64, 127]), 1, [0, 64, 128, 160, 192, 255]),
         ((np.uint8, [0, 64, 128, 160, 192, 255]), 1, [0, 64, 128, 160, 192, 255]),
         ((np.int16, [-32768, -16384, 0, 8192, 16384, 32767]), 2, [-32768, -16384, 0, 8192, 16384, 32767]),

@@ -36,12 +36,12 @@ class Microphone(Generic[DType]):
 
     def _ndarray_to_wav(self, audio_data: npt.NDArray[DType]) -> FileTypes:
         if audio_data.dtype == np.float32:
-            # wave writes integer PCM, so normalized floats need conversion.
+            # Convert normalized floats to the signed 16-bit PCM written by wave.
             float_data = cast("npt.NDArray[np.float32]", audio_data)
-            wav_data = (np.clip(float_data, -1, 1) * 32767).astype(np.int16)
+            wav_data = (np.clip(float_data, -1, 1) * np.iinfo(np.int16).max).astype(np.int16)
         elif audio_data.dtype == np.int8:
-            # Eight-bit PCM uses unsigned samples with silence at 128.
-            wav_data = audio_data.astype(np.uint8) + 128
+            # Shift signed samples [-128, 127] to unsigned WAV samples [0, 255].
+            wav_data = (audio_data.astype(np.int16) + 128).astype(np.uint8)
         else:
             wav_data = audio_data
 
