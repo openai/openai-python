@@ -62,6 +62,10 @@ from ...types.realtime.realtime_server_event import RealtimeServerEvent
 from ...types.realtime.conversation_item_param import ConversationItemParam
 from ...types.realtime.realtime_client_event_param import RealtimeClientEventParam
 from ...types.realtime.realtime_response_create_params_param import RealtimeResponseCreateParamsParam
+from ...types.realtime.response_create_event_with_references_param import ResponseCreateEventWithReferencesParam
+from ...types.realtime.realtime_response_create_params_with_references_param import (
+    RealtimeResponseCreateParamsWithReferencesParam,
+)
 
 if TYPE_CHECKING:
     from websockets.sync.client import ClientConnection as WebSocketConnection
@@ -395,11 +399,17 @@ class AsyncRealtimeConnection(AsyncWebSocketConnectionBase):
                 self._reconnect_attempt = 0
         return message
 
-    async def send(self, event: RealtimeClientEvent | RealtimeClientEventParam) -> None:
+    async def send(
+        self, event: RealtimeClientEvent | Union[RealtimeClientEventParam, ResponseCreateEventWithReferencesParam]
+    ) -> None:
         data = (
             event.to_json(use_api_names=True, exclude_unset=True)
             if isinstance(event, BaseModel)
-            else json.dumps(await async_maybe_transform(event, RealtimeClientEventParam))
+            else json.dumps(
+                await async_maybe_transform(
+                    event, Union[RealtimeClientEventParam, ResponseCreateEventWithReferencesParam]
+                )
+            )
         )
         if self._is_reconnecting:
             self._send_queue.enqueue(data)
@@ -546,7 +556,9 @@ class AsyncRealtimeConnectionManager:
         self.__send_queue = SendQueue(max_bytes=max_queue_size)
         self.__event_handler_registry = EventHandlerRegistry(use_lock=False)
 
-    def send(self, event: RealtimeClientEvent | RealtimeClientEventParam) -> None:
+    def send(
+        self, event: RealtimeClientEvent | Union[RealtimeClientEventParam, ResponseCreateEventWithReferencesParam]
+    ) -> None:
         """Queue a message to be sent when the connection is established.
 
         This can be called before entering the context manager. Queued messages
@@ -555,7 +567,9 @@ class AsyncRealtimeConnectionManager:
         data = (
             event.to_json(use_api_names=True, exclude_unset=True)
             if isinstance(event, BaseModel)
-            else json.dumps(maybe_transform(event, RealtimeClientEventParam))
+            else json.dumps(
+                maybe_transform(event, Union[RealtimeClientEventParam, ResponseCreateEventWithReferencesParam])
+            )
         )
         self.__send_queue.enqueue(data)
 
@@ -840,11 +854,15 @@ class RealtimeConnection(WebSocketConnectionBase):
                 self._reconnect_attempt = 0
         return message
 
-    def send(self, event: RealtimeClientEvent | RealtimeClientEventParam) -> None:
+    def send(
+        self, event: RealtimeClientEvent | Union[RealtimeClientEventParam, ResponseCreateEventWithReferencesParam]
+    ) -> None:
         data = (
             event.to_json(use_api_names=True, exclude_unset=True)
             if isinstance(event, BaseModel)
-            else json.dumps(maybe_transform(event, RealtimeClientEventParam))
+            else json.dumps(
+                maybe_transform(event, Union[RealtimeClientEventParam, ResponseCreateEventWithReferencesParam])
+            )
         )
         if self._is_reconnecting:
             self._send_queue.enqueue(data)
@@ -985,7 +1003,9 @@ class RealtimeConnectionManager:
         self.__send_queue = SendQueue(max_bytes=max_queue_size)
         self.__event_handler_registry = EventHandlerRegistry(use_lock=True)
 
-    def send(self, event: RealtimeClientEvent | RealtimeClientEventParam) -> None:
+    def send(
+        self, event: RealtimeClientEvent | Union[RealtimeClientEventParam, ResponseCreateEventWithReferencesParam]
+    ) -> None:
         """Queue a message to be sent when the connection is established.
 
         This can be called before entering the context manager. Queued messages
@@ -994,7 +1014,9 @@ class RealtimeConnectionManager:
         data = (
             event.to_json(use_api_names=True, exclude_unset=True)
             if isinstance(event, BaseModel)
-            else json.dumps(maybe_transform(event, RealtimeClientEventParam))
+            else json.dumps(
+                maybe_transform(event, Union[RealtimeClientEventParam, ResponseCreateEventWithReferencesParam])
+            )
         )
         self.__send_queue.enqueue(data)
 
@@ -1206,7 +1228,13 @@ class RealtimeSessionResource(BaseRealtimeConnectionResource):
 
 
 class RealtimeResponseResource(BaseRealtimeConnectionResource):
-    def create(self, *, event_id: str | Omit = omit, response: RealtimeResponseCreateParamsParam | Omit = omit) -> None:
+    def create(
+        self,
+        *,
+        event_id: str | Omit = omit,
+        response: Union[RealtimeResponseCreateParamsParam, RealtimeResponseCreateParamsWithReferencesParam]
+        | Omit = omit,
+    ) -> None:
         """
         This event instructs the server to create a Response, which means triggering
         model inference. When in Server VAD mode, the server will create Responses
@@ -1236,7 +1264,7 @@ class RealtimeResponseResource(BaseRealtimeConnectionResource):
         """
         self._connection.send(
             cast(
-                RealtimeClientEventParam,
+                Union[RealtimeClientEventParam, ResponseCreateEventWithReferencesParam],
                 strip_not_given({"type": "response.create", "event_id": event_id, "response": response}),
             )
         )
@@ -1450,7 +1478,11 @@ class AsyncRealtimeSessionResource(BaseAsyncRealtimeConnectionResource):
 
 class AsyncRealtimeResponseResource(BaseAsyncRealtimeConnectionResource):
     async def create(
-        self, *, event_id: str | Omit = omit, response: RealtimeResponseCreateParamsParam | Omit = omit
+        self,
+        *,
+        event_id: str | Omit = omit,
+        response: Union[RealtimeResponseCreateParamsParam, RealtimeResponseCreateParamsWithReferencesParam]
+        | Omit = omit,
     ) -> None:
         """
         This event instructs the server to create a Response, which means triggering
@@ -1481,7 +1513,7 @@ class AsyncRealtimeResponseResource(BaseAsyncRealtimeConnectionResource):
         """
         await self._connection.send(
             cast(
-                RealtimeClientEventParam,
+                Union[RealtimeClientEventParam, ResponseCreateEventWithReferencesParam],
                 strip_not_given({"type": "response.create", "event_id": event_id, "response": response}),
             )
         )

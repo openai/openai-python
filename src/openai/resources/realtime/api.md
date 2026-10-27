@@ -106,6 +106,7 @@ from openai.types.realtime import (
     ResponseDoneEvent,
     ResponseFunctionCallArgumentsDeltaEvent,
     ResponseFunctionCallArgumentsDoneEvent,
+    ResponseItemReference,
     ResponseMcpCallArgumentsDelta,
     ResponseMcpCallArgumentsDone,
     ResponseMcpCallCompleted,
