@@ -198,13 +198,32 @@ class InvalidWebhookSignatureError(ValueError):
 
 
 class WebSocketConnectionClosedError(OpenAIError):
-    """Raised when a WebSocket connection closes with unsent messages."""
+    """Raised when a WebSocket connection closes with unsent messages.
+
+    `unsent_frames` preserves the text and binary frames in their original order.
+    `unsent_messages` retains the text messages, including UTF-8 binary frames
+    represented as text for compatibility.
+    """
 
     unsent_messages: list[str]
+    unsent_frames: list[str] | list[str | bytes]
 
-    def __init__(self, message: str, *, unsent_messages: list[str]) -> None:
+    def __init__(self, message: str, *, unsent_messages: list[str] | list[str | bytes]) -> None:
         super().__init__(message)
-        self.unsent_messages = unsent_messages
+        self.unsent_frames = unsent_messages
+        if all(isinstance(data, str) for data in unsent_messages):
+            self.unsent_messages = cast("list[str]", unsent_messages)
+        else:
+            self.unsent_messages = []
+            for data in unsent_messages:
+                if isinstance(data, str):
+                    self.unsent_messages.append(data)
+                else:
+                    try:
+                        self.unsent_messages.append(data.decode("utf-8"))
+                    except UnicodeDecodeError:
+                        # Opaque binary remains available in unsent_frames.
+                        pass
 
 
 class WebSocketQueueFullError(OpenAIError):
