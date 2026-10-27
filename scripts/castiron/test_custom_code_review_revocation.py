@@ -633,11 +633,115 @@ class ReviewRevocationTests(unittest.TestCase):
         )
         self.assertTrue(all(item.get("state") != "success" for item in result))
 
+    def main_advance_payload(self) -> dict[str, Any]:
+        payload = self.payload()
+        main = "d" * 40
+        run = {
+            **source_run(main, "push"),
+            "head_branch": "main",
+            "head_repository": {"full_name": "openai/example"},
+        }
+        payload["run"] = run
+        payload["main_sha"] = main
+        payload["context"]["payload"]["workflow_run"] = dict(run)
+        payload["runs_by_sha"]["c" * 40][0]["head_branch"] = "gh-readonly-queue/next/pr-3-example"
+        return payload
+
+    def invoke_main_advance(self, payload: dict[str, Any]) -> list[dict[str, Any]]:
+        return run_publisher("Re-evaluate live next queue after main advances", payload)
+
+    def test_main_advance_revokes_success_before_normal_queue_rerun(self) -> None:
+        result = self.invoke_main_advance(self.main_advance_payload())
+        self.assertEqual([item.get("state") for item in result[:2]], ["pending", "pending"])
+        self.assertEqual({item["sha"] for item in result[:2]}, {"c" * 40})
+        self.assertTrue(all(item["context"].startswith("Castiron next /") for item in result[:2]))
+        self.assertEqual([item["run_id"] for item in result[2:]], [14])
+        self.assertNotIn("success", [item.get("state") for item in result])
+
+    def test_old_main_push_does_not_invalidate_newer_qualified_candidates(self) -> None:
+        payload = self.main_advance_payload()
+        payload["main_sha"] = "e" * 40
+        self.assertEqual(self.invoke_main_advance(payload), [])
+
+    def test_main_advance_rejects_foreign_or_non_main_signals(self) -> None:
+        for field, value in (
+            ("head_repository", {"full_name": "other/repo"}),
+            ("repository", {"full_name": "other/repo"}),
+            ("head_branch", "next"),
+            ("event", "pull_request"),
+        ):
+            with self.subTest(field=field):
+                payload = self.main_advance_payload()
+                payload["run"][field] = value
+                with self.assertRaises(subprocess.CalledProcessError):
+                    self.invoke_main_advance(payload)
+        payload = self.main_advance_payload()
+        payload["run"]["workflow_id"] = 999
+        self.assertEqual(self.invoke_main_advance(payload), [])
+
+    def test_main_advance_invalidates_every_queue_page_before_dispatch(self) -> None:
+        payload = self.main_advance_payload()
+        payload["queue_pages"] = [
+            {
+                "expected_cursor": None,
+                "nodes": [{"headCommit": None}, {"headCommit": {"oid": "c" * 40}}],
+                "pageInfo": {"hasNextPage": True, "endCursor": "second"},
+            },
+            {
+                "expected_cursor": "second",
+                "nodes": [{"headCommit": {"oid": "e" * 40}}, {"headCommit": None}],
+                "pageInfo": {"hasNextPage": False, "endCursor": None},
+            },
+        ]
+        result = self.invoke_main_advance(payload)
+        self.assertEqual([item.get("state") for item in result[:4]], ["pending"] * 4)
+        self.assertEqual({item["sha"] for item in result[:4]}, {"c" * 40, "e" * 40})
+        self.assertEqual([item["run_id"] for item in result[4:]], [14])
+
+    def test_main_advance_still_rejects_malformed_non_null_heads(self) -> None:
+        for head in ({}, {"oid": None}, {"oid": "g" * 40}):
+            with self.subTest(head=head):
+                payload = self.main_advance_payload()
+                payload["queue_nodes"][0]["headCommit"] = head
+                with self.assertRaises(subprocess.CalledProcessError):
+                    self.invoke_main_advance(payload)
+
+    def test_main_advance_does_not_rerun_wrong_queue_or_foreign_workflows(self) -> None:
+        for field, value in (
+            ("repository", {"full_name": "other/repo"}),
+            ("workflow_id", 999),
+            ("head_branch", "gh-readonly-queue/main/pr-3-example"),
+        ):
+            with self.subTest(field=field):
+                payload = self.main_advance_payload()
+                payload["runs_by_sha"]["c" * 40][0][field] = value
+                result = self.invoke_main_advance(payload)
+                self.assertEqual([item.get("state") for item in result], ["pending", "pending"])
+
+    def test_main_advance_leaves_newer_running_evaluation_to_publish(self) -> None:
+        payload = self.main_advance_payload()
+        runs = payload["runs_by_sha"]["c" * 40]
+        runs.append({**runs[0], "id": 15, "status": "in_progress"})
+        result = self.invoke_main_advance(payload)
+        self.assertEqual([item.get("state") for item in result], ["pending", "pending"])
+
+    def test_main_advance_with_empty_queue_has_no_writes(self) -> None:
+        payload = self.main_advance_payload()
+        payload["queue_nodes"] = []
+        payload["queue_absent"] = True
+        self.assertEqual(self.invoke_main_advance(payload), [])
+
     def test_signal_is_unprivileged_and_writers_serialize(self) -> None:
         producer = (WORKFLOW.parent / "castiron-custom-code.yml").read_text()
         self.assertIn("pull_request_review:\n    types: [submitted, edited, dismissed]", producer)
         signal = producer.split("  queue-signal:\n", 1)[1].split("  candidate-tests:\n", 1)[0]
         self.assertIn("permissions: {}", signal)
+        self.assertIn("push:\n    branches: [main]", producer)
+        main_change = (
+            WORKFLOW.read_text().split("  main-change:\n", 1)[1].split("  compute:\n", 1)[0]
+        )
+        self.assertNotIn("checkout@", main_change)
+        self.assertNotIn("download-artifact", main_change)
         self.assertNotIn("checkout@", signal)
         handler = WORKFLOW.read_text()
         revoke = handler.split("  review-change:\n", 1)[1].split("  compute:\n", 1)[0]
@@ -646,7 +750,7 @@ class ReviewRevocationTests(unittest.TestCase):
         self.assertIn("path.join(root, 'custom_code_policy.py'), 'review-required'", revoke)
         self.assertNotIn("download-artifact", revoke)
         self.assertEqual(
-            handler.count("group: castiron-budget-writes-${{ github.repository_id }}"), 2
+            handler.count("group: castiron-budget-writes-${{ github.repository_id }}"), 3
         )
 
     def test_direct_head_review_discovery_rejects_shared_commit_from_other_sources(

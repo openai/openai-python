@@ -12,7 +12,7 @@ __all__ = ["ResponseInputImageContent", "PromptCacheBreakpoint"]
 class PromptCacheBreakpoint(BaseModel):
     """Marks the exact end of a reusable prompt prefix.
 
-    The breakpoint inherits its TTL from the request's `prompt_cache_options.ttl`; the boundary is not rounded to a token block.
+    When `ttl` is omitted, the breakpoint inherits the request's `prompt_cache_options.ttl`; the boundary is not rounded to a token block.
     """
 
     mode: Literal["explicit"]
@@ -49,6 +49,6 @@ class ResponseInputImageContent(BaseModel):
     prompt_cache_breakpoint: Optional[PromptCacheBreakpoint] = None
     """Marks the exact end of a reusable prompt prefix.
 
-    The breakpoint inherits its TTL from the request's `prompt_cache_options.ttl`;
-    the boundary is not rounded to a token block.
+    When `ttl` is omitted, the breakpoint inherits the request's
+    `prompt_cache_options.ttl`; the boundary is not rounded to a token block.
     """

@@ -312,10 +312,11 @@ def is_main_snapshot_bootstrap(
     if "next_policy" in read_policy(repo, base):
         return False
     strict = {"schema_version": 2, "max_custom_patch_lines": 0, "generated_files": "strict"}
-    if read_policy(repo, authenticated_main) != strict:
+    main_policy = read_policy(repo, authenticated_main)
+    if {key: value for key, value in main_policy.items() if key != "ratchet"} != strict:
         return False
     expected_policy = {
-        **strict,
+        **main_policy,
         "next_policy": {"repository": repository, "main_sha": authenticated_main},
     }
     if read_policy(repo, head) != expected_policy:

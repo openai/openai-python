@@ -737,11 +737,17 @@ def prepare_main_snapshot(
     """Create and verify an adoption commit without altering a ref, index or metadata."""
     base, authenticated_main = map(report.require_sha, (base, authenticated_main))
     strict = {"schema_version": 2, "max_custom_patch_lines": 0, "generated_files": "strict"}
-    if read_policy(repo, authenticated_main) != strict or "next_policy" in read_policy(repo, base):
+    main_policy = read_policy(repo, authenticated_main)
+    if {
+        key: value for key, value in main_policy.items() if key != "ratchet"
+    } != strict or "next_policy" in read_policy(repo, base):
         raise ValueError("main snapshot preparation requires strict-zero main and unpinned next")
     if policy.merge_base(repo, base, authenticated_main) != base:
         raise ValueError("protected next must be an ancestor of authenticated main")
-    value = {**strict, "next_policy": {"repository": repository, "main_sha": authenticated_main}}
+    value = {
+        **main_policy,
+        "next_policy": {"repository": repository, "main_sha": authenticated_main},
+    }
     blob = report.git(
         repo,
         "hash-object",
