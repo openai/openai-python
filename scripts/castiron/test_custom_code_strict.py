@@ -18,6 +18,14 @@ from custom_code_test_support import GitTestCase
 
 class StrictTests(GitTestCase):
     workflow = ".github/workflows/castiron-custom-code.yml"
+    tooling_dir = "scripts/castiron"
+    checker_path = f"{tooling_dir}/custom_code_budget.py"
+    manifest_path = f"{tooling_dir}/generated-files.json"
+    alternate_manifest_path = (
+        "scripts/castiron/generated-files.json"
+        if tooling_dir == "generated/castiron"
+        else "generated/castiron/generated-files.json"
+    )
 
     def setUp(self) -> None:  # pyright: ignore[reportImplicitOverride]
         super().setUp()
@@ -38,7 +46,7 @@ class StrictTests(GitTestCase):
     def inventory(self, paths: frozenset[bytes]) -> None:
         # Checkpoint code is data. A verifier must never execute this statement.
         self.write(
-            "scripts/castiron/custom_code_budget.py",
+            self.checker_path,
             "raise AssertionError('checkpoint code must not execute')\n"
             f"GENERATED_GITHUB_PATHS = frozenset({set(paths)!r})\n",
         )
@@ -52,11 +60,11 @@ class StrictTests(GitTestCase):
             for p in (
                 "generated.py",
                 *(path.decode() for path in budget.GENERATED_GITHUB_PATHS),
-                "scripts/castiron/custom_code_budget.py",
+                self.checker_path,
                 *extra,
             )
         }
-        self.write(budget.MANIFEST.decode(), json.dumps({"schema_version": 1, "files": files}))
+        self.write(self.manifest_path, json.dumps({"schema_version": 1, "files": files}))
 
     def evaluate(self) -> dict[str, Any]:
         return budget.evaluate(self.repo, self.base, self.commit(), public=False)[0]
@@ -87,8 +95,33 @@ class StrictTests(GitTestCase):
                 self.assertIn(self.workflow, result["strict_violations"][0])
 
     def test_exact_main_snapshot_bootstrap_verifies_real_checkpoints(self) -> None:
+        self.assert_exact_main_snapshot_bootstrap()
+
+    def test_exact_main_snapshot_bootstrap_preserves_go_ratchet(self) -> None:
+        self.assert_exact_main_snapshot_bootstrap(ratchet="go")
+
+    def test_exact_main_snapshot_bootstrap_accepts_ssh_origin(self) -> None:
+        self.assert_exact_main_snapshot_bootstrap(origin="git@github.com:openai/example.git")
+
+    def test_next_preparation_rejects_wrong_origin_before_network(self) -> None:
+        self.git("remote", "add", "origin", "https://github.com/attacker/example.git")
+        for origin in (
+            "https://github.com/attacker/example.git",
+            "git@github.com:attacker/example.git",
+            "https://github.com/openai/example-internal.git",
+            "https://github.com.example.org/openai/example.git",
+        ):
+            with self.subTest(origin=origin), mock.patch.object(budget, "read_public_api") as api:
+                self.git("remote", "set-url", "origin", origin)
+                with self.assertRaisesRegex(ValueError, "public repository as origin"):
+                    budget.prepare_next_baseline(self.repo, "openai/example", "codex/prepare")
+                api.assert_not_called()
+
+    def assert_exact_main_snapshot_bootstrap(
+        self, ratchet: str | None = None, *, origin: str | None = None
+    ) -> None:
         repository = "openai/example"
-        self.git("remote", "add", "origin", f"https://github.com/{repository}.git")
+        self.git("remote", "add", "origin", origin or f"https://github.com/{repository}.git")
 
         def public_snapshot(generated: str, parent: str | None) -> str:
             stats = report.read_stats(self.repo, self.git("rev-parse", "HEAD"))
@@ -108,7 +141,7 @@ class StrictTests(GitTestCase):
         self.write("generated.py", "legacy custom edit\n")
         legacy = self.commit("legacy unpinned next")
         self.write("generated.py", "generated\n")
-        checker = self.repo / "scripts/castiron/custom_code_budget.py"
+        checker = self.repo / self.checker_path
         checker.write_text(checker.read_text() + "NEXT_POLICY_VERSION = 1\n")
         self.manifest()
         # Generated checkpoints exclude integration metadata and repository policy.
@@ -119,6 +152,8 @@ class StrictTests(GitTestCase):
         self.git("update-ref", "refs/remotes/origin/codegen/test", current_public)
         stats_path.write_text(stats_path.read_text() + f"public_codegen_sha: {current_public}\n")
         strict = {"schema_version": 2, "max_custom_patch_lines": 0, "generated_files": "strict"}
+        if ratchet is not None:
+            strict["ratchet"] = ratchet
         self.write(budget.POLICY, json.dumps(strict))
         main = self.commit("verified strict main")
         self.git("update-ref", "refs/remotes/origin/main", main)
@@ -156,6 +191,10 @@ class StrictTests(GitTestCase):
         ):
             prepared = budget.prepare_next_baseline(self.repo, repository, "codex/adopt-main")
         candidate = prepared["head_sha"]
+        self.assertEqual(
+            budget.read_policy(self.repo, candidate),
+            {**strict, "next_policy": {"repository": repository, "main_sha": main}},
+        )
         self.assertEqual(self.git("rev-parse", "refs/heads/codex/adopt-main"), candidate)
         self.assertEqual(self.git("write-tree"), original_index)
         self.assertEqual(self.git("rev-parse", "HEAD"), main)
@@ -232,11 +271,11 @@ class StrictTests(GitTestCase):
             with self.subTest(object_store=mode):
                 queue = mode in ("queue", "moved-main")
                 revision = wrapper if queue else candidate
-                api = GitHubAPI(main, revision, "merge_group" if queue else "pull_request")
-                api.next = legacy
-                api.pull["base"]["ref"] = "next"
+                hosted_api = GitHubAPI(main, revision, "merge_group" if queue else "pull_request")
+                hosted_api.next = legacy
+                hosted_api.pull["base"]["ref"] = "next"
                 if queue:
-                    api.run["head_branch"] = "gh-readonly-queue/next/pr-3-test"
+                    hosted_api.run["head_branch"] = "gh-readonly-queue/next/pr-3-test"
                 objects = self.repo / f"bootstrap-{mode}.git"
                 out = self.repo / f"bootstrap-{mode}-report"
                 receipt = {
@@ -251,8 +290,8 @@ class StrictTests(GitTestCase):
                 with (
                     mock.patch.object(report, "git", side_effect=transport),
                     mock.patch.object(budget.report, "git", side_effect=transport),
-                    mock.patch.object(report, "api", side_effect=api),
-                    mock.patch.object(budget.report, "api", side_effect=api),
+                    mock.patch.object(report, "api", side_effect=hosted_api),
+                    mock.patch.object(budget.report, "api", side_effect=hosted_api),
                     mock.patch.object(
                         budget, "queued_entries", return_value=[(candidate, wrapper)]
                     ),
@@ -270,7 +309,10 @@ class StrictTests(GitTestCase):
                             budget.github_evaluate(
                                 objects,
                                 repository,
-                                {"repository": {"full_name": repository}, "workflow_run": api.run},
+                                {
+                                    "repository": {"full_name": repository},
+                                    "workflow_run": hosted_api.run,
+                                },
                                 main,
                                 selection=receipt,
                             )
@@ -278,7 +320,10 @@ class StrictTests(GitTestCase):
                         result, _ = budget.github_evaluate(
                             objects,
                             repository,
-                            {"repository": {"full_name": repository}, "workflow_run": api.run},
+                            {
+                                "repository": {"full_name": repository},
+                                "workflow_run": hosted_api.run,
+                            },
                             main,
                             out if mode == "reused-pr" else None,
                             selection=receipt,
@@ -413,7 +458,7 @@ class StrictTests(GitTestCase):
 
     def test_missing_manifest_cannot_activate(self) -> None:
         self.git("checkout", "-q", self.generated)
-        (self.repo / budget.MANIFEST.decode()).unlink()
+        (self.repo / self.manifest_path).unlink()
         checkpoint = self.commit(self.git("show", "-s", "--format=%B", self.generated))
         self.git("update-ref", "refs/remotes/origin/codegen/test", checkpoint)
         self.git("checkout", "-q", "main")
@@ -435,12 +480,10 @@ class StrictTests(GitTestCase):
         checkpoint = self.commit(self.git("show", "-s", "--format=%B", self.generated))
         self.git("update-ref", "refs/remotes/origin/codegen/test", checkpoint)
         self.git("checkout", "-q", "main")
-        for path in ("generated.py", self.workflow, budget.MANIFEST.decode()):
+        for path in ("generated.py", self.workflow, self.manifest_path):
             self.write(path, self.git("show", f"{checkpoint}:{path}") + "\n")
         # Preserve exact manifest bytes (the fixture writes JSON without a newline).
-        self.write(
-            budget.MANIFEST.decode(), self.git("show", f"{checkpoint}:{budget.MANIFEST.decode()}")
-        )
+        self.write(self.manifest_path, self.git("show", f"{checkpoint}:{self.manifest_path}"))
         stats = (self.repo / ".castiron.stats.yml").read_text()
         self.write(
             ".castiron.stats.yml",
@@ -474,9 +517,9 @@ class StrictTests(GitTestCase):
 
     def test_manifest_must_cover_snapshot_and_match_its_bytes(self) -> None:
         self.git("checkout", "-q", self.generated)
-        manifest = json.loads((self.repo / budget.MANIFEST.decode()).read_text())
+        manifest = json.loads((self.repo / self.manifest_path).read_text())
         manifest["files"].pop("generated.py")
-        self.write(budget.MANIFEST.decode(), json.dumps(manifest))
+        self.write(self.manifest_path, json.dumps(manifest))
         with self.assertRaisesRegex(ValueError, "cover.*exactly"):
             budget.generated_manifest(self.repo, self.commit())
         self.manifest()
@@ -486,10 +529,10 @@ class StrictTests(GitTestCase):
 
     def test_relocated_tooling_preserves_ownership_and_retirement_checks(self) -> None:
         self.git("checkout", "--detach", "-q", self.generated)
-        old_manifest = budget.MANIFEST.decode()
-        new_manifest = "generated/castiron/generated-files.json"
-        old_checker = "scripts/castiron/custom_code_budget.py"
-        new_checker = "generated/castiron/custom_code_budget.py"
+        old_manifest = self.manifest_path
+        new_manifest = self.alternate_manifest_path
+        old_checker = self.checker_path
+        new_checker = str(Path(new_manifest).with_name("custom_code_budget.py"))
         manifest = json.loads((self.repo / old_manifest).read_text())
         manifest["files"][new_checker] = manifest["files"].pop(old_checker)
         checker = (self.repo / old_checker).read_text()
@@ -524,8 +567,8 @@ class StrictTests(GitTestCase):
     def test_checkpoint_rejects_ambiguous_manifest_locations(self) -> None:
         self.git("checkout", "--detach", "-q", self.generated)
         self.write(
-            "generated/castiron/generated-files.json",
-            (self.repo / budget.MANIFEST.decode()).read_text(),
+            self.alternate_manifest_path,
+            (self.repo / self.manifest_path).read_text(),
         )
         with self.assertRaisesRegex(ValueError, "ambiguous"):
             budget.generated_manifest(self.repo, self.commit())
@@ -533,10 +576,10 @@ class StrictTests(GitTestCase):
     def test_relocated_manifest_requires_colocated_checker_inventory(self) -> None:
         self.git("checkout", "--detach", "-q", self.generated)
         self.write(
-            "generated/castiron/generated-files.json",
-            (self.repo / budget.MANIFEST.decode()).read_text(),
+            self.alternate_manifest_path,
+            (self.repo / self.manifest_path).read_text(),
         )
-        (self.repo / budget.MANIFEST.decode()).unlink()
+        (self.repo / self.manifest_path).unlink()
         with self.assertRaisesRegex(ValueError, "missing its generated GitHub inventory"):
             budget.generated_manifest(self.repo, self.commit())
 
@@ -569,7 +612,7 @@ class StrictTests(GitTestCase):
                     self.write(path, "generated workflow or action\n")
                     self.inventory(budget.GENERATED_GITHUB_PATHS)
                     self.manifest((path,))
-                    manifest = json.loads((self.repo / budget.MANIFEST.decode()).read_text())
+                    manifest = json.loads((self.repo / self.manifest_path).read_text())
                     manifest["files"][path] = {
                         "mode": "100644",
                         "sha256": hashlib.sha256((self.repo / path).read_bytes()).hexdigest(),
@@ -580,7 +623,7 @@ class StrictTests(GitTestCase):
                         self.write(path, "unrecorded change\n")
                     else:
                         (self.repo / path).chmod(0o755)
-                    self.write(budget.MANIFEST.decode(), json.dumps(manifest))
+                    self.write(self.manifest_path, json.dumps(manifest))
                     error = (
                         "omits generated GitHub inventory path"
                         if mutation == "omit"
@@ -627,14 +670,14 @@ class StrictTests(GitTestCase):
                 with self.subTest(path=path, keep_blob=keep_blob):
                     self.git("checkout", "--detach", "-q", self.generated)
                     self.write(path, "SDK-owned configuration\n")
-                    manifest = json.loads((self.repo / budget.MANIFEST.decode()).read_text())
+                    manifest = json.loads((self.repo / self.manifest_path).read_text())
                     manifest["files"][path] = {
                         "mode": "100644",
                         "sha256": hashlib.sha256((self.repo / path).read_bytes()).hexdigest(),
                     }
                     if not keep_blob:
                         (self.repo / path).unlink()
-                    self.write(budget.MANIFEST.decode(), json.dumps(manifest))
+                    self.write(self.manifest_path, json.dumps(manifest))
                     with self.assertRaisesRegex(ValueError, "SDK-owned GitHub path"):
                         budget.generated_manifest(self.repo, self.commit())
 
@@ -646,9 +689,9 @@ class StrictTests(GitTestCase):
                 self.inventory(budget.GENERATED_GITHUB_PATHS | {path.encode()})
                 self.manifest((path,))
                 (self.repo / path).unlink()
-                manifest = json.loads((self.repo / budget.MANIFEST.decode()).read_text())
+                manifest = json.loads((self.repo / self.manifest_path).read_text())
                 del manifest["files"][path]
-                self.write(budget.MANIFEST.decode(), json.dumps(manifest))
+                self.write(self.manifest_path, json.dumps(manifest))
                 with self.assertRaisesRegex(ValueError, "omits generated GitHub inventory path"):
                     budget.generated_manifest(
                         self.repo, self.commit("incomplete public checkpoint")
@@ -669,9 +712,9 @@ class StrictTests(GitTestCase):
     def test_generated_deletion_requires_removing_retired_file(self) -> None:
         self.git("checkout", "-q", self.generated)
         (self.repo / "generated.py").unlink()
-        manifest = json.loads((self.repo / budget.MANIFEST.decode()).read_text())
+        manifest = json.loads((self.repo / self.manifest_path).read_text())
         del manifest["files"]["generated.py"]
-        self.write(budget.MANIFEST.decode(), json.dumps(manifest))
+        self.write(self.manifest_path, json.dumps(manifest))
         new = self.commit()
         self.assertEqual(budget.verify_generated(self.repo, new, new, previous=self.generated), [])
         self.write("generated.py", "retained handwritten replacement\n")
@@ -683,13 +726,13 @@ class StrictTests(GitTestCase):
         self.git("checkout", "-q", self.generated)
         (self.repo / "generated.py").unlink()
         self.write("generated.py/nested.py", "new generated file\n")
-        manifest = json.loads((self.repo / budget.MANIFEST.decode()).read_text())
+        manifest = json.loads((self.repo / self.manifest_path).read_text())
         del manifest["files"]["generated.py"]
         manifest["files"]["generated.py/nested.py"] = {
             "mode": "100644",
             "sha256": hashlib.sha256(b"new generated file\n").hexdigest(),
         }
-        self.write(budget.MANIFEST.decode(), json.dumps(manifest))
+        self.write(self.manifest_path, json.dumps(manifest))
         new = self.commit()
         for worktree in (False, True):
             with self.subTest(worktree=worktree):

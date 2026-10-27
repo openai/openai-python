@@ -426,6 +426,33 @@ class ReviewedPinTests(GitTestCase):
         self.assertFalse(json.loads(values["bootstrap"]))
         self.assertEqual(json.loads(out.read_text())["schema_version"], 1)
 
+    def test_follow_up_comments_preserve_policy_approval(self) -> None:
+        approval = self.approved()
+        for state in ("COMMENTED", "PENDING"):
+            follow_up = self.approved(id=11, state=state, body="A non-blocking follow-up")
+            for reviews in ([approval, follow_up], [follow_up, approval]):
+                with (
+                    self.subTest(state=state, reviews=reviews),
+                    mock.patch.object(selector.report, "api", side_effect=self.review_api(reviews)),
+                ):
+                    self.assertEqual(selector.require_human_policy_review(REPO, self.head), 3)
+
+    def test_comments_do_not_restore_revoked_policy_approval(self) -> None:
+        comment = self.approved(id=12, state="COMMENTED", body="A follow-up comment")
+        cases = [
+            [self.approved(), self.approved(id=11, state="CHANGES_REQUESTED"), comment],
+            [self.approved(state="DISMISSED"), comment],
+            [self.approved(body="Attestation removed"), comment],
+            [comment],
+        ]
+        for reviews in cases:
+            with (
+                self.subTest(reviews=reviews),
+                mock.patch.object(selector.report, "api", side_effect=self.review_api(reviews)),
+                self.assertRaisesRegex(ValueError, "human"),
+            ):
+                selector.require_human_policy_review(REPO, self.head)
+
     def test_forged_bot_stale_dismissed_untrusted_reviews_rejected(self) -> None:
         self.git("checkout", "-q", "--detach", self.base)
         self.write_policy(
@@ -553,6 +580,16 @@ class ReviewedPinTests(GitTestCase):
         self.git("remote", "set-url", "origin", "https://github.com/attacker/example.git")
         with self.assertRaisesRegex(ValueError, "origin"):
             self.select()
+
+    def test_same_repository_github_url_spellings_are_accepted(self) -> None:
+        for origin in (
+            f"https://github.com/{REPO}.git",
+            f"https://github.com/{REPO}",
+            f"git@github.com:{REPO}.git",
+        ):
+            with self.subTest(origin=origin):
+                self.git("remote", "set-url", "origin", origin)
+                self.assertEqual(self.select()["policy_sha"], self.main)
 
     def test_policy_update_uses_old_base_checker_and_requires_human(self) -> None:
         self.git("checkout", "-q", "--detach", self.main)

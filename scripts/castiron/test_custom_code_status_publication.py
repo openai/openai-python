@@ -29,7 +29,9 @@ class StatusPublisherTests(unittest.TestCase):
         branch: str = "main",
         evaluated_branch: str | None = None,
         policy_changed: bool = False,
+        authenticated_main_sha: str | None = None,
         bootstrap: str = "false",
+        main_snapshot: str = "",
         policy_sha: str | None = None,
         selected_policy_matches: bool = True,
         queue_absent: bool = False,
@@ -106,6 +108,7 @@ class StatusPublisherTests(unittest.TestCase):
                 ),
                 "SELECTED_BRANCH": branch,
                 "SELECTED_BOOTSTRAP": bootstrap,
+                "MAIN_SNAPSHOT": main_snapshot,
                 "SELECTED_BASE_SHA": base,
                 "SELECTED_HEAD_SHA": head,
                 "SELECTED_POLICY_SHA": (policy_sha or base)
@@ -120,6 +123,9 @@ class StatusPublisherTests(unittest.TestCase):
                 "PUBLISH_ATTEMPT": "1",
             },
         }
+        payload["env"]["AUTHENTICATED_MAIN_SHA"] = (
+            payload["main_sha"] if authenticated_main_sha is None else authenticated_main_sha
+        )
         if policy_pull:
             payload["pulls_by_number"] = {policy_pull["number"]: policy_pull}
         if same_head_next_pr:
@@ -187,6 +193,49 @@ class StatusPublisherTests(unittest.TestCase):
                 )
                 self.assertEqual([w["state"] for w in writes], [expected, expected])
 
+    def test_final_publisher_preserves_approval_across_comments(self) -> None:
+        head = "b" * 40
+        approval = {
+            "id": 10,
+            "state": "APPROVED",
+            "commit_id": head,
+            "user": {"login": "human", "type": "User"},
+            "author_association": "MEMBER",
+            "body": policy.HUMAN_REVIEW_RULES["attestation_prefix"] + head,
+        }
+        comment = {**approval, "id": 11, "state": "COMMENTED", "body": "A follow-up comment"}
+        cases = [
+            ([approval, comment], "success"),
+            ([comment, approval], "success"),
+            ([comment], "failure"),
+            ([{**approval, "state": "DISMISSED"}, comment], "failure"),
+            ([{**approval, "body": "Attestation removed"}, comment], "failure"),
+            (
+                [
+                    approval,
+                    {**approval, "id": 12, "state": "CHANGES_REQUESTED"},
+                    {**comment, "id": 13},
+                ],
+                "failure",
+            ),
+            (
+                [
+                    {**approval, "state": "CHANGES_REQUESTED"},
+                    {**approval, "id": 12},
+                    {**comment, "id": 13},
+                ],
+                "success",
+            ),
+        ]
+        for reviews, expected in cases:
+            with self.subTest(reviews=reviews):
+                writes = self.publish(
+                    branch="next",
+                    policy_reviews=[{"number": 3, "head_sha": head}],
+                    reviews=reviews,
+                )
+                self.assertEqual([w["state"] for w in writes], [expected] * 2)
+
     def test_final_publisher_preserves_review_identity_precision(self) -> None:
         head = "b" * 40
         approval = {
@@ -197,7 +246,7 @@ class StatusPublisherTests(unittest.TestCase):
             "author_association": "MEMBER",
             "body": policy.HUMAN_REVIEW_RULES["attestation_prefix"] + head,
         }
-        replacement = {**approval, "id": 9007199254740993, "state": "COMMENTED"}
+        replacement = {**approval, "id": 9007199254740993, "state": "CHANGES_REQUESTED"}
         for reviews in ([approval, replacement], [replacement, approval]):
             with self.subTest(reviews=reviews):
                 writes = self.publish(
@@ -260,6 +309,41 @@ class StatusPublisherTests(unittest.TestCase):
             ),
             ["failure"] * 2,
         )
+
+    def test_next_publication_binds_authenticated_main(self) -> None:
+        # The reviewed checker pin may remain old. The evaluation's main snapshot
+        # must still be current so an old publisher cannot undo invalidation.
+        for event in ("pull_request", "merge_group"):
+            for authenticated_main, expected in (
+                ("a" * 40, "failure"),
+                ("d" * 40, "success"),
+                ("", "failure"),
+                ("invalid", "failure"),
+            ):
+                with self.subTest(event=event, authenticated_main=authenticated_main):
+                    writes = self.publish(
+                        event_name=event,
+                        branch="next",
+                        policy_changed=True,
+                        authenticated_main_sha=authenticated_main,
+                    )
+                    self.assertEqual([item["state"] for item in writes], [expected] * 2)
+
+    def test_main_snapshot_publication_rechecks_live_main(self) -> None:
+        for event in ("pull_request", "merge_group"):
+            for moved in (False, True):
+                with self.subTest(event=event, moved=moved):
+                    writes = self.publish(
+                        event_name=event,
+                        branch="next",
+                        policy_sha="e" * 40,
+                        main_snapshot="e" * 40,
+                        policy_changed=moved,
+                    )
+                    self.assertEqual(
+                        [w["state"] for w in writes],
+                        ["failure", "failure"] if moved else ["success", "success"],
+                    )
 
     def test_bootstrap_rechecks_authenticated_main(self) -> None:
         for event in ("pull_request", "merge_group"):
@@ -332,84 +416,88 @@ class StatusPublisherTests(unittest.TestCase):
 
     def test_queue_policy_approval_dismissal_after_selection_fails(self) -> None:
         candidate = "e" * 40
-        pull: dict[str, Any] = {
-            "number": 7,
-            "user": {"login": "author"},
-            "state": "open",
-            "head": {"sha": candidate},
-            "base": {"ref": "next", "repo": {"full_name": "openai/example"}},
-        }
-        approved = {
-            "id": 1,
-            "state": "APPROVED",
-            "commit_id": candidate,
-            "user": {"login": "human", "type": "User"},
-            "author_association": "MEMBER",
-            "body": policy.HUMAN_REVIEW_RULES["attestation_prefix"] + candidate,
-        }
-        for state in ("APPROVED", "DISMISSED", "CHANGES_REQUESTED"):
-            with self.subTest(state=state):
+        for queue_head in (source_head(candidate), {"sha": candidate}):
+            with self.subTest(queue_head=queue_head):
+                pull: dict[str, Any] = {
+                    "number": 7,
+                    "user": {"login": "author"},
+                    "state": "open",
+                    "head": queue_head,
+                    "base": {"ref": "next", "repo": {"full_name": "openai/example"}},
+                }
+                approved = {
+                    "id": 1,
+                    "state": "APPROVED",
+                    "commit_id": candidate,
+                    "user": {"login": "human", "type": "User"},
+                    "author_association": "MEMBER",
+                    "body": policy.HUMAN_REVIEW_RULES["attestation_prefix"] + candidate,
+                }
+                for state in ("APPROVED", "DISMISSED", "CHANGES_REQUESTED"):
+                    with self.subTest(state=state):
+                        writes = self.publish(
+                            event_name="merge_group",
+                            branch="next",
+                            policy_pull=pull,
+                            policy_reviews=[{"number": 7, "head_sha": candidate}],
+                            reviews=[{**approved, "state": state}],
+                        )
+                        self.assertEqual(
+                            [w["state"] for w in writes],
+                            ["success" if state == "APPROVED" else "failure"] * 2,
+                        )
+                # Ordinary automated approvals may keep the queue live, but cannot replace
+                # the independently required human policy approval.
                 writes = self.publish(
                     event_name="merge_group",
                     branch="next",
                     policy_pull=pull,
                     policy_reviews=[{"number": 7, "head_sha": candidate}],
-                    reviews=[{**approved, "state": state}],
+                    reviews=[
+                        {**approved, "state": "DISMISSED"},
+                        {
+                            **approved,
+                            "id": 2,
+                            "user": {"login": "automated", "type": "User"},
+                            "body": "<!-- pr-review:automated-review:v1 -->",
+                        },
+                    ],
                 )
-                self.assertEqual(
-                    [w["state"] for w in writes],
-                    ["success" if state == "APPROVED" else "failure"] * 2,
-                )
-        # Ordinary automated approvals may keep the queue live, but cannot replace
-        # the independently required human policy approval.
-        writes = self.publish(
-            event_name="merge_group",
-            branch="next",
-            policy_pull=pull,
-            policy_reviews=[{"number": 7, "head_sha": candidate}],
-            reviews=[
-                {**approved, "state": "DISMISSED"},
-                {
-                    **approved,
-                    "id": 2,
-                    "user": {"login": "automated", "type": "User"},
-                    "body": "<!-- pr-review:automated-review:v1 -->",
-                },
-            ],
-        )
-        self.assertEqual([w["state"] for w in writes], ["failure", "failure"])
+                self.assertEqual([w["state"] for w in writes], ["failure", "failure"])
 
     def test_queue_policy_constituent_changes_fail_closed(self) -> None:
         candidate = "e" * 40
-        pull: dict[str, Any] = {
-            "number": 7,
-            "user": {"login": "author"},
-            "state": "open",
-            "head": {"sha": candidate},
-            "base": {"ref": "next", "repo": {"full_name": "openai/example"}},
-        }
-        approved = {
-            "id": 1,
-            "state": "APPROVED",
-            "commit_id": candidate,
-            "user": {"login": "human", "type": "User"},
-            "author_association": "MEMBER",
-            "body": policy.HUMAN_REVIEW_RULES["attestation_prefix"] + candidate,
-        }
-        for changed in [
-            {**pull, "state": "closed"},
-            {**pull, "head": {"sha": "f" * 40}},
-            {**pull, "base": {**pull["base"], "ref": "main"}},
-        ]:
-            with self.subTest(changed=changed):
-                writes = self.publish(
-                    event_name="merge_group",
-                    branch="next",
-                    policy_pull=changed,
-                    policy_reviews=[{"number": 7, "head_sha": candidate}],
-                    reviews=[approved],
-                )
-                self.assertEqual([w["state"] for w in writes], ["failure", "failure"])
+        for queue_head in (source_head(candidate), {"sha": candidate}):
+            with self.subTest(queue_head=queue_head):
+                pull: dict[str, Any] = {
+                    "number": 7,
+                    "user": {"login": "author"},
+                    "state": "open",
+                    "head": queue_head,
+                    "base": {"ref": "next", "repo": {"full_name": "openai/example"}},
+                }
+                approved = {
+                    "id": 1,
+                    "state": "APPROVED",
+                    "commit_id": candidate,
+                    "user": {"login": "human", "type": "User"},
+                    "author_association": "MEMBER",
+                    "body": policy.HUMAN_REVIEW_RULES["attestation_prefix"] + candidate,
+                }
+                for changed in [
+                    {**pull, "state": "closed"},
+                    {**pull, "head": {"sha": "f" * 40}},
+                    {**pull, "base": {**pull["base"], "ref": "main"}},
+                ]:
+                    with self.subTest(changed=changed):
+                        writes = self.publish(
+                            event_name="merge_group",
+                            branch="next",
+                            policy_pull=changed,
+                            policy_reviews=[{"number": 7, "head_sha": candidate}],
+                            reviews=[approved],
+                        )
+                        self.assertEqual([w["state"] for w in writes], ["failure", "failure"])
 
     def test_missing_policy_review_contract_fails_closed(self) -> None:
         self.assertEqual(

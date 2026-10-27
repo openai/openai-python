@@ -24,6 +24,9 @@ class GitTestCase(unittest.TestCase):
         self.git("init", "-q", "-b", "main")
         self.git("config", "user.name", "Castiron test")
         self.git("config", "user.email", "castiron@example.test")
+        # Finish automatic maintenance before the temporary repository is removed.
+        self.git("config", "maintenance.autoDetach", "false")
+        self.git("config", "gc.autoDetach", "false")
 
     def git(self, *args: str) -> str:
         return subprocess.run(

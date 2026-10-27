@@ -2,6 +2,8 @@
 name: Castiron custom code
 
 on:
+  push:
+    branches: [main]
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review, edited]
   pull_request_review:
@@ -18,11 +20,11 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  REPORTER_SHA256: c243015818640b1e7068605c5352fcb770d406202ee4e75316fe0ca85d06a1cc
+  REPORTER_SHA256: ddb15c9a162d26a6c9abf1b4fefcd80f2e685d9d255af729863258b7ecd08e2d
 
 jobs:
   queue-signal:
-    if: github.event_name == 'merge_group' || github.event_name == 'pull_request_review'
+    if: github.event_name == 'merge_group' || github.event_name == 'pull_request_review' || github.event_name == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 1
     permissions: {}
