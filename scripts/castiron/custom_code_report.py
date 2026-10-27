@@ -62,6 +62,17 @@ class ReportError(ValueError):
     """The report cannot establish a trustworthy comparison."""
 
 
+def github_origin_urls(repository: str) -> set[str]:
+    """Accepted URL spellings for one exact GitHub repository."""
+    if not REPOSITORY.fullmatch(repository):
+        raise ReportError("invalid GitHub repository")
+    return {
+        f"https://github.com/{repository}.git",
+        f"https://github.com/{repository}",
+        f"git@github.com:{repository}.git",
+    }
+
+
 @dataclass(frozen=True)
 class Entry:
     mode: bytes
@@ -487,14 +498,7 @@ def first_adoption_source(repo: Path, base: str, *, target_branch: str, fetch: b
     if repository not in {"openai/openai-java", "openai/openai-cli"}:
         raise ReportError("first adoption is only supported for legacy Java/CLI")
     remote = git(repo, "remote", "get-url", "origin").decode().strip()
-    allowed = {
-        f"https://github.com/{repository}.git",
-        f"https://github.com/{repository}",
-        f"git@github.com:{repository}.git",
-        f"https://github.com/{repository}-internal.git",
-        f"https://github.com/{repository}-internal",
-        f"git@github.com:{repository}-internal.git",
-    }
+    allowed = github_origin_urls(repository) | github_origin_urls(f"{repository}-internal")
     if remote not in allowed:
         raise ReportError("adoption policy repository does not match SDK origin")
     source = require_sha(pin["main_sha"])

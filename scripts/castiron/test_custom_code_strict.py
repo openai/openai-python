@@ -100,9 +100,28 @@ class StrictTests(GitTestCase):
     def test_exact_main_snapshot_bootstrap_preserves_go_ratchet(self) -> None:
         self.assert_exact_main_snapshot_bootstrap(ratchet="go")
 
-    def assert_exact_main_snapshot_bootstrap(self, ratchet: str | None = None) -> None:
+    def test_exact_main_snapshot_bootstrap_accepts_ssh_origin(self) -> None:
+        self.assert_exact_main_snapshot_bootstrap(origin="git@github.com:openai/example.git")
+
+    def test_next_preparation_rejects_wrong_origin_before_network(self) -> None:
+        self.git("remote", "add", "origin", "https://github.com/attacker/example.git")
+        for origin in (
+            "https://github.com/attacker/example.git",
+            "git@github.com:attacker/example.git",
+            "https://github.com/openai/example-internal.git",
+            "https://github.com.example.org/openai/example.git",
+        ):
+            with self.subTest(origin=origin), mock.patch.object(budget, "read_public_api") as api:
+                self.git("remote", "set-url", "origin", origin)
+                with self.assertRaisesRegex(ValueError, "public repository as origin"):
+                    budget.prepare_next_baseline(self.repo, "openai/example", "codex/prepare")
+                api.assert_not_called()
+
+    def assert_exact_main_snapshot_bootstrap(
+        self, ratchet: str | None = None, *, origin: str | None = None
+    ) -> None:
         repository = "openai/example"
-        self.git("remote", "add", "origin", f"https://github.com/{repository}.git")
+        self.git("remote", "add", "origin", origin or f"https://github.com/{repository}.git")
 
         def public_snapshot(generated: str, parent: str | None) -> str:
             stats = report.read_stats(self.repo, self.git("rev-parse", "HEAD"))

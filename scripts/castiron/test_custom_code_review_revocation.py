@@ -209,6 +209,37 @@ class ReviewRevocationTests(unittest.TestCase):
             payload["forbid_queue"] = True
             self.assertEqual(self.invoke(payload), [])
 
+    def test_later_comment_preserves_green_pr_and_queue_statuses(self) -> None:
+        for state in ("COMMENTED", "PENDING"):
+            for paginated in (False, True):
+                with self.subTest(state=state, paginated=paginated):
+                    payload = self.recovery()
+                    approval = self.approval()
+                    comment = {
+                        **approval,
+                        "fullDatabaseId": "102",
+                        "state": state,
+                        "body": "Follow-up discussion",
+                    }
+                    payload["review_nodes"] = [approval, comment]
+                    if paginated:
+                        payload.pop("review_nodes")
+                        payload["review_pages"] = [
+                            {
+                                "expected_cursor": None,
+                                "nodes": [comment],
+                                "pageInfo": {"hasNextPage": True, "endCursor": "more"},
+                            },
+                            {
+                                "expected_cursor": "more",
+                                "nodes": [approval],
+                                "pageInfo": {"hasNextPage": False},
+                            },
+                        ]
+                    for status in payload["previous_statuses"]:
+                        status["state"] = "success"
+                    self.assertEqual(self.invoke(payload), [])
+
     def test_ineligible_review_cannot_request_recovery(self) -> None:
         for overrides in (
             {"state": "COMMENTED"},
@@ -280,7 +311,7 @@ class ReviewRevocationTests(unittest.TestCase):
                 **self.approval(),
                 "databaseId": None,
                 "fullDatabaseId": "9007199254740993",
-                "state": "COMMENTED",
+                "state": "CHANGES_REQUESTED",
             },
         ]
         self.assertEqual(len(self.invoke(payload)), 6)
@@ -350,11 +381,13 @@ class ReviewRevocationTests(unittest.TestCase):
             payload["runs_by_id"]["21"][field] = value
             self.assertEqual(len(self.invoke(payload)), 6)
 
-    def test_dismissal_edit_away_and_later_comment_revoke_even_for_other_signal_actor(self) -> None:
+    def test_dismissal_edit_away_and_blocking_review_revoke_even_for_other_signal_actor(
+        self,
+    ) -> None:
         for changed in (
             {"state": "DISMISSED"},
             {"body": ""},
-            {"state": "COMMENTED", "fullDatabaseId": "102"},
+            {"state": "CHANGES_REQUESTED", "fullDatabaseId": "102"},
         ):
             payload = self.payload()
             payload["review_nodes"] = [{**self.approval(), **changed}]
@@ -363,7 +396,9 @@ class ReviewRevocationTests(unittest.TestCase):
         payload["review_pages"] = [
             {
                 "expected_cursor": None,
-                "nodes": [{**self.approval(), "fullDatabaseId": "102", "state": "COMMENTED"}],
+                "nodes": [
+                    {**self.approval(), "fullDatabaseId": "102", "state": "CHANGES_REQUESTED"}
+                ],
                 "pageInfo": {"hasNextPage": True, "endCursor": "more"},
             },
             {

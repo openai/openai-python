@@ -820,10 +820,8 @@ def prepare_next_baseline(repo: Path, repository: str, branch: str) -> dict[str,
     if not report.REPOSITORY.fullmatch(repository) or not branch.startswith("codex/"):
         raise ValueError("expected a repository and a new codex/ review branch")
     report.git(repo, "check-ref-format", "--branch", branch)
-    if (
-        report.git(repo, "remote", "get-url", "origin").decode().strip()
-        != f"https://github.com/{repository}.git"
-    ):
+    origin = report.git(repo, "remote", "get-url", "origin").decode().strip()
+    if origin not in report.github_origin_urls(repository):
         raise ValueError("preparation requires the public repository as origin")
     root = f"repos/{repository}"
     metadata = read_public_api(root)
