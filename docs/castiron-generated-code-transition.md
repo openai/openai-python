@@ -6,23 +6,27 @@ Eliminate handwritten patches in generated-owned files while preserving every ex
 
 No removals or renames of public symbols, new required arguments, narrower input/return types, dependency or Python-floor changes, altered defaults, new payload limits, changed warnings, or changed sync/async behavior are authorized by this transition. Deprecated methods and compatibility import paths remain supported.
 
-## Verified public baseline — 2026-10-26
+## Verified public baseline — 2026-10-27
 
-The strict public report at `904ed3f6ba0f2351af67c9456e9f020401a8a7f8` measured **0 generated files with custom edits / 0 custom patch lines**. These counts carry forward to public main `06dbb5d019d7b6870b5898bf5df579ca60b61d28`: a full-tree comparison found only a change to the SDK-owned `create-releases.yml` workflow, outside generated ownership. All other paths, including all **2,025 generated manifest entries**, retain identical bytes and Git modes. The report verified the generated snapshot hash; its two omitted generated workflows were separately authenticated against the manifest and private checkpoint.
+Public main `3596d18f05b63081fd64c6da82b515293afb98c6` has **0 generated files with custom edits / 0 custom patch lines**. The verified generated inventory contains **2,028 manifest entries**; including the manifest itself, qualification compares **2,029 emitted paths**, bytes and Git modes. Public promotion [#4186](https://github.com/openai/openai-python/pull/4186) is delivered. Current physical line counts for all 41 formerly mixed files total **40,356 lines**, including comments and blanks, and are recorded under `current_status.former_mixed_files` in the [inventory](castiron-transition-inventory.json); every file has zero custom patch lines.
 
-The original `cfa0a79b6395bb0561b28879122a9f90a87cdada` audit measured **41 mixed files / 7,409 custom patch lines**, comprising 4,890 additions and 2,519 deletions. Patch lines measure differences from generated output, including removed lines; they are not the total size of handwritten runtime modules or compiler templates.
+The policy is **strict generated-file ownership with a zero-line customization budget**. The effective main-branch rules require both `Castiron / budget-only change` and `Castiron / custom-code budget`. New generated-file changes must come from the compiler and regeneration; handwritten algorithms belong in handwritten runtime modules.
+
+The original `cfa0a79b6395bb0561b28879122a9f90a87cdada` audit measured **41 mixed files / 7,409 custom patch lines**, comprising 4,890 additions and 2,519 deletions. Patch lines measure differences from generated output, including removed lines; they are not the size of handwritten runtime modules or compiler templates.
 
 ## Current incremental plan
 
-The mixed-file count reached zero before this follow-up. Remaining work simplifies how the compiler expresses the preserved SDK interfaces: ordinary templates consume native compiler facts, while runtime algorithms remain in wholly handwritten modules. Do not introduce a new facade framework or developer-facing breaking changes.
+The mixed-file count reached zero before this follow-up. This follow-up simplifies the compiler representation of preserved SDK interfaces: ordinary templates use native compiler facts, while runtime algorithms remain wholly handwritten. No new facade framework or developer-facing breaking change is part of this work.
 
-The first slice covers Chat parsing/streaming and chunked uploads, with separate compiler reviews followed by private SDK adoption and public promotion where there is an actual SDK change. Subsequent small slices cover Files/Artifacts, Sessions, Threads/Runs, Responses, and client/package wiring, followed by removal of unused declaration machinery after a compatibility audit.
+The Chat/Uploads compiler batch and SDK adoption are delivered. The compiler changes for Files/Artifacts, WebSocket declarations, Sessions stream/create, Threads, Runs, Package, Client and Responses have also landed. An inventory at actual merged compiler `efa47f65cef47f54391723b787de5239d8b61bff` covers all **14 authored YAML files** and finds **0 legacy declaration blocks / 0 declaration lines**. Final combined-compiler qualification passed, and this update records SDK adoption of the native configuration.
 
-The remaining inventory contains nine declaration blocks totaling **16,555 authored YAML lines**, plus **75 residual binding lines** tracked separately. These measure compiler configuration still to simplify, not custom patches in SDK files.
+Keep the separate **75 lines of runtime bindings**: they express constants, loggers and small forwarders to handwritten behavior. They contain no handwritten runtime algorithms and contribute zero SDK custom patch lines. Replacing them would add machinery without simplifying ownership. Historical declaration readers remain available for compatible input replay; this transition does not claim their removal.
 
-For each slice, compare generated output against the existing implementation using the same API/configuration inputs. Preserve method signatures, annotations, defaults, imports, sync/async behavior, and runtime algorithms. Review any other generated drift separately, run the relevant compatibility and repository checks, keep the verified mixed-file and patch-line counts at zero, and satisfy ordinary review and merge gates.
+The actual merged compiler passed all **914 renderer tests**, with none ignored, and the canonical Rust lint checks. Both legacy and native configurations reproduce all **2,029 emitted paths byte for byte**, including Git modes and valid manifests, against public baseline `3596d18f`; there are no output exceptions. This preserves signatures, annotations, defaults, import identities, sync/async behavior, method placement and runtime algorithms. Reporting validation retains the 282 Python-only tests and four lint/type checks from identical output, settings and tool versions, with the existing compiler-dependent test rerun successfully against the final compiler.
 
-The dated audits and original work tracks below are historical records. Their pending-delivery statements and proposed declaration machinery describe the earlier approach; this incremental plan supersedes them.
+The SDK candidate follows the normal private adoption and public promotion process. Public delivery is completed by merging the SDK pull request. These final compatibility measurements use the actual merged compiler; candidate-only measurements below remain historical.
+
+The dated audits and original tracks below are historical records. Their pending-delivery statements and earlier declaration-framework plans are superseded by the current status above.
 
 ## Historical public baseline and candidate — 2026-10-22
 
