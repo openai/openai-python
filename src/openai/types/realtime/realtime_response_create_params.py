@@ -8,6 +8,7 @@ from ..shared.metadata import Metadata
 from .conversation_item import ConversationItem
 from .realtime_reasoning import RealtimeReasoning
 from .realtime_function_tool import RealtimeFunctionTool
+from .response_item_reference import ResponseItemReference
 from ..responses.response_prompt import ResponsePrompt
 from ..responses.tool_choice_mcp import ToolChoiceMcp
 from ..responses.tool_choice_options import ToolChoiceOptions
@@ -37,7 +38,9 @@ class RealtimeResponseCreateParams(BaseModel):
     will not add items to default conversation.
     """
 
-    input: Optional[List[ConversationItem]] = None
+    input: Optional[
+        Union[List[ConversationItem], List[Union[ConversationItem, ResponseItemReference]], List[ResponseItemReference]]
+    ] = None
     """Input items to include in the prompt for the model.
 
     Using this field creates a new context for this Response instead of using the

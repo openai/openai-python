@@ -659,7 +659,7 @@
     },
     "src/openai/resources/realtime/api.md": {
       "mode": "100644",
-      "sha256": "f977c3b6d8ac7161eeb7025492ac820fc4a17465a54dbec223359b8d72ec6346"
+      "sha256": "eead2cb85c18f8618053945184022e68166bee967e60078cc0c8b3ef8be3fc34"
     },
     "src/openai/resources/realtime/calls.py": {
       "mode": "100644",
@@ -5195,7 +5195,7 @@
     },
     "src/openai/types/realtime/__init__.py": {
       "mode": "100644",
-      "sha256": "261c144fdf20c27eb36a7d231089412a837f0e4c515fdc32a25cd7e856ab166e"
+      "sha256": "9ebf3496985a0e02841233c79e98511d262677d6499edc7d0427e8d69b2808ae"
     },
     "src/openai/types/realtime/audio_transcription.py": {
       "mode": "100644",
@@ -5591,11 +5591,11 @@
     },
     "src/openai/types/realtime/realtime_response_create_params.py": {
       "mode": "100644",
-      "sha256": "03f3d1bf32f971305e545796b1913a53889e53fd2a28c3680ba02e1160b48ba1"
+      "sha256": "80f9f84fcc5e4a897561d9ead0b652b677f230608f6a49821ae9ef73c75e12bc"
     },
     "src/openai/types/realtime/realtime_response_create_params_param.py": {
       "mode": "100644",
-      "sha256": "d8b30f5cf2b34637790ca055cf95e50391346dcf72e5ff009f6b44afc4bcb547"
+      "sha256": "af70fce8bda46037215e95b95729635234012982815b61bde1d27774ea1ed1c5"
     },
     "src/openai/types/realtime/realtime_response_status.py": {
       "mode": "100644",
@@ -5852,6 +5852,14 @@
     "src/openai/types/realtime/response_function_call_arguments_done_event.py": {
       "mode": "100644",
       "sha256": "75586fb8816948a71e001c78c0a8f3ac2ab821a878f2f9b58a4f137867ec05cb"
+    },
+    "src/openai/types/realtime/response_item_reference.py": {
+      "mode": "100644",
+      "sha256": "bbd4ddcfc8a99940f161eed062552d3f7e70f40042824948bad7ab80022ebc57"
+    },
+    "src/openai/types/realtime/response_item_reference_param.py": {
+      "mode": "100644",
+      "sha256": "06d0f4594d15309a190f72098cfb0970a49ca8da14214c2ca8fbc27ab9e142be"
     },
     "src/openai/types/realtime/response_mcp_call_arguments_delta.py": {
       "mode": "100644",

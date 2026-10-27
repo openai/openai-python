@@ -9,6 +9,7 @@ from ..shared_params.metadata import Metadata
 from .conversation_item_param import ConversationItemParam
 from .realtime_reasoning_param import RealtimeReasoningParam
 from .realtime_function_tool_param import RealtimeFunctionToolParam
+from .response_item_reference_param import ResponseItemReferenceParam
 from ..responses.tool_choice_options import ToolChoiceOptions
 from ..responses.response_prompt_param import ResponsePromptParam
 from ..responses.tool_choice_mcp_param import ToolChoiceMcpParam
@@ -38,7 +39,7 @@ class RealtimeResponseCreateParamsParam(TypedDict, total=False):
     will not add items to default conversation.
     """
 
-    input: Iterable[ConversationItemParam]
+    input: Iterable[Union[ConversationItemParam, ResponseItemReferenceParam]]
     """Input items to include in the prompt for the model.
 
     Using this field creates a new context for this Response instead of using the
