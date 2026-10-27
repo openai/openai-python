@@ -35,8 +35,8 @@ class ResponseSteerInputItemListMessage(BaseModel):
     role: Literal["user"]
     """The message role. Always `user`."""
 
-    type: Literal["message"]
-    """The item type. Always `message`."""
+    type: Optional[Literal["message"]] = None
+    """The optional item type. When provided, always `message`."""
 
     id: Optional[str] = None
     """The unique ID of this message item."""
@@ -116,9 +116,9 @@ class ResponseSteerInputItemListFunctionCallOutput(BaseModel):
     """
 
 
-ResponseSteerInputItemList: TypeAlias = Annotated[
-    Union[ResponseSteerInputItemListMessage, ResponseSteerInputItemListFunctionCallOutput],
-    PropertyInfo(discriminator="type"),
+ResponseSteerInputItemList: TypeAlias = Union[
+    ResponseSteerInputItemListMessage,
+    ResponseSteerInputItemListFunctionCallOutput,
 ]
 
 BetaResponseSteerInput: TypeAlias = Union[str, List[ResponseSteerInputItemList]]
