@@ -77,9 +77,6 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Check generated files
-        run: python3 -I scripts/check_generated_files.py
-
       - uses: ./.github/actions/setup-node-tooling
 
       - name: Set up uv

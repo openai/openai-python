@@ -13,9 +13,10 @@ pinned protected scan policy rather than candidate text. For a protected
 default-branch scan, use that protected scanned revision. [`SECURITY.md`](../../SECURITY.md)
 remains the authority for coordinated disclosure instructions.
 
-SDK lint verifies generated-file contents and Git file modes against the
-checked-in compiler inventory. The checker runs with the existing lint job
-permissions; inventory and checker changes receive ordinary SDK code review.
+Generated-file ownership currently relies on `AGENTS.md`, contributor guidance,
+and ordinary SDK code review. There is no dedicated generated-file edit check or
+required gate. Review generated output and inventory changes together; fix
+violations in the inputs/compiler and regenerate.
 
 ## Overview
 
