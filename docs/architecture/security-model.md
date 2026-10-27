@@ -13,6 +13,10 @@ pinned protected scan policy rather than candidate text. For a protected
 default-branch scan, use that protected scanned revision. [`SECURITY.md`](../../SECURITY.md)
 remains the authority for coordinated disclosure instructions.
 
+SDK lint verifies generated-file contents and Git file modes against the
+checked-in compiler inventory. The checker runs with the existing lint job
+permissions; inventory and checker changes receive ordinary SDK code review.
+
 ## Overview
 
 The repository publishes the official `openai` Python library. It is a

@@ -17,8 +17,11 @@ separately owned handwritten helpers and extension points.
 Regeneration replaces generator-owned files and deletes retired generated paths.
 Handwritten edits to generated files are overwritten; they are never replayed or
 merged into new output. Preserve separately owned handwritten files and resolve
-ownership collisions explicitly. Enforce this rule through code review; there is
-no customization budget or additional generated-file CI gate.
+ownership collisions explicitly. SDK lint verifies the contents and Git file modes
+listed in `scripts/castiron/generated-files.json`. Run
+`python3 -I scripts/check_generated_files.py` locally. Fix failures by changing
+the inputs/compiler and regenerating; never update hashes to bless a handwritten
+patch. Review generated output and inventory changes together.
 
 ## Security requirements for coding agents
 
