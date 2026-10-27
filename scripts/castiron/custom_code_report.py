@@ -22,6 +22,8 @@ import re
 import struct
 import subprocess
 import sys
+import tempfile
+from contextlib import ExitStack
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, cast
@@ -81,13 +83,21 @@ def git(repo: Path, *args: str, input_bytes: bytes | None = None) -> bytes:
     ):
         env.pop(name, None)
     env["GIT_NO_REPLACE_OBJECTS"] = "1"
-    result = subprocess.run(
-        ["git", "--no-replace-objects", "-C", str(repo), *args],
-        input=input_bytes,
-        capture_output=True,
-        env=env,
-        check=False,
-    )
+    with ExitStack() as resources:
+        stdin = None
+        if input_bytes is not None:
+            # Batched object reads can fill both pipes on macOS. Feed requests
+            # through a private, automatically removed file while draining output.
+            stdin = resources.enter_context(tempfile.TemporaryFile())
+            stdin.write(input_bytes)
+            stdin.seek(0)
+        result = subprocess.run(
+            ["git", "--no-replace-objects", "-C", str(repo), *args],
+            stdin=stdin,
+            capture_output=True,
+            env=env,
+            check=False,
+        )
     if result.returncode:
         raise ReportError(f"git {args[0]} failed: {result.stderr.decode(errors='replace').strip()}")
     return result.stdout
@@ -1150,39 +1160,74 @@ def api(method: str, path: str, payload: dict[str, Any] | None = None) -> Any:
     return json.loads(result.stdout)
 
 
-def associated_pulls(repository: str, run: dict[str, Any]) -> list[dict[str, Any]]:
+def associated_pulls(
+    repository: str, run: dict[str, Any], *, branch_only: bool = False
+) -> list[dict[str, Any]]:
     root = f"repos/{repository}"
-    associated = run["pull_requests"] or api(
-        "GET", f"{root}/commits/{require_sha(run['head_sha'])}/pulls?per_page=100"
+    associated: list[dict[str, Any]] = (
+        []
+        if branch_only
+        else run["pull_requests"]
+        or api("GET", f"{root}/commits/{require_sha(run['head_sha'])}/pulls?per_page=100")
     )
     if associated:
-        return cast(list[dict[str, Any]], associated)
+        return associated
     # Fork runs can be absent from both association endpoints. Discover candidates
     # by branch; callers still verify the current PR head and target through GitHub.
-    head = f"{run['head_repository']['owner']['login']}:{run['head_branch']}"
+    source: dict[str, Any] = run.get("head_repository") or {}
+    if not (
+        source.get("id")
+        and source.get("full_name")
+        and source.get("owner", {}).get("login")
+        and run.get("head_branch")
+    ):
+        return []
+    head = f"{source['owner']['login']}:{run['head_branch']}"
     for page in range(1, 101):
         query = urlencode({"state": "open", "head": head, "per_page": 100, "page": page})
         pulls = api("GET", f"{root}/pulls?{query}")
         associated.extend(pulls)
         if len(pulls) < 100:
-            return cast(list[dict[str, Any]], associated)
+            return associated
     raise ReportError("too many pull requests for source branch")
+
+
+def matches_source(pull: dict[str, Any], run: dict[str, Any]) -> bool:
+    """A shared commit is discovery metadata, not authority over another PR."""
+    source: dict[str, Any] = run.get("head_repository") or {}
+    head: dict[str, Any] = pull.get("head") or {}
+    repository: dict[str, Any] = head.get("repo") or {}
+    return bool(
+        source.get("id")
+        and source.get("full_name")
+        and run.get("head_branch")
+        and repository.get("id") == source["id"]
+        and repository.get("full_name") == source["full_name"]
+        and head.get("ref") == run["head_branch"]
+        and head.get("sha") == run["head_sha"]
+    )
 
 
 def current_pull(repository: str, run: dict[str, Any]) -> tuple[int, str] | None:
     """Resolve one live supported target; association metadata is discovery only."""
     current: list[tuple[int, str]] = []
-    for number in sorted({int(pr["number"]) for pr in associated_pulls(repository, run)}):
-        if number <= 0:
-            raise ReportError("invalid associated pull request")
-        pull = api("GET", f"repos/{repository}/pulls/{number}")
-        if (
-            pull["state"] == "open"
-            and pull["head"]["sha"] == run["head_sha"]
-            and pull["base"]["repo"]["full_name"] == repository
-            and pull["base"]["ref"] in TARGET_BRANCHES
-        ):
-            current.append((number, pull["base"]["ref"]))
+    pulls = associated_pulls(repository, run)
+    for attempt in range(2):
+        for number in sorted({int(pr["number"]) for pr in pulls}):
+            if number <= 0:
+                raise ReportError("invalid associated pull request")
+            pull = api("GET", f"repos/{repository}/pulls/{number}")
+            if (
+                pull["state"] == "open"
+                and matches_source(pull, run)
+                and pull["base"]["repo"]["full_name"] == repository
+                and pull["base"]["ref"] in TARGET_BRANCHES
+            ):
+                current.append((number, pull["base"]["ref"]))
+        if current or run["pull_requests"] or attempt:
+            break
+        # Nonempty commit associations can contain only unrelated PRs.
+        pulls = associated_pulls(repository, run, branch_only=True)
     # Fallback discovery can find both targets for one head. Main's required
     # checks take precedence over next's advisory report; keep same-target
     # ambiguity fail-closed. Explicit run associations still limit discovery.
@@ -1221,11 +1266,10 @@ def publish_comment(
         or run["head_sha"] != report["head_sha"]
     ):
         raise ReportError("workflow run does not match report PR/head")
-    associated = associated_pulls(repository, run)
-    if not any(pr["number"] == number for pr in associated):
-        raise ReportError("workflow run does not match report PR/head")
-    if run["run_attempt"] != run_attempt:
+    if run["run_attempt"] != run_attempt or not matches_source(pull, run):
         return "Skipped stale report"
+    if current_pull(repository, run) != (number, pull["base"]["ref"]):
+        raise ReportError("workflow run does not match report PR/head")
     artifact_run_id = artifact_run_id or run_id
     artifact_run_attempt = artifact_run_attempt or run_attempt
     body = render_report(
@@ -1261,6 +1305,7 @@ def publish_comment(
         or pull["base"]["ref"] != report.get("target_branch", "main")
         or pull["base"]["ref"] not in TARGET_BRANCHES
         or pull["base"]["repo"]["full_name"] != repository
+        or not matches_source(pull, run)
     ):
         return "Skipped stale report"
     if found is not None:

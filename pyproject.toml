@@ -75,7 +75,7 @@ pydantic-v1 = ["pydantic>=1.10.26,<2"]
 pydantic-v2 = ["pydantic>=2,<3"]
 provider-computer = ["Pillow==12.3.0"]
 provider-browser = ["playwright==1.63.0"]
-browser-demo = [{ include-group = "provider-browser" }]
+browser-demo = ["playwright==1.63.0"]
 # Isolated build requirements are exported with hashes by scripts/build.
 build = [
     "hatchling==1.32.4",
