@@ -681,7 +681,7 @@ Include focused contract/security tests, typing fixtures, relevant API-reference
 | Parsing and streaming | T3, T5, T6 and T13: implement shared typed hooks with complete consumer families and their tests; retain focused review boundaries for the richer audio, Chat and Responses contracts. |
 | Webhooks, client and Assistants | Deliver each coherent facade/client/helper family with its full compatibility and security coverage. T16 reference changes accompany the corresponding generated features. |
 
-Reconcile and reuse existing branches/Deltas before starting a batch. Implement independent families in parallel. Publish a coherent ready family while unrelated work is blocked; sibling reviews must not stall all progress. A compiler capability and its dependent SDK regeneration remain separate repository changes, and compiler source must merge before SDK output is promoted. Budget adjustments remain separate ratchet-only PRs. Larger batches do not relax zero-breaking-change, provenance, CODEOWNER, compliance, security, test or protected-merge gates.
+Reconcile and reuse existing branches/Deltas before starting a batch. Implement independent families in parallel. Publish a coherent ready family while unrelated work is blocked; sibling reviews must not stall all progress. A compiler capability and its dependent SDK regeneration remain separate repository changes, and compiler source must merge before SDK output is promoted. Larger batches do not relax zero-breaking-change, provenance, CODEOWNER, compliance, security, test or protected-merge gates.
 
 ### Dependency order
 
