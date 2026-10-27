@@ -182,7 +182,7 @@ jobs:
                   if (!(typeof value === 'string' || Number.isSafeInteger(value)) ||
                       !/^[1-9][0-9]*$/.test(String(value))) throw new Error('Invalid review identity');
                   const identity = String(value);
-                  if (review.state === 'PENDING' || !review.author) continue;
+                  if (['PENDING', 'COMMENTED'].includes(review.state) || !review.author) continue;
                   const previous = latest.get(review.author.login);
                   if (!previous || BigInt(identity) > BigInt(previous.identity)) latest.set(review.author.login, {...review, identity});
                 }
@@ -344,6 +344,97 @@ jobs:
               return;
             }
 
+  main-change:
+    name: Invalidate next queue after main advances
+    if: github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    concurrency:
+      group: castiron-budget-writes-${{ github.repository_id }}
+      cancel-in-progress: false
+      queue: max
+    permissions:
+      actions: write
+      contents: read
+      pull-requests: read
+      statuses: write
+    steps:
+      - name: Re-evaluate live next queue after main advances
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            // Main pushes only invalidate. The normal authenticated evaluator
+            // and serialized publisher are the only paths that restore success.
+            const repo = `${context.repo.owner}/${context.repo.repo}`;
+            const signal = context.payload.workflow_run;
+            const {data: run} = await github.rest.actions.getWorkflowRun({...context.repo, run_id: signal.id});
+            const {data: workflow} = await github.rest.actions.getWorkflow({
+              ...context.repo, workflow_id: 'castiron-custom-code.yml',
+            });
+            if (!Number.isSafeInteger(run.workflow_id) || run.workflow_id !== workflow.id ||
+                workflow.path !== '.github/workflows/castiron-custom-code.yml') return;
+            if (run.repository.full_name !== repo || run.head_repository?.full_name !== repo ||
+                run.event !== 'push' || run.head_branch !== 'main' || run.status !== 'completed' ||
+                run.id !== signal.id || run.run_attempt !== signal.run_attempt || run.head_sha !== signal.head_sha ||
+                !/^[0-9a-f]{40}$/.test(run.head_sha) ||
+                run.path.split('@', 1)[0] !== '.github/workflows/castiron-custom-code.yml') {
+              throw new Error('Unexpected or superseded main signal');
+            }
+            const {data: main} = await github.rest.git.getRef({...context.repo, ref: 'heads/main'});
+            // A newer main push has its own signal. An old retry must not churn
+            // candidates already qualified against that newer snapshot.
+            if (run.head_sha !== main.object.sha) return;
+            const targets = new Set();
+            let cursor = null;
+            do {
+              const result = await github.graphql(`query($owner:String!,$name:String!,$branch:String!,$cursor:String) {
+                repository(owner:$owner,name:$name) { mergeQueue(branch:$branch) {
+                  entries(first:100,after:$cursor) {
+                    nodes { headCommit { oid } }
+                    pageInfo { hasNextPage endCursor }
+                  }
+                } }
+              }`, {owner: context.repo.owner, name: context.repo.repo, branch: 'next', cursor});
+              const page = result.repository.mergeQueue?.entries;
+              if (!page) break;
+              for (const entry of page.nodes) {
+                if (entry.headCommit === null) continue; // Unprepared entries have no statuses to invalidate.
+                const sha = entry.headCommit?.oid;
+                if (!/^[0-9a-f]{40}$/.test(sha || '')) throw new Error('Invalid live queue SHA');
+                targets.add(sha);
+              }
+              if (!page.pageInfo.hasNextPage) break;
+              const next = page.pageInfo.endCursor;
+              if (!next || next === cursor) throw new Error('Invalid queue pagination');
+              cursor = next;
+            } while (true);
+            const url = `${context.serverUrl}/${repo}/actions/runs/${context.runId}`;
+            // Invalidate the entire live next queue before slower rerun discovery.
+            // This also covers bootstraps whose policy pin is now stale. Ordinary
+            // pinned-policy candidates can regain success through normal checks.
+            for (const sha of targets) {
+              for (const name of ['Castiron next / budget-only change', 'Castiron next / custom-code budget']) {
+                await github.rest.repos.createCommitStatus({...context.repo, sha, context: name, state: 'pending',
+                  description: `Main advanced; reevaluation pending. [main ${main.object.sha}]`, target_url: url});
+              }
+            }
+            for (const sha of targets) {
+              const runs = await github.paginate(github.rest.actions.listWorkflowRuns, {
+                ...context.repo, workflow_id: 'castiron-custom-code.yml', head_sha: sha, event: 'merge_group', per_page: 100,
+              });
+              const matches = runs.filter(item => item.repository.full_name === repo &&
+                item.workflow_id === workflow.id && item.event === 'merge_group' && item.head_sha === sha &&
+                typeof item.head_branch === 'string' && item.head_branch.startsWith('gh-readonly-queue/next/') &&
+                item.path.split('@', 1)[0] === '.github/workflows/castiron-custom-code.yml' &&
+                Number.isSafeInteger(item.id) && item.id > 0);
+              matches.sort((a, b) => b.id - a.id);
+              // A running evaluation will check main at publication. Do not
+              // restart an older completed run when a newer one is in flight.
+              if (matches[0]?.status === 'completed') {
+                await github.rest.actions.reRunWorkflow({...context.repo, run_id: matches[0].id});
+              }
+            }
+
   compute:
     name: Compute trusted custom-code report
     if: contains(fromJSON('["pull_request", "merge_group"]'), github.event.workflow_run.event) && (github.event.workflow_run.path == '.github/workflows/castiron-custom-code.yml' || startsWith(github.event.workflow_run.path, '.github/workflows/castiron-custom-code.yml@'))
@@ -355,6 +446,7 @@ jobs:
       pull-requests: read
     outputs:
       selected-policy-sha: ${{ steps.select-policy.outputs.policy_sha }}
+      authenticated-main-sha: ${{ steps.select-policy.outputs.authenticated_main_sha }}
       main-snapshot: ${{ steps.select-policy.outputs.main_snapshot }}
       selected-base-sha: ${{ steps.select-policy.outputs.base_sha }}
       selected-head-sha: ${{ steps.select-policy.outputs.head_sha }}
@@ -393,9 +485,11 @@ jobs:
           GIT_CONFIG_KEY_1: credential.https://github.com.helper
           GIT_CONFIG_VALUE_1: '!gh auth git-credential'
         run: |
+          trusted_main="$(git rev-parse HEAD)"
+          printf 'authenticated_main_sha=%s\n' "$trusted_main" >> "$GITHUB_OUTPUT"
           python3 -I scripts/castiron/custom_code_budget.py select-policy \
             --repository "$REPOSITORY" --event-path "$GITHUB_EVENT_PATH" \
-            --trusted-sha "$(git rev-parse HEAD)" \
+            --trusted-sha "$trusted_main" \
             --repo "$RUNNER_TEMP/castiron-policy-objects.git" \
             --out "$RUNNER_TEMP/castiron-policy-selection.json"
 
@@ -505,6 +599,7 @@ jobs:
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           SELECTED_POLICY_SHA: ${{ needs.compute.outputs.selected-policy-sha }}
+          AUTHENTICATED_MAIN_SHA: ${{ needs.compute.outputs.authenticated-main-sha }}
           MAIN_SNAPSHOT: ${{ needs.compute.outputs.main-snapshot }}
           SELECTED_BASE_SHA: ${{ needs.compute.outputs.selected-base-sha }}
           SELECTED_HEAD_SHA: ${{ needs.compute.outputs.selected-head-sha }}
@@ -629,7 +724,7 @@ jobs:
                       if (!(typeof value === 'string' || Number.isSafeInteger(value)) ||
                           !/^[1-9][0-9]*$/.test(String(value))) throw new Error('Invalid review identity');
                       const identity = String(value);
-                      if (review.state === 'PENDING' || !review.author) continue;
+                      if (['PENDING', 'COMMENTED'].includes(review.state) || !review.author) continue;
                       const previous = latest.get(review.author.login);
                       if (!previous || BigInt(identity) > BigInt(previous.identity)) latest.set(review.author.login, {...review, identity});
                     }
@@ -679,6 +774,16 @@ jobs:
             if (branch === 'next' && run.event === 'pull_request') {
               const {data: target} = await github.rest.git.getRef({...context.repo, ref: 'heads/next'});
               fresh = fresh && base === target.object.sha;
+            }
+            // Main pushes invalidate next evaluations, even when their reviewed
+            // checker pin stays unchanged. Do not restore success from a run
+            // computed before that invalidation. This is the reporter checkout,
+            // not the independently reviewed (and possibly older) policy pin.
+            if (branch === 'next') {
+              const authenticatedMain = process.env.AUTHENTICATED_MAIN_SHA || '';
+              const {data: currentMain} = await github.rest.git.getRef({...context.repo, ref: 'heads/main'});
+              fresh = fresh && /^[0-9a-f]{40}$/.test(authenticatedMain) &&
+                currentMain.object.sha === authenticatedMain;
             }
             // Bootstrap may adopt only the still-current authenticated main tree.
             // This value comes from our selector, never from candidate artifacts.

@@ -98,8 +98,8 @@ def next_policy_sha(repo: Path, repository: str, base: str, authenticated_main: 
     authenticated_main = report.require_sha(authenticated_main)
     if not report.REPOSITORY.fullmatch(repository):
         raise ValueError("invalid policy repository")
-    expected_origin = f"https://github.com/{repository}.git"
-    if report.git(repo, "remote", "get-url", "origin").decode().strip() != expected_origin:
+    origin = report.git(repo, "remote", "get-url", "origin").decode().strip()
+    if origin not in report.github_origin_urls(repository):
         raise ValueError("policy repository origin mismatch")
     fetched_main = report.git(repo, "rev-parse", "refs/remotes/origin/main").decode().strip()
     if fetched_main != authenticated_main:
@@ -170,7 +170,9 @@ def has_human_approval(reviews: list[dict[str, Any]], author: str, head: str) ->
     """Versioned review predicate; publisher consumes these same trusted rules."""
     latest: dict[str, dict[str, Any]] = {}
     for review in reviews:
-        if review["state"] != "PENDING" and review.get("user") is not None:
+        # Discussion does not replace an approval; blocking or dismissed
+        # reviews still supersede it, and edited attestations are checked below.
+        if review["state"] not in ("PENDING", "COMMENTED") and review.get("user") is not None:
             login = review["user"]["login"]
             if login not in latest or review["id"] > latest[login]["id"]:
                 latest[login] = review
@@ -312,10 +314,11 @@ def is_main_snapshot_bootstrap(
     if "next_policy" in read_policy(repo, base):
         return False
     strict = {"schema_version": 2, "max_custom_patch_lines": 0, "generated_files": "strict"}
-    if read_policy(repo, authenticated_main) != strict:
+    main_policy = read_policy(repo, authenticated_main)
+    if {key: value for key, value in main_policy.items() if key != "ratchet"} != strict:
         return False
     expected_policy = {
-        **strict,
+        **main_policy,
         "next_policy": {"repository": repository, "main_sha": authenticated_main},
     }
     if read_policy(repo, head) != expected_policy:

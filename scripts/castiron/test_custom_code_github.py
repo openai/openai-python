@@ -110,7 +110,10 @@ class GitHubReportTests(GitTestCase):
         base = self.commit()
         legitimate, _ = report.build_report(self.repo, base, base, require_head_hash=True)
         self.write("generated.py", "generated\n# custom\n")
-        self.write("scripts/castiron/custom_code_report.py", "raise RuntimeError('PR code ran')\n")
+        self.write(
+            "scripts/castiron/custom_code_report.py",
+            "raise RuntimeError('PR code ran')\n",
+        )
         self.write("report.json", json.dumps(legitimate))
         head = self.commit()
         self.write(
