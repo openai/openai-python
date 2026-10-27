@@ -96,26 +96,25 @@ and [Dependabot's cooldown policy](https://docs.github.com/en/code-security/refe
 
 ## Modifying/Adding code
 
-Most of the SDK is generated code. Modifications to code will be persisted between generations, but may
-result in merge conflicts between manual patches and changes from the generator. The generator will never
+Most of the SDK is generated code. Never edit generated files by hand; change
+the authoritative generation inputs or compiler and regenerate instead. The generator will never
 modify the contents of the `src/openai/lib/` and `examples/` directories.
 
-## Custom-code budget
+## Generated-file ownership
 
-The custom-code budget counts additions plus deletions in the remaining patch
-against verified generated output. `.castiron-ratchet.json` defines this repository's
-ceiling. CI uses the checker and budget on main, not the PR's proposed versions.
+Do not edit generated SDK files by hand. Fix the API schema, generation
+configuration, or compiler and regenerate instead. Put SDK-specific behavior in
+separately owned handwritten helpers and extension points.
 
-Budget changes must be in a separate PR modifying **only `.castiron-ratchet.json`**.
-Justify the current usage, proposed ceiling, and why fixing generation is not
-appropriate in the PR description. Increases require a **human approving review**
-and must merge before an SDK change relies on them. Agents may draft proposals,
-but must not approve increases or bypass the gate. Keep default CODEOWNERS.
-Lower the ceiling after cleanup while retaining headroom; decreases must still
-fit the measured usage.
-
-See [custom-code technical details](scripts/castiron/CUSTOM_CODE.md) for accounting,
-local checks, trusted CI, and activation instructions.
+Regeneration replaces generated files and removes retired generated paths.
+Handwritten edits to generated output are overwritten, not carried forward.
+Separately owned handwritten files are preserved. Resolve ownership conflicts
+explicitly before regeneration. Follow the ownership rules in `AGENTS.md`
+and review generated output and inventory changes together. Generated-file
+ownership currently relies on contributor guidance and code review, without a
+dedicated generated-file edit check or required gate. Fix violations in the
+generation inputs/compiler and regenerate; do not edit inventory hashes to
+accept a handwritten patch.
 
 ## Security requirements for contributions
 
