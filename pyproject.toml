@@ -47,14 +47,14 @@ realtime = ["websockets >= 13, < 16"]
 datalib = ["numpy >= 1", "pandas >= 1.2.3"]
 voice_helpers = ["sounddevice>=0.5.1", "numpy>=2.0.2"]
 bedrock = [
-  "botocore>=1.40.0,<2",
+  "botocore<2,>=1.40.0",
   "urllib3>=2.7.0,<3",
 ]
 vertex = ["google-auth[requests]>=2.36,<3"]
 
 [dependency-groups]
 dev = [
-    "mypy==2.3.1",
+    "mypy==2.4.0",
     "pytest>=9.0.3",
     "pytest-asyncio>=1.4.0",
     "Pillow==12.3.0",
@@ -62,7 +62,7 @@ dev = [
     "rich>=13.7.1",
     "inline-snapshot>=0.28.0",
     "azure-identity >=1.14.1",
-    "botocore==1.43.106",
+    "botocore==1.43.114",
     "pandas-stubs >= 1.1.0.11",
     "trio >=0.22.2",
     "pytest-xdist>=3.6.1",
@@ -72,14 +72,14 @@ dev = [
 pydantic-v1 = ["pydantic>=1.10.26,<2"]
 pydantic-v2 = ["pydantic>=2,<3"]
 provider-computer = ["Pillow==12.3.0"]
-provider-browser = ["playwright==1.63.0"]
-browser-demo = ["playwright==1.63.0"]
+provider-browser = ["playwright==1.64.0"]
+browser-demo = ["playwright==1.64.0"]
 # Isolated build requirements are exported with hashes by scripts/build.
 build = [
     "hatchling==1.32.4",
     "packaging==26.3",
     "pathspec==1.1.1",
-    "pluggy==1.6.0",
+    "pluggy==1.7.0",
     "tomli==2.4.1; python_version < '3.11'",
     "trove-classifiers==2026.9.21.13",
 ]
@@ -109,7 +109,7 @@ build-constraint-dependencies = [
     "hatchling==1.32.4",
     "packaging==26.3",
     "pathspec==1.1.1",
-    "pluggy==1.6.0",
+    "pluggy==1.7.0",
     "tomli==2.4.1; python_version < '3.11'",
     "trove-classifiers==2026.9.21.13",
 ]
