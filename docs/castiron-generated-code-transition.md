@@ -6,7 +6,29 @@ Eliminate handwritten patches in generated-owned files while preserving every ex
 
 No removals or renames of public symbols, new required arguments, narrower input/return types, dependency or Python-floor changes, altered defaults, new payload limits, changed warnings, or changed sync/async behavior are authorized by this transition. Deprecated methods and compatibility import paths remain supported.
 
-## Current public baseline and measured final candidate — 2026-10-22
+## Verified public baseline — 2026-10-27
+
+Public main `3596d18f05b63081fd64c6da82b515293afb98c6` has **0 generated files with custom edits / 0 custom patch lines**. The verified generated inventory contains **2,028 manifest entries**; including the manifest itself, qualification compares **2,029 emitted paths**, bytes and Git modes. Public promotion [#4186](https://github.com/openai/openai-python/pull/4186) is delivered. Current physical line counts for all 41 formerly mixed files total **40,356 lines**, including comments and blanks, and are recorded under `current_status.former_mixed_files` in the [inventory](castiron-transition-inventory.json); every file has zero custom patch lines.
+
+The policy is **strict generated-file ownership with a zero-line customization budget**. The effective main-branch rules require both `Castiron / budget-only change` and `Castiron / custom-code budget`. New generated-file changes must come from the compiler and regeneration; handwritten algorithms belong in handwritten runtime modules.
+
+The original `cfa0a79b6395bb0561b28879122a9f90a87cdada` audit measured **41 mixed files / 7,409 custom patch lines**, comprising 4,890 additions and 2,519 deletions. Patch lines measure differences from generated output, including removed lines; they are not the size of handwritten runtime modules or compiler templates.
+
+## Current incremental plan
+
+The mixed-file count reached zero before this follow-up. This follow-up simplifies the compiler representation of preserved SDK interfaces: ordinary templates use native compiler facts, while runtime algorithms remain wholly handwritten. No new facade framework or developer-facing breaking change is part of this work.
+
+The Chat/Uploads compiler batch and SDK adoption are delivered. The compiler changes for Files/Artifacts, WebSocket declarations, Sessions stream/create, Threads, Runs, Package, Client and Responses have also landed. An inventory at actual merged compiler `efa47f65cef47f54391723b787de5239d8b61bff` covers all **14 authored YAML files** and finds **0 legacy declaration blocks / 0 declaration lines**. Final combined-compiler qualification passed, and this update records SDK adoption of the native configuration.
+
+Keep the separate **75 lines of runtime bindings**: they express constants, loggers and small forwarders to handwritten behavior. They contain no handwritten runtime algorithms and contribute zero SDK custom patch lines. Replacing them would add machinery without simplifying ownership. Historical declaration readers remain available for compatible input replay; this transition does not claim their removal.
+
+The actual merged compiler passed all **914 renderer tests**, with none ignored, and the canonical Rust lint checks. Both legacy and native configurations reproduce all **2,029 emitted paths byte for byte**, including Git modes and valid manifests, against public baseline `3596d18f`; there are no output exceptions. This preserves signatures, annotations, defaults, import identities, sync/async behavior, method placement and runtime algorithms. Reporting validation retains the 282 Python-only tests and four lint/type checks from identical output, settings and tool versions, with the existing compiler-dependent test rerun successfully against the final compiler.
+
+The SDK candidate follows the normal private adoption and public promotion process. Public delivery is completed by merging the SDK pull request. These final compatibility measurements use the actual merged compiler; candidate-only measurements below remain historical.
+
+The dated audits and original tracks below are historical records. Their pending-delivery statements and earlier declaration-framework plans are superseded by the current status above.
+
+## Historical public baseline and candidate — 2026-10-22
 
 The released baseline `cfa0a79b6395bb0561b28879122a9f90a87cdada` (3.37.0) contains **41 mixed files / 7,409 custom patch lines** (4,890 additions and 2,519 deletions), spanning **39,960 physical lines**. Its public generated checkpoint is `992b9cbba312b4bf10128b9f1d36112b48340363`.
 

@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any
 
 import custom_code_policy as policy
-from custom_code_test_support import WORKFLOW, run_publisher, source_run
+from custom_code_test_support import WORKFLOW, run_publisher, source_head, source_run
 
 
 @unittest.skipUnless(
@@ -25,7 +25,7 @@ class ReviewRevocationTests(unittest.TestCase):
             "number": 3,
             "user": {"login": "author"},
             "state": "open",
-            "head": {"sha": head},
+            "head": source_head(head),
             "base": {"ref": "next", "sha": base, "repo": {"full_name": "openai/example"}},
         }
         run = {
@@ -94,6 +94,39 @@ class ReviewRevocationTests(unittest.TestCase):
         self.assertEqual([item.get("state") for item in result[:4]], ["pending"] * 4)
         self.assertEqual({item["sha"] for item in result[:4]}, {"a" * 40, "c" * 40})
         self.assertEqual([item["run_id"] for item in result[4:]], [12, 14])
+
+    def test_uses_live_target_when_pull_base_snapshot_lags(self) -> None:
+        for requires_human in (False, True):
+            with self.subTest(requires_human=requires_human):
+                payload = self.payload()
+                payload["target_sha"] = "e" * 40
+                payload["expected_policy_base"] = "e" * 40
+                payload["requires_human"] = requires_human
+                result = self.invoke(payload)
+                if requires_human:
+                    self.assertEqual([item.get("state") for item in result[:4]], ["pending"] * 4)
+                    self.assertEqual([item["run_id"] for item in result[4:]], [12, 14])
+                else:
+                    self.assertEqual(result, [])
+
+    def test_retries_when_live_target_advances_during_evaluation(self) -> None:
+        for requires_human in (False, True):
+            with self.subTest(requires_human=requires_human):
+                payload = self.payload()
+                payload["target_sha_sequence"] = ["d" * 40, "e" * 40]
+                payload["target_sha"] = "e" * 40
+                payload["expected_policy_bases"] = ["d" * 40, "e" * 40]
+                payload["requires_human"] = requires_human
+                result = self.invoke(payload)
+                if requires_human:
+                    self.assertEqual(
+                        [item["run_id"] for item in result if "run_id" in item], [12, 14]
+                    )
+                    self.assertTrue(
+                        all(item.get("state") == "pending" for item in result if "state" in item)
+                    )
+                else:
+                    self.assertEqual(result, [])
 
     def test_refreshes_executable_policy_when_main_changes_review_requirement(self) -> None:
         payload = self.payload()
@@ -176,6 +209,37 @@ class ReviewRevocationTests(unittest.TestCase):
             payload["forbid_queue"] = True
             self.assertEqual(self.invoke(payload), [])
 
+    def test_later_comment_preserves_green_pr_and_queue_statuses(self) -> None:
+        for state in ("COMMENTED", "PENDING"):
+            for paginated in (False, True):
+                with self.subTest(state=state, paginated=paginated):
+                    payload = self.recovery()
+                    approval = self.approval()
+                    comment = {
+                        **approval,
+                        "fullDatabaseId": "102",
+                        "state": state,
+                        "body": "Follow-up discussion",
+                    }
+                    payload["review_nodes"] = [approval, comment]
+                    if paginated:
+                        payload.pop("review_nodes")
+                        payload["review_pages"] = [
+                            {
+                                "expected_cursor": None,
+                                "nodes": [comment],
+                                "pageInfo": {"hasNextPage": True, "endCursor": "more"},
+                            },
+                            {
+                                "expected_cursor": "more",
+                                "nodes": [approval],
+                                "pageInfo": {"hasNextPage": False},
+                            },
+                        ]
+                    for status in payload["previous_statuses"]:
+                        status["state"] = "success"
+                    self.assertEqual(self.invoke(payload), [])
+
     def test_ineligible_review_cannot_request_recovery(self) -> None:
         for overrides in (
             {"state": "COMMENTED"},
@@ -247,7 +311,7 @@ class ReviewRevocationTests(unittest.TestCase):
                 **self.approval(),
                 "databaseId": None,
                 "fullDatabaseId": "9007199254740993",
-                "state": "COMMENTED",
+                "state": "CHANGES_REQUESTED",
             },
         ]
         self.assertEqual(len(self.invoke(payload)), 6)
@@ -317,11 +381,13 @@ class ReviewRevocationTests(unittest.TestCase):
             payload["runs_by_id"]["21"][field] = value
             self.assertEqual(len(self.invoke(payload)), 6)
 
-    def test_dismissal_edit_away_and_later_comment_revoke_even_for_other_signal_actor(self) -> None:
+    def test_dismissal_edit_away_and_blocking_review_revoke_even_for_other_signal_actor(
+        self,
+    ) -> None:
         for changed in (
             {"state": "DISMISSED"},
             {"body": ""},
-            {"state": "COMMENTED", "fullDatabaseId": "102"},
+            {"state": "CHANGES_REQUESTED", "fullDatabaseId": "102"},
         ):
             payload = self.payload()
             payload["review_nodes"] = [{**self.approval(), **changed}]
@@ -330,7 +396,9 @@ class ReviewRevocationTests(unittest.TestCase):
         payload["review_pages"] = [
             {
                 "expected_cursor": None,
-                "nodes": [{**self.approval(), "fullDatabaseId": "102", "state": "COMMENTED"}],
+                "nodes": [
+                    {**self.approval(), "fullDatabaseId": "102", "state": "CHANGES_REQUESTED"}
+                ],
                 "pageInfo": {"hasNextPage": True, "endCursor": "more"},
             },
             {
@@ -421,7 +489,7 @@ class ReviewRevocationTests(unittest.TestCase):
             payload["run"].update(
                 {
                     "pull_requests": [],
-                    "head_repository": {"owner": {"login": "contributor"}},
+                    "head_repository": source_run("a" * 40)["head_repository"],
                     "head_branch": "sdk",
                 }
             )
@@ -437,7 +505,9 @@ class ReviewRevocationTests(unittest.TestCase):
         payload = self.payload()
         payload["run"]["pull_requests"] = []
         payload["run"]["head_repository"]["id"] = 101
-        payload["current"]["head"].update(ref="sdk", repo={"id": 101})
+        payload["current"]["head"].update(
+            ref="sdk", repo={"id": 101, "full_name": "contributor/example"}
+        )
         payload["associated_pulls"] = [{"number": number} for number in (3, 4, 5)]
         payload["pulls_by_number"] = {
             str(number): {
@@ -559,7 +629,7 @@ class ReviewRevocationTests(unittest.TestCase):
         fork: dict[str, Any] = {
             **correct,
             "pull_requests": [],
-            "head_repository": {"owner": {"login": "contributor"}},
+            "head_repository": source_run("a" * 40)["head_repository"],
             "head_branch": "sdk",
         }
         payload["fallback_pulls"] = [{"number": 3}]
@@ -598,11 +668,115 @@ class ReviewRevocationTests(unittest.TestCase):
         )
         self.assertTrue(all(item.get("state") != "success" for item in result))
 
+    def main_advance_payload(self) -> dict[str, Any]:
+        payload = self.payload()
+        main = "d" * 40
+        run = {
+            **source_run(main, "push"),
+            "head_branch": "main",
+            "head_repository": {"full_name": "openai/example"},
+        }
+        payload["run"] = run
+        payload["main_sha"] = main
+        payload["context"]["payload"]["workflow_run"] = dict(run)
+        payload["runs_by_sha"]["c" * 40][0]["head_branch"] = "gh-readonly-queue/next/pr-3-example"
+        return payload
+
+    def invoke_main_advance(self, payload: dict[str, Any]) -> list[dict[str, Any]]:
+        return run_publisher("Re-evaluate live next queue after main advances", payload)
+
+    def test_main_advance_revokes_success_before_normal_queue_rerun(self) -> None:
+        result = self.invoke_main_advance(self.main_advance_payload())
+        self.assertEqual([item.get("state") for item in result[:2]], ["pending", "pending"])
+        self.assertEqual({item["sha"] for item in result[:2]}, {"c" * 40})
+        self.assertTrue(all(item["context"].startswith("Castiron next /") for item in result[:2]))
+        self.assertEqual([item["run_id"] for item in result[2:]], [14])
+        self.assertNotIn("success", [item.get("state") for item in result])
+
+    def test_old_main_push_does_not_invalidate_newer_qualified_candidates(self) -> None:
+        payload = self.main_advance_payload()
+        payload["main_sha"] = "e" * 40
+        self.assertEqual(self.invoke_main_advance(payload), [])
+
+    def test_main_advance_rejects_foreign_or_non_main_signals(self) -> None:
+        for field, value in (
+            ("head_repository", {"full_name": "other/repo"}),
+            ("repository", {"full_name": "other/repo"}),
+            ("head_branch", "next"),
+            ("event", "pull_request"),
+        ):
+            with self.subTest(field=field):
+                payload = self.main_advance_payload()
+                payload["run"][field] = value
+                with self.assertRaises(subprocess.CalledProcessError):
+                    self.invoke_main_advance(payload)
+        payload = self.main_advance_payload()
+        payload["run"]["workflow_id"] = 999
+        self.assertEqual(self.invoke_main_advance(payload), [])
+
+    def test_main_advance_invalidates_every_queue_page_before_dispatch(self) -> None:
+        payload = self.main_advance_payload()
+        payload["queue_pages"] = [
+            {
+                "expected_cursor": None,
+                "nodes": [{"headCommit": None}, {"headCommit": {"oid": "c" * 40}}],
+                "pageInfo": {"hasNextPage": True, "endCursor": "second"},
+            },
+            {
+                "expected_cursor": "second",
+                "nodes": [{"headCommit": {"oid": "e" * 40}}, {"headCommit": None}],
+                "pageInfo": {"hasNextPage": False, "endCursor": None},
+            },
+        ]
+        result = self.invoke_main_advance(payload)
+        self.assertEqual([item.get("state") for item in result[:4]], ["pending"] * 4)
+        self.assertEqual({item["sha"] for item in result[:4]}, {"c" * 40, "e" * 40})
+        self.assertEqual([item["run_id"] for item in result[4:]], [14])
+
+    def test_main_advance_still_rejects_malformed_non_null_heads(self) -> None:
+        for head in ({}, {"oid": None}, {"oid": "g" * 40}):
+            with self.subTest(head=head):
+                payload = self.main_advance_payload()
+                payload["queue_nodes"][0]["headCommit"] = head
+                with self.assertRaises(subprocess.CalledProcessError):
+                    self.invoke_main_advance(payload)
+
+    def test_main_advance_does_not_rerun_wrong_queue_or_foreign_workflows(self) -> None:
+        for field, value in (
+            ("repository", {"full_name": "other/repo"}),
+            ("workflow_id", 999),
+            ("head_branch", "gh-readonly-queue/main/pr-3-example"),
+        ):
+            with self.subTest(field=field):
+                payload = self.main_advance_payload()
+                payload["runs_by_sha"]["c" * 40][0][field] = value
+                result = self.invoke_main_advance(payload)
+                self.assertEqual([item.get("state") for item in result], ["pending", "pending"])
+
+    def test_main_advance_leaves_newer_running_evaluation_to_publish(self) -> None:
+        payload = self.main_advance_payload()
+        runs = payload["runs_by_sha"]["c" * 40]
+        runs.append({**runs[0], "id": 15, "status": "in_progress"})
+        result = self.invoke_main_advance(payload)
+        self.assertEqual([item.get("state") for item in result], ["pending", "pending"])
+
+    def test_main_advance_with_empty_queue_has_no_writes(self) -> None:
+        payload = self.main_advance_payload()
+        payload["queue_nodes"] = []
+        payload["queue_absent"] = True
+        self.assertEqual(self.invoke_main_advance(payload), [])
+
     def test_signal_is_unprivileged_and_writers_serialize(self) -> None:
         producer = (WORKFLOW.parent / "castiron-custom-code.yml").read_text()
         self.assertIn("pull_request_review:\n    types: [submitted, edited, dismissed]", producer)
         signal = producer.split("  queue-signal:\n", 1)[1].split("  candidate-tests:\n", 1)[0]
         self.assertIn("permissions: {}", signal)
+        self.assertIn("push:\n    branches: [main]", producer)
+        main_change = (
+            WORKFLOW.read_text().split("  main-change:\n", 1)[1].split("  compute:\n", 1)[0]
+        )
+        self.assertNotIn("checkout@", main_change)
+        self.assertNotIn("download-artifact", main_change)
         self.assertNotIn("checkout@", signal)
         handler = WORKFLOW.read_text()
         revoke = handler.split("  review-change:\n", 1)[1].split("  compute:\n", 1)[0]
@@ -611,8 +785,201 @@ class ReviewRevocationTests(unittest.TestCase):
         self.assertIn("path.join(root, 'custom_code_policy.py'), 'review-required'", revoke)
         self.assertNotIn("download-artifact", revoke)
         self.assertEqual(
-            handler.count("group: castiron-budget-writes-${{ github.repository_id }}"), 2
+            handler.count("group: castiron-budget-writes-${{ github.repository_id }}"), 3
         )
+
+    def test_direct_head_review_discovery_rejects_shared_commit_from_other_sources(
+        self,
+    ) -> None:
+        for field, value in (
+            ("id", 99),
+            ("full_name", "other/example"),
+            ("ref", "other-branch"),
+        ):
+            with self.subTest(field=field):
+                payload = self.payload()
+                payload["run"]["pull_requests"] = []
+                head = source_head("a" * 40)
+                if field == "ref":
+                    head[field] = value
+                else:
+                    head["repo"][field] = value
+                other = {**payload["current"], "number": 4, "head": head}
+                payload["pulls_by_number"] = {"4": other}
+                for discovery in ("associated_pulls", "fallback_pulls"):
+                    payload["associated_pulls"] = []
+                    payload[discovery] = [{"number": 4}, {"number": 3}]
+                    result = self.invoke(payload)
+                    self.assertEqual(len(result), 6)
+                    self.assertEqual(
+                        [item["run_id"] for item in result if "run_id" in item], [12, 14]
+                    )
+
+    def test_foreign_only_associations_retry_revocation_and_reporter_discovery(self) -> None:
+        for explicit in (False, True):
+            with self.subTest(explicit=explicit):
+                payload = self.payload()
+                payload["run"]["pull_requests"] = [{"number": 4}] if explicit else []
+                payload["runs_by_sha"]["a" * 40][0]["pull_requests"] = []
+                payload["associated_pulls"] = [{"number": 4}]
+                payload["fallback_pulls"] = [{"number": 3}]
+                own = payload["current"]
+                foreign: dict[str, Any] = {
+                    **own,
+                    "number": 4,
+                    "head": {**own["head"], "ref": "other"},
+                }
+                payload["pulls_by_number"] = {"4": foreign}
+                payload["review_nodes"] = [{**self.approval(), "state": "DISMISSED"}]
+                writes = self.invoke(payload)
+                self.assertEqual(
+                    [w["state"] for w in writes if "state" in w],
+                    [] if explicit else ["pending"] * 4,
+                )
+                self.assertEqual(
+                    [w["run_id"] for w in writes if "run_id" in w], [] if explicit else [12, 14]
+                )
+        # A fallback reached through unrelated commit associations is still branch-only:
+        # an old synthetic merge must not gain the association-only exemption.
+        payload["run"]["pull_requests"] = []
+        payload["run"]["head_sha"] = payload["context"]["payload"]["workflow_run"]["head_sha"] = (
+            "e" * 40
+        )
+        payload["merge_sha"] = "d" * 40
+        payload["merge_commit"] = {"parents": [{"sha": "b" * 40}, {"sha": "a" * 40}]}
+        payload["pulls_by_number"]["4"]["head"]["sha"] = "f" * 40
+        self.assertEqual(self.invoke(payload), [])
+
+    def test_merge_review_filters_foreign_sources_before_branch_fallback(self) -> None:
+        for field, value in (("ref", "other"), ("id", 99), ("full_name", "other/example")):
+            for explicit in (False, True):
+                with self.subTest(field=field, explicit=explicit):
+                    payload = self.payload()
+                    payload["run"]["head_sha"] = "e" * 40
+                    payload["context"]["payload"]["workflow_run"]["head_sha"] = "e" * 40
+                    payload["run"]["pull_requests"] = [{"number": 4}] if explicit else []
+                    payload["associated_pulls"] = [{"number": 4}]
+                    payload["fallback_pulls"] = [{"number": 3}]
+                    payload["merge_sha"] = "e" * 40
+                    payload["merge_commit"] = {"parents": [{"sha": "b" * 40}, {"sha": "a" * 40}]}
+                    head = source_head("a" * 40)
+                    if field == "ref":
+                        head[field] = value
+                    else:
+                        head["repo"][field] = value
+                    payload["pulls_by_number"] = {
+                        "4": {**payload["current"], "number": 4, "head": head}
+                    }
+                    writes = self.invoke(payload)
+                    self.assertEqual(
+                        [w["state"] for w in writes if "state" in w],
+                        [] if explicit else ["pending"] * 4,
+                    )
+                    self.assertEqual(
+                        [w["run_id"] for w in writes if "run_id" in w],
+                        [] if explicit else [12, 14],
+                    )
+                    # Filtering a foreign association must not exempt fallback from freshness.
+                    payload["merge_sha"] = "f" * 40
+                    self.assertEqual(self.invoke(payload), [])
+
+    def test_review_requires_complete_source_identity(self) -> None:
+        for overrides in (
+            {"head_repository": None},
+            {"head_repository": {"id": 10}},
+            {"head_repository": {"full_name": "contributor/example"}},
+            {"head_branch": None},
+            {"head_branch": "refs/pull/3/merge"},
+        ):
+            for merge in (False, True):
+                with self.subTest(overrides=overrides, merge=merge):
+                    payload = self.payload()
+                    if merge:
+                        payload["run"]["head_sha"] = "e" * 40
+                        payload["context"]["payload"]["workflow_run"]["head_sha"] = "e" * 40
+                        payload["merge_commit"] = {
+                            "parents": [{"sha": "b" * 40}, {"sha": "a" * 40}]
+                        }
+                    payload["run"].update(overrides)
+                    self.assertEqual(self.invoke(payload), [])
+
+    def test_merge_sha_signal_requires_exact_live_merge_and_parents(self) -> None:
+        payload = self.payload()
+        payload["run"]["head_sha"] = payload["context"]["payload"]["workflow_run"]["head_sha"] = (
+            "e" * 40
+        )
+        payload["merge_sha"] = "e" * 40
+        payload["merge_commit"] = {"parents": [{"sha": "b" * 40}, {"sha": "a" * 40}]}
+        self.assertEqual(len(self.invoke(payload)), 6)
+        payload["merge_commit"]["parents"].reverse()
+        self.assertEqual(self.invoke(payload), [])
+
+    def test_historical_merge_revocation_after_base_advance(self) -> None:
+        for discovery in ("run", "commit", "branch"):
+            for revoked in ({"state": "DISMISSED"}, {"body": ""}):
+                with self.subTest(discovery=discovery, revoked=revoked):
+                    payload = self.payload()
+                    payload["review_nodes"] = [{**self.approval(), **revoked}]
+                    payload["run"]["head_sha"] = "e" * 40
+                    payload["context"]["payload"]["workflow_run"]["head_sha"] = "e" * 40
+                    payload["current"]["base"]["sha"] = "f" * 40
+                    payload["comparisons"] = {
+                        f"{'f' * 40}...{'a' * 40}": {"merge_base_commit": {"sha": "b" * 40}}
+                    }
+                    payload["merge_sha"] = "d" * 40
+                    payload["merge_commit"] = {"parents": [{"sha": "b" * 40}, {"sha": "a" * 40}]}
+                    if discovery != "run":
+                        payload["run"]["pull_requests"] = []
+                        payload["associated_pulls"] = (
+                            [{"number": 3}] if discovery == "commit" else []
+                        )
+                        payload["fallback_pulls"] = [{"number": 3}]
+                    result = self.invoke(payload)
+                    if discovery == "branch":
+                        self.assertEqual(result, [])
+                    else:
+                        self.assertEqual(
+                            [item.get("state") for item in result[:4]], ["pending"] * 4
+                        )
+                        self.assertEqual({item["sha"] for item in result[:4]}, {"a" * 40, "c" * 40})
+                        self.assertEqual([item["run_id"] for item in result[4:]], [12, 14])
+
+    def test_rerun_ignores_same_sha_main_from_another_source(self) -> None:
+        for changes in (
+            {"ref": "other"},
+            {"repo": {**source_head("a" * 40)["repo"], "id": 11}},
+            {"repo": {**source_head("a" * 40)["repo"], "full_name": "other/repo"}},
+            {"repo": None},
+        ):
+            with self.subTest(changes=changes):
+                payload = self.payload()
+                reporter = payload["runs_by_sha"]["a" * 40][0]
+                reporter["pull_requests"] = []
+                current = payload["current"]
+                main = {
+                    **current,
+                    "number": 4,
+                    "head": {**current["head"], **changes},
+                    "base": {**current["base"], "ref": "main"},
+                }
+                payload["pulls_by_number"] = {"4": main}
+                payload["associated_pulls"] = [{"number": 3}, {"number": 4}]
+                result = self.invoke(payload)
+                self.assertEqual([item["run_id"] for item in result if "run_id" in item], [12, 14])
+
+    def test_rerun_rejects_missing_reporter_source_identity(self) -> None:
+        for changes in (
+            {"head_repository": None},
+            {"head_repository": {"full_name": "contributor/example"}},
+            {"head_repository": {"id": 10}},
+            {"head_branch": ""},
+        ):
+            with self.subTest(changes=changes):
+                payload = self.payload()
+                payload["runs_by_sha"]["a" * 40][0].update(changes)
+                result = self.invoke(payload)
+                self.assertEqual([item["run_id"] for item in result if "run_id" in item], [14])
+                self.assertTrue(all(item["state"] == "pending" for item in result[:4]))
 
 
 if __name__ == "__main__":

@@ -14,7 +14,7 @@ from unittest import mock
 
 import custom_code_budget as budget
 import custom_code_report as report
-from custom_code_test_support import GENERATION, GitTestCase, source_run
+from custom_code_test_support import GENERATION, GitTestCase, source_head, source_run
 
 REPOSITORY = "openai/example"
 
@@ -28,7 +28,7 @@ class GitHubAPI:
         self.run = source_run(head, event)
         self.pull: dict[str, Any] = {
             "state": "open",
-            "head": {"sha": head},
+            "head": source_head(head),
             "base": {"sha": base, "ref": "main", "repo": {"full_name": REPOSITORY}},
         }
         self.associations = [{"number": 3}]
@@ -68,7 +68,7 @@ class GitHubReportTests(GitTestCase):
         run["pull_requests"] = []
         main: dict[str, Any] = {
             "state": "open",
-            "head": {"sha": head},
+            "head": source_head(head),
             "base": {"ref": "main", "repo": {"full_name": REPOSITORY}},
         }
         next_pull: dict[str, Any] = {**main, "base": {**main["base"], "ref": "next"}}
@@ -110,7 +110,10 @@ class GitHubReportTests(GitTestCase):
         base = self.commit()
         legitimate, _ = report.build_report(self.repo, base, base, require_head_hash=True)
         self.write("generated.py", "generated\n# custom\n")
-        self.write("scripts/castiron/custom_code_report.py", "raise RuntimeError('PR code ran')\n")
+        self.write(
+            "scripts/castiron/custom_code_report.py",
+            "raise RuntimeError('PR code ran')\n",
+        )
         self.write("report.json", json.dumps(legitimate))
         head = self.commit()
         self.write(
@@ -232,7 +235,7 @@ class GitHubReportTests(GitTestCase):
         run: dict[str, Any] = {
             "head_sha": "a" * 40,
             "pull_requests": [],
-            "head_repository": {"owner": {"login": "contributor"}},
+            "head_repository": source_run("a" * 40)["head_repository"],
             "head_branch": "fix/branch&other=value",
         }
         first = [{"number": number} for number in range(1, 101)]
@@ -620,6 +623,65 @@ class GitHubReportTests(GitTestCase):
                 [c["state"] for c in result["checks"].values()], ["success", "success"]
             )
 
+    def test_same_commit_discovery_is_bound_to_source_repository_and_branch(
+        self,
+    ) -> None:
+        run = source_run("b" * 40)
+        run["pull_requests"] = []
+        own: dict[str, Any] = {
+            "state": "open",
+            "head": source_head(run["head_sha"]),
+            "base": {"ref": "main", "repo": {"full_name": REPOSITORY}},
+        }
+        for foreign_head in (
+            {**own["head"], "ref": "other"},
+            {**own["head"], "repo": {"id": 11, "full_name": "victim/example"}},
+            {**own["head"], "repo": None},
+        ):
+            victim = {**own, "head": foreign_head}
+
+            def discover(_method: str, path: str, victim: dict[str, Any] = victim) -> Any:
+                if "/commits/" in path:
+                    return [{"number": 3}, {"number": 4}]
+                return {"3": own, "4": victim}[path.rsplit("/", 1)[1]]
+
+            with (
+                self.subTest(head=foreign_head),
+                mock.patch.object(
+                    report,
+                    "api",
+                    side_effect=discover,
+                ),
+            ):
+                self.assertEqual(report.current_pull(REPOSITORY, run), (3, "main"))
+
+    def test_foreign_only_associations_retry_source_branch(self) -> None:
+        run = source_run("b" * 40)
+        run["pull_requests"] = []
+        own: dict[str, Any] = {
+            "state": "open",
+            "head": source_head("b" * 40),
+            "base": {"ref": "main", "repo": {"full_name": REPOSITORY}},
+        }
+        other = {**own, "head": {**own["head"], "ref": "other"}}
+        branches = [{"number": 3}]
+
+        def api(method: str, path: str) -> Any:
+            if "/commits/" in path:
+                return [{"number": 4}]
+            if "/pulls?" in path:
+                return branches
+            return {"3": own, "4": other, "5": own}[path.rsplit("/", 1)[1]]
+
+        with mock.patch.object(report, "api", side_effect=api):
+            self.assertEqual(report.current_pull(REPOSITORY, run), (3, "main"))
+            run["pull_requests"] = [{"number": 4}]
+            self.assertIsNone(report.current_pull(REPOSITORY, run))
+            run["pull_requests"] = []
+            branches.append({"number": 5})
+            with self.assertRaisesRegex(report.ReportError, "multiple current"):
+                report.current_pull(REPOSITORY, run)
+
 
 class GitHubBudgetTests(unittest.TestCase):
     def setUp(self) -> None:  # pyright: ignore[reportImplicitOverride]
@@ -962,6 +1024,8 @@ class GitHubBudgetTests(unittest.TestCase):
                 measurement=None,
                 policy_sha=self.base,
                 target_branch="main",
+                main_snapshot=None,
+                repository=REPOSITORY,
             )
 
     def test_stale_pull_and_wrong_target_fail_before_objects_created(self) -> None:

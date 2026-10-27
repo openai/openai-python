@@ -98,8 +98,8 @@ def next_policy_sha(repo: Path, repository: str, base: str, authenticated_main: 
     authenticated_main = report.require_sha(authenticated_main)
     if not report.REPOSITORY.fullmatch(repository):
         raise ValueError("invalid policy repository")
-    expected_origin = f"https://github.com/{repository}.git"
-    if report.git(repo, "remote", "get-url", "origin").decode().strip() != expected_origin:
+    origin = report.git(repo, "remote", "get-url", "origin").decode().strip()
+    if origin not in report.github_origin_urls(repository):
         raise ValueError("policy repository origin mismatch")
     fetched_main = report.git(repo, "rev-parse", "refs/remotes/origin/main").decode().strip()
     if fetched_main != authenticated_main:
@@ -110,7 +110,7 @@ def next_policy_sha(repo: Path, repository: str, base: str, authenticated_main: 
         raise ValueError("trusted next base has no reviewed policy pin")
     if pin["repository"] != repository:
         raise ValueError("next policy pin belongs to another repository")
-    policy = report.require_sha(pin["main_sha"])
+    policy = cast(str, report.require_sha(pin["main_sha"]))
     # A reachable side-branch commit is not an adopted main policy revision.
     adopted = report.git(repo, "rev-list", "--first-parent", authenticated_main).splitlines()
     if policy.encode() not in adopted:
@@ -132,7 +132,7 @@ def next_policy_sha(repo: Path, repository: str, base: str, authenticated_main: 
     )
     if not capable:
         raise ValueError("pinned checker does not support reviewed next policies")
-    return cast(str, policy)
+    return policy
 
 
 def supports_effective_pin_review(repo: Path, revision: str) -> bool:
@@ -170,7 +170,9 @@ def has_human_approval(reviews: list[dict[str, Any]], author: str, head: str) ->
     """Versioned review predicate; publisher consumes these same trusted rules."""
     latest: dict[str, dict[str, Any]] = {}
     for review in reviews:
-        if review["state"] != "PENDING" and review.get("user") is not None:
+        # Discussion does not replace an approval; blocking or dismissed
+        # reviews still supersede it, and edited attestations are checked below.
+        if review["state"] not in ("PENDING", "COMMENTED") and review.get("user") is not None:
             login = review["user"]["login"]
             if login not in latest or review["id"] > latest[login]["id"]:
                 latest[login] = review
@@ -197,6 +199,19 @@ def require_human_policy_review(repository: str, head: str, number: int | None =
         if number is not None
         else report.api("GET", f"{root}/commits/{head}/pulls?per_page=100")
     )
+    if not pulls:
+        # Fork runs can have no commit association. Discover candidates from
+        # the authenticated base repository, then apply the same live checks
+        # below. Never accept an approval based only on search metadata.
+        page = 1
+        while True:
+            candidates = report.api(
+                "GET", f"{root}/pulls?state=open&base=next&per_page=100&page={page}"
+            )
+            pulls.extend(item for item in candidates if item["head"]["sha"] == head)
+            if len(candidates) < 100:
+                break
+            page += 1
     current: list[dict[str, Any]] = []
     for item in pulls:
         pull = report.api("GET", f"{root}/pulls/{item['number']}")
@@ -280,6 +295,68 @@ def requires_human_policy_review(
     return budget_increased or ratchet_activated or pin_requires_human
 
 
+def is_main_snapshot_bootstrap(
+    repo: Path,
+    repository: str,
+    base: str,
+    head: str,
+    authenticated_main: str,
+    *,
+    constituent: str | None = None,
+) -> bool:
+    """Recognize only an exact, strict-zero authenticated main snapshot adoption.
+
+    This does not verify generated ownership: the ordinary budget evaluator must
+    still authenticate the unchanged main checkpoints and their complete manifest.
+    No candidate file is executed and no generation metadata is rewritten.
+    """
+    base, head, authenticated_main = map(report.require_sha, (base, head, authenticated_main))
+    if "next_policy" in read_policy(repo, base):
+        return False
+    strict = {"schema_version": 2, "max_custom_patch_lines": 0, "generated_files": "strict"}
+    main_policy = read_policy(repo, authenticated_main)
+    if {key: value for key, value in main_policy.items() if key != "ratchet"} != strict:
+        return False
+    expected_policy = {
+        **main_policy,
+        "next_policy": {"repository": repository, "main_sha": authenticated_main},
+    }
+    if read_policy(repo, head) != expected_policy:
+        return False
+    # Also validates the configured repository, fetched main and protocol marker.
+    if next_policy_sha(repo, repository, head, authenticated_main) != authenticated_main:
+        return False
+    if merge_base(repo, base, authenticated_main) != base or merge_base(repo, base, head) != base:
+        return False
+    paths = set(
+        report.git(
+            repo,
+            "diff",
+            "--name-only",
+            "-z",
+            "--no-renames",
+            "--no-ext-diff",
+            "--no-textconv",
+            authenticated_main,
+            head,
+            "--",
+        ).split(b"\0")
+    ) - {b""}
+    if paths != {POLICY.encode()}:
+        return False
+    parents = report.git(repo, "rev-list", "--parents", "-n", "1", head).decode().split()[1:]
+    expected = list(dict.fromkeys((base, authenticated_main)))
+    if constituent is not None and head != constituent:
+        if not is_main_snapshot_bootstrap(repo, repository, base, constituent, authenticated_main):
+            return False
+        expected = [base, constituent]
+    if parents != expected:
+        return False
+    # The complete tree comparison binds stats/inventory bytes and file modes.
+    # Require an existing public snapshot; this is not legacy metadata recovery.
+    return bool(report.read_stats(repo, authenticated_main).get("public_codegen_sha"))
+
+
 def select_policy(
     repo: Path,
     repository: str,
@@ -308,9 +385,30 @@ def select_policy(
     base_policy = read_policy(repo, base)
     head_policy = read_policy(repo, head)
     bootstrap = "next_policy" not in base_policy
+    snapshot_bootstrap = bootstrap and is_main_snapshot_bootstrap(
+        repo,
+        repository,
+        base,
+        head,
+        authenticated_main,
+        constituent=pull_heads[0] if pull_heads is not None and len(pull_heads) == 1 else None,
+    )
+    if (
+        snapshot_bootstrap
+        and pull_heads is not None
+        and (
+            len(pull_heads) != 1
+            or not is_main_snapshot_bootstrap(
+                repo, repository, base, pull_heads[0], authenticated_main
+            )
+        )
+    ):
+        raise ValueError("main snapshot bootstrap requires one exact verified constituent")
     if bootstrap:
         if "next_policy" not in head_policy or (
-            pull_heads is None and changed_paths(repo, base, head) != {POLICY.encode()}
+            not snapshot_bootstrap
+            and pull_heads is None
+            and changed_paths(repo, base, head) != {POLICY.encode()}
         ):
             raise ValueError("missing next pin allows only reviewed policy-only initialization")
         policy = authenticated_main
@@ -320,11 +418,14 @@ def select_policy(
     head_base_policy = read_policy(repo, merge_base(repo, base, head))
     if head_policy.get("next_policy") != head_base_policy.get("next_policy"):
         if "next_policy" not in head_policy or (
-            pull_heads is None and changed_paths(repo, base, head) != {POLICY.encode()}
+            not snapshot_bootstrap
+            and pull_heads is None
+            and changed_paths(repo, base, head) != {POLICY.encode()}
         ):
             raise ValueError("next pin changes must be policy-only and cannot remove the pin")
         next_policy_sha(repo, repository, head, authenticated_main)
     policy_reviews: list[dict[str, Any]] = []
+    bootstrap_validated = False
     candidates = pull_heads if pull_heads is not None else [head]
     if not candidates:
         raise ValueError("next evaluation has no verified constituent PR")
@@ -342,15 +443,23 @@ def select_policy(
         ratchet_activated = (
             candidate_policy.get("ratchet") == "go" and candidate_base_policy.get("ratchet") != "go"
         )
-        if (pin_changed or budget_increased or ratchet_activated) and changed_paths(
-            repo, base, candidate
-        ) != {POLICY.encode()}:
+        if (
+            not snapshot_bootstrap
+            and (pin_changed or budget_increased or ratchet_activated)
+            and changed_paths(repo, base, candidate) != {POLICY.encode()}
+        ):
             raise ValueError("each next policy activation or increase must be policy-only")
         if requires_human_policy_review(repo, repository, base, candidate, authenticated_main):
             number = require_human_policy_review(
                 repository, candidate, pull_numbers[candidate] if pull_numbers is not None else None
             )
             policy_reviews.append({"number": number, "head_sha": candidate})
+        # Keep activation tied to its verified policy-only constituent, even
+        # when current main's effective-policy rules require no new approval.
+        if pin_changed and candidate_policy.get("next_policy") == head_policy.get("next_policy"):
+            bootstrap_validated = True
+    if bootstrap and not bootstrap_validated:
+        raise ValueError("bootstrap requires a verified policy-only constituent")
     return {
         "schema_version": SELECTION_RECEIPT_VERSION,
         "target_branch": branch,
@@ -358,6 +467,7 @@ def select_policy(
         "head_sha": head,
         "policy_sha": policy,
         "bootstrap": bootstrap,
+        "main_snapshot": authenticated_main if snapshot_bootstrap else "",
         "policy_reviews": policy_reviews,
         "human_review_rules": HUMAN_REVIEW_RULES,
     }

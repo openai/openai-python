@@ -33,6 +33,7 @@ unique_keys = policy.unique_keys
 read_policy = policy.read_policy
 changed_paths = policy.changed_paths
 queued_entries = policy.queued_entries
+is_main_snapshot_bootstrap = policy.is_main_snapshot_bootstrap
 
 POLICY = ".castiron-ratchet.json"
 NEXT_POLICY_VERSION = 1
@@ -341,6 +342,8 @@ def evaluate(
     measurement: tuple[dict[str, Any], bytes] | None = None,
     policy_sha: str | None = None,
     target_branch: str = "main",
+    main_snapshot: str | None = None,
+    repository: str | None = None,
 ) -> tuple[dict[str, Any], bytes]:
     """In a queue, isolate each PR but budget the complete merged candidate."""
     base, head = report.require_sha(base), report.require_sha(head)
@@ -360,12 +363,36 @@ def evaluate(
         read_budget(repo, head)
         if pull_heads is not None and not pull_heads:
             raise ValueError("merge group has no verified constituent PRs")
+        if main_snapshot is not None and (
+            target_branch != "next"
+            or main_snapshot != policy
+            or repository is None
+            or (pull_heads is not None and len(pull_heads) != 1)
+            or not is_main_snapshot_bootstrap(
+                repo,
+                repository,
+                base,
+                head,
+                policy,
+                constituent=pull_heads[0]
+                if pull_heads is not None and len(pull_heads) == 1
+                else None,
+            )
+            or any(
+                not is_main_snapshot_bootstrap(repo, repository, base, candidate, policy)
+                for candidate in (pull_heads if pull_heads is not None else [head])
+            )
+        ):
+            raise ValueError("invalid authenticated main snapshot bootstrap")
         for pr_head in pull_heads if pull_heads is not None else [head]:
-            proposed = check_isolation(repo, base, pr_head)
+            proposed = 0 if main_snapshot is not None else check_isolation(repo, base, pr_head)
             if proposed is not None:
                 proposed_limits.append(proposed)
         checks["isolation"] = outcome(
-            "success", "Budget changes are isolated; human review is required for increases."
+            "success",
+            "Exact authenticated strict-zero main snapshot adoption."
+            if main_snapshot is not None
+            else "Budget changes are isolated; human review is required for increases.",
         )
     except (report.ReportError, ValueError, UnicodeError) as exc:
         checks["isolation"] = outcome("failure", str(exc))
@@ -638,6 +665,35 @@ def github_evaluate(
                 pull_heads.append(candidate)
         if not pull_heads:
             raise ValueError("cannot verify merge-group PR membership; retry the current group")
+    main_snapshot = selection.get("main_snapshot") or None
+    if main_snapshot is not None:
+        if (
+            branch != "next"
+            or main_snapshot != main
+            or report.api("GET", f"{root}/git/ref/heads/main")["object"]["sha"] != main
+        ):
+            raise ValueError("authenticated main snapshot changed; retry bootstrap")
+        # This evaluator has its own bare object store, including when reusing
+        # the PR report. SHA fetches do not create the selector's named main ref.
+        report.git(
+            repo,
+            "fetch",
+            "--quiet",
+            "--no-tags",
+            "origin",
+            "+refs/heads/main:refs/remotes/origin/main",
+        )
+        if report.git(repo, "rev-parse", "refs/remotes/origin/main").decode().strip() != main:
+            raise ValueError("authenticated main changed during snapshot fetch; retry")
+        if not is_main_snapshot_bootstrap(
+            repo,
+            repository,
+            base,
+            head,
+            main,
+            constituent=pull_heads[0] if pull_heads is not None and len(pull_heads) == 1 else None,
+        ):
+            raise ValueError("authenticated main snapshot changed; retry bootstrap")
     if branch == "next":
         assert selection is not None
         base_pin = read_policy(repo, base).get("next_policy")
@@ -646,7 +702,11 @@ def github_evaluate(
             if (
                 selection.get("bootstrap") is not True
                 or "next_policy" not in read_policy(repo, head)
-                or (pull_heads is None and changed_paths(repo, base, head) != {POLICY.encode()})
+                or (
+                    main_snapshot is None
+                    and pull_heads is None
+                    and changed_paths(repo, base, head) != {POLICY.encode()}
+                )
             ):
                 raise ValueError("unreviewed next policy initialization")
         elif selection.get("bootstrap") is not False or base_pin != {
@@ -664,9 +724,142 @@ def github_evaluate(
         measurement=measurement,
         policy_sha=main,
         target_branch=branch,
+        main_snapshot=main_snapshot,
+        repository=repository,
     )
     result["target_branch"] = branch
     return result, patch
+
+
+def prepare_main_snapshot(
+    repo: Path, repository: str, base: str, authenticated_main: str, *, fetch: bool = False
+) -> str:
+    """Create and verify an adoption commit without altering a ref, index or metadata."""
+    base, authenticated_main = map(report.require_sha, (base, authenticated_main))
+    strict = {"schema_version": 2, "max_custom_patch_lines": 0, "generated_files": "strict"}
+    main_policy = read_policy(repo, authenticated_main)
+    if {
+        key: value for key, value in main_policy.items() if key != "ratchet"
+    } != strict or "next_policy" in read_policy(repo, base):
+        raise ValueError("main snapshot preparation requires strict-zero main and unpinned next")
+    if policy.merge_base(repo, base, authenticated_main) != base:
+        raise ValueError("protected next must be an ancestor of authenticated main")
+    value = {
+        **main_policy,
+        "next_policy": {"repository": repository, "main_sha": authenticated_main},
+    }
+    blob = report.git(
+        repo,
+        "hash-object",
+        "-w",
+        "--stdin",
+        input_bytes=(json.dumps(value, indent=2) + "\n").encode(),
+    ).strip()
+    entries = report.git(repo, "ls-tree", "-z", authenticated_main).split(b"\0")
+    # Replace only the root policy blob, preserving every other entry and mode.
+    replacement = b"100644 blob " + blob + b"\t" + POLICY.encode()
+    tree = (
+        report.git(
+            repo,
+            "mktree",
+            "-z",
+            input_bytes=b"\0".join(
+                replacement if entry.partition(b"\t")[2] == POLICY.encode() else entry
+                for entry in entries
+            ),
+        )
+        .decode()
+        .strip()
+    )
+    head = (
+        report.git(
+            repo,
+            "commit-tree",
+            tree,
+            "-p",
+            base,
+            "-p",
+            authenticated_main,
+            "-m",
+            "Adopt verified strict-zero main baseline on next",
+        )
+        .decode()
+        .strip()
+    )
+    if not is_main_snapshot_bootstrap(repo, repository, base, head, authenticated_main):
+        raise ValueError("prepared snapshot does not match authenticated main")
+    result, _ = evaluate(
+        repo,
+        base,
+        head,
+        public=True,
+        fetch=fetch,
+        target_branch="next",
+        policy_sha=authenticated_main,
+        main_snapshot=authenticated_main,
+        repository=repository,
+    )
+    if not all(check["state"] == "success" for check in result["checks"].values()):
+        raise ValueError("main snapshot verification failed: " + json.dumps(result["checks"]))
+    return cast(str, head)
+
+
+def read_public_api(path: str) -> Any:
+    # Reuse the local gh login without reading or printing its credential.
+    output = subprocess.run(
+        ["gh", "api", "--hostname", "github.com", "--method", "GET", path],
+        capture_output=True,
+        check=True,
+        timeout=60,
+    )
+    return json.loads(output.stdout)
+
+
+def prepare_next_baseline(repo: Path, repository: str, branch: str) -> dict[str, str]:
+    """Authenticate public refs and create one new local review branch; never push."""
+    if not report.REPOSITORY.fullmatch(repository) or not branch.startswith("codex/"):
+        raise ValueError("expected a repository and a new codex/ review branch")
+    report.git(repo, "check-ref-format", "--branch", branch)
+    origin = report.git(repo, "remote", "get-url", "origin").decode().strip()
+    if origin not in report.github_origin_urls(repository):
+        raise ValueError("preparation requires the public repository as origin")
+    root = f"repos/{repository}"
+    metadata = read_public_api(root)
+    if (
+        metadata["private"]
+        or metadata["default_branch"] != "main"
+        or metadata["full_name"] != repository
+    ):
+        raise ValueError("preparation requires a public repository with default main")
+
+    def ref(name: str) -> str:
+        return cast(
+            str,
+            report.require_sha(read_public_api(f"{root}/git/ref/heads/{name}")["object"]["sha"]),
+        )
+
+    main, base = ref("main"), ref("next")
+    report.git(
+        repo,
+        "fetch",
+        "--quiet",
+        "--no-tags",
+        "origin",
+        "+refs/heads/main:refs/remotes/origin/main",
+        "+refs/heads/next:refs/remotes/origin/next",
+    )
+    for name, expected in (("main", main), ("next", base)):
+        if (
+            report.git(repo, "rev-parse", f"refs/remotes/origin/{name}").decode().strip()
+            != expected
+        ):
+            raise ValueError("public refs changed during preparation; retry")
+    head = prepare_main_snapshot(repo, repository, base, main, fetch=True)
+    if ref("main") != main or ref("next") != base:
+        raise ValueError("public refs changed during verification; retry")
+    # Compare-and-create only. Existing review branches and working trees are preserved.
+    report.git(repo, "update-ref", f"refs/heads/{branch}", head, "0" * 40)
+    return {"head_sha": head, "base_sha": base, "main_sha": main, "branch": branch}
 
 
 def main() -> int:
@@ -674,6 +867,11 @@ def main() -> int:
         return cast(int, policy.main(sys.argv[1:]))
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
+    commands.add_parser("review-rules")
+    prepare = commands.add_parser("prepare-next-baseline")
+    prepare.add_argument("--repo", type=Path, required=True)
+    prepare.add_argument("--repository", required=True)
+    prepare.add_argument("--branch", required=True)
     generated = commands.add_parser("verify-generated")
     generated.add_argument("--repo", type=Path, required=True)
     generated.add_argument("--policy-ref", required=True)
@@ -697,6 +895,17 @@ def main() -> int:
         command.add_argument("--repo", type=Path, required=True)
         command.add_argument("--out", type=Path, required=True)
     args = parser.parse_args()
+    if args.command == "review-rules":
+        print(json.dumps(policy.HUMAN_REVIEW_RULES, separators=(",", ":")))
+        return 0
+    if args.command == "prepare-next-baseline":
+        try:
+            preparation = prepare_next_baseline(args.repo, args.repository, args.branch)
+        except (ValueError, OSError, report.ReportError, subprocess.SubprocessError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 1
+        print(json.dumps(preparation, sort_keys=True))
+        return 0
     if args.command == "verify-generated":
         # Local pipeline integration pins policy and checkpoint before merging.
         # Legacy SDKs without a policy retain their existing behavior.

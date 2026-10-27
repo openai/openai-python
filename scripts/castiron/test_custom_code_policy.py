@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import copy
 import io
 import json
 import sys
@@ -120,6 +119,37 @@ class ReviewedPinTests(GitTestCase):
 
         return api
 
+    def test_policy_review_fork_fallback_keeps_live_exact_head_checks(self) -> None:
+        original = self.review_api([self.approved()])
+        current = original("GET", "repos/openai/example/pulls/3")
+        cases: list[tuple[dict[str, Any], bool]] = [
+            ({}, True),
+            ({"state": "closed"}, False),
+            ({"head": {"sha": "f" * 40}}, False),
+            ({"base": {"ref": "main", "repo": {"full_name": REPO}}}, False),
+            ({"base": {"ref": "next", "repo": {"full_name": "other/repo"}}}, False),
+        ]
+        for change, accepted in cases:
+            with self.subTest(change=change):
+
+                def api(method: str, path: str, change: dict[str, Any] = change) -> Any:
+                    if "/commits/" in path:
+                        return []
+                    if "/pulls?" in path:
+                        if path.endswith("page=1"):
+                            return [{"head": {"sha": "a" * 40}}] * 100
+                        return [current]
+                    if path.endswith("/pulls/3"):
+                        return {**current, **change}
+                    return original(method, path)
+
+                with mock.patch.object(selector.report, "api", side_effect=api):
+                    if accepted:
+                        self.assertEqual(selector.require_human_policy_review(REPO, self.head), 3)
+                    else:
+                        with self.assertRaisesRegex(ValueError, "one open next PR"):
+                            selector.require_human_policy_review(REPO, self.head)
+
     def approved(self, **kwargs: Any) -> dict[str, Any]:
         return {
             "id": 10,
@@ -138,7 +168,11 @@ class ReviewedPinTests(GitTestCase):
         review = self.review_api([self.approved()])
         run: dict[str, Any] = {
             "head_sha": self.head,
-            "head_repository": {"owner": {"login": "forker"}},
+            "head_repository": {
+                "id": 17,
+                "full_name": "forker/example",
+                "owner": {"login": "forker"},
+            },
             "head_branch": "policy",
             "pull_requests": [],
         }
@@ -149,7 +183,10 @@ class ReviewedPinTests(GitTestCase):
             if "/pulls?" in path:
                 self.assertIn("head=forker%3Apolicy", path)
                 return [{"number": 3}]
-            return review(method, path)
+            result = review(method, path)
+            if path == f"repos/{REPO}/pulls/3":
+                result["head"].update(ref="policy", repo=run["head_repository"])
+            return result
 
         with mock.patch.object(selector.report, "api", side_effect=api):
             current = selector.report.current_pull(REPO, run)
@@ -246,6 +283,8 @@ class ReviewedPinTests(GitTestCase):
                 self.select(base=self.main, head=group, pull_heads=heads)
         with self.assertRaisesRegex(ValueError, "verified constituent"):
             self.select(base=self.main, head=group, pull_heads=[])
+        with self.assertRaisesRegex(ValueError, "verified policy-only constituent"):
+            self.select(base=self.main, head=group, pull_heads=[sdk_head])
 
     def test_queue_pin_update_isolated_per_constituent(self) -> None:
         self.git("checkout", "-q", "--detach", self.main)
@@ -387,6 +426,33 @@ class ReviewedPinTests(GitTestCase):
         self.assertFalse(json.loads(values["bootstrap"]))
         self.assertEqual(json.loads(out.read_text())["schema_version"], 1)
 
+    def test_follow_up_comments_preserve_policy_approval(self) -> None:
+        approval = self.approved()
+        for state in ("COMMENTED", "PENDING"):
+            follow_up = self.approved(id=11, state=state, body="A non-blocking follow-up")
+            for reviews in ([approval, follow_up], [follow_up, approval]):
+                with (
+                    self.subTest(state=state, reviews=reviews),
+                    mock.patch.object(selector.report, "api", side_effect=self.review_api(reviews)),
+                ):
+                    self.assertEqual(selector.require_human_policy_review(REPO, self.head), 3)
+
+    def test_comments_do_not_restore_revoked_policy_approval(self) -> None:
+        comment = self.approved(id=12, state="COMMENTED", body="A follow-up comment")
+        cases = [
+            [self.approved(), self.approved(id=11, state="CHANGES_REQUESTED"), comment],
+            [self.approved(state="DISMISSED"), comment],
+            [self.approved(body="Attestation removed"), comment],
+            [comment],
+        ]
+        for reviews in cases:
+            with (
+                self.subTest(reviews=reviews),
+                mock.patch.object(selector.report, "api", side_effect=self.review_api(reviews)),
+                self.assertRaisesRegex(ValueError, "human"),
+            ):
+                selector.require_human_policy_review(REPO, self.head)
+
     def test_forged_bot_stale_dismissed_untrusted_reviews_rejected(self) -> None:
         self.git("checkout", "-q", "--detach", self.base)
         self.write_policy(
@@ -514,6 +580,16 @@ class ReviewedPinTests(GitTestCase):
         self.git("remote", "set-url", "origin", "https://github.com/attacker/example.git")
         with self.assertRaisesRegex(ValueError, "origin"):
             self.select()
+
+    def test_same_repository_github_url_spellings_are_accepted(self) -> None:
+        for origin in (
+            f"https://github.com/{REPO}.git",
+            f"https://github.com/{REPO}",
+            f"git@github.com:{REPO}.git",
+        ):
+            with self.subTest(origin=origin):
+                self.git("remote", "set-url", "origin", origin)
+                self.assertEqual(self.select()["policy_sha"], self.main)
 
     def test_policy_update_uses_old_base_checker_and_requires_human(self) -> None:
         self.git("checkout", "-q", "--detach", self.main)
@@ -782,169 +858,130 @@ class ReviewedPinTests(GitTestCase):
         self.assertEqual(result["policy_sha"], self.main)
         self.assertFalse(result["bootstrap"])
 
-
-POLICY_SOURCE_ROOT = "repos/" + REPO
-CANONICAL_POLICY_WORKFLOW = ".github/workflows/castiron-custom-code.yml"
-CI_POLICY_WORKFLOW = ".github/workflows/ci.yml"
-
-
-class PolicySourceWorkflowTests(unittest.TestCase):
-    def setUp(self) -> None:  # pyright: ignore[reportImplicitOverride]
-        self.temp = tempfile.TemporaryDirectory()
-        self.addCleanup(self.temp.cleanup)
-        self.repo = Path(self.temp.name) / "objects"
-        self.workflow_run: dict[str, Any] = {
-            "id": 42,
-            "workflow_id": 456,
-            "repository": {"full_name": REPO},
-            "head_sha": "a" * 40,
-            "status": "completed",
-            "event": "pull_request",
-            "run_attempt": 3,
-            "path": CANONICAL_POLICY_WORKFLOW + "@refs/pull/12/merge",
+    def prepare_snapshot(self) -> None:
+        self.git("checkout", "-q", "--detach", self.main)
+        self.base = self.main  # unpinned legacy next
+        self.strict = {
+            "schema_version": 2,
+            "max_custom_patch_lines": 0,
+            "generated_files": "strict",
         }
-        self.event: dict[str, Any] = {
-            "repository": {"full_name": REPO},
-            "workflow_run": copy.deepcopy(self.workflow_run),
-        }
-        self.branch = "next"
-        self.select = self.start_patch(
-            mock.patch.object(selector, "select_policy", return_value={"selected": True})
+        self.write_policy(self.strict)
+        self.write("sdk.txt", "approved main output\n")
+        self.write(
+            ".castiron.stats.yml",
+            "schema_version: 1\ngeneration_id: 550e8400-e29b-41d4-a716-446655440000\ncodegen_sha: "
+            + "a" * 40
+            + "\npublic_codegen_sha: "
+            + "a" * 40
+            + "\n",
         )
-        self.start_patch(mock.patch.object(selector.report, "api", side_effect=self.api))
-        self.start_patch(
-            mock.patch.object(selector.report, "current_pull", side_effect=self.current_pull)
+        self.main = self.commit("strict main snapshot")
+        self.git("update-ref", "refs/remotes/origin/main", self.main)
+        self.write_policy(
+            {**self.strict, "next_policy": {"repository": REPO, "main_sha": self.main}}
         )
-        self.start_patch(
-            mock.patch.object(
-                selector.report,
-                "git",
-                side_effect=self.git_result,
-            )
+        tree_commit = self.commit("adopt exact main snapshot")
+        self.head = self.git(
+            "commit-tree",
+            f"{tree_commit}^{{tree}}",
+            "-p",
+            self.base,
+            "-p",
+            self.main,
+            "-m",
+            "canonical snapshot",
         )
+        self.git("checkout", "--detach", "-q", self.head)
 
-    def current_pull(self, *args: Any) -> tuple[int, str]:
-        return 12, self.branch
+    def test_exact_main_snapshot_pr_and_queue(self) -> None:
+        self.prepare_snapshot()
+        for queue in (False, True):
+            with (
+                self.subTest(queue=queue),
+                mock.patch.object(
+                    selector.report, "api", side_effect=AssertionError("no human proof needed")
+                ),
+            ):
+                receipt = self.select(pull_heads=[self.head] if queue else None)
+                self.assertEqual(receipt["main_snapshot"], self.main)
+                self.assertEqual(receipt["policy_sha"], self.main)
+                self.assertEqual(receipt["policy_reviews"], [])
 
-    def git_result(self, repo: Path, *args: str) -> bytes:
-        return b"b" * 40 if args[0] == "rev-parse" else b""
+    def test_snapshot_rejects_additional_bytes_modes_or_metadata(self) -> None:
+        self.prepare_snapshot()
+        valid = self.head
+        for kind in ("content", "mode", "extra", "stats", "symlink"):
+            for queue in (False, True):
+                with self.subTest(kind=kind, queue=queue):
+                    self.git("reset", "--hard", valid)
+                    if kind == "content":
+                        self.write("sdk.txt", "unreviewed output\n")
+                    elif kind == "mode":
+                        (self.repo / "sdk.txt").chmod(0o755)
+                    elif kind == "extra":
+                        self.write("extra.txt", "extra")
+                    elif kind == "stats":
+                        self.write(".castiron.stats.yml", "schema_version: 1\n")
+                    else:
+                        (self.repo / "sdk.txt").unlink()
+                        (self.repo / "sdk.txt").symlink_to(".castiron.stats.yml")
+                    self.head = self.commit("invalid adoption")
+                    with self.assertRaises(ValueError):
+                        self.select(pull_heads=[self.head] if queue else None)
 
-    def start_patch(self, patcher: Any) -> Any:
-        result = patcher.start()
-        self.addCleanup(patcher.stop)
-        return result
+    def test_snapshot_rejects_main_movement_and_nonancestor_target(self) -> None:
+        self.prepare_snapshot()
+        old_main = self.main
+        candidate = self.head
+        self.git("checkout", "-q", "--detach", old_main)
+        self.write("sdk.txt", "new approved main\n")
+        self.main = self.commit("main advances")
+        self.git("update-ref", "refs/remotes/origin/main", self.main)
+        with self.assertRaises(ValueError):
+            self.select(head=candidate)
+        self.main = old_main
+        self.git("update-ref", "refs/remotes/origin/main", self.main)
+        self.git("checkout", "-q", "--detach", self.base)
+        self.write("private-only.txt", "unmerged next history")
+        self.base = self.commit("divergent next")
+        with self.assertRaises(ValueError):
+            self.select(head=candidate)
 
-    def api(self, method: str, path: str, *args: Any) -> Any:
-        return {
-            POLICY_SOURCE_ROOT: {"default_branch": "main"},
-            POLICY_SOURCE_ROOT + "/actions/runs/42": self.workflow_run,
-            POLICY_SOURCE_ROOT + "/actions/workflows/castiron-custom-code.yml": {
-                "id": 456,
-                "path": CANONICAL_POLICY_WORKFLOW,
-            },
-            POLICY_SOURCE_ROOT + "/actions/workflows/ci.yml": {
-                "id": 456,
-                "path": CI_POLICY_WORKFLOW,
-            },
-            POLICY_SOURCE_ROOT + "/git/ref/heads/main": {"object": {"sha": "c" * 40}},
-            POLICY_SOURCE_ROOT + "/git/ref/heads/next": {"object": {"sha": "b" * 40}},
-        }[path]
-
-    def call(self, **kwargs: Any) -> dict[str, Any]:
-        return selector.select_github_policy(self.repo, REPO, self.event, "c" * 40, **kwargs)
-
-    def use_ci(self) -> None:
-        self.workflow_run["path"] = CI_POLICY_WORKFLOW + "@refs/pull/12/merge"
-
-    def test_lookalike_workflow_cannot_select_policy(self) -> None:
-        self.workflow_run["path"] = CANONICAL_POLICY_WORKFLOW + "@evil.yml"
-        self.workflow_run["workflow_id"] = 789
-        with self.assertRaisesRegex(ValueError, "canonical workflow"):
-            self.call()
-        self.select.assert_not_called()
-
-    def test_default_canonical_unchanged(self) -> None:
-        self.branch = "main"
-        self.assertEqual(self.call(), {"selected": True})
-
-    def test_explicit_ci_uses_same_base_pin_selector(self) -> None:
-        self.use_ci()
-        self.assertEqual(self.call(source_workflow=CI_POLICY_WORKFLOW), {"selected": True})
-        self.select.assert_called_once_with(
-            self.repo,
-            REPO,
-            "next",
-            "b" * 40,
-            "a" * 40,
-            "c" * 40,
-            pull_heads=None,
-            pull_numbers={"a" * 40: 12},
+    def test_snapshot_rejects_private_history_but_accepts_verified_queue_wrapper(self) -> None:
+        self.prepare_snapshot()
+        constituent = self.head
+        wrapper = self.git(
+            "commit-tree",
+            f"{constituent}^{{tree}}",
+            "-p",
+            self.base,
+            "-p",
+            constituent,
+            "-m",
+            "queue wrapper",
         )
+        self.assertEqual(
+            self.select(head=wrapper, pull_heads=[constituent])["main_snapshot"], self.main
+        )
+        with self.assertRaises(ValueError):
+            self.select(head=wrapper)  # A wrapper is not an independently verified PR head.
+        self.write("private.txt", "private-only historical bytes")
+        self.commit("private historical commit")
+        (self.repo / "private.txt").unlink()
+        reverted = self.commit("revert private historical bytes")
+        self.assertEqual(
+            self.git("rev-parse", f"{reverted}^{{tree}}"),
+            self.git("rev-parse", f"{constituent}^{{tree}}"),
+        )
+        for heads in (None, [reverted]):
+            with self.subTest(queue=heads is not None), self.assertRaises(ValueError):
+                self.select(head=reverted, pull_heads=heads)
 
-    def test_candidate_event_cannot_select_ci_adapter(self) -> None:
-        self.use_ci()
-        self.event["source_workflow"] = CI_POLICY_WORKFLOW
-        with self.assertRaisesRegex(ValueError, "source run"):
-            self.call()
-        self.select.assert_not_called()
-
-    def test_unknown_workflow_rejected(self) -> None:
-        with self.assertRaisesRegex(ValueError, "source workflow"):
-            self.call(source_workflow=".github/workflows/evil.yml")
-        self.select.assert_not_called()
-
-    def test_ci_adapter_cannot_retarget_main(self) -> None:
-        self.use_ci()
-        self.branch = "main"
-        with self.assertRaisesRegex(ValueError, "restricted to next"):
-            self.call(source_workflow=CI_POLICY_WORKFLOW)
-        self.select.assert_not_called()
-
-    def test_wrong_actual_workflow(self) -> None:
-        with self.assertRaisesRegex(ValueError, "source run"):
-            self.call(source_workflow=CI_POLICY_WORKFLOW)
-        self.select.assert_not_called()
-
-    def test_stale_or_mismatched_authenticated_identity(self) -> None:
-        self.use_ci()
-        for field, value in [
-            ("head_sha", "d" * 40),
-            ("run_attempt", 4),
-            ("status", "in_progress"),
-            ("event", "push"),
-            ("repository", {"full_name": "attacker/example"}),
-        ]:
-            with self.subTest(field=field):
-                old = self.workflow_run[field]
-                self.workflow_run[field] = value
-                with self.assertRaisesRegex(ValueError, "source run"):
-                    self.call(source_workflow=CI_POLICY_WORKFLOW)
-                self.workflow_run[field] = old
-        self.select.assert_not_called()
-
-
-class SelectorInterfaceTests(unittest.TestCase):
-    def test_budget_cli_forwards_to_adjacent_selector(self) -> None:
-        args = ["select-policy", "--repo", "objects", "--repository", REPO]
-        with (
-            mock.patch.object(sys, "argv", ["budget", *args]),
-            mock.patch.object(budget.policy, "main", return_value=0) as select,
-        ):
-            self.assertEqual(budget.main(), 0)
-        select.assert_called_once_with(args)
-
-    def test_isolated_cli_loads_only_adjacent_modules(self) -> None:
-        import subprocess
-
-        for module in (budget, selector):
-            assert module.__file__ is not None
-            completed = subprocess.run(
-                [sys.executable, "-I", module.__file__, "select-policy", "--help"],
-                capture_output=True,
-                text=True,
-                check=True,
-            )
-            self.assertIn("--source-workflow", completed.stdout)
+    def test_snapshot_rejects_multiple_queue_constituents(self) -> None:
+        self.prepare_snapshot()
+        with self.assertRaisesRegex(ValueError, "one exact"):
+            self.select(pull_heads=[self.head, self.head])
 
 
 if __name__ == "__main__":

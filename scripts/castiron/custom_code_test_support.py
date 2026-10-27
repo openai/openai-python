@@ -24,10 +24,16 @@ class GitTestCase(unittest.TestCase):
         self.git("init", "-q", "-b", "main")
         self.git("config", "user.name", "Castiron test")
         self.git("config", "user.email", "castiron@example.test")
+        # Finish automatic maintenance before the temporary repository is removed.
+        self.git("config", "maintenance.autoDetach", "false")
+        self.git("config", "gc.autoDetach", "false")
 
     def git(self, *args: str) -> str:
         return subprocess.run(
-            ["git", "-C", str(self.repo), *args], check=True, capture_output=True, text=True
+            ["git", "-C", str(self.repo), *args],
+            check=True,
+            capture_output=True,
+            text=True,
         ).stdout.strip()
 
     def write(self, path: str, body: str) -> None:
@@ -66,13 +72,21 @@ def source_run(head: str, event: str = "pull_request") -> dict[str, Any]:
         "head_sha": head,
         "head_branch": "gh-readonly-queue/main/pr-7-example" if event == "merge_group" else "sdk",
         "repository": {"full_name": "openai/example"},
-        "head_repository": {"owner": {"login": "contributor"}},
+        "head_repository": {
+            "id": 10,
+            "full_name": "contributor/example",
+            "owner": {"login": "contributor"},
+        },
         "path": ".github/workflows/castiron-custom-code.yml",
         "status": "completed",
         "run_attempt": 1,
         "pull_requests": [{"number": 3}] if event == "pull_request" else [],
         "conclusion": "failure",  # The candidate's result is deliberately ignored.
     }
+
+
+def source_head(sha: str) -> dict[str, Any]:
+    return {"sha": sha, "ref": "sdk", "repo": source_run(sha)["head_repository"]}
 
 
 WORKFLOW = (
