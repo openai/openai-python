@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from openai import OpenAI
+from openai import OpenAI, OpenAIError
 from openai.types.beta import BetaResponseOutputItem
 
 PROMPT = """Compare these fictional proposals on speed, cost, reliability, and security.
@@ -42,5 +42,9 @@ with client.beta.responses.connect(
             print(event.delta, end="", flush=True)
         if event.type == "response.completed":
             break
+        if event.type in {"response.failed", "response.incomplete", "error"}:
+            raise OpenAIError(f"Multi-agent request ended with {event.type}")
+    else:
+        raise OpenAIError("Connection closed before the multi-agent response completed")
 
 print()

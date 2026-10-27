@@ -59,6 +59,7 @@ async def run(path: Path, *, model: str, listen_seconds: float = 15) -> list[Tra
                     await transcript.push(event)
                     if event.type == "session.closed":
                         return
+                raise OpenAIError("Live disconnected before session.closed")
 
             receiver = asyncio.create_task(receive())
             try:
