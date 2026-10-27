@@ -337,7 +337,8 @@ def coerce_float(val: str) -> float:
     return float(val)
 
 
-def coerce_boolean(val: str) -> bool:
+def coerce_boolean(obj: object) -> bool:
+    val = str(obj).lower()
     return val == "true" or val == "1" or val == "on"
 
 
