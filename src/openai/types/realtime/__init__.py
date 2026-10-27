@@ -38,6 +38,7 @@ from .realtime_connect_params import RealtimeConnectParams as RealtimeConnectPar
 from .realtime_mcp_list_tools import RealtimeMcpListTools as RealtimeMcpListTools
 from .realtime_response_usage import RealtimeResponseUsage as RealtimeResponseUsage
 from .realtime_tracing_config import RealtimeTracingConfig as RealtimeTracingConfig
+from .response_item_reference import ResponseItemReference as ResponseItemReference
 from .mcp_list_tools_completed import McpListToolsCompleted as McpListToolsCompleted
 from .realtime_reasoning_param import RealtimeReasoningParam as RealtimeReasoningParam
 from .realtime_response_status import RealtimeResponseStatus as RealtimeResponseStatus
@@ -75,6 +76,7 @@ from .client_secret_create_response import ClientSecretCreateResponse as ClientS
 from .realtime_mcp_approval_request import RealtimeMcpApprovalRequest as RealtimeMcpApprovalRequest
 from .realtime_mcp_list_tools_param import RealtimeMcpListToolsParam as RealtimeMcpListToolsParam
 from .realtime_tracing_config_param import RealtimeTracingConfigParam as RealtimeTracingConfigParam
+from .response_item_reference_param import ResponseItemReferenceParam as ResponseItemReferenceParam
 from .response_mcp_call_in_progress import ResponseMcpCallInProgress as ResponseMcpCallInProgress
 from .conversation_item_create_event import ConversationItemCreateEvent as ConversationItemCreateEvent
 from .conversation_item_delete_event import ConversationItemDeleteEvent as ConversationItemDeleteEvent
@@ -199,6 +201,9 @@ from .realtime_response_usage_input_token_details import (
 from .realtime_translation_session_update_request import (
     RealtimeTranslationSessionUpdateRequest as RealtimeTranslationSessionUpdateRequest,
 )
+from .response_create_event_with_references_param import (
+    ResponseCreateEventWithReferencesParam as ResponseCreateEventWithReferencesParam,
+)
 from .response_function_call_arguments_done_event import (
     ResponseFunctionCallArgumentsDoneEvent as ResponseFunctionCallArgumentsDoneEvent,
 )
@@ -276,6 +281,9 @@ from .realtime_translation_input_audio_buffer_append_event import (
 )
 from .realtime_conversation_item_function_call_output_param import (
     RealtimeConversationItemFunctionCallOutputParam as RealtimeConversationItemFunctionCallOutputParam,
+)
+from .realtime_response_create_params_with_references_param import (
+    RealtimeResponseCreateParamsWithReferencesParam as RealtimeResponseCreateParamsWithReferencesParam,
 )
 from .conversation_item_input_audio_transcription_delta_event import (
     ConversationItemInputAudioTranscriptionDeltaEvent as ConversationItemInputAudioTranscriptionDeltaEvent,
