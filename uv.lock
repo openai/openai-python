@@ -1691,7 +1691,7 @@ wheels = [
 
 [[package]]
 name = "openai"
-version = "3.39.0" # x-release-please-version
+version = "3.40.0" # x-release-please-version
 source = { editable = "." }
 default-groups = ["dev", "pydantic-v2"]
 dependencies = [
