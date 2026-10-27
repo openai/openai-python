@@ -36,7 +36,7 @@ from typing_extensions import override
 from textual import events
 from audio_util import CHANNELS, SAMPLE_RATE, AudioPlayerAsync
 from textual.app import App, ComposeResult
-from textual.widgets import Button, Static, RichLog
+from textual.widgets import Static, RichLog
 from textual.reactive import reactive
 from textual.containers import Container
 
@@ -93,11 +93,6 @@ class RealtimeApp(App[None]):
             height: 3;  /* Explicit height for input */
         }
 
-        Button {
-            width: 20%;
-            height: 3;  /* Explicit height for button */
-        }
-
         #bottom-pane {
             width: 100%;
             height: 82%;  /* Reduced to make room for session display */
@@ -141,6 +136,8 @@ class RealtimeApp(App[None]):
         self.client = AsyncOpenAI()
         self.audio_player = AudioPlayerAsync()
         self.last_audio_item_id = None
+        self._active_response_id: str | None = None
+        self._interrupted_response_ids: set[str] = set()
         self.should_send_audio = asyncio.Event()
         self.connected = asyncio.Event()
         self._mic_stream: Any = None
@@ -151,11 +148,15 @@ class RealtimeApp(App[None]):
         with Container():
             yield SessionDisplay(id="session-display")
             yield AudioStatusIndicator(id="status-indicator")
-            yield RichLog(id="bottom-pane", wrap=True, highlight=True, markup=True)
+            yield RichLog(id="bottom-pane", wrap=True, highlight=True)
 
     async def on_mount(self) -> None:
         self.run_worker(self.handle_realtime_connection())
         self.run_worker(self.send_mic_audio())
+
+    async def on_unmount(self) -> None:
+        self.audio_player.terminate()
+        await self.client.close()
 
     async def handle_realtime_connection(self) -> None:
         async with self.client.realtime.connect(model="gpt-realtime") as conn:
@@ -190,7 +191,30 @@ class RealtimeApp(App[None]):
                     self.session = event.session
                     continue
 
+                if event.type == "error":
+                    self.query_one(RichLog).write(f"Realtime error: {event.error.message}")
+                    continue
+
+                if event.type == "response.created":
+                    self._active_response_id = event.response.id
+                    continue
+
+                if event.type == "response.done":
+                    if self._active_response_id == event.response.id:
+                        self._active_response_id = None
+                    if event.response.id is not None:
+                        self._interrupted_response_ids.discard(event.response.id)
+                    if event.response.status in {"failed", "incomplete"}:
+                        details = event.response.status_details
+                        message = details.error.message if details and details.error else None
+                        reason = message or (details.reason if details else None)
+                        text = f"Response {event.response.status}"
+                        self.query_one(RichLog).write(f"{text}: {reason}" if reason else text)
+                    continue
+
                 if event.type == "response.output_audio.delta":
+                    if event.response_id in self._interrupted_response_ids:
+                        continue
                     if event.item_id != self.last_audio_item_id:
                         self.audio_player.reset_frame_count()
                         self.last_audio_item_id = event.item_id
@@ -213,6 +237,8 @@ class RealtimeApp(App[None]):
                     bottom_pane.write(acc_items[event.item_id])
                     continue
 
+        self.exit(return_code=1, message="The Realtime connection closed.")
+
     async def _get_connection(self) -> AsyncRealtimeConnection:
         await self.connected.wait()
         assert self.connection is not None
@@ -220,8 +246,6 @@ class RealtimeApp(App[None]):
 
     async def send_mic_audio(self) -> None:
         import sounddevice as sd  # type: ignore
-
-        sent_audio = False
 
         device_info = sd.query_devices()
         print(device_info)
@@ -252,10 +276,6 @@ class RealtimeApp(App[None]):
 
                 data, _ = stream.read(read_size)
 
-                if not sent_audio:
-                    asyncio.create_task(connection.send({"type": "response.cancel"}))
-                    sent_audio = True
-
                 await connection.input_audio_buffer.append(audio=base64.b64encode(cast(Any, data)).decode("utf-8"))
 
                 await asyncio.sleep(0)
@@ -274,10 +294,6 @@ class RealtimeApp(App[None]):
 
     async def on_key(self, event: events.Key) -> None:
         """Handle key press events."""
-        if event.key == "enter":
-            self.query_one(Button).press()
-            return
-
         if event.key == "q":
             self.exit()
             return
@@ -304,6 +320,13 @@ class RealtimeApp(App[None]):
                     await conn.input_audio_buffer.commit()
                     await conn.response.create()
             else:
+                if self.audio_player.playing:
+                    self.audio_player.stop()
+                if self.connection is not None and self._active_response_id is not None:
+                    response_id = self._active_response_id
+                    self._active_response_id = None
+                    self._interrupted_response_ids.add(response_id)
+                    await self.connection.response.cancel(response_id=response_id)
                 self.should_send_audio.set()
                 status_indicator.is_recording = True
 
@@ -311,3 +334,4 @@ class RealtimeApp(App[None]):
 if __name__ == "__main__":
     app = RealtimeApp()
     app.run()
+    raise SystemExit(app.return_code)
