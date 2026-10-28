@@ -562,7 +562,7 @@ async def test_late_transcript_deltas_from_interrupted_response_do_not_replace_d
                 delta="first",
             )
             assert display == ["first"]
-            app._interrupted_response_ids.add("old")
+            app._interrupted_responses["old"] = {("old", 0)}
             yield SimpleNamespace(
                 type="response.output_audio_transcript.delta",
                 response_id="old",
@@ -625,10 +625,14 @@ async def test_response_created_while_recording_before_or_after_first_append(
     async def append(**_kwargs: Any) -> None:
         sent.append(("append", None))
 
+    async def truncate(**kwargs: Any) -> None:
+        sent.append(("truncate", kwargs))
+
     class Connection:
         session = SimpleNamespace(update=update)
         response = SimpleNamespace(cancel=cancel)
         input_audio_buffer = SimpleNamespace(append=append)
+        conversation = SimpleNamespace(item=SimpleNamespace(truncate=truncate))
 
         async def __aenter__(self) -> Any:
             return self
@@ -667,6 +671,7 @@ async def test_response_created_while_recording_before_or_after_first_append(
                 content_index=0,
                 delta="a response",
             )
+            await app.workers.wait_for_complete()
             if new_audio_sent:
                 # Server VAD may legitimately answer a pause during the current recording.
                 assert sent == [("append", None)]
@@ -674,14 +679,17 @@ async def test_response_created_while_recording_before_or_after_first_append(
                 assert display == ["a response"]
             else:
                 # No new audio has been offered, so this can only be an older response.
-                assert sent == [("cancel", {"response_id": "response"})]
+                assert sent == [
+                    ("cancel", {"response_id": "response"}),
+                    ("truncate", {"item_id": "item", "content_index": 0, "audio_end_ms": 0}),
+                ]
                 assert not app.audio_player.playing
                 assert display == []
             yield SimpleNamespace(
                 type="response.done",
                 response=SimpleNamespace(id="response", status="completed", status_details=None),
             )
-            assert not app._interrupted_response_ids
+            assert not app._interrupted_responses
 
     app.query_one = query_one
     original_client = app.client
@@ -693,4 +701,98 @@ async def test_response_created_while_recording_before_or_after_first_append(
     try:
         await app._receive_realtime_events()
     finally:
+        await original_client.close()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("response_before_k,played_frames", [(True, 0), (False, 0), (True, 480)])
+@pytest.mark.parametrize("first_delta", ["response.output_audio.delta", "response.output_audio_transcript.delta"])
+async def test_interruption_truncates_late_unheard_audio_once(
+    app_module: Any, response_before_k: bool, played_frames: int, first_delta: str
+) -> None:
+    module, _ = app_module
+    app = module.RealtimeApp()
+    status = SimpleNamespace(is_recording=False)
+    display: list[str] = []
+    sent: list[tuple[str, dict[str, Any]]] = []
+
+    class Log:
+        def clear(self) -> None:
+            display.clear()
+
+        def write(self, message: str) -> None:
+            display.append(message)
+
+    def query_one(*args: Any, **_kwargs: Any) -> Any:
+        return status if args[0] is module.AudioStatusIndicator else Log()
+
+    async def update(**_kwargs: Any) -> None:
+        pass
+
+    async def cancel(**kwargs: Any) -> None:
+        sent.append(("cancel", kwargs))
+
+    async def truncate(**kwargs: Any) -> None:
+        sent.append(("truncate", kwargs))
+
+    def delta(kind: str) -> SimpleNamespace:
+        return SimpleNamespace(
+            type=kind,
+            response_id="old-response",
+            item_id="assistant-item",
+            content_index=0,
+            delta="AAAAAAAAAAA=" if kind == "response.output_audio.delta" else "unheard text",
+        )
+
+    class Connection:
+        session = SimpleNamespace(update=update)
+        response = SimpleNamespace(cancel=cancel)
+        conversation = SimpleNamespace(item=SimpleNamespace(truncate=truncate))
+
+        async def __aenter__(self) -> Any:
+            return self
+
+        async def __aexit__(self, *_args: Any) -> None:
+            pass
+
+        async def __aiter__(self) -> Any:
+            created = SimpleNamespace(type="response.created", response=SimpleNamespace(id="old-response"))
+            if response_before_k:
+                yield created
+                if played_frames:
+                    app.audio_player.add_data(
+                        bytes(1920), response_id="old-response", item_id="assistant-item", content_index=0
+                    )
+                    app.audio_player.stream.callback(
+                        np.empty((played_frames, 1), dtype=np.int16), played_frames, None, None
+                    )
+            await app.on_key(SimpleNamespace(key="k"))
+            if not response_before_k:
+                yield created
+            # Model multiple in-flight chunks, with either transcript or audio arriving first.
+            for kind in (first_delta, "response.output_audio.delta", "response.output_audio_transcript.delta"):
+                yield delta(kind)
+            await app.workers.wait_for_complete()
+            assert not app.audio_player.playing
+            assert display == []
+            assert sent == [
+                ("cancel", {"response_id": "old-response"}),
+                ("truncate", {"item_id": "assistant-item", "content_index": 0, "audio_end_ms": played_frames // 24}),
+            ]
+            yield SimpleNamespace(
+                type="response.done",
+                response=SimpleNamespace(id="old-response", status="cancelled", status_details=None),
+            )
+
+    app.query_one = query_one
+    original_client = app.client
+
+    def connect(**_kwargs: Any) -> Connection:
+        return Connection()
+
+    app.client = SimpleNamespace(realtime=SimpleNamespace(connect=connect))
+    try:
+        await app._receive_realtime_events()
+    finally:
+        app._stop_mic_stream()
         await original_client.close()

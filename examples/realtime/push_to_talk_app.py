@@ -143,7 +143,7 @@ class RealtimeApp(App[None]):
         self.audio_player = AudioPlayerAsync()
         self._active_response_id: str | None = None
         self._displayed_item: tuple[str, str, int] | None = None
-        self._interrupted_response_ids: set[str] = set()
+        self._interrupted_responses: dict[str, set[tuple[str, int]]] = {}
         self.should_send_audio = asyncio.Event()
         self._mic_send_lock = asyncio.Lock()
         self._awaiting_new_input = False
@@ -220,7 +220,7 @@ class RealtimeApp(App[None]):
                         # interrupted playback, so this response belongs to an
                         # earlier turn (even if K was already released).
                         self._active_response_id = None
-                        self._interrupted_response_ids.add(event.response.id)
+                        self._interrupted_responses[event.response.id] = set()
                         await conn.response.cancel(response_id=event.response.id)
                         continue
                     self._active_response_id = event.response.id
@@ -230,7 +230,7 @@ class RealtimeApp(App[None]):
                     if self._active_response_id == event.response.id:
                         self._active_response_id = None
                     if event.response.id is not None:
-                        self._interrupted_response_ids.discard(event.response.id)
+                        self._interrupted_responses.pop(event.response.id, None)
                         self.audio_player.finish_response(event.response.id)
                     if event.response.status in {"failed", "incomplete"}:
                         details = event.response.status_details
@@ -240,9 +240,22 @@ class RealtimeApp(App[None]):
                         self.query_one(RichLog).write(f"{text}: {reason}" if reason else text)
                     continue
 
-                if event.type == "response.output_audio.delta":
-                    if event.response_id in self._interrupted_response_ids:
+                if event.type in {"response.output_audio.delta", "response.output_audio_transcript.delta"}:
+                    handled = self._interrupted_responses.get(event.response_id)
+                    if handled is not None:
+                        part = (event.item_id, event.content_index)
+                        if part not in handled:
+                            # This item arrived after playback was stopped; none of it was heard.
+                            # Reserve it before the worker runs so later chunks cannot truncate it twice.
+                            handled.add(part)
+                            self.run_worker(
+                                self._interrupt_response(
+                                    None, [((event.response_id, event.item_id, event.content_index), 0)]
+                                )
+                            )
                         continue
+
+                if event.type == "response.output_audio.delta":
                     bytes_data = base64.b64decode(event.delta)
                     self.audio_player.add_data(
                         bytes_data,
@@ -253,8 +266,6 @@ class RealtimeApp(App[None]):
                     continue
 
                 if event.type == "response.output_audio_transcript.delta":
-                    if event.response_id in self._interrupted_response_ids:
-                        continue
                     try:
                         text = acc_items[event.item_id]
                     except KeyError:
@@ -360,7 +371,12 @@ class RealtimeApp(App[None]):
                 self._active_response_id = None
                 unheard = self.audio_player.stop(interrupted_response_id=response_id)
                 if response_id is not None:
-                    self._interrupted_response_ids.add(response_id)
+                    # Preserve the cutoff of partially played items, even while cancellation is pending.
+                    self._interrupted_responses[response_id] = {
+                        (item_id, content_index)
+                        for (owner, item_id, content_index), _ in unheard
+                        if owner == response_id
+                    }
                 if any(key == self._displayed_item for key, _ in unheard):
                     bottom_pane = self.query_one("#bottom-pane", RichLog)
                     bottom_pane.clear()
