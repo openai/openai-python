@@ -39,8 +39,9 @@ from textual.app import App, ComposeResult
 from textual.widgets import Static, RichLog
 from textual.reactive import reactive
 from textual.containers import Container
+from websockets.exceptions import ConnectionClosed
 
-from openai import AsyncOpenAI
+from openai import AsyncOpenAI, WebSocketConnectionClosedError
 from openai.resources.realtime.realtime import AsyncRealtimeConnection
 from openai.types.realtime.session_created_event import Session
 
@@ -124,7 +125,6 @@ class RealtimeApp(App[None]):
     client: AsyncOpenAI
     should_send_audio: asyncio.Event
     audio_player: AudioPlayerAsync
-    last_audio_item_id: str | None
     connection: AsyncRealtimeConnection | None
     session: Session | None
     connected: asyncio.Event
@@ -135,10 +135,10 @@ class RealtimeApp(App[None]):
         self.session = None
         self.client = AsyncOpenAI()
         self.audio_player = AudioPlayerAsync()
-        self.last_audio_item_id = None
         self._active_response_id: str | None = None
         self._interrupted_response_ids: set[str] = set()
         self.should_send_audio = asyncio.Event()
+        self._mic_send_lock = asyncio.Lock()
         self.connected = asyncio.Event()
         self._mic_stream: Any = None
 
@@ -159,6 +159,13 @@ class RealtimeApp(App[None]):
         await self.client.close()
 
     async def handle_realtime_connection(self) -> None:
+        try:
+            await self._receive_realtime_events()
+        except (ConnectionClosed, WebSocketConnectionClosedError):
+            pass
+        self.exit(return_code=1, message="The Realtime connection closed.")
+
+    async def _receive_realtime_events(self) -> None:
         async with self.client.realtime.connect(model="gpt-realtime") as conn:
             self.connection = conn
             self.connected.set()
@@ -196,6 +203,8 @@ class RealtimeApp(App[None]):
                     continue
 
                 if event.type == "response.created":
+                    if self._active_response_id is not None and self._active_response_id != event.response.id:
+                        self.audio_player.finish_response(self._active_response_id)
                     self._active_response_id = event.response.id
                     continue
 
@@ -204,6 +213,7 @@ class RealtimeApp(App[None]):
                         self._active_response_id = None
                     if event.response.id is not None:
                         self._interrupted_response_ids.discard(event.response.id)
+                        self.audio_player.finish_response(event.response.id)
                     if event.response.status in {"failed", "incomplete"}:
                         details = event.response.status_details
                         message = details.error.message if details and details.error else None
@@ -215,12 +225,13 @@ class RealtimeApp(App[None]):
                 if event.type == "response.output_audio.delta":
                     if event.response_id in self._interrupted_response_ids:
                         continue
-                    if event.item_id != self.last_audio_item_id:
-                        self.audio_player.reset_frame_count()
-                        self.last_audio_item_id = event.item_id
-
                     bytes_data = base64.b64decode(event.delta)
-                    self.audio_player.add_data(bytes_data)
+                    self.audio_player.add_data(
+                        bytes_data,
+                        response_id=event.response_id,
+                        item_id=event.item_id,
+                        content_index=event.content_index,
+                    )
                     continue
 
                 if event.type == "response.output_audio_transcript.delta":
@@ -236,8 +247,6 @@ class RealtimeApp(App[None]):
                     bottom_pane.clear()
                     bottom_pane.write(acc_items[event.item_id])
                     continue
-
-        self.exit(return_code=1, message="The Realtime connection closed.")
 
     async def _get_connection(self) -> AsyncRealtimeConnection:
         await self.connected.wait()
@@ -274,9 +283,11 @@ class RealtimeApp(App[None]):
                     await asyncio.sleep(0)
                     continue
 
-                data, _ = stream.read(read_size)
-
-                await connection.input_audio_buffer.append(audio=base64.b64encode(cast(Any, data)).decode("utf-8"))
+                async with self._mic_send_lock:
+                    if stream is not self._mic_stream or not self.should_send_audio.is_set():
+                        continue
+                    data, _ = stream.read(read_size)
+                    await connection.input_audio_buffer.append(audio=base64.b64encode(cast(Any, data)).decode("utf-8"))
 
                 await asyncio.sleep(0)
         except KeyboardInterrupt:
@@ -317,18 +328,35 @@ class RealtimeApp(App[None]):
                     # However if we're in manual `turn_detection` mode then we need to
                     # manually tell the model to commit the audio buffer and start responding.
                     conn = await self._get_connection()
-                    await conn.input_audio_buffer.commit()
-                    await conn.response.create()
+                    async with self._mic_send_lock:
+                        await conn.input_audio_buffer.commit()
+                        await conn.response.create()
             else:
-                if self.audio_player.playing:
-                    self.audio_player.stop()
-                if self.connection is not None and self._active_response_id is not None:
-                    response_id = self._active_response_id
-                    self._active_response_id = None
-                    self._interrupted_response_ids.add(response_id)
-                    await self.connection.response.cancel(response_id=response_id)
-                self.should_send_audio.set()
-                status_indicator.is_recording = True
+                async with self._mic_send_lock:
+                    self.should_send_audio.set()
+                    status_indicator.is_recording = True
+                    unheard = (
+                        self.audio_player.stop(interrupted_response_id=self._active_response_id)
+                        if self.audio_player.playing
+                        else []
+                    )
+                    if self.connection is not None:
+                        if self._active_response_id is not None:
+                            response_id = self._active_response_id
+                            self._active_response_id = None
+                            self._interrupted_response_ids.add(response_id)
+                            await self.connection.response.cancel(response_id=response_id)
+                        for (_, item_id, content_index), frames in unheard:
+                            if content_index != 0:
+                                self.query_one(RichLog).write(
+                                    "Cannot truncate audio: the API only supports content part 0."
+                                )
+                                continue
+                            await self.connection.conversation.item.truncate(
+                                item_id=item_id,
+                                content_index=content_index,
+                                audio_end_ms=frames * 1000 // SAMPLE_RATE,
+                            )
 
 
 if __name__ == "__main__":
