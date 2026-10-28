@@ -3,7 +3,7 @@
   "files": {
     "api.md": {
       "mode": "100644",
-      "sha256": "82da84d639cb84106f389b001030b0b668eb71122f39c7db598edccc2fcf7b27"
+      "sha256": "4ac9c7c1fc6873491907b81a74c29c6b992f90ca0bae82fa1397770c9919fc53"
     },
     "src/openai/__init__.py": {
       "mode": "100644",
@@ -39,7 +39,7 @@
     },
     "src/openai/resources/admin/organization/__init__.py": {
       "mode": "100644",
-      "sha256": "034a6e7dac771dd06b4d07424029f22465e9254e68c172a9b662e3b9b6cc5e61"
+      "sha256": "20413ef0ea8ce86960092122a76f79fe51a9cdb843175ae6939cf477cc8a808f"
     },
     "src/openai/resources/admin/organization/admin_api_keys.py": {
       "mode": "100644",
@@ -56,6 +56,10 @@
     "src/openai/resources/admin/organization/data_retention.py": {
       "mode": "100644",
       "sha256": "9173276962348404015e04efeb00c9551459bf7cec1ffe5890f164d1a76ee994"
+    },
+    "src/openai/resources/admin/organization/external_keys.py": {
+      "mode": "100644",
+      "sha256": "e1288655d595633c904b060833d7ebf0d9cfd0f285f10d0f8d08035d2f61e7be"
     },
     "src/openai/resources/admin/organization/external_storage.py": {
       "mode": "100644",
@@ -83,7 +87,7 @@
     },
     "src/openai/resources/admin/organization/organization.py": {
       "mode": "100644",
-      "sha256": "f038b43f0f1b020047682d864b49782ea1fb76c5d488def69b90407aa4be81a5"
+      "sha256": "254724f376de5fb777151c5531b4039d67f7e774fab9b71c2033d8de02a1f96c"
     },
     "src/openai/resources/admin/organization/projects/__init__.py": {
       "mode": "100644",
@@ -727,7 +731,7 @@
     },
     "src/openai/types/admin/organization/__init__.py": {
       "mode": "100644",
-      "sha256": "89fb55c8f13e4226f489ced9c8f19858f0dd5c97964f1402283b5c406972db30"
+      "sha256": "92e7a3a9265dfee7f51c4e87b5af288db6e07c3182a93eae31ed87161c75bf40"
     },
     "src/openai/types/admin/organization/admin_api_key.py": {
       "mode": "100644",
@@ -816,6 +820,22 @@
     "src/openai/types/admin/organization/data_retention_update_params.py": {
       "mode": "100644",
       "sha256": "97a043bfbb91d7cb4b8f1a37709463637f1c96e95ed369edb39381324e95ede6"
+    },
+    "src/openai/types/admin/organization/external_key.py": {
+      "mode": "100644",
+      "sha256": "1dd59d578a766b90bd5b28852915627b1e4cd7e47374ac7d9fa5dcf16e0591fc"
+    },
+    "src/openai/types/admin/organization/external_key_create_params.py": {
+      "mode": "100644",
+      "sha256": "b72cf37b3d75ab44fe26db1892dc04e372da3126500221d87a385449e425e4c5"
+    },
+    "src/openai/types/admin/organization/external_key_list_params.py": {
+      "mode": "100644",
+      "sha256": "c7a4a6b062742f49632fedf361b45d87d862e7f9875b7523f3aeda062628f54a"
+    },
+    "src/openai/types/admin/organization/external_key_validate_response.py": {
+      "mode": "100644",
+      "sha256": "1368ee3bad99b9aa0f8dc61e13b3dc2d00743e240c796b5be69204971d938657"
     },
     "src/openai/types/admin/organization/external_storage_configuration.py": {
       "mode": "100644",
@@ -7528,6 +7548,10 @@
     "tests/api_resources/admin/organization/test_data_retention.py": {
       "mode": "100644",
       "sha256": "f4fa22826e3f96847d60e1c431f3e7174e4ba59334dfa0d45a87f69a872bbf64"
+    },
+    "tests/api_resources/admin/organization/test_external_keys.py": {
+      "mode": "100644",
+      "sha256": "0bad3f5c69569508a864df6e84f6ee1b7660d78fb3da1c16eb13f6229ef71b7d"
     },
     "tests/api_resources/admin/organization/test_external_storage.py": {
       "mode": "100644",
