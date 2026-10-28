@@ -254,7 +254,11 @@ async def test_transcript_interruption_tracks_only_unheard_content(app_module: A
 
     app.query_one = query_one
     client = app.client
-    app.client = SimpleNamespace(realtime=SimpleNamespace(connect=lambda **_: Connection()))
+
+    def connect(**_kwargs: Any) -> Connection:
+        return Connection()
+
+    app.client = SimpleNamespace(realtime=SimpleNamespace(connect=connect))
     try:
         await app._receive_realtime_events()
     finally:
