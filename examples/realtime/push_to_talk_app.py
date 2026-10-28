@@ -31,6 +31,7 @@ from __future__ import annotations
 import base64
 import asyncio
 from typing import Any, cast
+from dataclasses import dataclass
 from typing_extensions import override
 
 from textual import events
@@ -67,6 +68,11 @@ class AudioStatusIndicator(Static):
             "🔴 Recording... (Press K to stop)" if self.is_recording else "⚪ Press K to start recording (Q to quit)"
         )
         return status
+
+
+@dataclass
+class Recording:
+    has_audio: bool = False
 
 
 class RealtimeApp(App[None]):
@@ -143,6 +149,7 @@ class RealtimeApp(App[None]):
         self._awaiting_new_input = False
         self.connected = asyncio.Event()
         self._mic_stream: Any = None
+        self._recording = Recording()
 
     @override
     def compose(self) -> ComposeResult:
@@ -268,11 +275,6 @@ class RealtimeApp(App[None]):
         return self.connection
 
     async def send_mic_audio(self) -> None:
-        import sounddevice as sd  # type: ignore
-
-        device_info = sd.query_devices()
-        print(device_info)
-
         read_size = int(SAMPLE_RATE * 0.02)
 
         try:
@@ -282,17 +284,10 @@ class RealtimeApp(App[None]):
                 if not self.should_send_audio.is_set():
                     continue
 
-                if self._mic_stream is None:
-                    # Use a fresh stream for each recording so buffered audio from
-                    # a previous recording cannot be sent when recording resumes.
-                    self._mic_stream = sd.InputStream(
-                        channels=CHANNELS,
-                        samplerate=SAMPLE_RATE,
-                        dtype="int16",
-                    )
-                    self._mic_stream.start()
-
                 stream = self._mic_stream
+                recording = self._recording
+                if stream is None:
+                    continue
                 if stream.read_available < read_size:
                     await asyncio.sleep(0)
                     continue
@@ -306,8 +301,10 @@ class RealtimeApp(App[None]):
                         await connection.input_audio_buffer.append(
                             audio=base64.b64encode(cast(Any, data)).decode("utf-8")
                         )
+                        recording.has_audio = True
                     except BaseException:
-                        self._awaiting_new_input = True
+                        if recording is self._recording:
+                            self._awaiting_new_input = True
                         raise
 
                 await asyncio.sleep(0)
@@ -348,46 +345,59 @@ class RealtimeApp(App[None]):
                     #
                     # However if we're in manual `turn_detection` mode then we need to
                     # manually tell the model to commit the audio buffer and start responding.
-                    conn = await self._get_connection()
-                    async with self._mic_send_lock:
-                        if not self._awaiting_new_input:
-                            await conn.input_audio_buffer.commit()
-                            await conn.response.create()
+                    self.run_worker(self._finish_manual_recording(self._recording))
             else:
-                async with self._mic_send_lock:
-                    self._awaiting_new_input = True
-                    self.should_send_audio.set()
-                    status_indicator.is_recording = True
-                    unheard = (
-                        self.audio_player.stop(interrupted_response_id=self._active_response_id)
-                        if self.audio_player.playing
-                        else []
-                    )
-                    if any(
-                        item_id == self._displayed_item_id and content_index == 0
-                        for (_, item_id, content_index), _ in unheard
-                    ):
-                        bottom_pane = self.query_one("#bottom-pane", RichLog)
-                        bottom_pane.clear()
-                        bottom_pane.write("Response interrupted.")
-                        self._displayed_item_id = None
-                    if self.connection is not None:
-                        if self._active_response_id is not None:
-                            response_id = self._active_response_id
-                            self._active_response_id = None
-                            self._interrupted_response_ids.add(response_id)
-                            await self.connection.response.cancel(response_id=response_id)
-                        for (_, item_id, content_index), frames in unheard:
-                            if content_index != 0:
-                                self.query_one(RichLog).write(
-                                    "Cannot truncate audio: the API only supports content part 0."
-                                )
-                                continue
-                            await self.connection.conversation.item.truncate(
-                                item_id=item_id,
-                                content_index=content_index,
-                                audio_end_ms=frames * 1000 // SAMPLE_RATE,
-                            )
+                import sounddevice as sd  # type: ignore
+
+                self._recording = Recording()
+                self._awaiting_new_input = True
+                # Open each recording at K, even while an earlier send is blocked.
+                self._mic_stream = sd.InputStream(channels=CHANNELS, samplerate=SAMPLE_RATE, dtype="int16")
+                self._mic_stream.start()
+                status_indicator.is_recording = True
+                response_id = self._active_response_id
+                self._active_response_id = None
+                unheard = (
+                    self.audio_player.stop(interrupted_response_id=response_id) if self.audio_player.playing else []
+                )
+                if response_id is not None:
+                    self._interrupted_response_ids.add(response_id)
+                if any(
+                    item_id == self._displayed_item_id and content_index == 0
+                    for (_, item_id, content_index), _ in unheard
+                ):
+                    bottom_pane = self.query_one("#bottom-pane", RichLog)
+                    bottom_pane.clear()
+                    bottom_pane.write("Response interrupted.")
+                    self._displayed_item_id = None
+                # Queue ordering work before waking the mic sender. Textual owns
+                # worker cancellation on exit; no WebSocket writes hold the UI.
+                if response_id is not None or unheard:
+                    self.run_worker(self._interrupt_response(response_id, unheard))
+                self.should_send_audio.set()
+
+    async def _finish_manual_recording(self, recording: Recording) -> None:
+        conn = await self._get_connection()
+        async with self._mic_send_lock:
+            if recording.has_audio:
+                await conn.input_audio_buffer.commit()
+                await conn.response.create()
+
+    async def _interrupt_response(
+        self, response_id: str | None, unheard: list[tuple[tuple[str, str, int], int]]
+    ) -> None:
+        async with self._mic_send_lock:
+            if self.connection is None:
+                return
+            if response_id is not None:
+                await self.connection.response.cancel(response_id=response_id)
+            for (_, item_id, content_index), frames in unheard:
+                if content_index != 0:
+                    self.query_one(RichLog).write("Cannot truncate audio: the API only supports content part 0.")
+                    continue
+                await self.connection.conversation.item.truncate(
+                    item_id=item_id, content_index=content_index, audio_end_ms=frames * 1000 // SAMPLE_RATE
+                )
 
 
 if __name__ == "__main__":

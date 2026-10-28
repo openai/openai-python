@@ -46,12 +46,19 @@ def app_module(monkeypatch: pytest.MonkeyPatch) -> Any:
     class OutputStream:
         def __init__(self, callback: Any, **_kwargs: Any):
             self.callback = callback
+            self.buffered = b""
+            self.emitted = b""
 
         def start(self) -> None:
             pass
 
         def stop(self) -> None:
-            pass
+            # PortAudio stop plays pending buffers; abort discards them.
+            self.emitted += self.buffered
+            self.buffered = b""
+
+        def abort(self) -> None:
+            self.buffered = b""
 
         def close(self) -> None:
             pass
@@ -107,6 +114,100 @@ def test_finished_playback_does_not_accumulate(app_module: Any) -> None:
     assert not player._played_by_item
     assert not player._finished_responses
     assert player.stop() == []
+
+
+def test_interrupt_discards_device_buffered_audio(app_module: Any) -> None:
+    module, _ = app_module
+    player = module.AudioPlayerAsync()
+    player.add_data(bytes(1920), response_id="r1", item_id="first", content_index=0)
+    player.stream.buffered = b"assistant audio that has not reached the speaker"
+    assert player.stop(interrupted_response_id="r1") == [(("r1", "first", 0), 0)]
+    assert not player.stream.emitted
+    assert not player.stream.buffered
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("blocked", ["commit", "create"])
+@pytest.mark.parametrize("continuous", [False, True])
+async def test_manual_send_backpressure_does_not_block_next_key_capture(
+    app_module: Any, monkeypatch: pytest.MonkeyPatch, blocked: str, continuous: bool
+) -> None:
+    module, mic_started = app_module
+    if continuous:
+        # A real input device can always have another frame ready. This leaves
+        # the sender contending for the lock when key release starts a commit.
+        device = sys.modules["sounddevice"]
+        input_type = device.InputStream
+
+        class ContinuousInputStream(input_type):
+            @property
+            def read_available(self) -> int:
+                return 480
+
+        monkeypatch.setattr(device, "InputStream", ContinuousInputStream)
+    app = module.RealtimeApp()
+    waiting = asyncio.Event()
+    release = asyncio.Event()
+    appended = asyncio.Event()
+    sent: list[str] = []
+
+    async def append(**_kwargs: Any) -> None:
+        sent.append("append")
+        appended.set()
+
+    async def write(name: str) -> None:
+        if name == blocked:
+            waiting.set()
+            await release.wait()
+        sent.append(name)
+
+    async def commit() -> None:
+        await write("commit")
+
+    async def create() -> None:
+        await write("create")
+
+    async def already_connected() -> None:
+        await asyncio.Future[None]()
+
+    monkeypatch.setattr(app, "handle_realtime_connection", already_connected)
+    app.connection = SimpleNamespace(
+        input_audio_buffer=SimpleNamespace(append=append, commit=commit),
+        response=SimpleNamespace(create=create),
+    )
+    app.connected.set()
+    app.session = SimpleNamespace(audio=SimpleNamespace(input=SimpleNamespace(turn_detection=None)))
+    async with app.run_test():
+        app.post_message(module.events.Key("k", "k"))
+        await asyncio.wait_for(appended.wait(), 2)
+        mic_started.clear()
+        appended.clear()
+        # Real Textual key dispatch must remain available during a blocked write.
+        app.post_message(module.events.Key("k", "k"))
+        try:
+            await asyncio.wait_for(waiting.wait(), 2)
+            # The send lock is held, so later appends can only be from the
+            # next recording after commit/create have finished.
+            appended.clear()
+            app.post_message(module.events.Key("k", "k"))
+            await asyncio.wait_for(mic_started.wait(), 2)
+            assert app.query_one(module.AudioStatusIndicator).is_recording
+            prior = list(sent)
+            if blocked == "commit":
+                assert prior and set(prior) == {"append"}
+            else:
+                assert prior[-1] == "commit" and set(prior[:-1]) == {"append"}
+            release.set()
+            await asyncio.wait_for(appended.wait(), 2)
+            if continuous:
+                commit_index = sent.index("commit")
+                assert set(sent[:commit_index]) == {"append"}
+                assert sent[commit_index : commit_index + 2] == ["commit", "create"]
+                assert sent[commit_index + 2 :] and set(sent[commit_index + 2 :]) == {"append"}
+            else:
+                assert sent == ["append", "commit", "create", "append"]
+        finally:
+            release.set()
 
 
 @pytest.mark.asyncio
@@ -194,6 +295,7 @@ async def test_capture_starts_before_blocked_cancel_but_sends_after(
         assert sent == (["cancel", "truncate"] if stop_before_cancel else ["cancel", "truncate", "append"])
         if not stop_before_cancel:
             await app.on_key(SimpleNamespace(key="k"))
+            await app.workers.wait_for_complete()
             assert sent == ["cancel", "truncate", "append"] + (["commit", "create"] if manual_turn else [])
     finally:
         release.set()

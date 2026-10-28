@@ -100,7 +100,7 @@ class AudioPlayerAsync:
 
     def stop(self, *, interrupted_response_id: str | None = None):
         self.playing = False
-        self.stream.stop()
+        self.stream.abort()
         with self.lock:
             # Stop the callback first so these counts cannot advance during interruption.
             pending = dict.fromkeys(key for _, key in self.queue)
