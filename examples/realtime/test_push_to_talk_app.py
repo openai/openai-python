@@ -111,7 +111,10 @@ def test_finished_playback_does_not_accumulate(app_module: Any) -> None:
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("stop_before_cancel", [False, True])
-async def test_capture_starts_before_blocked_cancel_but_sends_after(app_module: Any, stop_before_cancel: bool) -> None:
+@pytest.mark.parametrize("manual_turn", [False, True])
+async def test_capture_starts_before_blocked_cancel_but_sends_after(
+    app_module: Any, stop_before_cancel: bool, manual_turn: bool
+) -> None:
     module, mic_started = app_module
     app = module.RealtimeApp()
     status = SimpleNamespace(is_recording=False)
@@ -146,11 +149,19 @@ async def test_capture_starts_before_blocked_cancel_but_sends_after(app_module: 
     async def append(**_kwargs: Any) -> None:
         sent.append("append")
 
+    async def commit() -> None:
+        sent.append("commit")
+
+    async def create() -> None:
+        sent.append("create")
+
     app.connection = SimpleNamespace(
-        response=SimpleNamespace(cancel=cancel),
+        response=SimpleNamespace(cancel=cancel, create=create),
         conversation=SimpleNamespace(item=SimpleNamespace(truncate=truncate)),
-        input_audio_buffer=SimpleNamespace(append=append),
+        input_audio_buffer=SimpleNamespace(append=append, commit=commit),
     )
+    if manual_turn:
+        app.session = SimpleNamespace(audio=SimpleNamespace(input=SimpleNamespace(turn_detection=None)))
     app.connected.set()
     app._active_response_id = "response"
     app._displayed_item_id = "assistant"
@@ -158,6 +169,7 @@ async def test_capture_starts_before_blocked_cancel_but_sends_after(app_module: 
     app.audio_player.stream.callback(np.empty((480, 1), dtype=np.int16), 480, None, None)
     mic = asyncio.create_task(app.send_mic_audio())
     key = asyncio.create_task(app.on_key(SimpleNamespace(key="k")))
+    stop: asyncio.Task[None] | None = None
     try:
         await asyncio.wait_for(waiting.wait(), 2)
         await asyncio.wait_for(mic_started.wait(), 2)
@@ -165,15 +177,24 @@ async def test_capture_starts_before_blocked_cancel_but_sends_after(app_module: 
         assert not sent
         assert display == ["Response interrupted."]
         if stop_before_cancel:
-            await app.on_key(SimpleNamespace(key="k"))
+            stop = asyncio.create_task(app.on_key(SimpleNamespace(key="k")))
+            for _ in range(100):
+                if app._mic_stream is None:
+                    break
+                await asyncio.sleep(0)
             assert app._mic_stream is None
         release.set()
         await asyncio.wait_for(key, 2)
+        if stop is not None:
+            await asyncio.wait_for(stop, 2)
         for _ in range(100):
             if "append" in sent:
                 break
             await asyncio.sleep(0)
         assert sent == (["cancel", "truncate"] if stop_before_cancel else ["cancel", "truncate", "append"])
+        if not stop_before_cancel:
+            await app.on_key(SimpleNamespace(key="k"))
+            assert sent == ["cancel", "truncate", "append"] + (["commit", "create"] if manual_turn else [])
     finally:
         release.set()
         mic.cancel()
@@ -272,5 +293,106 @@ async def test_late_transcript_deltas_from_interrupted_response_do_not_replace_d
     try:
         await app._receive_realtime_events()
         assert app._displayed_item_id == "new"
+    finally:
+        await original_client.close()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("new_audio_sent", [False, True])
+@pytest.mark.parametrize("released", [False, True])
+async def test_response_created_while_recording_before_or_after_first_append(
+    app_module: Any, new_audio_sent: bool, released: bool
+) -> None:
+    module, mic_started = app_module
+    app = module.RealtimeApp()
+    status = SimpleNamespace(is_recording=False)
+    display: list[str] = []
+    sent: list[tuple[str, Any]] = []
+
+    class Log:
+        def clear(self) -> None:
+            display.clear()
+
+        def write(self, message: str) -> None:
+            display.append(message)
+
+    def query_one(*args: Any, **_kwargs: Any) -> Any:
+        return status if args[0] is module.AudioStatusIndicator else Log()
+
+    async def update(**_kwargs: Any) -> None:
+        pass
+
+    async def cancel(**kwargs: Any) -> None:
+        sent.append(("cancel", kwargs))
+
+    async def append(**_kwargs: Any) -> None:
+        sent.append(("append", None))
+
+    class Connection:
+        session = SimpleNamespace(update=update)
+        response = SimpleNamespace(cancel=cancel)
+        input_audio_buffer = SimpleNamespace(append=append)
+
+        async def __aenter__(self) -> Any:
+            return self
+
+        async def __aexit__(self, *_args: Any) -> None:
+            pass
+
+        async def __aiter__(self) -> Any:
+            await app.on_key(SimpleNamespace(key="k"))
+            if new_audio_sent:
+                mic = asyncio.create_task(app.send_mic_audio())
+                try:
+                    await asyncio.wait_for(mic_started.wait(), 2)
+                    for _ in range(100):
+                        if any(name == "append" for name, _ in sent):
+                            break
+                        await asyncio.sleep(0)
+                    assert ("append", None) in sent
+                finally:
+                    mic.cancel()
+                    await asyncio.gather(mic, return_exceptions=True)
+            if released:
+                await app.on_key(SimpleNamespace(key="k"))
+            yield SimpleNamespace(type="response.created", response=SimpleNamespace(id="response"))
+            yield SimpleNamespace(
+                type="response.output_audio.delta",
+                response_id="response",
+                item_id="item",
+                content_index=0,
+                delta="AAAAAAAAAAA=",
+            )
+            yield SimpleNamespace(
+                type="response.output_audio_transcript.delta",
+                response_id="response",
+                item_id="item",
+                delta="a response",
+            )
+            if new_audio_sent:
+                # Server VAD may legitimately answer a pause during the current recording.
+                assert sent == [("append", None)]
+                assert app.audio_player.playing
+                assert display == ["a response"]
+            else:
+                # No new audio has been offered, so this can only be an older response.
+                assert sent == [("cancel", {"response_id": "response"})]
+                assert not app.audio_player.playing
+                assert display == []
+            yield SimpleNamespace(
+                type="response.done",
+                response=SimpleNamespace(id="response", status="completed", status_details=None),
+            )
+            assert not app._interrupted_response_ids
+
+    app.query_one = query_one
+    original_client = app.client
+
+    def connect(**_kwargs: Any) -> Connection:
+        return Connection()
+
+    app.client = SimpleNamespace(realtime=SimpleNamespace(connect=connect))
+    try:
+        await app._receive_realtime_events()
     finally:
         await original_client.close()

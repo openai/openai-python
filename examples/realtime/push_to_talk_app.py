@@ -140,6 +140,7 @@ class RealtimeApp(App[None]):
         self._interrupted_response_ids: set[str] = set()
         self.should_send_audio = asyncio.Event()
         self._mic_send_lock = asyncio.Lock()
+        self._awaiting_new_input = False
         self.connected = asyncio.Event()
         self._mic_stream: Any = None
 
@@ -207,6 +208,14 @@ class RealtimeApp(App[None]):
                 if event.type == "response.created":
                     if self._active_response_id is not None and self._active_response_id != event.response.id:
                         self.audio_player.finish_response(self._active_response_id)
+                    if self._awaiting_new_input and event.response.id is not None:
+                        # Nothing from a new recording has been offered since K
+                        # interrupted playback, so this response belongs to an
+                        # earlier turn (even if K was already released).
+                        self._active_response_id = None
+                        self._interrupted_response_ids.add(event.response.id)
+                        await conn.response.cancel(response_id=event.response.id)
+                        continue
                     self._active_response_id = event.response.id
                     continue
 
@@ -292,7 +301,14 @@ class RealtimeApp(App[None]):
                     if stream is not self._mic_stream or not self.should_send_audio.is_set():
                         continue
                     data, _ = stream.read(read_size)
-                    await connection.input_audio_buffer.append(audio=base64.b64encode(cast(Any, data)).decode("utf-8"))
+                    self._awaiting_new_input = False
+                    try:
+                        await connection.input_audio_buffer.append(
+                            audio=base64.b64encode(cast(Any, data)).decode("utf-8")
+                        )
+                    except BaseException:
+                        self._awaiting_new_input = True
+                        raise
 
                 await asyncio.sleep(0)
         except KeyboardInterrupt:
@@ -334,10 +350,12 @@ class RealtimeApp(App[None]):
                     # manually tell the model to commit the audio buffer and start responding.
                     conn = await self._get_connection()
                     async with self._mic_send_lock:
-                        await conn.input_audio_buffer.commit()
-                        await conn.response.create()
+                        if not self._awaiting_new_input:
+                            await conn.input_audio_buffer.commit()
+                            await conn.response.create()
             else:
                 async with self._mic_send_lock:
+                    self._awaiting_new_input = True
                     self.should_send_audio.set()
                     status_indicator.is_recording = True
                     unheard = (
