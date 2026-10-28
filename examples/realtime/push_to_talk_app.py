@@ -312,7 +312,9 @@ class RealtimeApp(App[None]):
                 async with self._mic_send_lock:
                     if stream is not self._mic_stream or not self.should_send_audio.is_set():
                         continue
-                    if not self._interruptions_pending():
+                    if not self._interruptions_pending() and not any(
+                        worker.group == "realtime-finalization" and not worker.is_finished for worker in self.workers
+                    ):
                         data, _ = stream.read(read_size)
                         self._awaiting_new_input = False
                         try:
@@ -325,7 +327,7 @@ class RealtimeApp(App[None]):
                                 self._awaiting_new_input = True
                             raise
 
-                # Give any just-registered interruption worker time to start before retrying.
+                # Let registered interruption or finalization work start before retrying.
                 await asyncio.sleep(0)
         except KeyboardInterrupt:
             pass
@@ -364,7 +366,11 @@ class RealtimeApp(App[None]):
                     #
                     # However if we're in manual `turn_detection` mode then we need to
                     # manually tell the model to commit the audio buffer and start responding.
-                    self.run_worker(self._finish_manual_recording(self._recording))
+                    # Reserve the shared server buffer before the next K can send.
+                    # Capture can start immediately; appends wait for this recording.
+                    self.run_worker(
+                        partial(self._finish_manual_recording, self._recording), group="realtime-finalization"
+                    )
             else:
                 import sounddevice as sd  # type: ignore
 

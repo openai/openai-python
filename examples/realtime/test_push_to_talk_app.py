@@ -979,3 +979,141 @@ async def test_queued_interruption_precedes_runnable_sender(
         sender.cancel()
         await asyncio.gather(sender, return_exceptions=True)
         await app.client.close()
+
+
+@pytest.mark.asyncio
+async def test_manual_recordings_do_not_share_buffer_after_interruption(
+    app_module: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import base64
+
+    module, _ = app_module
+    app = module.RealtimeApp()
+    status = SimpleNamespace(is_recording=False)
+    app.query_one = lambda *_args, **_kwargs: status
+    app.session = SimpleNamespace(audio=SimpleNamespace(input=SimpleNamespace(turn_detection=None)))
+    first_started, first_release = asyncio.Event(), asyncio.Event()
+    cancel_started, cancel_release = asyncio.Event(), asyncio.Event()
+    second_appended = asyncio.Event()
+    buffer: list[int] = []
+    commits: list[list[int]] = []
+    sent: list[str] = []
+
+    device = sys.modules["sounddevice"]
+    original_read = device.InputStream.read
+
+    def read(stream: Any, frames: int) -> tuple[Any, bool]:
+        data, overflow = original_read(stream, frames)
+        data.fill(stream.marker)
+        return data, overflow
+
+    monkeypatch.setattr(device.InputStream, "read", read)
+
+    async def append(*, audio: str) -> None:
+        marker = int(np.frombuffer(base64.b64decode(audio), dtype=np.int16)[0])
+        if marker == 1:
+            first_started.set()
+            await first_release.wait()
+        buffer.append(marker)
+        sent.append(f"append {marker}")
+        if marker == 2:
+            second_appended.set()
+
+    async def cancel(**_kwargs: Any) -> None:
+        cancel_started.set()
+        await cancel_release.wait()
+        sent.append("cancel")
+
+    async def commit() -> None:
+        commits.append(list(buffer))
+        buffer.clear()
+        sent.append("commit")
+
+    async def create() -> None:
+        sent.append("create")
+
+    app.connection = SimpleNamespace(
+        response=SimpleNamespace(cancel=cancel, create=create),
+        input_audio_buffer=SimpleNamespace(append=append, commit=commit),
+    )
+    app.connected.set()
+    mic = asyncio.create_task(app.send_mic_audio())
+    try:
+        await app.on_key(SimpleNamespace(key="k"))
+        app._mic_stream.marker = 1
+        await asyncio.wait_for(first_started.wait(), 2)
+        await app.on_key(SimpleNamespace(key="k"))
+        # The completed recording is waiting on its in-flight append; a new K
+        # begins capture and interrupts an earlier server response immediately.
+        app._active_response_id = "previous"
+        await app.on_key(SimpleNamespace(key="k"))
+        app._mic_stream.marker = 2
+        assert status.is_recording
+        for _ in range(20):
+            await asyncio.sleep(0)
+        assert not sent
+        first_release.set()
+        await asyncio.wait_for(cancel_started.wait(), 2)
+        assert sent == ["append 1"]
+        assert status.is_recording
+        cancel_release.set()
+        await asyncio.wait_for(second_appended.wait(), 2)
+        await app.on_key(SimpleNamespace(key="k"))
+        await asyncio.wait_for(app.workers.wait_for_complete(), 2)
+        assert commits == [[1], [2]]
+        assert sent == ["append 1", "cancel", "commit", "create", "append 2", "commit", "create"]
+    finally:
+        first_release.set()
+        cancel_release.set()
+        mic.cancel()
+        await asyncio.gather(mic, return_exceptions=True)
+        await app.client.close()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("cancel_before_start", [False, True])
+async def test_pending_manual_finalize_precedes_already_runnable_mic(app_module: Any, cancel_before_start: bool) -> None:
+    module, _ = app_module
+    app = module.RealtimeApp()
+    status = SimpleNamespace(is_recording=False)
+    app.query_one = lambda *_args, **_kwargs: status
+    app.session = SimpleNamespace(audio=SimpleNamespace(input=SimpleNamespace(turn_detection=None)))
+    sent: list[str] = []
+    appended = asyncio.Event()
+
+    async def append(**_kwargs: Any) -> None:
+        sent.append("append")
+        appended.set()
+
+    async def commit() -> None:
+        sent.append("commit")
+
+    async def create() -> None:
+        sent.append("create")
+
+    app.connection = SimpleNamespace(
+        response=SimpleNamespace(create=create),
+        input_audio_buffer=SimpleNamespace(append=append, commit=commit),
+    )
+    app.connected.set()
+    await app.on_key(SimpleNamespace(key="k"))
+    # Simulate audio already sent from the current recording. Hold the send lock
+    # until its waiter is runnable, then dispatch both keys without yielding.
+    app._recording.has_audio = True
+    await app._mic_send_lock.acquire()
+    mic = asyncio.create_task(app.send_mic_audio())
+    try:
+        for _ in range(20):
+            await asyncio.sleep(0)
+        app._mic_send_lock.release()
+        await app.on_key(SimpleNamespace(key="k"))
+        await app.on_key(SimpleNamespace(key="k"))
+        if cancel_before_start:
+            app.workers.cancel_group(app, "realtime-finalization")
+        await asyncio.wait_for(appended.wait(), 2)
+        await asyncio.wait_for(app.workers.wait_for_complete(), 2)
+        assert sent == (["append"] if cancel_before_start else ["commit", "create", "append"])
+    finally:
+        mic.cancel()
+        await asyncio.gather(mic, return_exceptions=True)
+        await app.client.close()
