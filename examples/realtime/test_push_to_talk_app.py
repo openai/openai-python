@@ -990,7 +990,10 @@ async def test_manual_recordings_do_not_share_buffer_after_interruption(
     module, _ = app_module
     app = module.RealtimeApp()
     status = SimpleNamespace(is_recording=False)
-    app.query_one = lambda *_args, **_kwargs: status
+    def query_one(*_args: Any, **_kwargs: Any) -> SimpleNamespace:
+        return status
+
+    app.query_one = query_one
     app.session = SimpleNamespace(audio=SimpleNamespace(input=SimpleNamespace(turn_detection=None)))
     first_started, first_release = asyncio.Event(), asyncio.Event()
     cancel_started, cancel_release = asyncio.Event(), asyncio.Event()
@@ -1076,7 +1079,10 @@ async def test_pending_manual_finalize_precedes_already_runnable_mic(app_module:
     module, _ = app_module
     app = module.RealtimeApp()
     status = SimpleNamespace(is_recording=False)
-    app.query_one = lambda *_args, **_kwargs: status
+    def query_one(*_args: Any, **_kwargs: Any) -> SimpleNamespace:
+        return status
+
+    app.query_one = query_one
     app.session = SimpleNamespace(audio=SimpleNamespace(input=SimpleNamespace(turn_detection=None)))
     sent: list[str] = []
     appended = asyncio.Event()
