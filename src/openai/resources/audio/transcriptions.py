@@ -221,6 +221,14 @@ class Transcriptions(SyncAPIResource):
               (which is powered by our open source Whisper V2 model), and
               `gpt-4o-transcribe-diarize`.
 
+              Deprecated values:
+
+              - "whisper-1", "gpt-4o-transcribe", "gpt-4o-mini-transcribe",
+                "gpt-4o-mini-transcribe-2025-12-15", "gpt-4o-transcribe-diarize": Announced
+                shutdown date: 2027-02-26. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+
           chunking_strategy: Controls how the audio is cut into chunks. When set to `"auto"`, the server
               first normalizes loudness and then uses voice activity detection (VAD) to choose
               boundaries. `server_vad` object can be provided to tweak VAD detection
@@ -342,6 +350,14 @@ class Transcriptions(SyncAPIResource):
               `gpt-4o-mini-transcribe`, `gpt-4o-mini-transcribe-2025-12-15`, `whisper-1`
               (which is powered by our open source Whisper V2 model), and
               `gpt-4o-transcribe-diarize`.
+
+              Deprecated values:
+
+              - "whisper-1", "gpt-4o-transcribe", "gpt-4o-mini-transcribe",
+                "gpt-4o-mini-transcribe-2025-12-15", "gpt-4o-transcribe-diarize": Announced
+                shutdown date: 2027-02-26. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
 
           stream: If set to true, the model response data will be streamed to the client as it is
               generated using
@@ -465,6 +481,14 @@ class Transcriptions(SyncAPIResource):
               (which is powered by our open source Whisper V2 model), and
               `gpt-4o-transcribe-diarize`.
 
+              Deprecated values:
+
+              - "whisper-1", "gpt-4o-transcribe", "gpt-4o-mini-transcribe",
+                "gpt-4o-mini-transcribe-2025-12-15", "gpt-4o-transcribe-diarize": Announced
+                shutdown date: 2027-02-26. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+
           stream: If set to true, the model response data will be streamed to the client as it is
               generated using
               [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
@@ -586,6 +610,14 @@ class Transcriptions(SyncAPIResource):
               `gpt-4o-mini-transcribe`, `gpt-4o-mini-transcribe-2025-12-15`, `whisper-1`
               (which is powered by our open source Whisper V2 model), and
               `gpt-4o-transcribe-diarize`.
+
+              Deprecated values:
+
+              - "whisper-1", "gpt-4o-transcribe", "gpt-4o-mini-transcribe",
+                "gpt-4o-mini-transcribe-2025-12-15", "gpt-4o-transcribe-diarize": Announced
+                shutdown date: 2027-02-26. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
 
           chunking_strategy: Controls how the audio is cut into chunks. When set to `"auto"`, the server
               first normalizes loudness and then uses voice activity detection (VAD) to choose
@@ -879,6 +911,14 @@ class AsyncTranscriptions(AsyncAPIResource):
               (which is powered by our open source Whisper V2 model), and
               `gpt-4o-transcribe-diarize`.
 
+              Deprecated values:
+
+              - "whisper-1", "gpt-4o-transcribe", "gpt-4o-mini-transcribe",
+                "gpt-4o-mini-transcribe-2025-12-15", "gpt-4o-transcribe-diarize": Announced
+                shutdown date: 2027-02-26. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+
           chunking_strategy: Controls how the audio is cut into chunks. When set to `"auto"`, the server
               first normalizes loudness and then uses voice activity detection (VAD) to choose
               boundaries. `server_vad` object can be provided to tweak VAD detection
@@ -1000,6 +1040,14 @@ class AsyncTranscriptions(AsyncAPIResource):
               `gpt-4o-mini-transcribe`, `gpt-4o-mini-transcribe-2025-12-15`, `whisper-1`
               (which is powered by our open source Whisper V2 model), and
               `gpt-4o-transcribe-diarize`.
+
+              Deprecated values:
+
+              - "whisper-1", "gpt-4o-transcribe", "gpt-4o-mini-transcribe",
+                "gpt-4o-mini-transcribe-2025-12-15", "gpt-4o-transcribe-diarize": Announced
+                shutdown date: 2027-02-26. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
 
           stream: If set to true, the model response data will be streamed to the client as it is
               generated using
@@ -1123,6 +1171,14 @@ class AsyncTranscriptions(AsyncAPIResource):
               (which is powered by our open source Whisper V2 model), and
               `gpt-4o-transcribe-diarize`.
 
+              Deprecated values:
+
+              - "whisper-1", "gpt-4o-transcribe", "gpt-4o-mini-transcribe",
+                "gpt-4o-mini-transcribe-2025-12-15", "gpt-4o-transcribe-diarize": Announced
+                shutdown date: 2027-02-26. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+
           stream: If set to true, the model response data will be streamed to the client as it is
               generated using
               [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
@@ -1244,6 +1300,14 @@ class AsyncTranscriptions(AsyncAPIResource):
               `gpt-4o-mini-transcribe`, `gpt-4o-mini-transcribe-2025-12-15`, `whisper-1`
               (which is powered by our open source Whisper V2 model), and
               `gpt-4o-transcribe-diarize`.
+
+              Deprecated values:
+
+              - "whisper-1", "gpt-4o-transcribe", "gpt-4o-mini-transcribe",
+                "gpt-4o-mini-transcribe-2025-12-15", "gpt-4o-transcribe-diarize": Announced
+                shutdown date: 2027-02-26. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
 
           chunking_strategy: Controls how the audio is cut into chunks. When set to `"auto"`, the server
               first normalizes loudness and then uses voice activity detection (VAD) to choose

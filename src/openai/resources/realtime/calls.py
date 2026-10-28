@@ -208,6 +208,14 @@ class Calls(SyncAPIResource):
 
           model: The Realtime model used for this session.
 
+              Deprecated values:
+
+              - "gpt-realtime", "gpt-realtime-2025-08-28", "gpt-realtime-mini",
+                "gpt-realtime-mini-2025-12-15", "gpt-audio-mini", "gpt-audio-mini-2025-12-15":
+                Announced shutdown date: 2027-01-20. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+
           output_modalities: The set of modalities the model can respond with. It defaults to `["audio"]`,
               indicating that the model will respond with audio plus a transcript. `["text"]`
               can be used to make the model respond with text only. It is not possible to
@@ -587,6 +595,14 @@ class AsyncCalls(AsyncAPIResource):
               `inf` for the maximum available tokens for a given model. Defaults to `inf`.
 
           model: The Realtime model used for this session.
+
+              Deprecated values:
+
+              - "gpt-realtime", "gpt-realtime-2025-08-28", "gpt-realtime-mini",
+                "gpt-realtime-mini-2025-12-15", "gpt-audio-mini", "gpt-audio-mini-2025-12-15":
+                Announced shutdown date: 2027-01-20. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
 
           output_modalities: The set of modalities the model can respond with. It defaults to `["audio"]`,
               indicating that the model will respond with audio plus a transcript. `["text"]`
