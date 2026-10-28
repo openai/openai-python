@@ -31,6 +31,7 @@ from __future__ import annotations
 import base64
 import asyncio
 from typing import Any, cast
+from functools import partial
 from dataclasses import dataclass
 from typing_extensions import override
 
@@ -146,6 +147,7 @@ class RealtimeApp(App[None]):
         self._interrupted_responses: dict[str, set[tuple[str, int]]] = {}
         self.should_send_audio = asyncio.Event()
         self._mic_send_lock = asyncio.Lock()
+        self._pending_interruptions = 0
         self._awaiting_new_input = False
         self.connected = asyncio.Event()
         self._mic_stream: Any = None
@@ -249,9 +251,12 @@ class RealtimeApp(App[None]):
                             # Reserve it before the worker runs so later chunks cannot truncate it twice.
                             handled.add(part)
                             self.run_worker(
-                                self._interrupt_response(
-                                    None, [((event.response_id, event.item_id, event.content_index), 0)]
-                                )
+                                partial(
+                                    self._interrupt_response,
+                                    None,
+                                    [((event.response_id, event.item_id, event.content_index), 0)],
+                                ),
+                                group="realtime-interruption",
                             )
                         continue
 
@@ -307,18 +312,20 @@ class RealtimeApp(App[None]):
                 async with self._mic_send_lock:
                     if stream is not self._mic_stream or not self.should_send_audio.is_set():
                         continue
-                    data, _ = stream.read(read_size)
-                    self._awaiting_new_input = False
-                    try:
-                        await connection.input_audio_buffer.append(
-                            audio=base64.b64encode(cast(Any, data)).decode("utf-8")
-                        )
-                        recording.has_audio = True
-                    except BaseException:
-                        if recording is self._recording:
-                            self._awaiting_new_input = True
-                        raise
+                    if not self._interruptions_pending():
+                        data, _ = stream.read(read_size)
+                        self._awaiting_new_input = False
+                        try:
+                            await connection.input_audio_buffer.append(
+                                audio=base64.b64encode(cast(Any, data)).decode("utf-8")
+                            )
+                            recording.has_audio = True
+                        except BaseException:
+                            if recording is self._recording:
+                                self._awaiting_new_input = True
+                            raise
 
+                # Give any just-registered interruption worker time to start before retrying.
                 await asyncio.sleep(0)
         except KeyboardInterrupt:
             pass
@@ -385,31 +392,49 @@ class RealtimeApp(App[None]):
                 # Queue ordering work before waking the mic sender. Textual owns
                 # worker cancellation on exit; no WebSocket writes hold the UI.
                 if response_id is not None or unheard:
-                    self.run_worker(self._interrupt_response(response_id, unheard))
+                    self.run_worker(
+                        partial(self._interrupt_response, response_id, unheard), group="realtime-interruption"
+                    )
                 self.should_send_audio.set()
+
+    def _interruptions_pending(self) -> bool:
+        # Inline receiver work reserves before taking the lock. Textual registers
+        # workers immediately and removes them even when cancelled before starting.
+        return self._pending_interruptions > 0 or any(
+            worker.group == "realtime-interruption" and not worker.is_finished for worker in self.workers
+        )
 
     async def _finish_manual_recording(self, recording: Recording) -> None:
         conn = await self._get_connection()
-        async with self._mic_send_lock:
-            if recording.has_audio:
-                await conn.input_audio_buffer.commit()
-                await conn.response.create()
+        while True:
+            async with self._mic_send_lock:
+                if not self._interruptions_pending():
+                    if recording.has_audio:
+                        await conn.input_audio_buffer.commit()
+                        await conn.response.create()
+                    return
+            await asyncio.sleep(0)
 
     async def _interrupt_response(
         self, response_id: str | None, unheard: list[tuple[tuple[str, str, int], int]]
     ) -> None:
-        async with self._mic_send_lock:
-            if self.connection is None:
-                return
-            if response_id is not None:
-                await self.connection.response.cancel(response_id=response_id)
-            for (_, item_id, content_index), frames in unheard:
-                if content_index != 0:
-                    self.query_one(RichLog).write("Cannot truncate audio: the API only supports content part 0.")
-                    continue
-                await self.connection.conversation.item.truncate(
-                    item_id=item_id, content_index=content_index, audio_end_ms=frames * 1000 // SAMPLE_RATE
-                )
+        # Reserve before waiting: an older mic waiter must yield to new interruption work.
+        self._pending_interruptions += 1
+        try:
+            async with self._mic_send_lock:
+                if self.connection is None:
+                    return
+                if response_id is not None:
+                    await self.connection.response.cancel(response_id=response_id)
+                for (_, item_id, content_index), frames in unheard:
+                    if content_index != 0:
+                        self.query_one(RichLog).write("Cannot truncate audio: the API only supports content part 0.")
+                        continue
+                    await self.connection.conversation.item.truncate(
+                        item_id=item_id, content_index=content_index, audio_end_ms=frames * 1000 // SAMPLE_RATE
+                    )
+        finally:
+            self._pending_interruptions -= 1
 
 
 if __name__ == "__main__":

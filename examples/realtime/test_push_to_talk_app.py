@@ -800,7 +800,10 @@ async def test_interruption_truncates_late_unheard_audio_once(
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("manual_turn", [False, True])
-async def test_delayed_response_cancel_finishes_before_new_mic_audio(app_module: Any, manual_turn: bool) -> None:
+@pytest.mark.parametrize("contended", [False, True])
+async def test_delayed_response_cancel_finishes_before_new_mic_audio(
+    app_module: Any, manual_turn: bool, contended: bool
+) -> None:
     module, mic_started = app_module
     app = module.RealtimeApp()
     status = SimpleNamespace(is_recording=False)
@@ -815,15 +818,18 @@ async def test_delayed_response_cancel_finishes_before_new_mic_audio(app_module:
     release = asyncio.Event()
     appended = asyncio.Event()
     reception_done = asyncio.Event()
+    delayed_may_arrive = asyncio.Event()
+    delayed_delivered = asyncio.Event()
     sent: list[str] = []
 
     async def update(**_kwargs: Any) -> None:
         pass
 
-    async def cancel(**_kwargs: Any) -> None:
-        waiting.set()
-        await release.wait()
-        sent.append("cancel")
+    async def cancel(*, response_id: str) -> None:
+        if not contended or response_id == "active-response":
+            waiting.set()
+            await release.wait()
+        sent.append(f"cancel:{response_id}")
 
     async def append(**_kwargs: Any) -> None:
         sent.append("append")
@@ -847,7 +853,16 @@ async def test_delayed_response_cancel_finishes_before_new_mic_audio(app_module:
             pass
 
         async def __aiter__(self) -> Any:
+            if contended:
+                yield SimpleNamespace(type="response.created", response=SimpleNamespace(id="active-response"))
             await app.on_key(SimpleNamespace(key="k"))
+            if contended:
+                await delayed_may_arrive.wait()
+                # The server has completed the interrupted response before starting another.
+                yield SimpleNamespace(
+                    type="response.done", response=SimpleNamespace(id="active-response", status="completed")
+                )
+            delayed_delivered.set()
             yield SimpleNamespace(type="response.created", response=SimpleNamespace(id="old-response"))
             await reception_done.wait()
 
@@ -868,11 +883,19 @@ async def test_delayed_response_cancel_finishes_before_new_mic_audio(app_module:
             await asyncio.sleep(0)
         assert status.is_recording
         assert sent == []
+        if contended:
+            # The microphone already waits behind A when the receiver learns of B.
+            delayed_may_arrive.set()
+            await asyncio.wait_for(delayed_delivered.wait(), 2)
         release.set()
         await asyncio.wait_for(appended.wait(), 2)
         await app.on_key(SimpleNamespace(key="k"))
         await app.workers.wait_for_complete()
-        assert sent == ["cancel", "append"] + (["commit", "create"] if manual_turn else [])
+        assert sent == (
+            (["cancel:active-response"] if contended else [])
+            + ["cancel:old-response", "append"]
+            + (["commit", "create"] if manual_turn else [])
+        )
     finally:
         release.set()
         reception_done.set()
@@ -881,3 +904,78 @@ async def test_delayed_response_cancel_finishes_before_new_mic_audio(app_module:
         receiver.cancel()
         await asyncio.gather(receiver, *([mic] if mic is not None else []), return_exceptions=True)
         await original_client.close()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("waiter", ["microphone", "manual"])
+@pytest.mark.parametrize("cancel_before_start", [False, True])
+async def test_queued_interruption_precedes_runnable_sender(
+    app_module: Any, waiter: str, cancel_before_start: bool
+) -> None:
+    module, _ = app_module
+    app = module.RealtimeApp()
+    status = SimpleNamespace(is_recording=False)
+    sent: list[str] = []
+    sent_first = asyncio.Event()
+    cancel_started = asyncio.Event()
+    release_cancel = asyncio.Event()
+
+    def query_one(*_args: Any, **_kwargs: Any) -> SimpleNamespace:
+        return status
+
+    async def cancel(**_kwargs: Any) -> None:
+        cancel_started.set()
+        await release_cancel.wait()
+        sent.append("cancel")
+
+    async def append(**_kwargs: Any) -> None:
+        sent.append("append")
+        sent_first.set()
+
+    async def commit() -> None:
+        sent.append("commit")
+        sent_first.set()
+
+    async def create() -> None:
+        sent.append("create")
+
+    app.query_one = query_one
+    app.connection = SimpleNamespace(
+        response=SimpleNamespace(cancel=cancel, create=create),
+        input_audio_buffer=SimpleNamespace(append=append, commit=commit),
+    )
+    app.connected.set()
+    await app.on_key(SimpleNamespace(key="k"))
+    await app._mic_send_lock.acquire()
+    if waiter == "microphone":
+        sender = asyncio.create_task(app.send_mic_audio())
+    else:
+        # Audio from an earlier recording is already queued for manual completion.
+        sender = asyncio.create_task(app._finish_manual_recording(module.Recording(has_audio=True)))
+    try:
+        for _ in range(20):
+            await asyncio.sleep(0)
+        assert not sent
+        # Make the sender runnable, then register a K interruption before it gets CPU.
+        app._mic_send_lock.release()
+        await app.on_key(SimpleNamespace(key="k"))
+        app._active_response_id = "old-response"
+        await app.on_key(SimpleNamespace(key="k"))
+        if cancel_before_start:
+            app.workers.cancel_group(app, "realtime-interruption")
+        else:
+            await asyncio.wait_for(cancel_started.wait(), 2)
+            for _ in range(20):
+                await asyncio.sleep(0)
+            assert not sent
+            release_cancel.set()
+        await asyncio.wait_for(sent_first.wait(), 2)
+        expected = ([] if cancel_before_start else ["cancel"]) + (
+            ["append"] if waiter == "microphone" else ["commit", "create"]
+        )
+        assert sent == expected
+    finally:
+        release_cancel.set()
+        sender.cancel()
+        await asyncio.gather(sender, return_exceptions=True)
+        await app.client.close()
