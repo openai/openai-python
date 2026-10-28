@@ -282,7 +282,7 @@ jobs:
       - name: Test Realtime push-to-talk sample
         run: |
           uv sync --locked --all-extras
-          uv pip install --python .venv/bin/python --require-hashes --only-binary :all: -r examples/realtime/test-requirements.txt
+          uv pip install --python .venv/bin/python --no-deps --require-hashes --only-binary :all: -r examples/realtime/test-requirements.txt
           uv pip check --python .venv/bin/python
           .venv/bin/python -m pytest -o addopts= --noconftest -q examples/realtime/test_push_to_talk_app.py
 
