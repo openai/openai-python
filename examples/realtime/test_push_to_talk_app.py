@@ -204,6 +204,52 @@ async def test_capture_starts_before_blocked_cancel_but_sends_after(
 
 
 @pytest.mark.asyncio
+async def test_cancelling_first_append_does_not_commit_empty_manual_audio(app_module: Any) -> None:
+    module, _ = app_module
+    app = module.RealtimeApp()
+    status = SimpleNamespace(is_recording=False)
+
+    def query_one(*_args: Any, **_kwargs: Any) -> SimpleNamespace:
+        return status
+
+    app.query_one = query_one
+    app.session = SimpleNamespace(audio=SimpleNamespace(input=SimpleNamespace(turn_detection=None)))
+    begun = asyncio.Event()
+    sent: list[str] = []
+
+    async def append(**_kwargs: Any) -> None:
+        begun.set()
+        await asyncio.Future[None]()
+        sent.append("append")
+
+    async def commit() -> None:
+        sent.append("commit")
+
+    async def create() -> None:
+        sent.append("create")
+
+    app.connection = SimpleNamespace(
+        input_audio_buffer=SimpleNamespace(append=append, commit=commit),
+        response=SimpleNamespace(create=create),
+    )
+    app.connected.set()
+    await app.on_key(SimpleNamespace(key="k"))
+    mic = asyncio.create_task(app.send_mic_audio())
+    try:
+        await asyncio.wait_for(begun.wait(), 2)
+        mic.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await mic
+        assert app._mic_stream is None
+        await app.on_key(SimpleNamespace(key="k"))
+        assert sent == []
+    finally:
+        mic.cancel()
+        await asyncio.gather(mic, return_exceptions=True)
+        await app.client.close()
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize("failure", ["normal", "abnormal", "unsent", "cancellation"])
 async def test_disconnect_exits_and_user_cancellation_is_preserved(app_module: Any, failure: str) -> None:
     from websockets.exceptions import ConnectionClosedError
