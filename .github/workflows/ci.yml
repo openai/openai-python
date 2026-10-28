@@ -280,12 +280,11 @@ jobs:
         run: ./scripts/test
 
       - name: Test Realtime push-to-talk sample
-        run: >-
-          uv run --locked --all-extras
-          --with 'textual==8.2.8'
-          --with 'pydub==0.25.1'
-          --with 'audioop-lts==0.2.2; python_version >= "3.13"'
-          python -m pytest -o addopts= --noconftest -q examples/realtime/test_push_to_talk_app.py
+        run: |
+          uv sync --locked --all-extras
+          uv pip install --python .venv/bin/python --require-hashes --only-binary :all: -r examples/realtime/test-requirements.txt
+          uv pip check --python .venv/bin/python
+          .venv/bin/python -m pytest -o addopts= --noconftest -q examples/realtime/test_push_to_talk_app.py
 
   examples:
     timeout-minutes: 10
