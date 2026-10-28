@@ -40,9 +40,9 @@ with client.beta.responses.connect(
                 print(f"{separator}━━━ {role}: {name} ━━━\n")
                 labeled_items.add(event.output_index)
             print(event.delta, end="", flush=True)
-        if event.type == "response.completed":
+        if event.type == "response.completed" and event.agent is None:
             break
-        if event.type in {"response.failed", "response.incomplete", "error"}:
+        if event.type in {"response.failed", "response.incomplete", "error"} and event.agent is None:
             raise OpenAIError(f"Multi-agent request ended with {event.type}")
     else:
         raise OpenAIError("Connection closed before the multi-agent response completed")

@@ -73,9 +73,10 @@ async def run(path: Path, *, model: str, listen_seconds: float = 15) -> list[Tra
                     chunk = samples[offset : offset + chunk_bytes]
                     await connection.session.input_audio.append(audio=base64.b64encode(chunk).decode("ascii"))
                     await asyncio.sleep(len(chunk) / (24000 * 2))
+                await transcript.close()
+                # Flushing the transcript may yield while the peer closes.
                 if receiver.done():
                     await receiver
-                await transcript.close()
             finally:
                 receiver.cancel()
                 await asyncio.gather(receiver, return_exceptions=True)
