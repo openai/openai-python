@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+import signal
 import asyncio
 from pathlib import Path
 
@@ -9,7 +10,20 @@ from websockets.asyncio.server import ServerConnection, serve
 
 
 @pytest.mark.asyncio
-async def test_interactive_realtime_example_answers_ping_while_waiting_for_input() -> None:
+@pytest.mark.parametrize(
+    "exit_action",
+    [
+        "conversation_then_q",
+        "eof",
+        pytest.param(
+            "sigint",
+            marks=pytest.mark.skipif(
+                sys.platform == "win32", reason="Windows uses console events instead of POSIX SIGINT"
+            ),
+        ),
+    ],
+)
+async def test_interactive_realtime_example_remains_responsive_at_input(exit_action: str) -> None:
     root = Path(__file__).resolve().parents[2]
     connected: asyncio.Future[ServerConnection] = asyncio.get_running_loop().create_future()
 
@@ -18,7 +32,7 @@ async def test_interactive_realtime_example_answers_ping_while_waiting_for_input
         await socket.wait_closed()
 
     async with serve(accept, "127.0.0.1", 0, ping_interval=None) as server:
-        port = server.sockets[0].getsockname()[1]
+        port = next(iter(server.sockets)).getsockname()[1]
         env = {
             **os.environ,
             "OPENAI_API_KEY": "example-test-key",
@@ -48,9 +62,87 @@ async def test_interactive_realtime_example_answers_ping_while_waiting_for_input
             assert await asyncio.wait_for(process.stdout.readexactly(len(prompt)), timeout=10) == prompt
             pong = await socket.ping()
             await asyncio.wait_for(pong, timeout=2)
-        finally:
-            if process.returncode is None:
+
+            if exit_action == "conversation_then_q":
+                process.stdin.write(b"Hello from the example test\n")
+                await process.stdin.drain()
+                item_event = json.loads(await asyncio.wait_for(socket.recv(), timeout=10))
+                assert item_event["type"] == "conversation.item.create"
+                assert item_event["item"]["content"] == [{"type": "input_text", "text": "Hello from the example test"}]
+                response_event = json.loads(await asyncio.wait_for(socket.recv(), timeout=10))
+                assert response_event["type"] == "response.create"
+                await socket.send(
+                    json.dumps(
+                        {
+                            "type": "response.output_text.delta",
+                            "event_id": "event_delta",
+                            "response_id": "resp_example",
+                            "item_id": "item_example",
+                            "output_index": 0,
+                            "content_index": 0,
+                            "delta": "Hello back",
+                        }
+                    )
+                )
+                await socket.send(
+                    json.dumps(
+                        {
+                            "type": "response.output_text.done",
+                            "event_id": "event_text_done",
+                            "response_id": "resp_example",
+                            "item_id": "item_example",
+                            "output_index": 0,
+                            "content_index": 0,
+                            "text": "Hello back",
+                        }
+                    )
+                )
+                await socket.send(
+                    json.dumps(
+                        {
+                            "type": "response.done",
+                            "event_id": "event_response_done",
+                            "response": {
+                                "id": "resp_example",
+                                "object": "realtime.response",
+                                "status": "completed",
+                                "status_details": None,
+                                "output": [
+                                    {
+                                        "id": "item_example",
+                                        "object": "realtime.item",
+                                        "type": "message",
+                                        "status": "completed",
+                                        "role": "assistant",
+                                        "content": [{"type": "output_text", "text": "Hello back"}],
+                                    }
+                                ],
+                            },
+                        }
+                    )
+                )
+                output = await asyncio.wait_for(process.stdout.readuntil(prompt), timeout=10)
+                assert output == b"Hello back" + os.linesep.encode() + prompt
+                pong = await socket.ping()
+                await asyncio.wait_for(pong, timeout=2)
                 process.stdin.write(b"q\n")
                 await process.stdin.drain()
-            _, stderr = await asyncio.wait_for(process.communicate(), timeout=10)
-        assert process.returncode == 0, stderr.decode()
+            elif exit_action == "eof":
+                process.stdin.close()
+            else:
+                process.send_signal(signal.SIGINT)
+
+            await asyncio.wait_for(process.wait(), timeout=2)
+            _, stderr = await process.communicate()
+            if exit_action == "conversation_then_q":
+                assert process.returncode == 0, stderr.decode()
+            elif exit_action == "eof":
+                assert process.returncode != 0
+                assert b"EOFError" in stderr
+            else:
+                assert process.returncode != 0
+                assert b"KeyboardInterrupt" in stderr
+        finally:
+            if process.returncode is None:
+                process.kill()
+                await process.communicate()
