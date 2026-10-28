@@ -221,7 +221,7 @@ class RealtimeApp(App[None]):
                         # earlier turn (even if K was already released).
                         self._active_response_id = None
                         self._interrupted_responses[event.response.id] = set()
-                        await conn.response.cancel(response_id=event.response.id)
+                        await self._interrupt_response(event.response.id, [])
                         continue
                     self._active_response_id = event.response.id
                     continue

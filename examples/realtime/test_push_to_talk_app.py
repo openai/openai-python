@@ -796,3 +796,88 @@ async def test_interruption_truncates_late_unheard_audio_once(
     finally:
         app._stop_mic_stream()
         await original_client.close()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("manual_turn", [False, True])
+async def test_delayed_response_cancel_finishes_before_new_mic_audio(app_module: Any, manual_turn: bool) -> None:
+    module, mic_started = app_module
+    app = module.RealtimeApp()
+    status = SimpleNamespace(is_recording=False)
+
+    def query_one(*_args: Any, **_kwargs: Any) -> SimpleNamespace:
+        return status
+
+    app.query_one = query_one
+    if manual_turn:
+        app.session = SimpleNamespace(audio=SimpleNamespace(input=SimpleNamespace(turn_detection=None)))
+    waiting = asyncio.Event()
+    release = asyncio.Event()
+    appended = asyncio.Event()
+    reception_done = asyncio.Event()
+    sent: list[str] = []
+
+    async def update(**_kwargs: Any) -> None:
+        pass
+
+    async def cancel(**_kwargs: Any) -> None:
+        waiting.set()
+        await release.wait()
+        sent.append("cancel")
+
+    async def append(**_kwargs: Any) -> None:
+        sent.append("append")
+        appended.set()
+
+    async def commit() -> None:
+        sent.append("commit")
+
+    async def create() -> None:
+        sent.append("create")
+
+    class Connection:
+        session = SimpleNamespace(update=update)
+        response = SimpleNamespace(cancel=cancel, create=create)
+        input_audio_buffer = SimpleNamespace(append=append, commit=commit)
+
+        async def __aenter__(self) -> Any:
+            return self
+
+        async def __aexit__(self, *_args: Any) -> None:
+            pass
+
+        async def __aiter__(self) -> Any:
+            await app.on_key(SimpleNamespace(key="k"))
+            yield SimpleNamespace(type="response.created", response=SimpleNamespace(id="old-response"))
+            await reception_done.wait()
+
+    def connect(**_kwargs: Any) -> Connection:
+        return Connection()
+
+    original_client = app.client
+    app.client = SimpleNamespace(realtime=SimpleNamespace(connect=connect))
+    receiver = asyncio.create_task(app._receive_realtime_events())
+    mic: asyncio.Task[None] | None = None
+    try:
+        await asyncio.wait_for(waiting.wait(), 2)
+        await asyncio.wait_for(mic_started.wait(), 2)
+        mic = asyncio.create_task(app.send_mic_audio())
+        for _ in range(100):
+            if appended.is_set():
+                break
+            await asyncio.sleep(0)
+        assert status.is_recording
+        assert sent == []
+        release.set()
+        await asyncio.wait_for(appended.wait(), 2)
+        await app.on_key(SimpleNamespace(key="k"))
+        await app.workers.wait_for_complete()
+        assert sent == ["cancel", "append"] + (["commit", "create"] if manual_turn else [])
+    finally:
+        release.set()
+        reception_done.set()
+        if mic is not None:
+            mic.cancel()
+        receiver.cancel()
+        await asyncio.gather(receiver, *([mic] if mic is not None else []), return_exceptions=True)
+        await original_client.close()
