@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sys
 import asyncio
+import importlib
 from types import ModuleType, SimpleNamespace
 from typing import Any
 from pathlib import Path
@@ -57,22 +58,25 @@ def app_module(monkeypatch: pytest.MonkeyPatch) -> Any:
 
     # Replace only audio device bindings; import the actual UI, player, and SDK.
     device = ModuleType("sounddevice")
+
+    def query_devices() -> dict[str, str]:
+        return {}
+
     monkeypatch.setattr(device, "InputStream", InputStream, raising=False)
     monkeypatch.setattr(device, "OutputStream", OutputStream, raising=False)
-    monkeypatch.setattr(device, "query_devices", lambda: {}, raising=False)
+    monkeypatch.setattr(device, "query_devices", query_devices, raising=False)
     pyaudio = ModuleType("pyaudio")
     monkeypatch.setattr(pyaudio, "paInt16", 8, raising=False)
     monkeypatch.setitem(sys.modules, "sounddevice", device)
     monkeypatch.setitem(sys.modules, "pyaudio", pyaudio)
-    monkeypatch.syspath_prepend(str(Path(__file__).parent))
+    monkeypatch.setattr(sys, "path", [str(Path(__file__).parent), *sys.path])
     monkeypatch.setenv("OPENAI_API_KEY", "test-only")
     # Offline tests never need the user's configured proxy.
     for name in ("ALL_PROXY", "HTTPS_PROXY", "HTTP_PROXY", "all_proxy", "https_proxy", "http_proxy"):
         monkeypatch.delenv(name, raising=False)
     monkeypatch.delitem(sys.modules, "audio_util", raising=False)
     monkeypatch.delitem(sys.modules, "push_to_talk_app", raising=False)
-    import push_to_talk_app
-
+    push_to_talk_app = importlib.import_module("push_to_talk_app")
     yield push_to_talk_app, started
     sys.modules.pop("audio_util", None)
     sys.modules.pop("push_to_talk_app", None)
@@ -111,7 +115,11 @@ async def test_capture_starts_before_blocked_cancel_but_sends_after(app_module: 
     module, mic_started = app_module
     app = module.RealtimeApp()
     status = SimpleNamespace(is_recording=False)
-    app.query_one = lambda *_args, **_kwargs: status
+
+    def query_one(*_args: Any, **_kwargs: Any) -> SimpleNamespace:
+        return status
+
+    app.query_one = query_one
     sent: list[str] = []
     waiting = asyncio.Event()
     release = asyncio.Event()
@@ -172,7 +180,11 @@ async def test_disconnect_exits_and_user_cancellation_is_preserved(app_module: A
     module, _ = app_module
     app = module.RealtimeApp()
     exited: list[dict[str, Any]] = []
-    app.exit = lambda **kwargs: exited.append(kwargs)
+
+    def capture_exit(**kwargs: Any) -> None:
+        exited.append(kwargs)
+
+    app.exit = capture_exit
 
     async def events() -> None:
         if failure == "abnormal":
