@@ -136,6 +136,7 @@ class RealtimeApp(App[None]):
         self.client = AsyncOpenAI()
         self.audio_player = AudioPlayerAsync()
         self._active_response_id: str | None = None
+        self._displayed_item_id: str | None = None
         self._interrupted_response_ids: set[str] = set()
         self.should_send_audio = asyncio.Event()
         self._mic_send_lock = asyncio.Lock()
@@ -162,6 +163,7 @@ class RealtimeApp(App[None]):
         try:
             await self._receive_realtime_events()
         except (ConnectionClosed, WebSocketConnectionClosedError):
+            # End the app with the same message for normal and abnormal socket closure.
             pass
         self.exit(return_code=1, message="The Realtime connection closed.")
 
@@ -235,6 +237,8 @@ class RealtimeApp(App[None]):
                     continue
 
                 if event.type == "response.output_audio_transcript.delta":
+                    if event.response_id in self._interrupted_response_ids:
+                        continue
                     try:
                         text = acc_items[event.item_id]
                     except KeyError:
@@ -246,6 +250,7 @@ class RealtimeApp(App[None]):
                     bottom_pane = self.query_one("#bottom-pane", RichLog)
                     bottom_pane.clear()
                     bottom_pane.write(acc_items[event.item_id])
+                    self._displayed_item_id = event.item_id
                     continue
 
     async def _get_connection(self) -> AsyncRealtimeConnection:
@@ -340,6 +345,14 @@ class RealtimeApp(App[None]):
                         if self.audio_player.playing
                         else []
                     )
+                    if any(
+                        item_id == self._displayed_item_id and content_index == 0
+                        for (_, item_id, content_index), _ in unheard
+                    ):
+                        bottom_pane = self.query_one("#bottom-pane", RichLog)
+                        bottom_pane.clear()
+                        bottom_pane.write("Response interrupted.")
+                        self._displayed_item_id = None
                     if self.connection is not None:
                         if self._active_response_id is not None:
                             response_id = self._active_response_id

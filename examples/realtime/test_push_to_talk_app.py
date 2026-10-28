@@ -115,9 +115,19 @@ async def test_capture_starts_before_blocked_cancel_but_sends_after(app_module: 
     module, mic_started = app_module
     app = module.RealtimeApp()
     status = SimpleNamespace(is_recording=False)
+    display = ["spoken and unspoken output"]
+
+    class Log:
+        def clear(self) -> None:
+            display.clear()
+
+        def write(self, message: str) -> None:
+            display.append(message)
 
     def query_one(*_args: Any, **_kwargs: Any) -> SimpleNamespace:
-        return status
+        return (
+            status if _args[0] is module.AudioStatusIndicator else SimpleNamespace(clear=Log().clear, write=Log().write)
+        )
 
     app.query_one = query_one
     sent: list[str] = []
@@ -143,6 +153,7 @@ async def test_capture_starts_before_blocked_cancel_but_sends_after(app_module: 
     )
     app.connected.set()
     app._active_response_id = "response"
+    app._displayed_item_id = "assistant"
     app.audio_player.add_data(bytes(1920), response_id="response", item_id="assistant", content_index=0)
     app.audio_player.stream.callback(np.empty((480, 1), dtype=np.int16), 480, None, None)
     mic = asyncio.create_task(app.send_mic_audio())
@@ -152,6 +163,7 @@ async def test_capture_starts_before_blocked_cancel_but_sends_after(app_module: 
         await asyncio.wait_for(mic_started.wait(), 2)
         assert status.is_recording
         assert not sent
+        assert display == ["Response interrupted."]
         if stop_before_cancel:
             await app.on_key(SimpleNamespace(key="k"))
             assert app._mic_stream is None
@@ -205,3 +217,60 @@ async def test_disconnect_exits_and_user_cancellation_is_preserved(app_module: A
             assert exited == [{"return_code": 1, "message": "The Realtime connection closed."}]
     finally:
         await app.client.close()
+
+
+@pytest.mark.asyncio
+async def test_late_transcript_deltas_from_interrupted_response_do_not_replace_display(app_module: Any) -> None:
+    module, _ = app_module
+    app = module.RealtimeApp()
+    display: list[str] = []
+
+    class Log:
+        def clear(self) -> None:
+            display.clear()
+
+        def write(self, message: str) -> None:
+            display.append(message)
+
+    def query_one(*_args: Any, **_kwargs: Any) -> Log:
+        return Log()
+
+    async def update(**_kwargs: Any) -> None:
+        pass
+
+    class Connection:
+        session = SimpleNamespace(update=update)
+
+        async def __aenter__(self) -> Any:
+            return self
+
+        async def __aexit__(self, *_args: Any) -> None:
+            pass
+
+        async def __aiter__(self) -> Any:
+            yield SimpleNamespace(
+                type="response.output_audio_transcript.delta", response_id="old", item_id="old", delta="first"
+            )
+            assert display == ["first"]
+            app._interrupted_response_ids.add("old")
+            yield SimpleNamespace(
+                type="response.output_audio_transcript.delta", response_id="old", item_id="old", delta="late"
+            )
+            assert display == ["first"]
+            yield SimpleNamespace(
+                type="response.output_audio_transcript.delta", response_id="new", item_id="new", delta="new speech"
+            )
+            assert display == ["new speech"]
+
+    app.query_one = query_one
+    original_client = app.client
+
+    def connect(**_kwargs: Any) -> Connection:
+        return Connection()
+
+    app.client = SimpleNamespace(realtime=SimpleNamespace(connect=connect))
+    try:
+        await app._receive_realtime_events()
+        assert app._displayed_item_id == "new"
+    finally:
+        await original_client.close()
