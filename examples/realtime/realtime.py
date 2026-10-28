@@ -30,7 +30,7 @@ async def main() -> None:
             }
         )
         while True:
-            user_input = input("Enter a message: ")
+            user_input = await asyncio.to_thread(input, "Enter a message: ")
             if user_input == "q":
                 break
 
