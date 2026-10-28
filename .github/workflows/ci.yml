@@ -275,39 +275,6 @@ jobs:
         run: node scripts/steady/publication.test.cjs
 
       - name: Run tests
-        run: ./scripts/test
-
-  test-httpx2:
-    timeout-minutes: 20
-    name: test (HTTPX2)
-    runs-on: ubuntu-latest
-    needs: dependency-locks
-    if: github.event_name == 'push' || github.event_name == 'merge_group' || github.event.pull_request.head.repo.fork
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - uses: ./.github/actions/setup-node-tooling
-
-      - name: Set up Python 3.14
-        id: setup-python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with:
-          python-version: '3.14'
-
-      - name: Set up uv
-        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
-        with:
-          version: '0.12.5'
-          python-version: '3.14'
-          enable-cache: true
-
-      - name: Install HTTPX2 test dependencies
-        run: |
-          uv sync --locked --all-extras
-
-      - name: Run tests with HTTPX2
         env:
           OPENAI_TEST_HTTP_CLIENT: httpx2
         run: ./scripts/test

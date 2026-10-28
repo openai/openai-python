@@ -4,7 +4,9 @@ Run with OPENAI_API_KEY in the environment:
     python examples/live/audio_transcript.py speech.wav
 
 Use a 16-bit mono WAV recorded at 24 kHz. Audio is paced in real time. This
-example sends silence after the recording so the assistant can finish replying.
+example sends silence for the listen window after the recording, then requests
+session closure and waits for confirmation. The window does not guarantee that
+the assistant has finished replying.
 """
 
 from __future__ import annotations
@@ -49,8 +51,12 @@ async def run(path: Path, *, model: str, listen_seconds: float = 15) -> list[Tra
                 event = await asyncio.wait_for(connection.recv(), timeout=30)
                 if event.type == "error":
                     raise OpenAIError("Live rejected session startup; inspect your model access and configuration")
+                if event.type == "session.closed":
+                    raise OpenAIError("Live session ended before startup")
                 if event.type == "session.started":
                     break
+
+            closing = False
 
             async def receive() -> None:
                 async for event in connection:
@@ -58,7 +64,10 @@ async def run(path: Path, *, model: str, listen_seconds: float = 15) -> list[Tra
                         raise OpenAIError("Live returned an error while processing the audio")
                     await transcript.push(event)
                     if event.type == "session.closed":
+                        if not closing or event.reason != "close_requested":
+                            raise OpenAIError("Live session ended without confirming the requested close")
                         return
+                raise OpenAIError("Live disconnected before session.closed")
 
             receiver = asyncio.create_task(receive())
             try:
@@ -74,7 +83,9 @@ async def run(path: Path, *, model: str, listen_seconds: float = 15) -> list[Tra
                     await asyncio.sleep(len(chunk) / (24000 * 2))
                 if receiver.done():
                     await receiver
-                await transcript.close()
+                closing = True
+                await connection.session.close()
+                await asyncio.wait_for(receiver, timeout=30)
             finally:
                 receiver.cancel()
                 await asyncio.gather(receiver, return_exceptions=True)

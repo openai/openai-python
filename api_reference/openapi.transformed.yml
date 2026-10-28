@@ -44052,12 +44052,12 @@ components:
           description: |
             The image(s) to edit. Must be a supported image file or an array of images.
 
-            For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`,
+            For the GPT image models (`gpt-image-1-mini`, `gpt-image-1.5`,
             `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
-            `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`,
-            `gpt-image-2.5-flare-2026-09-08`, and `chatgpt-image-latest`), each image
-            should be a `png`, `webp`, or `jpg` file less than 50MB. You can provide up to
-            16 images.
+            `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and
+            `gpt-image-2.5-flare-2026-09-08`), each image should be a `png`, `webp`, or `jpg`
+            file less than 50MB. You can provide up to 16 images. `chatgpt-image-latest`
+            follows the same input constraints as GPT image models.
           x-oaiMeta:
             exampleFilePath: otter.png
         prompt:
@@ -58291,6 +58291,7 @@ components:
       - $ref: '#/components/schemas/RealtimeMCPListTools'
       - $ref: '#/components/schemas/RealtimeMCPToolCall'
       - $ref: '#/components/schemas/RealtimeMCPApprovalRequest'
+      - $ref: '#/components/schemas/RealtimeResponseItemReference'
       discriminator:
         propertyName: type
     RealtimeConversationItemFunctionCall:
@@ -76159,7 +76160,7 @@ components:
       enum:
       - high
       - low
-      description: Control how much effort the model will exert to match the style and features, especially facial features, of input images. Supports `high` and `low` on `gpt-image-1` and `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For `gpt-image-2`, omit this parameter. Defaults to `low` on supported models.
+      description: Control how much effort the model will exert to match the style and features, especially facial features, of input images. Supports `high` and `low` on `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For `gpt-image-2`, omit this parameter. Defaults to `low` on supported models.
     LocalShellToolParam:
       properties:
         type:
@@ -98939,7 +98940,7 @@ components:
       enum:
       - high
       - low
-      description: Control how much effort the model will exert to match the style and features, especially facial features, of input images. Supports `high` and `low` on `gpt-image-1` and `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For `gpt-image-2`, omit this parameter. Defaults to `low` on supported models.
+      description: Control how much effort the model will exert to match the style and features, especially facial features, of input images. Supports `high` and `low` on `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For `gpt-image-2`, omit this parameter. Defaults to `low` on supported models.
     BetaProgrammaticToolCallingParam:
       properties:
         type:
@@ -111167,6 +111168,28 @@ components:
       - type
       - server_label
       - name
+    RealtimeResponseItemReference:
+      type: object
+      description: |
+        Reference an existing item in this Realtime session as response.create input.
+        Item references are only accepted in the response input array, not as new
+        conversation items.
+      properties:
+        type:
+          type: string
+          enum:
+          - item_reference
+          x-stainless-const: true
+          description: The type of this item. Always `item_reference`.
+        id:
+          type: string
+          minLength: 1
+          maxLength: 32
+          pattern: ^[a-zA-Z0-9_-]+$
+          description: The ID of an existing item in the same Realtime session.
+      required:
+      - type
+      - id
   responses:
     TooManyRequests:
       description: The request was rejected because a rate limit was exceeded.
