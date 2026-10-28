@@ -1123,3 +1123,57 @@ async def test_pending_manual_finalize_precedes_already_runnable_mic(app_module:
         mic.cancel()
         await asyncio.gather(mic, return_exceptions=True)
         await app.client.close()
+
+
+@pytest.mark.parametrize("finish_response", [False, True])
+@pytest.mark.parametrize("abort_return_delay", [0.0, 0.08])
+def test_cutoff_accounts_after_stopping_without_counting_silence(
+    app_module: Any, monkeypatch: pytest.MonkeyPatch, finish_response: bool, abort_return_delay: float
+) -> None:
+    import threading
+
+    module, _ = app_module
+    player = module.AudioPlayerAsync()
+    key = ("response", "spoken", 0)
+    player.add_data(bytes(1920), response_id=key[0], item_id=key[1], content_index=key[2])
+    player.stream.time = 0.98
+    player.stream.callback(
+        np.empty((960, 1), dtype=np.int16),
+        960,
+        SimpleNamespace(outputBufferDacTime=1.0, currentTime=0.98),
+        None,
+    )
+    if finish_response:
+        player.finish_response(key[0])
+    player.stream.time = 1.01
+    stopped_at: float | None = None
+    original_abort = player.stream.abort
+    original_discard = player._discard_finished_counts
+
+    def account(now: float) -> None:
+        # Accounting a large queue takes time. Until abort, queued DAC audio
+        # continues playing even though future callbacks have been silenced.
+        player.stream.time += 0.02
+        original_discard(now)
+
+    def abort() -> None:
+        nonlocal stopped_at
+        # The driver can stop playback before its abort method returns. The
+        # PortAudio stream clock continues afterward, even with no sound playing.
+        stopped_at = player.stream.time
+        out = np.full((480, 1), 99, dtype=np.int16)
+        callback = threading.Thread(target=player.stream.callback, args=(out, 480, None, None), daemon=True)
+        callback.start()
+        callback.join(1)
+        assert not callback.is_alive(), "abort held the lock required by the device callback"
+        assert not np.any(out)
+        player.stream.time += abort_return_delay
+        original_abort()
+
+    monkeypatch.setattr(player, "_discard_finished_counts", account)
+    monkeypatch.setattr(player.stream, "abort", abort)
+    result = player.stop(interrupted_response_id=None if finish_response else key[0])
+    assert stopped_at is not None
+    heard_frames = min(960, int((stopped_at - 1.0) * module.SAMPLE_RATE))
+    expected = [] if finish_response and heard_frames == 960 else [(key, heard_frames)]
+    assert result == expected

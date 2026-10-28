@@ -113,11 +113,16 @@ class AudioPlayerAsync:
 
     def stop(self, *, interrupted_response_id: str | None = None):
         with self.lock:
-            # PortAudio supplies both times on the same clock. Exclude later callbacks
-            # before aborting; abort must not hold the lock a callback may be waiting on.
-            now = self.stream.time
             was_playing = self.playing
             self.playing = False
+        # Silence new callbacks before stopping the device; abort must not hold
+        # the lock a callback may need. Do accounting only after stopping sound.
+        # PortAudio's clock advances while stopped, so use the last known playing
+        # time immediately before abort, not the time after it returns.
+        now = self.stream.time
+        if was_playing:
+            self.stream.abort()
+        with self.lock:
             self._discard_finished_counts(now)
             pending = dict.fromkeys(key for _, key in self.queue)
             pending.update(dict.fromkeys(key for key, _, _, _ in self._scheduled))
@@ -131,8 +136,6 @@ class AudioPlayerAsync:
             self._scheduled.clear()
             self._finished_responses.clear()
             self._frame_count = 0
-        if was_playing:
-            self.stream.abort()
         return list(heard.items())
 
     def terminate(self):
