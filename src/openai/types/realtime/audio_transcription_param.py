@@ -58,6 +58,13 @@ class AudioTranscriptionParam(TypedDict, total=False):
     `gpt-4o-mini-transcribe`, `gpt-4o-mini-transcribe-2025-12-15`,
     `gpt-4o-transcribe`, `gpt-4o-transcribe-diarize`, and `gpt-realtime-whisper`.
     Use `gpt-4o-transcribe-diarize` when you need diarization with speaker labels.
+
+    Deprecated values:
+
+    - "whisper-1", "gpt-4o-mini-transcribe", "gpt-4o-mini-transcribe-2025-12-15",
+      "gpt-4o-transcribe", "gpt-4o-transcribe-diarize": Announced shutdown date:
+      2027-02-26. See https://developers.openai.com/api/docs/deprecations for
+      details and recommended replacements.
     """
 
     prompt: str

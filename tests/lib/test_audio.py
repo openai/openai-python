@@ -19,10 +19,15 @@ from openai.types.audio_response_format import AudioResponseFormat
 def test_translation_create_overloads_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
     checking_client: OpenAI | AsyncOpenAI = client if sync else async_client
 
-    fn = checking_client.audio.translations.create
+    # Keep checking the supported overloads of this deprecated operation.
+    fn = checking_client.audio.translations.create  # pyright: ignore[reportDeprecated]
     overload_response_formats: set[str] = set()
 
-    for i, overload in enumerate(typing_extensions.get_overloads(fn)):
+    overloads = typing_extensions.get_overloads(fn)
+    assert len(overloads) == 4, "precise and fallback translation overloads must all remain registered"
+    for i, overload in enumerate(overloads):
+        assert getattr(overload, "__deprecated__", None) == "deprecated"
+        assert inspect.iscoroutinefunction(overload) is (not sync)
         assert_signatures_in_sync(
             fn,
             overload,
