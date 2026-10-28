@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import asyncio
 import threading
 from queue import Queue
@@ -141,3 +142,60 @@ def test_text_messages_preserve_their_list_identity() -> None:
     legacy: list[str] = error.unsent_messages
     assert legacy is messages
     assert error.unsent_frames is messages
+
+
+def test_error_attributes_do_not_render_queued_frames() -> None:
+    frames: list[str | bytes] = [
+        "fake-text-customer-content",
+        b"fake-valid-binary-content",
+        b"\xfffake-opaque-binary-content",
+    ]
+    error = WebSocketConnectionClosedError("closed", unsent_messages=frames)
+    for snapshot in (repr(vars(error)), json.dumps(vars(error), default=str)):
+        assert "fake-text-customer-content" not in snapshot
+        assert "fake-valid-binary-content" not in snapshot
+        assert "fake-opaque-binary-content" not in snapshot
+    assert error.unsent_frames is frames
+    assert error.unsent_messages == ["fake-text-customer-content", "fake-valid-binary-content"]
+
+
+def test_recovery_lists_keep_legacy_aliasing_and_independent_assignment() -> None:
+    messages = ["one", "two"]
+    error = WebSocketConnectionClosedError("closed", unsent_messages=messages)
+    error.unsent_messages.append("three")
+    assert error.unsent_frames is messages
+    assert messages == ["one", "two", "three"]
+    replaced = ["replacement"]
+    error.unsent_messages = replaced
+    assert error.unsent_messages is replaced
+    assert error.unsent_frames is messages
+    binary: list[str | bytes] = [b"\xfffake-binary", "last"]
+    error.unsent_frames = binary
+    assert error.unsent_frames is binary
+    assert error.unsent_messages is replaced
+
+
+def test_subclass_can_read_and_write_inherited_recovery_messages() -> None:
+    class ClosedDuringReconnect(WebSocketConnectionClosedError):
+        def retry_messages(self) -> list[str]:
+            messages: list[str] = self.unsent_messages
+            self.unsent_messages = messages + ["retry"]
+            return self.unsent_messages
+
+    error = ClosedDuringReconnect("closed", unsent_messages=["text"])
+    assert error.retry_messages() == ["text", "retry"]
+
+
+def test_subclass_can_set_legacy_messages_before_parent_init() -> None:
+    early = ["fake-early-message"]
+    final = ["fake-constructor-message"]
+
+    class ClosedDuringReconnect(WebSocketConnectionClosedError):
+        def __init__(self) -> None:
+            self.unsent_messages = early
+            assert self.unsent_messages is early
+            super().__init__("closed", unsent_messages=final)
+
+    error = ClosedDuringReconnect()
+    assert error.unsent_messages is final
+    assert error.unsent_frames is final
