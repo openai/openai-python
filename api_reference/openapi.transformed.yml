@@ -37508,6 +37508,125 @@ paths:
               "object": "response.input_tokens",
               "input_tokens": 11
             }
+  /organization/external_keys:
+    post:
+      summary: Add an external key config for an organization
+      description: Add an external key config for an organization
+      operationId: Addanexternalkeyconfigforanorganization
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/V1OrganizationExternalKeysPostRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalKeyResource'
+      security:
+      - AdminApiKeyAuth: []
+    get:
+      summary: List the external key configs registered on the user's organization
+      description: List the external key configs registered on the user's organization
+      operationId: Listtheexternalkeyconfigsregisteredontheuser'sorganization
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 100
+      - name: order
+        in: query
+        required: false
+        schema:
+          $ref: '#/components/schemas/OrderEnum'
+      - name: after
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+      - name: purpose
+        in: query
+        description: Filter by key purpose. When omitted, returns keys of all purposes.
+        required: false
+        schema:
+          $ref: '#/components/schemas/ExternalKeyPurpose'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListExternalKeysResource'
+      security:
+      - AdminApiKeyAuth: []
+  /organization/external_keys/{external_key_id}:
+    get:
+      summary: Retrieve an external key registration
+      description: Retrieve a stored external key registration for the user's organization.
+      operationId: Retrieveanexternalkeyregistration
+      parameters:
+      - name: external_key_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalKeyResource'
+      security:
+      - AdminApiKeyAuth: []
+    delete:
+      summary: Delete an external key config for the user's organization
+      description: Delete an external key config for the user's organization
+      operationId: Deleteanexternalkeyconfigfortheuser'sorganization
+      parameters:
+      - name: external_key_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalKeyResource'
+      security:
+      - AdminApiKeyAuth: []
+  /organization/external_keys/{external_key_id}/validate:
+    post:
+      summary: Validate an external key config for the user's organization
+      description: Validate an external key config for the user's organization
+      operationId: Validateanexternalkeyconfigfortheuser'sorganization
+      parameters:
+      - name: external_key_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidateExternalKeyResource'
+      security:
+      - AdminApiKeyAuth: []
 webhooks:
   agent_environment_expired:
     post:
@@ -110678,6 +110797,236 @@ components:
       - num_requests
       title: Web search usage
       description: Usage details for web search requests that ran while generating the response.
+    AwsExternalKeyParams:
+      properties:
+        name:
+          type: string
+          description: A friendly name to identify this config
+        type:
+          type: string
+          enum:
+          - aws
+          default: aws
+          x-stainless-const: true
+        role_arn:
+          type: string
+          pattern: ^arn:aws:iam::\d{12}:role/.+$
+          description: The Role ARN that OpenAI will assume to call your KMS
+        kms_arn:
+          type: string
+          description: The Key Management System ARN for the master key you manage
+        external_id:
+          type: string
+          description: The ExternalID that OpenAI will pass in the AssumeRole call for the customer's AWS account. This must be the OpenAI organization ID or an API project ID that belongs to the organization.
+        purpose:
+          $ref: '#/components/schemas/ExternalKeyPurpose'
+      type: object
+      required:
+      - name
+      - type
+      - role_arn
+      - kms_arn
+      - external_id
+    AzureExternalKeyParams:
+      properties:
+        name:
+          type: string
+          description: A friendly name to identify this config
+        type:
+          type: string
+          enum:
+          - azure
+          default: azure
+          x-stainless-const: true
+        tenant_id:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+          description: Your Azure tenant UUID
+        vault_uri:
+          type: string
+          pattern: ^https://.+\.vault\.azure\.net/?$
+          description: The URI of the Azure vault containing the master key you manage
+        key_name:
+          type: string
+          maxLength: 127
+          pattern: ^org-[0-9a-zA-Z-]*--[0-9a-zA-Z-]*$
+          description: The name of the Azure Key Vault master key that you manage
+        purpose:
+          $ref: '#/components/schemas/ExternalKeyPurpose'
+        key_version:
+          type: string
+          pattern: ^[0-9a-fA-F]{32}$
+          description: An exact Azure Key Vault key version. Required for PSP decryption; not accepted for EKM.
+      type: object
+      required:
+      - name
+      - type
+      - tenant_id
+      - vault_uri
+      - key_name
+    ExternalKeyPurpose:
+      type: string
+      enum:
+      - ekm
+      - psp_decryption
+    ExternalKeyResource:
+      properties:
+        object:
+          type: string
+        id:
+          type: string
+        type:
+          type: string
+        purpose:
+          $ref: '#/components/schemas/ExternalKeyPurpose'
+        name:
+          type: string
+        api_project_ids:
+          items:
+            type: string
+          type: array
+        workspace_id:
+          type: string
+        created_at:
+          type: integer
+        role_arn:
+          type: string
+        external_id:
+          type: string
+        kms_arn:
+          type: string
+        workload_identity_project_number:
+          type: string
+        workload_identity_pool_id:
+          type: string
+        workload_identity_provider_id:
+          type: string
+        audience:
+          type: string
+        kms_project_id:
+          type: string
+        kms_key_ring_name:
+          type: string
+        kms_key_name:
+          type: string
+        kms_key_location:
+          type: string
+        kms_key_version:
+          type: string
+        tenant_id:
+          type: string
+        vault_uri:
+          type: string
+        key_name:
+          type: string
+        key_version:
+          type: string
+      type: object
+      required:
+      - object
+      - id
+      - type
+      - name
+      - api_project_ids
+      - workspace_id
+      - created_at
+    GcpExternalKeyParams:
+      properties:
+        name:
+          type: string
+          description: A friendly name to identify this config
+        type:
+          type: string
+          enum:
+          - gcp
+          default: gcp
+          x-stainless-const: true
+        workload_identity_project_number:
+          type: string
+          pattern: ^[0-9]{1,19}$
+          description: The numeric GCP project number where you registered OpenAI's workload identity
+        workload_identity_pool_id:
+          type: string
+          description: The pool containing the Workload Identity provider that you registered for OpenAI
+        workload_identity_provider_id:
+          type: string
+          description: The Workload Identity provider that you registered for OpenAI
+        kms_project_id:
+          type: string
+          description: The string GCP project name where your KMS resides
+        kms_key_ring_name:
+          type: string
+          description: The Key Management System key ring for the master key you manage
+        kms_key_name:
+          type: string
+          description: The name of the Key Management System master key you manage
+        kms_key_location:
+          type: string
+          description: The region where your Key Management System master key is located
+        audience:
+          type: string
+          description: The aud field in the identity token OpenAI will pass in the call to the customer's GCP STS. This must be the OpenAI organization ID or an API project ID that belongs to the organization.
+        purpose:
+          $ref: '#/components/schemas/ExternalKeyPurpose'
+        kms_key_version:
+          type: string
+          pattern: ^[1-9][0-9]*$
+          description: An exact CryptoKeyVersion number. Required for PSP decryption; not accepted for EKM.
+      type: object
+      required:
+      - name
+      - type
+      - workload_identity_project_number
+      - workload_identity_pool_id
+      - workload_identity_provider_id
+      - kms_project_id
+      - kms_key_ring_name
+      - kms_key_name
+      - kms_key_location
+      - audience
+    ListExternalKeysResource:
+      properties:
+        object:
+          type: string
+          enum:
+          - list
+          default: list
+          x-stainless-const: true
+        data:
+          items:
+            $ref: '#/components/schemas/ExternalKeyResource'
+          type: array
+        first_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+        last_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+        has_more:
+          type: boolean
+      type: object
+      required:
+      - object
+      - data
+      - first_id
+      - last_id
+      - has_more
+    V1OrganizationExternalKeysPostRequest:
+      discriminator:
+        propertyName: type
+      anyOf:
+      - $ref: '#/components/schemas/AwsExternalKeyParams'
+      - $ref: '#/components/schemas/GcpExternalKeyParams'
+      - $ref: '#/components/schemas/AzureExternalKeyParams'
+    ValidateExternalKeyResource:
+      properties:
+        status:
+          type: string
+      type: object
+      required:
+      - status
     SessionSpendControlResource:
       type: object
       properties:
