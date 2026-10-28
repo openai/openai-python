@@ -255,7 +255,7 @@ def test_parse_pydantic_model_enum(client: OpenAI, respx2_mock: MockRouter, monk
         hex_color_code: str = Field(description="The hex color code of the detected color")
 
     if PYDANTIC_V1:
-        ColorDetection.update_forward_refs(**locals())  # type: ignore
+        ColorDetection.update_forward_refs(**locals())
 
     completion = make_snapshot_request(
         lambda c: c.chat.completions.parse(

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Generic, TypeVar, cast
 
+import pytest
+
 from openai._utils import extract_type_var_from_base
 
 _T = TypeVar("_T")
@@ -24,12 +26,22 @@ class SubclassGenericMultipleTypeArgs(BaseGenericMultipleTypeArgs[_T, _T2, _T3])
 class SubclassDifferentOrderGenericMultipleTypeArgs(BaseGenericMultipleTypeArgs[_T2, _T, _T3]): ...
 
 
+def test_extract_type_var_without_generic_base() -> None:
+    with pytest.raises(RuntimeError, match="Expected a generic subclass"):
+        extract_type_var_from_base(
+            object,
+            index=0,
+            generic_bases=(BaseGeneric,),
+            failure_message="Expected a generic subclass",
+        )
+
+
 def test_extract_type_var() -> None:
     assert (
         extract_type_var_from_base(
             BaseGeneric[int],
             index=0,
-            generic_bases=cast("tuple[type, ...]", (BaseGeneric,)),
+            generic_bases=(BaseGeneric,),
         )
         == int
     )
@@ -40,7 +52,7 @@ def test_extract_type_var_generic_subclass() -> None:
         extract_type_var_from_base(
             SubclassGeneric[int],
             index=0,
-            generic_bases=cast("tuple[type, ...]", (BaseGeneric,)),
+            generic_bases=(BaseGeneric,),
         )
         == int
     )

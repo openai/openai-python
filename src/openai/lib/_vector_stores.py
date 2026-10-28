@@ -80,7 +80,7 @@ def poll_vector_store_file(
         elif file.status == "cancelled" or file.status == "completed" or file.status == "failed":
             return file
         else:
-            if TYPE_CHECKING:  # type: ignore[unreachable]
+            if TYPE_CHECKING:
                 assert_never(file.status)
             else:
                 return file
@@ -123,7 +123,7 @@ async def async_poll_vector_store_file(
         elif file.status == "cancelled" or file.status == "completed" or file.status == "failed":
             return file
         else:
-            if TYPE_CHECKING:  # type: ignore[unreachable]
+            if TYPE_CHECKING:
                 assert_never(file.status)
             else:
                 return file
@@ -522,7 +522,7 @@ async def async_upload_and_poll_vector_store_file_batch(
         await asyncio.gather(*tasks)
     elif async_library == "trio":
         # We only import if the library is being used.
-        import trio  # type: ignore # pyright: ignore[reportMissingTypeStubs]
+        import trio
 
         async def trio_upload_file(limiter: trio.CapacityLimiter, file: FileTypes) -> None:
             async with limiter:
@@ -536,7 +536,7 @@ async def async_upload_and_poll_vector_store_file_batch(
 
         async with trio.open_nursery() as nursery:
             for file in files:
-                nursery.start_soon(trio_upload_file, limiter, file)  # pyright: ignore [reportUnknownMemberType]
+                nursery.start_soon(trio_upload_file, limiter, file)
     else:
         raise RuntimeError(
             f"Async runtime {async_library} is not supported yet. Only asyncio or trio is supported",

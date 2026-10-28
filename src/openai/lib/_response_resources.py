@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from copy import copy
-from typing import TYPE_CHECKING, Any, List, Type, Union, Iterable, Optional, cast
+from typing import TYPE_CHECKING, Any, List, Type, Union, Callable, Iterable, Optional, cast
 from functools import partial
 from typing_extensions import Literal
 
@@ -369,7 +369,7 @@ def stream(
             text = copy(text)
             text["format"] = _type_to_text_format_param(text_format)
 
-        api_request: partial[Stream[ResponseStreamEvent]] = partial(
+        api_request: Callable[[], Stream[ResponseStreamEvent]] = partial(
             resource.create,
             access_programs=access_programs,
             input=input,
@@ -621,7 +621,7 @@ def _make_tools(tools: Iterable[ParseableToolParam] | Omit) -> List[ToolParam] |
             converted_tools.append(tool)
             continue
 
-        function = cast(Any, tool)["function"]  # pyright: ignore[reportUnnecessaryCast]
+        function = cast(Any, tool)["function"]
         if not isinstance(function, PydanticFunctionTool):
             raise Exception(
                 "Expected Chat Completions function tool shape to be created using `openai.pydantic_function_tool()`"

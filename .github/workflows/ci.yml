@@ -77,8 +77,6 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: ./.github/actions/setup-node-tooling
-
       - name: Set up uv
         uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
@@ -160,8 +158,6 @@ jobs:
       - name: Use this job's Playwright installation
         run: printf 'PLAYWRIGHT_BROWSERS_PATH=%s/openai-python-playwright\n' "$RUNNER_TEMP" >> "$GITHUB_ENV"
 
-      - uses: ./.github/actions/setup-node-tooling
-
       - name: Set up uv
         uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
@@ -170,11 +166,9 @@ jobs:
           enable-cache: true
 
       - name: Check the optional Playwright demo
-        env:
-          PYRIGHT_PROJECT: scripts/pyrightconfig.browser-demo.json
         run: >-
-          uv run --locked --all-extras --group browser-demo python -c
-          'import os, sys; os.execv("./scripts/run-pyright", ["./scripts/run-pyright", "--pythonpath", sys.executable])'
+          uv run --locked --all-extras --group browser-demo
+          ty check --extra-search-path examples/browser examples/browser-use-demo
 
       - name: Install Chromium for local demo security checks
         run: uv run --locked --all-extras --group browser-demo playwright install --with-deps chromium
@@ -195,7 +189,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        provider: [browser, computer]
+        include:
+          - provider: browser
+            directory: examples/browser
+          - provider: computer
+            directory: examples/computer-desktop
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -203,8 +201,6 @@ jobs:
 
       - name: Use this job's Playwright installation
         run: printf 'PLAYWRIGHT_BROWSERS_PATH=%s/openai-python-playwright\n' "$RUNNER_TEMP" >> "$GITHUB_ENV"
-
-      - uses: ./.github/actions/setup-node-tooling
 
       - name: Set up uv
         uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
@@ -214,13 +210,9 @@ jobs:
           enable-cache: true
 
       - name: Check optional provider types against this checkout
-        env:
-          PYRIGHT_PROJECT: scripts/pyrightconfig.${{ matrix.provider }}-example.json
         run: >-
-          uv run --locked --all-extras --no-default-groups --group dev --group provider-${{ matrix.provider }} python -c
-          'import os, pathlib, sys; import openai;
-          assert pathlib.Path(openai.__file__).resolve() == pathlib.Path("src/openai/__init__.py").resolve(), "Provider check replaced this OpenAI checkout";
-          os.execv("./scripts/run-pyright", ["./scripts/run-pyright", "--pythonpath", sys.executable])'
+          uv run --locked --all-extras --no-default-groups --group dev --group provider-${{ matrix.provider }}
+          ty check ${{ matrix.directory }}
 
       - name: Install Chromium for local browser security checks
         if: matrix.provider == 'browser'
@@ -253,7 +245,10 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: ./.github/actions/setup-node-tooling
+      - name: Set up Node for the mock-server tooling
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: .node-version
 
       - name: Set up Python ${{ matrix.python-version }}
         id: setup-python
@@ -270,6 +265,9 @@ jobs:
 
       - name: Bootstrap
         run: ./scripts/bootstrap
+
+      - name: Install the pinned mock-server tooling
+        run: ./scripts/steady/install
 
       - name: Check concurrent Steady publication
         run: node scripts/steady/publication.test.cjs

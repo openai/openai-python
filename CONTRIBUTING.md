@@ -27,31 +27,34 @@ must include a release note naming the final compatible SDK release.
 ### With uv
 
 We use [uv](https://docs.astral.sh/uv/) to manage Python, dependencies, and builds.
-Install uv 0.12.1 or newer, Node.js at the version in `.node-version`, and
-the exact pnpm version in `package.json` (`npm install --global pnpm@11.19.0`).
-The Node toolchain is for repository development only, not SDK users or builds.
-Then run:
+Install uv 0.12.1 or newer. To run the runtime tests, also install Node.js at
+the version in `.node-version` for the mock-server tooling. Then run:
 
 ```sh
 $ ./scripts/bootstrap
 ```
 
-This installs all SDK extras and Python development tools from `uv.lock`, plus
-the contributor tools from `pnpm-lock.yaml`. Bootstrap requires an already
-installed Node.js and pnpm; it does not download or switch those tools for you.
-Run a
-command with `uv run --locked --all-extras`, or activate `.venv` in your shell.
+This installs all SDK extras and Python development tools from `uv.lock`.
+Run a command with `uv run --locked --all-extras`, or activate `.venv` in your shell.
 Use `uv lock` after changing dependencies, and commit the updated `uv.lock`.
 It is the authoritative lockfile; `uv export` can produce a requirements file
 for tools that need one.
 
-For Node tooling updates, edit `package.json`, run
-`pnpm install --lockfile-only --ignore-scripts`, review the dependency and
-integrity changes, and commit `pnpm-lock.yaml`. Normal bootstrap uses a frozen
-lockfile. pnpm rejects releases that have not cleared the eight-day cooldown,
-including packages whose registry metadata omits their publication date.
-Pyright runs the local Microsoft package and never invokes npm or
-downloads a runtime. Do not use `npx`, `pnpm dlx`, or Corepack auto-downloads.
+The separate breaking-change CI job checks previous-version callers with Pyright.
+To run that compatibility gate locally, install Node.js at the version in
+`.node-version` and the exact pnpm version in `package.json`, then run
+`./scripts/bootstrap-node`. Pyright and pnpm are not required for normal bootstrap or lint. Runtime tests
+still require Node.js for the Steady mock-server tooling. Before running them, install
+the pinned mock server and runtime:
+
+```sh
+$ ./scripts/steady/install
+```
+
+Node tooling uses the frozen `pnpm-lock.yaml`, an eight-day release cooldown,
+and disabled lifecycle scripts. Update it with `pnpm install --lockfile-only
+--ignore-scripts` and review the integrity changes. Do not use `npx`, `pnpm dlx`,
+or Corepack auto-downloads to run compatibility checks.
 
 The default environment uses Pydantic v2. `./scripts/test` also runs the
 Pydantic-v1 suite in a separate, locked environment. To run that lane alone,
@@ -59,7 +62,7 @@ use `./scripts/test-pydantic-v1`.
 
 ### Dependency update policy
 
-Routine Python, Node-tooling, and GitHub Actions updates have an eight-day cooldown. uv also
+Routine Python, compatibility-checker, and GitHub Actions updates have an eight-day cooldown. uv also
 excludes Python distribution artifacts uploaded within the last eight days.
 Dependabot security updates remain enabled and are exempt from Dependabot's
 version-update cooldown.
@@ -209,9 +212,9 @@ installation, integrity checks, and mock-server lifecycle.
 
 Most tests require you to [set up a mock server](https://github.com/openai-oss-forks/steady) against the OpenAPI spec to run the tests.
 
-`./scripts/bootstrap` installs the pinned Steady source and Deno runtime. `./scripts/test` starts it automatically when no mock server is running.
+`./scripts/steady/install` installs the pinned Steady source and Deno runtime. `./scripts/test` starts it automatically when no mock server is running.
 Neither `./scripts/test` nor `./scripts/mock` downloads mock tooling. If the local
-tool is missing, rerun bootstrap. `TEST_API_BASE_URL` and an already-running
+tool is missing, rerun `./scripts/steady/install`. `TEST_API_BASE_URL` and an already-running
 mock server remain supported. To start the server yourself:
 
 ```sh
@@ -224,7 +227,13 @@ $ ./scripts/test
 
 ## Linting and formatting
 
-This repository uses [Ruff](https://github.com/astral-sh/ruff) to lint and format Python code.
+This repository uses [Ruff](https://github.com/astral-sh/ruff) to lint and format Python code,
+and [ty](https://docs.astral.sh/ty/) to typecheck it. These are development tools;
+installing the SDK does not install a typechecker or require consumers to switch checkers.
+Consumers use their own checker and configuration. Keep public annotations, overloads,
+exports, and `py.typed` compatible across checkers; repository-only checker settings
+are not part of that contract. Preserve compatibility with both supported Pydantic
+major versions and the Python versions covered by CI.
 
 To lint:
 

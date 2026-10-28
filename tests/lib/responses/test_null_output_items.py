@@ -601,12 +601,12 @@ async def test_omitted_sparse_output_can_continue_directly(sync: bool, with_delt
             {"type": "response.in_progress", "response": {"id": "resp_test", "output": []}},
             *(
                 [
-                    {
-                        "type": "response.function_call_arguments.delta",
-                        "output_index": 99,
-                        "item_id": "fc_test",
-                        "delta": "{}",
-                    }
+                    dict[str, object](
+                        type="response.function_call_arguments.delta",
+                        output_index=99,
+                        item_id="fc_test",
+                        delta="{}",
+                    )
                 ]
                 if with_delta
                 else []

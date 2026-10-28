@@ -797,7 +797,7 @@ def _observed_state(value: object) -> BrowserObservationV1:
                 reason = change.get("reason")
                 if isinstance(reason, str):
                     reason = str.__str__(reason)
-                if reason not in ("policy", "unsupported"):
+                if not isinstance(reason, str) or reason not in ("policy", "unsupported"):
                     raise RuntimeError("Browser change is invalid.")
                 projected.append(
                     {
@@ -811,7 +811,7 @@ def _observed_state(value: object) -> BrowserObservationV1:
                 status = change.get("status")
                 if isinstance(status, str):
                     status = str.__str__(status)
-                if status not in ("blocked", "started", "completed", "failed"):
+                if not isinstance(status, str) or status not in ("blocked", "started", "completed", "failed"):
                     raise RuntimeError("Browser change is invalid.")
                 projected.append(
                     {
@@ -827,7 +827,7 @@ def _observed_state(value: object) -> BrowserObservationV1:
             dialog = change.get("kind")
             if isinstance(dialog, str):
                 dialog = str.__str__(dialog)
-            if dialog not in ("alert", "confirm", "prompt", "beforeunload", "other"):
+            if not isinstance(dialog, str) or dialog not in ("alert", "confirm", "prompt", "beforeunload", "other"):
                 raise RuntimeError("Browser change is invalid.")
             projected.append(
                 {
@@ -837,7 +837,7 @@ def _observed_state(value: object) -> BrowserObservationV1:
                     "kind": dialog,
                 }
             )
-        elif kind in ("tab_opened", "tab_closed", "tab_switched", "navigation"):
+        elif isinstance(kind, str) and kind in ("tab_opened", "tab_closed", "tab_switched", "navigation"):
             projected.append(
                 {
                     "type": kind,
@@ -893,7 +893,7 @@ def _state_origin(value: str) -> str:
 
 
 # Shared privately with the Responses ledger, which preserves non-sensitive URL paths.
-def _legacy_state_url(value: str) -> str:  # pyright: ignore[reportUnusedFunction]
+def _legacy_state_url(value: str) -> str:
     parsed = urlsplit(value)
     if not parsed.scheme or (parsed.scheme in ("http", "https") and (not parsed.netloc or not parsed.hostname)):
         raise RuntimeError("Browser URL is invalid.")
@@ -1181,9 +1181,9 @@ def _arguments(member: str, raw: str) -> dict[str, object]:
                 and isinstance(value, list)
                 and all(isinstance(s, str) for s in cast(list[object], value))
             )
-            or (kind == "amount" and _state_counter(cast(object, value)))
+            or (kind == "amount" and _state_counter(value))
             or (kind == "timeout" and isinstance(value, int) and not isinstance(value, bool) and 1 <= value <= 30000)
-            or (kind == "region" and _zoom_region(cast(object, value)))
+            or (kind == "region" and _zoom_region(value))
             or (
                 kind == "wait_text"
                 and isinstance(value, str)
@@ -1242,7 +1242,7 @@ def _read_refused(call: ResponseFunctionToolCall) -> _BrowserResult:
 def _check_method_flavor(driver: object, member: str, *, asynchronous: bool) -> None:
     method = inspect.getattr_static(driver, member, None)
     if isinstance(method, (classmethod, staticmethod)):
-        method = cast(Callable[..., object], method.__func__)  # pyright: ignore[reportUnknownMemberType]
+        method = method.__func__
     # A dynamic property cannot be classified without invoking user code.
     if callable(method):
         _check_callable_flavor(method, member, asynchronous=asynchronous)

@@ -1085,7 +1085,8 @@ class _Run:
         if eager and not stream:
             raise ValueError("Eager execution requires streaming.")
         if (
-            params.get("stream")
+            # Reject stream=True from untyped callers; select streaming through run(), not params.
+            params.get("stream")  # ty: ignore[redundant-condition]
             or params.get("background")
             or params.get("conversation") is not None
             or params.get("previous_response_id") is not None
@@ -2073,7 +2074,8 @@ class ResponsesToolRunner:
                                         if pool is None:
                                             pool = ThreadPoolExecutor(max_workers=max_concurrent_calls)
                                         jobs.append(
-                                            (item, pool.submit(copy_context().run, self._execute_function, run, item))
+                                            # Context.run forwards the callable result, which is FunctionCallOutput here.
+                                            (item, pool.submit(copy_context().run, self._execute_function, run, item))  # ty: ignore[invalid-argument-type]
                                         )
                                         if len(jobs) == max_concurrent_calls:
                                             settle()

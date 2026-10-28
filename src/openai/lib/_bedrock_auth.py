@@ -1,5 +1,3 @@
-# pyright: reportMissingTypeStubs=false
-
 from __future__ import annotations
 
 import os
@@ -27,10 +25,10 @@ _AWS_SIGNING_HEADERS = (
 
 def _load_botocore() -> tuple[Any, Any, Any, Any]:
     try:
-        from botocore.auth import SigV4Auth  # type: ignore[import-untyped]
-        from botocore.session import Session  # type: ignore[import-untyped]
-        from botocore.awsrequest import AWSRequest  # type: ignore[import-untyped]
-        from botocore.credentials import Credentials  # type: ignore[import-untyped]
+        from botocore.auth import SigV4Auth
+        from botocore.session import Session
+        from botocore.awsrequest import AWSRequest
+        from botocore.credentials import Credentials
     except ImportError as exc:
         raise OpenAIError(
             "Bedrock AWS authentication requires optional AWS dependencies. "

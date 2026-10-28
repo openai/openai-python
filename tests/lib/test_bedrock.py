@@ -14,6 +14,7 @@ from tests.utils import update_env
 from tests.respx2 import MockRouter
 from openai._types import Omit
 from openai.lib.bedrock import BedrockOpenAI, AsyncBedrockOpenAI
+from openai.types.responses import Response
 
 Client = Union[BedrockOpenAI, AsyncBedrockOpenAI]
 
@@ -317,7 +318,7 @@ def test_requires_refreshable_tokens_to_use_provider_option(client_cls: type[Cli
     with pytest.raises(OpenAIError, match="bedrock_token_provider"):
         client_cls(
             base_url="https://example.com/openai/v1",
-            api_key=lambda: "provider token",  # type: ignore[arg-type]
+            api_key=lambda: "provider token",  # ty: ignore[invalid-argument-type]
         )
 
 
@@ -555,7 +556,7 @@ def test_clearing_legacy_bearer_does_not_switch_to_aws_authentication() -> None:
             api_key="bearer token",
             http_client=httpx2.Client(transport=httpx2.MockTransport(handler), trust_env=False),
         )
-        client.api_key = None  # type: ignore[assignment]
+        client.api_key = None  # ty: ignore[invalid-assignment]
         with pytest.raises(OpenAIError, match="bearer credential must not be empty"):
             client.get("/models", cast_to=httpx2.Response)
 
@@ -1129,7 +1130,7 @@ def test_passes_responses_features_through(respx2_mock: MockRouter) -> None:
     response = client.responses.create(
         model="gpt-4o",
         input="hello",
-        tools=[{"type": "web_search_preview"}],  # type: ignore[list-item]
+        tools=[{"type": "web_search_preview"}],
     )
 
     assert response.id == "resp_123"
@@ -1241,10 +1242,14 @@ def test_allows_sse_and_response_wrappers(respx2_mock: MockRouter) -> None:
     assert [event.type for event in events] == ["response.created"]
 
     raw_response = client.responses.with_raw_response.create(model="gpt-4o", input="hello")
-    assert raw_response.parse().id == "resp_123"
+    parsed = raw_response.parse()
+    assert isinstance(parsed, Response)
+    assert parsed.id == "resp_123"
 
     with client.responses.with_streaming_response.create(model="gpt-4o", input="hello") as response:
-        assert response.parse().id == "resp_123"
+        parsed = response.parse()
+        assert isinstance(parsed, Response)
+        assert parsed.id == "resp_123"
 
 
 def test_does_not_guard_responses_connect() -> None:

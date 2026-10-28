@@ -4440,8 +4440,8 @@ def test_new_extras_cannot_publish_previously_locked_transitive_packages(
     base_edges: dict[tuple[str, str], list[dict[str, object]]] = {}
     head_edges: dict[tuple[str, str], list[dict[str, object]]] = {}
     parent_optional: dict[str, list[dict[str, object]]] = {"new-extra": [{"name": "existing-plugin"}]}
-    base_optional = {("parent", "1"): dict(parent_optional)}
-    head_optional = {("parent", "1"): dict(parent_optional)}
+    base_optional: dict[tuple[str, str], dict[str, list[dict[str, object]]]] = {("parent", "1"): dict(parent_optional)}
+    head_optional: dict[tuple[str, str], dict[str, list[dict[str, object]]]] = {("parent", "1"): dict(parent_optional)}
     constraints: list[str] | None = None
     markers: dict[tuple[str, str], list[str]] | None = None
 
@@ -5013,9 +5013,9 @@ def test_security_updates_preserve_bounded_disjunctive_requirement_markers(
 def test_security_floors_can_safely_split_existing_marked_resolution_domains(
     tmp_path: Path, variant: str, accepted: bool
 ) -> None:
-    original = "danger>=1,<3,!=2.0.*; python_version < '3.14'"
-    low = "danger>=1.6,<3,!=2.0.*; python_version >= '3.10' and python_version < '3.11'"
-    high = "danger>=2.6,<3,!=2.0.*; python_version >= '3.11' and python_version < '3.14'"
+    original: str = "danger>=1,<3,!=2.0.*; python_version < '3.14'"
+    low: str = "danger>=1.6,<3,!=2.0.*; python_version >= '3.10' and python_version < '3.11'"
+    high: str = "danger>=2.6,<3,!=2.0.*; python_version >= '3.11' and python_version < '3.14'"
     scope = variant if variant in {"optional", "constraint", "group"} else "runtime"
 
     if variant == "implicit-lower":
@@ -5039,11 +5039,13 @@ def test_security_floors_can_safely_split_existing_marked_resolution_domains(
         low = low.replace("danger>=", "danger[other]>=")
         high = high.replace("danger>=", "danger[other]>=")
 
-    replacements = [value for value in (low, high) if value]
-    base_requirements = [original] if scope == "runtime" else []
-    head_requirements = replacements if scope == "runtime" else []
-    base_optional = {"feature": [original]} if scope == "optional" or variant == "moved-group" else None
-    head_optional = (
+    replacements: list[str] = [value for value in (low, high) if value]
+    base_requirements: list[str] = [original] if scope == "runtime" else []
+    head_requirements: list[str] = replacements if scope == "runtime" else []
+    base_optional: dict[str, list[str]] | None = (
+        {"feature": [original]} if scope == "optional" or variant == "moved-group" else None
+    )
+    head_optional: dict[str, list[str]] | None = (
         {"different": replacements}
         if variant == "moved-group"
         else {"feature": replacements}
@@ -5052,10 +5054,10 @@ def test_security_floors_can_safely_split_existing_marked_resolution_domains(
     )
     if variant == "moved-group":
         base_requirements = head_requirements = []
-    base_constraints = [original] if scope == "constraint" else None
-    head_constraints = replacements if scope == "constraint" else None
-    base_groups = {"reviewed": [original]} if scope == "group" else None
-    head_groups = {"reviewed": replacements} if scope == "group" else None
+    base_constraints: list[str] | None = [original] if scope == "constraint" else None
+    head_constraints: list[str] | None = replacements if scope == "constraint" else None
+    base_groups: dict[str, list[str]] | None = {"reviewed": [original]} if scope == "group" else None
+    head_groups: dict[str, list[str]] | None = {"reviewed": replacements} if scope == "group" else None
     low_domain = "python_full_version >= '3.10' and python_full_version < '3.11'"
     high_domain = "python_full_version >= '3.11'"
     if scope in {"constraint", "group"}:

@@ -188,7 +188,7 @@ def parse_args() -> argparse.Namespace:
 def parse_tool_name(name: str) -> ToolName:
     if name not in {"get_sku_inventory", "get_supplier_eta", "get_quality_alerts"}:
         raise ValueError(f"Unsupported tool requested: {name}")
-    return cast(ToolName, name)
+    return name
 
 
 def parse_sku_arguments(raw_arguments: str) -> SKUArguments:

@@ -29,7 +29,7 @@ def main() -> None:
     # Legacy translation endpoint: shuts down February 26, 2027.
     # New integrations should use Realtime translations instead:
     # https://developers.openai.com/api/docs/deprecations
-    translation = openai.audio.translations.create(  # pyright: ignore[reportDeprecated]
+    translation = openai.audio.translations.create(  # ty: ignore[deprecated]
         model="whisper-1",
         file=speech_file_path,
     )

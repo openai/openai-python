@@ -19,7 +19,7 @@ class LazyProxy(Generic[T], ABC):
     def __getattr__(self, attr: str) -> object:
         proxied = self.__get_proxied__()
         if isinstance(proxied, LazyProxy):
-            return proxied  # pyright: ignore
+            return proxied
         return getattr(proxied, attr)
 
     @override
@@ -43,9 +43,9 @@ class LazyProxy(Generic[T], ABC):
             return []
         return proxied.__dir__()
 
-    @property  # type: ignore
+    @property
     @override
-    def __class__(self) -> type:  # pyright: ignore
+    def __class__(self) -> type:
         try:
             proxied = self.__get_proxied__()
         except Exception:

@@ -637,7 +637,7 @@ async def test_assistant_stream_error_callbacks_preserve_httpx2_family(error_typ
         http_client=openai.DefaultHttpx2Client(transport=httpx2.MockTransport(sync_response), trust_env=False),
         max_retries=0,
     ) as sync_client:
-        with sync_client.beta.threads.runs.stream(  # pyright: ignore[reportDeprecated]
+        with sync_client.beta.threads.runs.stream(
             assistant_id="asst_test", thread_id="thread_test", event_handler=sync_handler
         ) as stream:
             with pytest.raises(error_type, match="assistant stream failure"):
@@ -653,7 +653,7 @@ async def test_assistant_stream_error_callbacks_preserve_httpx2_family(error_typ
         http_client=openai.DefaultAsyncHttpx2Client(transport=httpx2.MockTransport(async_response), trust_env=False),
         max_retries=0,
     ) as async_client:
-        async with async_client.beta.threads.runs.stream(  # pyright: ignore[reportDeprecated]
+        async with async_client.beta.threads.runs.stream(
             assistant_id="asst_test", thread_id="thread_test", event_handler=async_handler
         ) as async_stream:
             with pytest.raises(error_type, match="assistant stream failure"):
@@ -745,7 +745,7 @@ async def test_assistant_stream_hook_api_errors_are_not_unwrapped(sync: bool, ti
             ),
             max_retries=0,
         ) as client:
-            with client.beta.threads.runs.stream(  # pyright: ignore[reportDeprecated]
+            with client.beta.threads.runs.stream(
                 assistant_id="asst_test",
                 thread_id="thread_test",
                 event_handler=handler,
@@ -770,7 +770,7 @@ async def test_assistant_stream_hook_api_errors_are_not_unwrapped(sync: bool, ti
             ),
             max_retries=0,
         ) as client:
-            async with client.beta.threads.runs.stream(  # pyright: ignore[reportDeprecated]
+            async with client.beta.threads.runs.stream(
                 assistant_id="asst_test",
                 thread_id="thread_test",
                 event_handler=handler,

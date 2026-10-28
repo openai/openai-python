@@ -22,11 +22,11 @@ def get_origin(tp: type[Any]) -> type[Any] | None:
 
 def is_union(tp: Optional[Type[Any]]) -> bool:
     if sys.version_info < (3, 10):
-        return tp is Union  # type: ignore[comparison-overlap]
+        return tp is Union
     else:
         import types
 
-        return tp is Union or tp is types.UnionType  # type: ignore[comparison-overlap]
+        return tp is Union or tp is types.UnionType
 
 
 def is_typeddict(tp: Type[Any]) -> bool:

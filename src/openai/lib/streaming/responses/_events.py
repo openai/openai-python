@@ -88,7 +88,7 @@ class ResponseFunctionCallArgumentsDeltaEvent(RawResponseFunctionCallArgumentsDe
 
 
 class ResponseCompletedEvent(RawResponseCompletedEvent, GenericModel, Generic[TextFormatT]):
-    response: ParsedResponse[TextFormatT]  # type: ignore[assignment]
+    response: ParsedResponse[TextFormatT]
 
 
 ResponseStreamEvent: TypeAlias = Annotated[

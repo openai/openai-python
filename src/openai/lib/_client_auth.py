@@ -139,7 +139,8 @@ def sync__init__(
             api_key = _sdk_client.os.environ.get("OPENAI_API_KEY")
         if callable(api_key):
             self.api_key = ""
-            self._api_key_provider = api_key
+            # Preserve callable-first handling, including callable str subclasses.
+            self._api_key_provider = api_key  # ty: ignore[invalid-assignment]
         else:
             self.api_key = api_key or ""
             self._api_key_provider = None
@@ -602,7 +603,8 @@ def async__init__(
             api_key = _sdk_client.os.environ.get("OPENAI_API_KEY")
         if callable(api_key):
             self.api_key = ""
-            self._api_key_provider = api_key
+            # Preserve callable-first handling, including callable str subclasses.
+            self._api_key_provider = api_key  # ty: ignore[invalid-assignment]
         else:
             self.api_key = api_key or ""
             self._api_key_provider = None
