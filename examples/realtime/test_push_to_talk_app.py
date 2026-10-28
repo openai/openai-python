@@ -45,9 +45,18 @@ def app_module(monkeypatch: pytest.MonkeyPatch) -> Any:
 
     class OutputStream:
         def __init__(self, callback: Any, **_kwargs: Any):
-            self.callback = callback
+            self._callback = callback
+            self.time = 0.0
             self.buffered = b""
             self.emitted = b""
+
+        def callback(self, out: Any, frames: int, timing: Any, status: Any) -> None:
+            if timing is None:
+                # The existing tests model immediately played callback audio.
+                start = self.time
+                self.time += frames / module_rate
+                timing = SimpleNamespace(outputBufferDacTime=start, currentTime=self.time)
+            self._callback(out, frames, timing, status)
 
         def start(self) -> None:
             pass
@@ -64,6 +73,7 @@ def app_module(monkeypatch: pytest.MonkeyPatch) -> Any:
             pass
 
     # Replace only audio device bindings; import the actual UI, player, and SDK.
+    module_rate = 24000
     device = ModuleType("sounddevice")
 
     def query_devices() -> dict[str, str]:
@@ -113,6 +123,7 @@ def test_finished_playback_does_not_accumulate(app_module: Any) -> None:
         player.stream.callback(out, 480, None, None)
     assert not player._played_by_item
     assert not player._finished_responses
+    assert not player._scheduled
     assert player.stop() == []
 
 
@@ -126,6 +137,131 @@ def test_interrupt_discards_device_buffered_audio(app_module: Any) -> None:
     assert not player.stream.buffered
 
 
+@pytest.mark.parametrize("at,expected_frames", [(0.99, 0), (1.01, 240), (1.03, None)])
+def test_final_device_buffer_remains_owned_until_dac_finishes(
+    app_module: Any, at: float, expected_frames: int | None
+) -> None:
+    module, _ = app_module
+    player = module.AudioPlayerAsync()
+    player.add_data(bytes(960), response_id="done", item_id="last", content_index=0)
+    player.stream.time = 0.98
+    player.stream.callback(
+        np.empty((480, 1), dtype=np.int16),
+        480,
+        SimpleNamespace(currentTime=0.98, outputBufferDacTime=1.0),
+        None,
+    )
+    player.finish_response("done")
+    player.stream.time = at
+    assert player.stop() == ([] if expected_frames is None else [(("done", "last", 0), expected_frames)])
+    assert not player._played_by_item
+    assert not player._finished_responses
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("stage", ["transcript-first", "done-dac-pending", "done-dac-played"])
+async def test_transcript_interruption_tracks_only_unheard_content(app_module: Any, stage: str) -> None:
+    module, _ = app_module
+    app = module.RealtimeApp()
+    status = SimpleNamespace(is_recording=False)
+    display: list[str] = []
+    sent: list[tuple[str, dict[str, Any]]] = []
+
+    class Log:
+        def clear(self) -> None:
+            display.clear()
+
+        def write(self, text: str) -> None:
+            display.append(text)
+
+    def query_one(*args: Any, **_kwargs: Any) -> Any:
+        return status if args[0] is module.AudioStatusIndicator else Log()
+
+    async def update(**_kwargs: Any) -> None:
+        pass
+
+    async def cancel(**kwargs: Any) -> None:
+        sent.append(("cancel", kwargs))
+
+    async def truncate(**kwargs: Any) -> None:
+        sent.append(("truncate", kwargs))
+
+    class Connection:
+        session = SimpleNamespace(update=update)
+        response = SimpleNamespace(cancel=cancel)
+        conversation = SimpleNamespace(item=SimpleNamespace(truncate=truncate))
+
+        async def __aenter__(self) -> Any:
+            return self
+
+        async def __aexit__(self, *_args: Any) -> None:
+            pass
+
+        async def __aiter__(self) -> Any:
+            yield SimpleNamespace(type="response.created", response=SimpleNamespace(id="r1"))
+            yield SimpleNamespace(
+                type="response.output_audio_transcript.delta",
+                response_id="r1",
+                item_id="only-text",
+                content_index=0,
+                delta="Unheard answer",
+            )
+            assert display == ["Unheard answer"]
+            if stage != "transcript-first":
+                yield SimpleNamespace(
+                    type="response.output_audio.delta",
+                    response_id="r1",
+                    item_id="only-text",
+                    content_index=0,
+                    delta=module.base64.b64encode(bytes(960)),
+                )
+                player = app.audio_player
+                player.stream.time = 0.98
+                player.stream.callback(
+                    np.empty((480, 1), dtype=np.int16),
+                    480,
+                    SimpleNamespace(currentTime=0.98, outputBufferDacTime=1.0),
+                    None,
+                )
+                yield SimpleNamespace(
+                    type="response.done",
+                    response=SimpleNamespace(id="r1", status="completed"),
+                )
+                if stage == "done-dac-played":
+                    player.stream.time = 1.03
+            await app.on_key(SimpleNamespace(key="k"))
+            await app.workers.wait_for_complete()
+            if stage == "done-dac-played":
+                assert display == ["Unheard answer"]
+                assert sent == []
+                return
+            assert display == ["Response interrupted."]
+            expected: list[tuple[str, dict[str, Any]]] = (
+                [("cancel", {"response_id": "r1"})] if stage == "transcript-first" else []
+            )
+            expected.append(("truncate", {"item_id": "only-text", "content_index": 0, "audio_end_ms": 0}))
+            assert sent == expected
+            if stage == "transcript-first":
+                yield SimpleNamespace(
+                    type="response.output_audio.delta",
+                    response_id="r1",
+                    item_id="only-text",
+                    content_index=0,
+                    delta="AAAAAAAAAAA=",
+                )
+            assert not app.audio_player.playing
+            assert sent == expected
+
+    app.query_one = query_one
+    client = app.client
+    app.client = SimpleNamespace(realtime=SimpleNamespace(connect=lambda **_: Connection()))
+    try:
+        await app._receive_realtime_events()
+    finally:
+        app._stop_mic_stream()
+        await client.close()
+
+
 @pytest.mark.asyncio
 @pytest.mark.parametrize("blocked", ["commit", "create"])
 @pytest.mark.parametrize("continuous", [False, True])
@@ -137,14 +273,11 @@ async def test_manual_send_backpressure_does_not_block_next_key_capture(
         # A real input device can always have another frame ready. This leaves
         # the sender contending for the lock when key release starts a commit.
         device = sys.modules["sounddevice"]
-        input_type = device.InputStream
 
-        class ContinuousInputStream(input_type):
-            @property
-            def read_available(self) -> int:
-                return 480
+        def read_available(_stream: Any) -> int:
+            return 480
 
-        monkeypatch.setattr(device, "InputStream", ContinuousInputStream)
+        monkeypatch.setattr(device.InputStream, "read_available", property(read_available))
     app = module.RealtimeApp()
     waiting = asyncio.Event()
     release = asyncio.Event()
@@ -265,7 +398,7 @@ async def test_capture_starts_before_blocked_cancel_but_sends_after(
         app.session = SimpleNamespace(audio=SimpleNamespace(input=SimpleNamespace(turn_detection=None)))
     app.connected.set()
     app._active_response_id = "response"
-    app._displayed_item_id = "assistant"
+    app._displayed_item = ("response", "assistant", 0)
     app.audio_player.add_data(bytes(1920), response_id="response", item_id="assistant", content_index=0)
     app.audio_player.stream.callback(np.empty((480, 1), dtype=np.int16), 480, None, None)
     mic = asyncio.create_task(app.send_mic_audio())
@@ -418,16 +551,28 @@ async def test_late_transcript_deltas_from_interrupted_response_do_not_replace_d
 
         async def __aiter__(self) -> Any:
             yield SimpleNamespace(
-                type="response.output_audio_transcript.delta", response_id="old", item_id="old", delta="first"
+                type="response.output_audio_transcript.delta",
+                response_id="old",
+                item_id="old",
+                content_index=0,
+                delta="first",
             )
             assert display == ["first"]
             app._interrupted_response_ids.add("old")
             yield SimpleNamespace(
-                type="response.output_audio_transcript.delta", response_id="old", item_id="old", delta="late"
+                type="response.output_audio_transcript.delta",
+                response_id="old",
+                item_id="old",
+                content_index=0,
+                delta="late",
             )
             assert display == ["first"]
             yield SimpleNamespace(
-                type="response.output_audio_transcript.delta", response_id="new", item_id="new", delta="new speech"
+                type="response.output_audio_transcript.delta",
+                response_id="new",
+                item_id="new",
+                content_index=0,
+                delta="new speech",
             )
             assert display == ["new speech"]
 
@@ -440,7 +585,7 @@ async def test_late_transcript_deltas_from_interrupted_response_do_not_replace_d
     app.client = SimpleNamespace(realtime=SimpleNamespace(connect=connect))
     try:
         await app._receive_realtime_events()
-        assert app._displayed_item_id == "new"
+        assert app._displayed_item == ("new", "new", 0)
     finally:
         await original_client.close()
 
@@ -515,6 +660,7 @@ async def test_response_created_while_recording_before_or_after_first_append(
                 type="response.output_audio_transcript.delta",
                 response_id="response",
                 item_id="item",
+                content_index=0,
                 delta="a response",
             )
             if new_audio_sent:

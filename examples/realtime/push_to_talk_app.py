@@ -142,7 +142,7 @@ class RealtimeApp(App[None]):
         self.client = AsyncOpenAI()
         self.audio_player = AudioPlayerAsync()
         self._active_response_id: str | None = None
-        self._displayed_item_id: str | None = None
+        self._displayed_item: tuple[str, str, int] | None = None
         self._interrupted_response_ids: set[str] = set()
         self.should_send_audio = asyncio.Event()
         self._mic_send_lock = asyncio.Lock()
@@ -266,7 +266,8 @@ class RealtimeApp(App[None]):
                     bottom_pane = self.query_one("#bottom-pane", RichLog)
                     bottom_pane.clear()
                     bottom_pane.write(acc_items[event.item_id])
-                    self._displayed_item_id = event.item_id
+                    self.audio_player.note_transcript(event.response_id, event.item_id, event.content_index)
+                    self._displayed_item = (event.response_id, event.item_id, event.content_index)
                     continue
 
     async def _get_connection(self) -> AsyncRealtimeConnection:
@@ -357,19 +358,14 @@ class RealtimeApp(App[None]):
                 status_indicator.is_recording = True
                 response_id = self._active_response_id
                 self._active_response_id = None
-                unheard = (
-                    self.audio_player.stop(interrupted_response_id=response_id) if self.audio_player.playing else []
-                )
+                unheard = self.audio_player.stop(interrupted_response_id=response_id)
                 if response_id is not None:
                     self._interrupted_response_ids.add(response_id)
-                if any(
-                    item_id == self._displayed_item_id and content_index == 0
-                    for (_, item_id, content_index), _ in unheard
-                ):
+                if any(key == self._displayed_item for key, _ in unheard):
                     bottom_pane = self.query_one("#bottom-pane", RichLog)
                     bottom_pane.clear()
                     bottom_pane.write("Response interrupted.")
-                    self._displayed_item_id = None
+                    self._displayed_item = None
                 # Queue ordering work before waking the mic sender. Textual owns
                 # worker cancellation on exit; no WebSocket writes hold the UI.
                 if response_id is not None or unheard:

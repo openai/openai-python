@@ -44,11 +44,15 @@ class AudioPlayerAsync:
         self.playing = False
         self._frame_count = 0
         self._played_by_item: dict[tuple[str, str, int], int] = {}
-        self._last_played_item: tuple[str, str, int] | None = None
+        # Item, scheduled DAC time, frames submitted before this span, span length.
+        self._scheduled: list[tuple[tuple[str, str, int], float, int, int]] = []
         self._finished_responses: set[str] = set()
 
     def callback(self, outdata, frames, time, status):  # noqa
         with self.lock:
+            if not self.playing:
+                outdata.fill(0)
+                return
             data = np.empty(0, dtype=np.int16)
 
             # get next item from queue if there is still space in the buffer
@@ -56,14 +60,17 @@ class AudioPlayerAsync:
                 item, item_key = self.queue.pop(0)
                 frames_needed = frames - len(data)
                 played = item[:frames_needed]
+                before = self._played_by_item.get(item_key, 0)
+                self._scheduled.append(
+                    (item_key, time.outputBufferDacTime + len(data) / SAMPLE_RATE, before, len(played))
+                )
                 data = np.concatenate((data, played))
-                self._played_by_item[item_key] = self._played_by_item.get(item_key, 0) + len(played)
-                self._last_played_item = item_key
+                self._played_by_item[item_key] = before + len(played)
                 if len(item) > frames_needed:
                     self.queue.insert(0, (item[frames_needed:], item_key))
 
             self._frame_count += len(data)
-            self._discard_finished_counts()
+            self._discard_finished_counts(time.currentTime)
 
             # fill the rest of the frames with zeros if there is no more data
             if len(data) < frames:
@@ -77,14 +84,20 @@ class AudioPlayerAsync:
     def finish_response(self, response_id: str):
         with self.lock:
             self._finished_responses.add(response_id)
-            self._discard_finished_counts()
+            self._discard_finished_counts(self.stream.time)
 
-    def _discard_finished_counts(self):
+    def _discard_finished_counts(self, now: float):
+        self._scheduled = [span for span in self._scheduled if span[1] + span[3] / SAMPLE_RATE > now]
         pending = {key for _, key in self.queue}
+        pending.update(key for key, _, _, _ in self._scheduled)
         for key in list(self._played_by_item):
             if key[0] in self._finished_responses and key not in pending:
                 del self._played_by_item[key]
         self._finished_responses.intersection_update(key[0] for key in pending)
+
+    def note_transcript(self, response_id: str, item_id: str, content_index: int):
+        with self.lock:
+            self._played_by_item.setdefault((response_id, item_id, content_index), 0)
 
     def add_data(self, data: bytes, *, response_id: str, item_id: str, content_index: int):
         with self.lock:
@@ -99,20 +112,28 @@ class AudioPlayerAsync:
         self.stream.start()
 
     def stop(self, *, interrupted_response_id: str | None = None):
-        self.playing = False
-        self.stream.abort()
         with self.lock:
-            # Stop the callback first so these counts cannot advance during interruption.
+            # PortAudio supplies both times on the same clock. Exclude later callbacks
+            # before aborting; abort must not hold the lock a callback may be waiting on.
+            now = self.stream.time
+            was_playing = self.playing
+            self.playing = False
+            self._discard_finished_counts(now)
             pending = dict.fromkeys(key for _, key in self.queue)
-            if self._last_played_item is not None and self._last_played_item[0] == interrupted_response_id:
-                pending[self._last_played_item] = None
-            unheard = [(key, self._played_by_item.get(key, 0)) for key in pending]
+            pending.update(dict.fromkeys(key for key, _, _, _ in self._scheduled))
+            pending.update(dict.fromkeys(key for key in self._played_by_item if key[0] == interrupted_response_id))
+            heard = {key: self._played_by_item.get(key, 0) for key in pending}
+            for key, start, before, frames in self._scheduled:
+                played = max(0, min(frames, int((now - start) * SAMPLE_RATE)))
+                heard[key] = min(heard[key], before + played)
             self.queue = []
             self._played_by_item.clear()
+            self._scheduled.clear()
             self._finished_responses.clear()
-            self._last_played_item = None
             self._frame_count = 0
-        return unheard
+        if was_playing:
+            self.stream.abort()
+        return list(heard.items())
 
     def terminate(self):
         self.stream.close()
