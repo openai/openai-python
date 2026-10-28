@@ -261,6 +261,7 @@ class TestSessions:
             after="after",
             agent_id="agent_id",
             limit=1,
+            metadata={"foo": "string"},
             order="asc",
         )
         assert_matches_type(SyncCursorPage[AgentSession], session, path=["response"])
@@ -572,6 +573,7 @@ class TestAsyncSessions:
             after="after",
             agent_id="agent_id",
             limit=1,
+            metadata={"foo": "string"},
             order="asc",
         )
         assert_matches_type(AsyncCursorPage[AgentSession], session, path=["response"])

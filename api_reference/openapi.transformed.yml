@@ -33173,6 +33173,24 @@ paths:
           minLength: 0
           maxLength: 1048576
         description: Only return sessions whose root agent has this ID. Omit to return sessions for all agents.
+      - name: metadata
+        in: query
+        required: false
+        schema:
+          type: object
+          additionalProperties:
+            type: string
+            minLength: 0
+            maxLength: 512
+          propertyNames:
+            type: string
+            minLength: 1
+            maxLength: 64
+          minProperties: 0
+          maxProperties: 16
+        description: Exact string matches supplied as `metadata[key]=value`. All supplied pairs must match. Up to 16 pairs, with keys from 1 to 64 characters and values up to 512 characters. New sessions and metadata updates may take time to appear in filtered results.
+        style: deepObject
+        explode: true
       responses:
         '200':
           description: A page of sessions.

@@ -379,6 +379,7 @@ class Sessions(SyncAPIResource):
         after: str | Omit = omit,
         agent_id: str | Omit = omit,
         limit: int | Omit = omit,
+        metadata: Dict[str, str] | Omit = omit,
         order: Literal["asc", "desc"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -399,6 +400,11 @@ class Sessions(SyncAPIResource):
               all agents.
 
           limit: The maximum number of resources to return, between 1 and 100. Defaults to 20.
+
+          metadata: Exact string matches supplied as `metadata[key]=value`. All supplied pairs must
+              match. Up to 16 pairs, with keys from 1 to 64 characters and values up to 512
+              characters. New sessions and metadata updates may take time to appear in
+              filtered results.
 
           order: The order in which resources are returned. Defaults to `desc`.
 
@@ -427,6 +433,7 @@ class Sessions(SyncAPIResource):
                         "after": after,
                         "agent_id": agent_id,
                         "limit": limit,
+                        "metadata": metadata,
                         "order": order,
                     },
                     session_list_params.SessionListParams,
@@ -781,6 +788,7 @@ class AsyncSessions(AsyncAPIResource):
         after: str | Omit = omit,
         agent_id: str | Omit = omit,
         limit: int | Omit = omit,
+        metadata: Dict[str, str] | Omit = omit,
         order: Literal["asc", "desc"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -801,6 +809,11 @@ class AsyncSessions(AsyncAPIResource):
               all agents.
 
           limit: The maximum number of resources to return, between 1 and 100. Defaults to 20.
+
+          metadata: Exact string matches supplied as `metadata[key]=value`. All supplied pairs must
+              match. Up to 16 pairs, with keys from 1 to 64 characters and values up to 512
+              characters. New sessions and metadata updates may take time to appear in
+              filtered results.
 
           order: The order in which resources are returned. Defaults to `desc`.
 
@@ -829,6 +842,7 @@ class AsyncSessions(AsyncAPIResource):
                         "after": after,
                         "agent_id": agent_id,
                         "limit": limit,
+                        "metadata": metadata,
                         "order": order,
                     },
                     session_list_params.SessionListParams,
