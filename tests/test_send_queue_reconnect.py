@@ -136,7 +136,7 @@ def test_reconnect_retries_bounded_send_queue(
     ws = MagicMock()
     attempts = 0
 
-    def failing_send(data: str) -> None:
+    def failing_send(data: str | bytes) -> None:
         nonlocal attempts
         assert data == ("b" if attempts == 1 else "aaa")
         if attempts == 0:
@@ -167,7 +167,7 @@ def test_reconnect_retries_bounded_send_queue(
     ws.recv.return_value = '{"type": "response.created"}'
     connection.recv()
 
-    sent: list[str] = []
+    sent: list[str | bytes] = []
     ws.send.side_effect = sent.append
     assert connection._reconnect(RuntimeError("fake disconnect"))
     assert sent == []
@@ -191,7 +191,7 @@ async def test_async_reconnect_retries_bounded_send_queue(
     ws = MagicMock()
     attempts = 0
 
-    async def failing_send(data: str) -> None:
+    async def failing_send(data: str | bytes) -> None:
         nonlocal attempts
         assert data == ("b" if attempts == 1 else "aaa")
         if attempts == 0:
@@ -222,7 +222,7 @@ async def test_async_reconnect_retries_bounded_send_queue(
     ws.recv = AsyncMock(return_value='{"type": "response.created"}')
     await connection.recv()
 
-    sent: list[str] = []
+    sent: list[str | bytes] = []
     ws.send.side_effect = sent.append
     assert await connection._reconnect(RuntimeError("fake disconnect"))
     assert sent == []
@@ -247,7 +247,7 @@ async def test_cancelled_flush_does_not_replay_active_send(
     active = asyncio.Event()
     socket = MagicMock()
 
-    async def suspended_send(data: str) -> None:
+    async def suspended_send(data: str | bytes) -> None:
         assert data == "é"
         active.set()
         await asyncio.Event().wait()
@@ -268,7 +268,7 @@ async def test_cancelled_flush_does_not_replay_active_send(
     # Only the active send was attempted; its bytes are released, and the
     # queued tail and concurrent enqueue remain in order for the next socket.
     q.enqueue("dd")
-    sent: list[str] = []
+    sent: list[str | bytes] = []
     socket.send.side_effect = sent.append
     await connection._flush_send_queue()
     assert sent == ["b", "c", "dd"]

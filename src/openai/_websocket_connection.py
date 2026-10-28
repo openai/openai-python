@@ -51,8 +51,7 @@ class WebSocketConnectionBase:
 
     def send_raw(self, data: bytes | str) -> None:
         if self._is_reconnecting:
-            raw = data if isinstance(data, str) else data.decode("utf-8")
-            self._send_queue.enqueue(raw)
+            self._send_queue.enqueue(data)
             return
         self._connection.send(data)
 
@@ -206,8 +205,7 @@ class AsyncWebSocketConnectionBase:
 
     async def send_raw(self, data: bytes | str) -> None:
         if self._is_reconnecting:
-            raw = data if isinstance(data, str) else data.decode("utf-8")
-            self._send_queue.enqueue(raw)
+            self._send_queue.enqueue(data)
             return
         await self._connection.send(data)
 
@@ -306,7 +304,7 @@ class AsyncWebSocketConnectionBase:
     async def _flush_send_queue(self) -> None:
         """Send all queued messages over the current connection."""
 
-        async def _send(data: str) -> None:
+        async def _send(data: str | bytes) -> None:
             await self._connection.send(data)
 
         try:
