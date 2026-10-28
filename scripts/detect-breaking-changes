@@ -3,7 +3,28 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
+base=$(git rev-parse --verify --end-of-options "${1:?expected a base revision}^{commit}")
 
-# Repository development uses ty. Compare unchanged callers with Pyright to
-# detect new consumer errors without failing on existing fixture diagnostics.
-uv run --locked --all-extras python scripts/check-consumer-compatibility.py "$1"
+# Keep today's callers Pyright-clean before they become tomorrow's baseline.
+echo '==> Checking current callers against the candidate SDK'
+uv run --locked --all-extras scripts/run-pyright
+
+# If the tests are identical, the first run already checked the base callers.
+# A change confined to tests and this script has no new SDK to compare.
+test_changes=$(git diff --name-only "$base" -- tests)
+other_changes=$(git diff --name-only "$base" -- . ':(exclude)tests' ':(exclude)scripts/detect-breaking-changes')
+if [[ -z "$test_changes" || -z "$other_changes" ]]; then
+    exit 0
+fi
+
+# Check the complete base test tree, including its helpers, against today's
+# src and checker configuration. Leave the working tree and Git index intact.
+echo '==> Checking previous callers against the candidate SDK'
+snapshot=$(mktemp -d)
+trap 'rm -rf -- "$snapshot"' EXIT
+git archive "$base" tests | tar -x -C "$snapshot"
+ln -s "$PWD/src" "$snapshot/src"
+mkdir "$snapshot/scripts"
+config=scripts/pyrightconfig.breaking-changes.json
+cp "$config" "$snapshot/$config"
+PYRIGHT_PROJECT="$snapshot/$config" uv run --locked --all-extras scripts/run-pyright

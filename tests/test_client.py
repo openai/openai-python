@@ -1120,8 +1120,8 @@ class TestOpenAI:
     @pytest.mark.parametrize("client", [False], indirect=True)
     def test_bare_container_response(self, respx2_mock: MockRouter, client: OpenAI) -> None:
         class Model(BaseModel):
-            metadata: dict
-            items: list
+            metadata: dict  # pyright: ignore[reportMissingTypeArgument]
+            items: list  # pyright: ignore[reportMissingTypeArgument]
 
         data = {"metadata": {"key": "value"}, "items": [1, "two"]}
         respx2_mock.get("/foo").mock(return_value=httpx2.Response(200, json=data))
@@ -2510,8 +2510,8 @@ class TestAsyncOpenAI:
     @pytest.mark.parametrize("async_client", [False], indirect=True)
     async def test_bare_container_response(self, respx2_mock: MockRouter, async_client: AsyncOpenAI) -> None:
         class Model(BaseModel):
-            metadata: dict
-            items: list
+            metadata: dict  # pyright: ignore[reportMissingTypeArgument]
+            items: list  # pyright: ignore[reportMissingTypeArgument]
 
         data = {"metadata": {"key": "value"}, "items": [1, "two"]}
         respx2_mock.get("/foo").mock(return_value=httpx2.Response(200, json=data))

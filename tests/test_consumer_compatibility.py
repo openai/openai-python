@@ -1,43 +1,57 @@
 from __future__ import annotations
 
-import json
-import runpy
+import os
+import shutil
 import subprocess
 from pathlib import Path
 
 import pytest
 
-SCRIPT = Path(__file__).resolve().parents[1] / "scripts/check-consumer-compatibility.py"
 
+@pytest.mark.skipif(os.name != "posix", reason="The compatibility gate runs in Bash on CI")
+@pytest.mark.parametrize("also_change", [None, "src/model.py", "pyproject.toml"])
+def test_compatibility_gate_selects_callers(tmp_path: Path, also_change: str | None) -> None:
+    scripts = tmp_path / "scripts"
+    scripts.mkdir()
+    gate = scripts / "detect-breaking-changes"
+    shutil.copy(Path(__file__).resolve().parents[1] / "scripts" / gate.name, gate)
+    (scripts / "pyrightconfig.breaking-changes.json").write_text("{}")
+    (tmp_path / "tests").mkdir()
+    (tmp_path / "src").mkdir()
+    (tmp_path / "src/model.py").write_text("original SDK\n")
+    caller = tmp_path / "tests/caller.py"
+    caller.write_text("previous caller\n")
 
-@pytest.mark.parametrize("change", ["none", "message", "location", "duplicate"])
-def test_existing_diagnostics_do_not_hide_new_errors(tmp_path: Path, change: str) -> None:
-    detector = runpy.run_path(str(SCRIPT))
-    original = {
-        "file": str(tmp_path / "consumer.py"),
-        "range": {"start": {"line": 3, "character": 0}, "end": {"line": 3, "character": 10}},
-        "severity": "error",
-        "rule": "reportMissingTypeArgument",
-        "message": 'Expected type arguments for generic class "dict"',
-    }
-    changed = dict(original)
-    if change == "message":
-        changed["message"] = 'Expected type arguments for generic class "Model"'
-    elif change == "location":
-        changed["file"] = str(tmp_path / "another_consumer.py")
-    candidate = [original, changed] if change == "duplicate" else [changed]
-    assert detector["new_errors"]([original], candidate, tmp_path) == ([] if change == "none" else [changed])
+    # Record the checker inputs to exercise the real Git and snapshot routing.
+    uv = tmp_path / "uv"
+    uv.write_text(
+        "#!/bin/sh\nset -eu\nconfig=${PYRIGHT_PROJECT:-scripts/pyrightconfig.breaking-changes.json}\n"
+        'root=$(dirname "$config")/..\ncat "$root/tests/caller.py" "$root/src/model.py"\n'
+    )
+    uv.chmod(0o755)
+    subprocess.run(["git", "init", "--quiet"], cwd=tmp_path, check=True)
+    subprocess.run(["git", "add", "."], cwd=tmp_path, check=True)
+    subprocess.run(
+        ["git", "-c", "user.name=Test", "-c", "user.email=test@example.org", "commit", "--no-gpg-sign", "-qm", "base"],
+        cwd=tmp_path,
+        check=True,
+    )
 
-
-@pytest.mark.parametrize("failure", ["crash", "invalid_json", "no_files", "missing_errors"])
-def test_checker_failures_cannot_pass_the_gate(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, failure: str) -> None:
-    detector = runpy.run_path(str(SCRIPT))
-    output = json.dumps({"generalDiagnostics": [], "summary": {"filesAnalyzed": 0, "errorCount": 0}})
-    if failure == "invalid_json":
-        output = "not JSON"
-    elif failure == "missing_errors":
-        output = json.dumps({"generalDiagnostics": [], "summary": {"filesAnalyzed": 1, "errorCount": 1}})
-    result = subprocess.CompletedProcess([], 2 if failure == "crash" else 0, stdout=output, stderr="")
-    monkeypatch.setattr(subprocess, "run", lambda *_args, **_kwargs: result)
-    with pytest.raises((RuntimeError, ValueError)):
-        detector["check"](tmp_path)
+    caller.write_text("current caller\n")
+    if also_change is not None:
+        (tmp_path / also_change).write_text("changed input\n")
+        subprocess.run(["git", "add", also_change], cwd=tmp_path, check=True)
+    result = subprocess.run(
+        [str(gate), "HEAD"],
+        cwd=tmp_path,
+        env={**os.environ, "PATH": f"{tmp_path}{os.pathsep}{os.environ['PATH']}"},
+        text=True,
+        capture_output=True,
+        check=True,
+    )
+    sdk = "changed input" if also_change == "src/model.py" else "original SDK"
+    expected = ["current caller", sdk]
+    if also_change is not None:
+        expected.extend(["previous caller", sdk])
+    assert [line for line in result.stdout.splitlines() if not line.startswith("==>")] == expected
+    assert caller.read_text() == "current caller\n"
