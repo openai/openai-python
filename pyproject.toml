@@ -54,7 +54,7 @@ vertex = ["google-auth[requests]>=2.36,<3"]
 
 [dependency-groups]
 dev = [
-    "mypy==2.3.1",
+    "ty==0.0.87",
     "pytest>=9.0.3",
     "pytest-asyncio>=1.4.0",
     "Pillow==12.3.0",
@@ -137,7 +137,6 @@ include = [
   "/.node-version",
   "/pnpm-lock.yaml",
   "/pnpm-workspace.yaml",
-  "/mypy.ini",
   "bin/*",
   "examples/*",
   "scripts/*",
@@ -161,115 +160,55 @@ filterwarnings = [
 [tool.inline-snapshot]
 format-command="ruff format --stdin-filename {filename}"
 
-[tool.pyright]
-# this enables practically every flag given by pyright.
-# there are a couple of flags that are still disabled by
-# default in strict mode as they are experimental and niche.
-typeCheckingMode = "strict"
-pythonVersion = "3.10"
+# Repository checks use ty; published annotations remain checker-independent.
+[tool.ty.environment]
+python-version = "3.10"
 
+[tool.ty.src]
 exclude = [
     "examples/browser/",
     "examples/browser-use-demo/",
     "examples/computer-desktop/",
-    "_dev",
-    "node_modules",
-    ".pnpm-store",
-    ".venv",
-    ".venv-pydantic-v1",
-    # Contributors may still have an environment from before the uv migration.
-    ".nox",
-    ".git",
-    "tests/respx2",
-    "src/openai/_vendor",
-    # Loaded in Hatchling's isolated build environment.
-    "scripts/hatch_metadata.py",
-
-    # uses inline `uv` script dependencies
-    # which means it can't be type checked
-    "examples/realtime/audio_util.py",
-    "examples/realtime/push_to_talk_app.py",
+    "_dev", "node_modules", ".pnpm-store", ".venv", ".venv-pydantic-v1", ".nox",
+    "tests/respx2", "src/openai/_vendor", "scripts/hatch_metadata.py",
+    "examples/realtime/audio_util.py", "examples/realtime/push_to_talk_app.py",
 ]
 
-reportImplicitOverride = true
-reportOverlappingOverload = false
+[tool.ty.rules]
+unused-type-ignore-comment = "error"
+unused-ignore-comment = "error"
+redundant-cast = "error"
 
-reportImportCycles = false
-reportPrivateUsage = false
+[[tool.ty.overrides]]
+include = ["tests/test_lazy_imports.py"]
+[tool.ty.overrides.rules]
+# Reexports retain callable/class subtypes that assert_type cannot spell exactly.
+assert-type-unspellable-subtype = "ignore"
 
-[tool.mypy]
-pretty = true
-show_error_codes = true
-
-# Exclude _files.py because mypy isn't smart enough to apply
-# the correct type narrowing and as this is an internal module
-# it's fine to just use Pyright.
-#
-# We also exclude our `tests` as mypy doesn't always infer
-# types correctly and Pyright will still catch any type errors.
-#
-# realtime examples use inline `uv` script dependencies
-# which means it can't be type checked
-exclude = [
-    'examples/browser/',
-    'examples/browser-use-demo/',
-    'examples/computer-desktop/',
-  'src/openai/_files.py',
-  'node_modules/.*',
-  '\.pnpm-store/.*',
-  'src/openai/_vendor/.*',
-  'scripts/hatch_metadata.py',
-  '_dev/.*.py',
-  'tests/.*',
-  'src/openai/_utils/_logs.py',
-  'examples/realtime/audio_util.py',
-  'examples/realtime/push_to_talk_app.py',
-  # Optional Playwright examples are checked with their separate dependency environment.
+[[tool.ty.overrides]]
+include = [
+    "src/openai/_exceptions.py",
+    "src/openai/lib/streaming/responses/_events.py",
+    "src/openai/types/chat/parsed_chat_completion.py",
+    "src/openai/types/chat/parsed_function_tool_call.py",
+    "src/openai/types/evals/runs/output_item_list_response.py",
+    "src/openai/types/evals/runs/output_item_retrieve_response.py",
+    "tests/test_models.py",
 ]
+[tool.ty.overrides.rules]
+# These Pydantic models and HTTP exceptions intentionally narrow mutable fields.
+# Preserve their existing contract without suppressing unrelated overrides.
+invalid-mutable-override = "ignore"
 
-strict_equality = true
-implicit_reexport = true
-check_untyped_defs = true
-no_implicit_optional = true
+[[tool.ty.overrides]]
+include = [
+    "tests/**", "src/openai/resources/**",
+    "src/openai/lib/_assistants_*.py",
+]
+[tool.ty.overrides.rules]
+# Tests exercise deprecated entrypoints; their implementations and reexports must remain available.
+deprecated = "ignore"
 
-warn_return_any = true
-warn_unreachable = true
-warn_unused_configs = true
-
-# Turn these options off as it could cause conflicts
-# with the Pyright options.
-warn_unused_ignores = false
-warn_redundant_casts = false
-
-disallow_any_generics = true
-disallow_untyped_defs = true
-disallow_untyped_calls = true
-disallow_subclassing_any = true
-disallow_incomplete_defs = true
-disallow_untyped_decorators = true
-cache_fine_grained = true
-
-# By default, mypy reports an error if you assign a value to the result
-# of a function call that doesn't return anything. We do this in our test
-# cases:
-# ```
-# result = ...
-# assert result is None
-# ```
-# Changing this codegen to make mypy happy would increase complexity
-# and would not be worth it.
-disable_error_code = "func-returns-value,overload-cannot-match"
-
-# https://github.com/python/mypy/issues/12162
-[[tool.mypy.overrides]]
-module = "black.files.*"
-ignore_errors = true
-ignore_missing_imports = true
-
-# Preserve the existing _files.py exclusion when mypy follows its imports.
-[[tool.mypy.overrides]]
-module = "openai._files"
-follow_imports = "silent"
 
 [tool.ruff]
 extend-exclude = ["tests/respx2", "src/openai/_vendor"]

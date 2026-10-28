@@ -577,7 +577,7 @@ class Videos(SyncAPIResource):
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Video:
         "Create a video and wait for it to be processed."
-        video = self.create(  # pyright: ignore[reportDeprecated]
+        video = self.create(
             model=model,
             prompt=prompt,
             input_reference=input_reference,
@@ -589,7 +589,7 @@ class Videos(SyncAPIResource):
             timeout=timeout,
         )
 
-        return self.poll(  # pyright: ignore[reportDeprecated]
+        return self.poll(
             video.id,
             poll_interval_ms=poll_interval_ms,
         )
@@ -607,7 +607,7 @@ class Videos(SyncAPIResource):
             headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
 
         while True:
-            response = self.with_raw_response.retrieve(  # pyright: ignore[reportDeprecated]
+            response = self.with_raw_response.retrieve(
                 video_id,
                 extra_headers=headers,
             )
@@ -625,7 +625,7 @@ class Videos(SyncAPIResource):
             elif video.status == "completed" or video.status == "failed":
                 return video
             else:
-                if TYPE_CHECKING:  # type: ignore[unreachable]
+                if TYPE_CHECKING:
                     assert_never(video.status)
                 else:
                     return video
@@ -1164,7 +1164,7 @@ class AsyncVideos(AsyncAPIResource):
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Video:
         "Create a video and wait for it to be processed."
-        video = await self.create(  # pyright: ignore[reportDeprecated]
+        video = await self.create(
             model=model,
             prompt=prompt,
             input_reference=input_reference,
@@ -1176,7 +1176,7 @@ class AsyncVideos(AsyncAPIResource):
             timeout=timeout,
         )
 
-        return await self.poll(  # pyright: ignore[reportDeprecated]
+        return await self.poll(
             video.id,
             poll_interval_ms=poll_interval_ms,
         )
@@ -1194,7 +1194,7 @@ class AsyncVideos(AsyncAPIResource):
             headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
 
         while True:
-            response = await self.with_raw_response.retrieve(  # pyright: ignore[reportDeprecated]
+            response = await self.with_raw_response.retrieve(
                 video_id,
                 extra_headers=headers,
             )
@@ -1212,7 +1212,7 @@ class AsyncVideos(AsyncAPIResource):
             elif video.status == "completed" or video.status == "failed":
                 return video
             else:
-                if TYPE_CHECKING:  # type: ignore[unreachable]
+                if TYPE_CHECKING:
                     assert_never(video.status)
                 else:
                     return video
@@ -1222,55 +1222,35 @@ class VideosWithRawResponse:
     def __init__(self, videos: Videos) -> None:
         self._videos = videos
 
-        self.create = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.to_raw_response_wrapper(
-                videos.create,  # pyright: ignore[reportDeprecated],
-            )
+        self.create = _legacy_response.to_raw_response_wrapper(
+            videos.create,
         )
-        self.retrieve = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.to_raw_response_wrapper(
-                videos.retrieve,  # pyright: ignore[reportDeprecated],
-            )
+        self.retrieve = _legacy_response.to_raw_response_wrapper(
+            videos.retrieve,
         )
-        self.list = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.to_raw_response_wrapper(
-                videos.list,  # pyright: ignore[reportDeprecated],
-            )
+        self.list = _legacy_response.to_raw_response_wrapper(
+            videos.list,
         )
-        self.delete = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.to_raw_response_wrapper(
-                videos.delete,  # pyright: ignore[reportDeprecated],
-            )
+        self.delete = _legacy_response.to_raw_response_wrapper(
+            videos.delete,
         )
-        self.create_character = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.to_raw_response_wrapper(
-                videos.create_character,  # pyright: ignore[reportDeprecated],
-            )
+        self.create_character = _legacy_response.to_raw_response_wrapper(
+            videos.create_character,
         )
-        self.download_content = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.to_raw_response_wrapper(
-                videos.download_content,  # pyright: ignore[reportDeprecated],
-            )
+        self.download_content = _legacy_response.to_raw_response_wrapper(
+            videos.download_content,
         )
-        self.edit = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.to_raw_response_wrapper(
-                videos.edit,  # pyright: ignore[reportDeprecated],
-            )
+        self.edit = _legacy_response.to_raw_response_wrapper(
+            videos.edit,
         )
-        self.extend = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.to_raw_response_wrapper(
-                videos.extend,  # pyright: ignore[reportDeprecated],
-            )
+        self.extend = _legacy_response.to_raw_response_wrapper(
+            videos.extend,
         )
-        self.get_character = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.to_raw_response_wrapper(
-                videos.get_character,  # pyright: ignore[reportDeprecated],
-            )
+        self.get_character = _legacy_response.to_raw_response_wrapper(
+            videos.get_character,
         )
-        self.remix = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.to_raw_response_wrapper(
-                videos.remix,  # pyright: ignore[reportDeprecated],
-            )
+        self.remix = _legacy_response.to_raw_response_wrapper(
+            videos.remix,
         )
 
 
@@ -1278,55 +1258,35 @@ class AsyncVideosWithRawResponse:
     def __init__(self, videos: AsyncVideos) -> None:
         self._videos = videos
 
-        self.create = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.async_to_raw_response_wrapper(
-                videos.create,  # pyright: ignore[reportDeprecated],
-            )
+        self.create = _legacy_response.async_to_raw_response_wrapper(
+            videos.create,
         )
-        self.retrieve = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.async_to_raw_response_wrapper(
-                videos.retrieve,  # pyright: ignore[reportDeprecated],
-            )
+        self.retrieve = _legacy_response.async_to_raw_response_wrapper(
+            videos.retrieve,
         )
-        self.list = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.async_to_raw_response_wrapper(
-                videos.list,  # pyright: ignore[reportDeprecated],
-            )
+        self.list = _legacy_response.async_to_raw_response_wrapper(
+            videos.list,
         )
-        self.delete = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.async_to_raw_response_wrapper(
-                videos.delete,  # pyright: ignore[reportDeprecated],
-            )
+        self.delete = _legacy_response.async_to_raw_response_wrapper(
+            videos.delete,
         )
-        self.create_character = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.async_to_raw_response_wrapper(
-                videos.create_character,  # pyright: ignore[reportDeprecated],
-            )
+        self.create_character = _legacy_response.async_to_raw_response_wrapper(
+            videos.create_character,
         )
-        self.download_content = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.async_to_raw_response_wrapper(
-                videos.download_content,  # pyright: ignore[reportDeprecated],
-            )
+        self.download_content = _legacy_response.async_to_raw_response_wrapper(
+            videos.download_content,
         )
-        self.edit = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.async_to_raw_response_wrapper(
-                videos.edit,  # pyright: ignore[reportDeprecated],
-            )
+        self.edit = _legacy_response.async_to_raw_response_wrapper(
+            videos.edit,
         )
-        self.extend = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.async_to_raw_response_wrapper(
-                videos.extend,  # pyright: ignore[reportDeprecated],
-            )
+        self.extend = _legacy_response.async_to_raw_response_wrapper(
+            videos.extend,
         )
-        self.get_character = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.async_to_raw_response_wrapper(
-                videos.get_character,  # pyright: ignore[reportDeprecated],
-            )
+        self.get_character = _legacy_response.async_to_raw_response_wrapper(
+            videos.get_character,
         )
-        self.remix = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.async_to_raw_response_wrapper(
-                videos.remix,  # pyright: ignore[reportDeprecated],
-            )
+        self.remix = _legacy_response.async_to_raw_response_wrapper(
+            videos.remix,
         )
 
 
@@ -1334,56 +1294,36 @@ class VideosWithStreamingResponse:
     def __init__(self, videos: Videos) -> None:
         self._videos = videos
 
-        self.create = (  # pyright: ignore[reportDeprecated]
-            to_streamed_response_wrapper(
-                videos.create,  # pyright: ignore[reportDeprecated],
-            )
+        self.create = to_streamed_response_wrapper(
+            videos.create,
         )
-        self.retrieve = (  # pyright: ignore[reportDeprecated]
-            to_streamed_response_wrapper(
-                videos.retrieve,  # pyright: ignore[reportDeprecated],
-            )
+        self.retrieve = to_streamed_response_wrapper(
+            videos.retrieve,
         )
-        self.list = (  # pyright: ignore[reportDeprecated]
-            to_streamed_response_wrapper(
-                videos.list,  # pyright: ignore[reportDeprecated],
-            )
+        self.list = to_streamed_response_wrapper(
+            videos.list,
         )
-        self.delete = (  # pyright: ignore[reportDeprecated]
-            to_streamed_response_wrapper(
-                videos.delete,  # pyright: ignore[reportDeprecated],
-            )
+        self.delete = to_streamed_response_wrapper(
+            videos.delete,
         )
-        self.create_character = (  # pyright: ignore[reportDeprecated]
-            to_streamed_response_wrapper(
-                videos.create_character,  # pyright: ignore[reportDeprecated],
-            )
+        self.create_character = to_streamed_response_wrapper(
+            videos.create_character,
         )
-        self.download_content = (  # pyright: ignore[reportDeprecated]
-            to_custom_streamed_response_wrapper(
-                videos.download_content,  # pyright: ignore[reportDeprecated],
-                StreamedBinaryAPIResponse,
-            )
+        self.download_content = to_custom_streamed_response_wrapper(
+            videos.download_content,
+            StreamedBinaryAPIResponse,
         )
-        self.edit = (  # pyright: ignore[reportDeprecated]
-            to_streamed_response_wrapper(
-                videos.edit,  # pyright: ignore[reportDeprecated],
-            )
+        self.edit = to_streamed_response_wrapper(
+            videos.edit,
         )
-        self.extend = (  # pyright: ignore[reportDeprecated]
-            to_streamed_response_wrapper(
-                videos.extend,  # pyright: ignore[reportDeprecated],
-            )
+        self.extend = to_streamed_response_wrapper(
+            videos.extend,
         )
-        self.get_character = (  # pyright: ignore[reportDeprecated]
-            to_streamed_response_wrapper(
-                videos.get_character,  # pyright: ignore[reportDeprecated],
-            )
+        self.get_character = to_streamed_response_wrapper(
+            videos.get_character,
         )
-        self.remix = (  # pyright: ignore[reportDeprecated]
-            to_streamed_response_wrapper(
-                videos.remix,  # pyright: ignore[reportDeprecated],
-            )
+        self.remix = to_streamed_response_wrapper(
+            videos.remix,
         )
 
 
@@ -1391,54 +1331,34 @@ class AsyncVideosWithStreamingResponse:
     def __init__(self, videos: AsyncVideos) -> None:
         self._videos = videos
 
-        self.create = (  # pyright: ignore[reportDeprecated]
-            async_to_streamed_response_wrapper(
-                videos.create,  # pyright: ignore[reportDeprecated],
-            )
+        self.create = async_to_streamed_response_wrapper(
+            videos.create,
         )
-        self.retrieve = (  # pyright: ignore[reportDeprecated]
-            async_to_streamed_response_wrapper(
-                videos.retrieve,  # pyright: ignore[reportDeprecated],
-            )
+        self.retrieve = async_to_streamed_response_wrapper(
+            videos.retrieve,
         )
-        self.list = (  # pyright: ignore[reportDeprecated]
-            async_to_streamed_response_wrapper(
-                videos.list,  # pyright: ignore[reportDeprecated],
-            )
+        self.list = async_to_streamed_response_wrapper(
+            videos.list,
         )
-        self.delete = (  # pyright: ignore[reportDeprecated]
-            async_to_streamed_response_wrapper(
-                videos.delete,  # pyright: ignore[reportDeprecated],
-            )
+        self.delete = async_to_streamed_response_wrapper(
+            videos.delete,
         )
-        self.create_character = (  # pyright: ignore[reportDeprecated]
-            async_to_streamed_response_wrapper(
-                videos.create_character,  # pyright: ignore[reportDeprecated],
-            )
+        self.create_character = async_to_streamed_response_wrapper(
+            videos.create_character,
         )
-        self.download_content = (  # pyright: ignore[reportDeprecated]
-            async_to_custom_streamed_response_wrapper(
-                videos.download_content,  # pyright: ignore[reportDeprecated],
-                AsyncStreamedBinaryAPIResponse,
-            )
+        self.download_content = async_to_custom_streamed_response_wrapper(
+            videos.download_content,
+            AsyncStreamedBinaryAPIResponse,
         )
-        self.edit = (  # pyright: ignore[reportDeprecated]
-            async_to_streamed_response_wrapper(
-                videos.edit,  # pyright: ignore[reportDeprecated],
-            )
+        self.edit = async_to_streamed_response_wrapper(
+            videos.edit,
         )
-        self.extend = (  # pyright: ignore[reportDeprecated]
-            async_to_streamed_response_wrapper(
-                videos.extend,  # pyright: ignore[reportDeprecated],
-            )
+        self.extend = async_to_streamed_response_wrapper(
+            videos.extend,
         )
-        self.get_character = (  # pyright: ignore[reportDeprecated]
-            async_to_streamed_response_wrapper(
-                videos.get_character,  # pyright: ignore[reportDeprecated],
-            )
+        self.get_character = async_to_streamed_response_wrapper(
+            videos.get_character,
         )
-        self.remix = (  # pyright: ignore[reportDeprecated]
-            async_to_streamed_response_wrapper(
-                videos.remix,  # pyright: ignore[reportDeprecated],
-            )
+        self.remix = async_to_streamed_response_wrapper(
+            videos.remix,
         )

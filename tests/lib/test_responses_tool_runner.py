@@ -483,7 +483,7 @@ async def test_function_allowed_callers_reject_before_local_execution(
             stream=stream,
             eager=eager,
             effects=effects,
-            function_tool=cast(FunctionToolParam, {**TOOL, **declaration}),
+            function_tool={**TOOL, **declaration},
         )
     assert effects == [] and len(requests) == 1
     assert error.value.attempted_call_ids == error.value.completed_call_ids == ()
@@ -516,7 +516,7 @@ async def test_function_allowed_callers_keep_native_selected_calls(
         stream=stream,
         eager=eager,
         effects=effects,
-        function_tool=cast(FunctionToolParam, {**TOOL, **declaration}),
+        function_tool={**TOOL, **declaration},
     )
     assert result.id == "resp_final" and effects == ["recorded"] and len(requests) == 2
     assert selected in requests[1]["input"]
@@ -3781,7 +3781,7 @@ async def test_ledger_non_json_and_request_overrides_fail_before_recording(lane:
                 [FINAL],
                 requests,
                 save=records.append,
-                params=cast(ResponseCreateParamsNonStreaming, {**PARAMS, **fields}),
+                params={**PARAMS, **fields},
             )
         assert records == requests == hooks == []
 
@@ -4633,8 +4633,9 @@ async def test_selective_cancellation_waits_for_held_owned_callback(kind: str, s
     }
     call = fn("browser_click", "held", target="button", tab_id=None) if kind == "browser" else native
     first = resp([call, fn("record", "last", text="never")], "r")
+    policy: EarlyExecution
     if side == "suffix":
-        policy: EarlyExecution = {}
+        policy = {}
     else:
         policy = {"functions": ["browser_click"]} if kind == "browser" else {"computer": True}
 

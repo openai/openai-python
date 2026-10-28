@@ -1,14 +1,14 @@
 #!/usr/bin/env -S uv run
-####################################################################
+
 # Sample TUI app with a push to talk interface to the Realtime API #
 # If you have `uv` installed and the `OPENAI_API_KEY`              #
 # environment variable set, you can run this example with just     #
-#                                                                  #
+
 # `./examples/realtime/push_to_talk_app.py`                        #
-#                                                                  #
+
 # On Mac, you'll also need `brew install portaudio ffmpeg`           #
-####################################################################
-#
+
+
 # /// script
 # requires-python = ">=3.10"
 # dependencies = [
@@ -363,7 +363,7 @@ class RealtimeApp(App[None]):
                 ):
                     # The default in the API is that the model will automatically detect when the user has
                     # stopped talking and then start responding itself.
-                    #
+
                     # However if we're in manual `turn_detection` mode then we need to
                     # manually tell the model to commit the audio buffer and start responding.
                     # Reserve the shared server buffer before the next K can send.
@@ -372,7 +372,7 @@ class RealtimeApp(App[None]):
                         partial(self._finish_manual_recording, self._recording), group="realtime-finalization"
                     )
             else:
-                import sounddevice as sd  # type: ignore
+                import sounddevice as sd
 
                 self._recording = Recording()
                 self._awaiting_new_input = True

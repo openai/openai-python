@@ -7,7 +7,7 @@ from .._utils import LazyProxy
 from ._common import MissingDependencyError, format_instructions
 
 if TYPE_CHECKING:
-    import sounddevice as sounddevice  # type: ignore
+    import sounddevice as sounddevice
 
 
 SOUNDDEVICE_INSTRUCTIONS = format_instructions(library="sounddevice", extra="voice_helpers")
@@ -17,7 +17,7 @@ class SounddeviceProxy(LazyProxy[Any]):
     @override
     def __load__(self) -> Any:
         try:
-            import sounddevice  # type: ignore
+            import sounddevice
         except ImportError as err:
             raise MissingDependencyError(SOUNDDEVICE_INSTRUCTIONS) from err
 

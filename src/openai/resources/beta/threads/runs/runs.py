@@ -3161,35 +3161,23 @@ class RunsWithRawResponse:
     def __init__(self, runs: Runs) -> None:
         self._runs = runs
 
-        self.create = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.to_raw_response_wrapper(
-                runs.create,  # pyright: ignore[reportDeprecated],
-            )
+        self.create = _legacy_response.to_raw_response_wrapper(
+            runs.create,
         )
-        self.retrieve = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.to_raw_response_wrapper(
-                runs.retrieve,  # pyright: ignore[reportDeprecated],
-            )
+        self.retrieve = _legacy_response.to_raw_response_wrapper(
+            runs.retrieve,
         )
-        self.update = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.to_raw_response_wrapper(
-                runs.update,  # pyright: ignore[reportDeprecated],
-            )
+        self.update = _legacy_response.to_raw_response_wrapper(
+            runs.update,
         )
-        self.list = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.to_raw_response_wrapper(
-                runs.list,  # pyright: ignore[reportDeprecated],
-            )
+        self.list = _legacy_response.to_raw_response_wrapper(
+            runs.list,
         )
-        self.cancel = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.to_raw_response_wrapper(
-                runs.cancel,  # pyright: ignore[reportDeprecated],
-            )
+        self.cancel = _legacy_response.to_raw_response_wrapper(
+            runs.cancel,
         )
-        self.submit_tool_outputs = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.to_raw_response_wrapper(
-                runs.submit_tool_outputs,  # pyright: ignore[reportDeprecated],
-            )
+        self.submit_tool_outputs = _legacy_response.to_raw_response_wrapper(
+            runs.submit_tool_outputs,
         )
 
     @cached_property
@@ -3202,35 +3190,23 @@ class AsyncRunsWithRawResponse:
     def __init__(self, runs: AsyncRuns) -> None:
         self._runs = runs
 
-        self.create = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.async_to_raw_response_wrapper(
-                runs.create,  # pyright: ignore[reportDeprecated],
-            )
+        self.create = _legacy_response.async_to_raw_response_wrapper(
+            runs.create,
         )
-        self.retrieve = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.async_to_raw_response_wrapper(
-                runs.retrieve,  # pyright: ignore[reportDeprecated],
-            )
+        self.retrieve = _legacy_response.async_to_raw_response_wrapper(
+            runs.retrieve,
         )
-        self.update = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.async_to_raw_response_wrapper(
-                runs.update,  # pyright: ignore[reportDeprecated],
-            )
+        self.update = _legacy_response.async_to_raw_response_wrapper(
+            runs.update,
         )
-        self.list = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.async_to_raw_response_wrapper(
-                runs.list,  # pyright: ignore[reportDeprecated],
-            )
+        self.list = _legacy_response.async_to_raw_response_wrapper(
+            runs.list,
         )
-        self.cancel = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.async_to_raw_response_wrapper(
-                runs.cancel,  # pyright: ignore[reportDeprecated],
-            )
+        self.cancel = _legacy_response.async_to_raw_response_wrapper(
+            runs.cancel,
         )
-        self.submit_tool_outputs = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.async_to_raw_response_wrapper(
-                runs.submit_tool_outputs,  # pyright: ignore[reportDeprecated],
-            )
+        self.submit_tool_outputs = _legacy_response.async_to_raw_response_wrapper(
+            runs.submit_tool_outputs,
         )
 
     @cached_property
@@ -3243,35 +3219,23 @@ class RunsWithStreamingResponse:
     def __init__(self, runs: Runs) -> None:
         self._runs = runs
 
-        self.create = (  # pyright: ignore[reportDeprecated]
-            to_streamed_response_wrapper(
-                runs.create,  # pyright: ignore[reportDeprecated],
-            )
+        self.create = to_streamed_response_wrapper(
+            runs.create,
         )
-        self.retrieve = (  # pyright: ignore[reportDeprecated]
-            to_streamed_response_wrapper(
-                runs.retrieve,  # pyright: ignore[reportDeprecated],
-            )
+        self.retrieve = to_streamed_response_wrapper(
+            runs.retrieve,
         )
-        self.update = (  # pyright: ignore[reportDeprecated]
-            to_streamed_response_wrapper(
-                runs.update,  # pyright: ignore[reportDeprecated],
-            )
+        self.update = to_streamed_response_wrapper(
+            runs.update,
         )
-        self.list = (  # pyright: ignore[reportDeprecated]
-            to_streamed_response_wrapper(
-                runs.list,  # pyright: ignore[reportDeprecated],
-            )
+        self.list = to_streamed_response_wrapper(
+            runs.list,
         )
-        self.cancel = (  # pyright: ignore[reportDeprecated]
-            to_streamed_response_wrapper(
-                runs.cancel,  # pyright: ignore[reportDeprecated],
-            )
+        self.cancel = to_streamed_response_wrapper(
+            runs.cancel,
         )
-        self.submit_tool_outputs = (  # pyright: ignore[reportDeprecated]
-            to_streamed_response_wrapper(
-                runs.submit_tool_outputs,  # pyright: ignore[reportDeprecated],
-            )
+        self.submit_tool_outputs = to_streamed_response_wrapper(
+            runs.submit_tool_outputs,
         )
 
     @cached_property
@@ -3284,35 +3248,23 @@ class AsyncRunsWithStreamingResponse:
     def __init__(self, runs: AsyncRuns) -> None:
         self._runs = runs
 
-        self.create = (  # pyright: ignore[reportDeprecated]
-            async_to_streamed_response_wrapper(
-                runs.create,  # pyright: ignore[reportDeprecated],
-            )
+        self.create = async_to_streamed_response_wrapper(
+            runs.create,
         )
-        self.retrieve = (  # pyright: ignore[reportDeprecated]
-            async_to_streamed_response_wrapper(
-                runs.retrieve,  # pyright: ignore[reportDeprecated],
-            )
+        self.retrieve = async_to_streamed_response_wrapper(
+            runs.retrieve,
         )
-        self.update = (  # pyright: ignore[reportDeprecated]
-            async_to_streamed_response_wrapper(
-                runs.update,  # pyright: ignore[reportDeprecated],
-            )
+        self.update = async_to_streamed_response_wrapper(
+            runs.update,
         )
-        self.list = (  # pyright: ignore[reportDeprecated]
-            async_to_streamed_response_wrapper(
-                runs.list,  # pyright: ignore[reportDeprecated],
-            )
+        self.list = async_to_streamed_response_wrapper(
+            runs.list,
         )
-        self.cancel = (  # pyright: ignore[reportDeprecated]
-            async_to_streamed_response_wrapper(
-                runs.cancel,  # pyright: ignore[reportDeprecated],
-            )
+        self.cancel = async_to_streamed_response_wrapper(
+            runs.cancel,
         )
-        self.submit_tool_outputs = (  # pyright: ignore[reportDeprecated]
-            async_to_streamed_response_wrapper(
-                runs.submit_tool_outputs,  # pyright: ignore[reportDeprecated],
-            )
+        self.submit_tool_outputs = async_to_streamed_response_wrapper(
+            runs.submit_tool_outputs,
         )
 
     @cached_property

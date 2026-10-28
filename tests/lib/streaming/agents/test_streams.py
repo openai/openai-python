@@ -754,7 +754,7 @@ def test_sync_stream_closes_async_observer(server: Server) -> None:
             "session_test",
             input="Search",
             tool_handlers={"search": str},
-            on_tool_error=observer,  # type: ignore[arg-type]
+            on_tool_error=observer,  # ty: ignore[invalid-argument-type]
         ) as stream:
             stream.until_done()
     assert server.inputs()[1]["error"] == "Tool handler failed."

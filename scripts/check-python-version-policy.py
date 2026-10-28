@@ -83,7 +83,11 @@ def main() -> None:
     classifiers = re.findall(r'"Programming Language :: Python :: (3\.\d+)"', pyproject)
     require(tuple(classifiers) == SUPPORTED, f"Unexpected Python classifiers: {classifiers}")
 
-    require(f'pythonVersion = "{MINIMUM}"' in pyproject, "Pyright does not target the minimum Python")
+    require(f'python-version = "{MINIMUM}"' in pyproject, "ty does not target the minimum Python")
+    require(
+        f'"pythonVersion": "{MINIMUM}"' in (ROOT / "scripts/pyrightconfig.breaking-changes.json").read_text(),
+        "Consumer compatibility check does not target the minimum Python",
+    )
     require(f'target-version = "py{MINIMUM.replace(".", "")}"' in pyproject, "Ruff does not target the minimum Python")
     require(python_version.startswith(f"{MINIMUM}."), f".python-version is not on Python {MINIMUM}: {python_version}")
     require(f"Python {MINIMUM}+" in readme, "README introduction does not state the minimum Python")

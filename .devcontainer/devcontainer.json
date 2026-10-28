@@ -12,13 +12,13 @@
   "customizations": {
     "vscode": {
       "extensions": [
-        "ms-python.python"
+        "ms-python.python",
+        "astral-sh.ty"
       ],
       "settings": { 
         "terminal.integrated.shell.linux": "/bin/bash",
         "python.pythonPath": ".venv/bin/python",
         "python.defaultInterpreterPath": ".venv/bin/python",
-        "python.typeChecking": "basic",
         "terminal.integrated.env.linux": {
           "PATH": "/home/vscode/.local/bin:${env:PATH}"
         }

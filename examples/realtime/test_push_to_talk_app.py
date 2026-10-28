@@ -134,7 +134,8 @@ def test_interrupt_discards_device_buffered_audio(app_module: Any) -> None:
     player.stream.buffered = b"assistant audio that has not reached the speaker"
     assert player.stop(interrupted_response_id="r1") == [(("r1", "first", 0), 0)]
     assert not player.stream.emitted
-    assert not player.stream.buffered
+    # stop() clears the fake device buffer through abort(); ty retains the earlier literal.
+    assert not player.stream.buffered  # ty: ignore[redundant-condition]
 
 
 @pytest.mark.parametrize("at,expected_frames", [(0.99, 0), (1.01, 240), (1.03, None)])
@@ -990,6 +991,7 @@ async def test_manual_recordings_do_not_share_buffer_after_interruption(
     module, _ = app_module
     app = module.RealtimeApp()
     status = SimpleNamespace(is_recording=False)
+
     def query_one(*_args: Any, **_kwargs: Any) -> SimpleNamespace:
         return status
 
@@ -1075,10 +1077,13 @@ async def test_manual_recordings_do_not_share_buffer_after_interruption(
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("cancel_before_start", [False, True])
-async def test_pending_manual_finalize_precedes_already_runnable_mic(app_module: Any, cancel_before_start: bool) -> None:
+async def test_pending_manual_finalize_precedes_already_runnable_mic(
+    app_module: Any, cancel_before_start: bool
+) -> None:
     module, _ = app_module
     app = module.RealtimeApp()
     status = SimpleNamespace(is_recording=False)
+
     def query_one(*_args: Any, **_kwargs: Any) -> SimpleNamespace:
         return status
 

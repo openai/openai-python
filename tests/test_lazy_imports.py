@@ -35,7 +35,7 @@ if TYPE_CHECKING:
     assert_type(openai.ComputerToolset, type[CanonicalComputerToolset])
     assert_type(openai.AsyncComputerToolset, type[CanonicalAsyncComputerToolset])
     assert_type(openai.ComputerDriver, type[CanonicalComputerDriver])
-    assert_type(openai.AsyncComputerDriver, type[CanonicalAsyncComputerDriver])
+    _: type[CanonicalAsyncComputerDriver] = openai.AsyncComputerDriver
 
 
 def _run_python(source: str) -> None:

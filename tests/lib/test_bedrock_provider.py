@@ -87,7 +87,7 @@ def test_provider_rejects_top_level_authentication_and_routing(option: str, valu
         OpenAIError,
         match=rf"`provider` cannot be combined with top-level `{option}`.*`bedrock\(\.\.\.\)`",
     ):
-        OpenAI(provider=bedrock(region="us-east-1", api_key="bedrock token"), **{option: value})  # type: ignore[arg-type]
+        OpenAI(provider=bedrock(region="us-east-1", api_key="bedrock token"), **{option: value})  # ty: ignore[invalid-argument-type]
 
 
 def test_provider_survives_with_options_and_can_be_replaced() -> None:

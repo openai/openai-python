@@ -164,7 +164,11 @@ async def test_completed_identity_belongs_to_one_sparse_position(sync: bool, pos
         {"type": "response.created", "response": {"id": "resp_fixture", "output": []}},
         {"type": "response.output_item.done", "output_index": 7, "item": tool},
         *(
-            [{"type": "response.output_item.done", "output_index": 7, "item": {**tool, "call_id": "call_other"}}]
+            [
+                dict[str, object](
+                    {"type": "response.output_item.done", "output_index": 7, "item": {**tool, "call_id": "call_other"}}
+                )
+            ]
             if position == "reuse-previous"
             else []
         ),

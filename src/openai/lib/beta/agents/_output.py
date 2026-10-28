@@ -59,4 +59,4 @@ def bind_output_type(
             stream._dispatcher = cast("ToolDispatcher | None", dispatcher)
         else:
             stream._dispatcher = cast("AsyncToolDispatcher | None", dispatcher)
-    return cast(ResponseT, response)
+    return response

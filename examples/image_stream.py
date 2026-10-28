@@ -43,7 +43,7 @@ def main() -> None:
             print(f"   💾 Saved to: {Path(filename).resolve()}")
 
         else:
-            print(f"❓ Unknown event: {event}")  # type: ignore[unreachable]
+            print(f"❓ Unknown event: {event}")
 
 
 if __name__ == "__main__":

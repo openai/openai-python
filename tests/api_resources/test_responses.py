@@ -7,7 +7,7 @@ from typing import Any, cast
 
 import pytest
 
-from openai import OpenAI, AsyncOpenAI
+from openai import OpenAI, Stream as _Stream, AsyncOpenAI, AsyncStream as _AsyncStream
 from tests.utils import assert_matches_type
 from openai.types.responses import (
     Response,
@@ -218,6 +218,7 @@ class TestResponses:
 
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         stream = response.parse()
+        assert isinstance(stream, _Stream)
         stream.close()
 
     @parametrize
@@ -229,6 +230,7 @@ class TestResponses:
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
             stream = response.parse()
+            assert isinstance(stream, _Stream)
             stream.close()
 
         assert cast(Any, response.is_closed) is True
@@ -310,6 +312,7 @@ class TestResponses:
 
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         stream = response.parse()
+        assert isinstance(stream, _Stream)
         stream.close()
 
     @parametrize
@@ -322,6 +325,7 @@ class TestResponses:
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
             stream = response.parse()
+            assert isinstance(stream, _Stream)
             stream.close()
 
         assert cast(Any, response.is_closed) is True
@@ -662,6 +666,7 @@ class TestAsyncResponses:
 
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         stream = response.parse()
+        assert isinstance(stream, _AsyncStream)
         await stream.close()
 
     @parametrize
@@ -673,6 +678,7 @@ class TestAsyncResponses:
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
             stream = await response.parse()
+            assert isinstance(stream, _AsyncStream)
             await stream.close()
 
         assert cast(Any, response.is_closed) is True
@@ -754,6 +760,7 @@ class TestAsyncResponses:
 
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         stream = response.parse()
+        assert isinstance(stream, _AsyncStream)
         await stream.close()
 
     @parametrize
@@ -766,6 +773,7 @@ class TestAsyncResponses:
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
             stream = await response.parse()
+            assert isinstance(stream, _AsyncStream)
             await stream.close()
 
         assert cast(Any, response.is_closed) is True

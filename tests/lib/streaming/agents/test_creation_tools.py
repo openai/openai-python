@@ -10,6 +10,7 @@ from pydantic import BaseModel
 
 from openai import OpenAI, AsyncOpenAI, BadRequestError
 from openai.lib.beta.agents import function_tool
+from openai.lib.beta.agents._stream import AgentSessionEventStream, AsyncAgentSessionEventStream
 from tests.lib.streaming.agents.test_results import ResultServer, message
 from tests.lib.streaming.agents.test_streams import EventBody, sdk as sdk, call, idle, session, turn_event
 
@@ -187,6 +188,7 @@ async def test_raw_wrapper_does_not_forward_response_control(sdk: OpenAI | Async
             tool_handlers={"search": handler},
         ) as response:
             stream = await response.parse()
+            assert isinstance(stream, AsyncAgentSessionEventStream)
             await stream.get_final_result()
     else:
         with sdk.beta.agents.sessions.with_streaming_response.create(
@@ -197,6 +199,7 @@ async def test_raw_wrapper_does_not_forward_response_control(sdk: OpenAI | Async
             tool_handlers={"search": handler},
         ) as response:
             stream = response.parse()
+            assert isinstance(stream, AgentSessionEventStream)
             stream.get_final_result()
     assert len(server.requests) == 2
     assert "x-stainless-raw-response" not in server.requests[1].headers

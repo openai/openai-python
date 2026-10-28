@@ -417,7 +417,7 @@ class AssistantEventHandler:
             ...
         else:
             # we only want to error at build-time
-            if TYPE_CHECKING:  # type: ignore[unreachable]
+            if TYPE_CHECKING:
                 assert_never(event)
 
         self._current_event = None
@@ -849,7 +849,7 @@ class AsyncAssistantEventHandler:
             ...
         else:
             # we only want to error at build-time
-            if TYPE_CHECKING:  # type: ignore[unreachable]
+            if TYPE_CHECKING:
                 assert_never(event)
 
         self._current_event = None
@@ -972,7 +972,7 @@ def accumulate_event(
                     cast(
                         MessageContent,
                         construct_type(
-                            # mypy doesn't allow Content for some reason
+                            # MessageContent is a union alias; construct_type accepts it at runtime.
                             type_=cast(Any, MessageContent),
                             value=model_dump(content_delta, exclude_unset=True, warnings=False),
                         ),
@@ -993,8 +993,7 @@ def accumulate_event(
                 current_message_snapshot.content[content_delta.index] = cast(
                     MessageContent,
                     construct_type(
-                        # mypy doesn't allow Content for some reason
-                        type_=cast(Any, MessageContent),
+                        type_=MessageContent,
                         value=merged,
                     ),
                 )

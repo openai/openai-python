@@ -2344,10 +2344,8 @@ class ImagesWithRawResponse:
     def __init__(self, images: Images) -> None:
         self._images = images
 
-        self.create_variation = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.to_raw_response_wrapper(
-                images.create_variation,  # pyright: ignore[reportDeprecated],
-            )
+        self.create_variation = _legacy_response.to_raw_response_wrapper(
+            images.create_variation,
         )
         self.edit = _legacy_response.to_raw_response_wrapper(
             images.edit,
@@ -2361,10 +2359,8 @@ class AsyncImagesWithRawResponse:
     def __init__(self, images: AsyncImages) -> None:
         self._images = images
 
-        self.create_variation = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.async_to_raw_response_wrapper(
-                images.create_variation,  # pyright: ignore[reportDeprecated],
-            )
+        self.create_variation = _legacy_response.async_to_raw_response_wrapper(
+            images.create_variation,
         )
         self.edit = _legacy_response.async_to_raw_response_wrapper(
             images.edit,
@@ -2378,10 +2374,8 @@ class ImagesWithStreamingResponse:
     def __init__(self, images: Images) -> None:
         self._images = images
 
-        self.create_variation = (  # pyright: ignore[reportDeprecated]
-            to_streamed_response_wrapper(
-                images.create_variation,  # pyright: ignore[reportDeprecated],
-            )
+        self.create_variation = to_streamed_response_wrapper(
+            images.create_variation,
         )
         self.edit = to_streamed_response_wrapper(
             images.edit,
@@ -2395,10 +2389,8 @@ class AsyncImagesWithStreamingResponse:
     def __init__(self, images: AsyncImages) -> None:
         self._images = images
 
-        self.create_variation = (  # pyright: ignore[reportDeprecated]
-            async_to_streamed_response_wrapper(
-                images.create_variation,  # pyright: ignore[reportDeprecated],
-            )
+        self.create_variation = async_to_streamed_response_wrapper(
+            images.create_variation,
         )
         self.edit = async_to_streamed_response_wrapper(
             images.edit,

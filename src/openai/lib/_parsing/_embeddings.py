@@ -34,9 +34,7 @@ def parse_embedding_response(
             # use array for base64 optimisation
             embedding.embedding = array.array("f", base64.b64decode(data)).tolist()
         else:
-            embedding.embedding = np.frombuffer(  # type: ignore[no-untyped-call]
-                base64.b64decode(data), dtype="float32"
-            ).tolist()
+            embedding.embedding = np.frombuffer(base64.b64decode(data), dtype="float32").tolist()
 
     return obj
 

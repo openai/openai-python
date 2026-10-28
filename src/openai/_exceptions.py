@@ -114,11 +114,11 @@ class APITimeoutError(APIConnectionError):
 
 
 class BadRequestError(APIStatusError):
-    status_code: Literal[400] = 400  # pyright: ignore[reportIncompatibleVariableOverride]
+    status_code: Literal[400] = 400
 
 
 class AuthenticationError(APIStatusError):
-    status_code: Literal[401] = 401  # pyright: ignore[reportIncompatibleVariableOverride]
+    status_code: Literal[401] = 401
 
 
 class OAuthError(AuthenticationError):
@@ -139,23 +139,23 @@ class OAuthError(AuthenticationError):
 
 
 class PermissionDeniedError(APIStatusError):
-    status_code: Literal[403] = 403  # pyright: ignore[reportIncompatibleVariableOverride]
+    status_code: Literal[403] = 403
 
 
 class NotFoundError(APIStatusError):
-    status_code: Literal[404] = 404  # pyright: ignore[reportIncompatibleVariableOverride]
+    status_code: Literal[404] = 404
 
 
 class ConflictError(APIStatusError):
-    status_code: Literal[409] = 409  # pyright: ignore[reportIncompatibleVariableOverride]
+    status_code: Literal[409] = 409
 
 
 class UnprocessableEntityError(APIStatusError):
-    status_code: Literal[422] = 422  # pyright: ignore[reportIncompatibleVariableOverride]
+    status_code: Literal[422] = 422
 
 
 class RateLimitError(APIStatusError):
-    status_code: Literal[429] = 429  # pyright: ignore[reportIncompatibleVariableOverride]
+    status_code: Literal[429] = 429
 
 
 class InternalServerError(APIStatusError):

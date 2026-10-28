@@ -44,17 +44,17 @@ class _ProviderDefinition(Protocol):
 _provider_definitions: WeakKeyDictionary[_Provider, _ProviderDefinition] = WeakKeyDictionary()
 
 
-def _create_provider(definition: _ProviderDefinition) -> _Provider:  # pyright: ignore[reportUnusedFunction]
+def _create_provider(definition: _ProviderDefinition) -> _Provider:
     provider = _Provider()
     _provider_definitions[provider] = definition
     return provider
 
 
-def _provider_name(provider: _Provider) -> str:  # pyright: ignore[reportUnusedFunction]
+def _provider_name(provider: _Provider) -> str:
     return _get_provider_definition(provider).name
 
 
-def _configure_provider(provider: _Provider) -> _ProviderRuntime:  # pyright: ignore[reportUnusedFunction]
+def _configure_provider(provider: _Provider) -> _ProviderRuntime:
     return _get_provider_definition(provider).configure()
 
 

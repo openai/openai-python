@@ -515,7 +515,7 @@ class TestAzureLogging:
         ),
         # AzureOpenAI: base_url and azure_deployment specified; ignored b/c not supported
         (
-            AzureOpenAI(  # type: ignore
+            AzureOpenAI(  # ty: ignore[no-matching-overload]
                 api_version="2024-02-01",
                 api_key="example API key",
                 base_url="https://example.azure-api.net/PTU/",
@@ -578,7 +578,7 @@ class TestAzureLogging:
         ),
         # AsyncAzureOpenAI: base_url and azure_deployment specified; azure_deployment ignored b/c not supported
         (
-            AsyncAzureOpenAI(  # type: ignore
+            AsyncAzureOpenAI(  # ty: ignore[no-matching-overload]
                 api_version="2024-02-01",
                 api_key="example API key",
                 base_url="https://example.azure-api.net/PTU/",
@@ -686,7 +686,7 @@ def test_prepare_url_deployment_endpoint(
         ),
         # AzureOpenAI: base_url and azure_deployment specified; azure_deployment ignored b/c not supported
         (
-            AzureOpenAI(  # type: ignore
+            AzureOpenAI(  # ty: ignore[no-matching-overload]
                 api_version="2024-02-01",
                 api_key="example API key",
                 base_url="https://example.azure-api.net/PTU/",
@@ -774,7 +774,7 @@ def test_prepare_url_deployment_endpoint(
         ),
         # AsyncAzureOpenAI: base_url and azure_deployment specified; azure_deployment ignored b/c not supported
         (
-            AsyncAzureOpenAI(  # type: ignore
+            AsyncAzureOpenAI(  # ty: ignore[no-matching-overload]
                 api_version="2024-02-01",
                 api_key="example API key",
                 base_url="https://example.azure-api.net/PTU/",
@@ -853,7 +853,7 @@ def test_prepare_url_nondeployment_endpoint(
         ),
         # AzureOpenAI: base_url and azure_deployment specified; azure_deployment ignored b/c not supported
         (
-            AzureOpenAI(  # type: ignore
+            AzureOpenAI(  # ty: ignore[no-matching-overload]
                 api_version="2024-02-01",
                 api_key="example API key",
                 base_url="https://example.azure-api.net/PTU/",
@@ -934,7 +934,7 @@ def test_prepare_url_realtime(client: AzureOpenAI, base_url: str, json_data: dic
         ),
         # AsyncAzureOpenAI: base_url and azure_deployment specified; azure_deployment ignored b/c not supported
         (
-            AsyncAzureOpenAI(  # type: ignore
+            AsyncAzureOpenAI(  # ty: ignore[no-matching-overload]
                 api_version="2024-02-01",
                 api_key="example API key",
                 base_url="https://example.azure-api.net/PTU/",

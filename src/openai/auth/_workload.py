@@ -235,7 +235,7 @@ class _WorkloadIdentityAuth(Generic[_WorkloadIdentityT]):
             if self._refreshing:
                 while self._refreshing:
                     self._condition.wait()
-                token = self._cached_token  # type: ignore[unreachable]
+                token = self._cached_token
                 if self._token_unusable():
                     raise RuntimeError("Token is unusable after refresh completed")
                 return cast(str, token)

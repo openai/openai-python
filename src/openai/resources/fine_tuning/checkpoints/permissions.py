@@ -557,10 +557,8 @@ class PermissionsWithRawResponse:
         self.create = _legacy_response.to_raw_response_wrapper(
             permissions.create,
         )
-        self.retrieve = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.to_raw_response_wrapper(
-                permissions.retrieve,  # pyright: ignore[reportDeprecated],
-            )
+        self.retrieve = _legacy_response.to_raw_response_wrapper(
+            permissions.retrieve,
         )
         self.list = _legacy_response.to_raw_response_wrapper(
             permissions.list,
@@ -577,10 +575,8 @@ class AsyncPermissionsWithRawResponse:
         self.create = _legacy_response.async_to_raw_response_wrapper(
             permissions.create,
         )
-        self.retrieve = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.async_to_raw_response_wrapper(
-                permissions.retrieve,  # pyright: ignore[reportDeprecated],
-            )
+        self.retrieve = _legacy_response.async_to_raw_response_wrapper(
+            permissions.retrieve,
         )
         self.list = _legacy_response.async_to_raw_response_wrapper(
             permissions.list,
@@ -597,10 +593,8 @@ class PermissionsWithStreamingResponse:
         self.create = to_streamed_response_wrapper(
             permissions.create,
         )
-        self.retrieve = (  # pyright: ignore[reportDeprecated]
-            to_streamed_response_wrapper(
-                permissions.retrieve,  # pyright: ignore[reportDeprecated],
-            )
+        self.retrieve = to_streamed_response_wrapper(
+            permissions.retrieve,
         )
         self.list = to_streamed_response_wrapper(
             permissions.list,
@@ -617,10 +611,8 @@ class AsyncPermissionsWithStreamingResponse:
         self.create = async_to_streamed_response_wrapper(
             permissions.create,
         )
-        self.retrieve = (  # pyright: ignore[reportDeprecated]
-            async_to_streamed_response_wrapper(
-                permissions.retrieve,  # pyright: ignore[reportDeprecated],
-            )
+        self.retrieve = async_to_streamed_response_wrapper(
+            permissions.retrieve,
         )
         self.list = async_to_streamed_response_wrapper(
             permissions.list,

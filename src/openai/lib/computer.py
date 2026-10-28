@@ -138,7 +138,8 @@ def _prepare(params: ResponseCreateParamsNonStreaming, max_steps: object) -> Res
         "tool_choice",
     }.intersection(cast(Mapping[str, object], extra_body)):
         raise ValueError("ComputerToolset extra_body cannot override runner-owned fields")
-    if request.get("stream") or request.get("background"):
+    # Validate untyped callers at runtime even though the typed request excludes streams.
+    if request.get("stream") or request.get("background"):  # ty: ignore[redundant-condition]
         raise ValueError("ComputerToolset requires non-streaming, foreground responses")
     if request.get("previous_response_id") or request.get("conversation"):
         raise ValueError("Pass complete input history; conversation and previous_response_id are not supported")

@@ -11,7 +11,7 @@ def test_too_many_positional_params() -> None:
         return a
 
     with pytest.raises(TypeError, match=r"foo\(\) takes 1 argument\(s\) but 2 were given"):
-        foo("a", "b")  # type: ignore
+        foo("a", "b")  # ty: ignore[too-many-positional-arguments]
 
 
 def test_positional_param() -> None:

@@ -40,7 +40,8 @@ def load_client() -> OpenAI:
             else:
                 _sdk.api_type = "openai"
         if _sdk.api_type == "azure":
-            _sdk._client = _sdk._AzureModuleClient(  # type: ignore
+            # Optional module settings are resolved and validated by AzureOpenAI at runtime.
+            _sdk._client = _sdk._AzureModuleClient(  # ty: ignore[no-matching-overload]
                 api_version=_sdk.api_version,
                 azure_endpoint=_sdk.azure_endpoint,
                 api_key=_sdk.api_key,

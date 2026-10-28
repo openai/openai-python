@@ -225,60 +225,57 @@ bedrock_token_provider: _bedrock.BedrockTokenProvider | None = None
 
 
 class _ModuleClient(OpenAI):
-    # Note: we have to use type: ignores here as overriding class members
-    # with properties is technically unsafe but it is fine for our use case
-
-    @property  # type: ignore
+    @property
     @override
     def api_key(self) -> str | None:
         return api_key
 
-    @api_key.setter  # type: ignore
-    def api_key(self, value: str | None) -> None:  # type: ignore
-        global api_key
+    @api_key.setter
+    def api_key(self, value: str | None) -> None:  # ty: ignore[invalid-property-type-override]
+        global api_key  # ty: ignore[invalid-property-type-override]
 
         api_key = value
 
-    @property  # type: ignore
+    @property
     @override
     def admin_api_key(self) -> str | None:
         return admin_api_key
 
-    @admin_api_key.setter  # type: ignore
-    def admin_api_key(self, value: str | None) -> None:  # type: ignore
+    @admin_api_key.setter
+    def admin_api_key(self, value: str | None) -> None:
         global admin_api_key
 
         admin_api_key = value
 
-    @property  # type: ignore
+    @property
     @override
     def organization(self) -> str | None:
         return organization
 
-    @organization.setter  # type: ignore
-    def organization(self, value: str | None) -> None:  # type: ignore
+    @organization.setter
+    def organization(self, value: str | None) -> None:
         global organization
 
         organization = value
 
-    @property  # type: ignore
+    @property
     @override
     def project(self) -> str | None:
         return project
 
-    @project.setter  # type: ignore
-    def project(self, value: str | None) -> None:  # type: ignore
+    @project.setter
+    def project(self, value: str | None) -> None:
         global project
 
         project = value
 
-    @property  # type: ignore
+    @property
     @override
     def webhook_secret(self) -> str | None:
         return webhook_secret
 
-    @webhook_secret.setter  # type: ignore
-    def webhook_secret(self, value: str | None) -> None:  # type: ignore
+    @webhook_secret.setter
+    def webhook_secret(self, value: str | None) -> None:
         global webhook_secret
 
         webhook_secret = value
@@ -293,70 +290,70 @@ class _ModuleClient(OpenAI):
 
     @base_url.setter
     def base_url(self, url: _httpx.URL | str) -> None:
-        super().base_url = url  # type: ignore[misc]
+        # The module proxy forwards to the existing base property setter.
+        super().base_url = url  # ty: ignore[invalid-assignment]
 
-    @property  # type: ignore
+    @property
     @override
     def timeout(self) -> float | Timeout | None:
         return timeout
 
-    @timeout.setter  # type: ignore
-    def timeout(self, value: float | Timeout | None) -> None:  # type: ignore
+    @timeout.setter
+    def timeout(self, value: float | Timeout | None) -> None:
         global timeout
 
         timeout = value
 
-    @property  # type: ignore
+    @property
     @override
     def max_retries(self) -> int:
         return max_retries
 
-    @max_retries.setter  # type: ignore
-    def max_retries(self, value: int) -> None:  # type: ignore
+    @max_retries.setter
+    def max_retries(self, value: int) -> None:
         global max_retries
 
         max_retries = value
 
-    @property  # type: ignore
+    @property
     @override
     def _custom_headers(self) -> _t.Mapping[str, str] | None:
         return default_headers
 
-    @_custom_headers.setter  # type: ignore
-    def _custom_headers(self, value: _t.Mapping[str, str] | None) -> None:  # type: ignore
+    @_custom_headers.setter
+    def _custom_headers(self, value: _t.Mapping[str, str] | None) -> None:
         global default_headers
 
         default_headers = value
 
-    @property  # type: ignore
+    @property
     @override
     def _custom_query(self) -> _t.Mapping[str, object] | None:
         return default_query
 
-    @_custom_query.setter  # type: ignore
-    def _custom_query(self, value: _t.Mapping[str, object] | None) -> None:  # type: ignore
+    @_custom_query.setter
+    def _custom_query(self, value: _t.Mapping[str, object] | None) -> None:
         global default_query
 
         default_query = value
 
-    @property  # type: ignore
+    @property
     @override
     def _client(self) -> _httpx.Client:
         return http_client or super()._client
 
-    @_client.setter  # type: ignore
-    def _client(self, value: _httpx.Client) -> None:  # type: ignore
+    @_client.setter
+    def _client(self, value: _httpx.Client) -> None:
         global http_client
 
         http_client = value
 
 
-class _AzureModuleClient(_ModuleClient, AzureOpenAI):  # type: ignore
-    ...
+class _AzureModuleClient(_ModuleClient, AzureOpenAI): ...
 
 
-class _BedrockModuleClient(_ModuleClient, BedrockOpenAI):  # type: ignore
-    @property  # type: ignore
+class _BedrockModuleClient(_ModuleClient, BedrockOpenAI):
+    @property
     @override
     def api_key(
         self,
@@ -365,7 +362,7 @@ class _BedrockModuleClient(_ModuleClient, BedrockOpenAI):  # type: ignore
 
         return BedrockModuleClient_api_key(self)
 
-    @api_key.setter  # type: ignore
+    @api_key.setter
     def api_key(
         self,
         value: str | None,
@@ -395,7 +392,7 @@ class _BedrockModuleClient(_ModuleClient, BedrockOpenAI):  # type: ignore
         return BedrockModuleClient_legacy_auth_configuration(_runtime_cast(_RuntimeAny, super()).__thisclass__, self)
 
 
-class _AmbiguousModuleClientUsageError(OpenAIError):  # type: ignore[reportUnusedClass]
+class _AmbiguousModuleClientUsageError(OpenAIError):
     def __init__(
         self,
     ) -> None:
@@ -406,19 +403,19 @@ class _AmbiguousModuleClientUsageError(OpenAIError):  # type: ignore[reportUnuse
         return AmbiguousModuleClientUsageError_init(_runtime_cast(_RuntimeAny, super()).__thisclass__, self)
 
 
-def _has_openai_credentials() -> bool:  # type: ignore[reportUnusedFunction]
+def _has_openai_credentials() -> bool:
     from .lib._module_runtime import has_openai_credentials
 
     return has_openai_credentials()
 
 
-def _has_azure_credentials() -> bool:  # type: ignore[reportUnusedFunction]
+def _has_azure_credentials() -> bool:
     from .lib._module_runtime import has_azure_credentials
 
     return has_azure_credentials()
 
 
-def _has_azure_ad_credentials() -> bool:  # type: ignore[reportUnusedFunction]
+def _has_azure_ad_credentials() -> bool:
     from .lib._module_runtime import has_azure_ad_credentials
 
     return has_azure_ad_credentials()
@@ -427,13 +424,13 @@ def _has_azure_ad_credentials() -> bool:  # type: ignore[reportUnusedFunction]
 _client: OpenAI | None = None
 
 
-def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
+def _load_client() -> OpenAI:
     from .lib._module_runtime import load_client
 
     return load_client()
 
 
-def _reset_client() -> None:  # type: ignore[reportUnusedFunction]
+def _reset_client() -> None:
     global _client
 
     _client = None

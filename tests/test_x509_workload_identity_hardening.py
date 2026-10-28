@@ -947,7 +947,8 @@ async def test_async_x509_pins_concurrent_reconstructed_requests_to_the_correct_
                 both_arrived.set()
             await asyncio.wait_for(both_arrived.wait(), timeout=5)
             copied = httpx2.Request(request.method, request.url, headers=dict(request.headers))
-            return await Context().run(asyncio.create_task, super().send(copied, **kwargs))
+            # Context.run forwards the task result; ty loses its type variable here.
+            return await Context().run(asyncio.create_task, super().send(copied, **kwargs))  # ty: ignore[invalid-return-type]
 
     transport = CrossContextClient(transport=httpx2.MockTransport(handler), event_hooks={"request": [replace]})
     clients = [

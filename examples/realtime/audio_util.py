@@ -18,8 +18,6 @@ SAMPLE_RATE = 24000
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
 
-# pyright: reportUnknownMemberType=false, reportUnknownVariableType=false, reportUnknownArgumentType=false
-
 
 def audio_to_pcm16_base64(audio_bytes: bytes) -> bytes:
     # load the audio file from the byte stream

@@ -33,7 +33,7 @@ log: logging.Logger = logging.getLogger("openai.audio.transcriptions")
 
 
 # Retained module entry point; callers may live outside generated resources.
-def _get_response_format_type(  # pyright: ignore[reportUnusedFunction]
+def _get_response_format_type(
     response_format: AudioResponseFormat | Omit,
 ) -> type[Translation | TranslationVerbose | str]:
     return openai.lib._parsing._audio.get_translation_response_format_type(response_format, log=log)
@@ -419,10 +419,8 @@ class TranslationsWithRawResponse:
     def __init__(self, translations: Translations) -> None:
         self._translations = translations
 
-        self.create = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.to_raw_response_wrapper(
-                translations.create,  # pyright: ignore[reportDeprecated],
-            )
+        self.create = _legacy_response.to_raw_response_wrapper(
+            translations.create,
         )
 
 
@@ -430,10 +428,8 @@ class AsyncTranslationsWithRawResponse:
     def __init__(self, translations: AsyncTranslations) -> None:
         self._translations = translations
 
-        self.create = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.async_to_raw_response_wrapper(
-                translations.create,  # pyright: ignore[reportDeprecated],
-            )
+        self.create = _legacy_response.async_to_raw_response_wrapper(
+            translations.create,
         )
 
 
@@ -441,10 +437,8 @@ class TranslationsWithStreamingResponse:
     def __init__(self, translations: Translations) -> None:
         self._translations = translations
 
-        self.create = (  # pyright: ignore[reportDeprecated]
-            to_streamed_response_wrapper(
-                translations.create,  # pyright: ignore[reportDeprecated],
-            )
+        self.create = to_streamed_response_wrapper(
+            translations.create,
         )
 
 
@@ -452,8 +446,6 @@ class AsyncTranslationsWithStreamingResponse:
     def __init__(self, translations: AsyncTranslations) -> None:
         self._translations = translations
 
-        self.create = (  # pyright: ignore[reportDeprecated]
-            async_to_streamed_response_wrapper(
-                translations.create,  # pyright: ignore[reportDeprecated],
-            )
+        self.create = async_to_streamed_response_wrapper(
+            translations.create,
         )

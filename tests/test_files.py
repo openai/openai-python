@@ -109,9 +109,10 @@ async def test_async_file_tuple_with_pathlike_content_and_headers() -> None:
 
 def test_string_not_allowed() -> None:
     with pytest.raises(TypeError, match="Expected file types input to be a FileContent type or to be a tuple"):
-        to_httpx_files(
+        # Deliberately invalid file input exercises runtime rejection.
+        to_httpx_files(  # ty: ignore[no-matching-overload]
             {
-                "file": "foo",  # type: ignore
+                "file": "foo",
             }
         )
 

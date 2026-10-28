@@ -16,8 +16,9 @@ import platform
 import subprocess
 import urllib.parse
 import urllib.request
-from typing import NamedTuple
+from typing import IO, NamedTuple
 from pathlib import Path
+from http.client import HTTPMessage
 
 HERE = Path(__file__).resolve().parent
 # This trusted checkout path also works when the verifier is started with python -I -S.
@@ -90,9 +91,8 @@ MEDIA = (
 
 
 class OfficialRedirects(urllib.request.HTTPRedirectHandler):
-    # This Python 3.10 bootstrap uses only the standard library, which has no override decorator.
-    def redirect_request(  # pyright: ignore[reportImplicitOverride]
-        self, req: urllib.request.Request, fp: object, code: int, msg: str, headers: object, newurl: str
+    def redirect_request(
+        self, req: urllib.request.Request, fp: IO[bytes], code: int, msg: str, headers: HTTPMessage, newurl: str
     ) -> urllib.request.Request | None:
         url = urllib.parse.urlsplit(newurl)
         if (
@@ -103,7 +103,7 @@ class OfficialRedirects(urllib.request.HTTPRedirectHandler):
             or url.password is not None
         ):
             raise ValueError("Debian redirected outside the fixed official download hosts.")
-        return super().redirect_request(req, fp, code, msg, headers, newurl)  # type: ignore[arg-type]
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
 
 
 def digest(path: Path, algorithm: str = "sha256") -> str:
