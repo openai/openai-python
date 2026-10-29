@@ -309,6 +309,7 @@ class TestAutomations:
                 "type": "new_session",
                 "agent": {
                     "compaction": {"async_": True},
+                    "experimental": {"time_awareness": True},
                     "instructions": "instructions",
                     "model": "model",
                     "multi_agent": {
@@ -816,6 +817,7 @@ class TestAsyncAutomations:
                 "type": "new_session",
                 "agent": {
                     "compaction": {"async_": True},
+                    "experimental": {"time_awareness": True},
                     "instructions": "instructions",
                     "model": "model",
                     "multi_agent": {

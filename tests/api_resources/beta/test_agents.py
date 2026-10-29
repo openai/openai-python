@@ -33,6 +33,7 @@ class TestAgents:
         agent = client.beta.agents.create(
             model="model",
             compaction={"async_": True},
+            experimental={"time_awareness": True},
             instructions="instructions",
             metadata={"foo": "string"},
             multi_agent={
@@ -135,6 +136,7 @@ class TestAgents:
         agent = client.beta.agents.update(
             agent_id="agent_id",
             compaction={"async_": True},
+            experimental={"time_awareness": True},
             instructions="instructions",
             metadata={"foo": "string"},
             model="model",
@@ -285,6 +287,7 @@ class TestAsyncAgents:
         agent = await async_client.beta.agents.create(
             model="model",
             compaction={"async_": True},
+            experimental={"time_awareness": True},
             instructions="instructions",
             metadata={"foo": "string"},
             multi_agent={
@@ -387,6 +390,7 @@ class TestAsyncAgents:
         agent = await async_client.beta.agents.update(
             agent_id="agent_id",
             compaction={"async_": True},
+            experimental={"time_awareness": True},
             instructions="instructions",
             metadata={"foo": "string"},
             model="model",

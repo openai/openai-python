@@ -18,6 +18,7 @@ __all__ = [
     "AgentSession",
     "Agent",
     "AgentCompaction",
+    "AgentExperimental",
     "RequiredAction",
     "RequiredActionSessionRequiredActionResourceComputerUseApprovalRequest",
     "RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequest",
@@ -36,6 +37,13 @@ class AgentCompaction(BaseModel):
 
     async_: bool = FieldInfo(alias="async")
     """Whether context is compacted in the background. Defaults to true."""
+
+
+class AgentExperimental(BaseModel):
+    """The effective experimental settings for the agent."""
+
+    time_awareness: bool
+    """Whether the model receives periodic current-time reminders."""
 
 
 class Agent(BaseModel):
@@ -73,6 +81,9 @@ class Agent(BaseModel):
 
     compaction: Optional[AgentCompaction] = None
     """The effective context compaction settings."""
+
+    experimental: Optional[AgentExperimental] = None
+    """The effective experimental settings for the agent."""
 
 
 class RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequestComputerUseApprovalRequestKindResourceBrowserAuthenticationField(

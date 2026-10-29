@@ -11,7 +11,7 @@ from .agent_reasoning_param import AgentReasoningParam
 from .multi_agent_config_param import MultiAgentConfigParam
 from .persisted_agent_tool_param import PersistedAgentToolParam
 
-__all__ = ["AgentUpdateParams", "Compaction"]
+__all__ = ["AgentUpdateParams", "Compaction", "Experimental"]
 
 
 class AgentUpdateParams(TypedDict, total=False):
@@ -20,6 +20,12 @@ class AgentUpdateParams(TypedDict, total=False):
 
     Omit to keep the current settings. A supplied object replaces the settings; null
     or an empty object enables background compaction.
+    """
+
+    experimental: Experimental
+    """Experimental settings to merge by key.
+
+    Omitted settings keep their current values.
     """
 
     instructions: Optional[str]
@@ -84,4 +90,17 @@ class Compaction(TypedDict, total=False):
 
     Omission or null defaults to true. Set to false to use blocking compaction.
     Background compaction may increase token usage.
+    """
+
+
+class Experimental(TypedDict, total=False):
+    """Experimental settings to merge by key.
+
+    Omitted settings keep their current values.
+    """
+
+    time_awareness: bool
+    """Whether to give the model periodic current-time reminders.
+
+    Omit to keep the current setting.
     """

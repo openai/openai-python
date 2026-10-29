@@ -239,7 +239,7 @@
     },
     "src/openai/resources/beta/agents/agents.py": {
       "mode": "100644",
-      "sha256": "fa3b51beeff5b5c0cf3454aa34b13b72301fdf7420996f9e71974700f6b8bcbd"
+      "sha256": "1ee66922d98bdaeecb4b464f7f288d2b4e3fd42e15f20d07e37e10ea45edfbc4"
     },
     "src/openai/resources/beta/agents/automations/__init__.py": {
       "mode": "100644",
@@ -1591,7 +1591,7 @@
     },
     "src/openai/types/beta/agent.py": {
       "mode": "100644",
-      "sha256": "39c20eb4aae2c8a5bd650ef29331f4a9c6a859ae9cbb674e9ddb62e2f85a13c8"
+      "sha256": "770de49d96ab880e0679a72a0358113ae9c4e7ff85bc50d215598d1a09066c71"
     },
     "src/openai/types/beta/agent_browser_authentication_cancel_param.py": {
       "mode": "100644",
@@ -1631,7 +1631,7 @@
     },
     "src/openai/types/beta/agent_create_params.py": {
       "mode": "100644",
-      "sha256": "e43e1e4d33b6e9764aa070c25bc15809a035ffb1ddfadc4680e33020f260f36b"
+      "sha256": "7e113690e45eca7d31a40c042a27a89a597fca373c39bafd8bb75f68c93f282b"
     },
     "src/openai/types/beta/agent_create_subagent_call_item.py": {
       "mode": "100644",
@@ -1703,7 +1703,7 @@
     },
     "src/openai/types/beta/agent_session.py": {
       "mode": "100644",
-      "sha256": "942e581fb98626566ae555e27262d1c6a7b772201e3385695ed1462ed317866a"
+      "sha256": "4dbf44628416d12c8cdf46a6a73e293239736ca23dfb096e39850d68ffe5daa6"
     },
     "src/openai/types/beta/agent_session_assistant_message.py": {
       "mode": "100644",
@@ -1887,7 +1887,7 @@
     },
     "src/openai/types/beta/agent_update_params.py": {
       "mode": "100644",
-      "sha256": "5677862d355898407a4bc29cca2ad56e4ba93df1525f4805a76df029f348cef3"
+      "sha256": "6bc4493187bd7c9ce15ce7cfa3efce0264fec0c4149e0dc4e94264b248b94a36"
     },
     "src/openai/types/beta/agent_wait_for_subagents_call_item.py": {
       "mode": "100644",
@@ -1907,7 +1907,7 @@
     },
     "src/openai/types/beta/agents/automation_agent_config.py": {
       "mode": "100644",
-      "sha256": "41776af1d179879d851f2c766558473bd3f6c4a56bf77bc9182bb081395811ad"
+      "sha256": "bcc57f2186654a8d6ae3126678cbb72953588aacda537e0d1ce62f706e5cca41"
     },
     "src/openai/types/beta/agents/automation_create_params.py": {
       "mode": "100644",
@@ -1939,7 +1939,7 @@
     },
     "src/openai/types/beta/agents/automation_target_param.py": {
       "mode": "100644",
-      "sha256": "d850b41c5e0ba1e23715816ff6d078a7680ea085d26d4a23c74ef892daa85ec3"
+      "sha256": "2347708ca2624bc3ee7ae4e7209cbe6d2d35a6e1933b4251317ca287dadc5306"
     },
     "src/openai/types/beta/agents/automation_update_params.py": {
       "mode": "100644",
@@ -2019,7 +2019,7 @@
     },
     "src/openai/types/beta/agents/session_create_params.py": {
       "mode": "100644",
-      "sha256": "8507384a202b0b572799f1afb0ac44fbce25e1787a3c3b87b9fc270b8a135633"
+      "sha256": "d4566c2d07b1a1469e929763fa12e626cb1dbeae6dedfd00648f8220b4af8581"
     },
     "src/openai/types/beta/agents/session_list_params.py": {
       "mode": "100644",
@@ -7707,7 +7707,7 @@
     },
     "tests/api_resources/beta/agents/test_automations.py": {
       "mode": "100644",
-      "sha256": "80f3bd3acb28dfda5849f9d32c7d37bcaeaa5bab9e7aa6bca05df648030c410c"
+      "sha256": "34501f413c83a2ccd9aa494eb59f5c0ae1ba21fa14619dd2bc41571ad8a6422a"
     },
     "tests/api_resources/beta/agents/test_environments.py": {
       "mode": "100644",
@@ -7715,7 +7715,7 @@
     },
     "tests/api_resources/beta/agents/test_sessions.py": {
       "mode": "100644",
-      "sha256": "55353ee6b6a4b2e8349b20cac41b7223e3bee28ec6bb6b60411d9e0cb8dc3ed8"
+      "sha256": "8cfecc54a8e76b3714fa35298725eb6b315750fe5a2b112fff6185e14df8f831"
     },
     "tests/api_resources/beta/agents/test_vaults.py": {
       "mode": "100644",
@@ -7755,7 +7755,7 @@
     },
     "tests/api_resources/beta/test_agents.py": {
       "mode": "100644",
-      "sha256": "ad2a5d7d46d65caab580ad00c4840dc598504fc50bbf20cc9558c5f2713ca335"
+      "sha256": "6216ae37c6ea996da62e4916570840ed549aeb86603b607d61078b4b30c87d15"
     },
     "tests/api_resources/beta/test_assistants.py": {
       "mode": "100644",

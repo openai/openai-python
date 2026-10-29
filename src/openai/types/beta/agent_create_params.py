@@ -11,7 +11,7 @@ from .agent_reasoning_param import AgentReasoningParam
 from .multi_agent_config_param import MultiAgentConfigParam
 from .persisted_agent_tool_param import PersistedAgentToolParam
 
-__all__ = ["AgentCreateParams", "Compaction"]
+__all__ = ["AgentCreateParams", "Compaction", "Experimental"]
 
 
 class AgentCreateParams(TypedDict, total=False):
@@ -20,6 +20,9 @@ class AgentCreateParams(TypedDict, total=False):
 
     compaction: Optional[Compaction]
     """Context compaction settings. Omission or null enables background compaction."""
+
+    experimental: Experimental
+    """Experimental agent settings. All experimental features default to disabled."""
 
     instructions: Optional[str]
     """Additional instructions appended to the agent's default base instructions.
@@ -79,3 +82,10 @@ class Compaction(TypedDict, total=False):
     Omission or null defaults to true. Set to false to use blocking compaction.
     Background compaction may increase token usage.
     """
+
+
+class Experimental(TypedDict, total=False):
+    """Experimental agent settings. All experimental features default to disabled."""
+
+    time_awareness: bool
+    """Whether to give the model periodic current-time reminders. Defaults to false."""

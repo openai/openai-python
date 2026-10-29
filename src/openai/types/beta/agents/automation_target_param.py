@@ -19,6 +19,7 @@ __all__ = [
     "AutomationTargetParamNewSession",
     "AutomationTargetParamNewSessionAgent",
     "AutomationTargetParamNewSessionAgentCompaction",
+    "AutomationTargetParamNewSessionAgentExperimental",
     "AutomationTargetParamExistingSession",
 ]
 
@@ -37,6 +38,19 @@ class AutomationTargetParamNewSessionAgentCompaction(TypedDict, total=False):
     """
 
 
+class AutomationTargetParamNewSessionAgentExperimental(TypedDict, total=False):
+    """Experimental settings to merge by key.
+
+    Omitted settings keep their current values.
+    """
+
+    time_awareness: bool
+    """Whether to give the model periodic current-time reminders.
+
+    Omit to keep the current setting.
+    """
+
+
 class AutomationTargetParamNewSessionAgent(TypedDict, total=False):
     """Inline agent configuration. Provide exactly one of agent and agent_id."""
 
@@ -45,6 +59,12 @@ class AutomationTargetParamNewSessionAgent(TypedDict, total=False):
 
     Omit to keep the current settings. A supplied object replaces the settings; null
     or an empty object enables background compaction.
+    """
+
+    experimental: AutomationTargetParamNewSessionAgentExperimental
+    """Experimental settings to merge by key.
+
+    Omitted settings keep their current values.
     """
 
     instructions: Optional[str]

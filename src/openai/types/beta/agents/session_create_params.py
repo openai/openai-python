@@ -18,6 +18,7 @@ __all__ = [
     "SessionCreateParamsBase",
     "Agent",
     "AgentCompaction",
+    "AgentExperimental",
     "SpendControl",
     "SessionCreateParamsNonStreaming",
     "SessionCreateParamsStreaming",
@@ -80,6 +81,19 @@ class AgentCompaction(TypedDict, total=False):
     """
 
 
+class AgentExperimental(TypedDict, total=False):
+    """Experimental settings to merge by key.
+
+    Omitted settings keep their current values.
+    """
+
+    time_awareness: bool
+    """Whether to give the model periodic current-time reminders.
+
+    Omit to keep the current setting.
+    """
+
+
 class Agent(TypedDict, total=False):
     """Agent configuration.
 
@@ -91,6 +105,12 @@ class Agent(TypedDict, total=False):
 
     Omit to keep the current settings. A supplied object replaces the settings; null
     or an empty object enables background compaction.
+    """
+
+    experimental: AgentExperimental
+    """Experimental settings to merge by key.
+
+    Omitted settings keep their current values.
     """
 
     instructions: Optional[str]
