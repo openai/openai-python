@@ -85063,6 +85063,9 @@ components:
         multi_agent:
           $ref: '#/components/schemas/MultiAgentConfigResource'
           description: The configuration for creating and coordinating subagents.
+        compaction:
+          $ref: '#/components/schemas/CompactionResource'
+          description: The effective context compaction settings.
       required:
       - model
       - reasoning
@@ -86500,6 +86503,11 @@ components:
           minItems: 0
           maxItems: 16384
           description: Tools available to the agent. Omit to inherit, or pass null to clear them. The resolved tool list must fit within 3 MiB (3,145,728 bytes) of compact UTF-8 JSON.
+        compaction:
+          anyOf:
+          - $ref: '#/components/schemas/CompactionParam'
+          - type: 'null'
+          description: Context compaction settings. Omit to keep the current settings. A supplied object replaces the settings; null or an empty object enables background compaction.
       additionalProperties: false
       description: Agent configuration for a session. Omitted fields inherit from `agent_id` when supplied. Supplied objects and arrays replace the whole field; null resets nullable fields.
     EnvironmentParamNone:
@@ -89969,6 +89977,9 @@ components:
         multi_agent:
           $ref: '#/components/schemas/MultiAgentConfigResource'
           description: The resolved configuration for creating and coordinating subagents.
+        compaction:
+          $ref: '#/components/schemas/CompactionResource'
+          description: The effective context compaction settings.
       required:
       - id
       - object
@@ -90423,6 +90434,11 @@ components:
           - $ref: '#/components/schemas/MultiAgentConfigCurrentParam'
           - type: 'null'
           description: Configuration for creating and coordinating subagents. Subagent tools are disabled by default.
+        compaction:
+          anyOf:
+          - $ref: '#/components/schemas/CompactionParam'
+          - type: 'null'
+          description: Context compaction settings. Omission or null enables background compaction.
       required:
       - model
       additionalProperties: false
@@ -90493,6 +90509,11 @@ components:
           minItems: 0
           maxItems: 2000
           description: Replaces the tool list. Omit to leave it unchanged, or pass null to clear it. The replacement must fit within 3 MiB (3,145,728 bytes) of compact UTF-8 JSON.
+        compaction:
+          anyOf:
+          - $ref: '#/components/schemas/CompactionParam'
+          - type: 'null'
+          description: Context compaction settings. Omit to keep the current settings. A supplied object replaces the settings; null or an empty object enables background compaction.
       additionalProperties: false
       description: Fields to replace on an existing reusable agent.
     DeletedAgentResource:
@@ -91075,6 +91096,9 @@ components:
         multi_agent:
           $ref: '#/components/schemas/MultiAgentConfigResource'
           description: Configuration for creating and coordinating subagents.
+        compaction:
+          $ref: '#/components/schemas/CompactionResource'
+          description: The effective context compaction settings.
       required:
       - id
       - name
@@ -111061,6 +111085,26 @@ components:
           type: transport.dtmf.sent
           event_id: event_dtmf_2
           event: '#'
+    CompactionParam:
+      type: object
+      properties:
+        async:
+          type:
+          - boolean
+          - 'null'
+          description: Whether to compact context in the background. Omission or null defaults to true. Set to false to use blocking compaction. Background compaction may increase token usage.
+      additionalProperties: false
+      description: Settings for compacting the agent's context.
+    CompactionResource:
+      type: object
+      properties:
+        async:
+          type: boolean
+          description: Whether context is compacted in the background. Defaults to true.
+      required:
+      - async
+      additionalProperties: false
+      description: The effective settings for compacting the agent's context.
     SessionSpendControlResource:
       type: object
       properties:

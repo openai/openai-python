@@ -308,6 +308,7 @@ class TestAutomations:
                 ],
                 "type": "new_session",
                 "agent": {
+                    "compaction": {"async_": True},
                     "instructions": "instructions",
                     "model": "model",
                     "multi_agent": {
@@ -814,6 +815,7 @@ class TestAsyncAutomations:
                 ],
                 "type": "new_session",
                 "agent": {
+                    "compaction": {"async_": True},
                     "instructions": "instructions",
                     "model": "model",
                     "multi_agent": {
