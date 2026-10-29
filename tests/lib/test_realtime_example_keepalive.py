@@ -132,7 +132,30 @@ async def test_interactive_realtime_example_remains_responsive_at_input(exit_act
             else:
                 process.send_signal(signal.SIGINT)
 
-            await asyncio.wait_for(process.wait(), timeout=2)
+            try:
+                await asyncio.wait_for(process.wait(), timeout=2)
+            except asyncio.TimeoutError:
+                diagnostics = []
+                if sys.platform == "linux":
+                    proc = Path("/proc") / str(process.pid)
+                    try:
+                        diagnostics.extend(
+                            line
+                            for line in (proc / "status").read_text().splitlines()
+                            if line.split(":", 1)[0]
+                            in {"State", "Threads", "SigPnd", "ShdPnd", "SigBlk", "SigIgn", "SigCgt"}
+                        )
+                        diagnostics.append(f"wait channel: {(proc / 'wchan').read_text().strip()}")
+                    except OSError as exc:
+                        diagnostics.append(f"Process state unavailable: {exc}")
+                if process.returncode is None:
+                    process.kill()
+                stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=2)
+                pytest.fail(
+                    "Example did not exit within two seconds.\n"
+                    + "\n".join(diagnostics)
+                    + f"\nstdout: {stdout.decode(errors='replace')}\nstderr: {stderr.decode(errors='replace')}"
+                )
             _, stderr = await process.communicate()
             if exit_action == "conversation_then_q":
                 assert process.returncode == 0, stderr.decode()
