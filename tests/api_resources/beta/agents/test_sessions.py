@@ -31,6 +31,7 @@ class TestSessions:
             environment={"type": "none"},
             agent={
                 "compaction": {"async_": True},
+                "experimental": {"time_awareness": True},
                 "instructions": "instructions",
                 "model": "model",
                 "multi_agent": {
@@ -104,6 +105,7 @@ class TestSessions:
             stream=True,
             agent={
                 "compaction": {"async_": True},
+                "experimental": {"time_awareness": True},
                 "instructions": "instructions",
                 "model": "model",
                 "multi_agent": {
@@ -347,6 +349,7 @@ class TestAsyncSessions:
             environment={"type": "none"},
             agent={
                 "compaction": {"async_": True},
+                "experimental": {"time_awareness": True},
                 "instructions": "instructions",
                 "model": "model",
                 "multi_agent": {
@@ -420,6 +423,7 @@ class TestAsyncSessions:
             stream=True,
             agent={
                 "compaction": {"async_": True},
+                "experimental": {"time_awareness": True},
                 "instructions": "instructions",
                 "model": "model",
                 "multi_agent": {

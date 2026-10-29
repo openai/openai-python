@@ -85071,6 +85071,9 @@ components:
         compaction:
           $ref: '#/components/schemas/CompactionResource'
           description: The effective context compaction settings.
+        experimental:
+          $ref: '#/components/schemas/ExperimentalConfigResource'
+          description: The effective experimental settings for the agent.
       required:
       - model
       - reasoning
@@ -86513,8 +86516,12 @@ components:
           - $ref: '#/components/schemas/CompactionParam'
           - type: 'null'
           description: Context compaction settings. Omit to keep the current settings. A supplied object replaces the settings; null or an empty object enables background compaction.
+        experimental:
+          $ref: '#/components/schemas/ExperimentalConfigOverridesParam'
+          default: {}
+          description: Experimental settings to merge by key. Omitted settings keep their current values.
       additionalProperties: false
-      description: Agent configuration for a session. Omitted fields inherit from `agent_id` when supplied. Supplied objects and arrays replace the whole field; null resets nullable fields.
+      description: Agent configuration for a session. Omitted fields inherit from `agent_id` when supplied. Supplied objects and arrays replace the whole field, except experimental settings, which merge by key. Null resets nullable fields.
     EnvironmentParamNone:
       type: object
       properties:
@@ -89985,6 +89992,9 @@ components:
         compaction:
           $ref: '#/components/schemas/CompactionResource'
           description: The effective context compaction settings.
+        experimental:
+          $ref: '#/components/schemas/ExperimentalConfigResource'
+          description: The effective experimental settings for the agent.
       required:
       - id
       - object
@@ -90444,6 +90454,11 @@ components:
           - $ref: '#/components/schemas/CompactionParam'
           - type: 'null'
           description: Context compaction settings. Omission or null enables background compaction.
+        experimental:
+          $ref: '#/components/schemas/ExperimentalConfigParam'
+          default:
+            time_awareness: false
+          description: Experimental agent settings. All experimental features default to disabled.
       required:
       - model
       additionalProperties: false
@@ -90519,6 +90534,10 @@ components:
           - $ref: '#/components/schemas/CompactionParam'
           - type: 'null'
           description: Context compaction settings. Omit to keep the current settings. A supplied object replaces the settings; null or an empty object enables background compaction.
+        experimental:
+          $ref: '#/components/schemas/ExperimentalConfigOverridesParam'
+          default: {}
+          description: Experimental settings to merge by key. Omitted settings keep their current values.
       additionalProperties: false
       description: Fields to replace on an existing reusable agent.
     DeletedAgentResource:
@@ -91104,6 +91123,9 @@ components:
         compaction:
           $ref: '#/components/schemas/CompactionResource'
           description: The effective context compaction settings.
+        experimental:
+          $ref: '#/components/schemas/ExperimentalConfigResource'
+          description: The effective experimental settings for the agent.
       required:
       - id
       - name
@@ -111114,6 +111136,33 @@ components:
       type: string
       format: binary
       description: A transparent PNG overlaid on the first image to guide the edit. Must match that image's dimensions after orientation and contain transparent pixels. Supports GPT Image 2.5 and 2.6. Cannot be combined with mask.
+    ExperimentalConfigOverridesParam:
+      type: object
+      properties:
+        time_awareness:
+          type: boolean
+          description: Whether to give the model periodic current-time reminders. Omit to keep the current setting.
+      additionalProperties: false
+      description: Experimental settings to update. Omitted settings keep their current values.
+    ExperimentalConfigParam:
+      type: object
+      properties:
+        time_awareness:
+          type: boolean
+          default: false
+          description: Whether to give the model periodic current-time reminders. Defaults to false.
+      additionalProperties: false
+      description: Experimental agent settings. These features may change.
+    ExperimentalConfigResource:
+      type: object
+      properties:
+        time_awareness:
+          type: boolean
+          description: Whether the model receives periodic current-time reminders.
+      required:
+      - time_awareness
+      additionalProperties: false
+      description: The effective experimental settings for an agent.
     SessionSpendControlResource:
       type: object
       properties:

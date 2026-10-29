@@ -11,7 +11,7 @@ from .agent_reasoning import AgentReasoning
 from .multi_agent_config import MultiAgentConfig
 from .persisted_agent_tool import PersistedAgentTool
 
-__all__ = ["Agent", "Compaction"]
+__all__ = ["Agent", "Compaction", "Experimental"]
 
 
 class Compaction(BaseModel):
@@ -19,6 +19,13 @@ class Compaction(BaseModel):
 
     async_: bool = FieldInfo(alias="async")
     """Whether context is compacted in the background. Defaults to true."""
+
+
+class Experimental(BaseModel):
+    """The effective experimental settings for the agent."""
+
+    time_awareness: bool
+    """Whether the model receives periodic current-time reminders."""
 
 
 class Agent(BaseModel):
@@ -68,3 +75,6 @@ class Agent(BaseModel):
 
     compaction: Optional[Compaction] = None
     """The effective context compaction settings."""
+
+    experimental: Optional[Experimental] = None
+    """The effective experimental settings for the agent."""
