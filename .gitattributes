@@ -1,0 +1,3 @@
+# The base64 tests assert on this fixture's exact bytes, so it must not be
+# rewritten to CRLF on checkout (the default on Windows with core.autocrlf).
+tests/sample_file.txt -text
