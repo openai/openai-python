@@ -44419,6 +44419,8 @@ components:
           example: high
           description: |
             The quality of the image that will be generated for GPT image models. The GPT image models support `low`, `medium`, and `high`. `gpt-image-2.5-sunburst` and `gpt-image-2.5-flare`, including their `2026-09-08` snapshots, also support `xhigh` and `max`. Defaults to `auto`.
+        markup:
+          $ref: '#/components/schemas/markup'
       required:
       - prompt
       - image
@@ -46985,6 +46987,9 @@ components:
           description: Stream partial image results as events.
         partial_images:
           $ref: '#/components/schemas/PartialImages'
+        markup:
+          $ref: '#/components/schemas/ImageRefParam'
+          description: A transparent PNG overlaid on the first image, referenced by file ID, HTTPS URL, or base64 data URL. Must match that image's dimensions after orientation and contain transparent pixels. Supports GPT Image 2.5 and 2.6. Cannot be combined with mask.
       required:
       - images
       - prompt
@@ -111105,6 +111110,10 @@ components:
       - async
       additionalProperties: false
       description: The effective settings for compacting the agent's context.
+    markup:
+      type: string
+      format: binary
+      description: A transparent PNG overlaid on the first image to guide the edit. Must match that image's dimensions after orientation and contain transparent pixels. Supports GPT Image 2.5 and 2.6. Cannot be combined with mask.
     SessionSpendControlResource:
       type: object
       properties:

@@ -547,7 +547,7 @@
     },
     "src/openai/resources/images.py": {
       "mode": "100644",
-      "sha256": "f8f5376eeda7b45a90179eb287066447fce19ed761d313de5ab4c59df620b659"
+      "sha256": "211377871db5f2d21633f93122a131023174ea093828c7a957cd0ece49a03b76"
     },
     "src/openai/resources/live/__init__.py": {
       "mode": "100644",
@@ -4543,7 +4543,7 @@
     },
     "src/openai/types/image_edit_params.py": {
       "mode": "100644",
-      "sha256": "e45d0c075029142ad45cbb557962a6e065d299687449b97405390a9534d5b7bf"
+      "sha256": "a08fc3c5d22c14b3eb969fa91891e3d3dd7088f9e46749aa5bd59c4e5c558df3"
     },
     "src/openai/types/image_edit_partial_image_event.py": {
       "mode": "100644",
@@ -7999,7 +7999,7 @@
     },
     "tests/api_resources/test_images.py": {
       "mode": "100644",
-      "sha256": "ebd279e1c7d8c8bd3c8148d1aadbeb7dc1ba43a6e2ee7396653e37563e743f3b"
+      "sha256": "ca9dae5fdc1d35f7a7d1dd2356736628b24d3f11c28e4750f7cea920a6c9804c"
     },
     "tests/api_resources/test_live.py": {
       "mode": "100644",
