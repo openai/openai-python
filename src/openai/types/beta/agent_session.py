@@ -3,6 +3,8 @@
 from typing import Dict, List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
 
+from pydantic import Field as FieldInfo
+
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
 from .agent_text import AgentText
@@ -15,6 +17,7 @@ from .multi_agent_config import MultiAgentConfig
 __all__ = [
     "AgentSession",
     "Agent",
+    "AgentCompaction",
     "RequiredAction",
     "RequiredActionSessionRequiredActionResourceComputerUseApprovalRequest",
     "RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequest",
@@ -26,6 +29,13 @@ __all__ = [
     "RequiredActionSessionRequiredActionResourceEnvironmentConnection",
     "SpendControl",
 ]
+
+
+class AgentCompaction(BaseModel):
+    """The effective context compaction settings."""
+
+    async_: bool = FieldInfo(alias="async")
+    """Whether context is compacted in the background. Defaults to true."""
 
 
 class Agent(BaseModel):
@@ -60,6 +70,9 @@ class Agent(BaseModel):
 
     tools: List[AgentTool]
     """Tools available to the agent."""
+
+    compaction: Optional[AgentCompaction] = None
+    """The effective context compaction settings."""
 
 
 class RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequestComputerUseApprovalRequestKindResourceBrowserAuthenticationField(
