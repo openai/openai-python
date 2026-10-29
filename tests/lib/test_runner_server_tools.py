@@ -489,13 +489,10 @@ async def test_mcp_approval_tool_choice_on_resume(lane: str, consumed: bool, res
         "arguments": "{}",
     }
     remote = {**approval, "type": "mcp_call", "id": "remote", "approval_request_id": "approval", "status": "completed"}
-    params: ResponseCreateParamsNonStreaming = cast(
-        ResponseCreateParamsNonStreaming,
-        {
-            **PARAMS,
-            "tools": [{"type": "mcp", "server_label": "desk", "server_url": "https://fixture.invalid/mcp"}],
-        },
-    )
+    params: ResponseCreateParamsNonStreaming = {
+        **PARAMS,
+        "tools": [{"type": "mcp", "server_label": "desk", "server_url": "https://fixture.invalid/mcp"}],
+    }
     replies = [resp([approval, fn("record", "first", text="once")], "first")]
     if consumed:
         replies.append(resp([remote, fn("record", "second", text="twice")], "second"))

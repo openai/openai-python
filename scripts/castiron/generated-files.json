@@ -1,81 +1,17 @@
 {
   "schema_version": 1,
   "files": {
-    ".github/workflows/castiron-custom-code-comment.yml": {
-      "mode": "100644",
-      "sha256": "bdde9eec1ff9c0e842ddc0f69df5611ad4eb0336602489e2dcddfbcf8ad86e37"
-    },
-    ".github/workflows/castiron-custom-code.yml": {
-      "mode": "100644",
-      "sha256": "2760a19c1e05a2a01d73a679dac9d59ba7cfee2faa2fe426182f740ae1603202"
-    },
     "api.md": {
       "mode": "100644",
-      "sha256": "82da84d639cb84106f389b001030b0b668eb71122f39c7db598edccc2fcf7b27"
-    },
-    "scripts/castiron/CUSTOM_CODE.md": {
-      "mode": "100644",
-      "sha256": "8464fb28964ae0f7bec38ae7ba8107e97287d4118657a3017a2712e753d4c608"
-    },
-    "scripts/castiron/README.md": {
-      "mode": "100644",
-      "sha256": "4aff82cb988d01babde79902ae20de842fdd4b2b447d5f4cb3c5ce0a36d6fab8"
-    },
-    "scripts/castiron/custom_code_budget.py": {
-      "mode": "100755",
-      "sha256": "3c96300546afb5e57fbfb596d4e1bde90821928e44904c4aeb91e2d7e4e27ff5"
-    },
-    "scripts/castiron/custom_code_policy.py": {
-      "mode": "100755",
-      "sha256": "7dff1ec5cd69deb85e430015d8f379f042eccbedc1786d3c9e4ed8532dfeca9c"
-    },
-    "scripts/castiron/custom_code_report.py": {
-      "mode": "100755",
-      "sha256": "a52a1aabf4047f4c20e96d1d788c25a4aa78c1987b4fa73a13d22c92ef213a3f"
-    },
-    "scripts/castiron/custom_code_test_support.py": {
-      "mode": "100644",
-      "sha256": "8fc5147352025e2c874ae855ac8f3ac649d531d2c1bd80c532bc4e9ec4fafa3f"
-    },
-    "scripts/castiron/fixtures/github_publisher.cjs": {
-      "mode": "100644",
-      "sha256": "162963b9a13c24443ac1a97f852f269fcde5fb011a0871d428f4585cbaac2dab"
-    },
-    "scripts/castiron/ruff.toml": {
-      "mode": "100644",
-      "sha256": "933d12c5582988097578a13689e1f7c877c36baf2c8c0e7123393e272ca023bd"
-    },
-    "scripts/castiron/test_custom_code_budget.py": {
-      "mode": "100644",
-      "sha256": "feaf35f7f30deecb89d95b31b8a325033180c64650e1d965cbdee486ab11f16d"
-    },
-    "scripts/castiron/test_custom_code_github.py": {
-      "mode": "100644",
-      "sha256": "034eecfd80d3236509d2bf32fb6e69f8f13589c170b93f85935adde3d3b58b42"
-    },
-    "scripts/castiron/test_custom_code_policy.py": {
-      "mode": "100644",
-      "sha256": "29b8dde7d69cad22fe6757356fa18ef189d7fc8f9349f65aad641005540faa26"
-    },
-    "scripts/castiron/test_custom_code_publication.py": {
-      "mode": "100644",
-      "sha256": "0e7628d6906153029fea156273094a3d0b17846abd0894a91ab0833241bfdf31"
-    },
-    "scripts/castiron/test_custom_code_report.py": {
-      "mode": "100644",
-      "sha256": "f4d90fd38b17aac59096488391b65ef9da5493d2049d4c038d5926a960257ca7"
-    },
-    "scripts/castiron/test_custom_code_review_revocation.py": {
-      "mode": "100644",
-      "sha256": "6d971965f6b4da770f4d49b3587dbd136c5be549453ae0d220150fc537b2736a"
+      "sha256": "4ac9c7c1fc6873491907b81a74c29c6b992f90ca0bae82fa1397770c9919fc53"
     },
     "src/openai/__init__.py": {
       "mode": "100644",
-      "sha256": "7cc1c0f0587ac77b0651af9ab2eeb21d6bfd516fe364d883ca11474b0c2a2552"
+      "sha256": "c9f81677ff05227f7051ef9e91729a7f2e566c506c839c5779b7f28a288bb77b"
     },
     "src/openai/_client.py": {
       "mode": "100644",
-      "sha256": "96f6317992c8a8cd8dc66c5e95bb5de6cae7e681e881bc00d12b0e12191d18d2"
+      "sha256": "4ed7e53a2a8282ca001358386a6e6cd689cb1c42e9d31ea01828399fbd4a0ee8"
     },
     "src/openai/_data_residency.py": {
       "mode": "100644",
@@ -103,7 +39,7 @@
     },
     "src/openai/resources/admin/organization/__init__.py": {
       "mode": "100644",
-      "sha256": "034a6e7dac771dd06b4d07424029f22465e9254e68c172a9b662e3b9b6cc5e61"
+      "sha256": "20413ef0ea8ce86960092122a76f79fe51a9cdb843175ae6939cf477cc8a808f"
     },
     "src/openai/resources/admin/organization/admin_api_keys.py": {
       "mode": "100644",
@@ -120,6 +56,10 @@
     "src/openai/resources/admin/organization/data_retention.py": {
       "mode": "100644",
       "sha256": "9173276962348404015e04efeb00c9551459bf7cec1ffe5890f164d1a76ee994"
+    },
+    "src/openai/resources/admin/organization/external_keys.py": {
+      "mode": "100644",
+      "sha256": "e1288655d595633c904b060833d7ebf0d9cfd0f285f10d0f8d08035d2f61e7be"
     },
     "src/openai/resources/admin/organization/external_storage.py": {
       "mode": "100644",
@@ -147,7 +87,7 @@
     },
     "src/openai/resources/admin/organization/organization.py": {
       "mode": "100644",
-      "sha256": "f038b43f0f1b020047682d864b49782ea1fb76c5d488def69b90407aa4be81a5"
+      "sha256": "254724f376de5fb777151c5531b4039d67f7e774fab9b71c2033d8de02a1f96c"
     },
     "src/openai/resources/admin/organization/projects/__init__.py": {
       "mode": "100644",
@@ -267,15 +207,15 @@
     },
     "src/openai/resources/audio/speech.py": {
       "mode": "100644",
-      "sha256": "5654e4105ba0118d6467eb42aaad6dcf62b7e57123512423d9b72bb1e77aad69"
+      "sha256": "2e871dd9db0b6c786350ae27228ee7ddf1344391be130f0e6e9e952f11535018"
     },
     "src/openai/resources/audio/transcriptions.py": {
       "mode": "100644",
-      "sha256": "b470fe61944498e74e9bc86c5a74763a49646f0e276e7c96ea339ebe0171b404"
+      "sha256": "14bcfdb8638f6b1aa5847441183cd53277ea32038112f7db90880e1daa456cab"
     },
     "src/openai/resources/audio/translations.py": {
       "mode": "100644",
-      "sha256": "9643b5ab66d84a9c1e0115e3dcd7e384de371f6eca5c1aac7f5168ce0d7e5245"
+      "sha256": "4653c956a5e3a49462d13f902aa6e6d14da5f8be6a5b6bf2fbcd28ba1e6c5ad7"
     },
     "src/openai/resources/audio/voice_consents.py": {
       "mode": "100644",
@@ -299,7 +239,7 @@
     },
     "src/openai/resources/beta/agents/agents.py": {
       "mode": "100644",
-      "sha256": "bf71aadeaf938d143a5965256e219237fe4bfc61162f401744c37cb1c9996a50"
+      "sha256": "fa3b51beeff5b5c0cf3454aa34b13b72301fdf7420996f9e71974700f6b8bcbd"
     },
     "src/openai/resources/beta/agents/automations/__init__.py": {
       "mode": "100644",
@@ -347,7 +287,7 @@
     },
     "src/openai/resources/beta/agents/sessions/sessions.py": {
       "mode": "100644",
-      "sha256": "65699418bb2e7b847de57b9c2d9c82acf0f94dfb99b46391ab61331580e7032c"
+      "sha256": "d1719b767d0b16e9eba1c405a66e9c11874da30a6ba2fa873603d1e6a9f6f7e2"
     },
     "src/openai/resources/beta/agents/sessions/subagents/__init__.py": {
       "mode": "100644",
@@ -403,7 +343,7 @@
     },
     "src/openai/resources/beta/assistants.py": {
       "mode": "100644",
-      "sha256": "0996802494a9b36de76079852185e7aee139e9eef26e97c9ecc65ba935a28a64"
+      "sha256": "5676fd2134e7cfa2d91dceda7894b692256853ab5a44bd9c16f837f161b2026f"
     },
     "src/openai/resources/beta/beta.py": {
       "mode": "100644",
@@ -439,7 +379,7 @@
     },
     "src/openai/resources/beta/responses/responses.py": {
       "mode": "100644",
-      "sha256": "fa1a44295495c8609fbbde9457902722b51e56b28ce3ed3b95c7212433f7c8b2"
+      "sha256": "27b0726c4b7c6f4e037f241548a14adf5d38e4f701ff12c46569a03f17f5f53a"
     },
     "src/openai/resources/beta/threads/__init__.py": {
       "mode": "100644",
@@ -447,7 +387,7 @@
     },
     "src/openai/resources/beta/threads/messages.py": {
       "mode": "100644",
-      "sha256": "7cea4c0d6f5ee498333913e6baeaef0eac3adc9381b9ce34fabff1efe4b1cfae"
+      "sha256": "369a9d84911dcdf15cacae43706d8b40e47adb52e4f035a2089f7f49abf60882"
     },
     "src/openai/resources/beta/threads/runs/__init__.py": {
       "mode": "100644",
@@ -455,15 +395,15 @@
     },
     "src/openai/resources/beta/threads/runs/runs.py": {
       "mode": "100644",
-      "sha256": "254b4c052c8ca7200f7c63d581895feef54f78db0c50b105e1092dd15d391cf6"
+      "sha256": "c8a082b6af6870571534929c095aa1416e645c82f9155c59f295162d99601b9a"
     },
     "src/openai/resources/beta/threads/runs/steps.py": {
       "mode": "100644",
-      "sha256": "82f0d57648c18adf36f95410d1021e791b12195549d612e7bf1f942e53545ede"
+      "sha256": "07b1d4547574fd86174f640554956a3c2952bed3aaea9569f32b07d68b1711ae"
     },
     "src/openai/resources/beta/threads/threads.py": {
       "mode": "100644",
-      "sha256": "b2834a13b0614f0952168655cc496ff344a766c3e9a92e7ce00b2eea73077430"
+      "sha256": "888c4757f56ac4ad15e49ac3a9de4762f7fc4731abe93d9b7f822c50565ae3c0"
     },
     "src/openai/resources/chat/__init__.py": {
       "mode": "100644",
@@ -479,7 +419,7 @@
     },
     "src/openai/resources/chat/completions/completions.py": {
       "mode": "100644",
-      "sha256": "7bc12b0cff8913fd3229ddb9055fdbb187da497a5f2dd0feda637b41235489dc"
+      "sha256": "024326c180b556c045497f041301bd1eb44c26a435dc14eb929cd6a2c5500c96"
     },
     "src/openai/resources/chat/completions/messages.py": {
       "mode": "100644",
@@ -559,7 +499,7 @@
     },
     "src/openai/resources/files.py": {
       "mode": "100644",
-      "sha256": "4d07e7fd7e821a92b4e55d985336c0a2b4495aa7b682b82dd1f37557171c807a"
+      "sha256": "4e4de9907870c1b6f3c5430342fb49e41d48b9e62eaa062a588fe08e4f6ff5ad"
     },
     "src/openai/resources/fine_tuning/__init__.py": {
       "mode": "100644",
@@ -587,7 +527,7 @@
     },
     "src/openai/resources/fine_tuning/checkpoints/permissions.py": {
       "mode": "100644",
-      "sha256": "d19e7661ef9f4f1b4fae8d448a854f1445aa08fce37045d179654d622ed52c32"
+      "sha256": "f3a867328d2b98e0fff9ecc7b501b60fad0115cc6cbb64055c3ce4a4a1c762e0"
     },
     "src/openai/resources/fine_tuning/fine_tuning.py": {
       "mode": "100644",
@@ -607,7 +547,7 @@
     },
     "src/openai/resources/images.py": {
       "mode": "100644",
-      "sha256": "d823e781dc30e74f363760c90a245ba75ae28293514495087239774ecace40c3"
+      "sha256": "f8f5376eeda7b45a90179eb287066447fce19ed761d313de5ab4c59df620b659"
     },
     "src/openai/resources/live/__init__.py": {
       "mode": "100644",
@@ -631,7 +571,7 @@
     },
     "src/openai/resources/live/sideband.py": {
       "mode": "100644",
-      "sha256": "4ed10b89fadd3aff1e3226cd7e0db9e1463ef834ce3d2c1e437618c7292cbd20"
+      "sha256": "9f780c2c96066d0f2a70f48b5c7f4f610900a1d07371c7b19fd0a7b787e79120"
     },
     "src/openai/resources/models.py": {
       "mode": "100644",
@@ -647,11 +587,11 @@
     },
     "src/openai/resources/realtime/api.md": {
       "mode": "100644",
-      "sha256": "f977c3b6d8ac7161eeb7025492ac820fc4a17465a54dbec223359b8d72ec6346"
+      "sha256": "eead2cb85c18f8618053945184022e68166bee967e60078cc0c8b3ef8be3fc34"
     },
     "src/openai/resources/realtime/calls.py": {
       "mode": "100644",
-      "sha256": "570a2f0476e2308b84d61fd63d509f722b0e24c4e5a4433f324f48bfe1d3407d"
+      "sha256": "8160372345273d9483ecafd003a8c40e24119e50f83fc9e55e92dec4cc63a0fb"
     },
     "src/openai/resources/realtime/client_secrets.py": {
       "mode": "100644",
@@ -659,7 +599,7 @@
     },
     "src/openai/resources/realtime/realtime.py": {
       "mode": "100644",
-      "sha256": "0285ac5edb9b8b17f296b2d513068cb35c3413895e35424221765cc4a15c8592"
+      "sha256": "0bfb331a5a3b95022b8d93532b05f906279d38f52b7dd1d3d455207039b6847f"
     },
     "src/openai/resources/realtime/translations/__init__.py": {
       "mode": "100644",
@@ -691,7 +631,7 @@
     },
     "src/openai/resources/responses/responses.py": {
       "mode": "100644",
-      "sha256": "7e18e308b99dd85bb224064b2c6d8eb632586a79e4cb71b8212eb39f0c410fd9"
+      "sha256": "b9a2ef1b61d33450318babc49e2b25f604628983804e7ebf4291f8802f372aee"
     },
     "src/openai/resources/safety/__init__.py": {
       "mode": "100644",
@@ -763,7 +703,7 @@
     },
     "src/openai/resources/videos.py": {
       "mode": "100644",
-      "sha256": "d505c37b6faae6cb3de9dabab651edd2ea5ee8eeac2134a0db94bf568f3a77c8"
+      "sha256": "1703210555717144469ae1e5578625f4385ec8b2fa1140a7c7c1a7f521027d4c"
     },
     "src/openai/resources/webhooks/__init__.py": {
       "mode": "100644",
@@ -791,7 +731,7 @@
     },
     "src/openai/types/admin/organization/__init__.py": {
       "mode": "100644",
-      "sha256": "89fb55c8f13e4226f489ced9c8f19858f0dd5c97964f1402283b5c406972db30"
+      "sha256": "92e7a3a9265dfee7f51c4e87b5af288db6e07c3182a93eae31ed87161c75bf40"
     },
     "src/openai/types/admin/organization/admin_api_key.py": {
       "mode": "100644",
@@ -880,6 +820,22 @@
     "src/openai/types/admin/organization/data_retention_update_params.py": {
       "mode": "100644",
       "sha256": "97a043bfbb91d7cb4b8f1a37709463637f1c96e95ed369edb39381324e95ede6"
+    },
+    "src/openai/types/admin/organization/external_key.py": {
+      "mode": "100644",
+      "sha256": "1dd59d578a766b90bd5b28852915627b1e4cd7e47374ac7d9fa5dcf16e0591fc"
+    },
+    "src/openai/types/admin/organization/external_key_create_params.py": {
+      "mode": "100644",
+      "sha256": "b72cf37b3d75ab44fe26db1892dc04e372da3126500221d87a385449e425e4c5"
+    },
+    "src/openai/types/admin/organization/external_key_list_params.py": {
+      "mode": "100644",
+      "sha256": "c7a4a6b062742f49632fedf361b45d87d862e7f9875b7523f3aeda062628f54a"
+    },
+    "src/openai/types/admin/organization/external_key_validate_response.py": {
+      "mode": "100644",
+      "sha256": "1368ee3bad99b9aa0f8dc61e13b3dc2d00743e240c796b5be69204971d938657"
     },
     "src/openai/types/admin/organization/external_storage_configuration.py": {
       "mode": "100644",
@@ -1483,11 +1439,11 @@
     },
     "src/openai/types/audio/speech_create_params.py": {
       "mode": "100644",
-      "sha256": "d7fe69e980d62c53974dd4762b41fdf0b0d945d673706197c522d8e12dc26d7d"
+      "sha256": "d4c25647c93f00168530ea5e2799b356534ea4baa2063f8d7d32c87e57edd87f"
     },
     "src/openai/types/audio/speech_model.py": {
       "mode": "100644",
-      "sha256": "fb7ed16cd7b5546b5542f87483d6a94a265c04a7f05359d55e1b75c1532d1c8f"
+      "sha256": "37276fa22664c1c774efcf5ab2cbcc702948e179ca0754b8c8969ca9d9a048aa"
     },
     "src/openai/types/audio/transcription.py": {
       "mode": "100644",
@@ -1495,7 +1451,7 @@
     },
     "src/openai/types/audio/transcription_create_params.py": {
       "mode": "100644",
-      "sha256": "54870dbc1d0d26da292e196fcb33bf440997ed49a3f46333a511dc64b51c36a5"
+      "sha256": "9c4d52bc353a8606b5f32171356ecfb22d59b3ad02a15357ec00c02b39806dc9"
     },
     "src/openai/types/audio/transcription_create_response.py": {
       "mode": "100644",
@@ -1551,7 +1507,7 @@
     },
     "src/openai/types/audio/translation_create_params.py": {
       "mode": "100644",
-      "sha256": "966c1295c09a6173762113600440208cfe57c293aca1d3f8c06740e4272dffa0"
+      "sha256": "a52708572329064afaf5768d7ff4b643027cc55641945bfe09cad783cbd3b8ab"
     },
     "src/openai/types/audio/translation_create_response.py": {
       "mode": "100644",
@@ -1595,7 +1551,7 @@
     },
     "src/openai/types/audio_model.py": {
       "mode": "100644",
-      "sha256": "10c4c46d91afc4b2f8d1a5843464bc4cce44d7dbee472978c60999e438a3dd4b"
+      "sha256": "4de34946ca0d11a973978a70babb7021d5a030525944961441fc928f097546da"
     },
     "src/openai/types/audio_response_format.py": {
       "mode": "100644",
@@ -1635,7 +1591,7 @@
     },
     "src/openai/types/beta/agent.py": {
       "mode": "100644",
-      "sha256": "49592e550206fd1fc615f3cb4ec1a9678185ece70059de6b6074b967a35b4d8c"
+      "sha256": "39c20eb4aae2c8a5bd650ef29331f4a9c6a859ae9cbb674e9ddb62e2f85a13c8"
     },
     "src/openai/types/beta/agent_browser_authentication_cancel_param.py": {
       "mode": "100644",
@@ -1675,7 +1631,7 @@
     },
     "src/openai/types/beta/agent_create_params.py": {
       "mode": "100644",
-      "sha256": "77d29008724620d464e53153004c4cfb91f350d0814b6c84635005004ca6fc25"
+      "sha256": "e43e1e4d33b6e9764aa070c25bc15809a035ffb1ddfadc4680e33020f260f36b"
     },
     "src/openai/types/beta/agent_create_subagent_call_item.py": {
       "mode": "100644",
@@ -1747,7 +1703,7 @@
     },
     "src/openai/types/beta/agent_session.py": {
       "mode": "100644",
-      "sha256": "ed9a72c49bf1dcdf0b875f323ceb257eb772ac0a290c3d595a436998cc79ed75"
+      "sha256": "942e581fb98626566ae555e27262d1c6a7b772201e3385695ed1462ed317866a"
     },
     "src/openai/types/beta/agent_session_assistant_message.py": {
       "mode": "100644",
@@ -1931,7 +1887,7 @@
     },
     "src/openai/types/beta/agent_update_params.py": {
       "mode": "100644",
-      "sha256": "e9ec42a357a53780f81361f20080a7ee6762b461d243289511637bc67b76eaa4"
+      "sha256": "5677862d355898407a4bc29cca2ad56e4ba93df1525f4805a76df029f348cef3"
     },
     "src/openai/types/beta/agent_wait_for_subagents_call_item.py": {
       "mode": "100644",
@@ -1951,7 +1907,7 @@
     },
     "src/openai/types/beta/agents/automation_agent_config.py": {
       "mode": "100644",
-      "sha256": "e3c97c93d0db0e76a7d407b62f65c4cf284825494bcf1d0d96653305e994781b"
+      "sha256": "41776af1d179879d851f2c766558473bd3f6c4a56bf77bc9182bb081395811ad"
     },
     "src/openai/types/beta/agents/automation_create_params.py": {
       "mode": "100644",
@@ -1983,7 +1939,7 @@
     },
     "src/openai/types/beta/agents/automation_target_param.py": {
       "mode": "100644",
-      "sha256": "aad9dcc0ce6817c9ff825e0c718fa046e2f06966e5e77d2fa4d60faa23a389e4"
+      "sha256": "d850b41c5e0ba1e23715816ff6d078a7680ea085d26d4a23c74ef892daa85ec3"
     },
     "src/openai/types/beta/agents/automation_update_params.py": {
       "mode": "100644",
@@ -2063,11 +2019,11 @@
     },
     "src/openai/types/beta/agents/session_create_params.py": {
       "mode": "100644",
-      "sha256": "70fe10d2ef44268bad65a58f96ae70e4150f1092c885bf78f28e3ddb99df5af1"
+      "sha256": "8507384a202b0b572799f1afb0ac44fbce25e1787a3c3b87b9fc270b8a135633"
     },
     "src/openai/types/beta/agents/session_list_params.py": {
       "mode": "100644",
-      "sha256": "4f0902a10fe694a0efa2f7073cca64a2aea6e4c346f71176e49aef4621ed049d"
+      "sha256": "2de32d51ce2cfdbcf2224acfa8b04a28234717d6c373a3d68ee66bac90f75d2d"
     },
     "src/openai/types/beta/agents/session_update_params.py": {
       "mode": "100644",
@@ -2235,7 +2191,7 @@
     },
     "src/openai/types/beta/assistant_create_params.py": {
       "mode": "100644",
-      "sha256": "961a304cd988cdcdd5c6a15512238f80be3221f6ffb196a2de8ea874efe32f3d"
+      "sha256": "0276aa1e1fc65558e3b132798a419fa26c6bc518fa0e3b0c12a7c71d7843ee4a"
     },
     "src/openai/types/beta/assistant_deleted.py": {
       "mode": "100644",
@@ -2291,7 +2247,7 @@
     },
     "src/openai/types/beta/assistant_update_params.py": {
       "mode": "100644",
-      "sha256": "23a6ce3b6210e58e57955d6123b527536725b088447d620474d83a0fce39a2f4"
+      "sha256": "49812f9b0cee9fb078b8f39ddcdf7afc020d121126eafc4c11680837648be113"
     },
     "src/openai/types/beta/beta_apply_patch_tool.py": {
       "mode": "100644",
@@ -2471,7 +2427,7 @@
     },
     "src/openai/types/beta/beta_response.py": {
       "mode": "100644",
-      "sha256": "8011267edd70f6c5caecda2bb50a79f880b5d64d0db4427bafcd3385117eb2a4"
+      "sha256": "f9f8e9f29fc43a743592cd89636dfbe967fe189d47914e8c847a2a396d9af45c"
     },
     "src/openai/types/beta/beta_response_apply_patch_tool_call.py": {
       "mode": "100644",
@@ -2615,7 +2571,7 @@
     },
     "src/openai/types/beta/beta_response_custom_tool_call_item.py": {
       "mode": "100644",
-      "sha256": "8620f5865a9ea00bd9d422818ac8b1cea42fc96fd42f0d32016bd19d1f76d0fd"
+      "sha256": "24bf113bb97d6ef4436709f545b8a1e904b983743f2e583f39fa2a756e634165"
     },
     "src/openai/types/beta/beta_response_custom_tool_call_output.py": {
       "mode": "100644",
@@ -2623,7 +2579,7 @@
     },
     "src/openai/types/beta/beta_response_custom_tool_call_output_item.py": {
       "mode": "100644",
-      "sha256": "a9b54909530031f3f8bd996a3cbeb3677dad06e9fc1166c094b3cec7ac4b4355"
+      "sha256": "e2d5ba522339b8b01f550623c92c613b4b6963692d4b724930dd0f0cda2e3c13"
     },
     "src/openai/types/beta/beta_response_custom_tool_call_output_param.py": {
       "mode": "100644",
@@ -2727,7 +2683,7 @@
     },
     "src/openai/types/beta/beta_response_function_tool_call_item.py": {
       "mode": "100644",
-      "sha256": "55be8db78553ab612114cddec709010cae008ec2450fd33020476b85085f6b70"
+      "sha256": "aee4f2768dc2856f305cc8ce9e6a44126cafb04701280866957f5384e3c732db"
     },
     "src/openai/types/beta/beta_response_function_tool_call_output_item.py": {
       "mode": "100644",
@@ -2803,35 +2759,35 @@
     },
     "src/openai/types/beta/beta_response_input_file.py": {
       "mode": "100644",
-      "sha256": "678fff6dcb76fdd4b958c86e9e0a1009244283e3688f4d5c43184fd8103f7dbe"
+      "sha256": "cc6f72da609314c3a4fcd13f2a6f79a1666c32d1468f32c3d92f447db0f8ce24"
     },
     "src/openai/types/beta/beta_response_input_file_content.py": {
       "mode": "100644",
-      "sha256": "a26937c4678dbf2e03f15317a9bbe2e9729ec21c67cb23ad1ca13421b5206c82"
+      "sha256": "b4d1e9f930d592f41c9eeaa825caa0c322308688d785b2a445a4f3eea7ed98cc"
     },
     "src/openai/types/beta/beta_response_input_file_content_param.py": {
       "mode": "100644",
-      "sha256": "e9ee5b6fa0598dfc6923e4db2008dbd93e0ef0e12c7a3486fcce188ac606b26f"
+      "sha256": "ebc40fc3f15f84df97a900901debe5367203daaa23e8b90755a439755a2586a1"
     },
     "src/openai/types/beta/beta_response_input_file_param.py": {
       "mode": "100644",
-      "sha256": "9e0ff392f9355d35455db9fc8d7b3c87cc0cefa5c241eefdb28a66f4668aaef7"
+      "sha256": "a6db8c9671a3ef0cdf0eb19883bc19a9c0f1f269568b256dff1089bc30177cd1"
     },
     "src/openai/types/beta/beta_response_input_image.py": {
       "mode": "100644",
-      "sha256": "3792174e56f06280aa1159a76da5ba81ae7bc06e95a49538a49eb35a3153c17d"
+      "sha256": "4fb6c1290f75cf5cf2b1bf8264cfee7be38ad44d1e25b7016654b939f674a5bd"
     },
     "src/openai/types/beta/beta_response_input_image_content.py": {
       "mode": "100644",
-      "sha256": "897f719ce596f4c34e1ef02235a6734ed94bda418c53ae21f035d3e5964b4cdc"
+      "sha256": "34dd073b133434db8b419c34a14ce8ab51948a3236a86a4c8ae7e061f710709c"
     },
     "src/openai/types/beta/beta_response_input_image_content_param.py": {
       "mode": "100644",
-      "sha256": "29fd94be12976fbb72fea7db17008d4f1a06dc8e88bfe8c55dac4c4018eb167b"
+      "sha256": "1f49f0afec9d68e8ecc2da1ca6abc3ac7624966c31e7b2f85a8deb4bb37dc452"
     },
     "src/openai/types/beta/beta_response_input_image_param.py": {
       "mode": "100644",
-      "sha256": "4862b3cc063af9d90e7dc67579b84ae21087bf46bd18faeb481d65ba23b29a9e"
+      "sha256": "c78ecdce3c708959d48ac87aba73addd62cc55a31e579f5be5eafa2082323c20"
     },
     "src/openai/types/beta/beta_response_input_item.py": {
       "mode": "100644",
@@ -2859,23 +2815,23 @@
     },
     "src/openai/types/beta/beta_response_input_text.py": {
       "mode": "100644",
-      "sha256": "da753d1f3e2618ad969342bb5c20ddf515aa7481f8f81bc351a2b674812b3aa1"
+      "sha256": "e214618246f1ecb60e2d3c69731095ec298e2fa104e46fb45cbab6746f7e7030"
     },
     "src/openai/types/beta/beta_response_input_text_content.py": {
       "mode": "100644",
-      "sha256": "05fafd48cdbe85f06a942e6f3c5f211e5694bb3c4047dc7d6e53850907b5bacb"
+      "sha256": "81e335dd365648cecf5d12fe521ad419820b9205da077909571418a747ec6760"
     },
     "src/openai/types/beta/beta_response_input_text_content_param.py": {
       "mode": "100644",
-      "sha256": "147fd5668879a2195d8bd570f33bac43db1f3959f5baa67172bb8e832b6d99c2"
+      "sha256": "e32456ef57caa7534b501594a137ac8b0adc957d3b7db64e1555446a2f03f8a3"
     },
     "src/openai/types/beta/beta_response_input_text_param.py": {
       "mode": "100644",
-      "sha256": "4db28c3ef3960793c5a874009fa43f2d27afb4b10aff154ebf1160e4f7eef4e1"
+      "sha256": "ac8b882ef0d4c4c17d0e7c9ff90127551a69f474acd0948584d38f32d4772f9e"
     },
     "src/openai/types/beta/beta_response_item.py": {
       "mode": "100644",
-      "sha256": "a36f81a50941233bd7f65e323c8fadefe24a309d2f2697ef103382d9d456ca3f"
+      "sha256": "9011df6b2a79271e30eef466909d5e18201caf603c19ec6133c7961079345c8d"
     },
     "src/openai/types/beta/beta_response_local_environment.py": {
       "mode": "100644",
@@ -2915,7 +2871,7 @@
     },
     "src/openai/types/beta/beta_response_output_item.py": {
       "mode": "100644",
-      "sha256": "f785f2680a96e7e2b262c8d653e02c84f59a96cbcb6721edcf1ac258d10e4095"
+      "sha256": "2f2ba65faffd931ceb62b95346e8a0b42212060fd08c2dd4f150495b4d660bc2"
     },
     "src/openai/types/beta/beta_response_output_item_added_event.py": {
       "mode": "100644",
@@ -3107,11 +3063,11 @@
     },
     "src/openai/types/beta/beta_response_tool_search_output_item_param.py": {
       "mode": "100644",
-      "sha256": "626950ea43730bce9543c96bebce1718fd3ccdf303c77f31a4672673fa13121a"
+      "sha256": "4b192c62e37059f8c5498f5e417930b85e4f36c0625f9d3707efa6f840d14175"
     },
     "src/openai/types/beta/beta_response_tool_search_output_item_param_param.py": {
       "mode": "100644",
-      "sha256": "7920227dd83b05caaed0b1722cdb602c1c446ba9089d8ca8628f2afacb1b6b3a"
+      "sha256": "20de082754eb1e759baa8c08ba3ba3f02e18089f668932af2f4969bf4a1643de"
     },
     "src/openai/types/beta/beta_response_usage.py": {
       "mode": "100644",
@@ -3131,11 +3087,11 @@
     },
     "src/openai/types/beta/beta_responses_client_event.py": {
       "mode": "100644",
-      "sha256": "6a7d886b9e68cdc72d07ca67abeb359bae7ef6233cc10d876430b046ff4d6aaf"
+      "sha256": "939052a456df5a661ed334033a9151c18ed63dfba6c520fd92a7572d50efc091"
     },
     "src/openai/types/beta/beta_responses_client_event_param.py": {
       "mode": "100644",
-      "sha256": "eadebc5be4696f3f86a45ab6ebc45cf10c7bfd272c6d4f4a543670f7ba7c28df"
+      "sha256": "ba2e2d06061761345308086b4b1d2ce39f86db631c46db825c5bbc7f62f63ccb"
     },
     "src/openai/types/beta/beta_responses_server_event.py": {
       "mode": "100644",
@@ -3155,7 +3111,7 @@
     },
     "src/openai/types/beta/beta_tool.py": {
       "mode": "100644",
-      "sha256": "b2113bfb482d18476f20a1634735a99a7cdbeecd621737920445041ce1d8d0d4"
+      "sha256": "376e973c388fc10edecf69beb021aff4e4dba63afcaa41ae10fed500e5407c00"
     },
     "src/openai/types/beta/beta_tool_choice_allowed.py": {
       "mode": "100644",
@@ -3219,7 +3175,7 @@
     },
     "src/openai/types/beta/beta_tool_param.py": {
       "mode": "100644",
-      "sha256": "516583a14fda3b95fea765a4defb65a40ba9ba2499844dab226c49c552bf9ca7"
+      "sha256": "633d42782663ff3e67e76e36ac48513ea44f65f0920d4176d7728c0af325653a"
     },
     "src/openai/types/beta/beta_tool_search_output_namespace_tool.py": {
       "mode": "100644",
@@ -3463,11 +3419,11 @@
     },
     "src/openai/types/beta/response_compact_params.py": {
       "mode": "100644",
-      "sha256": "0ade13303e1a4f4bfb102ad52911dbb28dac31a50d7c0ff6a35728e0c6190fb2"
+      "sha256": "d0a31f4458a0f6ca017d548c9df73bc6d6c2ca12fae533840088d8f4598b9f41"
     },
     "src/openai/types/beta/response_create_params.py": {
       "mode": "100644",
-      "sha256": "81053de0d2b45adb86d3d8edbf352650e2005072bcc6a968ba737de316fb3e1c"
+      "sha256": "60c12f205d4f4b3acca7ea2edde698bbed12461d12282f69903143b54fd83298"
     },
     "src/openai/types/beta/response_retrieve_params.py": {
       "mode": "100644",
@@ -3527,7 +3483,7 @@
     },
     "src/openai/types/beta/thread_create_and_run_params.py": {
       "mode": "100644",
-      "sha256": "b635020d07c9cd4ec9af0c0a96483625ecd5e3824a3ac9a145f9b470d5ce5a47"
+      "sha256": "607455cee4c422ddd7c78ed5c68cc3b595d8e942289740f62afb11aa36291489"
     },
     "src/openai/types/beta/thread_create_params.py": {
       "mode": "100644",
@@ -3675,7 +3631,7 @@
     },
     "src/openai/types/beta/threads/run_create_params.py": {
       "mode": "100644",
-      "sha256": "1cbb24127422f45b6e57d7ff32fe1ad6ab3de93129de056ee01aa4d2245dc0f7"
+      "sha256": "2e96236fcae5848c0fb38310083dd7160aa57e60a6ce605284b0d0d3c0488765"
     },
     "src/openai/types/beta/threads/run_list_params.py": {
       "mode": "100644",
@@ -3839,19 +3795,19 @@
     },
     "src/openai/types/chat/chat_completion_content_part_image.py": {
       "mode": "100644",
-      "sha256": "37c32f3ac96d0bd3b7bfb7c6fd5cb24ca8834f123962b8d3775c692f0c790b87"
+      "sha256": "60536a778ffc543a55bd252884fa28619738798efd6d87927d2aab5a4628fbc8"
     },
     "src/openai/types/chat/chat_completion_content_part_image_param.py": {
       "mode": "100644",
-      "sha256": "a4d2f746c6d3939a4f450f51c275cfde4eba8c9f523a5ffa4a488c9f82a711a3"
+      "sha256": "daf536ae602fd6dba4cde122e6c17fc7e872e84f22c9d7ac7bceea3d2384fd0f"
     },
     "src/openai/types/chat/chat_completion_content_part_input_audio_param.py": {
       "mode": "100644",
-      "sha256": "5d4db7a70e814268c78d580a43adf765ec31da8fde1e872592837f9baf203280"
+      "sha256": "d1cb56d79cee6f0ad0e6532e148d180d4d452e4ccede20e1cc84117bae0a7df7"
     },
     "src/openai/types/chat/chat_completion_content_part_param.py": {
       "mode": "100644",
-      "sha256": "4334661b0c4b913af698bd17a2004ad8cdf008549222f10e23f87cb84e89dd30"
+      "sha256": "e992307987f2c5dbb76304efd1deba79f96ac9588ba92d40188c7951136f97c7"
     },
     "src/openai/types/chat/chat_completion_content_part_refusal_param.py": {
       "mode": "100644",
@@ -3859,11 +3815,11 @@
     },
     "src/openai/types/chat/chat_completion_content_part_text.py": {
       "mode": "100644",
-      "sha256": "0e0cac98dd112de540a08bdb288ed8b7ac8a0a3908bb738bc97ec5a5bcea484f"
+      "sha256": "e6ee08604f82c5592ab33ebf10467464cc83deb41946707412f496df9593fdb8"
     },
     "src/openai/types/chat/chat_completion_content_part_text_param.py": {
       "mode": "100644",
-      "sha256": "05dfba4e59c1792d84107bf31a58d4670205ca2757415fab9da081f0dadb286b"
+      "sha256": "f76ceaec2e0a7e02949b3a825f9262069b870d6d0fcead05582961d6834a4392"
     },
     "src/openai/types/chat/chat_completion_custom_tool_param.py": {
       "mode": "100644",
@@ -3983,7 +3939,7 @@
     },
     "src/openai/types/chat/completion_create_params.py": {
       "mode": "100644",
-      "sha256": "9ba565d98306db4188839ef39e84a7ed0f7490fef2e2f5deda2d632c25815d47"
+      "sha256": "a5d49781efabeaaa1e4b037e4ef163d564488266b6a584cbf83e79bc7de49362"
     },
     "src/openai/types/chat/completion_list_params.py": {
       "mode": "100644",
@@ -4087,7 +4043,7 @@
     },
     "src/openai/types/conversations/computer_screenshot_content.py": {
       "mode": "100644",
-      "sha256": "e2130cbb329d466c958e8f3c8b79a2c98aa0843a0bd430d4b9968a01705ea67d"
+      "sha256": "b7b8505f2bb0af2928c36e2e66653cf870632cef2ef3205fbccb735d8ca0c345"
     },
     "src/openai/types/conversations/conversation.py": {
       "mode": "100644",
@@ -4327,11 +4283,11 @@
     },
     "src/openai/types/evals/runs/output_item_list_response.py": {
       "mode": "100644",
-      "sha256": "69a21112186eb69f19466d928baf88960bf18d76bfea90d001596e22e041a887"
+      "sha256": "db6b6596afb956f5791985f704d171e0ddf3fb076e283d1d6784dfe061fe2d6e"
     },
     "src/openai/types/evals/runs/output_item_retrieve_response.py": {
       "mode": "100644",
-      "sha256": "7b1e413612ad9bc8bdd6b2807613cc6f996435af8e9ad6c9040c47a831e1a805"
+      "sha256": "9f1b0a1988719b137dd874656c1688a2a3d47be0a45abaf3d687cd71ab964232"
     },
     "src/openai/types/file_chunking_strategy.py": {
       "mode": "100644",
@@ -4579,7 +4535,7 @@
     },
     "src/openai/types/image_create_variation_params.py": {
       "mode": "100644",
-      "sha256": "3f6ec922587f6d2dd63d4f3b939432cee2dfdb45bc4c510af91503d4b6f0ece4"
+      "sha256": "ec0fa1ac5128e05be922cdcf04ef38a058cccdadf03d792bc6c94ac5b4661c96"
     },
     "src/openai/types/image_edit_completed_event.py": {
       "mode": "100644",
@@ -4587,7 +4543,7 @@
     },
     "src/openai/types/image_edit_params.py": {
       "mode": "100644",
-      "sha256": "e6c495ae0269889e18ad6d44bec3855a640ef9d8f916a94cfe4b0967a7b8a739"
+      "sha256": "e45d0c075029142ad45cbb557962a6e065d299687449b97405390a9534d5b7bf"
     },
     "src/openai/types/image_edit_partial_image_event.py": {
       "mode": "100644",
@@ -4611,7 +4567,7 @@
     },
     "src/openai/types/image_generate_params.py": {
       "mode": "100644",
-      "sha256": "a7d4d661d27941a10ce8104d537ce7166d46cc20eb96e17559a0a3dd7beeb3bf"
+      "sha256": "6196d5bd543cbc62ed4f0e64a06b78c5291d4babfde07fd8a58105f4531d614c"
     },
     "src/openai/types/image_input_reference_param.py": {
       "mode": "100644",
@@ -4679,15 +4635,15 @@
     },
     "src/openai/types/live/connect_client_event.py": {
       "mode": "100644",
-      "sha256": "bc941c81d969470e47b82605313ca6beff3d40bf152eabe7ba0b6e6649cf2afa"
+      "sha256": "3dafdbb32c5765eaa39a1473d56f1b5113b2af596feac4fb4332b5632c5332fc"
     },
     "src/openai/types/live/connect_client_event_param.py": {
       "mode": "100644",
-      "sha256": "b8f84462deda4beb537beb4f8dcf18a1be3bc842bc1679adb9d4fc66e1b8b18b"
+      "sha256": "348e243ff821cf55dd0c1a5f04aa5c83ee12221b033913314c7c25ffb47101da"
     },
     "src/openai/types/live/connect_server_event.py": {
       "mode": "100644",
-      "sha256": "f1762b5ae9f57faaf5bc12d24497b6736a454d9c9b0a92bea8556ec5e191c948"
+      "sha256": "0ea5b662cd3893671b1ed1f89cc49852a8db23a4591ef6694a5a789e8aa253ed"
     },
     "src/openai/types/live/custom_voice.py": {
       "mode": "100644",
@@ -4867,7 +4823,7 @@
     },
     "src/openai/types/live/fork_server_event.py": {
       "mode": "100644",
-      "sha256": "a908fc4ff11c69feb00f2e5bdd57ec4af95fd5c7bbdf02a8dbf8b566257ae837"
+      "sha256": "e7b6e1523075c44d6a39125cbec89984be35a60c3b314f521768bca68f92caae"
     },
     "src/openai/types/live/fork_session_config.py": {
       "mode": "100644",
@@ -5031,7 +4987,7 @@
     },
     "src/openai/types/live/server_event.py": {
       "mode": "100644",
-      "sha256": "ab64c366facea5dd4ba3e487fc09227bb806401fee45d0512156507695f20feb"
+      "sha256": "6b7bbf4ebd0cafdccda1532cf059e9c6a4be2ea3c4fde83c2c3c3d30ab37ae2b"
     },
     "src/openai/types/live/server_event_selector.py": {
       "mode": "100644",
@@ -5183,19 +5139,19 @@
     },
     "src/openai/types/realtime/__init__.py": {
       "mode": "100644",
-      "sha256": "261c144fdf20c27eb36a7d231089412a837f0e4c515fdc32a25cd7e856ab166e"
+      "sha256": "9666db4186bc43fb9172e062757c6fd9f80a602243e9bb887453843ae705e187"
     },
     "src/openai/types/realtime/audio_transcription.py": {
       "mode": "100644",
-      "sha256": "e8b654b7248d40573bfe1ca41339025da56cfb7e23402c6c59fa2c9e102aae9d"
+      "sha256": "59cd4da03111d171b087505da90ed6eb9dc5407d8f2e8c1135d5c5798ce752be"
     },
     "src/openai/types/realtime/audio_transcription_param.py": {
       "mode": "100644",
-      "sha256": "a849d72a6307ee783ab707f4c3f77a997f328048486713ce6c651cf372cedcd7"
+      "sha256": "9bdd038f32c2799339e48713817101e2ed1779ea98e63593e0dcde3e55e08f81"
     },
     "src/openai/types/realtime/call_accept_params.py": {
       "mode": "100644",
-      "sha256": "a94645fafcb94221f15dc4d9e99a16a7a30acedf818db0b2733cd147c4cf47bb"
+      "sha256": "ca5a354965d8a8fcfb5ae0c6644752507085270f857542e24790895bfbe5acb9"
     },
     "src/openai/types/realtime/call_create_params.py": {
       "mode": "100644",
@@ -5585,6 +5541,10 @@
       "mode": "100644",
       "sha256": "d8b30f5cf2b34637790ca055cf95e50391346dcf72e5ff009f6b44afc4bcb547"
     },
+    "src/openai/types/realtime/realtime_response_create_params_with_references_param.py": {
+      "mode": "100644",
+      "sha256": "e497ef7761e669350ca27b7083e6435c41f4864b0bd5bbfd5c3c204b35d2f883"
+    },
     "src/openai/types/realtime/realtime_response_status.py": {
       "mode": "100644",
       "sha256": "b00b75118e8e7d2c42fcf4fbdb15e4018c572f1c371af7d86b89015dc4c08156"
@@ -5607,15 +5567,15 @@
     },
     "src/openai/types/realtime/realtime_session_create_request.py": {
       "mode": "100644",
-      "sha256": "922e39059bfa14fec2d2de506d3bc93c013e58dfa4e2744c873a678e2407fef6"
+      "sha256": "9638e6e645ed0f9df54094dcc456ab90f69c39a06ff772e51b07fcdfb61b9ad1"
     },
     "src/openai/types/realtime/realtime_session_create_request_param.py": {
       "mode": "100644",
-      "sha256": "73b62b50f41143a89329fb5eff7b40566e153877bb6de6cf80fc6f4b68ada3f5"
+      "sha256": "649222e828bee6965cb0a8e056d3df0e6c564051f30456f3a545002c954a3c31"
     },
     "src/openai/types/realtime/realtime_session_create_response.py": {
       "mode": "100644",
-      "sha256": "b7ab37c1f6af3193b21c005cc688a1d2fa0d28b3d118ed8eca3b5e570b07bc1c"
+      "sha256": "d85dffaa20373e37f99da42a3095b0f6346808304d82593f8c55003c69632528"
     },
     "src/openai/types/realtime/realtime_tool_choice_config.py": {
       "mode": "100644",
@@ -5825,6 +5785,10 @@
       "mode": "100644",
       "sha256": "5ca62450179ad1415d9c4057d8aa8850463a346d7541c1f5cf4cd1cc4373ab03"
     },
+    "src/openai/types/realtime/response_create_event_with_references_param.py": {
+      "mode": "100644",
+      "sha256": "447311a4c3fcc158d048b7a661f8c3839a889a05f7bde833f35c883ea1a8e1c1"
+    },
     "src/openai/types/realtime/response_created_event.py": {
       "mode": "100644",
       "sha256": "36bf360cb5d65a600e0580a6cf6887a229a03607d96218f400c4903b49ea5728"
@@ -5840,6 +5804,14 @@
     "src/openai/types/realtime/response_function_call_arguments_done_event.py": {
       "mode": "100644",
       "sha256": "75586fb8816948a71e001c78c0a8f3ac2ab821a878f2f9b58a4f137867ec05cb"
+    },
+    "src/openai/types/realtime/response_item_reference.py": {
+      "mode": "100644",
+      "sha256": "bbd4ddcfc8a99940f161eed062552d3f7e70f40042824948bad7ab80022ebc57"
+    },
+    "src/openai/types/realtime/response_item_reference_param.py": {
+      "mode": "100644",
+      "sha256": "06d0f4594d15309a190f72098cfb0970a49ca8da14214c2ca8fbc27ab9e142be"
     },
     "src/openai/types/realtime/response_mcp_call_arguments_delta.py": {
       "mode": "100644",
@@ -6095,7 +6067,7 @@
     },
     "src/openai/types/responses/response.py": {
       "mode": "100644",
-      "sha256": "fad55bfc5e659ed5ab1bc04c85628c5ba09ac59180e21bdad7620abfc955cc14"
+      "sha256": "b7f94706e91b9e0c7e857b74c0ea2430ec4f3a8f645833e9490d33d57f6b8ee0"
     },
     "src/openai/types/responses/response_apply_patch_tool_call.py": {
       "mode": "100644",
@@ -6151,7 +6123,7 @@
     },
     "src/openai/types/responses/response_compact_params.py": {
       "mode": "100644",
-      "sha256": "d6ac093d30c520031c5feff97bea4754bbe7d8220838890b45d1e5d6d121e1b7"
+      "sha256": "4ab1d8aef579028de8cfb78f233e3c53a9b12475f42da7328b19f04397bbf53b"
     },
     "src/openai/types/responses/response_compaction_compacting_event.py": {
       "mode": "100644",
@@ -6247,7 +6219,7 @@
     },
     "src/openai/types/responses/response_custom_tool_call_item.py": {
       "mode": "100644",
-      "sha256": "54ce5dd469ab9c7d8f65157834a7da4cec241bee1a575d09a827dfa0960f8de1"
+      "sha256": "186fa4aec8d6aa3e6fba167380c5749f7717f14a21d38aee73b4a6ff1df90e2a"
     },
     "src/openai/types/responses/response_custom_tool_call_output.py": {
       "mode": "100644",
@@ -6255,7 +6227,7 @@
     },
     "src/openai/types/responses/response_custom_tool_call_output_item.py": {
       "mode": "100644",
-      "sha256": "b7603a302b802ed07c9c563b5c2bf66df1f8fe1cbc0a56ce9e05bca56463c3fe"
+      "sha256": "ec14dd5e25712e9244da6138027ded2611d409d0ffe6946a76ddb48ccd7aa975"
     },
     "src/openai/types/responses/response_custom_tool_call_output_param.py": {
       "mode": "100644",
@@ -6359,7 +6331,7 @@
     },
     "src/openai/types/responses/response_function_tool_call_item.py": {
       "mode": "100644",
-      "sha256": "6e3f8258ece7112249d286b0756c20e7cc51b567f611bcf3435e15325906b5ac"
+      "sha256": "3c9966c1135de25afb0be912d669ea9af8b93aa0c7cab045b9c0be4028180c68"
     },
     "src/openai/types/responses/response_function_tool_call_output_item.py": {
       "mode": "100644",
@@ -6427,35 +6399,35 @@
     },
     "src/openai/types/responses/response_input_file.py": {
       "mode": "100644",
-      "sha256": "08367864bff957fa4a8b020acee507981a9dc2280efe19b7fb7eb2287959f6a4"
+      "sha256": "56dfe0226bacd7745e5f4447a9d7bf57dc6d06d19901be84b8493532e9a85f58"
     },
     "src/openai/types/responses/response_input_file_content.py": {
       "mode": "100644",
-      "sha256": "a3bd4748c31fa004957efbd251821f670179f33265c4de609934c336fd1adb5f"
+      "sha256": "cc30f4f1095335e899710cb6e87662261a45f34fb4f041bb262a4163c33a7cae"
     },
     "src/openai/types/responses/response_input_file_content_param.py": {
       "mode": "100644",
-      "sha256": "1b3cb6af87357124adfc1e19ad82e19a87a54058c7726414e9c26b7a3955690f"
+      "sha256": "a67b4d1915d0192a0fd101c8a496e29f9fd7316a973a4ac69c529eb43514b758"
     },
     "src/openai/types/responses/response_input_file_param.py": {
       "mode": "100644",
-      "sha256": "dc7af160ae8ca96c77aebf92f01fb3e5db77de39d9deb767d0f69a792837a73f"
+      "sha256": "20eab505e6a62347e96f4783e01a3ca91c1000bb07ff357687a9b66b313466d5"
     },
     "src/openai/types/responses/response_input_image.py": {
       "mode": "100644",
-      "sha256": "4852c46a52e5128aed6ddb96e2cbda86b8ca5b9235f632ee60668f0f67908df6"
+      "sha256": "2998b697b245bd5b74b9cd7da3a386438978333cd0fcf226b367787ea094ae29"
     },
     "src/openai/types/responses/response_input_image_content.py": {
       "mode": "100644",
-      "sha256": "79d7a845bae7ab4f7d33d2b5aafcc175cc36f05d0fa97613c80dc6c65a7f351c"
+      "sha256": "332662907758e795af9823de9c4b50d71117387654c4751a779992f9493e0edd"
     },
     "src/openai/types/responses/response_input_image_content_param.py": {
       "mode": "100644",
-      "sha256": "3c9402108cf4ef22f7550b4cc023dc9f03ad36841b966b28534d050ce71654e0"
+      "sha256": "6878cc55a90fbee76155260a7264059ef45f02f9aa74fc643a4c93f20156336b"
     },
     "src/openai/types/responses/response_input_image_param.py": {
       "mode": "100644",
-      "sha256": "db2fd3ca33fad4186fadd2c636f0509aa0c768f98d55590bf017a44fdaeaf908"
+      "sha256": "a6110b76f8a2f47285b6848304340189f58728561c531764c1493d8d016ba637"
     },
     "src/openai/types/responses/response_input_item.py": {
       "mode": "100644",
@@ -6483,19 +6455,19 @@
     },
     "src/openai/types/responses/response_input_text.py": {
       "mode": "100644",
-      "sha256": "5e8250a26a4fa696b5dd63f4e990ab89f3370d2c88f1df898e386eea98070434"
+      "sha256": "fff0cfbde004cb1e530ec18fa2ab45f0bdb53cf12f17d94aeae77c990af65e9b"
     },
     "src/openai/types/responses/response_input_text_content.py": {
       "mode": "100644",
-      "sha256": "45acd1cafcdeef42d581af4156c7577f69629fe9393bbaf4d2340ecce516d682"
+      "sha256": "6c3dbf6d29eb32d57f38f63bb592bf5225d859a1711312948a2b0173600ecd4e"
     },
     "src/openai/types/responses/response_input_text_content_param.py": {
       "mode": "100644",
-      "sha256": "852bb7535307b24de02778f46b20c8a2a9727ce165c3a171ed42f03ac94a9072"
+      "sha256": "cecf938a53f48c491eb808ffd18205cfefbe13940947dc0b01ee1ed4d20e704c"
     },
     "src/openai/types/responses/response_input_text_param.py": {
       "mode": "100644",
-      "sha256": "67d2d5fb278f9fe1f8ed0c8f4201477f23de5a6c681465f81d4471d5c752fc8d"
+      "sha256": "e9619446166e7312ddbe46246dc054d781486a40cbef804bf4103ff2bb2a030c"
     },
     "src/openai/types/responses/response_item.py": {
       "mode": "100644",
@@ -6739,11 +6711,11 @@
     },
     "src/openai/types/responses/response_tool_search_output_item_param.py": {
       "mode": "100644",
-      "sha256": "d25d614693ca86602106515b1e12f26f55f82282c8ef085a5712ec6d18c4f4cb"
+      "sha256": "8a7c4064d95a1ad47a04dfbdaf019fd5118ad25a30a1b49f85752b7f07ec7ac5"
     },
     "src/openai/types/responses/response_tool_search_output_item_param_param.py": {
       "mode": "100644",
-      "sha256": "a1b20bcb2ccb1e074d2a68a4630c424df7a782063f098ab82cb673e3c877f976"
+      "sha256": "df3872ae332dec18ef26ab3711ef6714e3ebdad7ee92d72327ea3375f10ec693"
     },
     "src/openai/types/responses/response_usage.py": {
       "mode": "100644",
@@ -6787,7 +6759,7 @@
     },
     "src/openai/types/responses/tool.py": {
       "mode": "100644",
-      "sha256": "ace9a6241d641f12f1a2461713f542b68109cf2a74f050e2dc0211cc2c5de8b8"
+      "sha256": "a8c85b7c06b6dbb6767cecfbe20b6b94a4c8b6dbc15febee58188b76b11e9ed3"
     },
     "src/openai/types/responses/tool_choice_allowed.py": {
       "mode": "100644",
@@ -6851,7 +6823,7 @@
     },
     "src/openai/types/responses/tool_param.py": {
       "mode": "100644",
-      "sha256": "abfa0b97b8b47844cc51c6400c0eab3086c2eba8aa1673e0f78abcd889a24b27"
+      "sha256": "90eee188a20ab5c89cce638b3226585386c43da0f400fd00ef9756c681fcbe99"
     },
     "src/openai/types/responses/tool_search_output_namespace_tool.py": {
       "mode": "100644",
@@ -6907,7 +6879,7 @@
     },
     "src/openai/types/shared/chat_model.py": {
       "mode": "100644",
-      "sha256": "6dd3c89893b63157ba1a5fa013adb9dd84e8b3f00733b8e84851b55f4c8cef56"
+      "sha256": "d2a74c51d4ee5cf1f782fc753c3db15d49cb19f8c3d04cadc4b76775b6ba4167"
     },
     "src/openai/types/shared/comparison_filter.py": {
       "mode": "100644",
@@ -6995,7 +6967,7 @@
     },
     "src/openai/types/shared_params/chat_model.py": {
       "mode": "100644",
-      "sha256": "cdb7019b0274146e4f7fd5b0115268b7a4959011742548c2466318d71e931179"
+      "sha256": "2b5104655f6f8942bc4a80251b65362dc4e7909a32fda979b4df3bb309bbecc9"
     },
     "src/openai/types/shared_params/comparison_filter.py": {
       "mode": "100644",
@@ -7577,6 +7549,10 @@
       "mode": "100644",
       "sha256": "f4fa22826e3f96847d60e1c431f3e7174e4ba59334dfa0d45a87f69a872bbf64"
     },
+    "tests/api_resources/admin/organization/test_external_keys.py": {
+      "mode": "100644",
+      "sha256": "0bad3f5c69569508a864df6e84f6ee1b7660d78fb3da1c16eb13f6229ef71b7d"
+    },
     "tests/api_resources/admin/organization/test_external_storage.py": {
       "mode": "100644",
       "sha256": "4d22bfb2e96bfcc5c5279997a5e1b93662d4ce194fdc08cb33f00fa270262b97"
@@ -7627,15 +7603,15 @@
     },
     "tests/api_resources/audio/test_speech.py": {
       "mode": "100644",
-      "sha256": "3e482a4f2f83c383e5dc52a12d3e6e7ef4f458926ac0304a46255f19165909d5"
+      "sha256": "3b1f664e4d06d4fd9c5f6335aefe9ca4e0d1de9f807df6f44018bdf7b16bd616"
     },
     "tests/api_resources/audio/test_transcriptions.py": {
       "mode": "100644",
-      "sha256": "0d545df7745a465fb641c7b3f9c51fed837c5810ee051191ecd2ea2272344d17"
+      "sha256": "85a23add54d1cb87889d6f89d918921ab52ddbc86ff559228c7b4c54e17d43a3"
     },
     "tests/api_resources/audio/test_translations.py": {
       "mode": "100644",
-      "sha256": "f8be56e40c3af5e922e0bb1e2e4cc7a677a9abf162287fd1818b89b3a367560f"
+      "sha256": "20c5179c4517302c41c0dda892e867cee7de36d96e6f54bffaf350e3e9c01b85"
     },
     "tests/api_resources/audio/test_voice_consents.py": {
       "mode": "100644",
@@ -7699,11 +7675,11 @@
     },
     "tests/api_resources/beta/agents/sessions/test_artifacts.py": {
       "mode": "100644",
-      "sha256": "3ee94d6ec93b2517595c8d01bb548c69e92cba58df3aa1931498acea07394391"
+      "sha256": "09eefba15ca2dea10bf2af56847b93edea1aecd032b0cafea1d16d01e8d03541"
     },
     "tests/api_resources/beta/agents/sessions/test_events.py": {
       "mode": "100644",
-      "sha256": "3502e64c7f92f2e6370a328ff53e069c39448ed982b507a233b46314fa0de89a"
+      "sha256": "2dfbe82e4ecab75b325978f373ffa1b36dbe95f35f9bbcd9f1a5a0f3653002cb"
     },
     "tests/api_resources/beta/agents/sessions/test_items.py": {
       "mode": "100644",
@@ -7731,7 +7707,7 @@
     },
     "tests/api_resources/beta/agents/test_automations.py": {
       "mode": "100644",
-      "sha256": "37b24f5906be1a5b0b7479fc13d78befdf10ea262658cb7de10c29dec86e4f96"
+      "sha256": "80f3bd3acb28dfda5849f9d32c7d37bcaeaa5bab9e7aa6bca05df648030c410c"
     },
     "tests/api_resources/beta/agents/test_environments.py": {
       "mode": "100644",
@@ -7739,7 +7715,7 @@
     },
     "tests/api_resources/beta/agents/test_sessions.py": {
       "mode": "100644",
-      "sha256": "6b8c1e42b3465b95d3c6ab5449ea8cb95c8b93427ccd59c0b96694e5e1a972bb"
+      "sha256": "55353ee6b6a4b2e8349b20cac41b7223e3bee28ec6bb6b60411d9e0cb8dc3ed8"
     },
     "tests/api_resources/beta/agents/test_vaults.py": {
       "mode": "100644",
@@ -7779,19 +7755,19 @@
     },
     "tests/api_resources/beta/test_agents.py": {
       "mode": "100644",
-      "sha256": "c46bb6c136bd81420c9038ded41cc1cff3600332f60377587fefefb52824d9b6"
+      "sha256": "ad2a5d7d46d65caab580ad00c4840dc598504fc50bbf20cc9558c5f2713ca335"
     },
     "tests/api_resources/beta/test_assistants.py": {
       "mode": "100644",
-      "sha256": "6d2dbfd3d031da2002b57801af6d3a1334e0b96bc71216809096dc62a4007309"
+      "sha256": "815848a1301fb97010cf812684dde925fe668bf0e18efaf3784425ea57e2d43f"
     },
     "tests/api_resources/beta/test_responses.py": {
       "mode": "100644",
-      "sha256": "23d419d2b16d3ddda6de6eae6d29ecb649521f94df8dcc27537d857dd4d8240b"
+      "sha256": "61ab88121c15f8d0b5177e828a93275c175a3894df82379601b394a45ab8173a"
     },
     "tests/api_resources/beta/test_threads.py": {
       "mode": "100644",
-      "sha256": "79ca1c8bd941189b2a6e3c27ea0b5725bb3c0c0d25eb47bc92b19a4bb05056e3"
+      "sha256": "ecaa08aae2d6cd8aa66860fc982f5e25d6ee074343067848d367cd3e368c834b"
     },
     "tests/api_resources/beta/threads/__init__.py": {
       "mode": "100644",
@@ -7803,15 +7779,15 @@
     },
     "tests/api_resources/beta/threads/runs/test_steps.py": {
       "mode": "100644",
-      "sha256": "30f927248ed5c7dca3da9a9f96d6cb4e788bd8db0e196399f8b931fe647bcc87"
+      "sha256": "5daa642a041062021b189cce879729935c95dcb383eca79bf47974c47a2386d2"
     },
     "tests/api_resources/beta/threads/test_messages.py": {
       "mode": "100644",
-      "sha256": "580d1c043429bd08b2a64b030f4487591a76440db09b34da2c5ad6b1b8ecca08"
+      "sha256": "e265ad869d5af37210a0d8824fb77acabc3c1d5f440a4387b472fb92147c224d"
     },
     "tests/api_resources/beta/threads/test_runs.py": {
       "mode": "100644",
-      "sha256": "13b79eb9de458f8b9cd9384562e38816088698b9bf80f0490b540b753270beb4"
+      "sha256": "fbf28555b95fba2cb5f0ba321cf87eef77e80be972e10f04edf90c97eb736235"
     },
     "tests/api_resources/chat/__init__.py": {
       "mode": "100644",
@@ -7827,7 +7803,7 @@
     },
     "tests/api_resources/chat/test_completions.py": {
       "mode": "100644",
-      "sha256": "dd1d25a75da6c5824d2ef05bce57d61a82dcbc22ce81a55fe77f6d1c12030308"
+      "sha256": "7196f2bf051593ea0dd6e0e90f2db9105c4428a21e531530dca4eeebe65ff860"
     },
     "tests/api_resources/containers/__init__.py": {
       "mode": "100644",
@@ -7839,7 +7815,7 @@
     },
     "tests/api_resources/containers/files/test_content.py": {
       "mode": "100644",
-      "sha256": "145d3bd180f9f8a944a0a3e5214cab92148f38d0b9051aac8069fcbaea28cb79"
+      "sha256": "6ae48b076302365f4c11b412795ad0f25ffbccca14a8510f1931a78069de3b9b"
     },
     "tests/api_resources/containers/test_files.py": {
       "mode": "100644",
@@ -7887,7 +7863,7 @@
     },
     "tests/api_resources/fine_tuning/checkpoints/test_permissions.py": {
       "mode": "100644",
-      "sha256": "239a933b3fc9a6fc3e9ec37306e4c0575cf7e0d64a34bc7107fe27c0bc12035a"
+      "sha256": "6fdff2dc6dba115c8f089c798d951722c92adf726260538345e49646e293bbdd"
     },
     "tests/api_resources/fine_tuning/jobs/__init__.py": {
       "mode": "100644",
@@ -7911,7 +7887,7 @@
     },
     "tests/api_resources/live/test_sessions.py": {
       "mode": "100644",
-      "sha256": "751f651775f0547d6c236d8d6bc44bbe00ab195d0c2202d9d08d29c8ed4a3bfc"
+      "sha256": "61139451d9ad16406b15d3085aaf82f2b9fe8fcd5bd253796e4d6f628a39be30"
     },
     "tests/api_resources/live/test_sideband.py": {
       "mode": "100644",
@@ -7923,7 +7899,7 @@
     },
     "tests/api_resources/realtime/test_calls.py": {
       "mode": "100644",
-      "sha256": "14b334e6eb6dc9e5c8bd760957a43bdebce9c97957d88354806e641deedc22f1"
+      "sha256": "6ecf9fd59592480ebbc508b15861ef935e367e4815d04c38235395109a374841"
     },
     "tests/api_resources/realtime/test_client_secrets.py": {
       "mode": "100644",
@@ -7971,7 +7947,7 @@
     },
     "tests/api_resources/skills/test_content.py": {
       "mode": "100644",
-      "sha256": "dbb7a47695af6752b02a5186ef1cd274f8bd34d7cde1a32451c67b6d62396e1f"
+      "sha256": "33f2046705d19082a003247219155988f440d32b2d8afcebac8e79410f48f830"
     },
     "tests/api_resources/skills/test_versions.py": {
       "mode": "100644",
@@ -7983,7 +7959,7 @@
     },
     "tests/api_resources/skills/versions/test_content.py": {
       "mode": "100644",
-      "sha256": "9867f7f30c65d123cf49fd3155ce9c1bf7b3b0c644b39ceb7d4f2b9a9aa815dd"
+      "sha256": "8c23ddb935b58bc8590b90f3eea8cd98e1a2e3f0b8c817790210c1ca06ab0182"
     },
     "tests/api_resources/test_batches.py": {
       "mode": "100644",
@@ -7991,7 +7967,7 @@
     },
     "tests/api_resources/test_completions.py": {
       "mode": "100644",
-      "sha256": "387eceefc82e3fab0fcd374b21615bac80a5b9a9f17ac28c9edeb1b1c1053295"
+      "sha256": "852f84181e3238cd2e58fbe28ad98fdd4b5f501b5ac6d3366c1eca6e41384f98"
     },
     "tests/api_resources/test_containers.py": {
       "mode": "100644",
@@ -8019,11 +7995,11 @@
     },
     "tests/api_resources/test_files.py": {
       "mode": "100644",
-      "sha256": "2b747d201be8a0db9eb64089e0974ce14d7d9078ac1f3d2d451db53c67b803e0"
+      "sha256": "839d776d460d80d647826b086c7a932b84fb1071204b16da0c94bf0a42ee5eab"
     },
     "tests/api_resources/test_images.py": {
       "mode": "100644",
-      "sha256": "39b8d0e03206abc79df8eb4c3fe5c6a928dfb22d2ccaa2423e0a0db011e2b049"
+      "sha256": "ebd279e1c7d8c8bd3c8148d1aadbeb7dc1ba43a6e2ee7396653e37563e743f3b"
     },
     "tests/api_resources/test_live.py": {
       "mode": "100644",
@@ -8043,7 +8019,7 @@
     },
     "tests/api_resources/test_responses.py": {
       "mode": "100644",
-      "sha256": "94c39dd77ad63999168f3e55587f160fde2ec27503ba361ae6c6d5faa206621d"
+      "sha256": "2e70ff147b7fd65bd00f2625434cc65aa1959bc15aeee013ecfba345ca177d32"
     },
     "tests/api_resources/test_skills.py": {
       "mode": "100644",
@@ -8059,7 +8035,7 @@
     },
     "tests/api_resources/test_videos.py": {
       "mode": "100644",
-      "sha256": "bcc55dc2c7b47d6998ac977b4b6b073ce62bd6f963496f312ff350e9ee1382c9"
+      "sha256": "c857cf011dee1d3df0482a738fb3d3dbe20d858f56c1af8722c7c9d47abdf9f3"
     },
     "tests/api_resources/test_webhooks.py": {
       "mode": "100644",

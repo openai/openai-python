@@ -396,7 +396,7 @@ Basic text based example:
 
 ```py
 import asyncio
-from openai import AsyncOpenAI
+from openai import AsyncOpenAI, OpenAIError
 
 
 async def main():
@@ -422,7 +422,13 @@ async def main():
                 print()
 
             elif event.type == "response.done":
+                if event.response.status != "completed":
+                    raise OpenAIError("The Realtime response did not complete")
                 break
+            elif event.type == "error":
+                raise OpenAIError("Realtime returned an error; inspect the event in your application")
+        else:
+            raise OpenAIError("Realtime disconnected before response.done")
 
 
 asyncio.run(main())

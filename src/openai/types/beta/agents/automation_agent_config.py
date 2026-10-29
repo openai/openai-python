@@ -3,13 +3,22 @@
 from typing import List, Optional
 from typing_extensions import Literal
 
+from pydantic import Field as FieldInfo
+
 from ...._models import BaseModel
 from ..agent_text import AgentText
 from ..agent_tool import AgentTool
 from ..agent_reasoning import AgentReasoning
 from ..multi_agent_config import MultiAgentConfig
 
-__all__ = ["AutomationAgentConfig"]
+__all__ = ["AutomationAgentConfig", "Compaction"]
+
+
+class Compaction(BaseModel):
+    """The effective context compaction settings."""
+
+    async_: bool = FieldInfo(alias="async")
+    """Whether context is compacted in the background. Defaults to true."""
 
 
 class AutomationAgentConfig(BaseModel):
@@ -35,3 +44,6 @@ class AutomationAgentConfig(BaseModel):
 
     tools: List[AgentTool]
     """Configured tools, excluding confidential credentials."""
+
+    compaction: Optional[Compaction] = None
+    """The effective context compaction settings."""

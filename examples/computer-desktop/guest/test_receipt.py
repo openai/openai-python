@@ -249,7 +249,7 @@ class ReceiptTests(unittest.TestCase):
                 if Path(args[0]) == self.binary:
                     attempted.append(args)
                     raise AssertionError("Test blocked guest spawn")
-                return original(args, *rest, **kwargs)  # type: ignore[call-overload]
+                return original(args, *rest, **kwargs)  # ty: ignore[no-matching-overload]
 
             with patch("subprocess.Popen", guarded_popen):
                 with self.assertRaises((ComputerUseError, ValueError, OSError)):

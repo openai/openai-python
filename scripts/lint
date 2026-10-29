@@ -10,8 +10,7 @@ if [ "${1:-}" = "--fix" ]; then
 else
   echo "==> Running lints"
   uv run --locked --all-extras ruff check .
-  uv run --locked --all-extras scripts/run-pyright
-  uv run --locked --all-extras mypy .
+  uv run --locked --all-extras ty check
 fi
 
 echo "==> Making sure it imports"

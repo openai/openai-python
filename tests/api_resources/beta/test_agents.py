@@ -32,6 +32,7 @@ class TestAgents:
     def test_method_create_with_all_params(self, client: OpenAI) -> None:
         agent = client.beta.agents.create(
             model="model",
+            compaction={"async_": True},
             instructions="instructions",
             metadata={"foo": "string"},
             multi_agent={
@@ -133,6 +134,7 @@ class TestAgents:
     def test_method_update_with_all_params(self, client: OpenAI) -> None:
         agent = client.beta.agents.update(
             agent_id="agent_id",
+            compaction={"async_": True},
             instructions="instructions",
             metadata={"foo": "string"},
             model="model",
@@ -282,6 +284,7 @@ class TestAsyncAgents:
     async def test_method_create_with_all_params(self, async_client: AsyncOpenAI) -> None:
         agent = await async_client.beta.agents.create(
             model="model",
+            compaction={"async_": True},
             instructions="instructions",
             metadata={"foo": "string"},
             multi_agent={
@@ -383,6 +386,7 @@ class TestAsyncAgents:
     async def test_method_update_with_all_params(self, async_client: AsyncOpenAI) -> None:
         agent = await async_client.beta.agents.update(
             agent_id="agent_id",
+            compaction={"async_": True},
             instructions="instructions",
             metadata={"foo": "string"},
             model="model",

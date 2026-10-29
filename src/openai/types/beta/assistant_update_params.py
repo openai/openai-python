@@ -88,6 +88,16 @@ class AssistantUpdateParams(TypedDict, total=False):
     API to see all of your available models, or see our
     [Model overview](https://developers.openai.com/api/docs/models) for descriptions
     of them.
+
+    Deprecated values:
+
+    - "gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-5-2025-08-07",
+      "gpt-5-mini-2025-08-07", "gpt-5-nano-2025-08-07": Announced shutdown date:
+      2026-12-11. See https://developers.openai.com/api/docs/deprecations for
+      details and recommended replacements.
+    - "gpt-4.1", "gpt-4.1-mini", "gpt-4o", "gpt-4o-mini": Announced shutdown date:
+      2027-01-14. See https://developers.openai.com/api/docs/deprecations for
+      details and recommended replacements.
     """
 
     name: Optional[str]

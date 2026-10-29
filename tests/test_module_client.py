@@ -25,7 +25,8 @@ def reset_state() -> None:
     openai.default_headers = None
     openai.default_query = None
     openai.http_client = None
-    openai.api_type = _os.environ.get("OPENAI_API_TYPE")  # type: ignore
+    # Restore the raw environment value, matching module initialization.
+    openai.api_type = _os.environ.get("OPENAI_API_TYPE")  # ty: ignore[invalid-assignment]
     openai.api_version = None
     openai.azure_endpoint = None
     openai.azure_ad_token = None

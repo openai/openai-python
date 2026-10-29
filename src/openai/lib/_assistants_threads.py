@@ -63,7 +63,7 @@ def threads_create_and_run_poll(
     More information on Run lifecycles can be found here:
     https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps
     """
-    run = self.create_and_run(  # pyright: ignore[reportDeprecated]
+    run = self.create_and_run(
         assistant_id=assistant_id,
         instructions=instructions,
         max_completion_tokens=max_completion_tokens,
@@ -85,7 +85,7 @@ def threads_create_and_run_poll(
         extra_body=extra_body,
         timeout=timeout,
     )
-    return self.runs.poll(run.id, run.thread_id, extra_headers, extra_query, extra_body, timeout, poll_interval_ms)  # pyright: ignore[reportDeprecated]
+    return self.runs.poll(run.id, run.thread_id, extra_headers, extra_query, extra_body, timeout, poll_interval_ms)
 
 
 def threads_create_and_run_stream(
@@ -190,7 +190,7 @@ async def async_threads_create_and_run_poll(
     More information on Run lifecycles can be found here:
     https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps
     """
-    run = await self.create_and_run(  # pyright: ignore[reportDeprecated]
+    run = await self.create_and_run(
         assistant_id=assistant_id,
         instructions=instructions,
         max_completion_tokens=max_completion_tokens,
@@ -212,7 +212,7 @@ async def async_threads_create_and_run_poll(
         extra_body=extra_body,
         timeout=timeout,
     )
-    return await self.runs.poll(  # pyright: ignore[reportDeprecated]
+    return await self.runs.poll(
         run.id, run.thread_id, extra_headers, extra_query, extra_body, timeout, poll_interval_ms
     )
 

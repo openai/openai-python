@@ -45,7 +45,6 @@ ContentType = TypeVar("ContentType")
 # we need to disable this check because we're overriding properties
 # with subclasses of their types which is technically unsound as
 # properties can be mutated.
-# pyright: reportIncompatibleVariableOverride=false
 
 
 class ParsedResponseOutputText(ResponseOutputText, GenericModel, Generic[ContentType]):
@@ -60,7 +59,7 @@ ParsedContent: TypeAlias = Annotated[
 
 class ParsedResponseOutputMessage(ResponseOutputMessage, GenericModel, Generic[ContentType]):
     if TYPE_CHECKING:
-        content: List[ParsedContent[ContentType]]  # type: ignore[assignment]
+        content: List[ParsedContent[ContentType]]  # ty: ignore[invalid-attribute-override]
     else:
         content: List[ParsedContent]
 
@@ -109,7 +108,7 @@ ParsedResponseOutputItem: TypeAlias = Annotated[
 
 class ParsedResponse(Response, GenericModel, Generic[ContentType]):
     if TYPE_CHECKING:
-        output: List[ParsedResponseOutputItem[ContentType]]  # type: ignore[assignment]
+        output: List[ParsedResponseOutputItem[ContentType]]  # ty: ignore[invalid-attribute-override]
     else:
         output: List[ParsedResponseOutputItem]
 

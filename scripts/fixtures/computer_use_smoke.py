@@ -169,7 +169,8 @@ async def smoke(lane: str) -> None:
         final = await invoke(
             runner.run(
                 client,
-                {**params, "input": fresh},
+                # The synthetic request is assembled dynamically from the fixture above.
+                {**params, "input": fresh},  # ty: ignore[invalid-argument-type]
                 ledger=ledger(
                     "package-smoke",
                     adapt(save),

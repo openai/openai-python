@@ -11,7 +11,7 @@ __all__ = ["BetaResponseCustomToolCallItem"]
 class BetaResponseCustomToolCallItem(BetaResponseCustomToolCall):
     """A call to a custom tool created by the model."""
 
-    id: str  # type: ignore
+    id: str  # ty: ignore[invalid-mutable-override]
     """The unique ID of the custom tool call item."""
 
     status: Literal["in_progress", "completed", "incomplete"]

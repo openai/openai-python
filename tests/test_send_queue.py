@@ -47,7 +47,7 @@ class TestSendQueue:
         q.enqueue("b")
         q.enqueue("c")
 
-        sent: list[str] = []
+        sent: list[str | bytes] = []
         q.flush_sync(sent.append)
         assert sent == ["a", "b", "c"]
         assert len(q) == 0
@@ -58,9 +58,9 @@ class TestSendQueue:
         q.enqueue("b")
         q.enqueue("c")
 
-        sent: list[str] = []
+        sent: list[str | bytes] = []
 
-        def failing_send(data: str) -> None:
+        def failing_send(data: str | bytes) -> None:
             if data == "b":
                 raise RuntimeError("send failed")
             sent.append(data)
@@ -79,9 +79,9 @@ class TestSendQueue:
         q.enqueue("a")
         q.enqueue("b")
 
-        sent: list[str] = []
+        sent: list[str | bytes] = []
 
-        async def async_send(data: str) -> None:
+        async def async_send(data: str | bytes) -> None:
             sent.append(data)
 
         await q.flush_async(async_send)
@@ -95,9 +95,9 @@ class TestSendQueue:
         q.enqueue("b")
         q.enqueue("c")
 
-        sent: list[str] = []
+        sent: list[str | bytes] = []
 
-        async def failing_send(data: str) -> None:
+        async def failing_send(data: str | bytes) -> None:
             if data == "b":
                 raise RuntimeError("send failed")
             sent.append(data)
@@ -116,7 +116,7 @@ class TestSendQueue:
         q.enqueue("a")
         q.enqueue("b")
 
-        def failing_send(data: str) -> None:
+        def failing_send(data: str | bytes) -> None:
             if data == "b":
                 # Simulate another thread enqueuing during flush
                 q.enqueue("new")
@@ -130,10 +130,10 @@ class TestSendQueue:
         assert remaining == ["b", "new"]
 
 
-async def flush_in_background(q: SendQueue, send: Callable[[str], None], asynchronous: bool) -> None:
+async def flush_in_background(q: SendQueue, send: Callable[[str | bytes], None], asynchronous: bool) -> None:
     if asynchronous:
 
-        async def async_send(data: str) -> None:
+        async def async_send(data: str | bytes) -> None:
             await asyncio.to_thread(send, data)
 
         await q.flush_async(async_send)
@@ -155,7 +155,7 @@ async def test_repeated_failed_flushes_remain_bounded(asynchronous: bool) -> Non
     for attempt in range(3):
         entered, release = threading.Event(), threading.Event()
 
-        def send(data: str, entered: threading.Event = entered, release: threading.Event = release) -> None:
+        def send(data: str | bytes, entered: threading.Event = entered, release: threading.Event = release) -> None:
             assert data == "éé"
             entered.set()
             assert release.wait(5)
@@ -174,7 +174,7 @@ async def test_repeated_failed_flushes_remain_bounded(asynchronous: bool) -> Non
                 await task
         assert q._bytes == 6
 
-    sent: list[str] = []
+    sent: list[str | bytes] = []
     await flush_in_background(q, sent.append, asynchronous)
     assert sent == ["éé", "a", "b"]
     assert q._bytes == 0
@@ -189,9 +189,9 @@ async def test_partial_flush_releases_only_successful_bytes(asynchronous: bool, 
     q.enqueue("é")
     q.enqueue("bb")
     entered, release = threading.Event(), threading.Event()
-    sent: list[str] = []
+    sent: list[str | bytes] = []
 
-    def send(data: str) -> None:
+    def send(data: str | bytes) -> None:
         if data == "bb":
             entered.set()
             assert release.wait(5)
@@ -225,7 +225,7 @@ async def test_drain_during_flush_keeps_pending_bytes_charged(asynchronous: bool
     q.enqueue("aaa")
     entered, release = threading.Event(), threading.Event()
 
-    def send(_data: str) -> None:
+    def send(_data: str | bytes) -> None:
         entered.set()
         assert release.wait(5)
         raise RuntimeError("fake send failure")
@@ -256,9 +256,9 @@ async def test_overlapping_flushes_preserve_order(first_async: bool, second_asyn
     q.enqueue("a")
     q.enqueue("b")
     entered, release, second_sent = threading.Event(), threading.Event(), threading.Event()
-    sent: list[str] = []
+    sent: list[str | bytes] = []
 
-    def first_send(data: str) -> None:
+    def first_send(data: str | bytes) -> None:
         if data == "a":
             entered.set()
             assert release.wait(5)
@@ -266,7 +266,7 @@ async def test_overlapping_flushes_preserve_order(first_async: bool, second_asyn
                 raise RuntimeError("fake send failure")
         sent.append(data)
 
-    def second_send(data: str) -> None:
+    def second_send(data: str | bytes) -> None:
         second_sent.set()
         sent.append(data)
 
@@ -296,7 +296,7 @@ async def test_cancelled_flush_restores_unsent_messages() -> None:
     q.enqueue("b")
     entered = asyncio.Event()
 
-    async def send(data: str) -> None:
+    async def send(data: str | bytes) -> None:
         if data == "b":
             entered.set()
             await asyncio.Event().wait()
@@ -309,7 +309,7 @@ async def test_cancelled_flush_restores_unsent_messages() -> None:
         await task
     with pytest.raises(WebSocketQueueFullError):
         q.enqueue("d")
-    sent: list[str] = []
+    sent: list[str | bytes] = []
     q.flush_sync(sent.append)
     assert sent == ["b", "cc"]
     assert q._bytes == 0
@@ -320,14 +320,14 @@ async def test_cancelled_flush_waiter_does_not_strand_ownership() -> None:
     q = SendQueue(max_bytes=2)
     q.enqueue("a")
     entered, release = asyncio.Event(), asyncio.Event()
-    sent: list[str] = []
+    sent: list[str | bytes] = []
 
-    async def first_send(data: str) -> None:
+    async def first_send(data: str | bytes) -> None:
         entered.set()
         await release.wait()
         sent.append(data)
 
-    async def second_send(data: str) -> None:
+    async def second_send(data: str | bytes) -> None:
         sent.append(data)
 
     first = asyncio.create_task(q.flush_async(first_send))
@@ -350,7 +350,7 @@ def test_interrupted_sync_flush_restores_unsent_messages() -> None:
     q.enqueue("a")
     q.enqueue("b")
 
-    def send(data: str) -> None:
+    def send(data: str | bytes) -> None:
         if data == "b":
             raise KeyboardInterrupt
 
@@ -359,7 +359,7 @@ def test_interrupted_sync_flush_restores_unsent_messages() -> None:
     q.enqueue("c")
     with pytest.raises(WebSocketQueueFullError):
         q.enqueue("d")
-    sent: list[str] = []
+    sent: list[str | bytes] = []
     q.flush_sync(sent.append)
     assert sent == ["b", "c"]
     assert q._bytes == 0

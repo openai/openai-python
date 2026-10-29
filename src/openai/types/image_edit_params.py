@@ -15,12 +15,12 @@ class ImageEditParamsBase(TypedDict, total=False):
     image: Required[Union[FileTypes, SequenceNotStr[FileTypes]]]
     """The image(s) to edit. Must be a supported image file or an array of images.
 
-    For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`,
-    `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
-    `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`,
-    `gpt-image-2.5-flare-2026-09-08`, and `chatgpt-image-latest`), each image should
-    be a `png`, `webp`, or `jpg` file less than 50MB. You can provide up to 16
-    images.
+    For the GPT image models (`gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+    `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
+    `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and
+    `gpt-image-2.5-flare-2026-09-08`), each image should be a `png`, `webp`, or
+    `jpg` file less than 50MB. You can provide up to 16 images.
+    `chatgpt-image-latest` follows the same input constraints as GPT image models.
     """
 
     prompt: Required[str]
@@ -47,8 +47,8 @@ class ImageEditParamsBase(TypedDict, total=False):
     """
     Control how much effort the model will exert to match the style and features,
     especially facial features, of input images. Supports `high` and `low` on
-    `gpt-image-1` and `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For
-    `gpt-image-2`, omit this parameter. Defaults to `low` on supported models.
+    `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For `gpt-image-2`, omit
+    this parameter. Defaults to `low` on supported models.
     """
 
     mask: FileTypes
@@ -69,6 +69,13 @@ class ImageEditParamsBase(TypedDict, total=False):
 
     `gpt-image-1` was shut down on October 23, 2026. Use `gpt-image-2.5-sunburst` or
     `gpt-image-2.5-flare` instead.
+
+    Deprecated values:
+
+    - "gpt-image-1": GPT Image 1 was shut down on October 23, 2026. Use
+      gpt-image-2.5-sunburst or gpt-image-2.5-flare instead.
+    - "dall-e-2", "dall-e-3": This model was retired on May 12, 2026. Use a GPT
+      image model instead.
     """
 
     n: Optional[int]
@@ -105,6 +112,11 @@ class ImageEditParamsBase(TypedDict, total=False):
     The GPT image models support `low`, `medium`, and `high`.
     `gpt-image-2.5-sunburst` and `gpt-image-2.5-flare`, including their `2026-09-08`
     snapshots, also support `xhigh` and `max`. Defaults to `auto`.
+
+    Deprecated values:
+
+    - "standard": This quality was only supported by retired DALL·E models. Use a
+      GPT image quality instead.
     """
 
     response_format: Optional[Literal["url", "b64_json"]]
@@ -136,6 +148,11 @@ class ImageEditParamsBase(TypedDict, total=False):
     satisfy the model's current pixel and edge limits. The standard sizes
     `1024x1024`, `1536x1024`, and `1024x1536` are supported by the GPT image models;
     `auto` is supported for models that allow automatic sizing.
+
+    Deprecated values:
+
+    - "256x256", "512x512": This legacy size suggestion is retained for SDK
+      compatibility. Check the selected GPT image model's supported sizes.
     """
 
     user: str

@@ -6,7 +6,29 @@ Eliminate handwritten patches in generated-owned files while preserving every ex
 
 No removals or renames of public symbols, new required arguments, narrower input/return types, dependency or Python-floor changes, altered defaults, new payload limits, changed warnings, or changed sync/async behavior are authorized by this transition. Deprecated methods and compatibility import paths remain supported.
 
-## Current public baseline and measured final candidate — 2026-10-22
+## Verified public baseline — 2026-10-27
+
+Public main `3596d18f05b63081fd64c6da82b515293afb98c6` has **0 generated files with custom edits / 0 custom patch lines**. The verified generated inventory contains **2,028 manifest entries**; including the manifest itself, qualification compares **2,029 emitted paths**, bytes and Git modes. Public promotion [#4186](https://github.com/openai/openai-python/pull/4186) is delivered. Current physical line counts for all 41 formerly mixed files total **40,356 lines**, including comments and blanks, and are recorded under `current_status.former_mixed_files` in the [inventory](castiron-transition-inventory.json); every file has zero custom patch lines.
+
+The policy is **never hand-edit generated files**. Change the authoritative schema, configuration, or compiler and regenerate; handwritten algorithms belong in separately owned runtime modules. Regeneration replaces generated output and removes retired paths without replaying handwritten patches. The customization budget and its reporting workflows are retired; code review enforces generated-file ownership alongside the ordinary SDK checks. The inventory's recorded policy checks describe its dated qualification baseline, not the current required checks.
+
+The original `cfa0a79b6395bb0561b28879122a9f90a87cdada` audit measured **41 mixed files / 7,409 custom patch lines**, comprising 4,890 additions and 2,519 deletions. Patch lines measure differences from generated output, including removed lines; they are not the size of handwritten runtime modules or compiler templates.
+
+## Current incremental plan
+
+The mixed-file count reached zero before this follow-up. This follow-up simplifies the compiler representation of preserved SDK interfaces: ordinary templates use native compiler facts, while runtime algorithms remain wholly handwritten. No new facade framework or developer-facing breaking change is part of this work.
+
+The Chat/Uploads compiler batch and SDK adoption are delivered. The compiler changes for Files/Artifacts, WebSocket declarations, Sessions stream/create, Threads, Runs, Package, Client and Responses have also landed. An inventory at actual merged compiler `efa47f65cef47f54391723b787de5239d8b61bff` covers all **14 authored YAML files** and finds **0 legacy declaration blocks / 0 declaration lines**. Final combined-compiler qualification passed, and this update records SDK adoption of the native configuration.
+
+Keep the separate **75 lines of runtime bindings**: they express constants, loggers and small forwarders to handwritten behavior. They contain no handwritten runtime algorithms and contribute zero SDK custom patch lines. Replacing them would add machinery without simplifying ownership. Historical declaration readers remain available for compatible input replay; this transition does not claim their removal.
+
+The actual merged compiler passed all **914 renderer tests**, with none ignored, and the canonical Rust lint checks. Both legacy and native configurations reproduce all **2,029 emitted paths byte for byte**, including Git modes and valid manifests, against public baseline `3596d18f`; there are no output exceptions. This preserves signatures, annotations, defaults, import identities, sync/async behavior, method placement and runtime algorithms. Reporting validation retains the 282 Python-only tests and four lint/type checks from identical output, settings and tool versions, with the existing compiler-dependent test rerun successfully against the final compiler.
+
+The SDK candidate follows the normal private adoption and public promotion process. Public delivery is completed by merging the SDK pull request. These final compatibility measurements use the actual merged compiler; candidate-only measurements below remain historical.
+
+The dated audits and original tracks below are historical records. Their pending-delivery statements and earlier declaration-framework plans are superseded by the current status above.
+
+## Historical public baseline and candidate — 2026-10-22
 
 The released baseline `cfa0a79b6395bb0561b28879122a9f90a87cdada` (3.37.0) contains **41 mixed files / 7,409 custom patch lines** (4,890 additions and 2,519 deletions), spanning **39,960 physical lines**. Its public generated checkpoint is `992b9cbba312b4bf10128b9f1d36112b48340363`.
 
@@ -669,7 +691,7 @@ Reconcile and reuse existing branches/Deltas before starting a batch. Implement 
 4. Implement T3 audio, T6 Chat, T5 Responses and T9 session hooks, using shared typed helpers/hooks. Split beta websocket class placement separately.
 5. Draw down T4 Assistants and T2 client/root integration only with fuller contract coverage. These account for substantial patch size and compatibility risk. T16 documentation follows the relevant generated helper facts.
 6. For each compiler change: focused tests + both profile checks + maintained fixture/parity suite; compiler review/merge; regenerate using the merged compiler binary; review isolated SDK output; run compatibility/type/build checks and focused synchronous/asynchronous security regression tests as applicable; obtain required SDK CODEOWNER approval, explicitly including every T7/T8/T9 file-upload migration; then satisfy normal merge gates. Compiler approval, functional tests and earlier PR approvals do not replace CODEOWNER approval on the affected SDK PR. Do not bundle unrelated API schema or dependency updates.
-7. After measured reductions land, propose any ceiling decrease in a PR containing only `.castiron-ratchet.json`, with measured usage and headroom. Budget increases require human approval. Strict zero ownership is a separate activation after the SDK really reaches zero; never enable it over remaining patches.
+7. Preserve zero handwritten edits in generated files by fixing generation inputs or the compiler. The earlier budget-ratchet steps are retired; follow the generated-file ownership rule in `AGENTS.md` and contributor guidance.
 
 Compiler source changes must be merged to monorepo `master` before an agent promotes their SDK output. Draft generation is allowed for review. An approved but unmerged Delta is not sufficient. Do not hand-update `.castiron.stats.yml`, public snapshot SHAs, manifests, exclusions, or ownership to claim a reduction.
 
@@ -677,7 +699,7 @@ Compiler source changes must be merged to monorepo `master` before an agent prom
 
 For every runtime migration, preserve imports (including compatibility module paths and wildcard exports), `__all__`, class identities/modules, public signatures and overloads, generic return types, sync/async call shape, defaults, sentinel behavior, warnings/errors, request serialization/options, stream lifecycle, and subclass extension behavior. Add targeted baseline contract tests where existing coverage is weak. A smaller diff is insufficient evidence of compatibility.
 
-Run focused sync/async public-entrypoint tests, static type checks, repository lint/build as appropriate, and the existing custom-code unit suite. Run existing high-memory JSON/SSE regression cases sequentially without shrinking fixtures or raising client limits. No dependency or minimum-Python upgrades belong in these PRs. CI evidence must reference the exact current head.
+Run focused sync/async public-entrypoint tests, static type checks, and repository lint/build as appropriate. Run existing high-memory JSON/SSE regression cases sequentially without shrinking fixtures or raising client limits. No dependency or minimum-Python upgrades belong in these PRs. CI evidence must reference the exact current head.
 
 Every file-upload migration, including T7, T8 and T9 generated delegates or handwritten runtime extractions, must retain/add focused synchronous and asynchronous security regression coverage as applicable and obtain explicit SDK CODEOWNER approval before merge. Apply the same repository requirements to all other security-sensitive changes listed in [AGENTS.md](../AGENTS.md#security-requirements-for-coding-agents). Advancing automatically means preparing and validating successor work; merging or promoting it still requires these approvals and tests on the affected PR.
 

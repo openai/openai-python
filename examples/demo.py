@@ -1,6 +1,7 @@
 #!/usr/bin/env -S uv run python
 
 from openai import OpenAI
+from openai.types.chat import ChatCompletion
 
 # gets API Key from environment variable OPENAI_API_KEY
 client = OpenAI()
@@ -49,5 +50,6 @@ response = client.chat.completions.with_raw_response.create(
     ],
 )
 completion = response.parse()
+assert isinstance(completion, ChatCompletion)
 print(response.request_id)
 print(completion.choices[0].message.content)

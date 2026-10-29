@@ -141,7 +141,7 @@ def parse_chat_completion(
                         tool_call.custom.name,
                         stacklevel=2,
                     )
-                elif TYPE_CHECKING:  # type: ignore[unreachable]
+                elif TYPE_CHECKING:
                     assert_never(tool_call)
                 else:
                     tool_calls.append(tool_call)
@@ -194,7 +194,7 @@ def parse_function_tool_arguments(
     if not input_fn.get("strict"):
         return None
 
-    return json.loads(function.arguments)  # type: ignore[no-any-return]
+    return json.loads(function.arguments)
 
 
 def maybe_parse_content(

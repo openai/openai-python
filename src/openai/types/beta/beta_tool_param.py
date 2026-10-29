@@ -281,8 +281,8 @@ class ImageGeneration(TypedDict, total=False):
     """
     Control how much effort the model will exert to match the style and features,
     especially facial features, of input images. Supports `high` and `low` on
-    `gpt-image-1` and `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For
-    `gpt-image-2`, omit this parameter. Defaults to `low` on supported models.
+    `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For `gpt-image-2`, omit
+    this parameter. Defaults to `low` on supported models.
     """
 
     input_image_mask: ImageGenerationInputImageMask
@@ -316,6 +316,11 @@ class ImageGeneration(TypedDict, total=False):
 
     `gpt-image-1` was shut down on October 23, 2026. Use `gpt-image-2.5-sunburst` or
     `gpt-image-2.5-flare` instead.
+
+    Deprecated values:
+
+    - "gpt-image-1": GPT Image 1 was shut down on October 23, 2026. Use
+      gpt-image-2.5-sunburst or gpt-image-2.5-flare instead.
     """
 
     moderation: Literal["auto", "low"]

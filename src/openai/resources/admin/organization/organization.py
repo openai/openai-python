@@ -68,6 +68,14 @@ from .spend_alerts import (
     SpendAlertsWithStreamingResponse,
     AsyncSpendAlertsWithStreamingResponse,
 )
+from .external_keys import (
+    ExternalKeys,
+    AsyncExternalKeys,
+    ExternalKeysWithRawResponse,
+    AsyncExternalKeysWithRawResponse,
+    ExternalKeysWithStreamingResponse,
+    AsyncExternalKeysWithStreamingResponse,
+)
 from .groups.groups import (
     Groups,
     AsyncGroups,
@@ -167,6 +175,10 @@ class Organization(SyncAPIResource):
         return Projects(self._client)
 
     @cached_property
+    def external_keys(self) -> ExternalKeys:
+        return ExternalKeys(self._client)
+
+    @cached_property
     def with_raw_response(self) -> OrganizationWithRawResponse:
         """
         This property can be used as a prefix for any HTTP method call to return
@@ -239,6 +251,10 @@ class AsyncOrganization(AsyncAPIResource):
     @cached_property
     def projects(self) -> AsyncProjects:
         return AsyncProjects(self._client)
+
+    @cached_property
+    def external_keys(self) -> AsyncExternalKeys:
+        return AsyncExternalKeys(self._client)
 
     @cached_property
     def with_raw_response(self) -> AsyncOrganizationWithRawResponse:
@@ -317,6 +333,10 @@ class OrganizationWithRawResponse:
     def projects(self) -> ProjectsWithRawResponse:
         return ProjectsWithRawResponse(self._organization.projects)
 
+    @cached_property
+    def external_keys(self) -> ExternalKeysWithRawResponse:
+        return ExternalKeysWithRawResponse(self._organization.external_keys)
+
 
 class AsyncOrganizationWithRawResponse:
     def __init__(self, organization: AsyncOrganization) -> None:
@@ -374,6 +394,10 @@ class AsyncOrganizationWithRawResponse:
     @cached_property
     def projects(self) -> AsyncProjectsWithRawResponse:
         return AsyncProjectsWithRawResponse(self._organization.projects)
+
+    @cached_property
+    def external_keys(self) -> AsyncExternalKeysWithRawResponse:
+        return AsyncExternalKeysWithRawResponse(self._organization.external_keys)
 
 
 class OrganizationWithStreamingResponse:
@@ -433,6 +457,10 @@ class OrganizationWithStreamingResponse:
     def projects(self) -> ProjectsWithStreamingResponse:
         return ProjectsWithStreamingResponse(self._organization.projects)
 
+    @cached_property
+    def external_keys(self) -> ExternalKeysWithStreamingResponse:
+        return ExternalKeysWithStreamingResponse(self._organization.external_keys)
+
 
 class AsyncOrganizationWithStreamingResponse:
     def __init__(self, organization: AsyncOrganization) -> None:
@@ -490,3 +518,7 @@ class AsyncOrganizationWithStreamingResponse:
     @cached_property
     def projects(self) -> AsyncProjectsWithStreamingResponse:
         return AsyncProjectsWithStreamingResponse(self._organization.projects)
+
+    @cached_property
+    def external_keys(self) -> AsyncExternalKeysWithStreamingResponse:
+        return AsyncExternalKeysWithStreamingResponse(self._organization.external_keys)

@@ -42,6 +42,13 @@ class ImageGenerateParamsBase(TypedDict, total=False):
 
     `gpt-image-1` was shut down on October 23, 2026. Use `gpt-image-2.5-sunburst` or
     `gpt-image-2.5-flare` instead.
+
+    Deprecated values:
+
+    - "gpt-image-1": GPT Image 1 was shut down on October 23, 2026. Use
+      gpt-image-2.5-sunburst or gpt-image-2.5-flare instead.
+    - "dall-e-2", "dall-e-3": This model was retired on May 12, 2026. Use a GPT
+      image model instead.
     """
 
     moderation: Optional[Literal["low", "auto"]]
@@ -87,6 +94,11 @@ class ImageGenerateParamsBase(TypedDict, total=False):
     - `high`, `medium` and `low` are supported for the GPT image models.
     - `gpt-image-2.5-sunburst` and `gpt-image-2.5-flare`, including their
       `2026-09-08` snapshots, also support `xhigh` and `max`.
+
+    Deprecated values:
+
+    - "standard", "hd": This quality was only supported by retired DALL·E models.
+      Use a GPT image quality instead.
     """
 
     response_format: Optional[Literal["url", "b64_json"]]
@@ -122,6 +134,12 @@ class ImageGenerateParamsBase(TypedDict, total=False):
     current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and
     `1024x1536` are supported by the GPT image models; `auto` is supported for
     models that allow automatic sizing.
+
+    Deprecated values:
+
+    - "256x256", "512x512", "1792x1024", "1024x1792": This legacy size suggestion is
+      retained for SDK compatibility. Check the selected GPT image model's supported
+      sizes.
     """
 
     style: Optional[Literal["vivid", "natural"]]

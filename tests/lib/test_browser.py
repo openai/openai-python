@@ -1291,7 +1291,8 @@ async def test_form_read_state_is_detached_and_original_roles_still_ignore_priva
         legacy: dict[str, Any] = {"ref": role, "role": role, "label": role, "options": [{"label": "Old", "value": "v"}]}
         expected["elements"].append(deepcopy(legacy))
         legacy["checked"] = object()
-        legacy["options"][0]["selected"] = object()
+        # Deliberately corrupt a nested legacy payload to test rejection.
+        legacy["options"][0]["selected"] = object()  # ty: ignore[invalid-assignment]
         report["elements"].append(legacy)
     driver = RichReads(report)
 
@@ -1415,7 +1416,8 @@ async def test_rich_read_snapshots_before_post_handler_cancellation_callback(lan
 
     class AsyncIssuing(AsyncRichReads):
         @override
-        async def find(self, args: object) -> object:
+        # This test driver deliberately returns unvalidated observations.
+        async def find(self, args: object) -> object:  # ty: ignore[invalid-method-override]
             return self.driver.find(args)
 
     driver = Issuing(report)

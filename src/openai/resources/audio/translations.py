@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import typing_extensions
 from typing import Union, Mapping, cast
 from typing_extensions import Literal, overload
 
@@ -32,7 +33,7 @@ log: logging.Logger = logging.getLogger("openai.audio.transcriptions")
 
 
 # Retained module entry point; callers may live outside generated resources.
-def _get_response_format_type(  # pyright: ignore[reportUnusedFunction]
+def _get_response_format_type(
     response_format: AudioResponseFormat | Omit,
 ) -> type[Translation | TranslationVerbose | str]:
     return openai.lib._parsing._audio.get_translation_response_format_type(response_format, log=log)
@@ -61,6 +62,7 @@ class Translations(SyncAPIResource):
         return TranslationsWithStreamingResponse(self)
 
     @overload
+    @typing_extensions.deprecated("deprecated", category=None)
     def create(
         self,
         *,
@@ -78,6 +80,7 @@ class Translations(SyncAPIResource):
     ) -> Translation: ...
 
     @overload
+    @typing_extensions.deprecated("deprecated", category=None)
     def create(
         self,
         *,
@@ -95,6 +98,7 @@ class Translations(SyncAPIResource):
     ) -> TranslationVerbose: ...
 
     @overload
+    @typing_extensions.deprecated("deprecated", category=None)
     def create(
         self,
         *,
@@ -112,6 +116,7 @@ class Translations(SyncAPIResource):
     ) -> str: ...
 
     @overload
+    @typing_extensions.deprecated("deprecated", category=None)
     def create(
         self,
         *,
@@ -128,6 +133,7 @@ class Translations(SyncAPIResource):
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Translation | TranslationVerbose | str: ...
 
+    @typing_extensions.deprecated("deprecated")
     def create(
         self,
         *,
@@ -146,6 +152,12 @@ class Translations(SyncAPIResource):
         """
         Translates audio into English.
 
+        This endpoint supports only `whisper-1`. The endpoint and model are deprecated
+        and scheduled to shut down on February 26, 2027. Migrate to
+        `/v1/realtime/translations`, which requires a separate integration. See the
+        [deprecation schedule](https://developers.openai.com/api/docs/deprecations) for
+        details.
+
         Args:
           file: The audio file object (not file name) translate, in one of these formats: flac,
               mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm. The request must include enough
@@ -154,6 +166,14 @@ class Translations(SyncAPIResource):
 
           model: ID of the model to use. Only `whisper-1` (which is powered by our open source
               Whisper V2 model) is currently available.
+
+              Deprecated values:
+
+              - "whisper-1", "gpt-4o-transcribe", "gpt-4o-mini-transcribe",
+                "gpt-4o-mini-transcribe-2025-12-15", "gpt-4o-transcribe-diarize": Announced
+                shutdown date: 2027-02-26. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
 
           prompt: An optional text to guide the model's style or continue a previous audio
               segment. The
@@ -230,6 +250,7 @@ class AsyncTranslations(AsyncAPIResource):
         return AsyncTranslationsWithStreamingResponse(self)
 
     @overload
+    @typing_extensions.deprecated("deprecated", category=None)
     async def create(
         self,
         *,
@@ -247,6 +268,7 @@ class AsyncTranslations(AsyncAPIResource):
     ) -> Translation: ...
 
     @overload
+    @typing_extensions.deprecated("deprecated", category=None)
     async def create(
         self,
         *,
@@ -264,6 +286,7 @@ class AsyncTranslations(AsyncAPIResource):
     ) -> TranslationVerbose: ...
 
     @overload
+    @typing_extensions.deprecated("deprecated", category=None)
     async def create(
         self,
         *,
@@ -281,6 +304,7 @@ class AsyncTranslations(AsyncAPIResource):
     ) -> str: ...
 
     @overload
+    @typing_extensions.deprecated("deprecated", category=None)
     async def create(
         self,
         *,
@@ -297,6 +321,7 @@ class AsyncTranslations(AsyncAPIResource):
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Translation | TranslationVerbose | str: ...
 
+    @typing_extensions.deprecated("deprecated")
     async def create(
         self,
         *,
@@ -315,6 +340,12 @@ class AsyncTranslations(AsyncAPIResource):
         """
         Translates audio into English.
 
+        This endpoint supports only `whisper-1`. The endpoint and model are deprecated
+        and scheduled to shut down on February 26, 2027. Migrate to
+        `/v1/realtime/translations`, which requires a separate integration. See the
+        [deprecation schedule](https://developers.openai.com/api/docs/deprecations) for
+        details.
+
         Args:
           file: The audio file object (not file name) translate, in one of these formats: flac,
               mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm. The request must include enough
@@ -323,6 +354,14 @@ class AsyncTranslations(AsyncAPIResource):
 
           model: ID of the model to use. Only `whisper-1` (which is powered by our open source
               Whisper V2 model) is currently available.
+
+              Deprecated values:
+
+              - "whisper-1", "gpt-4o-transcribe", "gpt-4o-mini-transcribe",
+                "gpt-4o-mini-transcribe-2025-12-15", "gpt-4o-transcribe-diarize": Announced
+                shutdown date: 2027-02-26. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
 
           prompt: An optional text to guide the model's style or continue a previous audio
               segment. The

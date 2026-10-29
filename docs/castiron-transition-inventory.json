@@ -1,4 +1,408 @@
 {
+  "current_status": {
+    "as_of": "2026-10-27",
+    "draft_for_next_sdk_adoption": false,
+    "sdk_commit": "3596d18f05b63081fd64c6da82b515293afb98c6",
+    "mixed_files": 0,
+    "custom_patch_lines": 0,
+    "generated_manifest_entries": 2028,
+    "emitted_paths_including_manifest": 2029,
+    "policy": {
+      "schema_version": 2,
+      "generated_files": "strict",
+      "max_custom_patch_lines": 0
+    },
+    "required_policy_checks": [
+      "Castiron / budget-only change",
+      "Castiron / custom-code budget"
+    ],
+    "compiler_inventory": {
+      "source": "efa47f65cef47f54391723b787de5239d8b61bff",
+      "blocks": [],
+      "legacy_blocks": 0,
+      "authored_yaml_lines": 0,
+      "raw_sha256": {
+        "beta-responses.yaml": "56f70cc4c8f61ed6a449d111762e270bd36ac8b626e60321b753b886eac389eb",
+        "codegen-profile.yaml": "e3cd7dc8e777b12d147ee54db4be950c3e73a1110da402bcc75b67256b19ac87",
+        "diagnostics.yaml": "3382c807a27cb682d12b17a98fe41fc1a21eaa59fd72d56f247c307d68cd3e2a",
+        "openapi.castiron.yaml": "50209e006771c2c41851cc50e59590d38cf89e8de683973dd444f0c1f1c3ec57",
+        "resource-audio.yaml": "8bee9f8e75762b2214ced6e5238a4cec47e4acb2183e86bc11738a1bf3a747a7",
+        "resource-beta-threads-runs.yaml": "bf338c08ed45b9b163745fa3e089651002fa9d7f71c5c20a1b3049c8f4b87c81",
+        "resource-beta-threads.yaml": "b2f9d4114ae7bfc751ee9795a3cf5467a14c1a872a2e4a63fc231ba8fcdc381e",
+        "resource-beta.yaml": "ad2db1e373c5073bf872a8ab317a68c8ca7b1026eddc6589d30ff9ff0ccf6754",
+        "resource-chat.yaml": "3a4433f624a656ae180d3415c32a4c34530308440f394ae70622492583df9047",
+        "resource-embeddings.yaml": "37d476eaa041b249982cf8970d0850bcf7b17a027afe4331101c87844bbd5415",
+        "resource-realtime.yaml": "20273c631090bc99d50ee2d8245a980ad5a49a5890bdbf67717ce06c6dd4cca6",
+        "resource-responses.yaml": "cbddbef67dd65ddaac273d206d3beacf5be05945de743f6b5d6096b133f20f21",
+        "resource-webhooks.yaml": "b63d9c6c8e3cc20de2abcad80b90166a4b886305af5045e7e529037b1185a4fe",
+        "transformations.yaml": "3c3b1d34d8c684fa798056acd853601d0c7295133b43e012f2d7f94990a51e8e"
+      },
+      "scope": "Compiler declaration inventory, separate from SDK mixed-file debt; residual binding inventory tracked separately",
+      "authored_yaml_files": 14,
+      "git_tree": "e4aaadd62bdbd7eb05141a3f9aadc91e1dc67750"
+    },
+    "retained_runtime_binding_lines": 75,
+    "historical_records_note": "Earlier audit/current/candidate fields below describe their explicit pinned historical commits; this current_status supersedes their delivery and remaining-work statements.",
+    "final_merged_compiler_qualification_and_adoption_pending": false,
+    "former_mixed_files": [
+      {
+        "path": "api.md",
+        "physical_lines": 2038,
+        "custom_patch_lines": 0,
+        "sha256": "82da84d639cb84106f389b001030b0b668eb71122f39c7db598edccc2fcf7b27",
+        "mode": "100644",
+        "manifest_match": true
+      },
+      {
+        "path": "scripts/castiron/CUSTOM_CODE.md",
+        "physical_lines": 298,
+        "custom_patch_lines": 0,
+        "sha256": "c2b12719937fa007d65bea7429962f2b674c531a8c284cc6e5e51c2a526ae351",
+        "mode": "100644",
+        "manifest_match": true
+      },
+      {
+        "path": "scripts/castiron/custom_code_budget.py",
+        "physical_lines": 978,
+        "custom_patch_lines": 0,
+        "sha256": "b85ae4eab2a84dfbcd1f197f87077f686bc4f3347dbf74cca3abb1f99ab50b9a",
+        "mode": "100755",
+        "manifest_match": true
+      },
+      {
+        "path": "scripts/castiron/custom_code_policy.py",
+        "physical_lines": 731,
+        "custom_patch_lines": 0,
+        "sha256": "890ecfc963b8a2461e7e801c9071735a975ed9876de89c80323da10960965295",
+        "mode": "100755",
+        "manifest_match": true
+      },
+      {
+        "path": "scripts/castiron/custom_code_report.py",
+        "physical_lines": 1534,
+        "custom_patch_lines": 0,
+        "sha256": "ddb15c9a162d26a6c9abf1b4fefcd80f2e685d9d255af729863258b7ecd08e2d",
+        "mode": "100755",
+        "manifest_match": true
+      },
+      {
+        "path": "scripts/castiron/fixtures/github_publisher.cjs",
+        "physical_lines": 183,
+        "custom_patch_lines": 0,
+        "sha256": "c84bd86518a70a5b7bbf877d8c13129debface0c220e5118510b0ef17d9ab707",
+        "mode": "100644",
+        "manifest_match": true
+      },
+      {
+        "path": "scripts/castiron/test_custom_code_policy.py",
+        "physical_lines": 988,
+        "custom_patch_lines": 0,
+        "sha256": "fd503013d604cf9659df95a3a47cecfc17da364397625d95ef6121aa790e6a05",
+        "mode": "100644",
+        "manifest_match": true
+      },
+      {
+        "path": "scripts/castiron/test_custom_code_publication.py",
+        "physical_lines": 600,
+        "custom_patch_lines": 0,
+        "sha256": "4533c8c852d590446180715adbd00a63c12af29c53316d3e91d129890ccadbc6",
+        "mode": "100644",
+        "manifest_match": true
+      },
+      {
+        "path": "scripts/castiron/test_custom_code_report.py",
+        "physical_lines": 1591,
+        "custom_patch_lines": 0,
+        "sha256": "e1fbafb5242cac6128757339d78902b12e7658c82e5f157cc2ca7bef80347838",
+        "mode": "100644",
+        "manifest_match": true
+      },
+      {
+        "path": "src/openai/__init__.py",
+        "physical_lines": 469,
+        "custom_patch_lines": 0,
+        "sha256": "7cc1c0f0587ac77b0651af9ab2eeb21d6bfd516fe364d883ca11474b0c2a2552",
+        "mode": "100644",
+        "manifest_match": true
+      },
+      {
+        "path": "src/openai/_client.py",
+        "physical_lines": 1926,
+        "custom_patch_lines": 0,
+        "sha256": "5d15ec6b96667bbce3d926f1d7a0eede0d88876773193c6f92e9bf4cd63239d0",
+        "mode": "100644",
+        "manifest_match": true
+      },
+      {
+        "path": "src/openai/resources/audio/transcriptions.py",
+        "physical_lines": 1404,
+        "custom_patch_lines": 0,
+        "sha256": "b470fe61944498e74e9bc86c5a74763a49646f0e276e7c96ea339ebe0171b404",
+        "mode": "100644",
+        "manifest_match": true
+      },
+      {
+        "path": "src/openai/resources/audio/translations.py",
+        "physical_lines": 412,
+        "custom_patch_lines": 0,
+        "sha256": "9643b5ab66d84a9c1e0115e3dcd7e384de371f6eca5c1aac7f5168ce0d7e5245",
+        "mode": "100644",
+        "manifest_match": true
+      },
+      {
+        "path": "src/openai/resources/beta/agents/environments/files.py",
+        "physical_lines": 604,
+        "custom_patch_lines": 0,
+        "sha256": "80794856126bd21246130cd64f3935f5a07b0e2d5fa5ae3a2de1afbf80d8eee0",
+        "mode": "100644",
+        "manifest_match": true
+      },
+      {
+        "path": "src/openai/resources/beta/agents/sessions/artifacts.py",
+        "physical_lines": 573,
+        "custom_patch_lines": 0,
+        "sha256": "d551e527bbfd700bb85608226ffd942117bc2bf8a0c33e9a8456a08fdc6470ed",
+        "mode": "100644",
+        "manifest_match": true
+      },
+      {
+        "path": "src/openai/resources/beta/agents/sessions/sessions.py",
+        "physical_lines": 1061,
+        "custom_patch_lines": 0,
+        "sha256": "65699418bb2e7b847de57b9c2d9c82acf0f94dfb99b46391ab61331580e7032c",
+        "mode": "100644",
+        "manifest_match": true
+      },
+      {
+        "path": "src/openai/resources/beta/responses/responses.py",
+        "physical_lines": 5587,
+        "custom_patch_lines": 0,
+        "sha256": "fa1a44295495c8609fbbde9457902722b51e56b28ce3ed3b95c7212433f7c8b2",
+        "mode": "100644",
+        "manifest_match": true
+      },
+      {
+        "path": "src/openai/resources/beta/threads/runs/runs.py",
+        "physical_lines": 2889,
+        "custom_patch_lines": 0,
+        "sha256": "254b4c052c8ca7200f7c63d581895feef54f78db0c50b105e1092dd15d391cf6",
+        "mode": "100644",
+        "manifest_match": true
+      },
+      {
+        "path": "src/openai/resources/beta/threads/threads.py",
+        "physical_lines": 1959,
+        "custom_patch_lines": 0,
+        "sha256": "b2834a13b0614f0952168655cc496ff344a766c3e9a92e7ce00b2eea73077430",
+        "mode": "100644",
+        "manifest_match": true
+      },
+      {
+        "path": "src/openai/resources/chat/completions/completions.py",
+        "physical_lines": 3359,
+        "custom_patch_lines": 0,
+        "sha256": "7bc12b0cff8913fd3229ddb9055fdbb187da497a5f2dd0feda637b41235489dc",
+        "mode": "100644",
+        "manifest_match": true
+      },
+      {
+        "path": "src/openai/resources/conversations/api.md",
+        "physical_lines": 41,
+        "custom_patch_lines": 0,
+        "sha256": "97ed38af759c8c47e8df79f2335a0cd9d2871cfaaea7423d4ae4eaea5a63a1b1",
+        "mode": "100644",
+        "manifest_match": true
+      },
+      {
+        "path": "src/openai/resources/embeddings.py",
+        "physical_lines": 264,
+        "custom_patch_lines": 0,
+        "sha256": "06953746a84dcb6483442f18f69580686d616fd10ad26dacbe4fa9ac8b30f0fd",
+        "mode": "100644",
+        "manifest_match": true
+      },
+      {
+        "path": "src/openai/resources/realtime/api.md",
+        "physical_lines": 164,
+        "custom_patch_lines": 0,
+        "sha256": "f977c3b6d8ac7161eeb7025492ac820fc4a17465a54dbec223359b8d72ec6346",
+        "mode": "100644",
+        "manifest_match": true
+      },
+      {
+        "path": "src/openai/resources/realtime/realtime.py",
+        "physical_lines": 1660,
+        "custom_patch_lines": 0,
+        "sha256": "0285ac5edb9b8b17f296b2d513068cb35c3413895e35424221765cc4a15c8592",
+        "mode": "100644",
+        "manifest_match": true
+      },
+      {
+        "path": "src/openai/resources/realtime/translations/translations.py",
+        "physical_lines": 1152,
+        "custom_patch_lines": 0,
+        "sha256": "805923247278589582e4d4db869aa55f37a18130178d6c467f1c59b67825259c",
+        "mode": "100644",
+        "manifest_match": true
+      },
+      {
+        "path": "src/openai/resources/responses/api.md",
+        "physical_lines": 208,
+        "custom_patch_lines": 0,
+        "sha256": "e7815b1278aa2780bb885ac5a249fe00859dff67d3899b708d25d2968e734785",
+        "mode": "100644",
+        "manifest_match": true
+      },
+      {
+        "path": "src/openai/resources/responses/responses.py",
+        "physical_lines": 4805,
+        "custom_patch_lines": 0,
+        "sha256": "7e18e308b99dd85bb224064b2c6d8eb632586a79e4cb71b8212eb39f0c410fd9",
+        "mode": "100644",
+        "manifest_match": true
+      },
+      {
+        "path": "src/openai/resources/uploads/uploads.py",
+        "physical_lines": 674,
+        "custom_patch_lines": 0,
+        "sha256": "83658b3e4ff7d6c273673b46bc7b34a9302b4b138a89c24ab63da07d6e44a8dd",
+        "mode": "100644",
+        "manifest_match": true
+      },
+      {
+        "path": "src/openai/resources/webhooks/__init__.py",
+        "physical_lines": 43,
+        "custom_patch_lines": 0,
+        "sha256": "c1e56f4b97470de30bd95fc65ab4bc5f6c3f2ea37224c3ce4e6dd6db9e2bbb3c",
+        "mode": "100644",
+        "manifest_match": true
+      },
+      {
+        "path": "src/openai/resources/webhooks/webhooks.py",
+        "physical_lines": 1146,
+        "custom_patch_lines": 0,
+        "sha256": "f730653c5937f4c723f5519c7e86823fcba0ee088c270ecbd8e02fd10e49c654",
+        "mode": "100644",
+        "manifest_match": true
+      },
+      {
+        "path": "src/openai/types/__init__.py",
+        "physical_lines": 157,
+        "custom_patch_lines": 0,
+        "sha256": "98f15c4ee123816edfbbd0b758a67ca30b80f80939d158e8bed9a1b518d7c6ae",
+        "mode": "100644",
+        "manifest_match": true
+      },
+      {
+        "path": "src/openai/types/decision_input_image_param.py",
+        "physical_lines": 44,
+        "custom_patch_lines": 0,
+        "sha256": "2725722c94f582599f733ccc643da9fee40ac2a49192ce3c56341a957c2fd35f",
+        "mode": "100644",
+        "manifest_match": true
+      },
+      {
+        "path": "src/openai/types/decision_input_message_param.py",
+        "physical_lines": 95,
+        "custom_patch_lines": 0,
+        "sha256": "e43afa177d646a58dc53627b8284b281fbc7bec5cd1b99f793eabaf250c319a1",
+        "mode": "100644",
+        "manifest_match": true
+      },
+      {
+        "path": "src/openai/types/decision_input_text_param.py",
+        "physical_lines": 30,
+        "custom_patch_lines": 0,
+        "sha256": "004eb61b34a71efa494f8927dc2a501e3a259042dbe64514d6f03c30b9deab29",
+        "mode": "100644",
+        "manifest_match": true
+      },
+      {
+        "path": "src/openai/types/fine_tuning/fine_tuning_job_integration.py",
+        "physical_lines": 7,
+        "custom_patch_lines": 0,
+        "sha256": "01be0fb6a90b729e6d8c700539af334344baf908dfa30caec223651109cbf541",
+        "mode": "100644",
+        "manifest_match": true
+      },
+      {
+        "path": "src/openai/types/realtime/conversation_item_input_audio_transcription_delta_event.py",
+        "physical_lines": 40,
+        "custom_patch_lines": 0,
+        "sha256": "e0e955bb2d08d25f9217a2b3f48b2ac0a20328af2ac1765bfb94f616de9c1e7f",
+        "mode": "100644",
+        "manifest_match": true
+      },
+      {
+        "path": "src/openai/types/realtime/realtime_error_event.py",
+        "physical_lines": 25,
+        "custom_patch_lines": 0,
+        "sha256": "3caef26e78cca8e07685e5c40b8f12f7cc3416f473407eb254b6c7a38b6b52fe",
+        "mode": "100644",
+        "manifest_match": true
+      },
+      {
+        "path": "src/openai/types/responses/tool_param.py",
+        "physical_lines": 402,
+        "custom_patch_lines": 0,
+        "sha256": "abfa0b97b8b47844cc51c6400c0eab3086c2eba8aa1673e0f78abcd889a24b27",
+        "mode": "100644",
+        "manifest_match": true
+      },
+      {
+        "path": "src/openai/types/webhooks/__init__.py",
+        "physical_lines": 71,
+        "custom_patch_lines": 0,
+        "sha256": "6cd86f449fccb260a2e03c56defd59fbf890063734171c8a9fc0405cf9bb2b7d",
+        "mode": "100644",
+        "manifest_match": true
+      },
+      {
+        "path": "src/openai/types/webhooks/live_call_incoming_webhook_event.py",
+        "physical_lines": 70,
+        "custom_patch_lines": 0,
+        "sha256": "98c0194038495649ea8f61edad0fffe95e1ce9b100ce6303b96a2ca37e7fab98",
+        "mode": "100644",
+        "manifest_match": true
+      },
+      {
+        "path": "src/openai/types/webhooks/unwrap_webhook_event.py",
+        "physical_lines": 74,
+        "custom_patch_lines": 0,
+        "sha256": "ab0f7c3a5b26ee9df72b53f7084da93dd86e7e38ce25efe13fbcfe9dfcbe4c69",
+        "mode": "100644",
+        "manifest_match": true
+      }
+    ],
+    "formerly_mixed_physical_lines": 40356,
+    "public_measurement": {
+      "sdk_commit": "3596d18f05b63081fd64c6da82b515293afb98c6",
+      "git_tree": "4232b2290091ebc53fdf62b7641a455f810ddc80",
+      "manifest_sha256": "d30b426bf9ffbf3f04686476a9e3dba453fcc55037aa8d157ff1cdb8305e272b",
+      "policy_sha256": "10a150d982f1498c16681cf9ef7f3439275dbdb986fdce878ca613085ecb5f55",
+      "method": "Physical lines count immutable Git blob.splitlines(), including comments and blanks. All former mixed-file blobs and Git modes match the authenticated generated manifest under strict zero-budget policy.",
+      "former_mixed_files_verified": 41,
+      "custom_patch_lines": 0,
+      "fresh_strict_report_executed": false,
+      "final_compiler_qualification_or_adoption_claimed": false
+    },
+    "qualification": {
+      "compiler_source": "efa47f65cef47f54391723b787de5239d8b61bff",
+      "renderer_tests_passed": 914,
+      "renderer_tests_ignored": 0,
+      "canonical_rust_lint_passed": true,
+      "legacy_and_native_emitted_paths_identical": 2029,
+      "expected_output_exceptions": [],
+      "generated_bytes_and_git_modes_unchanged": true,
+      "reporting_validation": {
+        "python_only_tests_reused_by_exact_identity": 282,
+        "lint_type_checks_reused_by_exact_identity": 4,
+        "existing_compiler_contract_test_rerun": 1,
+        "compiler_contract_test_passed": true
+      }
+    },
+    "revision_scope": "Measurements refer to the named public baseline; this revision records SDK adoption of the qualified native configuration. Public delivery is completed by the normal SDK pull-request merge."
+  },
   "audit_date": "2026-10-19",
   "sdk_commit": "5589146d738e0c38758e117b8383a02c2e4e2ee7",
   "public_codegen_commit": "12578924cd37047e1bff02ea0e6f90114b363d15",

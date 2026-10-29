@@ -582,6 +582,13 @@ paths:
         Generates audio from the input text.
 
         Returns the audio file content, or a stream of audio events.
+
+        The `tts-1`, `tts-1-hd`, `gpt-4o-mini-tts`, `gpt-4o-mini-tts-2025-03-20`, and
+        `gpt-4o-mini-tts-2025-12-15` models are deprecated and scheduled to shut down
+        on January 6, 2027. These examples use the existing Speech API; for new
+        integrations, migrate to `gpt-realtime-2.1-mini` through the
+        [Realtime API](https://developers.openai.com/api/docs/guides/realtime). See the
+        [deprecation schedule](https://developers.openai.com/api/docs/deprecations) for migration details.
       requestBody:
         required: true
         content:
@@ -1344,7 +1351,14 @@ paths:
       tags:
       - Audio
       summary: Create translation
-      description: Translates audio into English.
+      description: |
+        Translates audio into English.
+
+        This endpoint supports only `whisper-1`. The endpoint and model are deprecated
+        and scheduled to shut down on February 26, 2027. Migrate to
+        `/v1/realtime/translations`, which requires a separate integration. See the
+        [deprecation schedule](https://developers.openai.com/api/docs/deprecations)
+        for details.
       requestBody:
         required: true
         content:
@@ -1463,6 +1477,7 @@ paths:
             {
               "text": "Hello, my name is Wolfgang and I come from Germany. Where are you heading today?"
             }
+      deprecated: true
   /audio/voice_consents:
     post:
       operationId: createVoiceConsent
@@ -33158,6 +33173,24 @@ paths:
           minLength: 0
           maxLength: 1048576
         description: Only return sessions whose root agent has this ID. Omit to return sessions for all agents.
+      - name: metadata
+        in: query
+        required: false
+        schema:
+          type: object
+          additionalProperties:
+            type: string
+            minLength: 0
+            maxLength: 512
+          propertyNames:
+            type: string
+            minLength: 1
+            maxLength: 64
+          minProperties: 0
+          maxProperties: 16
+        description: Exact string matches supplied as `metadata[key]=value`. All supplied pairs must match. Up to 16 pairs, with keys from 1 to 64 characters and values up to 512 characters. New sessions and metadata updates may take time to appear in filtered results.
+        style: deepObject
+        explode: true
       responses:
         '200':
           description: A page of sessions.
@@ -37475,6 +37508,125 @@ paths:
               "object": "response.input_tokens",
               "input_tokens": 11
             }
+  /organization/external_keys:
+    post:
+      summary: Add an external key config for an organization
+      description: Add an external key config for an organization
+      operationId: Addanexternalkeyconfigforanorganization
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/V1OrganizationExternalKeysPostRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalKeyResource'
+      security:
+      - AdminApiKeyAuth: []
+    get:
+      summary: List the external key configs registered on the user's organization
+      description: List the external key configs registered on the user's organization
+      operationId: Listtheexternalkeyconfigsregisteredontheuser'sorganization
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 100
+      - name: order
+        in: query
+        required: false
+        schema:
+          $ref: '#/components/schemas/OrderEnum'
+      - name: after
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+      - name: purpose
+        in: query
+        description: Filter by key purpose. When omitted, returns keys of all purposes.
+        required: false
+        schema:
+          $ref: '#/components/schemas/ExternalKeyPurpose'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListExternalKeysResource'
+      security:
+      - AdminApiKeyAuth: []
+  /organization/external_keys/{external_key_id}:
+    get:
+      summary: Retrieve an external key registration
+      description: Retrieve a stored external key registration for the user's organization.
+      operationId: Retrieveanexternalkeyregistration
+      parameters:
+      - name: external_key_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalKeyResource'
+      security:
+      - AdminApiKeyAuth: []
+    delete:
+      summary: Delete an external key config for the user's organization
+      description: Delete an external key config for the user's organization
+      operationId: Deleteanexternalkeyconfigfortheuser'sorganization
+      parameters:
+      - name: external_key_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalKeyResource'
+      security:
+      - AdminApiKeyAuth: []
+  /organization/external_keys/{external_key_id}/validate:
+    post:
+      summary: Validate an external key config for the user's organization
+      description: Validate an external key config for the user's organization
+      operationId: Validateanexternalkeyconfigfortheuser'sorganization
+      parameters:
+      - name: external_key_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidateExternalKeyResource'
+      security:
+      - AdminApiKeyAuth: []
 webhooks:
   agent_environment_expired:
     post:
@@ -38360,6 +38512,18 @@ components:
           message: 'Announced shutdown date: 2027-01-14. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
         gpt-4o-mini:
           message: 'Announced shutdown date: 2027-01-14. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-5:
+          message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-5-mini:
+          message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-5-nano:
+          message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-5-2025-08-07:
+          message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-5-mini-2025-08-07:
+          message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-5-nano-2025-08-07:
+          message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
     AssistantToolsCode:
       type: object
       title: Code interpreter tool
@@ -38513,6 +38677,17 @@ components:
             - gpt-4o-transcribe
             - gpt-4o-transcribe-diarize
             - gpt-realtime-whisper
+            x-openai-enum-deprecations:
+              gpt-4o-mini-transcribe-2025-12-15:
+                message: 'Announced shutdown date: 2027-02-26. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              whisper-1:
+                message: 'Announced shutdown date: 2027-02-26. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              gpt-4o-transcribe:
+                message: 'Announced shutdown date: 2027-02-26. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              gpt-4o-mini-transcribe:
+                message: 'Announced shutdown date: 2027-02-26. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              gpt-4o-transcribe-diarize:
+                message: 'Announced shutdown date: 2027-02-26. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
         language:
           type: string
           description: |
@@ -38570,6 +38745,17 @@ components:
             - gpt-4o-transcribe
             - gpt-4o-transcribe-diarize
             - gpt-realtime-whisper
+            x-openai-enum-deprecations:
+              gpt-4o-mini-transcribe-2025-12-15:
+                message: 'Announced shutdown date: 2027-02-26. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              whisper-1:
+                message: 'Announced shutdown date: 2027-02-26. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              gpt-4o-transcribe:
+                message: 'Announced shutdown date: 2027-02-26. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              gpt-4o-mini-transcribe:
+                message: 'Announced shutdown date: 2027-02-26. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              gpt-4o-transcribe-diarize:
+                message: 'Announced shutdown date: 2027-02-26. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
         language:
           type: string
           description: |
@@ -44052,12 +44238,12 @@ components:
           description: |
             The image(s) to edit. Must be a supported image file or an array of images.
 
-            For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`,
+            For the GPT image models (`gpt-image-1-mini`, `gpt-image-1.5`,
             `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
-            `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`,
-            `gpt-image-2.5-flare-2026-09-08`, and `chatgpt-image-latest`), each image
-            should be a `png`, `webp`, or `jpg` file less than 50MB. You can provide up to
-            16 images.
+            `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and
+            `gpt-image-2.5-flare-2026-09-08`), each image should be a `png`, `webp`, or `jpg`
+            file less than 50MB. You can provide up to 16 images. `chatgpt-image-latest`
+            follows the same input constraints as GPT image models.
           x-oaiMeta:
             exampleFilePath: otter.png
         prompt:
@@ -45208,6 +45394,15 @@ components:
             - tts-1-hd
             - gpt-4o-mini-tts
             - gpt-4o-mini-tts-2025-12-15
+            x-openai-enum-deprecations:
+              gpt-4o-mini-tts:
+                message: 'Announced shutdown date: 2027-01-06. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              tts-1:
+                message: 'Announced shutdown date: 2027-01-06. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              tts-1-hd:
+                message: 'Announced shutdown date: 2027-01-06. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              gpt-4o-mini-tts-2025-12-15:
+                message: 'Announced shutdown date: 2027-01-06. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
             x-stainless-nominal: false
           x-oaiTypeLabel: string
         input:
@@ -45353,6 +45548,19 @@ components:
             - gpt-3.5-turbo-1106
             - gpt-3.5-turbo-0125
             - gpt-3.5-turbo-16k-0613
+            x-openai-enum-deprecations:
+              gpt-5:
+                message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              gpt-5-mini:
+                message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              gpt-5-nano:
+                message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              gpt-5-2025-08-07:
+                message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              gpt-5-mini-2025-08-07:
+                message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              gpt-5-nano-2025-08-07:
+                message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
           x-oaiTypeLabel: string
           nullable: true
         instructions:
@@ -45598,6 +45806,17 @@ components:
             - gpt-4o-mini-transcribe-2025-12-15
             - gpt-4o-transcribe-diarize
             x-stainless-const: true
+            x-openai-enum-deprecations:
+              gpt-4o-mini-transcribe-2025-12-15:
+                message: 'Announced shutdown date: 2027-02-26. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              whisper-1:
+                message: 'Announced shutdown date: 2027-02-26. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              gpt-4o-transcribe:
+                message: 'Announced shutdown date: 2027-02-26. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              gpt-4o-mini-transcribe:
+                message: 'Announced shutdown date: 2027-02-26. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              gpt-4o-transcribe-diarize:
+                message: 'Announced shutdown date: 2027-02-26. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
             x-stainless-nominal: false
           x-oaiTypeLabel: string
         language:
@@ -51843,6 +52062,7 @@ components:
       - $ref: '#/components/schemas/LiveInputAudioMuteParam'
       - $ref: '#/components/schemas/LiveInputAudioUnmuteParam'
       - $ref: '#/components/schemas/LiveOutputAudioFixturePlayParam'
+      - $ref: '#/components/schemas/LiveTransportDTMFSendParam'
       - $ref: '#/components/schemas/LiveInstructionsAppendParam'
       - $ref: '#/components/schemas/LiveThinkingAppendParam'
       - $ref: '#/components/schemas/LiveCommentaryAppendParam'
@@ -51898,6 +52118,7 @@ components:
       - $ref: '#/components/schemas/LiveOutputAudioDelta'
       - $ref: '#/components/schemas/LiveTransportDTMFReceived'
       - $ref: '#/components/schemas/LiveTransportDTMFSend'
+      - $ref: '#/components/schemas/LiveTransportDTMFSent'
       - $ref: '#/components/schemas/LiveTransportRinging'
       - $ref: '#/components/schemas/LiveTransportAnswered'
       - $ref: '#/components/schemas/LiveTransportFailed'
@@ -58291,6 +58512,7 @@ components:
       - $ref: '#/components/schemas/RealtimeMCPListTools'
       - $ref: '#/components/schemas/RealtimeMCPToolCall'
       - $ref: '#/components/schemas/RealtimeMCPApprovalRequest'
+      - $ref: '#/components/schemas/RealtimeResponseItemReference'
       discriminator:
         propertyName: type
     RealtimeConversationItemFunctionCall:
@@ -61560,6 +61782,19 @@ components:
             - gpt-audio-mini
             - gpt-audio-mini-2025-10-06
             - gpt-audio-mini-2025-12-15
+            x-openai-enum-deprecations:
+              gpt-realtime-2025-08-28:
+                message: 'Announced shutdown date: 2027-01-20. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              gpt-realtime-mini-2025-12-15:
+                message: 'Announced shutdown date: 2027-01-20. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              gpt-audio-mini-2025-12-15:
+                message: 'Announced shutdown date: 2027-01-20. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              gpt-realtime:
+                message: 'Announced shutdown date: 2027-01-20. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              gpt-realtime-mini:
+                message: 'Announced shutdown date: 2027-01-20. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              gpt-audio-mini:
+                message: 'Announced shutdown date: 2027-01-20. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
         instructions:
           type: string
           description: |
@@ -61994,6 +62229,19 @@ components:
             - gpt-audio-mini
             - gpt-audio-mini-2025-10-06
             - gpt-audio-mini-2025-12-15
+            x-openai-enum-deprecations:
+              gpt-realtime-2025-08-28:
+                message: 'Announced shutdown date: 2027-01-20. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              gpt-realtime-mini-2025-12-15:
+                message: 'Announced shutdown date: 2027-01-20. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              gpt-audio-mini-2025-12-15:
+                message: 'Announced shutdown date: 2027-01-20. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              gpt-realtime:
+                message: 'Announced shutdown date: 2027-01-20. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              gpt-realtime-mini:
+                message: 'Announced shutdown date: 2027-01-20. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              gpt-audio-mini:
+                message: 'Announced shutdown date: 2027-01-20. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
             x-stainless-nominal: false
             x-openai-go-public-type: string_alias
           description: |
@@ -62439,6 +62687,19 @@ components:
             - gpt-audio-mini
             - gpt-audio-mini-2025-10-06
             - gpt-audio-mini-2025-12-15
+            x-openai-enum-deprecations:
+              gpt-realtime-2025-08-28:
+                message: 'Announced shutdown date: 2027-01-20. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              gpt-realtime-mini-2025-12-15:
+                message: 'Announced shutdown date: 2027-01-20. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              gpt-audio-mini-2025-12-15:
+                message: 'Announced shutdown date: 2027-01-20. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              gpt-realtime:
+                message: 'Announced shutdown date: 2027-01-20. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              gpt-realtime-mini:
+                message: 'Announced shutdown date: 2027-01-20. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              gpt-audio-mini:
+                message: 'Announced shutdown date: 2027-01-20. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
           description: |
             The Realtime model used for this session.
         instructions:
@@ -64047,6 +64308,21 @@ components:
                 An upper bound for the number of tokens that can be generated for a response, including visible output tokens and [reasoning tokens](https://developers.openai.com/api/docs/guides/reasoning).
               type: integer
             - type: 'null'
+          tool_usage:
+            $ref: '#/components/schemas/ResponseToolUsage'
+            description: |
+              Usage reported by hosted tools, separate from base model `usage`. The field
+              can be omitted when tool usage is unavailable. When present, tool families
+              with no recorded usage have zero counts.
+
+              `image_gen` sums available token counts across image generation calls.
+              Calls with missing or incomplete usage records may be skipped. Output
+              token details and cached input counts can be omitted. An omitted cache
+              count means cache usage is unknown.
+
+              `web_search.num_requests` counts billable searches. Discounted searches
+              and actions such as opening a page are excluded. Use billing records to
+              reconcile final charges.
         required:
         - access_programs
         - id
@@ -74734,7 +75010,8 @@ components:
       required:
       - mode
       title: Prompt cache breakpoint
-      description: Marks the exact end of a reusable prompt prefix. The breakpoint inherits its TTL from the request's `prompt_cache_options.ttl`; the boundary is not rounded to a token block.
+      description: Marks the exact end of a reusable prompt prefix. When `ttl` is omitted, the breakpoint inherits the request's `prompt_cache_options.ttl`; the boundary is not rounded to a token block.
+      x-stainless-go-constant-constructor: true
     ModerationMode:
       type: string
       enum:
@@ -74964,7 +75241,8 @@ components:
       required:
       - mode
       title: Prompt cache breakpoint
-      description: Marks the exact end of a reusable prompt prefix. The breakpoint inherits its TTL from the request's `prompt_cache_options.ttl`; the boundary is not rounded to a token block.
+      description: Marks the exact end of a reusable prompt prefix. When `ttl` is omitted, the breakpoint inherits the request's `prompt_cache_options.ttl`; the boundary is not rounded to a token block.
+      x-stainless-go-constant-constructor: true
     InputTextContent:
       properties:
         type:
@@ -74979,6 +75257,7 @@ components:
           description: The text input to the model.
         prompt_cache_breakpoint:
           $ref: '#/components/schemas/PromptCacheBreakpointConfig'
+          x-stainless-go-constant-constructor: true
       type: object
       required:
       - type
@@ -75254,6 +75533,7 @@ components:
           description: The detail level of the image to be sent to the model. One of `high`, `low`, `auto`, or `original`. Defaults to `auto`.
         prompt_cache_breakpoint:
           $ref: '#/components/schemas/PromptCacheBreakpointConfig'
+          x-stainless-go-constant-constructor: true
       type: object
       required:
       - type
@@ -75285,6 +75565,7 @@ components:
           description: The detail level of the screenshot image to be sent to the model. One of `high`, `low`, `auto`, or `original`. Defaults to `auto`.
         prompt_cache_breakpoint:
           $ref: '#/components/schemas/PromptCacheBreakpointConfig'
+          x-stainless-go-constant-constructor: true
       type: object
       required:
       - type
@@ -75322,6 +75603,7 @@ components:
             The content of the file to be sent to the model.
         prompt_cache_breakpoint:
           $ref: '#/components/schemas/PromptCacheBreakpointConfig'
+          x-stainless-go-constant-constructor: true
         file_url:
           type: string
           format: uri
@@ -76153,7 +76435,7 @@ components:
       enum:
       - high
       - low
-      description: Control how much effort the model will exert to match the style and features, especially facial features, of input images. Supports `high` and `low` on `gpt-image-1` and `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For `gpt-image-2`, omit this parameter. Defaults to `low` on supported models.
+      description: Control how much effort the model will exert to match the style and features, especially facial features, of input images. Supports `high` and `low` on `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For `gpt-image-2`, omit this parameter. Defaults to `low` on supported models.
     LocalShellToolParam:
       properties:
         type:
@@ -77314,6 +77596,7 @@ components:
           anyOf:
           - $ref: '#/components/schemas/PromptCacheBreakpointParam'
           - type: 'null'
+          x-stainless-go-constant-constructor: true
       type: object
       required:
       - type
@@ -77351,6 +77634,7 @@ components:
           anyOf:
           - $ref: '#/components/schemas/PromptCacheBreakpointParam'
           - type: 'null'
+          x-stainless-go-constant-constructor: true
       type: object
       required:
       - type
@@ -77401,6 +77685,7 @@ components:
           anyOf:
           - $ref: '#/components/schemas/PromptCacheBreakpointParam'
           - type: 'null'
+          x-stainless-go-constant-constructor: true
       type: object
       required:
       - type
@@ -78828,6 +79113,41 @@ components:
       - auto
       - none
       - required
+    LiveTransportDTMFSend:
+      description: Legacy SIP DTMF delivery notification retained for SDK compatibility and saved events. Current servers confirm delivery with transport.dtmf.sent; transport.dtmf.send is now the client command.
+      example:
+        type: transport.dtmf.send
+        event_id: event_dtmf_2
+        event: '#'
+      type: object
+      properties:
+        type:
+          default: transport.dtmf.send
+          x-stainless-const: true
+          type: string
+          enum:
+          - transport.dtmf.send
+        event_id:
+          type: string
+        event:
+          type: string
+          minLength: 1
+          maxLength: 1
+          pattern: ^[0-9A-D*#]$
+        client_event_id:
+          description: The event_id of the client command, when supplied.
+          type: string
+          x-stainless-skip:
+          - cli
+      required:
+      - type
+      - event_id
+      - event
+      x-oaiMeta:
+        example:
+          type: transport.dtmf.send
+          event_id: event_dtmf_2
+          event: '#'
     LegacyComputerAction:
       discriminator:
         propertyName: type
@@ -78841,42 +79161,6 @@ components:
       - $ref: '#/components/schemas/ScrollParam'
       - $ref: '#/components/schemas/TypeParam'
       - $ref: '#/components/schemas/WaitParam'
-    CodeInterpreterContainerAuto:
-      properties:
-        type:
-          type: string
-          enum:
-          - auto
-          description: Always `auto`.
-          default: auto
-          x-stainless-const: true
-        file_ids:
-          items:
-            type: string
-            example: file-123
-          type: array
-          maxItems: 50
-          description: An optional list of uploaded files to make available to your code.
-        memory_limit:
-          anyOf:
-          - $ref: '#/components/schemas/ContainerMemoryLimit'
-            description: The memory limit for the code interpreter container.
-          - type: 'null'
-        network_policy:
-          discriminator:
-            propertyName: type
-          description: Network access policy for the container.
-          anyOf:
-          - $ref: '#/components/schemas/ContainerNetworkPolicyDisabledParam'
-          - $ref: '#/components/schemas/ContainerNetworkPolicyAllowlistParam'
-      type: object
-      required:
-      - type
-      title: CodeInterpreterToolAuto
-      description: Configuration for a code interpreter container. Optionally specify the IDs of the files to run the code on.
-      x-stainless-naming:
-        go:
-          type_name: ToolCodeInterpreterContainerCodeInterpreterContainerAuto
     LiveSpecificFileSearchParam:
       type: object
       properties:
@@ -84779,6 +85063,9 @@ components:
         multi_agent:
           $ref: '#/components/schemas/MultiAgentConfigResource'
           description: The configuration for creating and coordinating subagents.
+        compaction:
+          $ref: '#/components/schemas/CompactionResource'
+          description: The effective context compaction settings.
       required:
       - model
       - reasoning
@@ -86216,6 +86503,11 @@ components:
           minItems: 0
           maxItems: 16384
           description: Tools available to the agent. Omit to inherit, or pass null to clear them. The resolved tool list must fit within 3 MiB (3,145,728 bytes) of compact UTF-8 JSON.
+        compaction:
+          anyOf:
+          - $ref: '#/components/schemas/CompactionParam'
+          - type: 'null'
+          description: Context compaction settings. Omit to keep the current settings. A supplied object replaces the settings; null or an empty object enables background compaction.
       additionalProperties: false
       description: Agent configuration for a session. Omitted fields inherit from `agent_id` when supplied. Supplied objects and arrays replace the whole field; null resets nullable fields.
     EnvironmentParamNone:
@@ -89685,6 +89977,9 @@ components:
         multi_agent:
           $ref: '#/components/schemas/MultiAgentConfigResource'
           description: The resolved configuration for creating and coordinating subagents.
+        compaction:
+          $ref: '#/components/schemas/CompactionResource'
+          description: The effective context compaction settings.
       required:
       - id
       - object
@@ -90139,6 +90434,11 @@ components:
           - $ref: '#/components/schemas/MultiAgentConfigCurrentParam'
           - type: 'null'
           description: Configuration for creating and coordinating subagents. Subagent tools are disabled by default.
+        compaction:
+          anyOf:
+          - $ref: '#/components/schemas/CompactionParam'
+          - type: 'null'
+          description: Context compaction settings. Omission or null enables background compaction.
       required:
       - model
       additionalProperties: false
@@ -90209,6 +90509,11 @@ components:
           minItems: 0
           maxItems: 2000
           description: Replaces the tool list. Omit to leave it unchanged, or pass null to clear it. The replacement must fit within 3 MiB (3,145,728 bytes) of compact UTF-8 JSON.
+        compaction:
+          anyOf:
+          - $ref: '#/components/schemas/CompactionParam'
+          - type: 'null'
+          description: Context compaction settings. Omit to keep the current settings. A supplied object replaces the settings; null or an empty object enables background compaction.
       additionalProperties: false
       description: Fields to replace on an existing reusable agent.
     DeletedAgentResource:
@@ -90791,6 +91096,9 @@ components:
         multi_agent:
           $ref: '#/components/schemas/MultiAgentConfigResource'
           description: Configuration for creating and coordinating subagents.
+        compaction:
+          $ref: '#/components/schemas/CompactionResource'
+          description: The effective context compaction settings.
       required:
       - id
       - name
@@ -97366,41 +97674,6 @@ components:
           type: transport.dtmf.received
           event_id: event_dtmf_1
           event: '5'
-    LiveTransportDTMFSend:
-      description: A SIP DTMF keypress successfully sent to the SIP trunk. Delivered only to sideband observers; this is not a client command.
-      example:
-        type: transport.dtmf.send
-        event_id: event_dtmf_2
-        event: '#'
-      type: object
-      properties:
-        type:
-          default: transport.dtmf.send
-          x-stainless-const: true
-          type: string
-          enum:
-          - transport.dtmf.send
-        event_id:
-          type: string
-        event:
-          type: string
-          minLength: 1
-          maxLength: 1
-          pattern: ^[0-9A-D*#]$
-        client_event_id:
-          description: The event_id of the client command, when supplied.
-          type: string
-          x-stainless-skip:
-          - cli
-      required:
-      - type
-      - event_id
-      - event
-      x-oaiMeta:
-        example:
-          type: transport.dtmf.send
-          event_id: event_dtmf_2
-          event: '#'
     LiveTransportRinging:
       description: The outbound SIP provider leg is ringing or providing early media. Delivered only to sideband observers.
       example:
@@ -97548,6 +97821,7 @@ components:
       - $ref: '#/components/schemas/LiveInfoEvent'
       - $ref: '#/components/schemas/LiveTransportDTMFReceived'
       - $ref: '#/components/schemas/LiveTransportDTMFSend'
+      - $ref: '#/components/schemas/LiveTransportDTMFSent'
       - $ref: '#/components/schemas/LiveTransportRinging'
       - $ref: '#/components/schemas/LiveTransportAnswered'
       - $ref: '#/components/schemas/LiveTransportFailed'
@@ -98930,7 +99204,7 @@ components:
       enum:
       - high
       - low
-      description: Control how much effort the model will exert to match the style and features, especially facial features, of input images. Supports `high` and `low` on `gpt-image-1` and `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For `gpt-image-2`, omit this parameter. Defaults to `low` on supported models.
+      description: Control how much effort the model will exert to match the style and features, especially facial features, of input images. Supports `high` and `low` on `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For `gpt-image-2`, omit this parameter. Defaults to `low` on supported models.
     BetaProgrammaticToolCallingParam:
       properties:
         type:
@@ -99861,6 +100135,7 @@ components:
             The content of the file to be sent to the model.
         prompt_cache_breakpoint:
           $ref: '#/components/schemas/BetaPromptCacheBreakpointConfig'
+          x-stainless-go-constant-constructor: true
         file_url:
           type: string
           format: uri
@@ -99898,7 +100173,8 @@ components:
       required:
       - mode
       title: Prompt cache breakpoint
-      description: Marks the exact end of a reusable prompt prefix. The breakpoint inherits its TTL from the request's `prompt_cache_options.ttl`; the boundary is not rounded to a token block.
+      description: Marks the exact end of a reusable prompt prefix. When `ttl` is omitted, the breakpoint inherits the request's `prompt_cache_options.ttl`; the boundary is not rounded to a token block.
+      x-stainless-go-constant-constructor: true
     BetaInputImageContent:
       properties:
         type:
@@ -99924,6 +100200,7 @@ components:
           description: The detail level of the image to be sent to the model. One of `high`, `low`, `auto`, or `original`. Defaults to `auto`.
         prompt_cache_breakpoint:
           $ref: '#/components/schemas/BetaPromptCacheBreakpointConfig'
+          x-stainless-go-constant-constructor: true
       type: object
       required:
       - type
@@ -99951,6 +100228,7 @@ components:
           description: The text input to the model.
         prompt_cache_breakpoint:
           $ref: '#/components/schemas/BetaPromptCacheBreakpointConfig'
+          x-stainless-go-constant-constructor: true
       type: object
       required:
       - type
@@ -101731,6 +102009,7 @@ components:
           anyOf:
           - $ref: '#/components/schemas/BetaPromptCacheBreakpointParam'
           - type: 'null'
+          x-stainless-go-constant-constructor: true
       type: object
       required:
       - type
@@ -101755,7 +102034,8 @@ components:
       required:
       - mode
       title: Prompt cache breakpoint
-      description: Marks the exact end of a reusable prompt prefix. The breakpoint inherits its TTL from the request's `prompt_cache_options.ttl`; the boundary is not rounded to a token block.
+      description: Marks the exact end of a reusable prompt prefix. When `ttl` is omitted, the breakpoint inherits the request's `prompt_cache_options.ttl`; the boundary is not rounded to a token block.
+      x-stainless-go-constant-constructor: true
     BetaDetailEnum:
       type: string
       enum:
@@ -101780,6 +102060,7 @@ components:
           anyOf:
           - $ref: '#/components/schemas/BetaPromptCacheBreakpointParam'
           - type: 'null'
+          x-stainless-go-constant-constructor: true
       type: object
       required:
       - type
@@ -101899,6 +102180,7 @@ components:
           anyOf:
           - $ref: '#/components/schemas/BetaPromptCacheBreakpointParam'
           - type: 'null'
+          x-stainless-go-constant-constructor: true
       type: object
       required:
       - type
@@ -104224,6 +104506,7 @@ components:
           description: The detail level of the screenshot image to be sent to the model. One of `high`, `low`, `auto`, or `original`. Defaults to `auto`.
         prompt_cache_breakpoint:
           $ref: '#/components/schemas/BetaPromptCacheBreakpointConfig'
+          x-stainless-go-constant-constructor: true
       type: object
       required:
       - type
@@ -104926,6 +105209,21 @@ components:
                 An upper bound for the number of tokens that can be generated for a response, including visible output tokens and [reasoning tokens](https://developers.openai.com/api/docs/guides/reasoning).
               type: integer
             - type: 'null'
+          tool_usage:
+            $ref: '#/components/schemas/BetaResponseToolUsage'
+            description: |
+              Usage reported by hosted tools, separate from base model `usage`. The field
+              can be omitted when tool usage is unavailable. When present, tool families
+              with no recorded usage have zero counts.
+
+              `image_gen` sums available token counts across image generation calls.
+              Calls with missing or incomplete usage records may be skipped. Output
+              token details and cached input counts can be omitted. An omitted cache
+              count means cache usage is unknown.
+
+              `web_search.num_requests` counts billable searches. Discounted searches
+              and actions such as opening a page are excluded. Use billing records to
+              reconcile final charges.
         required:
         - access_programs
         - id
@@ -110340,6 +110638,473 @@ components:
       - $ref: '#/components/schemas/BetaResponseCustomToolCallInputDoneEvent'
       discriminator:
         propertyName: type
+    BetaCachedUsageDetails:
+      properties:
+        cached_text_tokens:
+          type: integer
+        cached_image_tokens:
+          type: integer
+      type: object
+      required:
+      - cached_text_tokens
+      - cached_image_tokens
+    BetaImageGenInputUsageDetails:
+      properties:
+        text_tokens:
+          type: integer
+          description: The number of text tokens in the input prompt.
+        image_tokens:
+          type: integer
+          description: The number of image tokens in the input prompt.
+      type: object
+      required:
+      - text_tokens
+      - image_tokens
+      title: Input usage details
+      description: The input tokens detailed information for the image generation.
+    BetaImageGenOutputTokensDetails:
+      properties:
+        image_tokens:
+          type: integer
+          description: The number of image output tokens generated by the model.
+        text_tokens:
+          type: integer
+          description: The number of text output tokens generated by the model.
+      type: object
+      required:
+      - image_tokens
+      - text_tokens
+      title: Image generation output token details
+      description: The output token details for the image generation.
+    BetaImageGenToolUsage:
+      properties:
+        input_tokens:
+          type: integer
+          description: The number of tokens (images and text) in the input prompt.
+        total_tokens:
+          type: integer
+          description: The total number of tokens (images and text) used for the image generation.
+        output_tokens:
+          type: integer
+          description: The number of output tokens generated by the model.
+        output_tokens_details:
+          $ref: '#/components/schemas/BetaImageGenOutputTokensDetails'
+        input_tokens_details:
+          $ref: '#/components/schemas/BetaImageGenInputUsageDetails'
+        cached_tokens:
+          type: integer
+        cached_tokens_details:
+          $ref: '#/components/schemas/BetaCachedUsageDetails'
+      type: object
+      required:
+      - input_tokens
+      - total_tokens
+      - output_tokens
+      - input_tokens_details
+      title: Image generation tool usage
+      description: Token usage for image generation tool calls in a response.
+    BetaResponseToolUsage:
+      properties:
+        image_gen:
+          $ref: '#/components/schemas/BetaImageGenToolUsage'
+          description: Aggregated usage statistics for image generation tool calls.
+        web_search:
+          $ref: '#/components/schemas/BetaWebSearchUsage'
+          description: Aggregated billable usage statistics for web search tool calls.
+      type: object
+      required:
+      - image_gen
+      - web_search
+      title: Response tool usage
+      description: Aggregated usage details for billable tools that ran while generating the response.
+    BetaWebSearchUsage:
+      properties:
+        num_requests:
+          type: integer
+          description: The number of billable web search requests issued.
+      type: object
+      required:
+      - num_requests
+      title: Web search usage
+      description: Usage details for web search requests that ran while generating the response.
+    CachedUsageDetails:
+      properties:
+        cached_text_tokens:
+          type: integer
+        cached_image_tokens:
+          type: integer
+      type: object
+      required:
+      - cached_text_tokens
+      - cached_image_tokens
+    ImageGenToolUsage:
+      properties:
+        input_tokens:
+          type: integer
+          description: The number of tokens (images and text) in the input prompt.
+        total_tokens:
+          type: integer
+          description: The total number of tokens (images and text) used for the image generation.
+        output_tokens:
+          type: integer
+          description: The number of output tokens generated by the model.
+        output_tokens_details:
+          $ref: '#/components/schemas/ImageGenOutputTokensDetails'
+        input_tokens_details:
+          $ref: '#/components/schemas/ImageGenInputUsageDetails'
+        cached_tokens:
+          type: integer
+        cached_tokens_details:
+          $ref: '#/components/schemas/CachedUsageDetails'
+      type: object
+      required:
+      - input_tokens
+      - total_tokens
+      - output_tokens
+      - input_tokens_details
+      title: Image generation tool usage
+      description: Token usage for image generation tool calls in a response.
+    ResponseToolUsage:
+      properties:
+        image_gen:
+          $ref: '#/components/schemas/ImageGenToolUsage'
+          description: Aggregated usage statistics for image generation tool calls.
+        web_search:
+          $ref: '#/components/schemas/WebSearchUsage'
+          description: Aggregated billable usage statistics for web search tool calls.
+      type: object
+      required:
+      - image_gen
+      - web_search
+      title: Response tool usage
+      description: Aggregated usage details for billable tools that ran while generating the response.
+    WebSearchUsage:
+      properties:
+        num_requests:
+          type: integer
+          description: The number of billable web search requests issued.
+      type: object
+      required:
+      - num_requests
+      title: Web search usage
+      description: Usage details for web search requests that ran while generating the response.
+    AwsExternalKeyParams:
+      properties:
+        name:
+          type: string
+          description: A friendly name to identify this config
+        type:
+          type: string
+          enum:
+          - aws
+          default: aws
+          x-stainless-const: true
+        role_arn:
+          type: string
+          pattern: ^arn:aws:iam::\d{12}:role/.+$
+          description: The Role ARN that OpenAI will assume to call your KMS
+        kms_arn:
+          type: string
+          description: The Key Management System ARN for the master key you manage
+        external_id:
+          type: string
+          description: The ExternalID that OpenAI will pass in the AssumeRole call for the customer's AWS account. This must be the OpenAI organization ID or an API project ID that belongs to the organization.
+        purpose:
+          $ref: '#/components/schemas/ExternalKeyPurpose'
+      type: object
+      required:
+      - name
+      - type
+      - role_arn
+      - kms_arn
+      - external_id
+    AzureExternalKeyParams:
+      properties:
+        name:
+          type: string
+          description: A friendly name to identify this config
+        type:
+          type: string
+          enum:
+          - azure
+          default: azure
+          x-stainless-const: true
+        tenant_id:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+          description: Your Azure tenant UUID
+        vault_uri:
+          type: string
+          pattern: ^https://.+\.vault\.azure\.net/?$
+          description: The URI of the Azure vault containing the master key you manage
+        key_name:
+          type: string
+          maxLength: 127
+          pattern: ^org-[0-9a-zA-Z-]*--[0-9a-zA-Z-]*$
+          description: The name of the Azure Key Vault master key that you manage
+        purpose:
+          $ref: '#/components/schemas/ExternalKeyPurpose'
+        key_version:
+          type: string
+          pattern: ^[0-9a-fA-F]{32}$
+          description: An exact Azure Key Vault key version. Required for PSP decryption; not accepted for EKM.
+      type: object
+      required:
+      - name
+      - type
+      - tenant_id
+      - vault_uri
+      - key_name
+    ExternalKeyPurpose:
+      type: string
+      enum:
+      - ekm
+      - psp_decryption
+    ExternalKeyResource:
+      properties:
+        object:
+          type: string
+        id:
+          type: string
+        type:
+          type: string
+        purpose:
+          $ref: '#/components/schemas/ExternalKeyPurpose'
+        name:
+          type: string
+        api_project_ids:
+          items:
+            type: string
+          type: array
+        workspace_id:
+          type: string
+        created_at:
+          type: integer
+        role_arn:
+          type: string
+        external_id:
+          type: string
+        kms_arn:
+          type: string
+        workload_identity_project_number:
+          type: string
+        workload_identity_pool_id:
+          type: string
+        workload_identity_provider_id:
+          type: string
+        audience:
+          type: string
+        kms_project_id:
+          type: string
+        kms_key_ring_name:
+          type: string
+        kms_key_name:
+          type: string
+        kms_key_location:
+          type: string
+        kms_key_version:
+          type: string
+        tenant_id:
+          type: string
+        vault_uri:
+          type: string
+        key_name:
+          type: string
+        key_version:
+          type: string
+      type: object
+      required:
+      - object
+      - id
+      - type
+      - name
+      - api_project_ids
+      - workspace_id
+      - created_at
+    GcpExternalKeyParams:
+      properties:
+        name:
+          type: string
+          description: A friendly name to identify this config
+        type:
+          type: string
+          enum:
+          - gcp
+          default: gcp
+          x-stainless-const: true
+        workload_identity_project_number:
+          type: string
+          pattern: ^[0-9]{1,19}$
+          description: The numeric GCP project number where you registered OpenAI's workload identity
+        workload_identity_pool_id:
+          type: string
+          description: The pool containing the Workload Identity provider that you registered for OpenAI
+        workload_identity_provider_id:
+          type: string
+          description: The Workload Identity provider that you registered for OpenAI
+        kms_project_id:
+          type: string
+          description: The string GCP project name where your KMS resides
+        kms_key_ring_name:
+          type: string
+          description: The Key Management System key ring for the master key you manage
+        kms_key_name:
+          type: string
+          description: The name of the Key Management System master key you manage
+        kms_key_location:
+          type: string
+          description: The region where your Key Management System master key is located
+        audience:
+          type: string
+          description: The aud field in the identity token OpenAI will pass in the call to the customer's GCP STS. This must be the OpenAI organization ID or an API project ID that belongs to the organization.
+        purpose:
+          $ref: '#/components/schemas/ExternalKeyPurpose'
+        kms_key_version:
+          type: string
+          pattern: ^[1-9][0-9]*$
+          description: An exact CryptoKeyVersion number. Required for PSP decryption; not accepted for EKM.
+      type: object
+      required:
+      - name
+      - type
+      - workload_identity_project_number
+      - workload_identity_pool_id
+      - workload_identity_provider_id
+      - kms_project_id
+      - kms_key_ring_name
+      - kms_key_name
+      - kms_key_location
+      - audience
+    ListExternalKeysResource:
+      properties:
+        object:
+          type: string
+          enum:
+          - list
+          default: list
+          x-stainless-const: true
+        data:
+          items:
+            $ref: '#/components/schemas/ExternalKeyResource'
+          type: array
+        first_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+        last_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+        has_more:
+          type: boolean
+      type: object
+      required:
+      - object
+      - data
+      - first_id
+      - last_id
+      - has_more
+    V1OrganizationExternalKeysPostRequest:
+      discriminator:
+        propertyName: type
+      anyOf:
+      - $ref: '#/components/schemas/AwsExternalKeyParams'
+      - $ref: '#/components/schemas/GcpExternalKeyParams'
+      - $ref: '#/components/schemas/AzureExternalKeyParams'
+    ValidateExternalKeyResource:
+      properties:
+        status:
+          type: string
+      type: object
+      required:
+      - status
+    LiveTransportDTMFSendParam:
+      description: Send one DTMF keypress to the SIP trunk through a Live sideband connection. This command is supported only for SIP calls. A successful send emits `transport.dtmf.sent` on sideband. If you provide `event_id`, the success notification includes it as `client_event_id`; a failure includes it as `error.client_event_id`. Send separate events for multiple keypresses.
+      example:
+        type: transport.dtmf.send
+        event_id: evt_dtmf_001
+        event: '#'
+      type: object
+      properties:
+        event_id:
+          anyOf:
+          - description: Optional client identifier for correlating this command with a server event's client_event_id or error.client_event_id.
+            type: string
+            maxLength: 512
+          - type: 'null'
+        type:
+          default: transport.dtmf.send
+          x-stainless-const: true
+          type: string
+          enum:
+          - transport.dtmf.send
+        event:
+          description: 'The DTMF key to send: one of `0`–`9`, `A`–`D`, `*`, or `#`.'
+          type: string
+          minLength: 1
+          maxLength: 1
+          pattern: ^[0-9A-D*#]$
+      required:
+      - type
+      - event
+      x-oaiMeta:
+        example:
+          type: transport.dtmf.send
+          event_id: evt_dtmf_001
+          event: '#'
+    LiveTransportDTMFSent:
+      description: A SIP DTMF keypress successfully sent to the SIP trunk. Delivered only to sideband observers; this is not a client command.
+      example:
+        type: transport.dtmf.sent
+        event_id: event_dtmf_2
+        event: '#'
+      type: object
+      properties:
+        type:
+          default: transport.dtmf.sent
+          x-stainless-const: true
+          type: string
+          enum:
+          - transport.dtmf.sent
+        event_id:
+          type: string
+        event:
+          type: string
+          minLength: 1
+          maxLength: 1
+          pattern: ^[0-9A-D*#]$
+        client_event_id:
+          description: The event_id of the client command, when supplied.
+          type: string
+      required:
+      - type
+      - event_id
+      - event
+      x-oaiMeta:
+        example:
+          type: transport.dtmf.sent
+          event_id: event_dtmf_2
+          event: '#'
+    CompactionParam:
+      type: object
+      properties:
+        async:
+          type:
+          - boolean
+          - 'null'
+          description: Whether to compact context in the background. Omission or null defaults to true. Set to false to use blocking compaction. Background compaction may increase token usage.
+      additionalProperties: false
+      description: Settings for compacting the agent's context.
+    CompactionResource:
+      type: object
+      properties:
+        async:
+          type: boolean
+          description: Whether context is compacted in the background. Defaults to true.
+      required:
+      - async
+      additionalProperties: false
+      description: The effective settings for compacting the agent's context.
     SessionSpendControlResource:
       type: object
       properties:
@@ -110787,6 +111552,10 @@ components:
           message: 'Announced shutdown date: 2027-01-20. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
         gpt-5.1-mini:
           message: Not a supported model ID. Retained for SDK compatibility.
+        gpt-5.1-2025-11-13:
+          message: 'Announced shutdown date: 2027-04-01. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-5.4-nano-2026-03-17:
+          message: 'Announced shutdown date: 2027-04-01. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
       x-stainless-nominal: false
     LiveBuiltInVoice:
       type: string
@@ -110887,6 +111656,19 @@ components:
             - gpt-3.5-turbo-1106
             - gpt-3.5-turbo-0125
             - gpt-3.5-turbo-16k-0613
+            x-openai-enum-deprecations:
+              gpt-5:
+                message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              gpt-5-mini:
+                message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              gpt-5-nano:
+                message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              gpt-5-2025-08-07:
+                message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              gpt-5-mini-2025-08-07:
+                message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              gpt-5-nano-2025-08-07:
+                message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
           x-oaiTypeLabel: string
           nullable: true
         instructions:
@@ -111109,6 +111891,42 @@ components:
       - completed
       - incomplete
       - expired
+    CodeInterpreterContainerAuto:
+      properties:
+        type:
+          type: string
+          enum:
+          - auto
+          description: Always `auto`.
+          default: auto
+          x-stainless-const: true
+        file_ids:
+          items:
+            type: string
+            example: file-123
+          type: array
+          maxItems: 50
+          description: An optional list of uploaded files to make available to your code.
+        memory_limit:
+          anyOf:
+          - $ref: '#/components/schemas/ContainerMemoryLimit'
+            description: The memory limit for the code interpreter container.
+          - type: 'null'
+        network_policy:
+          discriminator:
+            propertyName: type
+          description: Network access policy for the container.
+          anyOf:
+          - $ref: '#/components/schemas/ContainerNetworkPolicyDisabledParam'
+          - $ref: '#/components/schemas/ContainerNetworkPolicyAllowlistParam'
+      type: object
+      required:
+      - type
+      title: CodeInterpreterToolAuto
+      description: Configuration for a code interpreter container. Optionally specify the IDs of the files to run the code on.
+      x-stainless-naming:
+        go:
+          type_name: ToolCodeInterpreterContainerCodeInterpreterContainerAuto
     LiveFunctionToolChoiceParam:
       type: object
       properties:
@@ -111149,6 +111967,28 @@ components:
       - type
       - server_label
       - name
+    RealtimeResponseItemReference:
+      type: object
+      description: |
+        Reference an existing item in this Realtime session as response.create input.
+        Item references are only accepted in the response input array, not as new
+        conversation items.
+      properties:
+        type:
+          type: string
+          enum:
+          - item_reference
+          x-stainless-const: true
+          description: The type of this item. Always `item_reference`.
+        id:
+          type: string
+          minLength: 1
+          maxLength: 32
+          pattern: ^[a-zA-Z0-9_-]+$
+          description: The ID of an existing item in the same Realtime session.
+      required:
+      - type
+      - id
   responses:
     TooManyRequests:
       description: The request was rejected because a rate limit was exceeded.

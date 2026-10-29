@@ -22,6 +22,13 @@ class ImageCreateVariationParams(TypedDict, total=False):
     """The legacy model used by the retired image variations endpoint.
 
     This endpoint no longer accepts requests.
+
+    Deprecated values:
+
+    - "gpt-image-1": GPT Image 1 was shut down on October 23, 2026. Use
+      gpt-image-2.5-sunburst or gpt-image-2.5-flare instead.
+    - "dall-e-2", "dall-e-3": This model was retired on May 12, 2026. Use a GPT
+      image model instead.
     """
 
     n: Optional[int]

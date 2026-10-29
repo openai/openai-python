@@ -15,9 +15,6 @@ from openai import OpenAI, AsyncOpenAI, NotFoundError, BadRequestError
 from openai._types import Omit, omit
 from openai.types.video import Video
 
-# The existing video helpers are deprecated, but their compatibility still matters.
-# pyright: reportDeprecated=false
-
 VIDEO_ID = "video_synthetic"
 
 

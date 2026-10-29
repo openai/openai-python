@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import os
 import re
-from typing import Literal, cast
+from typing import Literal
 from pathlib import Path
 
 from openai import OpenAI
@@ -118,7 +118,7 @@ def test_bedrock_live_response() -> None:
     configured_endpoint = os.environ.get("BEDROCK_LIVE_ENDPOINT", "mantle")
     if configured_endpoint not in {"mantle", "runtime"}:
         raise RuntimeError("BEDROCK_LIVE_ENDPOINT must be 'mantle' or 'runtime'.")
-    endpoint = cast("Literal['mantle', 'runtime']", configured_endpoint)
+    endpoint = configured_endpoint
     region = os.environ.get("BEDROCK_LIVE_REGION") or None
     base_url = os.environ.get("AWS_BEDROCK_BASE_URL") or None
     if endpoint == "mantle" and base_url is None:
@@ -155,7 +155,8 @@ def test_bedrock_live_response() -> None:
                         messages=[{"role": "user", "content": "Reply with exactly: bedrock live test ok"}],
                     )
                     assert completion.choices[0].message.content
-                    assert completion.choices[0].finish_reason
+                    # Check the actual service payload rather than assuming its annotation is valid.
+                    assert completion.choices[0].finish_reason  # ty: ignore[redundant-condition]
                     assert completion.usage is not None
                     print(f"Bedrock Runtime {authentication} chat {completion.id}: {model}")
 

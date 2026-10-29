@@ -6,7 +6,7 @@ from typing import Any, Callable, Awaitable, cast
 from typing_extensions import TypeVar
 
 import httpx2
-from inline_snapshot import get_snapshot_value  # pyright: ignore[reportUnknownVariableType]
+from inline_snapshot import get_snapshot_value
 
 from openai import OpenAI, AsyncOpenAI
 from tests.respx2 import MockRouter

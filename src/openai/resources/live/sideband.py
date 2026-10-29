@@ -115,6 +115,7 @@ class AsyncSidebandConnection(AsyncWebSocketConnectionBase):
     """Represents a live WebSocket connection to the Sideband API"""
 
     session: AsyncSidebandSessionResource
+    transport: AsyncSidebandTransportResource
     decision: AsyncSidebandDecisionResource
     response: AsyncSidebandResponseResource
 
@@ -148,6 +149,7 @@ class AsyncSidebandConnection(AsyncWebSocketConnectionBase):
         self._event_handler_registry = EventHandlerRegistry(use_lock=False)
 
         self.session = AsyncSidebandSessionResource(self)
+        self.transport = AsyncSidebandTransportResource(self)
         self.decision = AsyncSidebandDecisionResource(self)
         self.response = AsyncSidebandResponseResource(self)
 
@@ -544,6 +546,7 @@ class SidebandConnection(WebSocketConnectionBase):
     """Represents a live WebSocket connection to the Sideband API"""
 
     session: SidebandSessionResource
+    transport: SidebandTransportResource
     decision: SidebandDecisionResource
     response: SidebandResponseResource
 
@@ -577,6 +580,7 @@ class SidebandConnection(WebSocketConnectionBase):
         self._event_handler_registry = EventHandlerRegistry(use_lock=True)
 
         self.session = SidebandSessionResource(self)
+        self.transport = SidebandTransportResource(self)
         self.decision = SidebandDecisionResource(self)
         self.response = SidebandResponseResource(self)
 
@@ -1122,6 +1126,26 @@ class SidebandSessionOutputAudioFixtureResource(BaseSidebandConnectionResource):
         )
 
 
+class SidebandTransportResource(BaseSidebandConnectionResource):
+    @cached_property
+    def dtmf(self) -> SidebandTransportDtmfResource:
+        return SidebandTransportDtmfResource(self._connection)
+
+
+class SidebandTransportDtmfResource(BaseSidebandConnectionResource):
+    def send(self, *, event: str, event_id: Optional[str] | Omit = omit) -> None:
+        """Send one DTMF keypress to the SIP trunk through a Live sideband connection.
+
+        This command is supported only for SIP calls. A successful send emits `transport.dtmf.sent` on sideband. If you provide `event_id`, the success notification includes it as `client_event_id`; a failure includes it as `error.client_event_id`. Send separate events for multiple keypresses.
+        """
+        self._connection.send(
+            cast(
+                ConnectClientEventParam,
+                strip_not_given({"type": "transport.dtmf.send", "event": event, "event_id": event_id}),
+            )
+        )
+
+
 class SidebandDecisionResource(BaseSidebandConnectionResource):
     @cached_property
     def item(self) -> SidebandDecisionItemResource:
@@ -1353,6 +1377,26 @@ class AsyncSidebandSessionOutputAudioFixtureResource(BaseAsyncSidebandConnection
             cast(
                 ConnectClientEventParam,
                 strip_not_given({"type": "session.output_audio.fixture.play", "audio": audio, "event_id": event_id}),
+            )
+        )
+
+
+class AsyncSidebandTransportResource(BaseAsyncSidebandConnectionResource):
+    @cached_property
+    def dtmf(self) -> AsyncSidebandTransportDtmfResource:
+        return AsyncSidebandTransportDtmfResource(self._connection)
+
+
+class AsyncSidebandTransportDtmfResource(BaseAsyncSidebandConnectionResource):
+    async def send(self, *, event: str, event_id: Optional[str] | Omit = omit) -> None:
+        """Send one DTMF keypress to the SIP trunk through a Live sideband connection.
+
+        This command is supported only for SIP calls. A successful send emits `transport.dtmf.sent` on sideband. If you provide `event_id`, the success notification includes it as `client_event_id`; a failure includes it as `error.client_event_id`. Send separate events for multiple keypresses.
+        """
+        await self._connection.send(
+            cast(
+                ConnectClientEventParam,
+                strip_not_given({"type": "transport.dtmf.send", "event": event, "event_id": event_id}),
             )
         )
 

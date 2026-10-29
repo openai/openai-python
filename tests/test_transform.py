@@ -190,26 +190,26 @@ class DateModel(BaseModel):
 async def test_iso8601_format(use_async: bool) -> None:
     dt = datetime.fromisoformat("2023-02-23T14:16:36.337692+00:00")
     tz = "+00:00" if PYDANTIC_V1 else "Z"
-    assert await transform({"foo": dt}, DatetimeDict, use_async) == {"foo": "2023-02-23T14:16:36.337692+00:00"}  # type: ignore[comparison-overlap]
-    assert await transform(DatetimeModel(foo=dt), Any, use_async) == {"foo": "2023-02-23T14:16:36.337692" + tz}  # type: ignore[comparison-overlap]
+    assert await transform({"foo": dt}, DatetimeDict, use_async) == {"foo": "2023-02-23T14:16:36.337692+00:00"}
+    assert await transform(DatetimeModel(foo=dt), Any, use_async) == {"foo": "2023-02-23T14:16:36.337692" + tz}
 
     dt = dt.replace(tzinfo=None)
-    assert await transform({"foo": dt}, DatetimeDict, use_async) == {"foo": "2023-02-23T14:16:36.337692"}  # type: ignore[comparison-overlap]
-    assert await transform(DatetimeModel(foo=dt), Any, use_async) == {"foo": "2023-02-23T14:16:36.337692"}  # type: ignore[comparison-overlap]
+    assert await transform({"foo": dt}, DatetimeDict, use_async) == {"foo": "2023-02-23T14:16:36.337692"}
+    assert await transform(DatetimeModel(foo=dt), Any, use_async) == {"foo": "2023-02-23T14:16:36.337692"}
 
-    assert await transform({"foo": None}, DateDict, use_async) == {"foo": None}  # type: ignore[comparison-overlap]
-    assert await transform(DateModel(foo=None), Any, use_async) == {"foo": None}  # type: ignore
-    assert await transform({"foo": date.fromisoformat("2023-02-23")}, DateDict, use_async) == {"foo": "2023-02-23"}  # type: ignore[comparison-overlap]
+    assert await transform({"foo": None}, DateDict, use_async) == {"foo": None}
+    assert await transform(DateModel(foo=None), Any, use_async) == {"foo": None}
+    assert await transform({"foo": date.fromisoformat("2023-02-23")}, DateDict, use_async) == {"foo": "2023-02-23"}
     assert await transform(DateModel(foo=date.fromisoformat("2023-02-23")), DateDict, use_async) == {
         "foo": "2023-02-23"
-    }  # type: ignore[comparison-overlap]
+    }
 
 
 @parametrize
 @pytest.mark.asyncio
 async def test_optional_iso8601_format(use_async: bool) -> None:
     dt = datetime.fromisoformat("2023-02-23T14:16:36.337692+00:00")
-    assert await transform({"bar": dt}, DatetimeDict, use_async) == {"bar": "2023-02-23T14:16:36.337692+00:00"}  # type: ignore[comparison-overlap]
+    assert await transform({"bar": dt}, DatetimeDict, use_async) == {"bar": "2023-02-23T14:16:36.337692+00:00"}
 
     assert await transform({"bar": None}, DatetimeDict, use_async) == {"bar": None}
 
@@ -220,7 +220,7 @@ async def test_required_iso8601_format(use_async: bool) -> None:
     dt = datetime.fromisoformat("2023-02-23T14:16:36.337692+00:00")
     assert await transform({"required": dt}, DatetimeDict, use_async) == {
         "required": "2023-02-23T14:16:36.337692+00:00"
-    }  # type: ignore[comparison-overlap]
+    }
 
     assert await transform({"required": None}, DatetimeDict, use_async) == {"required": None}
 
@@ -229,9 +229,7 @@ async def test_required_iso8601_format(use_async: bool) -> None:
 @pytest.mark.asyncio
 async def test_union_datetime(use_async: bool) -> None:
     dt = datetime.fromisoformat("2023-02-23T14:16:36.337692+00:00")
-    assert await transform({"union": dt}, DatetimeDict, use_async) == {  # type: ignore[comparison-overlap]
-        "union": "2023-02-23T14:16:36.337692+00:00"
-    }
+    assert await transform({"union": dt}, DatetimeDict, use_async) == {"union": "2023-02-23T14:16:36.337692+00:00"}
 
     assert await transform({"union": "foo"}, DatetimeDict, use_async) == {"union": "foo"}
 
@@ -241,7 +239,7 @@ async def test_union_datetime(use_async: bool) -> None:
 async def test_nested_list_iso6801_format(use_async: bool) -> None:
     dt1 = datetime.fromisoformat("2023-02-23T14:16:36.337692+00:00")
     dt2 = parse_datetime("2022-01-15T06:34:23Z")
-    assert await transform({"list_": [dt1, dt2]}, DatetimeDict, use_async) == {  # type: ignore[comparison-overlap]
+    assert await transform({"list_": [dt1, dt2]}, DatetimeDict, use_async) == {
         "list_": ["2023-02-23T14:16:36.337692+00:00", "2022-01-15T06:34:23+00:00"]
     }
 
@@ -252,7 +250,7 @@ async def test_datetime_custom_format(use_async: bool) -> None:
     dt = parse_datetime("2022-01-15T06:34:23Z")
 
     result = await transform(dt, Annotated[datetime, PropertyInfo(format="custom", format_template="%H")], use_async)
-    assert result == "06"  # type: ignore[comparison-overlap]
+    assert result == "06"
 
 
 class DateDictWithRequiredAlias(TypedDict, total=False):
@@ -262,10 +260,10 @@ class DateDictWithRequiredAlias(TypedDict, total=False):
 @parametrize
 @pytest.mark.asyncio
 async def test_datetime_with_alias(use_async: bool) -> None:
-    assert await transform({"required_prop": None}, DateDictWithRequiredAlias, use_async) == {"prop": None}  # type: ignore[comparison-overlap]
+    assert await transform({"required_prop": None}, DateDictWithRequiredAlias, use_async) == {"prop": None}
     assert await transform(
         {"required_prop": date.fromisoformat("2023-02-23")}, DateDictWithRequiredAlias, use_async
-    ) == {"prop": "2023-02-23"}  # type: ignore[comparison-overlap]
+    ) == {"prop": "2023-02-23"}
 
 
 class MyModel(BaseModel):
@@ -418,7 +416,7 @@ async def test_bare_dict_annotation(use_async: bool) -> None:
     """Bare dictionaries still serialize their values."""
 
     class BareDict(TypedDict):
-        metadata: dict  # type: ignore[type-arg]
+        metadata: dict
 
     assert await transform({"metadata": {"key": "value"}}, BareDict, use_async) == {"metadata": {"key": "value"}}
     assert await transform({"key": "value"}, dict, use_async) == {"key": "value"}
@@ -435,7 +433,7 @@ async def test_bare_list_annotation(use_async: bool) -> None:
     """Bare lists still serialize their entries."""
 
     class BareList(TypedDict):
-        items: list  # type: ignore[type-arg]
+        items: list
 
     assert await transform({"items": [{"foo_baz": "bar"}]}, BareList, use_async) == {"items": [{"foo_baz": "bar"}]}
     assert await transform([1, 2, 3], list, use_async) == [1, 2, 3]
@@ -470,15 +468,15 @@ async def test_base64_file_input(use_async: bool) -> None:
     # pathlib.Path is automatically converted to base64
     assert await transform({"foo": SAMPLE_FILE_PATH}, TypedDictBase64Input, use_async) == {
         "foo": "SGVsbG8sIHdvcmxkIQo="
-    }  # type: ignore[comparison-overlap]
+    }
 
     # io instances are automatically converted to base64
     assert await transform({"foo": io.StringIO("Hello, world!")}, TypedDictBase64Input, use_async) == {
         "foo": "SGVsbG8sIHdvcmxkIQ=="
-    }  # type: ignore[comparison-overlap]
+    }
     assert await transform({"foo": io.BytesIO(b"Hello, world!")}, TypedDictBase64Input, use_async) == {
         "foo": "SGVsbG8sIHdvcmxkIQ=="
-    }  # type: ignore[comparison-overlap]
+    }
 
 
 @parametrize
@@ -516,7 +514,7 @@ class DateDictWithNotRequiredAlias(TypedDict):
 @parametrize
 @pytest.mark.asyncio
 async def test_not_required_transforms(use_async: bool) -> None:
-    assert await transform(cast(Dict[str, Any], {}), DateDictWithNotRequiredAlias, use_async) == {}
+    assert await transform({}, DateDictWithNotRequiredAlias, use_async) == {}
     assert await transform({"optional_prop": date(2023, 2, 23)}, DateDictWithNotRequiredAlias, use_async) == {
         "prop": "2023-02-23"
     }

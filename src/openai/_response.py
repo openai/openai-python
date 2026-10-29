@@ -131,7 +131,7 @@ class BaseAPIResponse(Generic[R]):
 
         # unwrap `TypeAlias('Name', T)` -> `T`
         if is_type_alias_type(cast_to):
-            cast_to = cast_to.__value__  # type: ignore[unreachable]
+            cast_to = cast_to.__value__
 
         # unwrap `Annotated[T, ...]` -> `T`
         if cast_to and is_annotated_type(cast_to):
@@ -203,7 +203,7 @@ class BaseAPIResponse(Generic[R]):
 
         # handle the legacy binary response case
         if inspect.isclass(cast_to) and cast_to.__name__ == "HttpxBinaryResponseContent":
-            return cast(R, cast_to(response))  # type: ignore
+            return cast_to(response)
 
         if origin == APIResponse:
             raise RuntimeError("Unexpected state - cast_to is `APIResponse`")
@@ -219,13 +219,7 @@ class BaseAPIResponse(Generic[R]):
                 raise ValueError("Subclasses of HTTP response classes cannot be passed to `cast_to`")
             return cast(R, response)
 
-        if (
-            inspect.isclass(
-                origin  # pyright: ignore[reportUnknownArgumentType]
-            )
-            and not issubclass(origin, BaseModel)
-            and issubclass(origin, pydantic.BaseModel)
-        ):
+        if inspect.isclass(origin) and not issubclass(origin, BaseModel) and issubclass(origin, pydantic.BaseModel):
             raise TypeError("Pydantic models must subclass our base model type, e.g. `from openai import BaseModel`")
 
         if (
@@ -249,9 +243,10 @@ class BaseAPIResponse(Generic[R]):
                 except Exception as exc:
                     log.debug("Could not read JSON from response data due to %s", type(exc).__name__)
                 else:
-                    return self._client._process_response_data(
+                    # cast_to is validated above and preserves the response generic through dynamic parsing.
+                    return self._client._process_response_data(  # ty: ignore[invalid-return-type]
                         data=data,
-                        cast_to=cast_to,  # type: ignore
+                        cast_to=cast_to,
                         response=response,
                     )
 
@@ -265,13 +260,14 @@ class BaseAPIResponse(Generic[R]):
             # If the API responds with content that isn't JSON then we just return
             # the (decoded) text without performing any parsing so that you can still
             # handle the response however you need to.
-            return response.text  # type: ignore
+            return response.text  # ty: ignore[invalid-return-type]
 
         data = response.json()
 
-        return self._client._process_response_data(
+        # cast_to is validated above and preserves the response generic through dynamic parsing.
+        return self._client._process_response_data(  # ty: ignore[invalid-return-type]
             data=data,
-            cast_to=cast_to,  # type: ignore
+            cast_to=cast_to,
             response=response,
         )
 
@@ -279,7 +275,7 @@ class BaseAPIResponse(Generic[R]):
 class APIResponse(BaseAPIResponse[R]):
     @property
     def request_id(self) -> str | None:
-        return self.http_response.headers.get("x-request-id")  # type: ignore[no-any-return]
+        return self.http_response.headers.get("x-request-id")
 
     @overload
     def parse(self, *, to: type[_T]) -> _T: ...
@@ -320,7 +316,7 @@ class APIResponse(BaseAPIResponse[R]):
         cache_key = to if to is not None else self._cast_to
         cached = self._parsed_by_type.get(cache_key)
         if cached is not None:
-            return cached  # type: ignore[no-any-return]
+            return cached
 
         if not self._is_sse_stream:
             self.read()
@@ -388,7 +384,7 @@ class APIResponse(BaseAPIResponse[R]):
 class AsyncAPIResponse(BaseAPIResponse[R]):
     @property
     def request_id(self) -> str | None:
-        return self.http_response.headers.get("x-request-id")  # type: ignore[no-any-return]
+        return self.http_response.headers.get("x-request-id")
 
     @overload
     async def parse(self, *, to: type[_T]) -> _T: ...
@@ -427,7 +423,7 @@ class AsyncAPIResponse(BaseAPIResponse[R]):
         cache_key = to if to is not None else self._cast_to
         cached = self._parsed_by_type.get(cache_key)
         if cached is not None:
-            return cached  # type: ignore[no-any-return]
+            return cached
 
         if not self._is_sse_stream:
             await self.read()
@@ -675,7 +671,8 @@ def to_streamed_response_wrapper(func: Callable[P, R]) -> Callable[P, ResponseCo
         extra_headers: dict[str, str] = {**(cast(Any, kwargs.get("extra_headers")) or {})}
         extra_headers[RAW_RESPONSE_HEADER] = "stream"
 
-        kwargs["extra_headers"] = extra_headers
+        # All wrapped SDK request methods accept extra_headers; ParamSpec cannot express this constraint.
+        kwargs["extra_headers"] = extra_headers  # ty: ignore[invalid-assignment]
 
         make_request = functools.partial(func, *args, **kwargs)
 
@@ -696,7 +693,8 @@ def async_to_streamed_response_wrapper(
         extra_headers: dict[str, str] = {**(cast(Any, kwargs.get("extra_headers")) or {})}
         extra_headers[RAW_RESPONSE_HEADER] = "stream"
 
-        kwargs["extra_headers"] = extra_headers
+        # All wrapped SDK request methods accept extra_headers; ParamSpec cannot express this constraint.
+        kwargs["extra_headers"] = extra_headers  # ty: ignore[invalid-assignment]
 
         make_request = func(*args, **kwargs)
 
@@ -721,7 +719,8 @@ def to_custom_streamed_response_wrapper(
         extra_headers[RAW_RESPONSE_HEADER] = "stream"
         extra_headers[OVERRIDE_CAST_TO_HEADER] = response_cls
 
-        kwargs["extra_headers"] = extra_headers
+        # All wrapped SDK request methods accept extra_headers; ParamSpec cannot express this constraint.
+        kwargs["extra_headers"] = extra_headers  # ty: ignore[invalid-assignment]
 
         make_request = functools.partial(func, *args, **kwargs)
 
@@ -746,7 +745,8 @@ def async_to_custom_streamed_response_wrapper(
         extra_headers[RAW_RESPONSE_HEADER] = "stream"
         extra_headers[OVERRIDE_CAST_TO_HEADER] = response_cls
 
-        kwargs["extra_headers"] = extra_headers
+        # All wrapped SDK request methods accept extra_headers; ParamSpec cannot express this constraint.
+        kwargs["extra_headers"] = extra_headers  # ty: ignore[invalid-assignment]
 
         make_request = func(*args, **kwargs)
 
@@ -765,7 +765,8 @@ def to_raw_response_wrapper(func: Callable[P, R]) -> Callable[P, APIResponse[R]]
         extra_headers: dict[str, str] = {**(cast(Any, kwargs.get("extra_headers")) or {})}
         extra_headers[RAW_RESPONSE_HEADER] = "raw"
 
-        kwargs["extra_headers"] = extra_headers
+        # All wrapped SDK request methods accept extra_headers; ParamSpec cannot express this constraint.
+        kwargs["extra_headers"] = extra_headers  # ty: ignore[invalid-assignment]
 
         return cast(APIResponse[R], func(*args, **kwargs))
 
@@ -782,7 +783,8 @@ def async_to_raw_response_wrapper(func: Callable[P, Awaitable[R]]) -> Callable[P
         extra_headers: dict[str, str] = {**(cast(Any, kwargs.get("extra_headers")) or {})}
         extra_headers[RAW_RESPONSE_HEADER] = "raw"
 
-        kwargs["extra_headers"] = extra_headers
+        # All wrapped SDK request methods accept extra_headers; ParamSpec cannot express this constraint.
+        kwargs["extra_headers"] = extra_headers  # ty: ignore[invalid-assignment]
 
         return cast(AsyncAPIResponse[R], await func(*args, **kwargs))
 
@@ -805,7 +807,8 @@ def to_custom_raw_response_wrapper(
         extra_headers[RAW_RESPONSE_HEADER] = "raw"
         extra_headers[OVERRIDE_CAST_TO_HEADER] = response_cls
 
-        kwargs["extra_headers"] = extra_headers
+        # All wrapped SDK request methods accept extra_headers; ParamSpec cannot express this constraint.
+        kwargs["extra_headers"] = extra_headers  # ty: ignore[invalid-assignment]
 
         return cast(_APIResponseT, func(*args, **kwargs))
 
@@ -828,7 +831,8 @@ def async_to_custom_raw_response_wrapper(
         extra_headers[RAW_RESPONSE_HEADER] = "raw"
         extra_headers[OVERRIDE_CAST_TO_HEADER] = response_cls
 
-        kwargs["extra_headers"] = extra_headers
+        # All wrapped SDK request methods accept extra_headers; ParamSpec cannot express this constraint.
+        kwargs["extra_headers"] = extra_headers  # ty: ignore[invalid-assignment]
 
         return cast(Awaitable[_AsyncAPIResponseT], func(*args, **kwargs))
 
