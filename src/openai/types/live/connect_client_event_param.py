@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Union
-from typing_extensions import TypeAlias
+from typing import Union, Optional
+from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from .session_close_event_param import SessionCloseEventParam
 from .session_update_event_param import SessionUpdateEventParam
@@ -19,13 +19,33 @@ from .decision_item_delete_event_param import DecisionItemDeleteEventParam
 from .response_item_create_event_param import ResponseItemCreateEventParam
 from .output_audio_fixture_play_event_param import OutputAudioFixturePlayEventParam
 
-__all__ = ["ConnectClientEventParam"]
+__all__ = ["ConnectClientEventParam", "TransportDtmfSend"]
+
+
+class TransportDtmfSend(TypedDict, total=False):
+    """Send one DTMF keypress to the SIP trunk through a Live sideband connection.
+
+    This command is supported only for SIP calls. A successful send emits `transport.dtmf.sent` on sideband. If you provide `event_id`, the success notification includes it as `client_event_id`; a failure includes it as `error.client_event_id`. Send separate events for multiple keypresses.
+    """
+
+    event: Required[str]
+    """The DTMF key to send: one of `0`–`9`, `A`–`D`, `*`, or `#`."""
+
+    type: Required[Literal["transport.dtmf.send"]]
+
+    event_id: Optional[str]
+    """
+    Optional client identifier for correlating this command with a server event's
+    client_event_id or error.client_event_id.
+    """
+
 
 ConnectClientEventParam: TypeAlias = Union[
     SessionUpdateEventParam,
     InputAudioMuteEventParam,
     InputAudioUnmuteEventParam,
     OutputAudioFixturePlayEventParam,
+    TransportDtmfSend,
     InstructionsAppendEventParam,
     ThinkingAppendEventParam,
     CommentaryAppendEventParam,
