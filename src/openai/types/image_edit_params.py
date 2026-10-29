@@ -51,6 +51,13 @@ class ImageEditParamsBase(TypedDict, total=False):
     this parameter. Defaults to `low` on supported models.
     """
 
+    markup: FileTypes
+    """A transparent PNG overlaid on the first image to guide the edit.
+
+    Must match that image's dimensions after orientation and contain transparent
+    pixels. Supports GPT Image 2.5 and 2.6. Cannot be combined with mask.
+    """
+
     mask: FileTypes
     """An additional image whose fully transparent areas (e.g.
 

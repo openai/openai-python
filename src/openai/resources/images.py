@@ -144,6 +144,7 @@ class Images(SyncAPIResource):
         prompt: str,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
+        markup: FileTypes | Omit = omit,
         mask: FileTypes | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
         n: Optional[int] | Omit = omit,
@@ -196,6 +197,10 @@ class Images(SyncAPIResource):
               especially facial features, of input images. Supports `high` and `low` on
               `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For `gpt-image-2`, omit
               this parameter. Defaults to `low` on supported models.
+
+          markup: A transparent PNG overlaid on the first image to guide the edit. Must match that
+              image's dimensions after orientation and contain transparent pixels. Supports
+              GPT Image 2.5 and 2.6. Cannot be combined with mask.
 
           mask: An additional image whose fully transparent areas (e.g. where alpha is zero)
               indicate where `image` should be edited. If there are multiple images provided,
@@ -300,6 +305,7 @@ class Images(SyncAPIResource):
         stream: Literal[True],
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
+        markup: FileTypes | Omit = omit,
         mask: FileTypes | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
         n: Optional[int] | Omit = omit,
@@ -355,6 +361,10 @@ class Images(SyncAPIResource):
               especially facial features, of input images. Supports `high` and `low` on
               `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For `gpt-image-2`, omit
               this parameter. Defaults to `low` on supported models.
+
+          markup: A transparent PNG overlaid on the first image to guide the edit. Must match that
+              image's dimensions after orientation and contain transparent pixels. Supports
+              GPT Image 2.5 and 2.6. Cannot be combined with mask.
 
           mask: An additional image whose fully transparent areas (e.g. where alpha is zero)
               indicate where `image` should be edited. If there are multiple images provided,
@@ -455,6 +465,7 @@ class Images(SyncAPIResource):
         stream: bool,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
+        markup: FileTypes | Omit = omit,
         mask: FileTypes | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
         n: Optional[int] | Omit = omit,
@@ -510,6 +521,10 @@ class Images(SyncAPIResource):
               especially facial features, of input images. Supports `high` and `low` on
               `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For `gpt-image-2`, omit
               this parameter. Defaults to `low` on supported models.
+
+          markup: A transparent PNG overlaid on the first image to guide the edit. Must match that
+              image's dimensions after orientation and contain transparent pixels. Supports
+              GPT Image 2.5 and 2.6. Cannot be combined with mask.
 
           mask: An additional image whose fully transparent areas (e.g. where alpha is zero)
               indicate where `image` should be edited. If there are multiple images provided,
@@ -609,6 +624,7 @@ class Images(SyncAPIResource):
         prompt: str,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
+        markup: FileTypes | Omit = omit,
         mask: FileTypes | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
         n: Optional[int] | Omit = omit,
@@ -635,6 +651,7 @@ class Images(SyncAPIResource):
                 "prompt": prompt,
                 "background": background,
                 "input_fidelity": input_fidelity,
+                "markup": markup,
                 "mask": mask,
                 "model": model,
                 "n": n,
@@ -648,9 +665,11 @@ class Images(SyncAPIResource):
                 "stream": stream,
                 "user": user,
             },
-            [["image"], ["image", "<array>"], ["mask"]],
+            [["image"], ["image", "<array>"], ["markup"], ["mask"]],
         )
-        files = extract_files(cast(Mapping[str, object], body), paths=[["image"], ["image", "<array>"], ["mask"]])
+        files = extract_files(
+            cast(Mapping[str, object], body), paths=[["image"], ["image", "<array>"], ["markup"], ["mask"]]
+        )
         # It should be noted that the actual Content-Type header that will be
         # sent to the server will contain a `boundary` parameter, e.g.
         # multipart/form-data; boundary=---abc--
@@ -1301,6 +1320,7 @@ class AsyncImages(AsyncAPIResource):
         prompt: str,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
+        markup: FileTypes | Omit = omit,
         mask: FileTypes | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
         n: Optional[int] | Omit = omit,
@@ -1353,6 +1373,10 @@ class AsyncImages(AsyncAPIResource):
               especially facial features, of input images. Supports `high` and `low` on
               `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For `gpt-image-2`, omit
               this parameter. Defaults to `low` on supported models.
+
+          markup: A transparent PNG overlaid on the first image to guide the edit. Must match that
+              image's dimensions after orientation and contain transparent pixels. Supports
+              GPT Image 2.5 and 2.6. Cannot be combined with mask.
 
           mask: An additional image whose fully transparent areas (e.g. where alpha is zero)
               indicate where `image` should be edited. If there are multiple images provided,
@@ -1457,6 +1481,7 @@ class AsyncImages(AsyncAPIResource):
         stream: Literal[True],
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
+        markup: FileTypes | Omit = omit,
         mask: FileTypes | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
         n: Optional[int] | Omit = omit,
@@ -1512,6 +1537,10 @@ class AsyncImages(AsyncAPIResource):
               especially facial features, of input images. Supports `high` and `low` on
               `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For `gpt-image-2`, omit
               this parameter. Defaults to `low` on supported models.
+
+          markup: A transparent PNG overlaid on the first image to guide the edit. Must match that
+              image's dimensions after orientation and contain transparent pixels. Supports
+              GPT Image 2.5 and 2.6. Cannot be combined with mask.
 
           mask: An additional image whose fully transparent areas (e.g. where alpha is zero)
               indicate where `image` should be edited. If there are multiple images provided,
@@ -1612,6 +1641,7 @@ class AsyncImages(AsyncAPIResource):
         stream: bool,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
+        markup: FileTypes | Omit = omit,
         mask: FileTypes | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
         n: Optional[int] | Omit = omit,
@@ -1667,6 +1697,10 @@ class AsyncImages(AsyncAPIResource):
               especially facial features, of input images. Supports `high` and `low` on
               `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For `gpt-image-2`, omit
               this parameter. Defaults to `low` on supported models.
+
+          markup: A transparent PNG overlaid on the first image to guide the edit. Must match that
+              image's dimensions after orientation and contain transparent pixels. Supports
+              GPT Image 2.5 and 2.6. Cannot be combined with mask.
 
           mask: An additional image whose fully transparent areas (e.g. where alpha is zero)
               indicate where `image` should be edited. If there are multiple images provided,
@@ -1766,6 +1800,7 @@ class AsyncImages(AsyncAPIResource):
         prompt: str,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
+        markup: FileTypes | Omit = omit,
         mask: FileTypes | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
         n: Optional[int] | Omit = omit,
@@ -1792,6 +1827,7 @@ class AsyncImages(AsyncAPIResource):
                 "prompt": prompt,
                 "background": background,
                 "input_fidelity": input_fidelity,
+                "markup": markup,
                 "mask": mask,
                 "model": model,
                 "n": n,
@@ -1805,9 +1841,11 @@ class AsyncImages(AsyncAPIResource):
                 "stream": stream,
                 "user": user,
             },
-            [["image"], ["image", "<array>"], ["mask"]],
+            [["image"], ["image", "<array>"], ["markup"], ["mask"]],
         )
-        files = extract_files(cast(Mapping[str, object], body), paths=[["image"], ["image", "<array>"], ["mask"]])
+        files = extract_files(
+            cast(Mapping[str, object], body), paths=[["image"], ["image", "<array>"], ["markup"], ["mask"]]
+        )
         # It should be noted that the actual Content-Type header that will be
         # sent to the server will contain a `boundary` parameter, e.g.
         # multipart/form-data; boundary=---abc--
