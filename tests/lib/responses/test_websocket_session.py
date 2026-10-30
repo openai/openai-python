@@ -650,7 +650,8 @@ async def test_sync_close_during_replacement_handshake(monkeypatch: pytest.Monke
 
 
 @pytest.mark.parametrize("mode", ["sync", "async"])
-async def test_default_lane_can_be_recreated_after_recovery(mode: str) -> None:
+@pytest.mark.parametrize("close_code", [1011, 1001], ids=["error-close", "recoverable-clean-close"])
+async def test_default_lane_can_be_recreated_after_recovery(mode: str, close_code: int) -> None:
     disconnect = threading.Event()
 
     def reconnect(_event: ReconnectingEvent) -> ReconnectingOverrides:
@@ -661,7 +662,7 @@ async def test_default_lane_can_be_recreated_after_recovery(mode: str) -> None:
         if socket.request.headers.get("X-Recovery") != "fresh":
             assert json.loads(socket.recv(timeout=5))["input"] == "lost response"
             assert disconnect.wait(5)
-            socket.close(code=1011)
+            socket.close(code=close_code)
             return
         socket.send(json.dumps({"type": "response.future", "stream_id": "observer", "restored": True}))
         assert json.loads(socket.recv(timeout=5)) == {"type": "response.create", "input": "restored context"}
