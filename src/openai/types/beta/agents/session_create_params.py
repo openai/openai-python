@@ -57,6 +57,14 @@ class SessionCreateParamsBase(TypedDict, total=False):
     characters. Omission or null defaults to an empty map.
     """
 
+    review: Literal["none", "auto_review"]
+    """Action review mode. Omit to use none.
+
+    - `none` - Keep the existing execution behavior without automatic action review.
+    - `auto_review` - Review eligible actions automatically. Deny manual approval
+      fallbacks.
+    """
+
     spend_control: Optional[SpendControl]
     """Optional spending limit in USD cents.
 

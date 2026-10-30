@@ -60,6 +60,7 @@ class TestSessions:
             agent_id="agent_id",
             input="x",
             metadata={"foo": "string"},
+            review="none",
             spend_control={"limit": 1},
             stream=False,
             vault_ids=["string"],
@@ -134,6 +135,7 @@ class TestSessions:
             agent_id="agent_id",
             input="x",
             metadata={"foo": "string"},
+            review="none",
             spend_control={"limit": 1},
             vault_ids=["string"],
         )
@@ -219,8 +221,18 @@ class TestSessions:
                 "model": "model",
                 "reasoning": {"effort": "none"},
                 "service_tier": "auto",
+                "tools": [
+                    {
+                        "description": "description",
+                        "name": "name",
+                        "parameters": {"foo": "bar"},
+                        "type": "function",
+                        "defer_loading": True,
+                    }
+                ],
             },
             metadata={"foo": "string"},
+            review="none",
             spend_control={"limit": 1},
         )
         assert_matches_type(AgentSession, session, path=["response"])
@@ -378,6 +390,7 @@ class TestAsyncSessions:
             agent_id="agent_id",
             input="x",
             metadata={"foo": "string"},
+            review="none",
             spend_control={"limit": 1},
             stream=False,
             vault_ids=["string"],
@@ -452,6 +465,7 @@ class TestAsyncSessions:
             agent_id="agent_id",
             input="x",
             metadata={"foo": "string"},
+            review="none",
             spend_control={"limit": 1},
             vault_ids=["string"],
         )
@@ -537,8 +551,18 @@ class TestAsyncSessions:
                 "model": "model",
                 "reasoning": {"effort": "none"},
                 "service_tier": "auto",
+                "tools": [
+                    {
+                        "description": "description",
+                        "name": "name",
+                        "parameters": {"foo": "bar"},
+                        "type": "function",
+                        "defer_loading": True,
+                    }
+                ],
             },
             metadata={"foo": "string"},
+            review="none",
             spend_control={"limit": 1},
         )
         assert_matches_type(AgentSession, session, path=["response"])
