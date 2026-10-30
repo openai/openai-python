@@ -1,11 +1,13 @@
 # File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
-from typing import Optional
-from typing_extensions import Literal
+from typing import Union, Optional
+from typing_extensions import Literal, Annotated, TypeAlias
 
+from ..._utils import PropertyInfo
 from ..._models import BaseModel
+from .beta_response_format_text_json_schema_config import BetaResponseFormatTextJSONSchemaConfig
 
-__all__ = ["BetaResponseConfigurationUpdateItemParam", "Agent", "Reasoning"]
+__all__ = ["BetaResponseConfigurationUpdateItemParam", "Agent", "Reasoning", "Text", "TextFormat", "TextFormatText"]
 
 
 class Agent(BaseModel):
@@ -25,12 +27,30 @@ class Reasoning(BaseModel):
     """
 
 
+class TextFormatText(BaseModel):
+    """Default response format. Used to generate text responses."""
+
+    type: Literal["text"]
+    """The type of response format being defined. Always `text`."""
+
+
+TextFormat: TypeAlias = Annotated[
+    Union[TextFormatText, BetaResponseFormatTextJSONSchemaConfig], PropertyInfo(discriminator="type")
+]
+
+
+class Text(BaseModel):
+    """The text output configuration for subsequent responses."""
+
+    format: TextFormat
+    """Use a JSON schema for structured output or text to return to plain text."""
+
+
 class BetaResponseConfigurationUpdateItemParam(BaseModel):
     """An update to the conversation's response configuration.
 
-    The configuration
-    remains in effect for subsequent responses until it is replaced by another
-    configuration update.
+    Supply reasoning,
+    text, or both. Each setting stays in effect until a later update replaces it.
     """
 
     type: Literal["configuration_update"]
@@ -44,3 +64,6 @@ class BetaResponseConfigurationUpdateItemParam(BaseModel):
 
     reasoning: Optional[Reasoning] = None
     """Updates to reasoning configuration. Only effort is supported."""
+
+    text: Optional[Text] = None
+    """The text output configuration for subsequent responses."""

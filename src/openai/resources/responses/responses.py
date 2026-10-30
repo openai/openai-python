@@ -114,10 +114,12 @@ class Responses(SyncAPIResource):
         """
         return ResponsesWithStreamingResponse(self)
 
+    @overload
     def parse(
         self,
         *,
-        text_format: type[TextFormatT] | Omit = omit,
+        text_format: type | Omit = omit,
+        parse_as: type[TextFormatT] | None,
         access_programs: response_create_params.AccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
         context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
@@ -155,11 +157,101 @@ class Responses(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> ParsedResponse[TextFormatT]:
-        """parse"""
+    ) -> ParsedResponse[TextFormatT]: ...
+
+    @overload
+    def parse(
+        self,
+        *,
+        text_format: type[TextFormatT] | Omit = omit,
+        parse_as: Omit = omit,
+        access_programs: response_create_params.AccessPrograms | Omit = omit,
+        background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
+        conversation: Optional[response_create_params.Conversation] | Omit = omit,
+        include: Optional[List[ResponseIncludable]] | Omit = omit,
+        input: Union[str, ResponseInputParam] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_output_tokens: Optional[int] | Omit = omit,
+        max_tool_calls: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: ResponsesModel | Omit = omit,
+        moderation: Optional[response_create_params.Moderation] | Omit = omit,
+        parallel_tool_calls: Optional[bool] | Omit = omit,
+        previous_response_id: Optional[str] | Omit = omit,
+        prompt: Optional[ResponsePromptParam] | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
+        prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
+        reasoning: Optional[Reasoning] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[ServiceTier] | Omit = omit,
+        store: Optional[bool] | Omit = omit,
+        stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
+        stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        text: ResponseTextConfigParam | Omit = omit,
+        tool_choice: response_create_params.ToolChoice | Omit = omit,
+        tools: Iterable[ParseableToolParam] | Omit = omit,
+        top_logprobs: Optional[int] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
+        user: str | Omit = omit,
+        verbosity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> ParsedResponse[TextFormatT]: ...
+
+    def parse(
+        self,
+        *,
+        text_format: type | Omit = omit,
+        parse_as: type | None | Omit = omit,
+        access_programs: response_create_params.AccessPrograms | Omit = omit,
+        background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
+        conversation: Optional[response_create_params.Conversation] | Omit = omit,
+        include: Optional[List[ResponseIncludable]] | Omit = omit,
+        input: Union[str, ResponseInputParam] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_output_tokens: Optional[int] | Omit = omit,
+        max_tool_calls: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: ResponsesModel | Omit = omit,
+        moderation: Optional[response_create_params.Moderation] | Omit = omit,
+        parallel_tool_calls: Optional[bool] | Omit = omit,
+        previous_response_id: Optional[str] | Omit = omit,
+        prompt: Optional[ResponsePromptParam] | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
+        prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
+        reasoning: Optional[Reasoning] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[ServiceTier] | Omit = omit,
+        store: Optional[bool] | Omit = omit,
+        stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
+        stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        text: ResponseTextConfigParam | Omit = omit,
+        tool_choice: response_create_params.ToolChoice | Omit = omit,
+        tools: Iterable[ParseableToolParam] | Omit = omit,
+        top_logprobs: Optional[int] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
+        user: str | Omit = omit,
+        verbosity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> ParsedResponse[Any]:
+        """Parse output with `parse_as` when supplied. Only `text_format` sets the request schema."""
         return parse(
             self,
             text_format=text_format,
+            parse_as=parse_as,
             access_programs=access_programs,
             background=background,
             context_management=context_management,
@@ -1940,10 +2032,12 @@ class AsyncResponses(AsyncAPIResource):
         """
         return AsyncResponsesWithStreamingResponse(self)
 
+    @overload
     async def parse(
         self,
         *,
-        text_format: type[TextFormatT] | Omit = omit,
+        text_format: type | Omit = omit,
+        parse_as: type[TextFormatT] | None,
         access_programs: response_create_params.AccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
         context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
@@ -1981,11 +2075,101 @@ class AsyncResponses(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> ParsedResponse[TextFormatT]:
-        """parse"""
+    ) -> ParsedResponse[TextFormatT]: ...
+
+    @overload
+    async def parse(
+        self,
+        *,
+        text_format: type[TextFormatT] | Omit = omit,
+        parse_as: Omit = omit,
+        access_programs: response_create_params.AccessPrograms | Omit = omit,
+        background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
+        conversation: Optional[response_create_params.Conversation] | Omit = omit,
+        include: Optional[List[ResponseIncludable]] | Omit = omit,
+        input: Union[str, ResponseInputParam] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_output_tokens: Optional[int] | Omit = omit,
+        max_tool_calls: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: ResponsesModel | Omit = omit,
+        moderation: Optional[response_create_params.Moderation] | Omit = omit,
+        parallel_tool_calls: Optional[bool] | Omit = omit,
+        previous_response_id: Optional[str] | Omit = omit,
+        prompt: Optional[ResponsePromptParam] | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
+        prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
+        reasoning: Optional[Reasoning] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[ServiceTier] | Omit = omit,
+        store: Optional[bool] | Omit = omit,
+        stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
+        stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        text: ResponseTextConfigParam | Omit = omit,
+        tool_choice: response_create_params.ToolChoice | Omit = omit,
+        tools: Iterable[ParseableToolParam] | Omit = omit,
+        top_logprobs: Optional[int] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
+        user: str | Omit = omit,
+        verbosity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> ParsedResponse[TextFormatT]: ...
+
+    async def parse(
+        self,
+        *,
+        text_format: type | Omit = omit,
+        parse_as: type | None | Omit = omit,
+        access_programs: response_create_params.AccessPrograms | Omit = omit,
+        background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
+        conversation: Optional[response_create_params.Conversation] | Omit = omit,
+        include: Optional[List[ResponseIncludable]] | Omit = omit,
+        input: Union[str, ResponseInputParam] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_output_tokens: Optional[int] | Omit = omit,
+        max_tool_calls: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: ResponsesModel | Omit = omit,
+        moderation: Optional[response_create_params.Moderation] | Omit = omit,
+        parallel_tool_calls: Optional[bool] | Omit = omit,
+        previous_response_id: Optional[str] | Omit = omit,
+        prompt: Optional[ResponsePromptParam] | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
+        prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
+        reasoning: Optional[Reasoning] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[ServiceTier] | Omit = omit,
+        store: Optional[bool] | Omit = omit,
+        stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
+        stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        text: ResponseTextConfigParam | Omit = omit,
+        tool_choice: response_create_params.ToolChoice | Omit = omit,
+        tools: Iterable[ParseableToolParam] | Omit = omit,
+        top_logprobs: Optional[int] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
+        user: str | Omit = omit,
+        verbosity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> ParsedResponse[Any]:
+        """Parse output with `parse_as` when supplied. Only `text_format` sets the request schema."""
         return await async_parse(
             self,
             text_format=text_format,
+            parse_as=parse_as,
             access_programs=access_programs,
             background=background,
             context_management=context_management,
@@ -4281,7 +4465,11 @@ class AsyncResponsesConnectionManager:
         self, exc_type: type[BaseException] | None, exc: BaseException | None, exc_tb: TracebackType | None
     ) -> None:
         if self.__connection is not None:
-            await self.__connection.close()
+            try:
+                await self.__connection.close()
+            except BaseException:
+                if exc is None:
+                    raise
 
 
 class ResponsesConnection(WebSocketConnectionBase):
@@ -4696,7 +4884,11 @@ class ResponsesConnectionManager:
         self, exc_type: type[BaseException] | None, exc: BaseException | None, exc_tb: TracebackType | None
     ) -> None:
         if self.__connection is not None:
-            self.__connection.close()
+            try:
+                self.__connection.close()
+            except BaseException:
+                if exc is None:
+                    raise
 
 
 class BaseResponsesConnectionResource:

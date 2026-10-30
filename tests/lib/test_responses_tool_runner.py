@@ -2023,6 +2023,34 @@ async def test_replay_reasoning_requires_native_fields(lane: str, mode: str, fie
 
 
 @pytest.mark.parametrize("lane", ["sync", "async"])
+@pytest.mark.parametrize("mode", ["ledger", "budget"])
+async def test_replay_preserves_configuration_updates(lane: str, mode: str) -> None:
+    history: ResponseInputParam = [
+        {
+            "type": "configuration_update",
+            "text": {"format": {"type": "json_schema", "name": "answer", "schema": {"type": "object"}}},
+        },
+        {"role": "user", "content": "Continue"},
+        {"type": "configuration_update", "text": {"format": {"type": "text"}}},
+    ]
+    requests: list[dict[str, Any]] = []
+    records: list[ResponsesToolCheckpoint] = []
+    await run(
+        lane,
+        None,
+        [resp([fn("record", "one", text="once")], "r"), FINAL],
+        requests,
+        params={**PARAMS, "input": history},
+        save=records.append if mode == "ledger" else None,
+        context_budget=ContextBudget(max_input_bytes=10000, max_input_images=0) if mode == "budget" else None,
+    )
+    assert requests[0]["input"] == history
+    assert requests[1]["input"][: len(history)] == history
+    if mode == "ledger":
+        assert records[0]["history"] == history
+
+
+@pytest.mark.parametrize("lane", ["sync", "async"])
 async def test_replay_reasoning_preserves_native_fields(lane: str) -> None:
     reasoning = {
         "type": "reasoning",

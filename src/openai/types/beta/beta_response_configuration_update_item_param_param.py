@@ -2,10 +2,19 @@
 
 from __future__ import annotations
 
-from typing import Optional
-from typing_extensions import Literal, Required, TypedDict
+from typing import Union, Optional
+from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
-__all__ = ["BetaResponseConfigurationUpdateItemParamParam", "Agent", "Reasoning"]
+from .beta_response_format_text_json_schema_config_param import BetaResponseFormatTextJSONSchemaConfigParam
+
+__all__ = [
+    "BetaResponseConfigurationUpdateItemParamParam",
+    "Agent",
+    "Reasoning",
+    "Text",
+    "TextFormat",
+    "TextFormatText",
+]
 
 
 class Agent(TypedDict, total=False):
@@ -25,12 +34,28 @@ class Reasoning(TypedDict, total=False):
     """
 
 
+class TextFormatText(TypedDict, total=False):
+    """Default response format. Used to generate text responses."""
+
+    type: Required[Literal["text"]]
+    """The type of response format being defined. Always `text`."""
+
+
+TextFormat: TypeAlias = Union[TextFormatText, BetaResponseFormatTextJSONSchemaConfigParam]
+
+
+class Text(TypedDict, total=False):
+    """The text output configuration for subsequent responses."""
+
+    format: Required[TextFormat]
+    """Use a JSON schema for structured output or text to return to plain text."""
+
+
 class BetaResponseConfigurationUpdateItemParamParam(TypedDict, total=False):
     """An update to the conversation's response configuration.
 
-    The configuration
-    remains in effect for subsequent responses until it is replaced by another
-    configuration update.
+    Supply reasoning,
+    text, or both. Each setting stays in effect until a later update replaces it.
     """
 
     type: Required[Literal["configuration_update"]]
@@ -44,3 +69,6 @@ class BetaResponseConfigurationUpdateItemParamParam(TypedDict, total=False):
 
     reasoning: Reasoning
     """Updates to reasoning configuration. Only effort is supported."""
+
+    text: Text
+    """The text output configuration for subsequent responses."""
