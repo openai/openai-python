@@ -54,8 +54,9 @@ def validate_metadata(wheel: Path) -> None:
         raise RuntimeError(f"The aiohttp extra must not install the legacy adapter package: {requirements}")
     if {"httpx", "httpx2"} & extras:
         raise RuntimeError(f"HTTP client selection must not require or expose an SDK extra: {extras}")
-    if not any(value.startswith("aiohttp>=3.14.3") for value in aiohttp):
-        raise RuntimeError(f"Expected the aiohttp extra to require a patched aiohttp release: {aiohttp}")
+    for expected in ("aiohttp>=3.14.4", "multidict>=6.9.1", "yarl>=1.25.1"):
+        if not any(value.startswith(expected + ";") for value in aiohttp):
+            raise RuntimeError(f"Expected the aiohttp extra to require {expected}: {aiohttp}")
 
 
 def run_case(

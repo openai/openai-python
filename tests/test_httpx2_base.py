@@ -7,6 +7,7 @@ import threading
 import subprocess
 import importlib.util
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
+from urllib.parse import urlsplit, parse_qsl
 from typing_extensions import override
 
 import httpx2
@@ -66,8 +67,11 @@ async def test_existing_http_client_helpers_default_to_httpx2() -> None:
 
 @pytest.mark.skipif(importlib.util.find_spec("aiohttp") is None, reason="the aiohttp extra is not installed")
 async def test_default_aiohttp_client_uses_httpx2() -> None:
+    paths: list[str] = []
+
     class ModelsHandler(BaseHTTPRequestHandler):
         def do_GET(self) -> None:
+            paths.append(self.path)
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
@@ -84,14 +88,24 @@ async def test_default_aiohttp_client_uses_httpx2() -> None:
         async with AsyncOpenAI(
             api_key="test",
             base_url=f"http://127.0.0.1:{server.server_port}/v1",
-            http_client=openai.DefaultAioHttpClient(),
+            http_client=openai.DefaultAioHttpClient(trust_env=False),
             max_retries=0,
         ) as client:
             assert isinstance(client._client, httpx2.AsyncClient)
-            response = await client.models.with_raw_response.list()
+            response = await client.models.with_raw_response.list(
+                extra_query={"tag": ["first", "second"], "literal": "a+b & café %2F", "empty": ""}
+            )
     finally:
         await asyncio.to_thread(server.shutdown)
         thread.join()
         server.server_close()
 
     assert isinstance(response.http_response, httpx2.Response)
+
+    assert len(paths) == 1
+    assert parse_qsl(urlsplit(paths[0]).query, keep_blank_values=True) == [
+        ("tag[]", "first"),
+        ("tag[]", "second"),
+        ("literal", "a+b & café %2F"),
+        ("empty", ""),
+    ]
