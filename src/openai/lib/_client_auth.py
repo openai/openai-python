@@ -10,6 +10,7 @@ import httpx2
 
 from ..auth import WorkloadIdentity, X509WorkloadIdentity
 from .._types import (
+    Omit,
     Headers,
     Timeout,
     NotGiven,
@@ -18,7 +19,7 @@ from .._types import (
 )
 from .._models import SecurityOptions, FinalRequestOptions
 from .._provider import _Provider, _ProviderRuntime
-from .._base_client import DEFAULT_MAX_RETRIES
+from .._base_client import DEFAULT_MAX_RETRIES, _merge_headers
 from .._data_residency import DataResidency
 
 if TYPE_CHECKING:
@@ -33,6 +34,10 @@ _AsyncClientT = TypeVar("_AsyncClientT", bound="_sdk_client.AsyncOpenAI")
 __all__ = ["_has_header", "_has_omitted_header"]
 
 
+class _MissingAPIKey(Omit):
+    """Suppress shared credentials without opting out of missing-auth validation."""
+
+
 def _has_header(headers: Headers, header: str) -> bool:
     header = header.lower()
     return any((key.lower() == header for key in headers))
@@ -40,7 +45,31 @@ def _has_header(headers: Headers, header: str) -> bool:
 
 def _has_omitted_header(headers: Headers, header: str) -> bool:
     header = header.lower()
-    return any((key.lower() == header and isinstance(value, _sdk_client.Omit) for key, value in headers.items()))
+    return any(
+        key.lower() == header and isinstance(value, _sdk_client.Omit) and not isinstance(value, _MissingAPIKey)
+        for key, value in headers.items()
+    )
+
+
+def _set_request_api_key(
+    self: _sdk_client.OpenAI | _sdk_client.AsyncOpenAI, options: FinalRequestOptions, api_key: str
+) -> None:
+    custom_headers = options.headers if not isinstance(options.headers, NotGiven) else {}
+    # Keep explicit overrides (including Omit and differently cased duplicates) intact.
+    if _has_header(custom_headers, "Authorization"):
+        return
+
+    auth_headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
+    if not api_key and options.security.get("admin_api_key_auth", False):
+        auth_headers = self._admin_api_key_auth
+    headers = _merge_headers(auth_headers, self.default_headers, custom_headers)
+    authorization = next((value for name, value in headers.items() if name.lower() == "authorization"), None)
+    # A later refresh may change self.api_key; this request must keep its own result.
+    # Replace the mapping so retry inputs and caller-owned headers remain untouched.
+    options.headers = {
+        "Authorization": authorization if authorization is not None else _MissingAPIKey(),
+        **custom_headers,
+    }
 
 
 def syncbase_url(self: _sdk_client.OpenAI) -> httpx2.URL:
@@ -343,7 +372,7 @@ def sync_prepare_options(
         if self._provider_runtime.transform_request is not None:
             options = self._provider_runtime.transform_request(options)
     elif self._api_key_provider is not None and options.security.get("bearer_auth", False):
-        self._refresh_api_key()
+        _set_request_api_key(self, options, self._refresh_api_key())
     return super(_owner, self)._prepare_options(options)
 
 
@@ -364,7 +393,9 @@ def sync_custom_auth(
 
 def sync_refresh_api_key(self: _sdk_client.OpenAI) -> str:
     if self._api_key_provider is not None:
-        self.api_key = self._api_key_provider()
+        api_key = self._api_key_provider()
+        self.api_key = api_key
+        return api_key
     return self.api_key
 
 
@@ -812,7 +843,7 @@ async def async_prepare_options(
         elif self._provider_runtime.transform_request is not None:
             options = self._provider_runtime.transform_request(options)
     elif self._api_key_provider is not None and options.security.get("bearer_auth", False):
-        await self._refresh_api_key()
+        _set_request_api_key(self, options, await self._refresh_api_key())
     return await super(_owner, self)._prepare_options(options)
 
 
@@ -835,7 +866,9 @@ def asynccustom_auth(_owner: type[_sdk_client.AsyncOpenAI], /, self: _sdk_client
 
 async def async_refresh_api_key(self: _sdk_client.AsyncOpenAI) -> str:
     if self._api_key_provider is not None:
-        self.api_key = await self._api_key_provider()
+        api_key = await self._api_key_provider()
+        self.api_key = api_key
+        return api_key
     return self.api_key
 
 

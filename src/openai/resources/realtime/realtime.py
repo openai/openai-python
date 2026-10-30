@@ -668,14 +668,18 @@ class AsyncRealtimeConnectionManager:
         if self.__call_id is not omit:
             extra_query = {**extra_query, "call_id": self.__call_id}
         if is_async_azure_client(self.__client):
-            await self.__client._refresh_api_key()
+            api_key = await self.__client._refresh_api_key()
             from ...lib._azure_websocket import _AzureWebSocketConnect as connect
 
             model = self.__model
             if not model:
                 raise OpenAIError("`model` is required for Azure Realtime API")
             else:
-                url, auth_headers = await self.__client._configure_realtime(model, extra_query)
+                configure = getattr(self.__client, "_configure_realtime_with_api_key", None)
+                if configure is not None:
+                    url, auth_headers = await configure(model, extra_query, api_key=api_key)
+                else:
+                    url, auth_headers = await self.__client._configure_realtime(model, extra_query)
             prepared_headers: Headers = extra_headers
         else:
             url = self._prepare_url()
@@ -1123,12 +1127,16 @@ class RealtimeConnectionManager:
         if self.__call_id is not omit:
             extra_query = {**extra_query, "call_id": self.__call_id}
         if is_azure_client(self.__client):
-            self.__client._refresh_api_key()
+            api_key = self.__client._refresh_api_key()
             model = self.__model
             if not model:
                 raise OpenAIError("`model` is required for Azure Realtime API")
             else:
-                url, auth_headers = self.__client._configure_realtime(model, extra_query)
+                configure = getattr(self.__client, "_configure_realtime_with_api_key", None)
+                if configure is not None:
+                    url, auth_headers = configure(model, extra_query, api_key=api_key)
+                else:
+                    url, auth_headers = self.__client._configure_realtime(model, extra_query)
             prepared_headers: Headers = extra_headers
         else:
             url = self._prepare_url()
