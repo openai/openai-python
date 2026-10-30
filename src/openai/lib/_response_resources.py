@@ -136,7 +136,9 @@ def parse(
                 "user": user,
                 "verbosity": verbosity,
             },
-            response_create_params.ResponseCreateParams,
+            response_create_params.ResponseCreateParamsStreaming
+            if stream
+            else response_create_params.ResponseCreateParamsNonStreaming,
         ),
         options=make_request_options(
             extra_headers=extra_headers,
@@ -252,7 +254,9 @@ async def async_parse(
                 "user": user,
                 "verbosity": verbosity,
             },
-            response_create_params.ResponseCreateParams,
+            response_create_params.ResponseCreateParamsStreaming
+            if stream
+            else response_create_params.ResponseCreateParamsNonStreaming,
         ),
         options=make_request_options(
             extra_headers=extra_headers,
