@@ -617,7 +617,7 @@ class AsyncTranslationsConnectionManager:
         if self.__connection is not None:
             try:
                 await self.__connection.close()
-            except BaseException:
+            except Exception:
                 if exc is None:
                     raise
 
@@ -1041,7 +1041,7 @@ class TranslationsConnectionManager:
         if self.__connection is not None:
             try:
                 self.__connection.close()
-            except BaseException:
+            except Exception:
                 if exc is None:
                     raise
 

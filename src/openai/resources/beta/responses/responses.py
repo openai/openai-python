@@ -5278,7 +5278,7 @@ class AsyncResponsesConnectionManager:
         if self.__connection is not None:
             try:
                 await self.__connection.close()
-            except BaseException:
+            except Exception:
                 if exc is None:
                     raise
 
@@ -5696,7 +5696,7 @@ class ResponsesConnectionManager:
         if self.__connection is not None:
             try:
                 self.__connection.close()
-            except BaseException:
+            except Exception:
                 if exc is None:
                     raise
 
@@ -5715,6 +5715,7 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
         context_management: Optional[Iterable[beta_responses_client_event_param.ResponseCreateContextManagement]]
         | Omit = omit,
         conversation: Optional[beta_responses_client_event_param.ResponseCreateConversation] | Omit = omit,
+        generate: bool | Omit = omit,
         include: Optional[List[BetaResponseIncludable]] | Omit = omit,
         input: Union[str, BetaResponseInputParam] | Omit = omit,
         instructions: Optional[str] | Omit = omit,
@@ -5881,6 +5882,7 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
                         "background": background,
                         "context_management": context_management,
                         "conversation": conversation,
+                        "generate": generate,
                         "include": include,
                         "input": input,
                         "instructions": instructions,
@@ -5973,6 +5975,7 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
         context_management: Optional[Iterable[beta_responses_client_event_param.ResponseCreateContextManagement]]
         | Omit = omit,
         conversation: Optional[beta_responses_client_event_param.ResponseCreateConversation] | Omit = omit,
+        generate: bool | Omit = omit,
         include: Optional[List[BetaResponseIncludable]] | Omit = omit,
         input: Union[str, BetaResponseInputParam] | Omit = omit,
         instructions: Optional[str] | Omit = omit,
@@ -6139,6 +6142,7 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
                         "background": background,
                         "context_management": context_management,
                         "conversation": conversation,
+                        "generate": generate,
                         "include": include,
                         "input": input,
                         "instructions": instructions,

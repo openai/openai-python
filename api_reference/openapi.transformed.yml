@@ -68596,6 +68596,12 @@ components:
               `stream_id` controls routing; `previous_response_id` controls
               conversation lineage, so a new lane can fork from a response created
               on another lane.
+          generate:
+            type: boolean
+            description: |
+              Whether to generate output for this response. Defaults to true when omitted.
+              Set to false to prepare request state without model output; the response
+              ID can be used as previous_response_id on a later turn.
         required:
         - type
       - $ref: '#/components/schemas/CreateResponse'
@@ -111544,6 +111550,12 @@ components:
               `stream_id` controls routing; `previous_response_id` controls
               conversation lineage, so a new lane can fork from a response created
               on another lane.
+          generate:
+            type: boolean
+            description: |
+              Whether to generate output for this response. Defaults to true when omitted.
+              Set to false to prepare request state without model output; the response
+              ID can be used as previous_response_id on a later turn.
         required:
         - type
       - $ref: '#/components/schemas/BetaCreateResponse'

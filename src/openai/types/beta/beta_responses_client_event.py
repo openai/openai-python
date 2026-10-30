@@ -281,6 +281,14 @@ class ResponseCreate(BaseModel):
     to this conversation after this response completes.
     """
 
+    generate: Optional[bool] = None
+    """Whether to generate output for this response.
+
+    Defaults to true when omitted. Set to false to prepare request state without
+    model output; the response ID can be used as previous_response_id on a later
+    turn.
+    """
+
     include: Optional[List[BetaResponseIncludable]] = None
     """Specify additional output data to include in the model response.
 
