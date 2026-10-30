@@ -430,15 +430,13 @@ class ResponsesWebSocketSession:
             raise RuntimeError("The WebSocket connection is reconnecting; restore state before sending")
 
     def _read(self) -> None:
-        from websockets.exceptions import ConnectionClosedOK, ConnectionClosedError
+        from websockets.exceptions import ConnectionClosed, ConnectionClosedOK
 
         try:
             while True:
                 try:
                     data = self.connection.recv_bytes()
-                except ConnectionClosedOK:
-                    break
-                except ConnectionClosedError as exc:
+                except ConnectionClosed as exc:
                     if self.connection._reconnect(exc):
                         self._router.reconnected(self.connection._connection)
                         continue
@@ -447,6 +445,8 @@ class ResponsesWebSocketSession:
                         raise WebSocketConnectionClosedError(
                             "WebSocket connection closed with unsent messages", unsent_messages=unsent
                         ) from exc
+                    if isinstance(exc, ConnectionClosedOK):
+                        break
                     raise
                 self._router.dispatch(self.connection.parse_event(data), len(data))
                 del data
@@ -564,15 +564,13 @@ class AsyncResponsesWebSocketSession:
             raise RuntimeError("The WebSocket connection is reconnecting; restore state before sending")
 
     async def _read(self) -> None:
-        from websockets.exceptions import ConnectionClosedOK, ConnectionClosedError
+        from websockets.exceptions import ConnectionClosed, ConnectionClosedOK
 
         try:
             while True:
                 try:
                     data = await self.connection.recv_bytes()
-                except ConnectionClosedOK:
-                    break
-                except ConnectionClosedError as exc:
+                except ConnectionClosed as exc:
                     if await self.connection._reconnect(exc):
                         self._router.reconnected(self.connection._connection)
                         continue
@@ -581,6 +579,8 @@ class AsyncResponsesWebSocketSession:
                         raise WebSocketConnectionClosedError(
                             "WebSocket connection closed with unsent messages", unsent_messages=unsent
                         ) from exc
+                    if isinstance(exc, ConnectionClosedOK):
+                        break
                     raise
                 self._router.dispatch(self.connection.parse_event(data), len(data))
                 del data

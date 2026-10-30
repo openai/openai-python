@@ -156,10 +156,10 @@ def test_reconnect_retries_bounded_send_queue(
         initial_delay=0,
         max_retries=3,
     )
-    for expected_attempts in range(1, 4):
-        assert connection._reconnect(RuntimeError("fake disconnect"))
-        assert q._bytes == (1 if expected_attempts == 1 else 0)
-        assert attempts == min(expected_attempts, 2)
+    # A failed flush consumes its attempt, so both queued sends are attempted
+    # before recovery succeeds on the third socket. Neither is replayed.
+    assert connection._reconnect(RuntimeError("fake disconnect"))
+    assert q._bytes == 0
     assert not connection._reconnect(RuntimeError("fake disconnect"))
     assert attempts == 2
 
@@ -211,10 +211,8 @@ async def test_async_reconnect_retries_bounded_send_queue(
         initial_delay=0,
         max_retries=3,
     )
-    for expected_attempts in range(1, 4):
-        assert await connection._reconnect(RuntimeError("fake disconnect"))
-        assert q._bytes == (1 if expected_attempts == 1 else 0)
-        assert attempts == min(expected_attempts, 2)
+    assert await connection._reconnect(RuntimeError("fake disconnect"))
+    assert q._bytes == 0
     assert not await connection._reconnect(RuntimeError("fake disconnect"))
     assert attempts == 2
 

@@ -1524,6 +1524,22 @@ Methods:
 - <code title="get /organization/data_retention">client.admin.organization.data_retention.<a href="./src/openai/resources/admin/organization/data_retention.py">retrieve</a>() -> <a href="./src/openai/types/admin/organization/organization_data_retention.py">OrganizationDataRetention</a></code>
 - <code title="post /organization/data_retention">client.admin.organization.data_retention.<a href="./src/openai/resources/admin/organization/data_retention.py">update</a>(\*\*<a href="src/openai/types/admin/organization/data_retention_update_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/organization_data_retention.py">OrganizationDataRetention</a></code>
 
+### ExternalKeys
+
+Types:
+
+```python
+from openai.types.admin.organization import ExternalKey, ExternalKeyValidateResponse
+```
+
+Methods:
+
+- <code title="post /organization/external_keys">client.admin.organization.external_keys.<a href="./src/openai/resources/admin/organization/external_keys.py">create</a>(\*\*<a href="src/openai/types/admin/organization/external_key_create_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/external_key.py">ExternalKey</a></code>
+- <code title="get /organization/external_keys/{external_key_id}">client.admin.organization.external_keys.<a href="./src/openai/resources/admin/organization/external_keys.py">retrieve</a>(external_key_id) -> <a href="./src/openai/types/admin/organization/external_key.py">ExternalKey</a></code>
+- <code title="get /organization/external_keys">client.admin.organization.external_keys.<a href="./src/openai/resources/admin/organization/external_keys.py">list</a>(\*\*<a href="src/openai/types/admin/organization/external_key_list_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/external_key.py">SyncCursorPage[ExternalKey]</a></code>
+- <code title="delete /organization/external_keys/{external_key_id}">client.admin.organization.external_keys.<a href="./src/openai/resources/admin/organization/external_keys.py">delete</a>(external_key_id) -> <a href="./src/openai/types/admin/organization/external_key.py">ExternalKey</a></code>
+- <code title="post /organization/external_keys/{external_key_id}/validate">client.admin.organization.external_keys.<a href="./src/openai/resources/admin/organization/external_keys.py">validate</a>(external_key_id) -> <a href="./src/openai/types/admin/organization/external_key_validate_response.py">ExternalKeyValidateResponse</a></code>
+
 ### ExternalStorage
 
 Types:
@@ -1854,22 +1870,6 @@ Methods:
 - <code title="get /organization/projects/{project_id}/certificates">client.admin.organization.projects.certificates.<a href="./src/openai/resources/admin/organization/projects/certificates.py">list</a>(project_id, \*\*<a href="src/openai/types/admin/organization/projects/certificate_list_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/certificate_list_response.py">SyncConversationCursorPage[CertificateListResponse]</a></code>
 - <code title="post /organization/projects/{project_id}/certificates/activate">client.admin.organization.projects.certificates.<a href="./src/openai/resources/admin/organization/projects/certificates.py">activate</a>(project_id, \*\*<a href="src/openai/types/admin/organization/projects/certificate_activate_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/certificate_activate_response.py">SyncPage[CertificateActivateResponse]</a></code>
 - <code title="post /organization/projects/{project_id}/certificates/deactivate">client.admin.organization.projects.certificates.<a href="./src/openai/resources/admin/organization/projects/certificates.py">deactivate</a>(project_id, \*\*<a href="src/openai/types/admin/organization/projects/certificate_deactivate_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/certificate_deactivate_response.py">SyncPage[CertificateDeactivateResponse]</a></code>
-
-### ExternalKeys
-
-Types:
-
-```python
-from openai.types.admin.organization import ExternalKey, ExternalKeyValidateResponse
-```
-
-Methods:
-
-- <code title="post /organization/external_keys">client.admin.organization.external_keys.<a href="./src/openai/resources/admin/organization/external_keys.py">create</a>(\*\*<a href="src/openai/types/admin/organization/external_key_create_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/external_key.py">ExternalKey</a></code>
-- <code title="get /organization/external_keys/{external_key_id}">client.admin.organization.external_keys.<a href="./src/openai/resources/admin/organization/external_keys.py">retrieve</a>(external_key_id) -> <a href="./src/openai/types/admin/organization/external_key.py">ExternalKey</a></code>
-- <code title="get /organization/external_keys">client.admin.organization.external_keys.<a href="./src/openai/resources/admin/organization/external_keys.py">list</a>(\*\*<a href="src/openai/types/admin/organization/external_key_list_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/external_key.py">SyncCursorPage[ExternalKey]</a></code>
-- <code title="delete /organization/external_keys/{external_key_id}">client.admin.organization.external_keys.<a href="./src/openai/resources/admin/organization/external_keys.py">delete</a>(external_key_id) -> <a href="./src/openai/types/admin/organization/external_key.py">ExternalKey</a></code>
-- <code title="post /organization/external_keys/{external_key_id}/validate">client.admin.organization.external_keys.<a href="./src/openai/resources/admin/organization/external_keys.py">validate</a>(external_key_id) -> <a href="./src/openai/types/admin/organization/external_key_validate_response.py">ExternalKeyValidateResponse</a></code>
 
 # [Responses](src/openai/resources/responses/api.md)
 

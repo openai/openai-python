@@ -27,7 +27,7 @@ class TestExternalKeys:
             external_id="external_id",
             kms_arn="kms_arn",
             name="name",
-            role_arn='arn:aws:iam::732166991022:role/0*bWz"J5bo7',
+            role_arn="arn:aws:iam::123456789012:role/example-role",
             type="aws",
         )
         assert_matches_type(ExternalKey, external_key, path=["response"])
@@ -38,7 +38,7 @@ class TestExternalKeys:
             external_id="external_id",
             kms_arn="kms_arn",
             name="name",
-            role_arn='arn:aws:iam::732166991022:role/0*bWz"J5bo7',
+            role_arn="arn:aws:iam::123456789012:role/example-role",
             type="aws",
             purpose="ekm",
         )
@@ -50,7 +50,7 @@ class TestExternalKeys:
             external_id="external_id",
             kms_arn="kms_arn",
             name="name",
-            role_arn='arn:aws:iam::732166991022:role/0*bWz"J5bo7',
+            role_arn="arn:aws:iam::123456789012:role/example-role",
             type="aws",
         )
 
@@ -65,7 +65,7 @@ class TestExternalKeys:
             external_id="external_id",
             kms_arn="kms_arn",
             name="name",
-            role_arn='arn:aws:iam::732166991022:role/0*bWz"J5bo7',
+            role_arn="arn:aws:iam::123456789012:role/example-role",
             type="aws",
         ) as response:
             assert not response.is_closed
@@ -369,7 +369,7 @@ class TestAsyncExternalKeys:
             external_id="external_id",
             kms_arn="kms_arn",
             name="name",
-            role_arn='arn:aws:iam::732166991022:role/0*bWz"J5bo7',
+            role_arn="arn:aws:iam::123456789012:role/example-role",
             type="aws",
         )
         assert_matches_type(ExternalKey, external_key, path=["response"])
@@ -380,7 +380,7 @@ class TestAsyncExternalKeys:
             external_id="external_id",
             kms_arn="kms_arn",
             name="name",
-            role_arn='arn:aws:iam::732166991022:role/0*bWz"J5bo7',
+            role_arn="arn:aws:iam::123456789012:role/example-role",
             type="aws",
             purpose="ekm",
         )
@@ -392,7 +392,7 @@ class TestAsyncExternalKeys:
             external_id="external_id",
             kms_arn="kms_arn",
             name="name",
-            role_arn='arn:aws:iam::732166991022:role/0*bWz"J5bo7',
+            role_arn="arn:aws:iam::123456789012:role/example-role",
             type="aws",
         )
 
@@ -407,7 +407,7 @@ class TestAsyncExternalKeys:
             external_id="external_id",
             kms_arn="kms_arn",
             name="name",
-            role_arn='arn:aws:iam::732166991022:role/0*bWz"J5bo7',
+            role_arn="arn:aws:iam::123456789012:role/example-role",
             type="aws",
         ) as response:
             assert not response.is_closed

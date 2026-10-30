@@ -2,16 +2,22 @@ from __future__ import annotations
 
 import threading
 from typing import Any, Callable
+from dataclasses import dataclass
 
 EventHandler = Callable[..., Any]
+
+
+@dataclass(eq=False)
+class _Registration:
+    handler: EventHandler
+    once: bool
 
 
 class EventHandlerRegistry:
     """Thread-safe (optional) registry of event handlers."""
 
     def __init__(self, *, use_lock: bool = False) -> None:
-        self._handlers: dict[str, list[EventHandler]] = {}
-        self._once_ids: set[int] = set()
+        self._handlers: dict[str, list[_Registration]] = {}
         self._lock: threading.Lock | None = threading.Lock() if use_lock else None
 
     def _acquire(self) -> None:
@@ -26,9 +32,7 @@ class EventHandlerRegistry:
         self._acquire()
         try:
             handlers = self._handlers.setdefault(event_type, [])
-            handlers.append(handler)
-            if once:
-                self._once_ids.add(id(handler))
+            handlers.append(_Registration(handler, once))
         finally:
             self._release()
 
@@ -37,11 +41,10 @@ class EventHandlerRegistry:
         try:
             handlers = self._handlers.get(event_type)
             if handlers is not None:
-                try:
-                    handlers.remove(handler)
-                except ValueError:
-                    pass
-                self._once_ids.discard(id(handler))
+                for index, registration in enumerate(handlers):
+                    if registration.handler == handler:
+                        del handlers[index]
+                        break
         finally:
             self._release()
 
@@ -52,12 +55,8 @@ class EventHandlerRegistry:
             handlers = self._handlers.get(event_type)
             if not handlers:
                 return []
-            result = list(handlers)
-            to_remove = [h for h in result if id(h) in self._once_ids]
-            for h in to_remove:
-                handlers.remove(h)
-                self._once_ids.discard(id(h))
-            return result
+            self._handlers[event_type] = [registration for registration in handlers if not registration.once]
+            return [registration.handler for registration in handlers]
         finally:
             self._release()
 
@@ -74,10 +73,8 @@ class EventHandlerRegistry:
         self._acquire()
         try:
             for event_type, handlers in self._handlers.items():
-                for handler in handlers:
-                    once = id(handler) in self._once_ids
-                    target.add(event_type, handler, once=once)
+                for registration in handlers:
+                    target.add(event_type, registration.handler, once=registration.once)
             self._handlers.clear()
-            self._once_ids.clear()
         finally:
             self._release()

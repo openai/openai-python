@@ -1348,6 +1348,7 @@ paths:
   /audio/translations:
     post:
       operationId: createTranslation
+      deprecated: true
       tags:
       - Audio
       summary: Create translation
@@ -1477,7 +1478,6 @@ paths:
             {
               "text": "Hello, my name is Wolfgang and I come from Germany. Where are you heading today?"
             }
-      deprecated: true
   /audio/voice_consents:
     post:
       operationId: createVoiceConsent
@@ -26741,6 +26741,125 @@ paths:
               "error_type": "potentially_unintended_data_access",
               "reason": "Potentially unintended data access."
             }
+  /organization/external_keys:
+    post:
+      summary: Add an external key config for an organization
+      description: Add an external key config for an organization
+      operationId: Addanexternalkeyconfigforanorganization
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/V1OrganizationExternalKeysPostRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalKeyResource'
+      security:
+      - AdminApiKeyAuth: []
+    get:
+      summary: List the external key configs registered on the user's organization
+      description: List the external key configs registered on the user's organization
+      operationId: Listtheexternalkeyconfigsregisteredontheuser'sorganization
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 100
+      - name: order
+        in: query
+        required: false
+        schema:
+          $ref: '#/components/schemas/OrderEnum'
+      - name: after
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+      - name: purpose
+        in: query
+        description: Filter by key purpose. When omitted, returns keys of all purposes.
+        required: false
+        schema:
+          $ref: '#/components/schemas/ExternalKeyPurpose'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListExternalKeysResource'
+      security:
+      - AdminApiKeyAuth: []
+  /organization/external_keys/{external_key_id}:
+    get:
+      summary: Retrieve an external key registration
+      description: Retrieve a stored external key registration for the user's organization.
+      operationId: Retrieveanexternalkeyregistration
+      parameters:
+      - name: external_key_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalKeyResource'
+      security:
+      - AdminApiKeyAuth: []
+    delete:
+      summary: Delete an external key config for the user's organization
+      description: Delete an external key config for the user's organization
+      operationId: Deleteanexternalkeyconfigfortheuser'sorganization
+      parameters:
+      - name: external_key_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalKeyResource'
+      security:
+      - AdminApiKeyAuth: []
+  /organization/external_keys/{external_key_id}/validate:
+    post:
+      summary: Validate an external key config for the user's organization
+      description: Validate an external key config for the user's organization
+      operationId: Validateanexternalkeyconfigfortheuser'sorganization
+      parameters:
+      - name: external_key_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidateExternalKeyResource'
+      security:
+      - AdminApiKeyAuth: []
   /live/sessions/{session_id}/content:
     get:
       tags:
@@ -27104,10 +27223,24 @@ paths:
                   "geography": "US",
                   "status": "validated",
                   "created_at": 1711471400
+                },
+                {
+                  "object": "organization.external_storage",
+                  "id": "extstorage_oci123",
+                  "project_id": "proj_oci123",
+                  "provider": {
+                    "type": "oci",
+                    "tenancy_ocid": "ocid1.tenancy.oc1..example",
+                    "region": "us-ashburn-1",
+                    "bucket": "customer-oci-retention"
+                  },
+                  "geography": "US",
+                  "status": "validated",
+                  "created_at": 1711471300
                 }
               ],
               "first_id": "extstorage_abc123",
-              "last_id": "extstorage_gcp123",
+              "last_id": "extstorage_oci123",
               "has_more": false
             }
       security:
@@ -27256,6 +27389,36 @@ paths:
               "geography": "US",
               "status": "pending",
               "created_at": 1711471400
+            }
+        - title: OCI Object Storage
+          request:
+            curl: |
+              curl -X POST https://api.openai.com/v1/organization/external_storage \
+                -H "Authorization: Bearer $OPENAI_ADMIN_KEY" \
+                -H "Content-Type: application/json" \
+                -d '{
+                  "project_id": "proj_oci123",
+                  "provider": {
+                    "type": "oci",
+                    "tenancy_ocid": "ocid1.tenancy.oc1..example",
+                    "region": "us-ashburn-1",
+                    "bucket": "customer-oci-retention"
+                  }
+                }'
+          response: |
+            {
+              "object": "organization.external_storage",
+              "id": "extstorage_oci123",
+              "project_id": "proj_oci123",
+              "provider": {
+                "type": "oci",
+                "tenancy_ocid": "ocid1.tenancy.oc1..example",
+                "region": "us-ashburn-1",
+                "bucket": "customer-oci-retention"
+              },
+              "geography": "US",
+              "status": "pending",
+              "created_at": 1711471300
             }
       security:
       - AdminApiKeyAuth: []
@@ -33188,6 +33351,7 @@ paths:
             maxLength: 64
           minProperties: 0
           maxProperties: 16
+          x-openai-go-public-type: pointer_collection
         description: Exact string matches supplied as `metadata[key]=value`. All supplied pairs must match. Up to 16 pairs, with keys from 1 to 64 characters and values up to 512 characters. New sessions and metadata updates may take time to appear in filtered results.
         style: deepObject
         explode: true
@@ -37508,125 +37672,6 @@ paths:
               "object": "response.input_tokens",
               "input_tokens": 11
             }
-  /organization/external_keys:
-    post:
-      summary: Add an external key config for an organization
-      description: Add an external key config for an organization
-      operationId: Addanexternalkeyconfigforanorganization
-      parameters: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/V1OrganizationExternalKeysPostRequest'
-        required: true
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ExternalKeyResource'
-      security:
-      - AdminApiKeyAuth: []
-    get:
-      summary: List the external key configs registered on the user's organization
-      description: List the external key configs registered on the user's organization
-      operationId: Listtheexternalkeyconfigsregisteredontheuser'sorganization
-      parameters:
-      - name: limit
-        in: query
-        required: false
-        schema:
-          type: integer
-          minimum: 0
-          maximum: 100
-      - name: order
-        in: query
-        required: false
-        schema:
-          $ref: '#/components/schemas/OrderEnum'
-      - name: after
-        in: query
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-      - name: purpose
-        in: query
-        description: Filter by key purpose. When omitted, returns keys of all purposes.
-        required: false
-        schema:
-          $ref: '#/components/schemas/ExternalKeyPurpose'
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ListExternalKeysResource'
-      security:
-      - AdminApiKeyAuth: []
-  /organization/external_keys/{external_key_id}:
-    get:
-      summary: Retrieve an external key registration
-      description: Retrieve a stored external key registration for the user's organization.
-      operationId: Retrieveanexternalkeyregistration
-      parameters:
-      - name: external_key_id
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ExternalKeyResource'
-      security:
-      - AdminApiKeyAuth: []
-    delete:
-      summary: Delete an external key config for the user's organization
-      description: Delete an external key config for the user's organization
-      operationId: Deleteanexternalkeyconfigfortheuser'sorganization
-      parameters:
-      - name: external_key_id
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ExternalKeyResource'
-      security:
-      - AdminApiKeyAuth: []
-  /organization/external_keys/{external_key_id}/validate:
-    post:
-      summary: Validate an external key config for the user's organization
-      description: Validate an external key config for the user's organization
-      operationId: Validateanexternalkeyconfigfortheuser'sorganization
-      parameters:
-      - name: external_key_id
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ValidateExternalKeyResource'
-      security:
-      - AdminApiKeyAuth: []
 webhooks:
   agent_environment_expired:
     post:
@@ -38504,14 +38549,6 @@ components:
       - gpt-3.5-turbo-0125
       - gpt-3.5-turbo-16k-0613
       x-openai-enum-deprecations:
-        gpt-4.1:
-          message: 'Announced shutdown date: 2027-01-14. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
-        gpt-4.1-mini:
-          message: 'Announced shutdown date: 2027-01-14. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
-        gpt-4o:
-          message: 'Announced shutdown date: 2027-01-14. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
-        gpt-4o-mini:
-          message: 'Announced shutdown date: 2027-01-14. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
         gpt-5:
           message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
         gpt-5-mini:
@@ -38524,6 +38561,14 @@ components:
           message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
         gpt-5-nano-2025-08-07:
           message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4.1:
+          message: 'Announced shutdown date: 2027-01-14. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4.1-mini:
+          message: 'Announced shutdown date: 2027-01-14. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4o:
+          message: 'Announced shutdown date: 2027-01-14. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-4o-mini:
+          message: 'Announced shutdown date: 2027-01-14. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
     AssistantToolsCode:
       type: object
       title: Code interpreter tool
@@ -44256,6 +44301,8 @@ components:
           format: binary
           x-oaiMeta:
             exampleFilePath: mask.png
+        markup:
+          $ref: '#/components/schemas/markup'
         background:
           anyOf:
           - type: string
@@ -44419,8 +44466,6 @@ components:
           example: high
           description: |
             The quality of the image that will be generated for GPT image models. The GPT image models support `low`, `medium`, and `high`. `gpt-image-2.5-sunburst` and `gpt-image-2.5-flare`, including their `2026-09-08` snapshots, also support `xhigh` and `max`. Defaults to `auto`.
-        markup:
-          $ref: '#/components/schemas/markup'
       required:
       - prompt
       - image
@@ -45807,7 +45852,6 @@ components:
             - gpt-4o-mini-transcribe
             - gpt-4o-mini-transcribe-2025-12-15
             - gpt-4o-transcribe-diarize
-            x-stainless-const: true
             x-openai-enum-deprecations:
               gpt-4o-mini-transcribe-2025-12-15:
                 message: 'Announced shutdown date: 2027-02-26. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
@@ -45819,6 +45863,7 @@ components:
                 message: 'Announced shutdown date: 2027-02-26. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
               gpt-4o-transcribe-diarize:
                 message: 'Announced shutdown date: 2027-02-26. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+            x-stainless-const: true
             x-stainless-nominal: false
           x-oaiTypeLabel: string
         language:
@@ -46873,6 +46918,9 @@ components:
             $ref: '#/components/schemas/ImageRefParam'
         mask:
           $ref: '#/components/schemas/ImageRefParam'
+        markup:
+          $ref: '#/components/schemas/ImageRefParam'
+          description: A transparent PNG overlaid on the first image, referenced by file ID, HTTPS URL, or base64 data URL. Must match that image's dimensions after orientation and contain transparent pixels. Supports GPT Image 2.5 and 2.6. Cannot be combined with mask.
         prompt:
           type: string
           minLength: 1
@@ -46987,9 +47035,6 @@ components:
           description: Stream partial image results as events.
         partial_images:
           $ref: '#/components/schemas/PartialImages'
-        markup:
-          $ref: '#/components/schemas/ImageRefParam'
-          description: A transparent PNG overlaid on the first image, referenced by file ID, HTTPS URL, or base64 data URL. Must match that image's dimensions after orientation and contain transparent pixels. Supports GPT Image 2.5 and 2.6. Cannot be combined with mask.
       required:
       - images
       - prompt
@@ -53131,11 +53176,10 @@ components:
                     x-openai-go-public-shape:
                       variant_names:
                         '#/components/schemas/AssistantToolsFileSearchTypeOnly': FileSearchTool
+                        '#/components/schemas/MessageObject/properties/attachments/anyOf/0/items/properties/tools/items/anyOf/1': FileSearchTool
                     anyOf:
                     - $ref: '#/components/schemas/AssistantToolsCode'
                     - $ref: '#/components/schemas/AssistantToolsFileSearchTypeOnly'
-                      x-openai-go-public-shape:
-                        type_name: MessageAttachmentToolFileSearchTool
             description: A list of files attached to the message, and the tools they were added to.
           - type: 'null'
         metadata:
@@ -58347,7 +58391,7 @@ components:
         example: |
           // Trigger a response with the default Conversation and no special parameters
           {
-            "type": "response.create",
+            "type": "response.create"
           }
 
           // Trigger an out-of-band response that does not write to the default Conversation
@@ -58505,6 +58549,27 @@ components:
               ]
             }
           }
+    RealtimeConnectDocumentationParams:
+      type: object
+      properties:
+        model:
+          type: string
+        call_id:
+          type: string
+        intent:
+          type: string
+          enum:
+          - realtime
+          - transcription
+          description: |
+            Selects the session type. Set `transcription` and omit `model` for a transcription session. If omitted, the session type from a client secret applies when present; otherwise the intent is `realtime`.
+    RealtimeConnectParams:
+      type: object
+      properties:
+        model:
+          type: string
+        call_id:
+          type: string
     RealtimeConversationItem:
       description: A single item within a Realtime conversation.
       anyOf:
@@ -59488,6 +59553,611 @@ components:
             using their id.
           items:
             $ref: '#/components/schemas/RealtimeConversationItem'
+    RunStatus:
+      description: The status of the run, which can be either `queued`, `in_progress`, `requires_action`, `cancelling`, `cancelled`, `failed`, `completed`, `incomplete`, or `expired`.
+      type: string
+      enum:
+      - queued
+      - in_progress
+      - requires_action
+      - cancelling
+      - cancelled
+      - failed
+      - completed
+      - incomplete
+      - expired
+    LiveMCPToolChoiceParam:
+      type: object
+      properties:
+        type:
+          default: mcp
+          x-stainless-const: true
+          type: string
+          enum:
+          - mcp
+        server_label:
+          type: string
+          minLength: 1
+          maxLength: 64
+          pattern: ^[a-zA-Z0-9_-]+$
+        name:
+          type: string
+          minLength: 1
+          maxLength: 64
+          pattern: ^[a-zA-Z0-9_-]+$
+      required:
+      - type
+      - server_label
+      - name
+    LiveFunctionToolChoiceParam:
+      type: object
+      properties:
+        type:
+          default: function
+          x-stainless-const: true
+          type: string
+          enum:
+          - function
+        name:
+          type: string
+          minLength: 1
+          maxLength: 64
+          pattern: ^[a-zA-Z0-9_-]+$
+      required:
+      - type
+      - name
+    SubmitToolOutputsRunRequestWithoutStream:
+      type: object
+      additionalProperties: false
+      properties:
+        tool_outputs:
+          description: A list of tools for which the outputs are being submitted.
+          type: array
+          items:
+            type: object
+            properties:
+              tool_call_id:
+                type: string
+                description: The ID of the tool call in the `required_action` object within the run object the output is being submitted for.
+              output:
+                type: string
+                description: The output of the tool call to be submitted to continue the run.
+      required:
+      - tool_outputs
+    RealtimeClientEventResponseCreateWithReferencesParam:
+      type: object
+      description: "This event instructs the server to create a Response, which means triggering \nmodel inference. When in Server VAD mode, the server will create Responses \nautomatically.\n\nA Response will include at least one Item, and may have two, in which case \nthe second will be a function call. These Items will be appended to the \nconversation history by default.\n\nThe server will respond with a `response.created` event, events for Items \nand content created, and finally a `response.done` event to indicate the \nResponse is complete.\n\nThe `response.create` event includes inference configuration like \n`instructions` and `tools`. If these are set, they will override the Session's \nconfiguration for this Response only.\n\nResponses can be created out-of-band of the default Conversation, meaning that they can\nhave arbitrary input, and it's possible to disable writing the output to the Conversation.\nOnly one Response can write to the default Conversation at a time, but otherwise multiple\nResponses can be created in parallel. The `metadata` field is a good way to disambiguate\nmultiple simultaneous Responses.\n\nClients can set `conversation` to `none` to create a Response that does not write to the default\nConversation. Arbitrary input can be provided with the `input` field, which is an array accepting\nraw Items and references to existing Items.\n"
+      properties:
+        event_id:
+          type: string
+          maxLength: 512
+          description: Optional client-generated ID used to identify this event.
+        type:
+          x-stainless-const: true
+          description: The event type, must be `response.create`.
+          const: response.create
+        response:
+          $ref: '#/components/schemas/RealtimeResponseCreateParams'
+      required:
+      - type
+      x-oaiMeta:
+        name: response.create
+        group: realtime
+        example: |
+          // Trigger a response with the default Conversation and no special parameters
+          {
+            "type": "response.create"
+          }
+
+          // Trigger an out-of-band response that does not write to the default Conversation
+          {
+            "type": "response.create",
+            "response": {
+              "instructions": "Provide a concise answer.",
+              "tools": [], // clear any session tools
+              "conversation": "none",
+              "output_modalities": ["text"],
+              "metadata": {
+                "response_purpose": "summarization"
+              },
+              "input": [
+                {
+                  "type": "item_reference",
+                  "id": "item_12345"
+                },
+                {
+                  "type": "message",
+                  "role": "user",
+                  "content": [
+                    {
+                      "type": "input_text",
+                      "text": "Summarize the above message in one sentence."
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+    RealtimeResponseCreateParamsWithReferencesParam:
+      type: object
+      description: Create a new Realtime response with these parameters
+      properties:
+        output_modalities:
+          type: array
+          description: |
+            The set of modalities the model used to respond, currently the only possible values are
+            `[\"audio\"]`, `[\"text\"]`. Audio output always include a text transcript. Setting the
+            output to mode `text` will disable audio output from the model.
+          items:
+            type: string
+            enum:
+            - text
+            - audio
+        instructions:
+          type: string
+          description: |
+            The default system instructions (i.e. system message) prepended to model calls. This field allows the client to guide the model on desired responses. The model can be instructed on response content and format, (e.g. "be extremely succinct", "act friendly", "here are examples of good responses") and on audio behavior (e.g. "talk quickly", "inject emotion into your voice", "laugh frequently"). The instructions are not guaranteed to be followed by the model, but they provide guidance to the model on the desired behavior.
+            Note that the server sets default instructions which will be used if this field is not set and are visible in the `session.created` event at the start of the session.
+        audio:
+          type: object
+          description: Configuration for audio input and output.
+          properties:
+            output:
+              type: object
+              properties:
+                format:
+                  $ref: '#/components/schemas/RealtimeAudioFormats'
+                  description: The format of the output audio.
+                voice:
+                  $ref: '#/components/schemas/VoiceIdsOrCustomVoice'
+                  default: alloy
+                  description: |
+                    The voice the model uses to respond. Supported built-in voices are
+                    `alloy`, `ash`, `ballad`, `coral`, `echo`, `sage`, `shimmer`, `verse`,
+                    `marin`, and `cedar`. You may also provide a custom voice object with
+                    an `id`, for example `{ "id": "voice_1234" }`. Voice cannot be changed
+                    during the session once the model has responded with audio at least once.
+                    Custom voices must be created from audio samples. Voices created from text prompts are supported only in Live.
+                    We recommend `marin` and `cedar` for best quality.
+        tools:
+          type: array
+          description: Tools available to the model.
+          items:
+            anyOf:
+            - $ref: '#/components/schemas/RealtimeFunctionTool'
+            - $ref: '#/components/schemas/MCPTool'
+        tool_choice:
+          description: |
+            How the model chooses tools. Provide one of the string modes or force a specific
+            function/MCP tool.
+          default: auto
+          anyOf:
+          - $ref: '#/components/schemas/ToolChoiceOptions'
+          - $ref: '#/components/schemas/ToolChoiceFunction'
+          - $ref: '#/components/schemas/ToolChoiceMCP'
+        parallel_tool_calls:
+          type: boolean
+          description: |
+            Whether the model may call multiple tools in parallel. Only supported by
+            reasoning Realtime models such as `gpt-realtime-2`.
+        reasoning:
+          $ref: '#/components/schemas/RealtimeReasoning'
+        max_output_tokens:
+          description: |
+            Maximum number of output tokens for a single assistant response,
+            inclusive of tool calls. Provide an integer between 1 and 4096 to
+            limit output tokens, or `inf` for the maximum available tokens for a
+            given model. Defaults to `inf`.
+          anyOf:
+          - type: integer
+          - type: string
+            enum:
+            - inf
+            x-stainless-const: true
+        conversation:
+          description: |
+            Controls which conversation the response is added to. Currently supports
+            `auto` and `none`, with `auto` as the default value. The `auto` value
+            means that the contents of the response will be added to the default
+            conversation. Set this to `none` to create an out-of-band response which
+            will not add items to default conversation.
+          anyOf:
+          - type: string
+          - type: string
+            default: auto
+            enum:
+            - auto
+            - none
+        metadata:
+          $ref: '#/components/schemas/Metadata'
+        prompt:
+          $ref: '#/components/schemas/Prompt'
+        input:
+          type: array
+          description: |
+            Input items to include in the prompt for the model. Using this field
+            creates a new context for this Response instead of using the default
+            conversation. An empty array `[]` will clear the context for this Response.
+            Note that this can include references to items that previously appeared in the session
+            using their id.
+          items:
+            $ref: '#/components/schemas/RealtimeConversationItem'
+    Summary:
+      properties:
+        type:
+          type: string
+          enum:
+          - summary_text
+          description: The type of the object. Always `summary_text`.
+          default: summary_text
+          x-stainless-const: true
+        text:
+          type: string
+          description: A summary of the reasoning output from the model so far.
+      type: object
+      required:
+      - type
+      - text
+      title: Summary text
+      description: A summary text from the model.
+    LiveDecisionStoredItemValidation:
+      discriminator:
+        propertyName: type
+      x-oai-default-discriminator-value: message
+      anyOf:
+      - discriminator:
+          propertyName: role
+        properties:
+          type:
+            type: string
+            enum:
+            - message
+        anyOf:
+        - $ref: '#/components/schemas/LiveDecisionStoredUserMessageParam'
+        - $ref: '#/components/schemas/LiveDecisionStoredDeveloperMessageParam'
+        - $ref: '#/components/schemas/LiveDecisionStoredSystemMessageParam'
+        - $ref: '#/components/schemas/LiveDecisionStoredAssistantMessageParam'
+      - $ref: '#/components/schemas/LiveDecisionStoredFunctionCallParam'
+      - $ref: '#/components/schemas/LiveDecisionStoredFunctionCallOutputParam'
+      - $ref: '#/components/schemas/LiveDecisionStoredCustomToolCallParam'
+      - $ref: '#/components/schemas/LiveDecisionStoredCustomToolCallOutputParam'
+    LiveDecisionInputItemValidation:
+      discriminator:
+        propertyName: type
+      x-oai-default-discriminator-value: message
+      anyOf:
+      - discriminator:
+          propertyName: role
+        properties:
+          type:
+            type: string
+            enum:
+            - message
+        anyOf:
+        - $ref: '#/components/schemas/LiveDecisionUserMessageParam'
+        - $ref: '#/components/schemas/LiveDecisionDeveloperMessageParam'
+        - $ref: '#/components/schemas/LiveDecisionSystemMessageParam'
+        - $ref: '#/components/schemas/LiveDecisionAssistantMessageParam'
+      - $ref: '#/components/schemas/LiveDecisionFunctionCallParam'
+      - $ref: '#/components/schemas/LiveDecisionFunctionCallOutputParam'
+      - $ref: '#/components/schemas/LiveDecisionCustomToolCallParam'
+      - $ref: '#/components/schemas/LiveDecisionCustomToolCallOutputParam'
+    CreateRunRequestWithoutStream:
+      type: object
+      additionalProperties: false
+      properties:
+        assistant_id:
+          description: The ID of the [assistant](https://developers.openai.com/api/docs/assistants/migration) to use to execute this run.
+          type: string
+        model:
+          description: The ID of the [Model](https://developers.openai.com/api/reference/resources/models) to be used to execute this run. If a value is provided here, it will override the model associated with the assistant. If not, the model associated with the assistant will be used.
+          example: gpt-4.1
+          anyOf:
+          - type: string
+          - $ref: '#/components/schemas/AssistantSupportedModels'
+          x-oaiTypeLabel: string
+          nullable: true
+        reasoning_effort:
+          $ref: '#/components/schemas/ReasoningEffort'
+        instructions:
+          description: Overrides the [instructions](https://developers.openai.com/api/docs/assistants/migration) of the assistant. This is useful for modifying the behavior on a per-run basis.
+          type:
+          - string
+          - 'null'
+        additional_instructions:
+          description: Appends additional instructions at the end of the instructions for the run. This is useful for modifying the behavior on a per-run basis without overriding other instructions.
+          type:
+          - string
+          - 'null'
+        additional_messages:
+          description: Adds additional messages to the thread before creating the run.
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/CreateMessageRequest'
+        tools:
+          description: Override the tools the assistant can use for this run. This is useful for modifying the behavior on a per-run basis.
+          type:
+          - array
+          - 'null'
+          maxItems: 20
+          items:
+            $ref: '#/components/schemas/AssistantTool'
+        metadata:
+          $ref: '#/components/schemas/Metadata'
+        temperature:
+          type:
+          - number
+          - 'null'
+          minimum: 0
+          maximum: 2
+          default: 1
+          example: 1
+          description: |
+            What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
+        top_p:
+          type:
+          - number
+          - 'null'
+          minimum: 0
+          maximum: 1
+          default: 1
+          example: 1
+          description: |
+            An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.
+
+            We generally recommend altering this or temperature but not both.
+        response_format:
+          $ref: '#/components/schemas/AssistantsApiResponseFormatOption'
+          nullable: true
+        max_prompt_tokens:
+          type:
+          - integer
+          - 'null'
+          description: |
+            The maximum number of prompt tokens that may be used over the course of the run. The run will make a best effort to use only the number of prompt tokens specified, across multiple turns of the run. If the run exceeds the number of prompt tokens specified, the run will end with status `incomplete`. See `incomplete_details` for more info.
+          minimum: 256
+        max_completion_tokens:
+          type:
+          - integer
+          - 'null'
+          description: |
+            The maximum number of completion tokens that may be used over the course of the run. The run will make a best effort to use only the number of completion tokens specified, across multiple turns of the run. If the run exceeds the number of completion tokens specified, the run will end with status `incomplete`. See `incomplete_details` for more info.
+          minimum: 256
+        truncation_strategy:
+          allOf:
+          - $ref: '#/components/schemas/TruncationObject'
+          - nullable: true
+        tool_choice:
+          allOf:
+          - $ref: '#/components/schemas/AssistantsApiToolChoiceOption'
+          - nullable: true
+        parallel_tool_calls:
+          $ref: '#/components/schemas/ParallelToolCalls'
+      required:
+      - assistant_id
+    CreateThreadAndRunRequestWithoutStream:
+      type: object
+      additionalProperties: false
+      properties:
+        assistant_id:
+          description: The ID of the [assistant](https://developers.openai.com/api/docs/assistants/migration) to use to execute this run.
+          type: string
+        thread:
+          $ref: '#/components/schemas/CreateThreadRequest'
+        model:
+          description: The ID of the [Model](https://developers.openai.com/api/reference/resources/models) to be used to execute this run. If a value is provided here, it will override the model associated with the assistant. If not, the model associated with the assistant will be used.
+          example: gpt-4.1
+          anyOf:
+          - type: string
+          - type: string
+            enum:
+            - gpt-5
+            - gpt-5-mini
+            - gpt-5-nano
+            - gpt-5-2025-08-07
+            - gpt-5-mini-2025-08-07
+            - gpt-5-nano-2025-08-07
+            - gpt-4.1
+            - gpt-4.1-mini
+            - gpt-4.1-nano
+            - gpt-4.1-2025-04-14
+            - gpt-4.1-mini-2025-04-14
+            - gpt-4.1-nano-2025-04-14
+            - gpt-4o
+            - gpt-4o-2024-11-20
+            - gpt-4o-2024-08-06
+            - gpt-4o-2024-05-13
+            - gpt-4o-mini
+            - gpt-4o-mini-2024-07-18
+            - gpt-4.5-preview
+            - gpt-4.5-preview-2025-02-27
+            - gpt-4-turbo
+            - gpt-4-turbo-2024-04-09
+            - gpt-4-0125-preview
+            - gpt-4-turbo-preview
+            - gpt-4-1106-preview
+            - gpt-4-vision-preview
+            - gpt-4
+            - gpt-4-0314
+            - gpt-4-0613
+            - gpt-4-32k
+            - gpt-4-32k-0314
+            - gpt-4-32k-0613
+            - gpt-3.5-turbo
+            - gpt-3.5-turbo-16k
+            - gpt-3.5-turbo-0613
+            - gpt-3.5-turbo-1106
+            - gpt-3.5-turbo-0125
+            - gpt-3.5-turbo-16k-0613
+            x-openai-enum-deprecations:
+              gpt-5:
+                message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              gpt-5-mini:
+                message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              gpt-5-nano:
+                message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              gpt-5-2025-08-07:
+                message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              gpt-5-mini-2025-08-07:
+                message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+              gpt-5-nano-2025-08-07:
+                message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+          x-oaiTypeLabel: string
+          nullable: true
+        instructions:
+          description: Override the default system message of the assistant. This is useful for modifying the behavior on a per-run basis.
+          type:
+          - string
+          - 'null'
+        tools:
+          description: Override the tools the assistant can use for this run. This is useful for modifying the behavior on a per-run basis.
+          type:
+          - array
+          - 'null'
+          maxItems: 20
+          items:
+            $ref: '#/components/schemas/AssistantTool'
+        tool_resources:
+          type:
+          - object
+          - 'null'
+          description: |
+            A set of resources that are used by the assistant's tools. The resources are specific to the type of tool. For example, the `code_interpreter` tool requires a list of file IDs, while the `file_search` tool requires a list of vector store IDs.
+          properties:
+            code_interpreter:
+              type: object
+              properties:
+                file_ids:
+                  type: array
+                  description: |
+                    A list of [file](https://developers.openai.com/api/reference/resources/files) IDs made available to the `code_interpreter` tool. There can be a maximum of 20 files associated with the tool.
+                  default: []
+                  maxItems: 20
+                  items:
+                    type: string
+            file_search:
+              type: object
+              properties:
+                vector_store_ids:
+                  type: array
+                  description: |
+                    The ID of the [vector store](https://developers.openai.com/api/reference/resources/vector_stores) attached to this assistant. There can be a maximum of 1 vector store attached to the assistant.
+                  maxItems: 1
+                  items:
+                    type: string
+        metadata:
+          $ref: '#/components/schemas/Metadata'
+        temperature:
+          type:
+          - number
+          - 'null'
+          minimum: 0
+          maximum: 2
+          default: 1
+          example: 1
+          description: |
+            What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
+        top_p:
+          type:
+          - number
+          - 'null'
+          minimum: 0
+          maximum: 1
+          default: 1
+          example: 1
+          description: |
+            An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.
+
+            We generally recommend altering this or temperature but not both.
+        response_format:
+          $ref: '#/components/schemas/AssistantsApiResponseFormatOption'
+          nullable: true
+        max_prompt_tokens:
+          type:
+          - integer
+          - 'null'
+          description: |
+            The maximum number of prompt tokens that may be used over the course of the run. The run will make a best effort to use only the number of prompt tokens specified, across multiple turns of the run. If the run exceeds the number of prompt tokens specified, the run will end with status `incomplete`. See `incomplete_details` for more info.
+          minimum: 256
+        max_completion_tokens:
+          type:
+          - integer
+          - 'null'
+          description: |
+            The maximum number of completion tokens that may be used over the course of the run. The run will make a best effort to use only the number of completion tokens specified, across multiple turns of the run. If the run exceeds the number of completion tokens specified, the run will end with status `incomplete`. See `incomplete_details` for more info.
+          minimum: 256
+        truncation_strategy:
+          allOf:
+          - $ref: '#/components/schemas/TruncationObject'
+          - nullable: true
+        tool_choice:
+          allOf:
+          - $ref: '#/components/schemas/AssistantsApiToolChoiceOption'
+          - nullable: true
+        parallel_tool_calls:
+          $ref: '#/components/schemas/ParallelToolCalls'
+      required:
+      - assistant_id
+    CodeInterpreterContainerAuto:
+      properties:
+        type:
+          type: string
+          enum:
+          - auto
+          description: Always `auto`.
+          default: auto
+          x-stainless-const: true
+        file_ids:
+          items:
+            type: string
+            example: file-123
+          type: array
+          maxItems: 50
+          description: An optional list of uploaded files to make available to your code.
+        memory_limit:
+          anyOf:
+          - $ref: '#/components/schemas/ContainerMemoryLimit'
+            description: The memory limit for the code interpreter container.
+          - type: 'null'
+        network_policy:
+          discriminator:
+            propertyName: type
+          description: Network access policy for the container.
+          anyOf:
+          - $ref: '#/components/schemas/ContainerNetworkPolicyDisabledParam'
+          - $ref: '#/components/schemas/ContainerNetworkPolicyAllowlistParam'
+      type: object
+      required:
+      - type
+      title: CodeInterpreterToolAuto
+      description: Configuration for a code interpreter container. Optionally specify the IDs of the files to run the code on.
+      x-stainless-naming:
+        go:
+          type_name: ToolCodeInterpreterContainerCodeInterpreterContainerAuto
+    RealtimeResponseItemReference:
+      type: object
+      description: |
+        Reference an existing item in this Realtime session as response.create input.
+        Item references are only accepted in the response input array, not as new
+        conversation items.
+      properties:
+        type:
+          type: string
+          enum:
+          - item_reference
+          x-stainless-const: true
+          description: The type of this item. Always `item_reference`.
+        id:
+          type: string
+          minLength: 1
+          maxLength: 32
+          pattern: ^[a-zA-Z0-9_-]+$
+          description: The ID of an existing item in the same Realtime session.
+      required:
+      - type
+      - id
     RealtimeServerEvent:
       discriminator:
         propertyName: type
@@ -60033,10 +60703,9 @@ components:
               "role": "assistant",
               "content": [
                 {
-                  "type": "audio",
+                  "type": "output_audio",
                   "transcript": "Yes, I can hear you loud and clear. How can I help you today?",
-                  "audio": "8//2//v/9//q/+//+P/s...",
-                  "format": "pcm16"
+                  "audio": "AAABAP//AAA="
                 }
               ]
             }
@@ -60231,9 +60900,9 @@ components:
         group: realtime
         example: |
           {
-              "type":" input_audio_buffer.dtmf_event_received",
-              "event": "9",
-              "received_at": 1763605109,
+            "type": "input_audio_buffer.dtmf_event_received",
+            "event": "9",
+            "received_at": 1763605109
           }
     RealtimeServerEventInputAudioBufferSpeechStarted:
       type: object
@@ -60957,7 +61626,7 @@ components:
               },
               "usage": null,
               "metadata": null
-            },
+            }
           }
     RealtimeServerEventResponseDone:
       type: object
@@ -61401,23 +62070,23 @@ components:
         group: realtime
         example: |
           {
-              "event_id": "event_3536",
-              "type": "response.output_item.done",
-              "response_id": "resp_001",
-              "output_index": 0,
-              "item": {
-                  "id": "msg_007",
-                  "object": "realtime.item",
-                  "type": "message",
-                  "status": "completed",
-                  "role": "assistant",
-                  "content": [
-                      {
-                          "type": "text",
-                          "text": "Sure, I can help with that."
-                      }
-                  ]
-              }
+            "event_id": "event_3536",
+            "type": "response.output_item.done",
+            "response_id": "resp_001",
+            "output_index": 0,
+            "item": {
+              "id": "msg_007",
+              "object": "realtime.item",
+              "type": "message",
+              "status": "completed",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "output_text",
+                  "text": "Sure, I can help with that."
+                }
+              ]
+            }
           }
     RealtimeServerEventResponseTextDelta:
       type: object
@@ -61588,7 +62257,7 @@ components:
                 }
               },
               "include": null
-            },
+            }
           }
     RealtimeServerEventSessionUpdated:
       type: object
@@ -61690,7 +62359,7 @@ components:
                 }
               },
               "include": null
-            },
+            }
           }
     RealtimeServerEventTranscriptionSessionUpdated:
       type: object
@@ -63392,6 +64061,13 @@ components:
               }
             }
           }
+    RealtimeTranslationConnectParams:
+      type: object
+      properties:
+        model:
+          type: string
+      required:
+      - model
     RealtimeTranslationServerEvent:
       discriminator:
         propertyName: type
@@ -64288,6 +64964,21 @@ components:
             x-stainless-skip: true
           usage:
             $ref: '#/components/schemas/ResponseUsage'
+          tool_usage:
+            $ref: '#/components/schemas/ResponseToolUsage'
+            description: |
+              Usage reported by hosted tools, separate from base model `usage`. The field
+              can be omitted when tool usage is unavailable. When present, tool families
+              with no recorded usage have zero counts.
+
+              `image_gen` sums available token counts across image generation calls.
+              Calls with missing or incomplete usage records may be skipped. Output
+              token details and cached input counts can be omitted. An omitted cache
+              count means cache usage is unknown.
+
+              `web_search.num_requests` counts billable searches. Discounted searches
+              and actions such as opening a page are excluded. Use billing records to
+              reconcile final charges.
           prompt_cache_options:
             $ref: '#/components/schemas/PromptCacheOptions'
           prompt_cache_diagnostics:
@@ -64313,21 +65004,6 @@ components:
                 An upper bound for the number of tokens that can be generated for a response, including visible output tokens and [reasoning tokens](https://developers.openai.com/api/docs/guides/reasoning).
               type: integer
             - type: 'null'
-          tool_usage:
-            $ref: '#/components/schemas/ResponseToolUsage'
-            description: |
-              Usage reported by hosted tools, separate from base model `usage`. The field
-              can be omitted when tool usage is unavailable. When present, tool families
-              with no recorded usage have zero counts.
-
-              `image_gen` sums available token counts across image generation calls.
-              Calls with missing or incomplete usage records may be skipped. Output
-              token details and cached input counts can be omitted. An omitted cache
-              count means cache usage is unknown.
-
-              `web_search.num_requests` counts billable searches. Discounted searches
-              and actions such as opening a page are excluded. Use billing records to
-              reconcile final charges.
         required:
         - access_programs
         - id
@@ -78575,6 +79251,10 @@ components:
       - object
       - metadata
       - created_at
+    markup:
+      type: string
+      format: binary
+      description: A transparent PNG overlaid on the first image to guide the edit. Must match that image's dimensions after orientation and contain transparent pixels. Supports GPT Image 2.5 and 2.6. Cannot be combined with mask.
     ImageGenOutputTokensDetails:
       properties:
         image_tokens:
@@ -80319,6 +80999,67 @@ components:
       type: object
       required:
       - cyber
+    CachedUsageDetails:
+      properties:
+        cached_text_tokens:
+          type: integer
+        cached_image_tokens:
+          type: integer
+      type: object
+      required:
+      - cached_text_tokens
+      - cached_image_tokens
+    ImageGenToolUsage:
+      properties:
+        input_tokens:
+          type: integer
+          description: The number of tokens (images and text) in the input prompt.
+        total_tokens:
+          type: integer
+          description: The total number of tokens (images and text) used for the image generation.
+        output_tokens:
+          type: integer
+          description: The number of output tokens generated by the model.
+        output_tokens_details:
+          $ref: '#/components/schemas/ImageGenOutputTokensDetails'
+        input_tokens_details:
+          $ref: '#/components/schemas/ImageGenInputUsageDetails'
+        cached_tokens:
+          type: integer
+        cached_tokens_details:
+          $ref: '#/components/schemas/CachedUsageDetails'
+      type: object
+      required:
+      - input_tokens
+      - total_tokens
+      - output_tokens
+      - input_tokens_details
+      title: Image generation tool usage
+      description: Token usage for image generation tool calls in a response.
+    WebSearchUsage:
+      properties:
+        num_requests:
+          type: integer
+          description: The number of billable web search requests issued.
+      type: object
+      required:
+      - num_requests
+      title: Web search usage
+      description: Usage details for web search requests that ran while generating the response.
+    ResponseToolUsage:
+      properties:
+        image_gen:
+          $ref: '#/components/schemas/ImageGenToolUsage'
+          description: Aggregated usage statistics for image generation tool calls.
+        web_search:
+          $ref: '#/components/schemas/WebSearchUsage'
+          description: Aggregated billable usage statistics for web search tool calls.
+      type: object
+      required:
+      - image_gen
+      - web_search
+      title: Response tool usage
+      description: Aggregated usage details for billable tools that ran while generating the response.
     PromptCacheOptions:
       properties:
         ttl:
@@ -80809,6 +81550,242 @@ components:
       - request_paused
       - error_type
       - reason
+    OrderEnum:
+      type: string
+      enum:
+      - asc
+      - desc
+    ExternalKeyPurpose:
+      type: string
+      enum:
+      - ekm
+      - psp_decryption
+    ExternalKeyResource:
+      properties:
+        object:
+          type: string
+        id:
+          type: string
+        type:
+          type: string
+        purpose:
+          $ref: '#/components/schemas/ExternalKeyPurpose'
+        name:
+          type: string
+        api_project_ids:
+          items:
+            type: string
+          type: array
+        workspace_id:
+          type: string
+        created_at:
+          type: integer
+        role_arn:
+          type: string
+        external_id:
+          type: string
+        kms_arn:
+          type: string
+        workload_identity_project_number:
+          type: string
+        workload_identity_pool_id:
+          type: string
+        workload_identity_provider_id:
+          type: string
+        audience:
+          type: string
+        kms_project_id:
+          type: string
+        kms_key_ring_name:
+          type: string
+        kms_key_name:
+          type: string
+        kms_key_location:
+          type: string
+        kms_key_version:
+          type: string
+        tenant_id:
+          type: string
+        vault_uri:
+          type: string
+        key_name:
+          type: string
+        key_version:
+          type: string
+      type: object
+      required:
+      - object
+      - id
+      - type
+      - name
+      - api_project_ids
+      - workspace_id
+      - created_at
+    ListExternalKeysResource:
+      properties:
+        object:
+          type: string
+          enum:
+          - list
+          default: list
+          x-stainless-const: true
+        data:
+          items:
+            $ref: '#/components/schemas/ExternalKeyResource'
+          type: array
+        first_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+        last_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+        has_more:
+          type: boolean
+      type: object
+      required:
+      - object
+      - data
+      - first_id
+      - last_id
+      - has_more
+    AwsExternalKeyParams:
+      properties:
+        name:
+          type: string
+          description: A friendly name to identify this config
+        type:
+          type: string
+          enum:
+          - aws
+          default: aws
+          x-stainless-const: true
+        role_arn:
+          type: string
+          pattern: ^arn:aws:iam::\d{12}:role/.+$
+          description: The Role ARN that OpenAI will assume to call your KMS
+          example: arn:aws:iam::123456789012:role/example-role
+        kms_arn:
+          type: string
+          description: The Key Management System ARN for the master key you manage
+        external_id:
+          type: string
+          description: The ExternalID that OpenAI will pass in the AssumeRole call for the customer's AWS account. This must be the OpenAI organization ID or an API project ID that belongs to the organization.
+        purpose:
+          $ref: '#/components/schemas/ExternalKeyPurpose'
+      type: object
+      required:
+      - name
+      - type
+      - role_arn
+      - kms_arn
+      - external_id
+    GcpExternalKeyParams:
+      properties:
+        name:
+          type: string
+          description: A friendly name to identify this config
+        type:
+          type: string
+          enum:
+          - gcp
+          default: gcp
+          x-stainless-const: true
+        workload_identity_project_number:
+          type: string
+          pattern: ^[0-9]{1,19}$
+          description: The numeric GCP project number where you registered OpenAI's workload identity
+        workload_identity_pool_id:
+          type: string
+          description: The pool containing the Workload Identity provider that you registered for OpenAI
+        workload_identity_provider_id:
+          type: string
+          description: The Workload Identity provider that you registered for OpenAI
+        kms_project_id:
+          type: string
+          description: The string GCP project name where your KMS resides
+        kms_key_ring_name:
+          type: string
+          description: The Key Management System key ring for the master key you manage
+        kms_key_name:
+          type: string
+          description: The name of the Key Management System master key you manage
+        kms_key_location:
+          type: string
+          description: The region where your Key Management System master key is located
+        audience:
+          type: string
+          description: The aud field in the identity token OpenAI will pass in the call to the customer's GCP STS. This must be the OpenAI organization ID or an API project ID that belongs to the organization.
+        purpose:
+          $ref: '#/components/schemas/ExternalKeyPurpose'
+        kms_key_version:
+          type: string
+          pattern: ^[1-9][0-9]*$
+          description: An exact CryptoKeyVersion number. Required for PSP decryption; not accepted for EKM.
+      type: object
+      required:
+      - name
+      - type
+      - workload_identity_project_number
+      - workload_identity_pool_id
+      - workload_identity_provider_id
+      - kms_project_id
+      - kms_key_ring_name
+      - kms_key_name
+      - kms_key_location
+      - audience
+    AzureExternalKeyParams:
+      properties:
+        name:
+          type: string
+          description: A friendly name to identify this config
+        type:
+          type: string
+          enum:
+          - azure
+          default: azure
+          x-stainless-const: true
+        tenant_id:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+          description: Your Azure tenant UUID
+        vault_uri:
+          type: string
+          pattern: ^https://.+\.vault\.azure\.net/?$
+          description: The URI of the Azure vault containing the master key you manage
+        key_name:
+          type: string
+          maxLength: 127
+          pattern: ^org-[0-9a-zA-Z-]*--[0-9a-zA-Z-]*$
+          description: The name of the Azure Key Vault master key that you manage
+        purpose:
+          $ref: '#/components/schemas/ExternalKeyPurpose'
+        key_version:
+          type: string
+          pattern: ^[0-9a-fA-F]{32}$
+          description: An exact Azure Key Vault key version. Required for PSP decryption; not accepted for EKM.
+      type: object
+      required:
+      - name
+      - type
+      - tenant_id
+      - vault_uri
+      - key_name
+    V1OrganizationExternalKeysPostRequest:
+      discriminator:
+        propertyName: type
+      anyOf:
+      - $ref: '#/components/schemas/AwsExternalKeyParams'
+      - $ref: '#/components/schemas/GcpExternalKeyParams'
+      - $ref: '#/components/schemas/AzureExternalKeyParams'
+    ValidateExternalKeyResource:
+      properties:
+        status:
+          type: string
+      type: object
+      required:
+      - status
     DecisionsUsageBucketWidth:
       type: string
       enum:
@@ -81578,11 +82555,6 @@ components:
       - object
       - created_at
       - results
-    OrderEnum:
-      type: string
-      enum:
-      - asc
-      - desc
     VideoModel:
       anyOf:
       - type: string
@@ -85036,6 +86008,26 @@ components:
       - max_concurrent_subagents
       additionalProperties: false
       description: The resolved configuration for creating and coordinating subagents.
+    CompactionResource:
+      type: object
+      properties:
+        async:
+          type: boolean
+          description: Whether context is compacted in the background. Defaults to true.
+      required:
+      - async
+      additionalProperties: false
+      description: The effective settings for compacting the agent's context.
+    ExperimentalConfigResource:
+      type: object
+      properties:
+        time_awareness:
+          type: boolean
+          description: Whether the model receives periodic current-time reminders.
+      required:
+      - time_awareness
+      additionalProperties: false
+      description: The effective experimental settings for an agent.
     AutomationAgentConfigResource:
       type: object
       properties:
@@ -85903,6 +86895,14 @@ components:
       - error
       additionalProperties: false
       description: An API error response.
+    ExperimentalConfigOverridesParam:
+      type: object
+      properties:
+        time_awareness:
+          type: boolean
+          description: Whether to give the model periodic current-time reminders. Omit to keep the current setting.
+      additionalProperties: false
+      description: Experimental settings to update. Omitted settings keep their current values.
     ReasoningEffortParam:
       type: string
       enum:
@@ -86053,6 +87053,16 @@ components:
       description: Explicit configuration for creating and coordinating subagents.
       x-openai-go-legacy-bool-fields:
       - enabled
+    CompactionParam:
+      type: object
+      properties:
+        async:
+          type:
+          - boolean
+          - 'null'
+          description: Whether to compact context in the background. Omission or null defaults to true. Set to false to use blocking compaction. Background compaction may increase token usage.
+      additionalProperties: false
+      description: Settings for compacting the agent's context.
     AgentToolConfigParamFunction:
       type: object
       properties:
@@ -86470,6 +87480,10 @@ components:
     SessionAgentConfigParam:
       type: object
       properties:
+        experimental:
+          $ref: '#/components/schemas/ExperimentalConfigOverridesParam'
+          default: {}
+          description: Experimental settings to merge by key. Omitted settings keep their current values.
         model:
           type: string
           minLength: 0
@@ -86502,6 +87516,11 @@ components:
           - $ref: '#/components/schemas/MultiAgentConfigCurrentParam'
           - type: 'null'
           description: Configuration for creating and coordinating subagents.
+        compaction:
+          anyOf:
+          - $ref: '#/components/schemas/CompactionParam'
+          - type: 'null'
+          description: Context compaction settings. Omit to keep the current settings. A supplied object replaces the settings; null or an empty object enables background compaction.
         tools:
           type:
           - array
@@ -86511,15 +87530,6 @@ components:
           minItems: 0
           maxItems: 16384
           description: Tools available to the agent. Omit to inherit, or pass null to clear them. The resolved tool list must fit within 3 MiB (3,145,728 bytes) of compact UTF-8 JSON.
-        compaction:
-          anyOf:
-          - $ref: '#/components/schemas/CompactionParam'
-          - type: 'null'
-          description: Context compaction settings. Omit to keep the current settings. A supplied object replaces the settings; null or an empty object enables background compaction.
-        experimental:
-          $ref: '#/components/schemas/ExperimentalConfigOverridesParam'
-          default: {}
-          description: Experimental settings to merge by key. Omitted settings keep their current values.
       additionalProperties: false
       description: Agent configuration for a session. Omitted fields inherit from `agent_id` when supplied. Supplied objects and arrays replace the whole field, except experimental settings, which merge by key. Null resets nullable fields.
     EnvironmentParamNone:
@@ -90051,6 +91061,15 @@ components:
       - has_more
       additionalProperties: false
       description: A page of Agents API resources, with IDs for retrieving additional pages.
+    ExperimentalConfigParam:
+      type: object
+      properties:
+        time_awareness:
+          type: boolean
+          default: false
+          description: Whether to give the model periodic current-time reminders. Defaults to false.
+      additionalProperties: false
+      description: Experimental agent settings. These features may change.
     PersistedAgentToolConfigParamFunction:
       type: object
       properties:
@@ -90386,6 +91405,11 @@ components:
     CreateAgentParams:
       type: object
       properties:
+        experimental:
+          $ref: '#/components/schemas/ExperimentalConfigParam'
+          default:
+            time_awareness: false
+          description: Experimental agent settings. All experimental features default to disabled.
         metadata:
           type:
           - object
@@ -90454,11 +91478,6 @@ components:
           - $ref: '#/components/schemas/CompactionParam'
           - type: 'null'
           description: Context compaction settings. Omission or null enables background compaction.
-        experimental:
-          $ref: '#/components/schemas/ExperimentalConfigParam'
-          default:
-            time_awareness: false
-          description: Experimental agent settings. All experimental features default to disabled.
       required:
       - model
       additionalProperties: false
@@ -90466,6 +91485,10 @@ components:
     UpdateAgentParams:
       type: object
       properties:
+        experimental:
+          $ref: '#/components/schemas/ExperimentalConfigOverridesParam'
+          default: {}
+          description: Experimental settings to merge by key. Omitted settings keep their current values.
         model:
           type: string
           minLength: 0
@@ -90498,6 +91521,11 @@ components:
           - $ref: '#/components/schemas/MultiAgentConfigCurrentParam'
           - type: 'null'
           description: Configuration for creating and coordinating subagents.
+        compaction:
+          anyOf:
+          - $ref: '#/components/schemas/CompactionParam'
+          - type: 'null'
+          description: Context compaction settings. Omit to keep the current settings. A supplied object replaces the settings; null or an empty object enables background compaction.
         metadata:
           type:
           - object
@@ -90529,15 +91557,6 @@ components:
           minItems: 0
           maxItems: 2000
           description: Replaces the tool list. Omit to leave it unchanged, or pass null to clear it. The replacement must fit within 3 MiB (3,145,728 bytes) of compact UTF-8 JSON.
-        compaction:
-          anyOf:
-          - $ref: '#/components/schemas/CompactionParam'
-          - type: 'null'
-          description: Context compaction settings. Omit to keep the current settings. A supplied object replaces the settings; null or an empty object enables background compaction.
-        experimental:
-          $ref: '#/components/schemas/ExperimentalConfigOverridesParam'
-          default: {}
-          description: Experimental settings to merge by key. Omitted settings keep their current values.
       additionalProperties: false
       description: Fields to replace on an existing reusable agent.
     DeletedAgentResource:
@@ -97471,7 +98490,7 @@ components:
         reason: close_requested
         session:
           id: live_abc123
-          model: '{{models.live.default}}'
+          model: gpt-live-1
           status: active
           expires_at: 1788555600
           instructions: Help the caller plan a restaurant reservation. Confirm details before booking.
@@ -97548,7 +98567,7 @@ components:
           reason: close_requested
           session:
             id: live_abc123
-            model: '{{models.live.default}}'
+            model: gpt-live-1
             status: active
             expires_at: 1788555600
             instructions: Help the caller plan a restaurant reservation. Confirm details before booking.
@@ -97701,6 +98720,39 @@ components:
           type: transport.dtmf.received
           event_id: event_dtmf_1
           event: '5'
+    LiveTransportDTMFSent:
+      description: A SIP DTMF keypress successfully sent to the SIP trunk. Delivered only to sideband observers; this is not a client command.
+      example:
+        type: transport.dtmf.sent
+        event_id: event_dtmf_2
+        event: '#'
+      type: object
+      properties:
+        type:
+          default: transport.dtmf.sent
+          x-stainless-const: true
+          type: string
+          enum:
+          - transport.dtmf.sent
+        event_id:
+          type: string
+        event:
+          type: string
+          minLength: 1
+          maxLength: 1
+          pattern: ^[0-9A-D*#]$
+        client_event_id:
+          description: The event_id of the client command, when supplied.
+          type: string
+      required:
+      - type
+      - event_id
+      - event
+      x-oaiMeta:
+        example:
+          type: transport.dtmf.sent
+          event_id: event_dtmf_2
+          event: '#'
     LiveTransportRinging:
       description: The outbound SIP provider leg is ringing or providing early media. Delivered only to sideband observers.
       example:
@@ -97852,6 +98904,40 @@ components:
       - $ref: '#/components/schemas/LiveTransportRinging'
       - $ref: '#/components/schemas/LiveTransportAnswered'
       - $ref: '#/components/schemas/LiveTransportFailed'
+    LiveTransportDTMFSendParam:
+      description: Send one DTMF keypress to the SIP trunk through a Live sideband connection. This command is supported only for SIP calls. A successful send emits `transport.dtmf.sent` on sideband. If you provide `event_id`, the success notification includes it as `client_event_id`; a failure includes it as `error.client_event_id`. Send separate events for multiple keypresses.
+      example:
+        type: transport.dtmf.send
+        event_id: evt_dtmf_001
+        event: '#'
+      type: object
+      properties:
+        event_id:
+          anyOf:
+          - description: Optional client identifier for correlating this command with a server event's client_event_id or error.client_event_id.
+            type: string
+            maxLength: 512
+          - type: 'null'
+        type:
+          default: transport.dtmf.send
+          x-stainless-const: true
+          type: string
+          enum:
+          - transport.dtmf.send
+        event:
+          description: 'The DTMF key to send: one of `0`–`9`, `A`–`D`, `*`, or `#`.'
+          type: string
+          minLength: 1
+          maxLength: 1
+          pattern: ^[0-9A-D*#]$
+      required:
+      - type
+      - event
+      x-oaiMeta:
+        example:
+          type: transport.dtmf.send
+          event_id: evt_dtmf_001
+          event: '#'
     UserMessageItemParam:
       properties:
         id:
@@ -105211,6 +106297,21 @@ components:
             x-stainless-skip: true
           usage:
             $ref: '#/components/schemas/BetaResponseUsage'
+          tool_usage:
+            $ref: '#/components/schemas/BetaResponseToolUsage'
+            description: |
+              Usage reported by hosted tools, separate from base model `usage`. The field
+              can be omitted when tool usage is unavailable. When present, tool families
+              with no recorded usage have zero counts.
+
+              `image_gen` sums available token counts across image generation calls.
+              Calls with missing or incomplete usage records may be skipped. Output
+              token details and cached input counts can be omitted. An omitted cache
+              count means cache usage is unknown.
+
+              `web_search.num_requests` counts billable searches. Discounted searches
+              and actions such as opening a page are excluded. Use billing records to
+              reconcile final charges.
           prompt_cache_options:
             $ref: '#/components/schemas/BetaPromptCacheOptions'
           prompt_cache_diagnostics:
@@ -105236,21 +106337,6 @@ components:
                 An upper bound for the number of tokens that can be generated for a response, including visible output tokens and [reasoning tokens](https://developers.openai.com/api/docs/guides/reasoning).
               type: integer
             - type: 'null'
-          tool_usage:
-            $ref: '#/components/schemas/BetaResponseToolUsage'
-            description: |
-              Usage reported by hosted tools, separate from base model `usage`. The field
-              can be omitted when tool usage is unavailable. When present, tool families
-              with no recorded usage have zero counts.
-
-              `image_gen` sums available token counts across image generation calls.
-              Calls with missing or incomplete usage records may be skipped. Output
-              token details and cached input counts can be omitted. An omitted cache
-              count means cache usage is unknown.
-
-              `web_search.num_requests` counts billable searches. Discounted searches
-              and actions such as opening a page are excluded. Use billing records to
-              reconcile final charges.
         required:
         - access_programs
         - id
@@ -105466,6 +106552,95 @@ components:
       - mode
       title: Prompt cache options
       description: The prompt-caching options that were applied to the response. Supported for `gpt-5.6` and later models.
+    BetaResponseToolUsage:
+      properties:
+        image_gen:
+          $ref: '#/components/schemas/BetaImageGenToolUsage'
+          description: Aggregated usage statistics for image generation tool calls.
+        web_search:
+          $ref: '#/components/schemas/BetaWebSearchUsage'
+          description: Aggregated billable usage statistics for web search tool calls.
+      type: object
+      required:
+      - image_gen
+      - web_search
+      title: Response tool usage
+      description: Aggregated usage details for billable tools that ran while generating the response.
+    BetaWebSearchUsage:
+      properties:
+        num_requests:
+          type: integer
+          description: The number of billable web search requests issued.
+      type: object
+      required:
+      - num_requests
+      title: Web search usage
+      description: Usage details for web search requests that ran while generating the response.
+    BetaImageGenToolUsage:
+      properties:
+        input_tokens:
+          type: integer
+          description: The number of tokens (images and text) in the input prompt.
+        total_tokens:
+          type: integer
+          description: The total number of tokens (images and text) used for the image generation.
+        output_tokens:
+          type: integer
+          description: The number of output tokens generated by the model.
+        output_tokens_details:
+          $ref: '#/components/schemas/BetaImageGenOutputTokensDetails'
+        input_tokens_details:
+          $ref: '#/components/schemas/BetaImageGenInputUsageDetails'
+        cached_tokens:
+          type: integer
+        cached_tokens_details:
+          $ref: '#/components/schemas/BetaCachedUsageDetails'
+      type: object
+      required:
+      - input_tokens
+      - total_tokens
+      - output_tokens
+      - input_tokens_details
+      title: Image generation tool usage
+      description: Token usage for image generation tool calls in a response.
+    BetaCachedUsageDetails:
+      properties:
+        cached_text_tokens:
+          type: integer
+        cached_image_tokens:
+          type: integer
+      type: object
+      required:
+      - cached_text_tokens
+      - cached_image_tokens
+    BetaImageGenInputUsageDetails:
+      properties:
+        text_tokens:
+          type: integer
+          description: The number of text tokens in the input prompt.
+        image_tokens:
+          type: integer
+          description: The number of image tokens in the input prompt.
+      type: object
+      required:
+      - text_tokens
+      - image_tokens
+      title: Input usage details
+      description: The input tokens detailed information for the image generation.
+    BetaImageGenOutputTokensDetails:
+      properties:
+        image_tokens:
+          type: integer
+          description: The number of image output tokens generated by the model.
+        text_tokens:
+          type: integer
+          description: The number of text output tokens generated by the model.
+      type: object
+      required:
+      - image_tokens
+      - text_tokens
+      title: Image generation output token details
+      description: The output token details for the image generation.
     BetaOutputItem:
       discriminator:
         propertyName: type
@@ -110665,504 +111840,6 @@ components:
       - $ref: '#/components/schemas/BetaResponseCustomToolCallInputDoneEvent'
       discriminator:
         propertyName: type
-    BetaCachedUsageDetails:
-      properties:
-        cached_text_tokens:
-          type: integer
-        cached_image_tokens:
-          type: integer
-      type: object
-      required:
-      - cached_text_tokens
-      - cached_image_tokens
-    BetaImageGenInputUsageDetails:
-      properties:
-        text_tokens:
-          type: integer
-          description: The number of text tokens in the input prompt.
-        image_tokens:
-          type: integer
-          description: The number of image tokens in the input prompt.
-      type: object
-      required:
-      - text_tokens
-      - image_tokens
-      title: Input usage details
-      description: The input tokens detailed information for the image generation.
-    BetaImageGenOutputTokensDetails:
-      properties:
-        image_tokens:
-          type: integer
-          description: The number of image output tokens generated by the model.
-        text_tokens:
-          type: integer
-          description: The number of text output tokens generated by the model.
-      type: object
-      required:
-      - image_tokens
-      - text_tokens
-      title: Image generation output token details
-      description: The output token details for the image generation.
-    BetaImageGenToolUsage:
-      properties:
-        input_tokens:
-          type: integer
-          description: The number of tokens (images and text) in the input prompt.
-        total_tokens:
-          type: integer
-          description: The total number of tokens (images and text) used for the image generation.
-        output_tokens:
-          type: integer
-          description: The number of output tokens generated by the model.
-        output_tokens_details:
-          $ref: '#/components/schemas/BetaImageGenOutputTokensDetails'
-        input_tokens_details:
-          $ref: '#/components/schemas/BetaImageGenInputUsageDetails'
-        cached_tokens:
-          type: integer
-        cached_tokens_details:
-          $ref: '#/components/schemas/BetaCachedUsageDetails'
-      type: object
-      required:
-      - input_tokens
-      - total_tokens
-      - output_tokens
-      - input_tokens_details
-      title: Image generation tool usage
-      description: Token usage for image generation tool calls in a response.
-    BetaResponseToolUsage:
-      properties:
-        image_gen:
-          $ref: '#/components/schemas/BetaImageGenToolUsage'
-          description: Aggregated usage statistics for image generation tool calls.
-        web_search:
-          $ref: '#/components/schemas/BetaWebSearchUsage'
-          description: Aggregated billable usage statistics for web search tool calls.
-      type: object
-      required:
-      - image_gen
-      - web_search
-      title: Response tool usage
-      description: Aggregated usage details for billable tools that ran while generating the response.
-    BetaWebSearchUsage:
-      properties:
-        num_requests:
-          type: integer
-          description: The number of billable web search requests issued.
-      type: object
-      required:
-      - num_requests
-      title: Web search usage
-      description: Usage details for web search requests that ran while generating the response.
-    CachedUsageDetails:
-      properties:
-        cached_text_tokens:
-          type: integer
-        cached_image_tokens:
-          type: integer
-      type: object
-      required:
-      - cached_text_tokens
-      - cached_image_tokens
-    ImageGenToolUsage:
-      properties:
-        input_tokens:
-          type: integer
-          description: The number of tokens (images and text) in the input prompt.
-        total_tokens:
-          type: integer
-          description: The total number of tokens (images and text) used for the image generation.
-        output_tokens:
-          type: integer
-          description: The number of output tokens generated by the model.
-        output_tokens_details:
-          $ref: '#/components/schemas/ImageGenOutputTokensDetails'
-        input_tokens_details:
-          $ref: '#/components/schemas/ImageGenInputUsageDetails'
-        cached_tokens:
-          type: integer
-        cached_tokens_details:
-          $ref: '#/components/schemas/CachedUsageDetails'
-      type: object
-      required:
-      - input_tokens
-      - total_tokens
-      - output_tokens
-      - input_tokens_details
-      title: Image generation tool usage
-      description: Token usage for image generation tool calls in a response.
-    ResponseToolUsage:
-      properties:
-        image_gen:
-          $ref: '#/components/schemas/ImageGenToolUsage'
-          description: Aggregated usage statistics for image generation tool calls.
-        web_search:
-          $ref: '#/components/schemas/WebSearchUsage'
-          description: Aggregated billable usage statistics for web search tool calls.
-      type: object
-      required:
-      - image_gen
-      - web_search
-      title: Response tool usage
-      description: Aggregated usage details for billable tools that ran while generating the response.
-    WebSearchUsage:
-      properties:
-        num_requests:
-          type: integer
-          description: The number of billable web search requests issued.
-      type: object
-      required:
-      - num_requests
-      title: Web search usage
-      description: Usage details for web search requests that ran while generating the response.
-    AwsExternalKeyParams:
-      properties:
-        name:
-          type: string
-          description: A friendly name to identify this config
-        type:
-          type: string
-          enum:
-          - aws
-          default: aws
-          x-stainless-const: true
-        role_arn:
-          type: string
-          pattern: ^arn:aws:iam::\d{12}:role/.+$
-          description: The Role ARN that OpenAI will assume to call your KMS
-        kms_arn:
-          type: string
-          description: The Key Management System ARN for the master key you manage
-        external_id:
-          type: string
-          description: The ExternalID that OpenAI will pass in the AssumeRole call for the customer's AWS account. This must be the OpenAI organization ID or an API project ID that belongs to the organization.
-        purpose:
-          $ref: '#/components/schemas/ExternalKeyPurpose'
-      type: object
-      required:
-      - name
-      - type
-      - role_arn
-      - kms_arn
-      - external_id
-    AzureExternalKeyParams:
-      properties:
-        name:
-          type: string
-          description: A friendly name to identify this config
-        type:
-          type: string
-          enum:
-          - azure
-          default: azure
-          x-stainless-const: true
-        tenant_id:
-          type: string
-          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
-          description: Your Azure tenant UUID
-        vault_uri:
-          type: string
-          pattern: ^https://.+\.vault\.azure\.net/?$
-          description: The URI of the Azure vault containing the master key you manage
-        key_name:
-          type: string
-          maxLength: 127
-          pattern: ^org-[0-9a-zA-Z-]*--[0-9a-zA-Z-]*$
-          description: The name of the Azure Key Vault master key that you manage
-        purpose:
-          $ref: '#/components/schemas/ExternalKeyPurpose'
-        key_version:
-          type: string
-          pattern: ^[0-9a-fA-F]{32}$
-          description: An exact Azure Key Vault key version. Required for PSP decryption; not accepted for EKM.
-      type: object
-      required:
-      - name
-      - type
-      - tenant_id
-      - vault_uri
-      - key_name
-    ExternalKeyPurpose:
-      type: string
-      enum:
-      - ekm
-      - psp_decryption
-    ExternalKeyResource:
-      properties:
-        object:
-          type: string
-        id:
-          type: string
-        type:
-          type: string
-        purpose:
-          $ref: '#/components/schemas/ExternalKeyPurpose'
-        name:
-          type: string
-        api_project_ids:
-          items:
-            type: string
-          type: array
-        workspace_id:
-          type: string
-        created_at:
-          type: integer
-        role_arn:
-          type: string
-        external_id:
-          type: string
-        kms_arn:
-          type: string
-        workload_identity_project_number:
-          type: string
-        workload_identity_pool_id:
-          type: string
-        workload_identity_provider_id:
-          type: string
-        audience:
-          type: string
-        kms_project_id:
-          type: string
-        kms_key_ring_name:
-          type: string
-        kms_key_name:
-          type: string
-        kms_key_location:
-          type: string
-        kms_key_version:
-          type: string
-        tenant_id:
-          type: string
-        vault_uri:
-          type: string
-        key_name:
-          type: string
-        key_version:
-          type: string
-      type: object
-      required:
-      - object
-      - id
-      - type
-      - name
-      - api_project_ids
-      - workspace_id
-      - created_at
-    GcpExternalKeyParams:
-      properties:
-        name:
-          type: string
-          description: A friendly name to identify this config
-        type:
-          type: string
-          enum:
-          - gcp
-          default: gcp
-          x-stainless-const: true
-        workload_identity_project_number:
-          type: string
-          pattern: ^[0-9]{1,19}$
-          description: The numeric GCP project number where you registered OpenAI's workload identity
-        workload_identity_pool_id:
-          type: string
-          description: The pool containing the Workload Identity provider that you registered for OpenAI
-        workload_identity_provider_id:
-          type: string
-          description: The Workload Identity provider that you registered for OpenAI
-        kms_project_id:
-          type: string
-          description: The string GCP project name where your KMS resides
-        kms_key_ring_name:
-          type: string
-          description: The Key Management System key ring for the master key you manage
-        kms_key_name:
-          type: string
-          description: The name of the Key Management System master key you manage
-        kms_key_location:
-          type: string
-          description: The region where your Key Management System master key is located
-        audience:
-          type: string
-          description: The aud field in the identity token OpenAI will pass in the call to the customer's GCP STS. This must be the OpenAI organization ID or an API project ID that belongs to the organization.
-        purpose:
-          $ref: '#/components/schemas/ExternalKeyPurpose'
-        kms_key_version:
-          type: string
-          pattern: ^[1-9][0-9]*$
-          description: An exact CryptoKeyVersion number. Required for PSP decryption; not accepted for EKM.
-      type: object
-      required:
-      - name
-      - type
-      - workload_identity_project_number
-      - workload_identity_pool_id
-      - workload_identity_provider_id
-      - kms_project_id
-      - kms_key_ring_name
-      - kms_key_name
-      - kms_key_location
-      - audience
-    ListExternalKeysResource:
-      properties:
-        object:
-          type: string
-          enum:
-          - list
-          default: list
-          x-stainless-const: true
-        data:
-          items:
-            $ref: '#/components/schemas/ExternalKeyResource'
-          type: array
-        first_id:
-          anyOf:
-          - type: string
-          - type: 'null'
-        last_id:
-          anyOf:
-          - type: string
-          - type: 'null'
-        has_more:
-          type: boolean
-      type: object
-      required:
-      - object
-      - data
-      - first_id
-      - last_id
-      - has_more
-    V1OrganizationExternalKeysPostRequest:
-      discriminator:
-        propertyName: type
-      anyOf:
-      - $ref: '#/components/schemas/AwsExternalKeyParams'
-      - $ref: '#/components/schemas/GcpExternalKeyParams'
-      - $ref: '#/components/schemas/AzureExternalKeyParams'
-    ValidateExternalKeyResource:
-      properties:
-        status:
-          type: string
-      type: object
-      required:
-      - status
-    LiveTransportDTMFSendParam:
-      description: Send one DTMF keypress to the SIP trunk through a Live sideband connection. This command is supported only for SIP calls. A successful send emits `transport.dtmf.sent` on sideband. If you provide `event_id`, the success notification includes it as `client_event_id`; a failure includes it as `error.client_event_id`. Send separate events for multiple keypresses.
-      example:
-        type: transport.dtmf.send
-        event_id: evt_dtmf_001
-        event: '#'
-      type: object
-      properties:
-        event_id:
-          anyOf:
-          - description: Optional client identifier for correlating this command with a server event's client_event_id or error.client_event_id.
-            type: string
-            maxLength: 512
-          - type: 'null'
-        type:
-          default: transport.dtmf.send
-          x-stainless-const: true
-          type: string
-          enum:
-          - transport.dtmf.send
-        event:
-          description: 'The DTMF key to send: one of `0`–`9`, `A`–`D`, `*`, or `#`.'
-          type: string
-          minLength: 1
-          maxLength: 1
-          pattern: ^[0-9A-D*#]$
-      required:
-      - type
-      - event
-      x-oaiMeta:
-        example:
-          type: transport.dtmf.send
-          event_id: evt_dtmf_001
-          event: '#'
-    LiveTransportDTMFSent:
-      description: A SIP DTMF keypress successfully sent to the SIP trunk. Delivered only to sideband observers; this is not a client command.
-      example:
-        type: transport.dtmf.sent
-        event_id: event_dtmf_2
-        event: '#'
-      type: object
-      properties:
-        type:
-          default: transport.dtmf.sent
-          x-stainless-const: true
-          type: string
-          enum:
-          - transport.dtmf.sent
-        event_id:
-          type: string
-        event:
-          type: string
-          minLength: 1
-          maxLength: 1
-          pattern: ^[0-9A-D*#]$
-        client_event_id:
-          description: The event_id of the client command, when supplied.
-          type: string
-      required:
-      - type
-      - event_id
-      - event
-      x-oaiMeta:
-        example:
-          type: transport.dtmf.sent
-          event_id: event_dtmf_2
-          event: '#'
-    CompactionParam:
-      type: object
-      properties:
-        async:
-          type:
-          - boolean
-          - 'null'
-          description: Whether to compact context in the background. Omission or null defaults to true. Set to false to use blocking compaction. Background compaction may increase token usage.
-      additionalProperties: false
-      description: Settings for compacting the agent's context.
-    CompactionResource:
-      type: object
-      properties:
-        async:
-          type: boolean
-          description: Whether context is compacted in the background. Defaults to true.
-      required:
-      - async
-      additionalProperties: false
-      description: The effective settings for compacting the agent's context.
-    markup:
-      type: string
-      format: binary
-      description: A transparent PNG overlaid on the first image to guide the edit. Must match that image's dimensions after orientation and contain transparent pixels. Supports GPT Image 2.5 and 2.6. Cannot be combined with mask.
-    ExperimentalConfigOverridesParam:
-      type: object
-      properties:
-        time_awareness:
-          type: boolean
-          description: Whether to give the model periodic current-time reminders. Omit to keep the current setting.
-      additionalProperties: false
-      description: Experimental settings to update. Omitted settings keep their current values.
-    ExperimentalConfigParam:
-      type: object
-      properties:
-        time_awareness:
-          type: boolean
-          default: false
-          description: Whether to give the model periodic current-time reminders. Defaults to false.
-      additionalProperties: false
-      description: Experimental agent settings. These features may change.
-    ExperimentalConfigResource:
-      type: object
-      properties:
-        time_awareness:
-          type: boolean
-          description: Whether the model receives periodic current-time reminders.
-      required:
-      - time_awareness
-      additionalProperties: false
-      description: The effective experimental settings for an agent.
     SessionSpendControlResource:
       type: object
       properties:
@@ -111247,13 +111924,6 @@ components:
       - $ref: '#/components/schemas/BetaInputTextContentParam'
       - $ref: '#/components/schemas/BetaInputImageContentParamAutoParam'
       - $ref: '#/components/schemas/BetaInputFileContentParam'
-    RealtimeConnectParams:
-      type: object
-      properties:
-        model:
-          type: string
-        call_id:
-          type: string
     ModerationImageURLInput:
       type: object
       description: An object describing an image to classify.
@@ -111472,6 +112142,10 @@ components:
           message: 'Announced shutdown date: 2027-04-01. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
         gpt-5.1:
           message: 'Announced shutdown date: 2027-04-01. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-5.1-2025-11-13:
+          message: 'Announced shutdown date: 2027-04-01. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
+        gpt-5.4-nano-2026-03-17:
+          message: 'Announced shutdown date: 2027-04-01. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
         gpt-4.1-2025-04-14:
           message: 'Announced shutdown date: 2027-01-14. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
         gpt-4.1:
@@ -111610,10 +112284,6 @@ components:
           message: 'Announced shutdown date: 2027-01-20. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
         gpt-5.1-mini:
           message: Not a supported model ID. Retained for SDK compatibility.
-        gpt-5.1-2025-11-13:
-          message: 'Announced shutdown date: 2027-04-01. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
-        gpt-5.4-nano-2026-03-17:
-          message: 'Announced shutdown date: 2027-04-01. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
       x-stainless-nominal: false
     LiveBuiltInVoice:
       type: string
@@ -111642,411 +112312,6 @@ components:
       - vesper
       - willow
       description: A built-in voice available for Live speech.
-    Summary:
-      properties:
-        type:
-          type: string
-          enum:
-          - summary_text
-          description: The type of the object. Always `summary_text`.
-          default: summary_text
-          x-stainless-const: true
-        text:
-          type: string
-          description: A summary of the reasoning output from the model so far.
-      type: object
-      required:
-      - type
-      - text
-      title: Summary text
-      description: A summary text from the model.
-    CreateThreadAndRunRequestWithoutStream:
-      type: object
-      additionalProperties: false
-      properties:
-        assistant_id:
-          description: The ID of the [assistant](https://developers.openai.com/api/docs/assistants/migration) to use to execute this run.
-          type: string
-        thread:
-          $ref: '#/components/schemas/CreateThreadRequest'
-        model:
-          description: The ID of the [Model](https://developers.openai.com/api/reference/resources/models) to be used to execute this run. If a value is provided here, it will override the model associated with the assistant. If not, the model associated with the assistant will be used.
-          example: gpt-4.1
-          anyOf:
-          - type: string
-          - type: string
-            enum:
-            - gpt-5
-            - gpt-5-mini
-            - gpt-5-nano
-            - gpt-5-2025-08-07
-            - gpt-5-mini-2025-08-07
-            - gpt-5-nano-2025-08-07
-            - gpt-4.1
-            - gpt-4.1-mini
-            - gpt-4.1-nano
-            - gpt-4.1-2025-04-14
-            - gpt-4.1-mini-2025-04-14
-            - gpt-4.1-nano-2025-04-14
-            - gpt-4o
-            - gpt-4o-2024-11-20
-            - gpt-4o-2024-08-06
-            - gpt-4o-2024-05-13
-            - gpt-4o-mini
-            - gpt-4o-mini-2024-07-18
-            - gpt-4.5-preview
-            - gpt-4.5-preview-2025-02-27
-            - gpt-4-turbo
-            - gpt-4-turbo-2024-04-09
-            - gpt-4-0125-preview
-            - gpt-4-turbo-preview
-            - gpt-4-1106-preview
-            - gpt-4-vision-preview
-            - gpt-4
-            - gpt-4-0314
-            - gpt-4-0613
-            - gpt-4-32k
-            - gpt-4-32k-0314
-            - gpt-4-32k-0613
-            - gpt-3.5-turbo
-            - gpt-3.5-turbo-16k
-            - gpt-3.5-turbo-0613
-            - gpt-3.5-turbo-1106
-            - gpt-3.5-turbo-0125
-            - gpt-3.5-turbo-16k-0613
-            x-openai-enum-deprecations:
-              gpt-5:
-                message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
-              gpt-5-mini:
-                message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
-              gpt-5-nano:
-                message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
-              gpt-5-2025-08-07:
-                message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
-              gpt-5-mini-2025-08-07:
-                message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
-              gpt-5-nano-2025-08-07:
-                message: 'Announced shutdown date: 2026-12-11. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
-          x-oaiTypeLabel: string
-          nullable: true
-        instructions:
-          description: Override the default system message of the assistant. This is useful for modifying the behavior on a per-run basis.
-          type:
-          - string
-          - 'null'
-        tools:
-          description: Override the tools the assistant can use for this run. This is useful for modifying the behavior on a per-run basis.
-          type:
-          - array
-          - 'null'
-          maxItems: 20
-          items:
-            $ref: '#/components/schemas/AssistantTool'
-        tool_resources:
-          type:
-          - object
-          - 'null'
-          description: |
-            A set of resources that are used by the assistant's tools. The resources are specific to the type of tool. For example, the `code_interpreter` tool requires a list of file IDs, while the `file_search` tool requires a list of vector store IDs.
-          properties:
-            code_interpreter:
-              type: object
-              properties:
-                file_ids:
-                  type: array
-                  description: |
-                    A list of [file](https://developers.openai.com/api/reference/resources/files) IDs made available to the `code_interpreter` tool. There can be a maximum of 20 files associated with the tool.
-                  default: []
-                  maxItems: 20
-                  items:
-                    type: string
-            file_search:
-              type: object
-              properties:
-                vector_store_ids:
-                  type: array
-                  description: |
-                    The ID of the [vector store](https://developers.openai.com/api/reference/resources/vector_stores) attached to this assistant. There can be a maximum of 1 vector store attached to the assistant.
-                  maxItems: 1
-                  items:
-                    type: string
-        metadata:
-          $ref: '#/components/schemas/Metadata'
-        temperature:
-          type:
-          - number
-          - 'null'
-          minimum: 0
-          maximum: 2
-          default: 1
-          example: 1
-          description: |
-            What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
-        top_p:
-          type:
-          - number
-          - 'null'
-          minimum: 0
-          maximum: 1
-          default: 1
-          example: 1
-          description: |
-            An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.
-
-            We generally recommend altering this or temperature but not both.
-        response_format:
-          $ref: '#/components/schemas/AssistantsApiResponseFormatOption'
-          nullable: true
-        max_prompt_tokens:
-          type:
-          - integer
-          - 'null'
-          description: |
-            The maximum number of prompt tokens that may be used over the course of the run. The run will make a best effort to use only the number of prompt tokens specified, across multiple turns of the run. If the run exceeds the number of prompt tokens specified, the run will end with status `incomplete`. See `incomplete_details` for more info.
-          minimum: 256
-        max_completion_tokens:
-          type:
-          - integer
-          - 'null'
-          description: |
-            The maximum number of completion tokens that may be used over the course of the run. The run will make a best effort to use only the number of completion tokens specified, across multiple turns of the run. If the run exceeds the number of completion tokens specified, the run will end with status `incomplete`. See `incomplete_details` for more info.
-          minimum: 256
-        truncation_strategy:
-          allOf:
-          - $ref: '#/components/schemas/TruncationObject'
-          - nullable: true
-        tool_choice:
-          allOf:
-          - $ref: '#/components/schemas/AssistantsApiToolChoiceOption'
-          - nullable: true
-        parallel_tool_calls:
-          $ref: '#/components/schemas/ParallelToolCalls'
-      required:
-      - assistant_id
-    CreateRunRequestWithoutStream:
-      type: object
-      additionalProperties: false
-      properties:
-        assistant_id:
-          description: The ID of the [assistant](https://developers.openai.com/api/docs/assistants/migration) to use to execute this run.
-          type: string
-        model:
-          description: The ID of the [Model](https://developers.openai.com/api/reference/resources/models) to be used to execute this run. If a value is provided here, it will override the model associated with the assistant. If not, the model associated with the assistant will be used.
-          example: gpt-4.1
-          anyOf:
-          - type: string
-          - $ref: '#/components/schemas/AssistantSupportedModels'
-          x-oaiTypeLabel: string
-          nullable: true
-        reasoning_effort:
-          $ref: '#/components/schemas/ReasoningEffort'
-        instructions:
-          description: Overrides the [instructions](https://developers.openai.com/api/docs/assistants/migration) of the assistant. This is useful for modifying the behavior on a per-run basis.
-          type:
-          - string
-          - 'null'
-        additional_instructions:
-          description: Appends additional instructions at the end of the instructions for the run. This is useful for modifying the behavior on a per-run basis without overriding other instructions.
-          type:
-          - string
-          - 'null'
-        additional_messages:
-          description: Adds additional messages to the thread before creating the run.
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/CreateMessageRequest'
-        tools:
-          description: Override the tools the assistant can use for this run. This is useful for modifying the behavior on a per-run basis.
-          type:
-          - array
-          - 'null'
-          maxItems: 20
-          items:
-            $ref: '#/components/schemas/AssistantTool'
-        metadata:
-          $ref: '#/components/schemas/Metadata'
-        temperature:
-          type:
-          - number
-          - 'null'
-          minimum: 0
-          maximum: 2
-          default: 1
-          example: 1
-          description: |
-            What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
-        top_p:
-          type:
-          - number
-          - 'null'
-          minimum: 0
-          maximum: 1
-          default: 1
-          example: 1
-          description: |
-            An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.
-
-            We generally recommend altering this or temperature but not both.
-        response_format:
-          $ref: '#/components/schemas/AssistantsApiResponseFormatOption'
-          nullable: true
-        max_prompt_tokens:
-          type:
-          - integer
-          - 'null'
-          description: |
-            The maximum number of prompt tokens that may be used over the course of the run. The run will make a best effort to use only the number of prompt tokens specified, across multiple turns of the run. If the run exceeds the number of prompt tokens specified, the run will end with status `incomplete`. See `incomplete_details` for more info.
-          minimum: 256
-        max_completion_tokens:
-          type:
-          - integer
-          - 'null'
-          description: |
-            The maximum number of completion tokens that may be used over the course of the run. The run will make a best effort to use only the number of completion tokens specified, across multiple turns of the run. If the run exceeds the number of completion tokens specified, the run will end with status `incomplete`. See `incomplete_details` for more info.
-          minimum: 256
-        truncation_strategy:
-          allOf:
-          - $ref: '#/components/schemas/TruncationObject'
-          - nullable: true
-        tool_choice:
-          allOf:
-          - $ref: '#/components/schemas/AssistantsApiToolChoiceOption'
-          - nullable: true
-        parallel_tool_calls:
-          $ref: '#/components/schemas/ParallelToolCalls'
-      required:
-      - assistant_id
-    SubmitToolOutputsRunRequestWithoutStream:
-      type: object
-      additionalProperties: false
-      properties:
-        tool_outputs:
-          description: A list of tools for which the outputs are being submitted.
-          type: array
-          items:
-            type: object
-            properties:
-              tool_call_id:
-                type: string
-                description: The ID of the tool call in the `required_action` object within the run object the output is being submitted for.
-              output:
-                type: string
-                description: The output of the tool call to be submitted to continue the run.
-      required:
-      - tool_outputs
-    RunStatus:
-      description: The status of the run, which can be either `queued`, `in_progress`, `requires_action`, `cancelling`, `cancelled`, `failed`, `completed`, `incomplete`, or `expired`.
-      type: string
-      enum:
-      - queued
-      - in_progress
-      - requires_action
-      - cancelling
-      - cancelled
-      - failed
-      - completed
-      - incomplete
-      - expired
-    CodeInterpreterContainerAuto:
-      properties:
-        type:
-          type: string
-          enum:
-          - auto
-          description: Always `auto`.
-          default: auto
-          x-stainless-const: true
-        file_ids:
-          items:
-            type: string
-            example: file-123
-          type: array
-          maxItems: 50
-          description: An optional list of uploaded files to make available to your code.
-        memory_limit:
-          anyOf:
-          - $ref: '#/components/schemas/ContainerMemoryLimit'
-            description: The memory limit for the code interpreter container.
-          - type: 'null'
-        network_policy:
-          discriminator:
-            propertyName: type
-          description: Network access policy for the container.
-          anyOf:
-          - $ref: '#/components/schemas/ContainerNetworkPolicyDisabledParam'
-          - $ref: '#/components/schemas/ContainerNetworkPolicyAllowlistParam'
-      type: object
-      required:
-      - type
-      title: CodeInterpreterToolAuto
-      description: Configuration for a code interpreter container. Optionally specify the IDs of the files to run the code on.
-      x-stainless-naming:
-        go:
-          type_name: ToolCodeInterpreterContainerCodeInterpreterContainerAuto
-    LiveFunctionToolChoiceParam:
-      type: object
-      properties:
-        type:
-          default: function
-          x-stainless-const: true
-          type: string
-          enum:
-          - function
-        name:
-          type: string
-          minLength: 1
-          maxLength: 64
-          pattern: ^[a-zA-Z0-9_-]+$
-      required:
-      - type
-      - name
-    LiveMCPToolChoiceParam:
-      type: object
-      properties:
-        type:
-          default: mcp
-          x-stainless-const: true
-          type: string
-          enum:
-          - mcp
-        server_label:
-          type: string
-          minLength: 1
-          maxLength: 64
-          pattern: ^[a-zA-Z0-9_-]+$
-        name:
-          type: string
-          minLength: 1
-          maxLength: 64
-          pattern: ^[a-zA-Z0-9_-]+$
-      required:
-      - type
-      - server_label
-      - name
-    RealtimeResponseItemReference:
-      type: object
-      description: |
-        Reference an existing item in this Realtime session as response.create input.
-        Item references are only accepted in the response input array, not as new
-        conversation items.
-      properties:
-        type:
-          type: string
-          enum:
-          - item_reference
-          x-stainless-const: true
-          description: The type of this item. Always `item_reference`.
-        id:
-          type: string
-          minLength: 1
-          maxLength: 32
-          pattern: ^[a-zA-Z0-9_-]+$
-          description: The ID of an existing item in the same Realtime session.
-      required:
-      - type
-      - id
   responses:
     TooManyRequests:
       description: The request was rejected because a rate limit was exceeded.
