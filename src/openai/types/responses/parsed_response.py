@@ -50,6 +50,8 @@ ContentType = TypeVar("ContentType")
 class ParsedResponseOutputText(ResponseOutputText, GenericModel, Generic[ContentType]):
     parsed: Optional[ContentType] = None
 
+    __api_exclude__ = {"parsed"}
+
 
 ParsedContent: TypeAlias = Annotated[
     Union[ParsedResponseOutputText[ContentType], ResponseOutputRefusal],
@@ -62,6 +64,21 @@ class ParsedResponseOutputMessage(ResponseOutputMessage, GenericModel, Generic[C
         content: List[ParsedContent[ContentType]]  # ty: ignore[invalid-attribute-override]
     else:
         content: List[ParsedContent]
+
+    @property
+    def __api_exclude__(self) -> dict[str, object]:
+        # The outer model dump flattens typed parts. Carry their exclusions to
+        # that dump, without interpreting ordinary dict keys as SDK metadata.
+        content = getattr(self, "content", None)
+        if not isinstance(content, list):
+            return {}
+        return {
+            "content": {
+                index: part.__api_exclude__
+                for index, part in enumerate(content)
+                if isinstance(part, ParsedResponseOutputText)
+            }
+        }
 
 
 class ParsedResponseFunctionToolCall(ResponseFunctionToolCall):
