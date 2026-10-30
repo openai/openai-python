@@ -746,7 +746,7 @@ class AsyncLiveConnectionManager:
         if self.__connection is not None:
             try:
                 await self.__connection.close()
-            except BaseException:
+            except Exception:
                 if exc is None:
                     raise
 
@@ -1164,7 +1164,7 @@ class LiveConnectionManager:
         if self.__connection is not None:
             try:
                 self.__connection.close()
-            except BaseException:
+            except Exception:
                 if exc is None:
                     raise
 

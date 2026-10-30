@@ -533,7 +533,7 @@ class AsyncForksConnectionManager:
         if self.__connection is not None:
             try:
                 await self.__connection.close()
-            except BaseException:
+            except Exception:
                 if exc is None:
                     raise
 
@@ -959,7 +959,7 @@ class ForksConnectionManager:
         if self.__connection is not None:
             try:
                 self.__connection.close()
-            except BaseException:
+            except Exception:
                 if exc is None:
                     raise
 

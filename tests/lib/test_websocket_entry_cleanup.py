@@ -163,3 +163,59 @@ async def test_async_constructor_failure_closes_acquired_socket(monkeypatch: pyt
             await session.enter()
         assert raised.value is original
         assert sock.close_called
+
+
+@pytest.mark.parametrize("product", ["responses", "beta.responses"])
+@pytest.mark.asyncio
+async def test_task_cancel_during_exit_preserves_new_cancellation(
+    monkeypatch: pytest.MonkeyPatch, product: str
+) -> None:
+    entered_close = asyncio.Event()
+    body_error = ValueError("synthetic ordinary body failure")
+    close_cancel: list[asyncio.CancelledError] = []
+
+    class Socket:
+        close_count = 0
+        sent: list[str] = []
+
+        async def send(self, data: str) -> None:
+            self.sent.append(data)
+
+        async def close(self, **_kwargs: Any) -> None:
+            self.close_count += 1
+            entered_close.set()
+            try:
+                await asyncio.Event().wait()
+            except asyncio.CancelledError as exc:
+                close_cancel.append(exc)
+                raise
+
+    sock = Socket()
+
+    async def connect(*_args: Any, **_kwargs: Any) -> Socket:
+        return sock
+
+    monkeypatch.setattr("openai.lib._websocket._WebSocketConnect", connect)
+    async with AsyncOpenAI(api_key="fake-key") as client:
+        session = manager(client, product)
+        session.send({"type": "synthetic.first"})
+
+        async def use_session() -> None:
+            async with session:
+                assert [json.loads(data)["type"] for data in sock.sent] == ["synthetic.first"]
+                raise body_error
+
+        task = asyncio.create_task(use_session())
+        try:
+            await asyncio.wait_for(entered_close.wait(), timeout=3)
+            assert not task.done() and sock.close_count == 1
+            assert task.cancel("new cancellation during cleanup")
+            with pytest.raises(asyncio.CancelledError):
+                await asyncio.wait_for(task, timeout=3)
+            assert task.cancelled()
+            assert len(close_cancel) == 1
+            assert close_cancel[0].args == ("new cancellation during cleanup",)
+        finally:
+            if not task.done():
+                task.cancel()
+            await asyncio.gather(task, return_exceptions=True)
