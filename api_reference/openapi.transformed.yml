@@ -33545,7 +33545,7 @@ paths:
     post:
       operationId: updateAgentSession
       summary: Update an agent session
-      description: Updates session metadata, model, reasoning effort, or service tier. Model settings apply to subsequent turns. Omitted fields are unchanged. See [managing sessions](https://developers.openai.com/api/docs/guides/agents-api/sessions/manage).
+      description: Updates session tools, metadata, model, reasoning effort, or service tier. Model settings apply to subsequent turns. Omitted fields are unchanged. See [managing sessions](https://developers.openai.com/api/docs/guides/agents-api/sessions/manage).
       tags:
       - Agents
       parameters:
@@ -92393,6 +92393,9 @@ components:
           - $ref: '#/components/schemas/TokenUsageResource'
           - type: 'null'
           description: Best-effort token usage for the session, or null if unknown. Recorded usage may change.
+        review:
+          $ref: '#/components/schemas/SessionReviewResource'
+          description: Review applied to eligible actions in this session. Omitted when review is none and automatic review is not enabled. Omission means none.
         spend_control:
           $ref: '#/components/schemas/SessionSpendControlResource'
           description: Configured spending limit and best-effort consumption, in USD cents. Unlimited sessions omit this object.
@@ -92511,6 +92514,9 @@ components:
           type: boolean
           default: false
           description: Whether to stream session events as server-sent events. Defaults to `false`.
+        review:
+          $ref: '#/components/schemas/SessionReviewParam'
+          description: Action review mode. Omit to use none.
         spend_control:
           anyOf:
           - $ref: '#/components/schemas/SessionSpendControlParam'
@@ -94121,14 +94127,23 @@ components:
           - type: 'null'
           description: Omit to keep the current tier. Null resets it to auto.
           x-openai-go-optional-enum: true
+        tools:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/AgentToolConfigParam'
+          minItems: 0
+          maxItems: 16384
+          description: Replaces the session tools. Functions and MCP servers change on the next model call. Built-in tools change by the next turn. Omit to keep the current tools, or pass null or an empty array to clear them.
       additionalProperties: false
-      description: Model settings that can change after session creation.
+      description: Agent settings that can change after session creation.
     UpdateAgentSessionParams:
       type: object
       properties:
         agent:
           $ref: '#/components/schemas/UpdateSessionAgentParam'
-          description: Model settings for subsequent turns. Omitted fields stay unchanged.
+          description: Agent settings to update on this session. Omitted fields stay unchanged.
         metadata:
           type:
           - object
@@ -94144,6 +94159,9 @@ components:
           minProperties: 0
           maxProperties: 16
           description: Replaces all metadata. Omit to leave unchanged, or pass null or {} to clear it. Up to 16 string key-value pairs, with keys up to 64 and values up to 512 characters.
+        review:
+          $ref: '#/components/schemas/SessionReviewParam'
+          description: Default action review for new root turns. Existing turns and their subagents keep their review mode.
         spend_control:
           anyOf:
           - $ref: '#/components/schemas/SessionSpendControlParam'
@@ -111902,6 +111920,21 @@ components:
       - $ref: '#/components/schemas/BetaResponseCustomToolCallInputDoneEvent'
       discriminator:
         propertyName: type
+    SessionReviewParam:
+      type: string
+      enum:
+      - none
+      - auto_review
+      x-enumDescriptions:
+      - Keep the existing execution behavior without automatic action review.
+      - Review eligible actions automatically. Deny manual approval fallbacks.
+      description: Review applied to eligible actions in a session.
+    SessionReviewResource:
+      type: string
+      enum:
+      - none
+      - auto_review
+      description: The configured action review mode.
     SessionSpendControlResource:
       type: object
       properties:

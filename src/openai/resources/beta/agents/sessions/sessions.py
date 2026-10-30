@@ -164,6 +164,7 @@ class Sessions(SyncAPIResource):
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
+        review: Literal["none", "auto_review"] | Omit = omit,
         spend_control: Optional[session_create_params.SpendControl] | Omit = omit,
         stream: Literal[False] | Omit = omit,
         vault_ids: Optional[SequenceNotStr[str]] | Omit = omit,
@@ -185,6 +186,7 @@ class Sessions(SyncAPIResource):
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
+        review: Literal["none", "auto_review"] | Omit = omit,
         spend_control: Optional[session_create_params.SpendControl] | Omit = omit,
         vault_ids: Optional[SequenceNotStr[str]] | Omit = omit,
         extra_headers: Headers | None = None,
@@ -205,6 +207,7 @@ class Sessions(SyncAPIResource):
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
+        review: Literal["none", "auto_review"] | Omit = omit,
         spend_control: Optional[session_create_params.SpendControl] | Omit = omit,
         vault_ids: Optional[SequenceNotStr[str]] | Omit = omit,
         extra_headers: Headers | None = None,
@@ -224,6 +227,7 @@ class Sessions(SyncAPIResource):
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
+        review: Literal["none", "auto_review"] | Omit = omit,
         spend_control: Optional[session_create_params.SpendControl] | Omit = omit,
         stream: Literal[False] | Literal[True] | Omit = omit,
         vault_ids: Optional[SequenceNotStr[str]] | Omit = omit,
@@ -242,6 +246,7 @@ class Sessions(SyncAPIResource):
                 "agent_id": agent_id,
                 "input": input,
                 "metadata": metadata,
+                "review": review,
                 "spend_control": spend_control,
                 "vault_ids": vault_ids,
             },
@@ -318,6 +323,7 @@ class Sessions(SyncAPIResource):
         *,
         agent: session_update_params.Agent | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
+        review: Literal["none", "auto_review"] | Omit = omit,
         spend_control: Optional[session_update_params.SpendControl] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -326,18 +332,25 @@ class Sessions(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AgentSession:
-        """Updates session metadata, model, reasoning effort, or service tier.
+        """Updates session tools, metadata, model, reasoning effort, or service tier.
 
         Model
         settings apply to subsequent turns. Omitted fields are unchanged. See
         [managing sessions](https://developers.openai.com/api/docs/guides/agents-api/sessions/manage).
 
         Args:
-          agent: Model settings for subsequent turns. Omitted fields stay unchanged.
+          agent: Agent settings to update on this session. Omitted fields stay unchanged.
 
           metadata: Replaces all metadata. Omit to leave unchanged, or pass null or {} to clear it.
               Up to 16 string key-value pairs, with keys up to 64 and values up to 512
               characters.
+
+          review: Default action review for new root turns. Existing turns and their subagents
+              keep their review mode.
+
+              - `none` - Keep the existing execution behavior without automatic action review.
+              - `auto_review` - Review eligible actions automatically. Deny manual approval
+                fallbacks.
 
           spend_control: Omit to retain the limit; null or a null limit removes it without resetting
               spend.
@@ -359,6 +372,7 @@ class Sessions(SyncAPIResource):
                 {
                     "agent": agent,
                     "metadata": metadata,
+                    "review": review,
                     "spend_control": spend_control,
                 },
                 session_update_params.SessionUpdateParams,
@@ -573,6 +587,7 @@ class AsyncSessions(AsyncAPIResource):
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
+        review: Literal["none", "auto_review"] | Omit = omit,
         spend_control: Optional[session_create_params.SpendControl] | Omit = omit,
         stream: Literal[False] | Omit = omit,
         vault_ids: Optional[SequenceNotStr[str]] | Omit = omit,
@@ -594,6 +609,7 @@ class AsyncSessions(AsyncAPIResource):
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
+        review: Literal["none", "auto_review"] | Omit = omit,
         spend_control: Optional[session_create_params.SpendControl] | Omit = omit,
         vault_ids: Optional[SequenceNotStr[str]] | Omit = omit,
         extra_headers: Headers | None = None,
@@ -614,6 +630,7 @@ class AsyncSessions(AsyncAPIResource):
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
+        review: Literal["none", "auto_review"] | Omit = omit,
         spend_control: Optional[session_create_params.SpendControl] | Omit = omit,
         vault_ids: Optional[SequenceNotStr[str]] | Omit = omit,
         extra_headers: Headers | None = None,
@@ -633,6 +650,7 @@ class AsyncSessions(AsyncAPIResource):
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
+        review: Literal["none", "auto_review"] | Omit = omit,
         spend_control: Optional[session_create_params.SpendControl] | Omit = omit,
         stream: Literal[False] | Literal[True] | Omit = omit,
         vault_ids: Optional[SequenceNotStr[str]] | Omit = omit,
@@ -651,6 +669,7 @@ class AsyncSessions(AsyncAPIResource):
                 "agent_id": agent_id,
                 "input": input,
                 "metadata": metadata,
+                "review": review,
                 "spend_control": spend_control,
                 "vault_ids": vault_ids,
             },
@@ -727,6 +746,7 @@ class AsyncSessions(AsyncAPIResource):
         *,
         agent: session_update_params.Agent | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
+        review: Literal["none", "auto_review"] | Omit = omit,
         spend_control: Optional[session_update_params.SpendControl] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -735,18 +755,25 @@ class AsyncSessions(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AgentSession:
-        """Updates session metadata, model, reasoning effort, or service tier.
+        """Updates session tools, metadata, model, reasoning effort, or service tier.
 
         Model
         settings apply to subsequent turns. Omitted fields are unchanged. See
         [managing sessions](https://developers.openai.com/api/docs/guides/agents-api/sessions/manage).
 
         Args:
-          agent: Model settings for subsequent turns. Omitted fields stay unchanged.
+          agent: Agent settings to update on this session. Omitted fields stay unchanged.
 
           metadata: Replaces all metadata. Omit to leave unchanged, or pass null or {} to clear it.
               Up to 16 string key-value pairs, with keys up to 64 and values up to 512
               characters.
+
+          review: Default action review for new root turns. Existing turns and their subagents
+              keep their review mode.
+
+              - `none` - Keep the existing execution behavior without automatic action review.
+              - `auto_review` - Review eligible actions automatically. Deny manual approval
+                fallbacks.
 
           spend_control: Omit to retain the limit; null or a null limit removes it without resetting
               spend.
@@ -768,6 +795,7 @@ class AsyncSessions(AsyncAPIResource):
                 {
                     "agent": agent,
                     "metadata": metadata,
+                    "review": review,
                     "spend_control": spend_control,
                 },
                 session_update_params.SessionUpdateParams,

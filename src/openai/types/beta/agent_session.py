@@ -287,6 +287,13 @@ class AgentSession(BaseModel):
     vault_ids: List[str]
     """The IDs of vaults made available to the session."""
 
+    review: Optional[Literal["none", "auto_review"]] = None
+    """Review applied to eligible actions in this session.
+
+    Omitted when review is none and automatic review is not enabled. Omission means
+    none.
+    """
+
     spend_control: Optional[SpendControl] = None
     """Configured spending limit and best-effort consumption, in USD cents.
 
