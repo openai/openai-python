@@ -71,7 +71,7 @@ the next response. It does not wait for a hypothetical future successor. Use
 `recv()` to observe that boundary when coordinating steering; accepted steering
 alone does not prove that a successor has started.
 
-For incremental text and tool-input snapshots, opt in with a separate helper
+For incremental text, refusal and tool-input snapshots, opt in with a separate helper
 fed by the events you already receive:
 
 ```python
@@ -139,7 +139,9 @@ for output in details["output"]:
 Logprobs accumulate with text deltas and a supplied `output_text.done.logprobs`
 replaces them, including empty or null values. Content/item/lifecycle replacements
 also replace their corresponding annotations and other metadata; text-only done
-events do not erase citations. Refusal, tool/MCP and unknown item/part fields are
+events do not erase citations. Refusal deltas extend `part["refusal"]` in detailed
+snapshots; `response.refusal.done` replaces that provisional value. Refusals do
+not become `snapshot().output_text`. Other tool/MCP and unknown item/part fields are
 retained as observed, with unset and null distinct. Unknown standalone events still
 pass through unchanged and are not accumulated. Annotation events enrich matching
 known items on the accumulator's lane; annotations received before any matching
@@ -246,6 +248,11 @@ lane. Do not blindly retry the same parent after a cache miss. Restore the full
 retained input and output history as a new chain when needed, including tool
 and reasoning items rather than only displayed text. Request
 `reasoning.encrypted_content` when retaining reasoning-model output for replay.
+
+If you parsed a Responses result, retain its `output` objects for replay. The SDK
+keeps parsed text and tool arguments available for inspection while sending only
+their API fields when those typed objects are used in a request. Ordinary input
+dictionaries remain under your control and are sent as provided.
 
 ## Lanes, limits and connection lifetime
 

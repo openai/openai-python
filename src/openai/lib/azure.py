@@ -137,6 +137,13 @@ class BaseAzureClient(BaseClient[_HttpxClientT, _DefaultStreamT]):
     _azure_endpoint: httpx2.URL | None
     _azure_deployment: str | None
 
+    @property
+    @override
+    def auth_headers(self) -> dict[str, str]:
+        # WebSocket upgrades use this legacy accessor before prepared options.
+        # Reuse Azure's HTTP policy; prepared options own token refresh.
+        return self._auth_headers({"bearer_auth": True})
+
     @override
     def _build_request(
         self,

@@ -49,6 +49,7 @@ class _Output:
     arguments: list[str] = field(default_factory=list[str])
     input: list[str] = field(default_factory=list[str])
     text: dict[str, list[str]] = field(default_factory=dict[str, list[str]])
+    refusals: dict[str, list[str]] = field(default_factory=dict[str, list[str]])
     data: dict[str, object] = field(default_factory=dict[str, object])
     content: dict[str, dict[str, object]] = field(default_factory=dict[str, dict[str, object]])
     annotations: dict[str, dict[str, object]] = field(default_factory=dict[str, dict[str, object]])
@@ -131,11 +132,14 @@ class ResponsesWebSocketAccumulator:
                 data["input"] = "".join(item.input)
             content: list[dict[str, object]] = []
             for pos in sorted(
-                item.content.keys() | item.text.keys() | item.annotations.keys(), key=lambda k: int(k, 16)
+                item.content.keys() | item.text.keys() | item.refusals.keys() | item.annotations.keys(),
+                key=lambda k: int(k, 16),
             ):
                 part = deepcopy(item.content.get(pos, {}))
                 if pos in item.text:
                     part["text"] = "".join(item.text[pos])
+                if pos in item.refusals:
+                    part["refusal"] = "".join(item.refusals[pos])
                 original = part.get("annotations")
                 if isinstance(original, list) or pos in item.annotations:
                     annotations = (
@@ -196,6 +200,8 @@ class ResponsesWebSocketAccumulator:
             "response.content_part.done",
             "response.output_text.delta",
             "response.output_text.done",
+            "response.refusal.delta",
+            "response.refusal.done",
             "response.output_text.annotation.added",
             "response.function_call_arguments.delta",
             "response.function_call_arguments.done",
@@ -293,6 +299,7 @@ class ResponsesWebSocketAccumulator:
         value = ""
         if kind in {
             "response.output_text.delta",
+            "response.refusal.delta",
             "response.function_call_arguments.delta",
             "response.mcp_call_arguments.delta",
             "response.custom_tool_call_input.delta",
@@ -300,6 +307,8 @@ class ResponsesWebSocketAccumulator:
             value = _text_field(event, "delta")
         elif kind == "response.output_text.done":
             value = _text_field(event, "text")
+        elif kind == "response.refusal.done":
+            value = _text_field(event, "refusal")
         elif kind in {"response.function_call_arguments.done", "response.mcp_call_arguments.done"}:
             value = _text_field(event, "arguments")
         elif kind == "response.custom_tool_call_input.done":
@@ -314,9 +323,23 @@ class ResponsesWebSocketAccumulator:
             "response.content_part.done",
             "response.output_text.delta",
             "response.output_text.done",
+            "response.refusal.delta",
+            "response.refusal.done",
         } and (not isinstance(pos, int) or isinstance(pos, bool) or pos < 0):
             raise ValueError("WebSocket content_index must be a non-negative integer")
         item_id = _text_field(event, "item_id")
+        initial_refusal = ""
+        if kind in {"response.refusal.delta", "response.refusal.done"}:
+            previous = self._output.get(hex(index))
+            if previous is not None and (not previous.item_id or previous.item_id == item_id):
+                position = hex(pos)
+                part = previous.content.get(position, {})
+                if "type" in part and part["type"] != "refusal":
+                    return
+                # Preserve parts previously accepted as raw. Validate a seed
+                # only when a new refusal delta actually needs to extend it.
+                if kind == "response.refusal.delta" and position not in previous.refusals and "refusal" in part:
+                    initial_refusal = _text_field(part, "refusal")
         self._bound, self._stream_id = True, stream_id
         key = hex(index)
         item = self._output.get(key)
@@ -336,6 +359,8 @@ class ResponsesWebSocketAccumulator:
             "response.content_part.done",
             "response.output_text.delta",
             "response.output_text.done",
+            "response.refusal.delta",
+            "response.refusal.done",
         }:
             position = hex(pos)
             if kind == "response.output_text.delta":
@@ -351,6 +376,10 @@ class ResponsesWebSocketAccumulator:
             elif kind == "response.output_text.done":
                 item.text[position] = [value]
                 item.content.setdefault(position, {}).update(_data(event, include={"logprobs"}))
+            elif kind == "response.refusal.delta":
+                item.refusals.setdefault(position, [initial_refusal]).append(value)
+            elif kind == "response.refusal.done":
+                item.refusals[position] = [value]
             else:
                 part = _field(event, "part")
                 item.content[position] = _data(part)
@@ -359,6 +388,7 @@ class ResponsesWebSocketAccumulator:
                     item.text[position] = [value]
                 else:
                     item.text.pop(position, None)
+                item.refusals.pop(position, None)
         elif kind in {"response.function_call_arguments.delta", "response.mcp_call_arguments.delta"}:
             item.arguments.append(value)
         elif kind in {"response.function_call_arguments.done", "response.mcp_call_arguments.done"}:
