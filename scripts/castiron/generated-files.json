@@ -599,7 +599,7 @@
     },
     "src/openai/resources/realtime/realtime.py": {
       "mode": "100644",
-      "sha256": "d45ef5f2d1e25e6f8761592a9fb5739d7a344c6e64a4e7a4006418c16f05a540"
+      "sha256": "9cb69e1f54c6e21d9111ddfb59a2a4de18466a1a86487fc65a0e17224b72475e"
     },
     "src/openai/resources/realtime/translations/__init__.py": {
       "mode": "100644",
