@@ -750,7 +750,11 @@ class AsyncRealtimeConnectionManager:
         self, exc_type: type[BaseException] | None, exc: BaseException | None, exc_tb: TracebackType | None
     ) -> None:
         if self.__connection is not None:
-            await self.__connection.close()
+            try:
+                await self.__connection.close()
+            except BaseException:
+                if exc is None:
+                    raise
 
 
 class RealtimeConnection(WebSocketConnectionBase):
@@ -1199,7 +1203,11 @@ class RealtimeConnectionManager:
         self, exc_type: type[BaseException] | None, exc: BaseException | None, exc_tb: TracebackType | None
     ) -> None:
         if self.__connection is not None:
-            self.__connection.close()
+            try:
+                self.__connection.close()
+            except BaseException:
+                if exc is None:
+                    raise
 
 
 class BaseRealtimeConnectionResource:

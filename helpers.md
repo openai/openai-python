@@ -63,6 +63,41 @@ output into a Pydantic model. The same parsing rules apply to
 Use `output_parsed` for the structured result and retain `output` when replaying
 messages so their phases are preserved.
 
+When the output schema changes during a conversation, pass `parse_as` to
+`client.responses.parse()` to select the local output type. For example, if a
+previous turn switched to `DetailedAnswer`, continue with this call.
+
+```py
+response = client.responses.parse(
+    model=model,
+    previous_response_id=previous.id,
+    input="Explain the evidence.",
+    parse_as=DetailedAnswer,
+)
+```
+
+The SDK parses the answer as `DetailedAnswer`. The request inherits its output
+format from the previous turn. If you also pass `text_format=ShortAnswer`,
+the request sends that class's schema as the top-level format. Pass
+`parse_as=None` to read unparsed text when the previous turn reset the format.
+You can also pass a format update directly in `input`. For example, given a
+JSON schema format named `detailed_format`:
+
+```py
+response = client.responses.parse(
+    model=model,
+    input=[
+        {"type": "configuration_update", "text": {"format": detailed_format}},
+        {"role": "user", "content": "Explain the evidence."},
+    ],
+    parse_as=DetailedAnswer,
+)
+```
+
+To switch back to plain text, send `{"type": "text"}` as the update's format.
+A reasoning-only update keeps the active format. Retrieved configuration items
+include `item.text.format` when the input supplied it.
+
 ## Auto-parsing function tool calls
 
 The `.parse()` method will also automatically parse `function` tool calls if:
