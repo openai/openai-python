@@ -148,6 +148,7 @@ def _websocket_entry_guard(
         try:
             connection.close()
         except BaseException:
+            # Preserve the exception that prevented successful entry.
             pass
         raise
 
@@ -181,6 +182,7 @@ async def _async_websocket_entry_guard(
         try:
             await connection.close()
         except BaseException:
+            # Preserve the exception that prevented successful entry.
             pass
         raise
 
