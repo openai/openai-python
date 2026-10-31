@@ -390,6 +390,10 @@ The Realtime API enables you to build low-latency, multi-modal conversational ex
 
 Under the hood the SDK uses the [`websockets`](https://websockets.readthedocs.io/en/stable/) library to manage connections.
 
+The retained `client.beta.realtime` interface does not exchange workload-identity tokens or sign Bedrock requests. A client using either method must supply its own `Authorization` settings through `default_headers` or `connect(extra_headers=...)`. Otherwise, the SDK rejects the WebSocket connection locally.
+
+Connection headers override default headers case-insensitively, and `omit` removes a header. These settings preserve the caller's header choices without enabling provider authentication. X.509 workload identity supports HTTP only. Beta WebSockets always reject X.509 clients, even with explicit headers.
+
 The Realtime API works through a combination of client-sent events and server-sent events. Clients can send events to do things like update session configuration or send text and audio inputs. Server events confirm when audio responses have completed, or when a text response from the model has been received. A full event reference can be found [here](https://platform.openai.com/docs/api-reference/realtime-client-events) and a guide can be found [here](https://platform.openai.com/docs/guides/realtime).
 
 Basic text based example:
