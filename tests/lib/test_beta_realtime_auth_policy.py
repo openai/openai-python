@@ -57,6 +57,7 @@ async def connect(
 ) -> tuple[BaseException | None, list[str], list[list[str]]]:
     callbacks: list[str] = []
     upgrades: list[list[str]] = []
+    headers_captured = threading.Event()
 
     def issuer(_request: httpx2.Request) -> httpx2.Response:
         callbacks.append("issuer")
@@ -67,6 +68,7 @@ async def connect(
         assert socket.request.headers["X-Beta-Client"] == "synthetic-default"
         assert socket.request.headers["X-Beta-Connection"] == "synthetic-extra"
         upgrades.append(socket.request.headers.get_all("Authorization"))
+        headers_captured.set()
         socket.close(1000)
 
     auth = identity(kind, callbacks)
@@ -88,7 +90,7 @@ async def connect(
                 ) as client:
                     try:
                         with client.beta.realtime.connect(model="gpt-realtime", extra_headers=extra):
-                            pass
+                            assert headers_captured.wait(3), "Peer did not record upgrade headers"
                     except openai.OpenAIError as failure:
                         refused = failure
             else:
@@ -101,7 +103,7 @@ async def connect(
                 ) as client:
                     try:
                         async with client.beta.realtime.connect(model="gpt-realtime", extra_headers=extra):
-                            pass
+                            assert headers_captured.wait(3), "Peer did not record upgrade headers"
                     except openai.OpenAIError as failure:
                         refused = failure
         finally:
