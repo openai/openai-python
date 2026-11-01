@@ -51,6 +51,17 @@ def _has_omitted_header(headers: Headers, header: str) -> bool:
     )
 
 
+def _validate_beta_realtime_auth(self: _sdk_client.OpenAI | _sdk_client.AsyncOpenAI, extra_headers: Headers) -> None:
+    if _sdk_client.is_x509_workload_identity(self.workload_identity):
+        raise _sdk_client.OpenAIError("This authentication method is not supported by WebSocket connections")
+    if (self.workload_identity is not None or self._provider_runtime is not None) and not (
+        _has_header(self.default_headers, "Authorization") or _has_header(extra_headers, "Authorization")
+    ):
+        # Retained beta connections allow caller-owned authentication, including
+        # an explicit Omit. They do not exchange or sign provider credentials.
+        raise _sdk_client.OpenAIError("This authentication method is not supported by WebSocket connections")
+
+
 def _set_request_api_key(
     self: _sdk_client.OpenAI | _sdk_client.AsyncOpenAI, options: FinalRequestOptions, api_key: str
 ) -> None:
