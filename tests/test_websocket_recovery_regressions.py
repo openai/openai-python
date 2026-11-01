@@ -159,6 +159,49 @@ async def test_received_close_policy_on_async_iterator(
     assert [e.type for e in events] == (["error"] if expected else [])
 
 
+@pytest.mark.parametrize(
+    "connection_type,mode",
+    [
+        (ResponsesConnection, "sync"),
+        (BetaResponsesConnection, "sync"),
+        (AsyncResponsesConnection, "async"),
+        (AsyncBetaResponsesConnection, "async"),
+    ],
+    ids=["stable-sync", "beta-sync", "stable-async", "beta-async"],
+)
+@pytest.mark.asyncio
+async def test_responses_public_iterator_keeps_recv_override_and_generator_controls(
+    monkeypatch: pytest.MonkeyPatch, connection_type: type[Any], mode: str
+) -> None:
+    connection = connection_type(MagicMock())
+    monkeypatch.setattr(
+        connection, "recv", AsyncMock(return_value="first") if mode == "async" else MagicMock(return_value="first")
+    )
+    events: Any = aiter(connection) if mode == "async" else iter(connection)
+    assert (await anext(events) if mode == "async" else next(events)) == "first"
+    monkeypatch.setattr(
+        connection, "recv", AsyncMock(return_value="second") if mode == "async" else MagicMock(return_value="second")
+    )
+    assert (await anext(events) if mode == "async" else next(events)) == "second"
+    error = asyncio.CancelledError("caller") if mode == "async" else ValueError("caller")
+    with pytest.raises(type(error)) as caught:
+        if mode == "async":
+            await events.athrow(error)
+        else:
+            events.throw(error)
+    assert caught.value is error
+    closing_events: Any = aiter(connection) if mode == "async" else iter(connection)
+    assert (await anext(closing_events) if mode == "async" else next(closing_events)) == "second"
+    if mode == "async":
+        await closing_events.aclose()
+        with pytest.raises(StopAsyncIteration):
+            await anext(closing_events)
+    else:
+        closing_events.close()
+        with pytest.raises(StopIteration):
+            next(closing_events)
+
+
 def register_handlers(conn: Any, mode: str, seen: list[str]) -> None:
     def handler(event: Any) -> None:
         seen.append(event.type)
