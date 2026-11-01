@@ -13,10 +13,10 @@ from pydantic import BaseModel
 
 from ... import _legacy_response
 from ..._types import Body, Omit, Query, Headers, NoneType, NotGiven, omit, not_given
-from ..._utils import is_given, path_template, maybe_transform, strip_not_given, async_maybe_transform
+from ..._utils import path_template, maybe_transform, strip_not_given, async_maybe_transform
 from ..._compat import cached_property
 from ..._httpx2 import normalize_httpx_url
-from ..._models import FinalRequestOptions, construct_type_unchecked
+from ..._models import construct_type_unchecked
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from .input_items import (
@@ -36,9 +36,9 @@ from .input_tokens import (
     InputTokensWithStreamingResponse,
     AsyncInputTokensWithStreamingResponse,
 )
-from ..._exceptions import OpenAIError, WebSocketConnectionClosedError
+from ..._exceptions import OpenAIError
 from ..._send_queue import SendQueue
-from ..._base_client import _merge_mappings, make_request_options
+from ..._base_client import make_request_options
 from ..._event_handler import EventHandlerRegistry
 from ...types.responses import (
     response_create_params,
@@ -46,7 +46,17 @@ from ...types.responses import (
     response_retrieve_params,
     responses_client_event_param,
 )
-from ..._websocket_connection import WebSocketConnectionBase, AsyncWebSocketConnectionBase
+from ..._websocket_connection import (
+    WebSocketConnectionBase,
+    AsyncWebSocketConnectionBase,
+    _exit_websocket,
+    _connect_websocket,
+    _async_exit_websocket,
+    _websocket_entry_guard,
+    _async_connect_websocket,
+    _record_websocket_progress,
+    _async_websocket_entry_guard,
+)
 from ...lib._parsing._responses import TextFormatT
 from ...lib._response_resources import parse, stream, async_parse, async_stream
 from ...types.responses.response import Response
@@ -4086,34 +4096,12 @@ class AsyncResponsesConnection(AsyncWebSocketConnectionBase):
 
         self.response = AsyncResponsesResponseResource(self)
 
-    async def __aiter__(self) -> AsyncIterator[ResponsesServerEvent]:
+    def __aiter__(self) -> AsyncIterator[ResponsesServerEvent]:
         """
         An infinite-iterator that will continue to yield events until
         the connection is closed.
         """
-        from websockets.exceptions import ConnectionClosed, ConnectionClosedOK, ConnectionClosedError
-
-        while True:
-            try:
-                yield await self.recv()
-            except ConnectionClosed as exc:
-                # Older SDK bases read close codes only from ConnectionClosedError.
-                # Adapt the policy input; keep the original close for EOF and errors.
-                reconnect_exc = (
-                    ConnectionClosedError(exc.rcvd, exc.sent, exc.rcvd_then_sent)
-                    if isinstance(exc, ConnectionClosedOK)
-                    else exc
-                )
-                if not await self._reconnect(reconnect_exc):
-                    unsent = self._send_queue.drain()
-                    if unsent:
-                        raise WebSocketConnectionClosedError(
-                            "WebSocket connection closed with unsent messages",
-                            unsent_messages=unsent,
-                        ) from exc
-                    if isinstance(exc, ConnectionClosedOK):
-                        return
-                    raise
+        return self._iter_events()
 
     async def recv(self) -> ResponsesServerEvent:
         """
@@ -4122,15 +4110,7 @@ class AsyncResponsesConnection(AsyncWebSocketConnectionBase):
         Canceling this method is safe. There's no risk of losing data.
         """
         event = self.parse_event(await self.recv_bytes())
-        event_type = (
-            cast("dict[str, object]", event).get("type")
-            if isinstance(cast(object, event), dict)
-            else getattr(event, "type", None)
-        )
-        # A successful upgrade can still be followed by an admission error.
-        # Reset the budget only after receiving a non-error application event.
-        if isinstance(event_type, str) and event_type and event_type != "error":
-            self._reconnect_attempt = 0
+        _record_websocket_progress(self, event)
         return event
 
     async def recv_bytes(self) -> bytes:
@@ -4143,15 +4123,7 @@ class AsyncResponsesConnection(AsyncWebSocketConnectionBase):
         """
         message = await self._connection.recv(decode=False)
         log.debug("Received WebSocket message: %i bytes", len(message))
-        if self._reconnect_attempt:
-            # Account for raw application progress without changing frame delivery.
-            try:
-                event_data: object = json.loads(message)
-            except (ValueError, RecursionError):
-                return message
-            event_type = cast("dict[str, object]", event_data).get("type") if isinstance(event_data, dict) else None
-            if isinstance(event_type, str) and event_type and event_type != "error":
-                self._reconnect_attempt = 0
+        _record_websocket_progress(self, message, raw=True)
         return message
 
     async def send(self, event: ResponsesClientEvent | ResponsesClientEventParam) -> None:
@@ -4364,7 +4336,7 @@ class AsyncResponsesConnectionManager:
         """
         ws = await self._connect_ws(self.__extra_query, self.__extra_headers)
 
-        try:
+        async with _async_websocket_entry_guard(ws, self.__clear_connection):
             self.__connection = AsyncResponsesConnection(
                 ws,
                 make_ws=self._connect_ws if self.__on_reconnecting is not None else None,
@@ -4379,74 +4351,23 @@ class AsyncResponsesConnectionManager:
 
             self.__event_handler_registry.merge_into(self.__connection._event_handler_registry)
             await self.__connection._flush_send_queue()
-        except BaseException:
-            self.__connection = None
-            try:
-                await ws.close()
-            except BaseException:
-                # Preserve the exception that prevented successful entry.
-                pass
-            raise
 
         return self.__connection
+
+    def __clear_connection(self) -> None:
+        self.__connection = None
 
     enter = __aenter__
 
     async def _connect_ws(self, extra_query: Query, extra_headers: Headers) -> AsyncWebSocketConnection:
-        try:
-            from ...lib._websocket import _WebSocketConnect as connect
-        except ImportError as exc:
-            raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
-
-        url = self._prepare_url()
-        try:
-            # Older runtimes do not declare this optional helper.
-            query_params = getattr(self.__client, "_websocket_query_params")  # noqa: B009
-        except AttributeError:
-            query_params = self.__client._websocket_query_params_fallback
-        url = url.copy_with(
-            params=query_params(
-                url,
-                extra_query,
-            ),
-        )
-        url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
-        options = await self.__client._prepare_options(
-            FinalRequestOptions.construct(
-                method="get",
-                url=str(url),
-                headers=dict(extra_headers),
-                security={"bearer_auth": True},
-            )
-        )
-        url = self.__client._prepare_url(options.url).copy_merge_params(
-            self.__client.qs.stringify(cast(Any, options.params))
-        )
-        url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
-        headers = {
-            key.lower(): (key, value)
-            for header_set in (
-                self.__client.auth_headers,
-                {},
-                self.__client.default_headers,
-                options.headers if is_given(options.headers) else {},
-            )
-            for key, value in header_set.items()
-        }
-        log.debug("Connecting to WebSocket API")
-        if self.__websocket_connection_options:
-            log.debug("Custom WebSocket connection options provided")
-
-        websocket_options = self.__websocket_connection_options.copy()
-        websocket_options.setdefault("max_size", None)
-        if websocket_options.get("max_size") is None:
-            websocket_options.setdefault("compression", None)
-
-        return await connect(
-            str(url),
-            user_agent_header=None,
-            additional_headers=_merge_mappings(dict(headers.values()), {}),
-            **websocket_options,
+        return await _async_connect_websocket(
+            self.__client,
+            self._prepare_url,
+            extra_query,
+            extra_headers,
+            self.__websocket_connection_options,
+            {},
+            log,
         )
 
     def _prepare_url(self) -> httpx2.URL:
@@ -4464,12 +4385,7 @@ class AsyncResponsesConnectionManager:
     async def __aexit__(
         self, exc_type: type[BaseException] | None, exc: BaseException | None, exc_tb: TracebackType | None
     ) -> None:
-        if self.__connection is not None:
-            try:
-                await self.__connection.close()
-            except Exception:
-                if exc is None:
-                    raise
+        await _async_exit_websocket(self.__connection, exc)
 
 
 class ResponsesConnection(WebSocketConnectionBase):
@@ -4514,29 +4430,7 @@ class ResponsesConnection(WebSocketConnectionBase):
         An infinite-iterator that will continue to yield events until
         the connection is closed.
         """
-        from websockets.exceptions import ConnectionClosed, ConnectionClosedOK, ConnectionClosedError
-
-        while True:
-            try:
-                yield self.recv()
-            except ConnectionClosed as exc:
-                # Older SDK bases read close codes only from ConnectionClosedError.
-                # Adapt the policy input; keep the original close for EOF and errors.
-                reconnect_exc = (
-                    ConnectionClosedError(exc.rcvd, exc.sent, exc.rcvd_then_sent)
-                    if isinstance(exc, ConnectionClosedOK)
-                    else exc
-                )
-                if not self._reconnect(reconnect_exc):
-                    unsent = self._send_queue.drain()
-                    if unsent:
-                        raise WebSocketConnectionClosedError(
-                            "WebSocket connection closed with unsent messages",
-                            unsent_messages=unsent,
-                        ) from exc
-                    if isinstance(exc, ConnectionClosedOK):
-                        return
-                    raise
+        return self._iter_events()
 
     def recv(self) -> ResponsesServerEvent:
         """
@@ -4545,15 +4439,7 @@ class ResponsesConnection(WebSocketConnectionBase):
         Canceling this method is safe. There's no risk of losing data.
         """
         event = self.parse_event(self.recv_bytes())
-        event_type = (
-            cast("dict[str, object]", event).get("type")
-            if isinstance(cast(object, event), dict)
-            else getattr(event, "type", None)
-        )
-        # A successful upgrade can still be followed by an admission error.
-        # Reset the budget only after receiving a non-error application event.
-        if isinstance(event_type, str) and event_type and event_type != "error":
-            self._reconnect_attempt = 0
+        _record_websocket_progress(self, event)
         return event
 
     def recv_bytes(self) -> bytes:
@@ -4568,15 +4454,7 @@ class ResponsesConnection(WebSocketConnectionBase):
 
         message = _recv_bytes(self._connection)
         log.debug("Received WebSocket message: %i bytes", len(message))
-        if self._reconnect_attempt:
-            # Account for raw application progress without changing frame delivery.
-            try:
-                event_data: object = json.loads(message)
-            except (ValueError, RecursionError):
-                return message
-            event_type = cast("dict[str, object]", event_data).get("type") if isinstance(event_data, dict) else None
-            if isinstance(event_type, str) and event_type and event_type != "error":
-                self._reconnect_attempt = 0
+        _record_websocket_progress(self, message, raw=True)
         return message
 
     def send(self, event: ResponsesClientEvent | ResponsesClientEventParam) -> None:
@@ -4783,7 +4661,7 @@ class ResponsesConnectionManager:
         """
         ws = self._connect_ws(self.__extra_query, self.__extra_headers)
 
-        try:
+        with _websocket_entry_guard(ws, self.__clear_connection):
             self.__connection = ResponsesConnection(
                 ws,
                 make_ws=self._connect_ws if self.__on_reconnecting is not None else None,
@@ -4798,74 +4676,23 @@ class ResponsesConnectionManager:
 
             self.__event_handler_registry.merge_into(self.__connection._event_handler_registry)
             self.__connection._flush_send_queue()
-        except BaseException:
-            self.__connection = None
-            try:
-                ws.close()
-            except BaseException:
-                # Preserve the exception that prevented successful entry.
-                pass
-            raise
 
         return self.__connection
+
+    def __clear_connection(self) -> None:
+        self.__connection = None
 
     enter = __enter__
 
     def _connect_ws(self, extra_query: Query, extra_headers: Headers) -> WebSocketConnection:
-        try:
-            from websockets.sync.client import connect
-        except ImportError as exc:
-            raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
-
-        url = self._prepare_url()
-        try:
-            # Older runtimes do not declare this optional helper.
-            query_params = getattr(self.__client, "_websocket_query_params")  # noqa: B009
-        except AttributeError:
-            query_params = self.__client._websocket_query_params_fallback
-        url = url.copy_with(
-            params=query_params(
-                url,
-                extra_query,
-            ),
-        )
-        url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
-        options = self.__client._prepare_options(
-            FinalRequestOptions.construct(
-                method="get",
-                url=str(url),
-                headers=dict(extra_headers),
-                security={"bearer_auth": True},
-            )
-        )
-        url = self.__client._prepare_url(options.url).copy_merge_params(
-            self.__client.qs.stringify(cast(Any, options.params))
-        )
-        url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
-        headers = {
-            key.lower(): (key, value)
-            for header_set in (
-                self.__client.auth_headers,
-                {},
-                self.__client.default_headers,
-                options.headers if is_given(options.headers) else {},
-            )
-            for key, value in header_set.items()
-        }
-        log.debug("Connecting to WebSocket API")
-        if self.__websocket_connection_options:
-            log.debug("Custom WebSocket connection options provided")
-
-        websocket_options = self.__websocket_connection_options.copy()
-        websocket_options.setdefault("max_size", None)
-        if websocket_options.get("max_size") is None:
-            websocket_options.setdefault("compression", None)
-
-        return connect(
-            str(url),
-            user_agent_header=None,
-            additional_headers=_merge_mappings(dict(headers.values()), {}),
-            **websocket_options,
+        return _connect_websocket(
+            self.__client,
+            self._prepare_url,
+            extra_query,
+            extra_headers,
+            self.__websocket_connection_options,
+            {},
+            log,
         )
 
     def _prepare_url(self) -> httpx2.URL:
@@ -4883,12 +4710,7 @@ class ResponsesConnectionManager:
     def __exit__(
         self, exc_type: type[BaseException] | None, exc: BaseException | None, exc_tb: TracebackType | None
     ) -> None:
-        if self.__connection is not None:
-            try:
-                self.__connection.close()
-            except Exception:
-                if exc is None:
-                    raise
+        _exit_websocket(self.__connection, exc)
 
 
 class BaseResponsesConnectionResource:

@@ -114,7 +114,8 @@ async def test_callable_auth_refreshes_each_physical_handshake(mode: str, author
 
 
 @pytest.mark.parametrize("mode", ["sync", "async"])
-async def test_handshake_honors_prepared_url_query_and_headers(mode: str) -> None:
+@pytest.mark.parametrize("beta", [False, True], ids=["stable", "beta"])
+async def test_handshake_honors_prepared_url_query_and_headers(mode: str, beta: bool) -> None:
     def script(socket: ServerConnection) -> None:
         assert socket.request is not None
         assert socket.request.path == "/prepared?before=kept&prepared=yes"
@@ -151,7 +152,7 @@ async def test_handshake_honors_prepared_url_query_and_headers(mode: str) -> Non
                 default_headers={"X-Removed": "client value"},
                 http_client=httpx2.Client(trust_env=False),
             ) as client:
-                with client.responses.connect() as connection:
+                with (client.beta.responses if beta else client.responses).connect() as connection:
                     assert connection.recv().type == "response.future"
         else:
             async with AsyncPreparedClient(
@@ -160,7 +161,9 @@ async def test_handshake_honors_prepared_url_query_and_headers(mode: str) -> Non
                 default_headers={"X-Removed": "client value"},
                 http_client=httpx2.AsyncClient(trust_env=False),
             ) as async_client:
-                async with async_client.responses.connect() as async_connection:
+                async with (
+                    async_client.beta.responses if beta else async_client.responses
+                ).connect() as async_connection:
                     assert (await async_connection.recv()).type == "response.future"
 
 
