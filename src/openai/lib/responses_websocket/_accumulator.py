@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import Any, cast
+from typing import Any, Literal, cast
 from dataclasses import field, dataclass
 
 from ._session import ResponsesWebSocketError, _field
@@ -9,6 +9,38 @@ from ..._compat import PYDANTIC_V1, model_copy
 from ..._models import BaseModel
 from ...types.responses import Response
 from ...types.responses.responses_server_event import ResponsesServerEvent
+
+_RichField = Literal["summary", "reasoning", "code", "command", "stdout", "stderr"]
+
+# Fixed wire fields only: these are not paths supplied by events or callers.
+_RICH_TEXT_EVENTS: dict[str, tuple[str, Literal["summary", "reasoning", "code", "command"], str, str, str | None]] = {
+    "response.reasoning_summary_text.delta": ("reasoning", "summary", "delta", "delta", "summary_index"),
+    "response.reasoning_summary_text.done": ("reasoning", "summary", "done", "text", "summary_index"),
+    "response.reasoning_text.delta": ("reasoning", "reasoning", "delta", "delta", "content_index"),
+    "response.reasoning_text.done": ("reasoning", "reasoning", "done", "text", "content_index"),
+    "response.code_interpreter_call_code.delta": ("code_interpreter_call", "code", "delta", "delta", None),
+    "response.code_interpreter_call_code.done": ("code_interpreter_call", "code", "done", "code", None),
+    "response.shell_call_command.delta": ("shell_call", "command", "delta", "delta", "command_index"),
+    "response.shell_call_command.done": ("shell_call", "command", "done", "command", "command_index"),
+}
+_RICH_STATUS_EVENTS = {
+    f"response.{kind}.{status}": (kind, status)
+    for kind, statuses in (
+        ("code_interpreter_call", ("in_progress", "interpreting", "completed")),
+        ("file_search_call", ("in_progress", "searching", "completed")),
+        ("web_search_call", ("in_progress", "searching", "completed")),
+        ("image_generation_call", ("in_progress", "generating", "completed")),
+        ("mcp_call", ("in_progress", "completed", "failed")),
+    )
+    for status in statuses
+}
+_RICH_PART_EVENTS = {
+    "response.reasoning_summary_part.added": "reasoning",
+    "response.reasoning_summary_part.done": "reasoning",
+    "response.shell_call_command.added": "shell_call",
+    "response.shell_call_output_content.delta": "shell_call_output",
+    "response.shell_call_output_content.done": "shell_call_output",
+}
 
 
 @dataclass(frozen=True)
@@ -53,10 +85,12 @@ class _Output:
     data: dict[str, object] = field(default_factory=dict[str, object])
     content: dict[str, dict[str, object]] = field(default_factory=dict[str, dict[str, object]])
     annotations: dict[str, dict[str, object]] = field(default_factory=dict[str, dict[str, object]])
+    rich_text: dict[tuple[_RichField, str], list[str]] = field(default_factory=dict[tuple[_RichField, str], list[str]])
+    shell_output: dict[str, dict[str, object]] = field(default_factory=dict[str, dict[str, object]])
 
 
 class ResponsesWebSocketAccumulator:
-    """Opt-in, caller-fed collection of text, function/MCP arguments and custom tool input.
+    """Caller-fed text/tool inputs and detailed reasoning, code and shell progress.
 
     Feed typed events from a connection or lane's recv(). Use one accumulator per
     lane and call reset() before another turn. The helper never reads, sends,
@@ -76,6 +110,7 @@ class ResponsesWebSocketAccumulator:
         self._response: dict[str, object] | None = None
         self._final: Response | None = None
         self._error: Exception | None = None
+        self._shell_command_counts: dict[str, int] = {}
 
     def reset(self) -> None:
         """Release this helper's state only; prior snapshots and the socket remain usable."""
@@ -84,6 +119,7 @@ class ResponsesWebSocketAccumulator:
         self._output.clear()
         self._response = None
         self._final = self._error = None
+        self._shell_command_counts.clear()
 
     def snapshot(self) -> ResponsesWebSocketSnapshot:
         """Materialize the entire current immutable projection.
@@ -124,13 +160,18 @@ class ResponsesWebSocketAccumulator:
         output: list[dict[str, object]] = []
         for index, item in sorted(self._output.items(), key=lambda pair: int(pair[0], 16)):
             data = deepcopy(item.data)
-            if item.item_id:
+            for (field, pos), fragments in item.rich_text.items():
+                if field not in {"reasoning", "stdout", "stderr"}:
+                    container, key = _rich_text_location(data, field, int(pos, 16))
+                    container[key] = "".join(fragments)
+            if item.item_id and not item.data:
                 data["id"] = item.item_id
             if item.arguments:
                 data["arguments"] = "".join(item.arguments)
             if item.input:
                 data["input"] = "".join(item.input)
             content: list[dict[str, object]] = []
+            reasoning_parts: dict[int, dict[str, object]] = {}
             for pos in sorted(
                 item.content.keys() | item.text.keys() | item.refusals.keys() | item.annotations.keys(),
                 key=lambda k: int(k, 16),
@@ -140,6 +181,13 @@ class ResponsesWebSocketAccumulator:
                     part["text"] = "".join(item.text[pos])
                 if pos in item.refusals:
                     part["refusal"] = "".join(item.refusals[pos])
+                reasoning_text = item.rich_text.get(("reasoning", pos))
+                if reasoning_text is not None:
+                    part["text"] = "".join(reasoning_text)
+                if item.type == "reasoning":
+                    # Item.content keeps wire-shaped metadata; indexed content
+                    # below may wrap annotations for its public detailed view.
+                    reasoning_parts[int(pos, 16)] = deepcopy(part)
                 original = part.get("annotations")
                 if isinstance(original, list) or pos in item.annotations:
                     annotations = (
@@ -153,6 +201,16 @@ class ResponsesWebSocketAccumulator:
                         for i, annotation in sorted(annotations.items(), key=lambda pair: int(pair[0], 16))
                     ]
                 content.append({"content_index": int(pos, 16), "part": part})
+            if item.type == "reasoning" and reasoning_parts:
+                _project_rich_parts(data, "content", reasoning_parts)
+            shell_parts: dict[int, dict[str, object]] = {}
+            for pos, source in sorted(item.shell_output.items(), key=lambda pair: int(pair[0], 16)):
+                part = deepcopy(source)
+                for field in ("stdout", "stderr"):
+                    fragments = item.rich_text.get((field, pos))
+                    if fragments is not None:
+                        part[field] = "".join(fragments)
+                shell_parts[int(pos, 16)] = part
             row: dict[str, object] = {"output_index": int(index, 16), "item": data}
             if item.type == "message":
                 # Message content is extracted into indexed rows. Retain the
@@ -162,6 +220,8 @@ class ResponsesWebSocketAccumulator:
                     row["content"] = content if content or isinstance(original_content, list) else None
             else:
                 row["content"] = content
+            if item.type == "shell_call_output":
+                row["shell_output"] = [{"command_index": pos, "data": part} for pos, part in shell_parts.items()]
             output.append(row)
         return {
             "stream_id": self._stream_id,
@@ -190,6 +250,7 @@ class ResponsesWebSocketAccumulator:
         kind = _field(event, "type")
         if not isinstance(kind, str) or kind not in {
             "response.created",
+            "response.queued",
             "response.in_progress",
             "response.completed",
             "response.failed",
@@ -209,6 +270,9 @@ class ResponsesWebSocketAccumulator:
             "response.mcp_call_arguments.done",
             "response.custom_tool_call_input.delta",
             "response.custom_tool_call_input.done",
+            *_RICH_TEXT_EVENTS,
+            *_RICH_STATUS_EVENTS,
+            *_RICH_PART_EVENTS,
             "error",
         }:
             return
@@ -249,7 +313,7 @@ class ResponsesWebSocketAccumulator:
             self._error = protocol_error
             raise protocol_error
         terminal = kind in {"response.completed", "response.failed", "response.incomplete"}
-        if kind in {"response.created", "response.in_progress"} or terminal:
+        if kind in {"response.created", "response.queued", "response.in_progress"} or terminal:
             response = _field(event, "response")
             if not isinstance(response, Response):
                 error = ValueError("WebSocket event is missing a valid response")
@@ -280,6 +344,9 @@ class ResponsesWebSocketAccumulator:
                         self._error = error
                     raise
                 self._output = replacement
+                self._shell_command_counts.clear()
+                for item in replacement.values():
+                    self._index_shell_call(item)
             self._response = _data(response, exclude={"output"})
             self._response_id = response_id or self._response_id
             self._bound, self._stream_id = True, stream_id
@@ -287,11 +354,21 @@ class ResponsesWebSocketAccumulator:
                 self._final = model_copy(response, deep=True)
                 self._terminal_type = kind
             return
+        if kind in _RICH_TEXT_EVENTS or kind in _RICH_STATUS_EVENTS or kind in _RICH_PART_EVENTS:
+            self._add_rich_event(event, kind)
+            return
         index = _field(event, "output_index")
         if not isinstance(index, int) or isinstance(index, bool) or index < 0:
             raise ValueError("WebSocket output_index must be a non-negative integer")
         if kind in {"response.output_item.added", "response.output_item.done"}:
+            previous = self._output.get(hex(index))
             self._add_item(self._output, index, _field(event, "item"))
+            current = self._output.get(hex(index))
+            if previous is not current:
+                if previous is not None and previous.type == "shell_call" and previous.call_id is not None:
+                    self._shell_command_counts.pop(previous.call_id, None)
+                if current is not None:
+                    self._index_shell_call(current)
             self._bound, self._stream_id = True, stream_id
             return
         # Validate consumed values before replacing an item's retained state.
@@ -345,10 +422,21 @@ class ResponsesWebSocketAccumulator:
         item = self._output.get(key)
         if item is not None and item_id in item.retired_ids:
             return
+        if item is not None and item.type in {"function_call", "custom_tool_call"} and "id" not in item.data:
+            # Full records that omit id bind only to their own progress family.
+            matching_family = (
+                kind in {"response.function_call_arguments.delta", "response.function_call_arguments.done"}
+                if item.type == "function_call"
+                else kind in {"response.custom_tool_call_input.delta", "response.custom_tool_call_input.done"}
+            )
+            if not matching_family or (item.item_id and item_id != item.item_id):
+                return
         if item is None:
             item = _Output(item_id=item_id)
             self._output[key] = item
         elif item_id and item.item_id and item_id != item.item_id:
+            if item.type == "shell_call" and item.call_id is not None:
+                self._shell_command_counts.pop(item.call_id, None)
             item.retired_ids.add(item.item_id)
             item = _Output(item_id=item_id, retired_ids=item.retired_ids)
             self._output[key] = item
@@ -383,6 +471,7 @@ class ResponsesWebSocketAccumulator:
             else:
                 part = _field(event, "part")
                 item.content[position] = _data(part)
+                item.rich_text.pop(("reasoning", position), None)
                 item.annotations.pop(position, None)
                 if _field(part, "type") == "output_text":
                     item.text[position] = [value]
@@ -397,6 +486,111 @@ class ResponsesWebSocketAccumulator:
             item.input.append(value)
         elif kind == "response.custom_tool_call_input.done":
             item.input = [value]
+
+    def _add_rich_event(self, event: ResponsesServerEvent, kind: str) -> None:
+        index = _index_field(event, "output_index")
+        # Shell-command events identify their call by output_index only. An
+        # unmodeled item_id extra must stay raw, not become a routing guard.
+        item_id = None if kind.startswith("response.shell_call_command.") else _text_field(event, "item_id")
+        item = self._output.get(hex(index))
+        text_event = _RICH_TEXT_EVENTS.get(kind)
+        status_event = _RICH_STATUS_EVENTS.get(kind)
+        expected_kind = text_event[0] if text_event else status_event[0] if status_event else _RICH_PART_EVENTS[kind]
+        # Progress cannot create or retire an item, including when an old ID
+        # arrives after a full-item replacement at this output index.
+        if item is None or item.type != expected_kind or (item_id is not None and item.item_id != item_id):
+            return
+        if status_event is not None:
+            item.data["status"] = status_event[1]
+            return
+        if text_event is not None:
+            _, field, operation, value_field, index_field = text_event
+            pos = 0 if index_field is None else _index_field(event, index_field)
+            text = _text_field(event, value_field)
+            if field == "reasoning":
+                part = item.content.get(hex(pos))
+                if part is None or part.get("type") != "reasoning_text":
+                    raise ValueError("WebSocket reasoning text is missing its content part")
+                container, key = part, "text"
+            else:
+                container, key = _rich_text_location(item.data, field, pos)
+            buffer_key = (field, hex(pos))
+            if operation == "done":
+                item.rich_text[buffer_key] = [text]
+            else:
+                seed = container.get(key) if isinstance(container, dict) else container[key]
+                if field == "code" and seed is None:
+                    seed = ""
+                if not isinstance(seed, str):
+                    raise ValueError("WebSocket rich text seed must be a string")
+                item.rich_text.setdefault(buffer_key, [seed]).append(text)
+            return
+        if kind.startswith("response.reasoning_summary_part."):
+            pos = _index_field(event, "summary_index")
+            parts = _rich_array(item.data.get("summary"), "summary")
+            added = kind == "response.reasoning_summary_part.added"
+            _check_rich_position(parts, pos, append=added)
+            part = _field(event, "part")
+            if _text_field(part, "type") != "summary_text":
+                raise ValueError("WebSocket summary part must be summary_text")
+            _text_field(part, "text")
+            replacement = _data(part)
+            if pos == len(parts):
+                parts.append(replacement)
+            else:
+                parts[pos] = replacement
+            item.rich_text.pop(("summary", hex(pos)), None)
+            return
+        pos = _index_field(event, "command_index")
+        if kind == "response.shell_call_command.added":
+            action = item.data.get("action")
+            if not isinstance(action, dict):
+                raise ValueError("WebSocket shell call is missing its action")
+            commands = _rich_array(action.get("commands"), "commands")
+            _check_rich_position(commands, pos, append=True)
+            command = _text_field(event, "command")
+            if pos == len(commands):
+                commands.append(command)
+                self._index_shell_call(item)
+            else:
+                commands[pos] = command
+            item.rich_text.pop(("command", hex(pos)), None)
+            return
+        bound = self._shell_command_counts.get(item.call_id) if item.call_id is not None else None
+        if bound is not None and pos >= bound:
+            raise ValueError("WebSocket shell output is missing its command")
+        if kind == "response.shell_call_output_content.done":
+            replacement = _rich_array(_field(event, "output"), "completed shell output")
+            completed = [_data(part) for part in replacement]
+            for part in completed:
+                _text_field(part, "stdout")
+                _text_field(part, "stderr")
+            item.shell_output[hex(pos)] = {"output": completed}
+            item.rich_text.pop(("stdout", hex(pos)), None)
+            item.rich_text.pop(("stderr", hex(pos)), None)
+        else:
+            delta = _field(event, "delta")
+            part = item.shell_output.get(hex(pos), {})
+            changes: list[tuple[_RichField, str, str]] = []
+            for field in ("stdout", "stderr"):
+                incoming = _field(delta, field)
+                if incoming is not None:
+                    text = _text_field(delta, field)
+                    seed = _text_field(part, field) if field in part else ""
+                    changes.append((field, text, seed))
+            # Validate both streams before extending either one.
+            item.shell_output.setdefault(hex(pos), part)
+            for field, text, seed in changes:
+                item.rich_text.setdefault((field, hex(pos)), [seed]).append(text)
+
+    def _index_shell_call(self, item: _Output) -> None:
+        if item.type != "shell_call" or item.call_id is None:
+            return
+        action = item.data.get("action")
+        commands = action.get("commands") if isinstance(action, dict) else None
+        # Index only observed counts; absent or malformed raw fields stay unknown.
+        if isinstance(commands, list):
+            self._shell_command_counts[item.call_id] = len(commands)
 
     @staticmethod
     def _add_item(output: dict[str, _Output], index: int, source: object) -> None:
@@ -433,6 +627,12 @@ class ResponsesWebSocketAccumulator:
             input_text = _optional_text_field(source, "input")
             if input_text is not None:
                 item.input = [input_text]
+        elif item.type == "reasoning":
+            content = _field(source, "content")
+            if isinstance(content, list):
+                for pos, part in enumerate(content):
+                    if isinstance(part, (BaseModel, dict)):
+                        item.content[hex(pos)] = _data(part)
         key = hex(index)
         previous = output.get(key)
         if previous is not None:
@@ -467,6 +667,60 @@ def _text_field(value: object, name: str) -> str:
     if not isinstance(text, str):
         raise ValueError(f"WebSocket output {name} must be a string")
     return text
+
+
+def _index_field(value: object, name: str) -> int:
+    index = _field(value, name)
+    if not isinstance(index, int) or isinstance(index, bool) or index < 0:
+        raise ValueError(f"WebSocket {name} must be a non-negative integer")
+    return index
+
+
+def _rich_array(value: object, name: str) -> list[Any]:
+    if not isinstance(value, list):
+        raise ValueError(f"WebSocket rich item is missing its {name}")
+    return value
+
+
+def _check_rich_position(values: list[Any], index: int, *, append: bool = False) -> None:
+    if index > len(values) or (index == len(values) and not append):
+        raise ValueError("WebSocket rich item is missing its indexed field")
+
+
+def _rich_text_location(
+    data: dict[str, object], field: Literal["summary", "code", "command"], index: int
+) -> tuple[Any, str | int]:
+    """Locate only the finite rich wire fields; no caller-supplied paths."""
+    if field == "code":
+        return data, "code"
+    if field == "command":
+        action = data.get("action")
+        if not isinstance(action, dict):
+            raise ValueError("WebSocket shell call is missing its action")
+        commands = _rich_array(action.get("commands"), "commands")
+        _check_rich_position(commands, index)
+        return commands, index
+    parts = _rich_array(data.get("summary"), "summary")
+    _check_rich_position(parts, index)
+    part = parts[index]
+    if not isinstance(part, dict):
+        raise ValueError("WebSocket rich item is missing its part")
+    return part, "text"
+
+
+def _project_rich_parts(
+    data: dict[str, object], field: Literal["content", "output"], parts: dict[int, dict[str, object]]
+) -> None:
+    original = data.get(field)
+    projected = original if isinstance(original, list) else []
+    for pos, part in parts.items():
+        if pos < len(projected):
+            projected[pos] = part
+        elif pos == len(projected):
+            projected.append(part)
+        # Keep holes in indexed rows, never as invented null/outcome values.
+    if projected:
+        data[field] = projected
 
 
 def _optional_text_field(value: object, name: str) -> str | None:
