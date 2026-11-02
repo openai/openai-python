@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import asyncio
+import threading
 
 import httpx2
 import pytest
@@ -51,6 +52,8 @@ async def test_realtime_reference_inputs_preserve_mixed_wire_payload(
         "response": reference_response,
     }
 
+    validated = threading.Event()
+
     def script(socket: ServerConnection) -> None:
         wire = socket.recv(timeout=5)
         assert isinstance(wire, str)
@@ -72,6 +75,7 @@ async def test_realtime_reference_inputs_preserve_mixed_wire_payload(
                 "output_modalities": ["text"],
             },
         }
+        validated.set()
 
     with script_server(script) as url:
         if mode == "sync":
@@ -83,6 +87,7 @@ async def test_realtime_reference_inputs_preserve_mixed_wire_payload(
                         connection.response.create(event_id="fake-reference-request", response=reference_response)
                     else:
                         connection.send(event)
+                    assert validated.wait(5), "Peer did not validate the request"
         else:
             async with AsyncOpenAI(
                 api_key="fake-reference-key", base_url=url, http_client=httpx2.AsyncClient(trust_env=False)
@@ -97,3 +102,4 @@ async def test_realtime_reference_inputs_preserve_mixed_wire_payload(
                         )
                     else:
                         await asyncio.wait_for(async_connection.send(event), timeout=5)
+                    assert await asyncio.to_thread(validated.wait, 5), "Peer did not validate the request"
