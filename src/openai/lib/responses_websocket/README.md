@@ -115,6 +115,7 @@ omitted or null output retains only the helper's earlier projections.
 beyond selected text and tool inputs. It contains `stream_id`, `response_id`,
 `terminal_type`, `response` and `output`. `response` is the last observed
 lifecycle response metadata (excluding `output`), or `None` if none arrived.
+This includes `response.queued` and `response.in_progress` refreshes.
 `output` is a list of `{"output_index": index, "item": metadata, "content": rows}`.
 Each content row is `{"content_index": index, "part": observed_fields}`. The
 part's `annotations`, when present as a list, use
@@ -150,6 +151,26 @@ A partial field or unknown type
 is provisional, not a fabricated validated response or a successful tool result.
 You may mutate this returned view without changing the accumulator, events, or
 earlier snapshots. The original `snapshot()` remains immutable and hashable.
+
+The detailed view also tracks reasoning summary/text, shell commands and output,
+interpreter code, and search, image and MCP status updates. Reasoning text stays
+separate from the compact snapshot's `output_text`. Full item and part replacements
+override their provisional fields without discarding another part's progress.
+Reasoning `item.content` and its indexed content rows show the same observed text.
+
+Shell output rows also contain `shell_output`, a list of
+`{"command_index": index, "data": observed_fields}` entries. Commands can produce
+output out of order. These indexed rows retain later commands even before earlier
+commands have produced output. A delta adds observed stdout/stderr. A done event
+replaces that command's data with `{"output": [all_received_contents]}`, including
+an empty array. The rows preserve each content's order, outcome and metadata.
+`item.output` retains the received whole-item array: it does not identify command
+boundaries, so the helper does not guess how command progress fits into that array.
+A text delta does not invent an outcome, exit code, or missing stdout/stderr.
+Full-item and terminal replacements clear provisional command facts. A matching
+shell call supplies a command bound; without it, the bound remains unknown.
+Queue and response limits
+are unchanged; the helper never allocates missing slots up to a sparse wire index.
 
 `snapshot()` materializes the entire current projection and joins retained
 fragments. `detailed_snapshot()` also materializes and copies its whole projection.
