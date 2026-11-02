@@ -59589,6 +59589,7 @@ components:
       - type
       - server_label
       - name
+      x-stainless-variantName: LiveMCPToolChoiceParam
     LiveFunctionToolChoiceParam:
       type: object
       properties:
@@ -59606,6 +59607,7 @@ components:
       required:
       - type
       - name
+      x-stainless-variantName: LiveFunctionToolChoiceParam
     SubmitToolOutputsRunRequestWithoutStream:
       type: object
       additionalProperties: false
@@ -80092,12 +80094,37 @@ components:
             anyOf:
             - $ref: '#/components/schemas/LiveFunctionToolInputParam'
             - $ref: '#/components/schemas/LiveWebSearchToolInputParam'
+            - $ref: '#/components/schemas/LiveFileSearchToolInputParam'
+            - $ref: '#/components/schemas/LiveCodeInterpreterToolInputParam'
+            - $ref: '#/components/schemas/LiveHostedShellToolInputParam'
+            - $ref: '#/components/schemas/LiveImageGenerationToolInputParam'
+            - $ref: '#/components/schemas/LiveMCPToolInputParam'
+            - $ref: '#/components/schemas/LiveCustomToolInputParam'
+            - $ref: '#/components/schemas/LiveNamespaceToolInputParam'
+            - $ref: '#/components/schemas/LiveToolSearchToolInputParam'
+            - $ref: '#/components/schemas/LiveProgrammaticToolInputParam'
+            - $ref: '#/components/schemas/LiveComputerToolInputParam'
+            - $ref: '#/components/schemas/LiveApplyPatchToolInputParam'
         tool_choice:
           description: Controls which tool the Responses backend uses when handling a task delegated by the Live model.
           anyOf:
           - $ref: '#/components/schemas/LiveToolChoiceEnum'
-          - $ref: '#/components/schemas/LiveFunctionToolChoiceParam'
-          - $ref: '#/components/schemas/LiveMCPToolChoiceParam'
+          - discriminator:
+              propertyName: type
+            anyOf:
+            - $ref: '#/components/schemas/LiveFunctionToolChoiceParam'
+            - $ref: '#/components/schemas/LiveMCPToolChoiceParam'
+            - $ref: '#/components/schemas/LiveSpecificFileSearchParam'
+            - $ref: '#/components/schemas/LiveSpecificWebSearchParam'
+            - $ref: '#/components/schemas/LiveSpecificWebSearchPreviewParam'
+            - $ref: '#/components/schemas/LiveSpecificImageGenParam'
+            - $ref: '#/components/schemas/LiveSpecificComputerParam'
+            - $ref: '#/components/schemas/LiveSpecificCodeInterpreterParam'
+            - $ref: '#/components/schemas/LiveSpecificProgrammaticToolCallingParam'
+            - $ref: '#/components/schemas/LiveSpecificFunctionShellParam'
+            - $ref: '#/components/schemas/LiveSpecificCustomToolParam'
+            - $ref: '#/components/schemas/LiveSpecificApplyPatchParam'
+          - $ref: '#/components/schemas/LiveAllowedToolsChoiceParam'
         parallel_tool_calls:
           anyOf:
           - description: Whether the delegated Responses model may request multiple tool calls in a single response.
@@ -80725,12 +80752,37 @@ components:
             anyOf:
             - $ref: '#/components/schemas/LiveFunctionToolInputParam'
             - $ref: '#/components/schemas/LiveWebSearchToolInputParam'
+            - $ref: '#/components/schemas/LiveFileSearchToolInputParam'
+            - $ref: '#/components/schemas/LiveCodeInterpreterToolInputParam'
+            - $ref: '#/components/schemas/LiveHostedShellToolInputParam'
+            - $ref: '#/components/schemas/LiveImageGenerationToolInputParam'
+            - $ref: '#/components/schemas/LiveMCPToolInputParam'
+            - $ref: '#/components/schemas/LiveCustomToolInputParam'
+            - $ref: '#/components/schemas/LiveNamespaceToolInputParam'
+            - $ref: '#/components/schemas/LiveToolSearchToolInputParam'
+            - $ref: '#/components/schemas/LiveProgrammaticToolInputParam'
+            - $ref: '#/components/schemas/LiveComputerToolInputParam'
+            - $ref: '#/components/schemas/LiveApplyPatchToolInputParam'
         tool_choice:
           description: Controls which tool the Responses backend uses when handling a task delegated by the Live model.
           anyOf:
           - $ref: '#/components/schemas/LiveToolChoiceEnum'
-          - $ref: '#/components/schemas/LiveFunctionToolChoiceParam'
-          - $ref: '#/components/schemas/LiveMCPToolChoiceParam'
+          - discriminator:
+              propertyName: type
+            anyOf:
+            - $ref: '#/components/schemas/LiveFunctionToolChoiceParam'
+            - $ref: '#/components/schemas/LiveMCPToolChoiceParam'
+            - $ref: '#/components/schemas/LiveSpecificFileSearchParam'
+            - $ref: '#/components/schemas/LiveSpecificWebSearchParam'
+            - $ref: '#/components/schemas/LiveSpecificWebSearchPreviewParam'
+            - $ref: '#/components/schemas/LiveSpecificImageGenParam'
+            - $ref: '#/components/schemas/LiveSpecificComputerParam'
+            - $ref: '#/components/schemas/LiveSpecificCodeInterpreterParam'
+            - $ref: '#/components/schemas/LiveSpecificProgrammaticToolCallingParam'
+            - $ref: '#/components/schemas/LiveSpecificFunctionShellParam'
+            - $ref: '#/components/schemas/LiveSpecificCustomToolParam'
+            - $ref: '#/components/schemas/LiveSpecificApplyPatchParam'
+          - $ref: '#/components/schemas/LiveAllowedToolsChoiceParam'
         parallel_tool_calls:
           anyOf:
           - description: Whether the delegated Responses model may request multiple tool calls in a single response.
