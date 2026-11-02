@@ -87,8 +87,6 @@ class _Output:
     annotations: dict[str, dict[str, object]] = field(default_factory=dict[str, dict[str, object]])
     rich_text: dict[tuple[_RichField, str], list[str]] = field(default_factory=dict[tuple[_RichField, str], list[str]])
     shell_output: dict[str, dict[str, object]] = field(default_factory=dict[str, dict[str, object]])
-    shell_bound_revision: int = -1
-    shell_command_bound: int | None = None
 
 
 class ResponsesWebSocketAccumulator:
@@ -112,7 +110,7 @@ class ResponsesWebSocketAccumulator:
         self._response: dict[str, object] | None = None
         self._final: Response | None = None
         self._error: Exception | None = None
-        self._shell_revision = 0
+        self._shell_command_counts: dict[str, int] = {}
 
     def reset(self) -> None:
         """Release this helper's state only; prior snapshots and the socket remain usable."""
@@ -121,7 +119,7 @@ class ResponsesWebSocketAccumulator:
         self._output.clear()
         self._response = None
         self._final = self._error = None
-        self._shell_revision = 0
+        self._shell_command_counts.clear()
 
     def snapshot(self) -> ResponsesWebSocketSnapshot:
         """Materialize the entire current immutable projection.
@@ -166,7 +164,7 @@ class ResponsesWebSocketAccumulator:
                 if field not in {"reasoning", "stdout", "stderr"}:
                     container, key = _rich_text_location(data, field, int(pos, 16))
                     container[key] = "".join(fragments)
-            if item.item_id:
+            if item.item_id and not item.data:
                 data["id"] = item.item_id
             if item.arguments:
                 data["arguments"] = "".join(item.arguments)
@@ -346,7 +344,9 @@ class ResponsesWebSocketAccumulator:
                         self._error = error
                     raise
                 self._output = replacement
-                self._shell_revision += 1
+                self._shell_command_counts.clear()
+                for item in replacement.values():
+                    self._index_shell_call(item)
             self._response = _data(response, exclude={"output"})
             self._response_id = response_id or self._response_id
             self._bound, self._stream_id = True, stream_id
@@ -364,11 +364,11 @@ class ResponsesWebSocketAccumulator:
             previous = self._output.get(hex(index))
             self._add_item(self._output, index, _field(event, "item"))
             current = self._output.get(hex(index))
-            if previous is not current and (
-                (previous is not None and previous.type == "shell_call")
-                or (current is not None and current.type == "shell_call")
-            ):
-                self._shell_revision += 1
+            if previous is not current:
+                if previous is not None and previous.type == "shell_call" and previous.call_id is not None:
+                    self._shell_command_counts.pop(previous.call_id, None)
+                if current is not None:
+                    self._index_shell_call(current)
             self._bound, self._stream_id = True, stream_id
             return
         # Validate consumed values before replacing an item's retained state.
@@ -422,12 +422,21 @@ class ResponsesWebSocketAccumulator:
         item = self._output.get(key)
         if item is not None and item_id in item.retired_ids:
             return
+        if item is not None and item.type in {"function_call", "custom_tool_call"} and "id" not in item.data:
+            # Full records that omit id bind only to their own progress family.
+            matching_family = (
+                kind in {"response.function_call_arguments.delta", "response.function_call_arguments.done"}
+                if item.type == "function_call"
+                else kind in {"response.custom_tool_call_input.delta", "response.custom_tool_call_input.done"}
+            )
+            if not matching_family or (item.item_id and item_id != item.item_id):
+                return
         if item is None:
             item = _Output(item_id=item_id)
             self._output[key] = item
         elif item_id and item.item_id and item_id != item.item_id:
-            if item.type == "shell_call":
-                self._shell_revision += 1
+            if item.type == "shell_call" and item.call_id is not None:
+                self._shell_command_counts.pop(item.call_id, None)
             item.retired_ids.add(item.item_id)
             item = _Output(item_id=item_id, retired_ids=item.retired_ids)
             self._output[key] = item
@@ -542,12 +551,12 @@ class ResponsesWebSocketAccumulator:
             command = _text_field(event, "command")
             if pos == len(commands):
                 commands.append(command)
-                self._shell_revision += 1
+                self._index_shell_call(item)
             else:
                 commands[pos] = command
             item.rich_text.pop(("command", hex(pos)), None)
             return
-        bound = self._shell_command_limit(item)
+        bound = self._shell_command_counts.get(item.call_id) if item.call_id is not None else None
         if bound is not None and pos >= bound:
             raise ValueError("WebSocket shell output is missing its command")
         if kind == "response.shell_call_output_content.done":
@@ -574,20 +583,14 @@ class ResponsesWebSocketAccumulator:
             for field, text, seed in changes:
                 item.rich_text.setdefault((field, hex(pos)), [seed]).append(text)
 
-    def _shell_command_limit(self, item: _Output) -> int | None:
-        if item.shell_bound_revision != self._shell_revision:
-            bound = None
-            for other in self._output.values():
-                if other.type == "shell_call" and other.call_id == item.call_id:
-                    action = other.data.get("action")
-                    if not isinstance(action, dict):
-                        raise ValueError("WebSocket shell call is missing its action")
-                    bound = len(_rich_array(action.get("commands"), "commands"))
-                    break
-            # Retain numeric bounds (including absence), never item pointers.
-            item.shell_command_bound = bound
-            item.shell_bound_revision = self._shell_revision
-        return item.shell_command_bound
+    def _index_shell_call(self, item: _Output) -> None:
+        if item.type != "shell_call" or item.call_id is None:
+            return
+        action = item.data.get("action")
+        commands = action.get("commands") if isinstance(action, dict) else None
+        # Index only observed counts; absent or malformed raw fields stay unknown.
+        if isinstance(commands, list):
+            self._shell_command_counts[item.call_id] = len(commands)
 
     @staticmethod
     def _add_item(output: dict[str, _Output], index: int, source: object) -> None:

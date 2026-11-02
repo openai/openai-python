@@ -851,6 +851,292 @@ def test_many_shell_fragments_keep_snapshots_and_new_lifecycle_bounds(with_call:
     assert prior["output"][1 if with_call else 0]["shell_output"][0]["data"]["stdout"] == "x" * 2048
 
 
+def test_many_distinct_shell_outputs_keep_their_bounds_across_unrelated_call_insertions() -> None:
+    count = 64
+    outputs: list[dict[str, Any]] = []
+    calls: list[dict[str, Any]] = []
+    for index in range(count):
+        output = shell_output()
+        output.update(id=f"output_{index}", call_id=f"call_{index}", output=[])
+        outputs.append(output)
+        call = shell(["command"] * (index % 3 + 1))
+        call.update(id=f"call_item_{index}", call_id=f"call_{index}")
+        calls.append(call)
+    acc = ResponsesWebSocketAccumulator()
+    acc.add_event(typed(events.ResponseWsCreated, "response.created", response=response(parallel_tool_calls=True)))
+    lifecycle = typed(
+        events.ResponseInWsProgress,
+        "response.in_progress",
+        response=response(parallel_tool_calls=True, output=outputs + calls),
+    )
+    original = lifecycle.to_dict()
+    acc.add_event(lifecycle)
+    for index in range(count):
+        acc.add_event(
+            typed(
+                events.ResponseShellCallOutputContentWsDelta,
+                "response.shell_call_output_content.delta",
+                output_index=index,
+                item_id=f"output_{index}",
+                command_index=index % 3,
+                delta={"stdout": f"first_{index}"},
+            )
+        )
+    prior = acc.detailed_snapshot()
+    for index in range(count):
+        unrelated = shell(["unrelated"])
+        unrelated.update(id=f"unrelated_item_{index}", call_id=f"unrelated_call_{index}")
+        acc.add_event(
+            typed(
+                events.ResponseOutputItemWsAdded,
+                "response.output_item.added",
+                output_index=2 * count + index,
+                item=unrelated,
+            )
+        )
+        acc.add_event(
+            typed(
+                events.ResponseShellCallOutputContentWsDelta,
+                "response.shell_call_output_content.delta",
+                output_index=index,
+                item_id=f"output_{index}",
+                command_index=index % 3,
+                delta={"stdout": "+after-unrelated-call"},
+            )
+        )
+    details = acc.detailed_snapshot()
+    for index, output in enumerate(details["output"][:count]):
+        assert output["item"]["output"] == []
+        assert output["shell_output"] == [
+            {"command_index": index % 3, "data": {"stdout": f"first_{index}+after-unrelated-call"}}
+        ]
+        assert prior["output"][index]["shell_output"][0]["data"] == {"stdout": f"first_{index}"}
+    for index in range(3):
+        with pytest.raises(ValueError, match="missing its command"):
+            acc.add_event(
+                typed(
+                    events.ResponseShellCallOutputContentWsDelta,
+                    "response.shell_call_output_content.delta",
+                    output_index=index,
+                    item_id=f"output_{index}",
+                    command_index=index % 3 + 1,
+                    delta={"stdout": "must-not-apply"},
+                )
+            )
+    assert acc.detailed_snapshot() == details
+    assert lifecycle.to_dict() == original
+
+
+@pytest.mark.parametrize("clear", ["lifecycle", "reset"])
+def test_shell_bounds_do_not_survive_removal_from_lifecycle_or_reset(clear: str) -> None:
+    output = shell_output()
+    output["output"] = []
+    acc = seeded(output)
+    call = shell([])
+    call["id"] = "empty_call"
+    acc.add_event(
+        typed(events.ResponseOutputItemWsAdded, "response.output_item.added", output_index=INDEX + 1, item=call)
+    )
+    with pytest.raises(ValueError, match="missing its command"):
+        acc.add_event(
+            typed(
+                events.ResponseShellCallOutputContentWsDelta,
+                "response.shell_call_output_content.delta",
+                output_index=INDEX,
+                item_id=ITEM_ID,
+                command_index=0,
+                delta={"stdout": "must-not-apply"},
+            )
+        )
+    if clear == "reset":
+        acc.reset()
+        acc.add_event(typed(events.ResponseWsCreated, "response.created", response=response(output=[output])))
+    else:
+        acc.add_event(typed(events.ResponseInWsProgress, "response.in_progress", response=response(output=[output])))
+    acc.add_event(
+        typed(
+            events.ResponseShellCallOutputContentWsDelta,
+            "response.shell_call_output_content.delta",
+            output_index=0,
+            item_id=ITEM_ID,
+            command_index=5,
+            delta={"stdout": "unknown-bound"},
+        )
+    )
+    assert row(acc, 0)["shell_output"] == [{"command_index": 5, "data": {"stdout": "unknown-bound"}}]
+
+
+@pytest.mark.parametrize("presence", ["absent", "null", "present"])
+@pytest.mark.parametrize("family", ["function_call", "custom_tool_call"])
+def test_full_tool_item_id_presence_is_separate_from_observed_delta_identity(family: str, presence: str) -> None:
+    field = "arguments" if family == "function_call" else "input"
+    seed = "{" if family == "function_call" else "seed"
+    fragment = '"observed":true}' if family == "function_call" else "+delta"
+    completed = '{"replacement":true}' if family == "function_call" else "replacement"
+    source = item(family, name="synthetic", call_id="synthetic_call", status="in_progress", **{field: seed})
+    if presence == "absent":
+        del source["id"]
+    elif presence == "null":
+        source["id"] = None
+    acc = ResponsesWebSocketAccumulator()
+    acc.add_event(typed(events.ResponseWsCreated, "response.created", response=response()))
+    scaffold = typed(events.ResponseOutputItemWsAdded, "response.output_item.added", output_index=INDEX, item=source)
+    original_scaffold = scaffold.to_dict()
+    acc.add_event(scaffold)
+    before_delta = acc.detailed_snapshot()
+    model = (
+        events.ResponseFunctionCallArgumentsWsDelta
+        if family == "function_call"
+        else events.ResponseCustomToolCallInputWsDelta
+    )
+    tag = (
+        "response.function_call_arguments.delta"
+        if family == "function_call"
+        else "response.custom_tool_call_input.delta"
+    )
+    delta = typed(model, tag, output_index=INDEX, item_id=ITEM_ID, delta=fragment)
+    original_delta = delta.to_dict()
+    acc.add_event(delta)
+    current = row(acc)
+    assert ("id" in current["item"]) == ("id" in source)
+    if "id" in source:
+        assert current["item"]["id"] == source["id"]
+    assert current["item"][field] == seed + fragment
+    assert acc.snapshot().output[0].item_id == ITEM_ID
+    assert before_delta["output"][0]["item"] == source
+    assert scaffold.to_dict() == original_scaffold
+    assert delta.to_dict() == original_delta
+
+    before_replacement = acc.detailed_snapshot()
+    replacement = deepcopy(source)
+    replacement.update(status="completed", future_item={"authority": "full-item"}, **{field: completed})
+    full = typed(events.ResponseOutputItemWsDone, "response.output_item.done", output_index=INDEX, item=replacement)
+    original_full = full.to_dict()
+    acc.add_event(full)
+    assert row(acc)["item"] == replacement
+    assert before_replacement["output"][0]["item"] == current["item"]
+    assert before_delta["output"][0]["item"] == source
+    assert full.to_dict() == original_full
+    assert scaffold.to_dict() == original_scaffold
+    assert delta.to_dict() == original_delta
+
+
+@pytest.mark.parametrize("scaffold", ["absent", "null", "present", "bootstrap"])
+@pytest.mark.parametrize("phase", ["delta", "done"])
+@pytest.mark.parametrize("family", ["function_call", "custom_tool_call"])
+def test_omitted_id_full_tools_keep_bound_identity_and_legacy_replacement_cases(
+    family: str, phase: str, scaffold: str
+) -> None:
+    field = "arguments" if family == "function_call" else "input"
+    prefix = "response.function_call_arguments" if family == "function_call" else "response.custom_tool_call_input"
+    delta_model = (
+        events.ResponseFunctionCallArgumentsWsDelta
+        if family == "function_call"
+        else events.ResponseCustomToolCallInputWsDelta
+    )
+    done_model = (
+        events.ResponseFunctionCallArgumentsWsDone
+        if family == "function_call"
+        else events.ResponseCustomToolCallInputWsDone
+    )
+    acc = ResponsesWebSocketAccumulator()
+    acc.add_event(typed(events.ResponseWsCreated, "response.created", response=response()))
+    if scaffold != "bootstrap":
+        source = item(family, name="synthetic", call_id="synthetic_call", status="in_progress", **{field: ""})
+        if scaffold == "absent":
+            del source["id"]
+        elif scaffold == "null":
+            source["id"] = None
+        acc.add_event(
+            typed(events.ResponseOutputItemWsAdded, "response.output_item.added", output_index=INDEX, item=source)
+        )
+    first_text = '{"first":true}' if family == "function_call" else "first"
+    first = typed(delta_model, prefix + ".delta", output_index=INDEX, item_id=ITEM_ID, delta=first_text)
+    original_first = first.to_dict()
+    acc.add_event(first)
+    before = acc.detailed_snapshot()
+    compact_before = acc.snapshot()
+    assert compact_before.output[0].item_id == ITEM_ID
+    second_text = '{"second":true}' if family == "function_call" else "second"
+    fields = {"delta" if phase == "delta" else field: second_text}
+    conflict = typed(
+        delta_model if phase == "delta" else done_model,
+        prefix + "." + phase,
+        output_index=INDEX,
+        item_id="other_item",
+        **fields,
+    )
+    original_conflict = conflict.to_dict()
+    acc.add_event(conflict)
+    assert first.to_dict() == original_first
+    assert conflict.to_dict() == original_conflict
+    if scaffold == "absent":
+        assert acc.detailed_snapshot() == before
+        assert acc.snapshot() == compact_before
+    else:
+        # Explicit-null/present IDs and unscaffolded inputs retain replacement policy.
+        assert acc.snapshot().output[0].item_id == "other_item"
+        assert acc.snapshot().output[0].type is None
+        assert getattr(acc.snapshot().output[0], field) == second_text
+    assert before["output"][0]["item"][field] == first_text
+
+
+@pytest.mark.parametrize("phase", ["delta", "done"])
+@pytest.mark.parametrize("family", ["function_call", "custom_tool_call"])
+def test_omitted_id_full_tool_ignores_other_progress_family_before_binding(family: str, phase: str) -> None:
+    field = "arguments" if family == "function_call" else "input"
+    source = item(family, name="synthetic", call_id="synthetic_call", status="in_progress", **{field: ""})
+    del source["id"]
+    acc = seeded(source)
+    before = acc.detailed_snapshot()
+    compact_before = acc.snapshot()
+    if family == "function_call":
+        wrong_prefix = "response.custom_tool_call_input"
+        wrong_field = "input"
+        wrong_model = (
+            events.ResponseCustomToolCallInputWsDelta if phase == "delta" else events.ResponseCustomToolCallInputWsDone
+        )
+        matching_prefix = "response.function_call_arguments"
+        matching_model = events.ResponseFunctionCallArgumentsWsDelta
+    else:
+        wrong_prefix = "response.function_call_arguments"
+        wrong_field = "arguments"
+        wrong_model = (
+            events.ResponseFunctionCallArgumentsWsDelta
+            if phase == "delta"
+            else events.ResponseFunctionCallArgumentsWsDone
+        )
+        matching_prefix = "response.custom_tool_call_input"
+        matching_model = events.ResponseCustomToolCallInputWsDelta
+    wrong = typed(
+        wrong_model,
+        wrong_prefix + "." + phase,
+        output_index=INDEX,
+        item_id="wrong_family_item",
+        **{"delta" if phase == "delta" else wrong_field: '{"wrong":true}'},
+    )
+    original_wrong = wrong.to_dict()
+    acc.add_event(wrong)
+    assert acc.snapshot() == compact_before
+    assert acc.detailed_snapshot() == before
+    correct_text = '{"correct":true}' if family == "function_call" else "correct"
+    matching = typed(
+        matching_model,
+        matching_prefix + ".delta",
+        output_index=INDEX,
+        item_id=ITEM_ID,
+        delta=correct_text,
+    )
+    original_matching = matching.to_dict()
+    acc.add_event(matching)
+    assert acc.snapshot().output[0].item_id == ITEM_ID
+    assert row(acc)["item"][field] == correct_text
+    assert "id" not in row(acc)["item"]
+    assert before["output"][0]["item"] == source
+    assert wrong.to_dict() == original_wrong
+    assert matching.to_dict() == original_matching
+
+
 @pytest.mark.parametrize("code_presence", ["missing", "null"])
 def test_optional_code_seed_stays_observed_until_progress(code_presence: str) -> None:
     source = interpreter()
