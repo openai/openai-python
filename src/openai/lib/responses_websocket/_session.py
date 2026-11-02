@@ -6,11 +6,11 @@ import time
 import asyncio
 import threading
 from types import TracebackType
-from typing import Any, cast
+from typing import Any, Generic, Mapping, cast
 from weakref import WeakSet
 from collections import deque
 from dataclasses import dataclass
-from typing_extensions import Self
+from typing_extensions import Self, TypeVar, overload
 
 from ..._types import omit
 from ..._utils import maybe_transform
@@ -19,10 +19,31 @@ from ..._models import BaseModel
 from ..._exceptions import WebSocketConnectionClosedError
 from ...types.responses import Response, ResponseStreamEvent
 from ..streaming.responses import ResponseStreamState
+from ...types.beta.beta_response import BetaResponse
 from ...resources.responses.responses import ResponsesConnection, AsyncResponsesConnection
+from ...resources.beta.responses.responses import (
+    ResponsesConnection as BetaResponsesConnection,
+    AsyncResponsesConnection as AsyncBetaResponsesConnection,
+)
+from ...types.beta.beta_responses_client_event import BetaResponsesClientEvent
+from ...types.beta.beta_responses_server_event import BetaResponsesServerEvent
 from ...types.responses.responses_client_event import ResponsesClientEvent
 from ...types.responses.responses_server_event import ResponsesServerEvent
+from ...types.beta.beta_responses_client_event_param import BetaResponsesClientEventParam
 from ...types.responses.responses_client_event_param import ResponsesClientEventParam
+
+_ServerEvent = ResponsesServerEvent | BetaResponsesServerEvent
+_ClientEvent = (
+    ResponsesClientEvent | ResponsesClientEventParam | BetaResponsesClientEvent | BetaResponsesClientEventParam
+)
+_Response = Response | BetaResponse
+_SyncConnectionT = TypeVar(
+    "_SyncConnectionT", ResponsesConnection, BetaResponsesConnection, default=ResponsesConnection
+)
+_AsyncConnectionT = TypeVar(
+    "_AsyncConnectionT", AsyncResponsesConnection, AsyncBetaResponsesConnection, default=AsyncResponsesConnection
+)
+_EventT = TypeVar("_EventT", bound=_ServerEvent, default=ResponsesServerEvent)
 
 
 @dataclass(frozen=True)
@@ -55,10 +76,10 @@ class ResponsesWebSocketBufferError(RuntimeError):
     """A session or response exceeded an application-selected buffer limit."""
 
 
-class ResponsesWebSocketError(RuntimeError):
+class ResponsesWebSocketError(RuntimeError, Generic[_EventT]):
     """A request-scoped protocol error. The original event is available as ``event``."""
 
-    def __init__(self, event: ResponsesServerEvent) -> None:
+    def __init__(self, event: _EventT) -> None:
         super().__init__("The Responses WebSocket request returned an error event")
         self.event = event
 
@@ -83,15 +104,18 @@ def _field(event: object, name: str) -> Any:
     return cast("dict[str, Any]", event).get(name) if isinstance(event, dict) else getattr(event, name, None)
 
 
-def _command(event: ResponsesClientEvent | ResponsesClientEventParam, stream_id: str | None) -> tuple[str, bool]:
-    data = event.to_dict(exclude_unset=True) if isinstance(event, BaseModel) else dict(event)
+def _command(event: _ClientEvent, stream_id: str | None, *, beta: bool) -> tuple[str, bool]:
+    data = (
+        event.to_dict(exclude_unset=True) if isinstance(event, BaseModel) else dict(cast("Mapping[str, object]", event))
+    )
     is_create = bool(data.get("type") == "response.create")
     if is_create:
         if "stream_id" in data and data["stream_id"] != stream_id:
             raise ValueError("The command stream_id does not match its lane")
         if stream_id is not None:
             data["stream_id"] = stream_id
-    return json.dumps(maybe_transform(data, ResponsesClientEventParam)), is_create
+    param_type = BetaResponsesClientEventParam if beta else ResponsesClientEventParam
+    return json.dumps(maybe_transform(data, param_type)), is_create
 
 
 class _Accumulator:
@@ -99,10 +123,10 @@ class _Accumulator:
         self.limit = limit
         self.size = 0
         self.state: ResponseStreamState[object] | None = None
-        self.final: Response | None = None
+        self.final: _Response | None = None
         self.error: Exception | None = None
 
-    def add(self, event: ResponsesServerEvent, size: int) -> None:
+    def add(self, event: _ServerEvent, size: int) -> None:
         kind = _field(event, "type")
         if kind == "response.created":
             self.size = 0
@@ -135,18 +159,26 @@ class _Accumulator:
                 self.state = None
                 self.final = None
                 raise ResponsesWebSocketBufferError("Response accumulation exceeded max_response_bytes")
+        # Reuse the isolated event for the compatible-event bridge and the
+        # native Beta final. The shared engine still validates completion; its
+        # intermediate ParsedResponse is not the public Beta result.
+        isolated = event
+        if (self.state is not None and compatible) or (
+            terminal and isinstance(_field(event, "response"), BetaResponse)
+        ):
+            isolated = model_copy(event, deep=True)
         if self.state is not None and compatible:
-            # Accumulation must not mutate the raw event visible to callers.
-            self.state.handle_event(cast(ResponseStreamEvent, model_copy(event, deep=True)))
+            self.state.handle_event(cast(ResponseStreamEvent, isolated))
         if terminal:
-            self.final = cast(Response, _field(event, "response"))
-            if kind == "response.completed" and self.state is not None:
-                self.final = self.state._completed_response
-            elif self.state is not None and getattr(self.final, "output", None) is None:
-                self.final = model_copy(self.final)
-                self.final.output = [
-                    self.state._completed_output[index] for index in sorted(self.state._completed_output)
-                ]
+            self.final = cast(_Response, _field(isolated, "response"))
+            if not isinstance(self.final, BetaResponse):
+                if kind == "response.completed" and self.state is not None:
+                    self.final = self.state._completed_response
+                elif self.state is not None and getattr(self.final, "output", None) is None:
+                    self.final = model_copy(self.final)
+                    self.final.output = [
+                        self.state._completed_output[index] for index in sorted(self.state._completed_output)
+                    ]
             self.state = None
             self.size = 0
 
@@ -154,7 +186,7 @@ class _Accumulator:
 class _LaneState:
     def __init__(self, stream_id: str | None, limit: int | None) -> None:
         self.stream_id = stream_id
-        self.queue: deque[tuple[ResponsesServerEvent, int]] = deque()
+        self.queue: deque[tuple[_ServerEvent, int]] = deque()
         self.size = 0
         self.closed = False
         self.failure: ResponsesWebSocketBufferError | None = None
@@ -170,7 +202,10 @@ class _Router:
     def __init__(
         self,
         limits: ResponsesWebSocketLimits,
-        connection: ResponsesConnection | AsyncResponsesConnection,
+        connection: ResponsesConnection
+        | AsyncResponsesConnection
+        | BetaResponsesConnection
+        | AsyncBetaResponsesConnection,
         *,
         isolate_lane_overflow: bool = False,
     ) -> None:
@@ -232,7 +267,7 @@ class _Router:
                     # including when it was registered before reconnect.
                     del self.lanes[stream_id]
 
-    def dispatch(self, event: ResponsesServerEvent, size: int) -> None:
+    def dispatch(self, event: _ServerEvent, size: int) -> None:
         with self.condition:
             if self.ended:
                 return
@@ -290,7 +325,7 @@ class _Router:
                 lane.wake.set()
             self.condition.notify_all()
 
-    def pop(self, lane: _LaneState) -> ResponsesServerEvent | None:
+    def pop(self, lane: _LaneState) -> _ServerEvent | None:
         # The caller holds the condition. No await occurs after dequeueing.
         if lane.failure is not None:
             raise lane.failure
@@ -333,23 +368,38 @@ class _Router:
                 lane.in_flight = True
 
 
-class ResponsesWebSocketLane:
+class ResponsesWebSocketLane(Generic[_SyncConnectionT]):
     """A routed view of one session. ``close`` detaches it without closing the socket.
 
     Use a single consumer per lane. Cancel a synchronous wait with ``recv(timeout=...)``;
     a timeout never consumes an event. Different lanes may be consumed concurrently.
     """
 
-    def __init__(self, session: ResponsesWebSocketSession, state: _LaneState) -> None:
+    def __init__(self, session: ResponsesWebSocketSession[_SyncConnectionT], state: _LaneState) -> None:
         self._session = session
         self._state = state
 
-    def send(self, event: ResponsesClientEvent | ResponsesClientEventParam) -> None:
+    @overload
+    def send(
+        self: ResponsesWebSocketLane[ResponsesConnection], event: ResponsesClientEvent | ResponsesClientEventParam
+    ) -> None: ...
+
+    @overload
+    def send(
+        self: ResponsesWebSocketLane[BetaResponsesConnection],
+        event: BetaResponsesClientEvent | BetaResponsesClientEventParam,
+    ) -> None: ...
+
+    def send(self, event: _ClientEvent) -> None:
         # Pin the transport before checking recovery so this write cannot migrate.
         connection = self._session.connection._connection
         self._session._check_send(self._state)
         # Serializing supported iterables can call back into the connection.
-        data, is_create = _command(event, self._state.stream_id)
+        data, is_create = _command(
+            event,
+            self._state.stream_id,
+            beta=isinstance(self._session.connection, (BetaResponsesConnection, AsyncBetaResponsesConnection)),
+        )
         with self._session.connection._connection_lock:
             if self._session.connection._is_reconnecting:
                 raise RuntimeError("The WebSocket connection is reconnecting; restore state before sending")
@@ -361,7 +411,20 @@ class ResponsesWebSocketLane:
         # Send directly to this physical socket so lane requests never enter it.
         connection.send(data)
 
-    def recv(self, *, timeout: float | None = None) -> ResponsesServerEvent:
+    @overload
+    def recv(
+        self: ResponsesWebSocketLane[ResponsesConnection], *, timeout: float | None = None
+    ) -> ResponsesServerEvent: ...
+
+    @overload
+    def recv(
+        self: ResponsesWebSocketLane[BetaResponsesConnection], *, timeout: float | None = None
+    ) -> BetaResponsesServerEvent: ...
+
+    @overload
+    def recv(self, *, timeout: float | None = None) -> _ServerEvent: ...
+
+    def recv(self, *, timeout: float | None = None) -> _ServerEvent:
         if self._session._thread is None:
             raise RuntimeError("Enter the WebSocket session before receiving events")
         deadline = None if timeout is None else time.monotonic() + timeout
@@ -376,7 +439,17 @@ class ResponsesWebSocketLane:
                     raise TimeoutError("Timed out waiting for a Responses WebSocket event")
                 router.condition.wait(remaining)
 
-    def get_final_response(self, *, timeout: float | None = None) -> Response:
+    @overload
+    def get_final_response(
+        self: ResponsesWebSocketLane[ResponsesConnection], *, timeout: float | None = None
+    ) -> Response: ...
+
+    @overload
+    def get_final_response(
+        self: ResponsesWebSocketLane[BetaResponsesConnection], *, timeout: float | None = None
+    ) -> BetaResponse: ...
+
+    def get_final_response(self, *, timeout: float | None = None) -> _Response:
         """Consume this response's remaining events; failed/incomplete are final results."""
         deadline = None if timeout is None else time.monotonic() + timeout
         generation = self._state.consumed_generation
@@ -404,7 +477,7 @@ class ResponsesWebSocketLane:
         self._session._router.detach(self._state)
 
 
-class ResponsesWebSocketSession:
+class ResponsesWebSocketSession(Generic[_SyncConnectionT]):
     """Own one existing connection and route its events with one background reader.
 
     Enter the session before sending. While active, consume events only through
@@ -425,14 +498,14 @@ class ResponsesWebSocketSession:
     """
 
     def __init__(
-        self, connection: ResponsesConnection, *, limits: ResponsesWebSocketLimits, isolate_lane_overflow: bool = False
+        self, connection: _SyncConnectionT, *, limits: ResponsesWebSocketLimits, isolate_lane_overflow: bool = False
     ) -> None:
         self.connection = connection
         self._router = _Router(limits, connection, isolate_lane_overflow=isolate_lane_overflow)
         self._thread: threading.Thread | None = None
         self._closed = False
         self._owns_connection = False
-        self.default = ResponsesWebSocketLane(self, self._router.default)
+        self.default: ResponsesWebSocketLane[_SyncConnectionT] = ResponsesWebSocketLane(self, self._router.default)
 
     def __enter__(self) -> Self:
         if self._thread is not None or self._closed:
@@ -464,7 +537,7 @@ class ResponsesWebSocketSession:
             if exc is None:
                 raise
 
-    def lane(self, stream_id: str | None = None) -> ResponsesWebSocketLane:
+    def lane(self, stream_id: str | None = None) -> ResponsesWebSocketLane[_SyncConnectionT]:
         lane = ResponsesWebSocketLane(self, self._router.register(stream_id))
         if stream_id is None:
             self.default = lane
@@ -525,23 +598,48 @@ class ResponsesWebSocketSession:
                 self._release_connection()
 
 
-class AsyncResponsesWebSocketLane:
+class AsyncResponsesWebSocketLane(Generic[_AsyncConnectionT]):
     """An async routed lane. Canceling a recv/final-response wait never closes it."""
 
-    def __init__(self, session: AsyncResponsesWebSocketSession, state: _LaneState) -> None:
+    def __init__(self, session: AsyncResponsesWebSocketSession[_AsyncConnectionT], state: _LaneState) -> None:
         self._session = session
         self._state = state
 
-    async def send(self, event: ResponsesClientEvent | ResponsesClientEventParam) -> None:
+    @overload
+    async def send(
+        self: AsyncResponsesWebSocketLane[AsyncResponsesConnection],
+        event: ResponsesClientEvent | ResponsesClientEventParam,
+    ) -> None: ...
+
+    @overload
+    async def send(
+        self: AsyncResponsesWebSocketLane[AsyncBetaResponsesConnection],
+        event: BetaResponsesClientEvent | BetaResponsesClientEventParam,
+    ) -> None: ...
+
+    async def send(self, event: _ClientEvent) -> None:
         # Pin the transport before checking recovery so this write cannot migrate.
         connection = self._session.connection._connection
         self._session._check_send(self._state)
-        data, is_create = _command(event, self._state.stream_id)
+        data, is_create = _command(
+            event,
+            self._state.stream_id,
+            beta=isinstance(self._session.connection, (BetaResponsesConnection, AsyncBetaResponsesConnection)),
+        )
         self._session._router.prepare(self._state, is_create)
         # Bypass the legacy recovery queue, including a reconnect starting now.
         await connection.send(data)
 
-    async def recv(self) -> ResponsesServerEvent:
+    @overload
+    async def recv(self: AsyncResponsesWebSocketLane[AsyncResponsesConnection]) -> ResponsesServerEvent: ...
+
+    @overload
+    async def recv(self: AsyncResponsesWebSocketLane[AsyncBetaResponsesConnection]) -> BetaResponsesServerEvent: ...
+
+    @overload
+    async def recv(self) -> _ServerEvent: ...
+
+    async def recv(self) -> _ServerEvent:
         if self._session._task is None:
             raise RuntimeError("Enter the WebSocket session before receiving events")
         router = self._session._router
@@ -553,7 +651,13 @@ class AsyncResponsesWebSocketLane:
                 self._state.wake.clear()
             await self._state.wake.wait()
 
-    async def get_final_response(self) -> Response:
+    @overload
+    async def get_final_response(self: AsyncResponsesWebSocketLane[AsyncResponsesConnection]) -> Response: ...
+
+    @overload
+    async def get_final_response(self: AsyncResponsesWebSocketLane[AsyncBetaResponsesConnection]) -> BetaResponse: ...
+
+    async def get_final_response(self) -> _Response:
         generation = self._state.consumed_generation
         while (
             self._state.accumulator.final is not None
@@ -577,12 +681,12 @@ class AsyncResponsesWebSocketLane:
         self._session._router.detach(self._state)
 
 
-class AsyncResponsesWebSocketSession:
+class AsyncResponsesWebSocketSession(Generic[_AsyncConnectionT]):
     """Async counterpart of ResponsesWebSocketSession, owning the connection lifetime."""
 
     def __init__(
         self,
-        connection: AsyncResponsesConnection,
+        connection: _AsyncConnectionT,
         *,
         limits: ResponsesWebSocketLimits,
         isolate_lane_overflow: bool = False,
@@ -592,7 +696,9 @@ class AsyncResponsesWebSocketSession:
         self._task: asyncio.Task[None] | None = None
         self._close_task: asyncio.Task[None] | None = None
         self._closed = False
-        self.default = AsyncResponsesWebSocketLane(self, self._router.default)
+        self.default: AsyncResponsesWebSocketLane[_AsyncConnectionT] = AsyncResponsesWebSocketLane(
+            self, self._router.default
+        )
 
     async def __aenter__(self) -> Self:
         if self._task is not None or self._closed:
@@ -610,7 +716,7 @@ class AsyncResponsesWebSocketSession:
             if exc is None:
                 raise
 
-    def lane(self, stream_id: str | None = None) -> AsyncResponsesWebSocketLane:
+    def lane(self, stream_id: str | None = None) -> AsyncResponsesWebSocketLane[_AsyncConnectionT]:
         lane = AsyncResponsesWebSocketLane(self, self._router.register(stream_id))
         if stream_id is None:
             self.default = lane

@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import Any, Literal, cast
+from typing import Any, Generic, Literal, cast
 from dataclasses import field, dataclass
+from typing_extensions import TypeVar, overload
 
-from ._session import ResponsesWebSocketError, _field
+from ._session import ResponsesWebSocketError, _field, _ServerEvent
 from ..._compat import PYDANTIC_V1, model_copy
 from ..._models import BaseModel
 from ...types.responses import Response
+from ...types.beta.beta_response import BetaResponse
+from ...types.beta.beta_responses_server_event import BetaResponsesServerEvent
 from ...types.responses.responses_server_event import ResponsesServerEvent
 
 _RichField = Literal["summary", "reasoning", "code", "command", "stdout", "stderr"]
@@ -41,6 +44,8 @@ _RICH_PART_EVENTS = {
     "response.shell_call_output_content.delta": "shell_call_output",
     "response.shell_call_output_content.done": "shell_call_output",
 }
+
+_ResponseT = TypeVar("_ResponseT", Response, BetaResponse, default=Response)
 
 
 @dataclass(frozen=True)
@@ -89,7 +94,7 @@ class _Output:
     shell_output: dict[str, dict[str, object]] = field(default_factory=dict[str, dict[str, object]])
 
 
-class ResponsesWebSocketAccumulator:
+class ResponsesWebSocketAccumulator(Generic[_ResponseT]):
     """Caller-fed text/tool inputs and detailed reasoning, code and shell progress.
 
     Feed typed events from a connection or lane's recv(). Use one accumulator per
@@ -99,7 +104,16 @@ class ResponsesWebSocketAccumulator:
     server response, including failed/incomplete and missing/null/empty output.
     """
 
-    def __init__(self) -> None:
+    @overload
+    def __init__(
+        self: ResponsesWebSocketAccumulator[Response], *, response_type: type[Response] = Response
+    ) -> None: ...
+
+    @overload
+    def __init__(self: ResponsesWebSocketAccumulator[BetaResponse], *, response_type: type[BetaResponse]) -> None: ...
+
+    def __init__(self, *, response_type: type[Response] | type[BetaResponse] = Response) -> None:
+        self._response_type = response_type
         self._stream_id: str | None = None
         self._response_id: str | None = None
         self._terminal_type: str | None = None
@@ -108,7 +122,7 @@ class ResponsesWebSocketAccumulator:
         # non-negative indices without decimal string conversion limits.
         self._output: dict[str, _Output] = {}
         self._response: dict[str, object] | None = None
-        self._final: Response | None = None
+        self._final: _ResponseT | None = None
         self._error: Exception | None = None
         self._shell_command_counts: dict[str, int] = {}
 
@@ -231,7 +245,7 @@ class ResponsesWebSocketAccumulator:
             "output": output,
         }
 
-    def get_final_response(self) -> Response:
+    def get_final_response(self) -> _ResponseT:
         """Return an independent copy of the received terminal response, never a partial success."""
         error = self._error
         if error is not None:
@@ -240,7 +254,13 @@ class ResponsesWebSocketAccumulator:
             raise RuntimeError("No terminal response has been received")
         return model_copy(self._final, deep=True)
 
-    def add_event(self, event: ResponsesServerEvent) -> None:
+    @overload
+    def add_event(self: ResponsesWebSocketAccumulator[Response], event: ResponsesServerEvent) -> None: ...
+
+    @overload
+    def add_event(self: ResponsesWebSocketAccumulator[BetaResponse], event: BetaResponsesServerEvent) -> None: ...
+
+    def add_event(self, event: _ServerEvent) -> None:
         """Observe an event without consuming or changing it; unknown events are ignored.
 
         Final fields replace deltas. A supplied output list, even [], replaces
@@ -315,7 +335,7 @@ class ResponsesWebSocketAccumulator:
         terminal = kind in {"response.completed", "response.failed", "response.incomplete"}
         if kind in {"response.created", "response.queued", "response.in_progress"} or terminal:
             response = _field(event, "response")
-            if not isinstance(response, Response):
+            if not isinstance(response, self._response_type):
                 error = ValueError("WebSocket event is missing a valid response")
                 if terminal:
                     self._error = error
@@ -351,7 +371,7 @@ class ResponsesWebSocketAccumulator:
             self._response_id = response_id or self._response_id
             self._bound, self._stream_id = True, stream_id
             if terminal:
-                self._final = model_copy(response, deep=True)
+                self._final = cast(_ResponseT, model_copy(response, deep=True))
                 self._terminal_type = kind
             return
         if kind in _RICH_TEXT_EVENTS or kind in _RICH_STATUS_EVENTS or kind in _RICH_PART_EVENTS:
@@ -487,7 +507,7 @@ class ResponsesWebSocketAccumulator:
         elif kind == "response.custom_tool_call_input.done":
             item.input = [value]
 
-    def _add_rich_event(self, event: ResponsesServerEvent, kind: str) -> None:
+    def _add_rich_event(self, event: _ServerEvent, kind: str) -> None:
         index = _index_field(event, "output_index")
         # Shell-command events identify their call by output_index only. An
         # unmodeled item_id extra must stay raw, not become a routing guard.

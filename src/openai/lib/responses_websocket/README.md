@@ -39,6 +39,28 @@ async def run():
                 return response
 ```
 
+The same helpers accept native `client.beta.responses.connect()` connections.
+The constructor infers the connection family: Beta lanes accept Beta requests,
+return Beta events, and collect a native `BetaResponse`. Stable connections and
+bare session/lane annotations retain their existing stable types and defaults.
+Use the native connection class as the type argument when explicitly annotating
+a Beta session or lane. The async helpers follow the same rule.
+
+For caller-fed Beta events, select their response model when constructing the
+accumulator:
+
+```python
+from openai.types.beta.beta_response import BetaResponse
+from openai.lib.responses_websocket import ResponsesWebSocketAccumulator
+
+beta_accumulator = ResponsesWebSocketAccumulator(response_type=BetaResponse)
+# Feed events from one Beta connection or managed lane, as in the example below.
+```
+
+The default `ResponsesWebSocketAccumulator()` keeps stable response types.
+`reset()` retains the selected family. Beta finals preserve their native fields,
+including opaque and encrypted data; the helper does not add parsed Beta models.
+
 The session owns the connection's read side and lifetime. Its one reader uses the
 connection's raw receive, event parsing, and recovery methods. While the session
 is active, receive through its lanes instead of calling the connection's `recv`,
