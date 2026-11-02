@@ -153,7 +153,7 @@ You may mutate this returned view without changing the accumulator, events, or
 earlier snapshots. The original `snapshot()` remains immutable and hashable.
 
 The detailed view also tracks reasoning summary/text, shell commands and output,
-interpreter code, and search, image and MCP status updates. Reasoning text stays
+interpreter code, and search, image and MCP call status updates. Reasoning text stays
 separate from the compact snapshot's `output_text`. Full item and part replacements
 override their provisional fields without discarding another part's progress.
 Reasoning `item.content` and its indexed content rows show the same observed text.
