@@ -90,6 +90,7 @@ async def session_for(
     connection_options: dict[str, Any] | None = None,
     client_headers: dict[str, str] | None = None,
     connection_headers: Headers | None = None,
+    session_options: dict[str, Any] | None = None,
 ) -> AsyncGenerator[Driver]:
     options = connection_options or {}
     headers = {"X-Contract-Test": "synthetic", **(connection_headers or {})}
@@ -102,7 +103,7 @@ async def session_for(
                 http_client=httpx2.Client(trust_env=False),
             ) as client,
             client.responses.connect(extra_query={"contract": "1"}, extra_headers=headers, **options) as connection,
-            ResponsesWebSocketSession(connection, limits=limits) as session,
+            ResponsesWebSocketSession(connection, limits=limits, **(session_options or {})) as session,
         ):
             yield Driver(session, mode)
     else:
@@ -116,7 +117,7 @@ async def session_for(
             async_client.responses.connect(
                 extra_query={"contract": "1"}, extra_headers=headers, **options
             ) as async_connection,
-            AsyncResponsesWebSocketSession(async_connection, limits=limits) as async_session,
+            AsyncResponsesWebSocketSession(async_connection, limits=limits, **(session_options or {})) as async_session,
         ):
             yield Driver(async_session, mode)
 

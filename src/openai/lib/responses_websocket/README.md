@@ -186,7 +186,7 @@ it. After reconnect releases a closed default lane, `session.lane()` (or
 `session.lane(None)`) registers a fresh default and updates `session.default`.
 
 Limits apply only to this opt-in session. Event queues are bounded per lane and
-across the session; overflow reports `ResponsesWebSocketBufferError` and closes
+across the session. By default, overflow reports `ResponsesWebSocketBufferError` and closes
 the owned connection so ordered events are not silently dropped. Queue byte
 counts measure received message bytes before parsing, not Python object overhead or
 transport decoding memory. Response accumulation is uncapped by default:
@@ -194,6 +194,24 @@ omit `max_response_bytes` or set it to `None`. A positive integer opts into a
 budget for the cumulative compatible event bytes passed to an accumulator;
 exceeding it disables that response's collection, while raw events and other
 lanes remain usable. Queue and lane limits still require positive integers.
+
+To keep healthy lanes usable when another lane falls behind, pass
+`isolate_lane_overflow=True` to either session constructor. The default is `False`.
+An overflowing lane loses its queued events and response collection; its reads
+and final-response collection raise the same first `ResponsesWebSocketBufferError`.
+Later events for that failed ID are dropped, and its reservation lasts until
+reconnect. Manual lane detachment and unregistered-stream inspection keep their
+existing default-lane behavior.
+
+For aggregate queue pressure, the session fails the largest existing backlog
+in the pressured unit (bytes first, otherwise events), excluding the incoming
+event. Registration order breaks ties. An individually oversized event fails
+its target lane. The default lane can also fail under this policy: subsequent
+default events, including API error/control events, are then unavailable, while
+registered named lanes remain usable. Physical connection failures and explicit
+session close still end the session. After reconnect, register a new default
+explicitly with `session.lane()` if the old default failed.
+
 Choose budgets for large legitimate outputs. These are application budgets,
 not protocol limits.
 The examples disable the transport's separate 1 MiB message limit with

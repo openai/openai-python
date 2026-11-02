@@ -157,6 +157,7 @@ class _LaneState:
         self.queue: deque[tuple[ResponsesServerEvent, int]] = deque()
         self.size = 0
         self.closed = False
+        self.failure: ResponsesWebSocketBufferError | None = None
         self.in_flight = False
         self.closed_connection: object | None = None
         self.received_generation = 0
@@ -167,10 +168,15 @@ class _LaneState:
 
 class _Router:
     def __init__(
-        self, limits: ResponsesWebSocketLimits, connection: ResponsesConnection | AsyncResponsesConnection
+        self,
+        limits: ResponsesWebSocketLimits,
+        connection: ResponsesConnection | AsyncResponsesConnection,
+        *,
+        isolate_lane_overflow: bool = False,
     ) -> None:
         self.connection = connection
         self.limits = limits
+        self.isolate_lane_overflow = isolate_lane_overflow
         self.condition = threading.Condition()
         self.lanes: dict[str | None, _LaneState] = {}
         self.events = 0
@@ -213,6 +219,11 @@ class _Router:
             lane.wake.set()
             self.condition.notify_all()
 
+    def _fail(self, lane: _LaneState) -> None:
+        if not lane.closed:
+            lane.failure = ResponsesWebSocketBufferError("The lane exceeded its buffered event limits")
+            self.detach(lane)
+
     def reconnected(self, connection: object) -> None:
         with self.condition:
             for stream_id, lane in list(self.lanes.items()):
@@ -227,11 +238,21 @@ class _Router:
                 return
             stream_id = _field(event, "stream_id")
             lane = self.lanes.get(stream_id, self.default)
+            if lane.failure is not None:
+                return
             if lane.closed:
                 lane = self.default
             if lane.closed:
                 return
-            if (
+            if self.isolate_lane_overflow:
+                if (
+                    len(lane.queue) >= self.limits.max_events_per_lane
+                    or lane.size + size > self.limits.max_bytes_per_lane
+                    or size > self.limits.max_bytes
+                ):
+                    self._fail(lane)
+                    return
+            elif (
                 len(lane.queue) >= self.limits.max_events_per_lane
                 or self.events >= self.limits.max_events
                 or lane.size + size > self.limits.max_bytes_per_lane
@@ -245,6 +266,18 @@ class _Router:
             lane.size += size
             self.size += size
             self.events += 1
+            if self.isolate_lane_overflow:
+                while self.events > self.limits.max_events or self.size > self.limits.max_bytes:
+                    byte_pressure = self.size > self.limits.max_bytes
+                    largest, largest_size = lane, 0
+                    for candidate in self.lanes.values():
+                        # Exclude this incoming event once; ties follow registration order.
+                        backlog = candidate.size if byte_pressure else len(candidate.queue)
+                        if candidate is lane:
+                            backlog -= size if byte_pressure else 1
+                        if backlog > largest_size:
+                            largest, largest_size = candidate, backlog
+                    self._fail(largest)
             lane.wake.set()
             self.condition.notify_all()
 
@@ -259,6 +292,8 @@ class _Router:
 
     def pop(self, lane: _LaneState) -> ResponsesServerEvent | None:
         # The caller holds the condition. No await occurs after dequeueing.
+        if lane.failure is not None:
+            raise lane.failure
         if lane.closed:
             raise EOFError("The WebSocket lane is detached")
         if lane.queue:
@@ -353,11 +388,17 @@ class ResponsesWebSocketLane:
             remaining = None if deadline is None else max(0.0, deadline - time.monotonic())
             self.recv(timeout=remaining)
         while self._state.accumulator.final is None:
-            if self._state.accumulator.error is not None:
-                raise self._state.accumulator.error
+            with self._session._router.condition:
+                if self._state.failure is not None:
+                    raise self._state.failure
+                if self._state.accumulator.error is not None:
+                    raise self._state.accumulator.error
             remaining = None if deadline is None else max(0.0, deadline - time.monotonic())
             self.recv(timeout=remaining)
-        return self._state.accumulator.final
+        with self._session._router.condition:
+            if self._state.failure is not None:
+                raise self._state.failure
+            return self._state.accumulator.final
 
     def close(self) -> None:
         self._session._router.detach(self._state)
@@ -375,13 +416,19 @@ class ResponsesWebSocketSession:
     Keep a lane open for sequential responses. Reconnect releases closed lanes;
     open lanes remain registered on the new socket.
 
+    By default queue overflow closes the connection. ``isolate_lane_overflow=True``
+    instead fails the affected lane and drops its later events. A failed default
+    lane also loses later default/API controls; physical failures remain global.
+
     Recovery remains the existing connection's opt-in policy. Reconnecting a
     transport does not restore server-side response state or replay lane sends.
     """
 
-    def __init__(self, connection: ResponsesConnection, *, limits: ResponsesWebSocketLimits) -> None:
+    def __init__(
+        self, connection: ResponsesConnection, *, limits: ResponsesWebSocketLimits, isolate_lane_overflow: bool = False
+    ) -> None:
         self.connection = connection
-        self._router = _Router(limits, connection)
+        self._router = _Router(limits, connection, isolate_lane_overflow=isolate_lane_overflow)
         self._thread: threading.Thread | None = None
         self._closed = False
         self._owns_connection = False
@@ -515,10 +562,16 @@ class AsyncResponsesWebSocketLane:
         ):
             await self.recv()
         while self._state.accumulator.final is None:
-            if self._state.accumulator.error is not None:
-                raise self._state.accumulator.error
+            with self._session._router.condition:
+                if self._state.failure is not None:
+                    raise self._state.failure
+                if self._state.accumulator.error is not None:
+                    raise self._state.accumulator.error
             await self.recv()
-        return self._state.accumulator.final
+        with self._session._router.condition:
+            if self._state.failure is not None:
+                raise self._state.failure
+            return self._state.accumulator.final
 
     def close(self) -> None:
         self._session._router.detach(self._state)
@@ -527,9 +580,15 @@ class AsyncResponsesWebSocketLane:
 class AsyncResponsesWebSocketSession:
     """Async counterpart of ResponsesWebSocketSession, owning the connection lifetime."""
 
-    def __init__(self, connection: AsyncResponsesConnection, *, limits: ResponsesWebSocketLimits) -> None:
+    def __init__(
+        self,
+        connection: AsyncResponsesConnection,
+        *,
+        limits: ResponsesWebSocketLimits,
+        isolate_lane_overflow: bool = False,
+    ) -> None:
         self.connection = connection
-        self._router = _Router(limits, connection)
+        self._router = _Router(limits, connection, isolate_lane_overflow=isolate_lane_overflow)
         self._task: asyncio.Task[None] | None = None
         self._close_task: asyncio.Task[None] | None = None
         self._closed = False
