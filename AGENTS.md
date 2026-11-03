@@ -9,19 +9,7 @@ explicitly requires it.
 
 ## Generated-file ownership
 
-Never hand-edit generated SDK files, including generated tests, documentation,
-workflows, or the generated-file inventory. Change the authoritative API schema,
-configuration, or compiler, then regenerate. Put SDK-specific behavior in
-separately owned handwritten helpers and extension points.
-
-Regeneration replaces generator-owned files and deletes retired generated paths.
-Handwritten edits to generated files are overwritten; they are never replayed or
-merged into new output. Preserve separately owned handwritten files and resolve
-ownership collisions explicitly. Follow this AGENTS.md rule and review generated output and inventory changes
-together. Generated-file ownership currently relies on contributor guidance and
-code review; there is no dedicated generated-file edit check or required gate.
-Fix violations in the inputs/compiler and regenerate; never update inventory
-hashes to accept a handwritten patch.
+Follow [Modifying/Adding code](CONTRIBUTING.md#modifyingadding-code) to identify the source of a fix before editing SDK files.
 
 ## Security requirements for coding agents
 
