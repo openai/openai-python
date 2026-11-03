@@ -38233,6 +38233,83 @@ paths:
             }
       security:
       - AdminApiKeyAuth: []
+  /organization/projects/{project_id}/service_tier_settings:
+    get:
+      summary: Retrieve project service tier settings
+      description: Retrieve the configured default and enabled service tiers for a project.
+      operationId: Retrieveprojectservicetiersettings
+      parameters:
+      - name: project_id
+        in: path
+        description: The ID of the project
+        required: true
+        schema:
+          description: The ID of the project
+          type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectServiceTierSettingsResource'
+      x-oaiMeta:
+        group: administration
+        examples:
+          request:
+            curl: |
+              curl https://api.openai.com/v1/organization/projects/proj_abc/service_tier_settings \
+                -H "Authorization: Bearer $OPENAI_ADMIN_KEY"
+          response: |
+            {
+              "object": "project.service_tier_settings",
+              "default": "standard",
+              "enabled_tiers": "all"
+            }
+      security:
+      - AdminApiKeyAuth: []
+    post:
+      summary: Update project service tier settings
+      description: Update the default or enabled service tiers atomically. Supply at least one field. Omitted fields keep their current values.
+      operationId: Updateprojectservicetiersettings
+      parameters:
+      - name: project_id
+        in: path
+        description: The ID of the project
+        required: true
+        schema:
+          description: The ID of the project
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProjectServiceTierSettingsBody'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectServiceTierSettingsResource'
+      x-oaiMeta:
+        group: administration
+        examples:
+          request:
+            curl: |
+              curl https://api.openai.com/v1/organization/projects/proj_abc/service_tier_settings \
+                -H "Authorization: Bearer $OPENAI_ADMIN_KEY" \
+                -H "Content-Type: application/json" \
+                -d '{"default":"standard","enabled_tiers":[]}'
+          response: |
+            {
+              "object": "project.service_tier_settings",
+              "default": "standard",
+              "enabled_tiers": []
+            }
+      security:
+      - AdminApiKeyAuth: []
 webhooks:
   agent_environment_expired:
     post:
@@ -113028,6 +113105,68 @@ components:
       - object
       - id
       - deleted
+    ProjectServiceTierSettingsResource:
+      properties:
+        object:
+          type: string
+          enum:
+          - project.service_tier_settings
+          default: project.service_tier_settings
+          x-stainless-const: true
+        default:
+          $ref: '#/components/schemas/ProjectDefaultServiceTier'
+          description: Default tier for requests that omit service_tier or use auto.
+        enabled_tiers:
+          description: Additional service tiers enabled for this project. "all" includes future tiers. An empty array allows only Standard. Organization policy and eligibility still apply.
+          anyOf:
+          - type: string
+            enum:
+            - all
+            default: all
+            x-stainless-const: true
+          - items:
+              $ref: '#/components/schemas/ProjectOptionalServiceTier'
+            type: array
+      type: object
+      required:
+      - object
+      - default
+      - enabled_tiers
+    UpdateProjectServiceTierSettingsBody:
+      anyOf:
+      - required:
+        - default
+      - required:
+        - enabled_tiers
+      properties:
+        default:
+          $ref: '#/components/schemas/ProjectDefaultServiceTier'
+          description: Default tier for requests that omit service_tier or use auto.
+        enabled_tiers:
+          description: Additional service tiers enabled for this project. "all" includes future tiers. An empty array allows only Standard. Organization policy and eligibility still apply.
+          anyOf:
+          - type: string
+            enum:
+            - all
+            default: all
+            x-stainless-const: true
+          - items:
+              $ref: '#/components/schemas/ProjectOptionalServiceTier'
+            type: array
+      type: object
+      required: []
+    ProjectDefaultServiceTier:
+      type: string
+      enum:
+      - standard
+      - fast
+      - scale
+    ProjectOptionalServiceTier:
+      type: string
+      enum:
+      - flex
+      - fast
+      - ultrafast
     SessionSpendControlResource:
       type: object
       properties:
