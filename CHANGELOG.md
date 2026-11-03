@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.44.0](https://github.com/openai/openai-python/compare/v3.43.0...v3.44.0) (2026-11-03)
+
+
+### Features
+
+* **api:** add workload identity providers and federation rules ([#4237](https://github.com/openai/openai-python/issues/4237)) ([12709d7](https://github.com/openai/openai-python/commit/12709d708ad03291d8a81371a55a4dadfbcce31d))
+
 ## [3.43.0](https://github.com/openai/openai-python/compare/v3.42.1...v3.43.0) (2026-11-03)
 
 
