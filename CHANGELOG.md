@@ -1,5 +1,21 @@
 # Changelog
 
+## [3.43.0](https://github.com/openai/openai-python/compare/v3.42.1...v3.43.0) (2026-11-03)
+
+
+### Features
+
+* **api:** expand Live Responses delegation tools ([#4233](https://github.com/openai/openai-python/issues/4233)) ([f6e8480](https://github.com/openai/openai-python/commit/f6e8480f9a5b2a4d02b17a1da54a1e57964bc312))
+* **responses:** accumulate rich WebSocket progress ([#4224](https://github.com/openai/openai-python/issues/4224)) ([48cdad3](https://github.com/openai/openai-python/commit/48cdad3a61321cf9a27834b818c6d1fcfe651138))
+* **responses:** add WebSocket lane overflow isolation ([#4225](https://github.com/openai/openai-python/issues/4225)) ([16bdad1](https://github.com/openai/openai-python/commit/16bdad17364b62254e14f52f834d15cf1036a024))
+
+
+### Chores
+
+* **deps:** bump actions/setup-node from 4.4.0 to 7.1.0 ([#4229](https://github.com/openai/openai-python/issues/4229)) ([abbfb27](https://github.com/openai/openai-python/commit/abbfb27aec2a660569d0570263d622877af64087))
+* **deps:** bump actions/setup-python from 7.0.0 to 7.1.0 ([#4232](https://github.com/openai/openai-python/issues/4232)) ([49f9a59](https://github.com/openai/openai-python/commit/49f9a596ead681644a76a54992fc10e9b87a95b0))
+* **deps:** bump pypa/gh-action-pypi-publish from 1.14.2 to 1.14.3 ([#4228](https://github.com/openai/openai-python/issues/4228)) ([f43f29b](https://github.com/openai/openai-python/commit/f43f29b5f7db37579becc2dad83f5054ef59ed6f))
+
 ## [3.42.1](https://github.com/openai/openai-python/compare/v3.42.0...v3.42.1) (2026-11-01)
 
 
