@@ -1871,6 +1871,22 @@ Methods:
 - <code title="post /organization/projects/{project_id}/certificates/activate">client.admin.organization.projects.certificates.<a href="./src/openai/resources/admin/organization/projects/certificates.py">activate</a>(project_id, \*\*<a href="src/openai/types/admin/organization/projects/certificate_activate_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/certificate_activate_response.py">SyncPage[CertificateActivateResponse]</a></code>
 - <code title="post /organization/projects/{project_id}/certificates/deactivate">client.admin.organization.projects.certificates.<a href="./src/openai/resources/admin/organization/projects/certificates.py">deactivate</a>(project_id, \*\*<a href="src/openai/types/admin/organization/projects/certificate_deactivate_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/certificate_deactivate_response.py">SyncPage[CertificateDeactivateResponse]</a></code>
 
+#### ServiceTierSettings
+
+Types:
+
+```python
+from openai.types.admin.organization.projects import (
+    ProjectOptionalServiceTier,
+    ProjectServiceTierSettings,
+)
+```
+
+Methods:
+
+- <code title="get /organization/projects/{project_id}/service_tier_settings">client.admin.organization.projects.service_tier_settings.<a href="./src/openai/resources/admin/organization/projects/service_tier_settings.py">retrieve</a>(project_id) -> <a href="./src/openai/types/admin/organization/projects/project_service_tier_settings.py">ProjectServiceTierSettings</a></code>
+- <code title="post /organization/projects/{project_id}/service_tier_settings">client.admin.organization.projects.service_tier_settings.<a href="./src/openai/resources/admin/organization/projects/service_tier_settings.py">update</a>(project_id, \*\*<a href="src/openai/types/admin/organization/projects/service_tier_setting_update_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/project_service_tier_settings.py">ProjectServiceTierSettings</a></code>
+
 ### WorkloadIdentityProviders
 
 Types:

@@ -3,7 +3,7 @@
   "files": {
     "api.md": {
       "mode": "100644",
-      "sha256": "f809e802ed274c7149de2b9478f0aff7d129af32c4be8245c978066a0f5959f2"
+      "sha256": "c63549e22ff2eff0327e57a85279e5223700d4a776175a0288d8e195c9c6e1de"
     },
     "src/openai/__init__.py": {
       "mode": "100644",
@@ -91,7 +91,7 @@
     },
     "src/openai/resources/admin/organization/projects/__init__.py": {
       "mode": "100644",
-      "sha256": "6ce7f01607406f881723869785e19506b1df38b5e14f87943a14f74dfea960c2"
+      "sha256": "c0ff61f1029c8ace65b620e95f1390b21dd7d9f9eff6e556da4d35737740a4ca"
     },
     "src/openai/resources/admin/organization/projects/api_keys.py": {
       "mode": "100644",
@@ -127,7 +127,7 @@
     },
     "src/openai/resources/admin/organization/projects/projects.py": {
       "mode": "100644",
-      "sha256": "5679e42051e2050ae4b5137584149356464fc00280e913f772d7648ee992e801"
+      "sha256": "e0fe8a940e473ad279ed306253d966485048e7f300bac66efecb5b107d87aa27"
     },
     "src/openai/resources/admin/organization/projects/rate_limits.py": {
       "mode": "100644",
@@ -148,6 +148,10 @@
     "src/openai/resources/admin/organization/projects/service_accounts/service_accounts.py": {
       "mode": "100644",
       "sha256": "b9e31226b664754a5796e40f10e6c8a914c663107cd8a260aac4908acdae150c"
+    },
+    "src/openai/resources/admin/organization/projects/service_tier_settings.py": {
+      "mode": "100644",
+      "sha256": "06afdf282cc76f6732b93fa68edcc600e091e64764e21a3a602b0cb2db993671"
     },
     "src/openai/resources/admin/organization/projects/spend_alerts.py": {
       "mode": "100644",
@@ -1011,7 +1015,7 @@
     },
     "src/openai/types/admin/organization/projects/__init__.py": {
       "mode": "100644",
-      "sha256": "ddb69c2edc8b163f233b2efa22742505f34622abd1fa8f32b7de7ac3f9bca789"
+      "sha256": "91e0832a521c9eac829ad94b17619bbe1038e4920a93f1deca94947b0093c410"
     },
     "src/openai/types/admin/organization/projects/api_key_delete_response.py": {
       "mode": "100644",
@@ -1129,6 +1133,10 @@
       "mode": "100644",
       "sha256": "f76ecc7610f880497d42eb78c59d64a947303c811dacd74fc0528d1e056bdb87"
     },
+    "src/openai/types/admin/organization/projects/project_optional_service_tier.py": {
+      "mode": "100644",
+      "sha256": "ba19147fce3220332e9e44b8fc4bd1d3c64694e3ac3944e20a065767f4518773"
+    },
     "src/openai/types/admin/organization/projects/project_rate_limit.py": {
       "mode": "100644",
       "sha256": "bd7f3264604ac674d2419708e32abc3abcaa37a0f9118e3d71335b806d177f85"
@@ -1136,6 +1144,10 @@
     "src/openai/types/admin/organization/projects/project_service_account.py": {
       "mode": "100644",
       "sha256": "11bec26337eb4b42e28f9c4180c73b080bf235c5b4f1980da5266e368df14851"
+    },
+    "src/openai/types/admin/organization/projects/project_service_tier_settings.py": {
+      "mode": "100644",
+      "sha256": "54bd7484e5c79f4d74ac7b20cbde81a26908baaca9488eda6ce6f99eef56a46c"
     },
     "src/openai/types/admin/organization/projects/project_spend_alert.py": {
       "mode": "100644",
@@ -1212,6 +1224,10 @@
     "src/openai/types/admin/organization/projects/service_accounts/api_key_create_response.py": {
       "mode": "100644",
       "sha256": "207a023026cc45e618a0c509b5edd982d0992c4d10ea92d57273363e3f53f21a"
+    },
+    "src/openai/types/admin/organization/projects/service_tier_setting_update_params.py": {
+      "mode": "100644",
+      "sha256": "8cf00195d5435b341cbb9ce85613a662f68257c881935701d834244810bdae43"
     },
     "src/openai/types/admin/organization/projects/spend_alert_create_params.py": {
       "mode": "100644",
@@ -7568,6 +7584,10 @@
     "tests/api_resources/admin/organization/projects/test_service_accounts.py": {
       "mode": "100644",
       "sha256": "30252701da0601e5fe5c7c7b0f046da2d125ce5104b23e9e7d35d497858a21ea"
+    },
+    "tests/api_resources/admin/organization/projects/test_service_tier_settings.py": {
+      "mode": "100644",
+      "sha256": "7e8a90de7819e2dd712827b1d3cae0638c23dcc47ab6112a6df154574eea71c1"
     },
     "tests/api_resources/admin/organization/projects/test_spend_alerts.py": {
       "mode": "100644",
