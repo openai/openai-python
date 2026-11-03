@@ -10,6 +10,7 @@ from datetime import date, datetime
 from typing_extensions import Literal, get_args, get_origin
 
 import rich
+from pydantic import StrictInt, StrictStr, StrictBool, StrictFloat
 
 from openai._types import Omit, NoneType
 from openai._utils import (
@@ -62,6 +63,12 @@ def assert_matches_type(
 ) -> None:
     if is_type_alias_type(type_):
         type_ = type_.__value__
+
+    # Pydantic v1 strict annotations are classes, but parsed values are builtins.
+    strict_scalars = {StrictStr: str, StrictBool: bool, StrictInt: int, StrictFloat: float}
+    if type_ in strict_scalars:
+        assert type(value) is strict_scalars[type_]
+        return
 
     # unwrap `Annotated[T, ...]` -> `T`
     if is_annotated_type(type_):

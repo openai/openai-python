@@ -2,6 +2,8 @@
 
 from typing import Dict, Union, Optional
 
+from pydantic import StrictInt, StrictStr, StrictBool, StrictFloat
+
 from ..._models import BaseModel
 
 __all__ = ["ChatKitWorkflow", "Tracing"]
@@ -20,7 +22,7 @@ class ChatKitWorkflow(BaseModel):
     id: str
     """Identifier of the workflow backing the session."""
 
-    state_variables: Optional[Dict[str, Union[str, bool, float]]] = None
+    state_variables: Optional[Dict[str, Union[StrictStr, StrictInt, StrictBool, StrictFloat]]] = None
     """State variable key-value pairs applied when invoking the workflow.
 
     Defaults to null when no overrides were provided.
