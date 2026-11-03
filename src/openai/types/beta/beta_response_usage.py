@@ -1,8 +1,23 @@
 # File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
+from typing import Optional
+
 from ..._models import BaseModel
 
-__all__ = ["BetaResponseUsage", "InputTokensDetails", "OutputTokensDetails"]
+__all__ = [
+    "BetaResponseUsage",
+    "InputTokensDetails",
+    "InputTokensDetailsCacheWriteTokensDetails",
+    "OutputTokensDetails",
+]
+
+
+class InputTokensDetailsCacheWriteTokensDetails(BaseModel):
+    ttl_12h_tokens: int
+    """The number of input tokens written with 12-hour retention."""
+
+    ttl_30m_tokens: int
+    """The number of input tokens written with 30-minute retention."""
 
 
 class InputTokensDetails(BaseModel):
@@ -16,6 +31,8 @@ class InputTokensDetails(BaseModel):
     The number of tokens that were retrieved from the cache.
     [More on prompt caching](https://developers.openai.com/api/docs/guides/prompt-caching).
     """
+
+    cache_write_tokens_details: Optional[InputTokensDetailsCacheWriteTokensDetails] = None
 
 
 class OutputTokensDetails(BaseModel):
