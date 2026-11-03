@@ -59,6 +59,7 @@ from .external_key_create_params import ExternalKeyCreateParams as ExternalKeyCr
 from .usage_completions_response import UsageCompletionsResponse as UsageCompletionsResponse
 from .usage_moderations_response import UsageModerationsResponse as UsageModerationsResponse
 from .usage_vector_stores_params import UsageVectorStoresParams as UsageVectorStoresParams
+from .workload_identity_provider import WorkloadIdentityProvider as WorkloadIdentityProvider
 from .admin_api_key_create_params import AdminAPIKeyCreateParams as AdminAPIKeyCreateParams
 from .certificate_activate_params import CertificateActivateParams as CertificateActivateParams
 from .certificate_delete_response import CertificateDeleteResponse as CertificateDeleteResponse
@@ -88,10 +89,20 @@ from .organization_spend_alert_deleted import OrganizationSpendAlertDeleted as O
 from .organization_spend_limit_deleted import OrganizationSpendLimitDeleted as OrganizationSpendLimitDeleted
 from .usage_file_search_calls_response import UsageFileSearchCallsResponse as UsageFileSearchCallsResponse
 from .usage_audio_transcriptions_params import UsageAudioTranscriptionsParams as UsageAudioTranscriptionsParams
+from .workload_identity_provider_deleted import WorkloadIdentityProviderDeleted as WorkloadIdentityProviderDeleted
 from .usage_audio_transcriptions_response import UsageAudioTranscriptionsResponse as UsageAudioTranscriptionsResponse
 from .usage_code_interpreter_sessions_params import (
     UsageCodeInterpreterSessionsParams as UsageCodeInterpreterSessionsParams,
 )
+from .workload_identity_provider_list_params import (
+    WorkloadIdentityProviderListParams as WorkloadIdentityProviderListParams,
+)
 from .usage_code_interpreter_sessions_response import (
     UsageCodeInterpreterSessionsResponse as UsageCodeInterpreterSessionsResponse,
+)
+from .workload_identity_provider_create_params import (
+    WorkloadIdentityProviderCreateParams as WorkloadIdentityProviderCreateParams,
+)
+from .workload_identity_provider_update_params import (
+    WorkloadIdentityProviderUpdateParams as WorkloadIdentityProviderUpdateParams,
 )

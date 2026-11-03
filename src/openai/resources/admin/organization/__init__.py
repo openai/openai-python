@@ -123,6 +123,14 @@ if _t.TYPE_CHECKING:
         ExternalStorageWithStreamingResponse as ExternalStorageWithStreamingResponse,
         AsyncExternalStorageWithStreamingResponse as AsyncExternalStorageWithStreamingResponse,
     )
+    from .workload_identity_providers import (
+        WorkloadIdentityProviders as WorkloadIdentityProviders,
+        AsyncWorkloadIdentityProviders as AsyncWorkloadIdentityProviders,
+        WorkloadIdentityProvidersWithRawResponse as WorkloadIdentityProvidersWithRawResponse,
+        AsyncWorkloadIdentityProvidersWithRawResponse as AsyncWorkloadIdentityProvidersWithRawResponse,
+        WorkloadIdentityProvidersWithStreamingResponse as WorkloadIdentityProvidersWithStreamingResponse,
+        AsyncWorkloadIdentityProvidersWithStreamingResponse as AsyncWorkloadIdentityProvidersWithStreamingResponse,
+    )
 
 else:
     _EXPORTS = {
@@ -210,6 +218,24 @@ else:
         "AsyncProjectsWithRawResponse": (".projects", "AsyncProjectsWithRawResponse"),
         "ProjectsWithStreamingResponse": (".projects", "ProjectsWithStreamingResponse"),
         "AsyncProjectsWithStreamingResponse": (".projects", "AsyncProjectsWithStreamingResponse"),
+        "WorkloadIdentityProviders": (".workload_identity_providers", "WorkloadIdentityProviders"),
+        "AsyncWorkloadIdentityProviders": (".workload_identity_providers", "AsyncWorkloadIdentityProviders"),
+        "WorkloadIdentityProvidersWithRawResponse": (
+            ".workload_identity_providers",
+            "WorkloadIdentityProvidersWithRawResponse",
+        ),
+        "AsyncWorkloadIdentityProvidersWithRawResponse": (
+            ".workload_identity_providers",
+            "AsyncWorkloadIdentityProvidersWithRawResponse",
+        ),
+        "WorkloadIdentityProvidersWithStreamingResponse": (
+            ".workload_identity_providers",
+            "WorkloadIdentityProvidersWithStreamingResponse",
+        ),
+        "AsyncWorkloadIdentityProvidersWithStreamingResponse": (
+            ".workload_identity_providers",
+            "AsyncWorkloadIdentityProvidersWithStreamingResponse",
+        ),
         "Organization": (".organization", "Organization"),
         "AsyncOrganization": (".organization", "AsyncOrganization"),
         "OrganizationWithRawResponse": (".organization", "OrganizationWithRawResponse"),
@@ -233,6 +259,7 @@ else:
         "spend_limit",
         "usage",
         "users",
+        "workload_identity_providers",
     }
 
     def __getattr__(name: str) -> _t.Any:
@@ -337,6 +364,12 @@ __all__ = [
     "AsyncProjectsWithRawResponse",
     "ProjectsWithStreamingResponse",
     "AsyncProjectsWithStreamingResponse",
+    "WorkloadIdentityProviders",
+    "AsyncWorkloadIdentityProviders",
+    "WorkloadIdentityProvidersWithRawResponse",
+    "AsyncWorkloadIdentityProvidersWithRawResponse",
+    "WorkloadIdentityProvidersWithStreamingResponse",
+    "AsyncWorkloadIdentityProvidersWithStreamingResponse",
     "Organization",
     "AsyncOrganization",
     "OrganizationWithRawResponse",

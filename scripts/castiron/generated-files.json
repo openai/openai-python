@@ -3,7 +3,7 @@
   "files": {
     "api.md": {
       "mode": "100644",
-      "sha256": "e3e51f952866bcef85ec209e23208f0385a4462b2be43cde2b064df9d123410a"
+      "sha256": "f809e802ed274c7149de2b9478f0aff7d129af32c4be8245c978066a0f5959f2"
     },
     "src/openai/__init__.py": {
       "mode": "100644",
@@ -39,7 +39,7 @@
     },
     "src/openai/resources/admin/organization/__init__.py": {
       "mode": "100644",
-      "sha256": "59fd2b93cd6ab6db1dc05e3875be8672a800556d638039c644e3541f49196948"
+      "sha256": "cc1456a9c79ec0e4bdf40c72fafdcf1cfe5476d2575ab4a68291d4429f519904"
     },
     "src/openai/resources/admin/organization/admin_api_keys.py": {
       "mode": "100644",
@@ -87,7 +87,7 @@
     },
     "src/openai/resources/admin/organization/organization.py": {
       "mode": "100644",
-      "sha256": "edd6cd1b4705a991e5d4efb18d4bcdea5ce5cb6faaecc1474b68995f884584d0"
+      "sha256": "0b13b06728eb21f35acddfc145971c473f29d053b37a1bb0ea17914a2aab0ec6"
     },
     "src/openai/resources/admin/organization/projects/__init__.py": {
       "mode": "100644",
@@ -196,6 +196,18 @@
     "src/openai/resources/admin/organization/users/users.py": {
       "mode": "100644",
       "sha256": "46a6ad3d119b7a029252ae08d070e91676a5a26b73016258e72409deec052d01"
+    },
+    "src/openai/resources/admin/organization/workload_identity_providers/__init__.py": {
+      "mode": "100644",
+      "sha256": "662900bb24acf96b640487e01a0dcaf11202da808cba2a9cec86509859090c98"
+    },
+    "src/openai/resources/admin/organization/workload_identity_providers/federation_rules.py": {
+      "mode": "100644",
+      "sha256": "bbeeff59ffe26f5334852e8d3dc362ea689a021699199943ea47f07dd27db5f7"
+    },
+    "src/openai/resources/admin/organization/workload_identity_providers/workload_identity_providers.py": {
+      "mode": "100644",
+      "sha256": "badeb56a98594d181d839badfb3213123187faa12bbd63712a939bd762590d10"
     },
     "src/openai/resources/audio/__init__.py": {
       "mode": "100644",
@@ -731,7 +743,7 @@
     },
     "src/openai/types/admin/organization/__init__.py": {
       "mode": "100644",
-      "sha256": "92e7a3a9265dfee7f51c4e87b5af288db6e07c3182a93eae31ed87161c75bf40"
+      "sha256": "5b0c4f86a58e2fb7e19a6b7d205faed0865c90bf725ec7bfc55b2ce812d57d08"
     },
     "src/openai/types/admin/organization/admin_api_key.py": {
       "mode": "100644",
@@ -1432,6 +1444,50 @@
     "src/openai/types/admin/organization/users/role_retrieve_response.py": {
       "mode": "100644",
       "sha256": "36be2f321cb172d42605d36e30d4d9d957d71a0c748c4594968bb29de7561b9f"
+    },
+    "src/openai/types/admin/organization/workload_identity_provider.py": {
+      "mode": "100644",
+      "sha256": "42e3119337e4a322ae2ffae6740c8c5f2856459647da99ef92ba636b0935d1be"
+    },
+    "src/openai/types/admin/organization/workload_identity_provider_create_params.py": {
+      "mode": "100644",
+      "sha256": "485e1c23b61083f5ff04e2c2fd99d6a66f137a9f1773e67d2d532d6a472c6c8a"
+    },
+    "src/openai/types/admin/organization/workload_identity_provider_deleted.py": {
+      "mode": "100644",
+      "sha256": "d7e52abe7390cd560f5ddea2a963a80fe8bad57c8e146de7f4102b5cf7051663"
+    },
+    "src/openai/types/admin/organization/workload_identity_provider_list_params.py": {
+      "mode": "100644",
+      "sha256": "dcfcc021bbf15f8c373f021f69db00e172d5f54448f2c2dfae163a9d01efb3c1"
+    },
+    "src/openai/types/admin/organization/workload_identity_provider_update_params.py": {
+      "mode": "100644",
+      "sha256": "51da970f531602822bb6e1035432fedd377646170436c4eab840d1573eb93d09"
+    },
+    "src/openai/types/admin/organization/workload_identity_providers/__init__.py": {
+      "mode": "100644",
+      "sha256": "9583dbbd93830a15a4372099f1b3bd6d4e2f4dbe27501463cae86f73cc2cf9f7"
+    },
+    "src/openai/types/admin/organization/workload_identity_providers/federation_rule.py": {
+      "mode": "100644",
+      "sha256": "64c448703250c21e5ba9d25eee85d5fee3ace7627990c279de480d577509f1d2"
+    },
+    "src/openai/types/admin/organization/workload_identity_providers/federation_rule_create_params.py": {
+      "mode": "100644",
+      "sha256": "6463a8eac7d97229ac4f7894476a49b439100412b49f29b7a12ca0dd6ff3ec29"
+    },
+    "src/openai/types/admin/organization/workload_identity_providers/federation_rule_deleted.py": {
+      "mode": "100644",
+      "sha256": "3f5d630294b1ed50af705c1cedd888542b3f05984e81c97197589d7f7a576038"
+    },
+    "src/openai/types/admin/organization/workload_identity_providers/federation_rule_list_params.py": {
+      "mode": "100644",
+      "sha256": "999c2d63b038da88211d214e66489225b2799860e5ae83a7da21f12a7b9afbf6"
+    },
+    "src/openai/types/admin/organization/workload_identity_providers/federation_rule_update_params.py": {
+      "mode": "100644",
+      "sha256": "7e74da986440e11b04e899326161f2ad7658a22069b322dd55be4da3860f7749"
     },
     "src/openai/types/audio/__init__.py": {
       "mode": "100644",
@@ -3255,7 +3311,7 @@
     },
     "src/openai/types/beta/chatkit/chat_session_workflow_param.py": {
       "mode": "100644",
-      "sha256": "f3e8bb2d6cda2182822710e231a7fb9420a7998caee4c23a95b3deebe88b719b"
+      "sha256": "aa36e1e36768f48873d899a21b53e52d5f0175b6cc37600a227065ee8f731490"
     },
     "src/openai/types/beta/chatkit/chatkit_attachment.py": {
       "mode": "100644",
@@ -3303,7 +3359,7 @@
     },
     "src/openai/types/beta/chatkit_workflow.py": {
       "mode": "100644",
-      "sha256": "a93cf225f7384dfd4a9cce48129d3e092216ed2e62a5f6d36f730226a20c4eba"
+      "sha256": "70152f5dcc0a28d853469fe79a430708f49979fba8de364da9654dd28017c6b9"
     },
     "src/openai/types/beta/code_interpreter_tool.py": {
       "mode": "100644",
@@ -7589,6 +7645,10 @@
       "mode": "100644",
       "sha256": "f644a933e7e3d4fd5e08039df183a09ec38837a44d267f3b21ef89ebf5e27de3"
     },
+    "tests/api_resources/admin/organization/test_workload_identity_providers.py": {
+      "mode": "100644",
+      "sha256": "dda8e182006656ecd87f020dcb05dbcf73a5c3a0697ab3aabb87464cee5b6ebb"
+    },
     "tests/api_resources/admin/organization/users/__init__.py": {
       "mode": "100644",
       "sha256": "0ee742b76cb44e9e0eb921dca08a89091274455a50e995ba2769688f10a097de"
@@ -7596,6 +7656,14 @@
     "tests/api_resources/admin/organization/users/test_roles.py": {
       "mode": "100644",
       "sha256": "5361e939fbbade03995b5f36361659154d33fa00581b4b394659c41719cb44f2"
+    },
+    "tests/api_resources/admin/organization/workload_identity_providers/__init__.py": {
+      "mode": "100644",
+      "sha256": "0ee742b76cb44e9e0eb921dca08a89091274455a50e995ba2769688f10a097de"
+    },
+    "tests/api_resources/admin/organization/workload_identity_providers/test_federation_rules.py": {
+      "mode": "100644",
+      "sha256": "d32fd7059a397eaf6dee34180adb1aea21dea6f78498bb6c20ccbbabbd28f75f"
     },
     "tests/api_resources/audio/__init__.py": {
       "mode": "100644",

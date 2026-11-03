@@ -116,6 +116,14 @@ from .projects.projects import (
     ProjectsWithStreamingResponse,
     AsyncProjectsWithStreamingResponse,
 )
+from .workload_identity_providers.workload_identity_providers import (
+    WorkloadIdentityProviders,
+    AsyncWorkloadIdentityProviders,
+    WorkloadIdentityProvidersWithRawResponse,
+    AsyncWorkloadIdentityProvidersWithRawResponse,
+    WorkloadIdentityProvidersWithStreamingResponse,
+    AsyncWorkloadIdentityProvidersWithStreamingResponse,
+)
 
 __all__ = ["Organization", "AsyncOrganization"]
 
@@ -177,6 +185,10 @@ class Organization(SyncAPIResource):
     @cached_property
     def projects(self) -> Projects:
         return Projects(self._client)
+
+    @cached_property
+    def workload_identity_providers(self) -> WorkloadIdentityProviders:
+        return WorkloadIdentityProviders(self._client)
 
     @cached_property
     def with_raw_response(self) -> OrganizationWithRawResponse:
@@ -255,6 +267,10 @@ class AsyncOrganization(AsyncAPIResource):
     @cached_property
     def projects(self) -> AsyncProjects:
         return AsyncProjects(self._client)
+
+    @cached_property
+    def workload_identity_providers(self) -> AsyncWorkloadIdentityProviders:
+        return AsyncWorkloadIdentityProviders(self._client)
 
     @cached_property
     def with_raw_response(self) -> AsyncOrganizationWithRawResponse:
@@ -337,6 +353,10 @@ class OrganizationWithRawResponse:
     def projects(self) -> ProjectsWithRawResponse:
         return ProjectsWithRawResponse(self._organization.projects)
 
+    @cached_property
+    def workload_identity_providers(self) -> WorkloadIdentityProvidersWithRawResponse:
+        return WorkloadIdentityProvidersWithRawResponse(self._organization.workload_identity_providers)
+
 
 class AsyncOrganizationWithRawResponse:
     def __init__(self, organization: AsyncOrganization) -> None:
@@ -398,6 +418,10 @@ class AsyncOrganizationWithRawResponse:
     @cached_property
     def projects(self) -> AsyncProjectsWithRawResponse:
         return AsyncProjectsWithRawResponse(self._organization.projects)
+
+    @cached_property
+    def workload_identity_providers(self) -> AsyncWorkloadIdentityProvidersWithRawResponse:
+        return AsyncWorkloadIdentityProvidersWithRawResponse(self._organization.workload_identity_providers)
 
 
 class OrganizationWithStreamingResponse:
@@ -461,6 +485,10 @@ class OrganizationWithStreamingResponse:
     def projects(self) -> ProjectsWithStreamingResponse:
         return ProjectsWithStreamingResponse(self._organization.projects)
 
+    @cached_property
+    def workload_identity_providers(self) -> WorkloadIdentityProvidersWithStreamingResponse:
+        return WorkloadIdentityProvidersWithStreamingResponse(self._organization.workload_identity_providers)
+
 
 class AsyncOrganizationWithStreamingResponse:
     def __init__(self, organization: AsyncOrganization) -> None:
@@ -522,3 +550,7 @@ class AsyncOrganizationWithStreamingResponse:
     @cached_property
     def projects(self) -> AsyncProjectsWithStreamingResponse:
         return AsyncProjectsWithStreamingResponse(self._organization.projects)
+
+    @cached_property
+    def workload_identity_providers(self) -> AsyncWorkloadIdentityProvidersWithStreamingResponse:
+        return AsyncWorkloadIdentityProvidersWithStreamingResponse(self._organization.workload_identity_providers)
