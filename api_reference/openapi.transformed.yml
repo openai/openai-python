@@ -38735,6 +38735,30 @@ webhooks:
           description: Return any 2xx status code to acknowledge receipt. A 410 Gone response also stops retries; other non-2xx responses are retried.
 components:
   schemas:
+    CacheWriteTokensDetails:
+      properties:
+        ttl_30m_tokens:
+          type: integer
+          description: The number of input tokens written with 30-minute retention.
+        ttl_12h_tokens:
+          type: integer
+          description: The number of input tokens written with 12-hour retention.
+      type: object
+      required:
+      - ttl_30m_tokens
+      - ttl_12h_tokens
+    BetaCacheWriteTokensDetails:
+      properties:
+        ttl_30m_tokens:
+          type: integer
+          description: The number of input tokens written with 30-minute retention.
+        ttl_12h_tokens:
+          type: integer
+          description: The number of input tokens written with 12-hour retention.
+      type: object
+      required:
+      - ttl_30m_tokens
+      - ttl_12h_tokens
     AddUploadPartRequest:
       type: object
       additionalProperties: false
@@ -43382,6 +43406,8 @@ components:
             maxItems: 128
             items:
               $ref: '#/components/schemas/ChatCompletionFunctions'
+          prompt_cache_options:
+            $ref: '#/components/schemas/PromptCacheOptionsParam'
         required:
         - model
         - messages
@@ -45431,8 +45457,6 @@ components:
       - $ref: '#/components/schemas/ModelResponseProperties'
       - type: object
         properties:
-          prompt_cache_options:
-            $ref: '#/components/schemas/PromptCacheOptionsParam'
           top_logprobs:
             description: |
               An integer between 0 and 20 specifying the maximum number of most likely
@@ -69026,6 +69050,8 @@ components:
             cache_write_tokens:
               type: integer
               description: The number of input tokens that were written to the cache.
+            cache_write_tokens_details:
+              $ref: '#/components/schemas/CacheWriteTokensDetails'
           required:
           - cached_tokens
           - cache_write_tokens
@@ -76342,7 +76368,7 @@ components:
       type: object
       required: []
       title: Prompt cache options
-      description: Options for prompt caching. Supported for `gpt-5.6` and later models. By default, OpenAI automatically chooses one implicit cache breakpoint. You can add explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each request can write up to four breakpoints. For cache matching, OpenAI considers up to the latest 80 breakpoints in the conversation, without a content-block lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The `ttl` defaults to `30m`, which is currently the only supported value. See the [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching) for current details.
+      description: Options for prompt caching. Supported for `gpt-5.6` and later models. By default, OpenAI automatically chooses one implicit cache breakpoint. You can add explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each request can write up to four breakpoints. For cache matching, OpenAI considers up to the latest 80 breakpoints in the conversation, without a content-block lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The `ttl` defaults to `30m`. Supported lifetimes depend on the API. See the [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching) for current details.
     PromptCacheBreakpointParam:
       properties:
         mode:
@@ -81662,8 +81688,11 @@ components:
     ResponsePromptCacheOptionsParam:
       properties:
         ttl:
-          $ref: '#/components/schemas/PromptCacheTTLEnum'
-          description: The minimum lifetime applied to every implicit and explicit cache breakpoint written by the request. Defaults to `30m`, which is currently the only supported value. The backend may retain cache entries for longer.
+          description: The minimum lifetime applied to every implicit and explicit cache breakpoint written by the request. Supported values are `30m` (the default) and `12h`. The backend may retain cache entries for longer.
+          type: string
+          enum:
+          - 30m
+          - 12h
         mode:
           $ref: '#/components/schemas/PromptCacheModeEnum'
           description: Controls whether OpenAI automatically creates an implicit cache breakpoint. Defaults to `implicit`. With `implicit`, OpenAI creates one implicit breakpoint and writes up to the latest three explicit breakpoints in the request. With `explicit`, OpenAI does not create an implicit breakpoint and writes up to the latest four explicit breakpoints. If there are no explicit breakpoints, the request does not use prompt caching.
@@ -81679,7 +81708,7 @@ components:
       type: object
       required: []
       title: Prompt cache options
-      description: Options for prompt caching. Supported for `gpt-5.6` and later models. By default, OpenAI automatically chooses one implicit cache breakpoint. You can add explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each request can write up to four breakpoints. For cache matching, OpenAI considers up to the latest 80 breakpoints in the conversation, without a content-block lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The `ttl` defaults to `30m`, which is currently the only supported value. See the [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching) for current details.
+      description: Options for prompt caching. Supported for `gpt-5.6` and later models. By default, OpenAI automatically chooses one implicit cache breakpoint. You can add explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each request can write up to four breakpoints. For cache matching, OpenAI considers up to the latest 80 breakpoints in the conversation, without a content-block lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The `ttl` defaults to `30m`. Supported lifetimes depend on the API. See the [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching) for current details.
     ReasoningModeEnum:
       anyOf:
       - type: string
@@ -81784,8 +81813,11 @@ components:
     PromptCacheOptions:
       properties:
         ttl:
-          $ref: '#/components/schemas/PromptCacheTTLEnum'
           description: The minimum lifetime applied to each cache breakpoint.
+          type: string
+          enum:
+          - 30m
+          - 12h
         mode:
           $ref: '#/components/schemas/PromptCacheModeEnum'
           description: Whether implicit prompt-cache breakpoints were enabled.
@@ -105229,7 +105261,7 @@ components:
       type: object
       required: []
       title: Prompt cache options
-      description: Options for prompt caching. Supported for `gpt-5.6` and later models. By default, OpenAI automatically chooses one implicit cache breakpoint. You can add explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each request can write up to four breakpoints. For cache matching, OpenAI considers up to the latest 80 breakpoints in the conversation, without a content-block lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The `ttl` defaults to `30m`, which is currently the only supported value. See the [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching) for current details.
+      description: Options for prompt caching. Supported for `gpt-5.6` and later models. By default, OpenAI automatically chooses one implicit cache breakpoint. You can add explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each request can write up to four breakpoints. For cache matching, OpenAI considers up to the latest 80 breakpoints in the conversation, without a content-block lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The `ttl` defaults to `30m`. Supported lifetimes depend on the API. See the [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching) for current details.
     BetaPromptCacheModeEnum:
       type: string
       enum:
@@ -106653,6 +106685,8 @@ components:
             cache_write_tokens:
               type: integer
               description: The number of input tokens that were written to the cache.
+            cache_write_tokens_details:
+              $ref: '#/components/schemas/BetaCacheWriteTokensDetails'
           required:
           - cached_tokens
           - cache_write_tokens
@@ -107300,8 +107334,11 @@ components:
     BetaPromptCacheOptions:
       properties:
         ttl:
-          $ref: '#/components/schemas/BetaPromptCacheTTLEnum'
           description: The minimum lifetime applied to each cache breakpoint.
+          type: string
+          enum:
+          - 30m
+          - 12h
         mode:
           $ref: '#/components/schemas/BetaPromptCacheModeEnum'
           description: Whether implicit prompt-cache breakpoints were enabled.
@@ -112500,8 +112537,11 @@ components:
     BetaResponsePromptCacheOptionsParam:
       properties:
         ttl:
-          $ref: '#/components/schemas/BetaPromptCacheTTLEnum'
-          description: The minimum lifetime applied to every implicit and explicit cache breakpoint written by the request. Defaults to `30m`, which is currently the only supported value. The backend may retain cache entries for longer.
+          description: The minimum lifetime applied to every implicit and explicit cache breakpoint written by the request. Supported values are `30m` (the default) and `12h`. The backend may retain cache entries for longer.
+          type: string
+          enum:
+          - 30m
+          - 12h
         mode:
           $ref: '#/components/schemas/BetaPromptCacheModeEnum'
           description: Controls whether OpenAI automatically creates an implicit cache breakpoint. Defaults to `implicit`. With `implicit`, OpenAI creates one implicit breakpoint and writes up to the latest three explicit breakpoints in the request. With `explicit`, OpenAI does not create an implicit breakpoint and writes up to the latest four explicit breakpoints. If there are no explicit breakpoints, the request does not use prompt caching.
@@ -112517,7 +112557,7 @@ components:
       type: object
       required: []
       title: Prompt cache options
-      description: Options for prompt caching. Supported for `gpt-5.6` and later models. By default, OpenAI automatically chooses one implicit cache breakpoint. You can add explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each request can write up to four breakpoints. For cache matching, OpenAI considers up to the latest 80 breakpoints in the conversation, without a content-block lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The `ttl` defaults to `30m`, which is currently the only supported value. See the [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching) for current details.
+      description: Options for prompt caching. Supported for `gpt-5.6` and later models. By default, OpenAI automatically chooses one implicit cache breakpoint. You can add explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each request can write up to four breakpoints. For cache matching, OpenAI considers up to the latest 80 breakpoints in the conversation, without a content-block lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The `ttl` defaults to `30m`. Supported lifetimes depend on the API. See the [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching) for current details.
     BetaAccessProgramsParam:
       properties:
         cyber:
@@ -112532,8 +112572,6 @@ components:
       - $ref: '#/components/schemas/BetaModelResponseProperties'
       - type: object
         properties:
-          prompt_cache_options:
-            $ref: '#/components/schemas/BetaPromptCacheOptionsParam'
           top_logprobs:
             description: |
               An integer between 0 and 20 specifying the maximum number of most likely
