@@ -94,6 +94,14 @@ from .model_permissions import (
     ModelPermissionsWithStreamingResponse,
     AsyncModelPermissionsWithStreamingResponse,
 )
+from .service_tier_settings import (
+    ServiceTierSettings,
+    AsyncServiceTierSettings,
+    ServiceTierSettingsWithRawResponse,
+    AsyncServiceTierSettingsWithRawResponse,
+    ServiceTierSettingsWithStreamingResponse,
+    AsyncServiceTierSettingsWithStreamingResponse,
+)
 from .hosted_tool_permissions import (
     HostedToolPermissions,
     AsyncHostedToolPermissions,
@@ -170,6 +178,10 @@ class Projects(SyncAPIResource):
     @cached_property
     def certificates(self) -> Certificates:
         return Certificates(self._client)
+
+    @cached_property
+    def service_tier_settings(self) -> ServiceTierSettings:
+        return ServiceTierSettings(self._client)
 
     @cached_property
     def with_raw_response(self) -> ProjectsWithRawResponse:
@@ -493,6 +505,10 @@ class AsyncProjects(AsyncAPIResource):
     @cached_property
     def certificates(self) -> AsyncCertificates:
         return AsyncCertificates(self._client)
+
+    @cached_property
+    def service_tier_settings(self) -> AsyncServiceTierSettings:
+        return AsyncServiceTierSettings(self._client)
 
     @cached_property
     def with_raw_response(self) -> AsyncProjectsWithRawResponse:
@@ -836,6 +852,10 @@ class ProjectsWithRawResponse:
     def certificates(self) -> CertificatesWithRawResponse:
         return CertificatesWithRawResponse(self._projects.certificates)
 
+    @cached_property
+    def service_tier_settings(self) -> ServiceTierSettingsWithRawResponse:
+        return ServiceTierSettingsWithRawResponse(self._projects.service_tier_settings)
+
 
 class AsyncProjectsWithRawResponse:
     def __init__(self, projects: AsyncProjects) -> None:
@@ -904,6 +924,10 @@ class AsyncProjectsWithRawResponse:
     @cached_property
     def certificates(self) -> AsyncCertificatesWithRawResponse:
         return AsyncCertificatesWithRawResponse(self._projects.certificates)
+
+    @cached_property
+    def service_tier_settings(self) -> AsyncServiceTierSettingsWithRawResponse:
+        return AsyncServiceTierSettingsWithRawResponse(self._projects.service_tier_settings)
 
 
 class ProjectsWithStreamingResponse:
@@ -974,6 +998,10 @@ class ProjectsWithStreamingResponse:
     def certificates(self) -> CertificatesWithStreamingResponse:
         return CertificatesWithStreamingResponse(self._projects.certificates)
 
+    @cached_property
+    def service_tier_settings(self) -> ServiceTierSettingsWithStreamingResponse:
+        return ServiceTierSettingsWithStreamingResponse(self._projects.service_tier_settings)
+
 
 class AsyncProjectsWithStreamingResponse:
     def __init__(self, projects: AsyncProjects) -> None:
@@ -1042,3 +1070,7 @@ class AsyncProjectsWithStreamingResponse:
     @cached_property
     def certificates(self) -> AsyncCertificatesWithStreamingResponse:
         return AsyncCertificatesWithStreamingResponse(self._projects.certificates)
+
+    @cached_property
+    def service_tier_settings(self) -> AsyncServiceTierSettingsWithStreamingResponse:
+        return AsyncServiceTierSettingsWithStreamingResponse(self._projects.service_tier_settings)
