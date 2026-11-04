@@ -7,15 +7,9 @@ changing generated files. Handwritten policy, automation, tests, and examples
 should remain small and should not alter exported SDK APIs unless the change
 explicitly requires it.
 
-## Custom-code budget
+## Generated-file ownership
 
-Follow [the custom-code guidance](scripts/castiron/CUSTOM_CODE.md). Budget changes
-belong in a separate PR containing only `.castiron-ratchet.json`, with an explicit justification
-in the PR description. Increases require a **human approving review** before merging.
-Agents may investigate and draft proposals, but must not approve budget increases
-(including through a human's credentials) or bypass the gate. Do not weaken
-counting, broaden exclusions, or alter generation metadata to make a change pass.
-The checker and effective budget come from main, not the PR. Keep default CODEOWNERS.
+Follow [Modifying/Adding code](CONTRIBUTING.md#modifyingadding-code) to identify the source of a fix before editing SDK files.
 
 ## Security requirements for coding agents
 

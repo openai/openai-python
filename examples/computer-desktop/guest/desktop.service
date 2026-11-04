@@ -1,0 +1,22 @@
+[Unit]
+Description=Task-owned fixture desktop
+After=local-fs.target
+
+[Service]
+User=root
+Group=root
+Environment=DISPLAY=:1 HOME=/home/desktop
+RuntimeDirectory=desktop-owner
+RuntimeDirectoryMode=0700
+ExecStart=/usr/bin/python3 -I /opt/desktop/start.py
+Restart=no
+KillMode=control-group
+TimeoutStopSec=3s
+TasksMax=256
+MemoryMax=3G
+StandardInput=null
+StandardOutput=null
+StandardError=null
+
+[Install]
+WantedBy=multi-user.target

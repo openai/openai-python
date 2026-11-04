@@ -1,4 +1,4 @@
-#!/usr/bin/env -S poetry run python
+#!/usr/bin/env -S uv run python
 
 import asyncio
 
@@ -8,7 +8,8 @@ client = AsyncOpenAI()
 
 
 async def main() -> None:
-    video = await client.videos.create_and_poll(  # pyright: ignore[reportDeprecated]
+    # This example intentionally demonstrates the deprecated video helper.
+    video = await client.videos.create_and_poll(  # ty: ignore[deprecated]
         model="sora-2",
         prompt="A video of the words 'Thank you' in sparkling letters",
     )

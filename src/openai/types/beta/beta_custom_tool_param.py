@@ -43,7 +43,7 @@ _BetaCustomToolParamReservedKeywords = TypedDict(
 class BetaCustomToolParam(_BetaCustomToolParamReservedKeywords, total=False):
     """A custom tool that processes input using a specified format.
 
-    Learn more about   [custom tools](https://platform.openai.com/docs/guides/function-calling#custom-tools)
+    Learn more about   [custom tools](https://developers.openai.com/api/docs/guides/function-calling#custom-tools)
     """
 
     name: Required[str]

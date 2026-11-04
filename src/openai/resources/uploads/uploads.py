@@ -2,14 +2,10 @@
 
 from __future__ import annotations
 
-import io
 import os
 import logging
-import builtins
 from typing import overload
-from pathlib import Path
 
-import anyio
 import httpx2
 
 from ... import _legacy_response
@@ -28,15 +24,13 @@ from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ..._base_client import make_request_options
+from ...lib._uploads import upload_file_chunked, async_upload_file_chunked
 from ...types.upload import Upload
-from ...types.file_purpose import FilePurpose
 
 __all__ = ["Uploads", "AsyncUploads"]
 
 
-# 64MB
-DEFAULT_PART_SIZE = 64 * 1024 * 1024
-
+DEFAULT_PART_SIZE = 67108864
 log: logging.Logger = logging.getLogger(__name__)
 
 
@@ -111,59 +105,22 @@ class Uploads(SyncAPIResource):
         from pathlib import Path
 
         client.uploads.upload_file(
-            file=Path("my-paper.pdf"),
-            mime_type="pdf",
-            purpose="assistants",
+            file=Path(\"my-paper.pdf\"),
+            mime_type=\"pdf\",
+            purpose=\"assistants\",
         )
         ```
         """
-        if isinstance(file, builtins.bytes):
-            if filename is None:
-                raise TypeError("The `filename` argument must be given for in-memory files")
-
-            if bytes is None:
-                raise TypeError("The `bytes` argument must be given for in-memory files")
-        else:
-            if not isinstance(file, Path):
-                file = Path(file)
-
-            if not filename:
-                filename = file.name
-
-            if bytes is None:
-                bytes = file.stat().st_size
-
-        upload = self.create(
-            bytes=bytes,
-            filename=filename,
+        return upload_file_chunked(
+            self,
+            file=file,
             mime_type=mime_type,
             purpose=purpose,
+            filename=filename,
+            bytes=bytes,
+            part_size=part_size,
+            md5=md5,
         )
-
-        part_ids: list[str] = []
-
-        if part_size is None:
-            part_size = DEFAULT_PART_SIZE
-
-        if isinstance(file, builtins.bytes):
-            buf: io.FileIO | io.BytesIO = io.BytesIO(file)
-        else:
-            buf = io.FileIO(file)
-
-        try:
-            while True:
-                data = buf.read(part_size)
-                if not data:
-                    # EOF
-                    break
-
-                part = self.parts.create(upload_id=upload.id, data=data)
-                log.info("Uploaded part %s for upload %s", part.id, upload.id)
-                part_ids.append(part.id)
-        finally:
-            buf.close()
-
-        return self.complete(upload_id=upload.id, part_ids=part_ids, md5=md5)
 
     def create(
         self,
@@ -182,24 +139,24 @@ class Uploads(SyncAPIResource):
     ) -> Upload:
         """
         Creates an intermediate
-        [Upload](https://platform.openai.com/docs/api-reference/uploads/object) object
+        [Upload](https://developers.openai.com/api/reference/resources/uploads) object
         that you can add
-        [Parts](https://platform.openai.com/docs/api-reference/uploads/part-object) to.
-        Currently, an Upload can accept at most 8 GB in total and expires after an hour
-        after you create it.
+        [Parts](https://developers.openai.com/api/reference/resources/uploads/subresources/parts)
+        to. Currently, an Upload can accept at most 8 GB in total and expires after an
+        hour after you create it.
 
         Once you complete the Upload, we will create a
-        [File](https://platform.openai.com/docs/api-reference/files/object) object that
+        [File](https://developers.openai.com/api/reference/resources/files) object that
         contains all the parts you uploaded. This File is usable in the rest of our
         platform as a regular File object.
 
         For certain `purpose` values, the correct `mime_type` must be specified. Please
         refer to documentation for the
-        [supported MIME types for your use case](https://platform.openai.com/docs/assistants/tools/file-search#supported-files).
+        [supported MIME types for your use case](https://developers.openai.com/api/docs/guides/tools-file-search#supported-files).
 
         For guidance on the proper filename extensions for each purpose, please follow
         the documentation on
-        [creating a File](https://platform.openai.com/docs/api-reference/files/create).
+        [creating a File](https://developers.openai.com/api/reference/resources/files/methods/create).
 
         Returns the Upload object with status `pending`.
 
@@ -216,7 +173,7 @@ class Uploads(SyncAPIResource):
           purpose: The intended purpose of the uploaded file.
 
               See the
-              [documentation on File purposes](https://platform.openai.com/docs/api-reference/files/create#files-create-purpose).
+              [documentation on File purposes](https://developers.openai.com/api/reference/resources/files/methods/create#%28resource%29%20files%20%3E%20%28method%29%20create%20%3E%20%28params%29%200%20%3E%20%28param%29%20purpose%20%3E%20%28schema%29).
 
           expires_after: The expiration policy for a file. By default, files with `purpose=batch` expire
               after 30 days and all other files are persisted until they are manually deleted.
@@ -306,10 +263,10 @@ class Uploads(SyncAPIResource):
     ) -> Upload:
         """
         Completes the
-        [Upload](https://platform.openai.com/docs/api-reference/uploads/object).
+        [Upload](https://developers.openai.com/api/reference/resources/uploads).
 
         Within the returned Upload object, there is a nested
-        [File](https://platform.openai.com/docs/api-reference/files/object) object that
+        [File](https://developers.openai.com/api/reference/resources/files) object that
         is ready to use in the rest of the platform.
 
         You can specify the order of the Parts by passing in an ordered list of the Part
@@ -428,70 +385,22 @@ class AsyncUploads(AsyncAPIResource):
         from pathlib import Path
 
         client.uploads.upload_file(
-            file=Path("my-paper.pdf"),
-            mime_type="pdf",
-            purpose="assistants",
+            file=Path(\"my-paper.pdf\"),
+            mime_type=\"pdf\",
+            purpose=\"assistants\",
         )
         ```
         """
-        if isinstance(file, builtins.bytes):
-            if filename is None:
-                raise TypeError("The `filename` argument must be given for in-memory files")
-
-            if bytes is None:
-                raise TypeError("The `bytes` argument must be given for in-memory files")
-        else:
-            if not isinstance(file, anyio.Path):
-                file = anyio.Path(file)
-
-            if not filename:
-                filename = file.name
-
-            if bytes is None:
-                stat = await file.stat()
-                bytes = stat.st_size
-
-        upload = await self.create(
-            bytes=bytes,
-            filename=filename,
+        return await async_upload_file_chunked(
+            self,
+            file=file,
             mime_type=mime_type,
             purpose=purpose,
+            filename=filename,
+            bytes=bytes,
+            part_size=part_size,
+            md5=md5,
         )
-
-        part_ids: list[str] = []
-
-        if part_size is None:
-            part_size = DEFAULT_PART_SIZE
-
-        if isinstance(file, anyio.Path):
-            fd = await file.open("rb")
-            async with fd:
-                while True:
-                    data = await fd.read(part_size)
-                    if not data:
-                        # EOF
-                        break
-
-                    part = await self.parts.create(upload_id=upload.id, data=data)
-                    log.info("Uploaded part %s for upload %s", part.id, upload.id)
-                    part_ids.append(part.id)
-        else:
-            buf = io.BytesIO(file)
-
-            try:
-                while True:
-                    data = buf.read(part_size)
-                    if not data:
-                        # EOF
-                        break
-
-                    part = await self.parts.create(upload_id=upload.id, data=data)
-                    log.info("Uploaded part %s for upload %s", part.id, upload.id)
-                    part_ids.append(part.id)
-            finally:
-                buf.close()
-
-        return await self.complete(upload_id=upload.id, part_ids=part_ids, md5=md5)
 
     async def create(
         self,
@@ -510,24 +419,24 @@ class AsyncUploads(AsyncAPIResource):
     ) -> Upload:
         """
         Creates an intermediate
-        [Upload](https://platform.openai.com/docs/api-reference/uploads/object) object
+        [Upload](https://developers.openai.com/api/reference/resources/uploads) object
         that you can add
-        [Parts](https://platform.openai.com/docs/api-reference/uploads/part-object) to.
-        Currently, an Upload can accept at most 8 GB in total and expires after an hour
-        after you create it.
+        [Parts](https://developers.openai.com/api/reference/resources/uploads/subresources/parts)
+        to. Currently, an Upload can accept at most 8 GB in total and expires after an
+        hour after you create it.
 
         Once you complete the Upload, we will create a
-        [File](https://platform.openai.com/docs/api-reference/files/object) object that
+        [File](https://developers.openai.com/api/reference/resources/files) object that
         contains all the parts you uploaded. This File is usable in the rest of our
         platform as a regular File object.
 
         For certain `purpose` values, the correct `mime_type` must be specified. Please
         refer to documentation for the
-        [supported MIME types for your use case](https://platform.openai.com/docs/assistants/tools/file-search#supported-files).
+        [supported MIME types for your use case](https://developers.openai.com/api/docs/guides/tools-file-search#supported-files).
 
         For guidance on the proper filename extensions for each purpose, please follow
         the documentation on
-        [creating a File](https://platform.openai.com/docs/api-reference/files/create).
+        [creating a File](https://developers.openai.com/api/reference/resources/files/methods/create).
 
         Returns the Upload object with status `pending`.
 
@@ -544,7 +453,7 @@ class AsyncUploads(AsyncAPIResource):
           purpose: The intended purpose of the uploaded file.
 
               See the
-              [documentation on File purposes](https://platform.openai.com/docs/api-reference/files/create#files-create-purpose).
+              [documentation on File purposes](https://developers.openai.com/api/reference/resources/files/methods/create#%28resource%29%20files%20%3E%20%28method%29%20create%20%3E%20%28params%29%200%20%3E%20%28param%29%20purpose%20%3E%20%28schema%29).
 
           expires_after: The expiration policy for a file. By default, files with `purpose=batch` expire
               after 30 days and all other files are persisted until they are manually deleted.
@@ -634,10 +543,10 @@ class AsyncUploads(AsyncAPIResource):
     ) -> Upload:
         """
         Completes the
-        [Upload](https://platform.openai.com/docs/api-reference/uploads/object).
+        [Upload](https://developers.openai.com/api/reference/resources/uploads).
 
         Within the returned Upload object, there is a nested
-        [File](https://platform.openai.com/docs/api-reference/files/object) object that
+        [File](https://developers.openai.com/api/reference/resources/files) object that
         is ready to use in the rest of the platform.
 
         You can specify the order of the Parts by passing in an ordered list of the Part

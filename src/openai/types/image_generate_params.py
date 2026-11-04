@@ -14,28 +14,41 @@ class ImageGenerateParamsBase(TypedDict, total=False):
     prompt: Required[str]
     """A text description of the desired image(s).
 
-    The maximum length is 32000 characters for the GPT image models, 1000 characters
-    for `dall-e-2` and 4000 characters for `dall-e-3`.
+    The maximum length is 32000 characters.
     """
 
     background: Optional[Literal["transparent", "opaque", "auto"]]
-    """
-    Allows to set transparency for the background of the generated image(s). Must be
-    one of `transparent`, `opaque`, or `auto` (default value). When `auto` is used,
-    the model will automatically determine the best background for the image.
+    """Allows to set transparency for the background of the generated image(s).
 
-    Transparent backgrounds are available for supported GPT Image models. For
-    `gpt-image-2` and `gpt-image-2-2026-04-21`, this support is in preview. When
-    using `transparent`, set the output format to `png` or `webp`.
+    Must be one of `transparent`, `opaque`, or `auto` (default value). When `auto`
+    is used, the model will automatically determine the best background for the
+    image.
+
+    `gpt-image-2.5-sunburst` and `gpt-image-2.5-flare`, including their `2026-09-08`
+    snapshots, support `opaque` and `transparent` backgrounds. Transparent
+    backgrounds are available for supported GPT Image models. For `gpt-image-2` and
+    `gpt-image-2-2026-04-21`, this support is in preview. When using `transparent`,
+    set the output format to `png` or `webp`.
     """
 
     model: Union[str, ImageModel, None]
-    """The model to use for image generation.
+    """The GPT image model to use for image generation.
 
-    One of `dall-e-2`, `dall-e-3`, or a GPT image model (`gpt-image-1`,
-    `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`, or
-    `gpt-image-2-2026-04-21`). Defaults to `dall-e-2` unless a parameter specific to
-    the GPT image models is used.
+    Specify a model explicitly. Supported models include `gpt-image-1-mini`,
+    `gpt-image-1.5`, `gpt-image-2`, `gpt-image-2-2026-04-21`,
+    `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`,
+    `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`, and
+    `chatgpt-image-latest`.
+
+    `gpt-image-1` was shut down on October 23, 2026. Use `gpt-image-2.5-sunburst` or
+    `gpt-image-2.5-flare` instead.
+
+    Deprecated values:
+
+    - "gpt-image-1": GPT Image 1 was shut down on October 23, 2026. Use
+      gpt-image-2.5-sunburst or gpt-image-2.5-flare instead.
+    - "dall-e-2", "dall-e-3": This model was retired on May 12, 2026. Use a GPT
+      image model instead.
     """
 
     moderation: Optional[Literal["low", "auto"]]
@@ -46,10 +59,7 @@ class ImageGenerateParamsBase(TypedDict, total=False):
     """
 
     n: Optional[int]
-    """The number of images to generate.
-
-    Must be between 1 and 10. For `dall-e-3`, only `n=1` is supported.
-    """
+    """The number of images to generate. Must be between 1 and 10."""
 
     output_compression: Optional[int]
     """The compression level (0-100%) for the generated images.
@@ -76,23 +86,35 @@ class ImageGenerateParamsBase(TypedDict, total=False):
     are generated if the full image is generated more quickly.
     """
 
-    quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]]
+    quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard", "hd"]]
     """The quality of the image that will be generated.
 
     - `auto` (default value) will automatically select the best quality for the
       given model.
     - `high`, `medium` and `low` are supported for the GPT image models.
-    - `hd` and `standard` are supported for `dall-e-3`.
-    - `standard` is the only option for `dall-e-2`.
+    - `gpt-image-2.5-sunburst` and `gpt-image-2.5-flare`, including their
+      `2026-09-08` snapshots, also support `xhigh` and `max`.
+
+    Deprecated values:
+
+    - "standard", "hd": This quality was only supported by retired DALL·E models.
+      Use a GPT image quality instead.
     """
 
     response_format: Optional[Literal["url", "b64_json"]]
-    """The format in which generated images with `dall-e-2` and `dall-e-3` are
-    returned.
+    """Legacy response format parameter for retired image models.
 
-    Must be one of `url` or `b64_json`. URLs are only valid for 60 minutes after the
-    image has been generated. This parameter isn't supported for the GPT image
-    models, which always return base64-encoded images.
+    Unsupported for GPT image models, which always return base64-encoded images.
+    """
+
+    safety_identifier: Optional[str]
+    """
+    A stable identifier for an end user in your organization, used for safety
+    monitoring and abuse detection. Hash a username or email address to avoid
+    sending identifying information. A non-empty value takes precedence over the
+    deprecated `user` parameter. If omitted, null, or empty, the API uses `user`
+    when available.
+    [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
     """
 
     size: Union[
@@ -102,32 +124,37 @@ class ImageGenerateParamsBase(TypedDict, total=False):
     ]
     """The size of the generated images.
 
-    For `gpt-image-2` and `gpt-image-2-2026-04-21`, arbitrary resolutions are
-    supported as `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height
-    must both be divisible by 16 and the requested aspect ratio must be between 1:3
-    and 3:1. Resolutions above `2560x1440` are experimental, and the maximum
-    supported resolution is `3840x2160`. The requested size must also satisfy the
-    model's current pixel and edge limits. The standard sizes `1024x1024`,
-    `1536x1024`, and `1024x1536` are supported by the GPT image models; `auto` is
-    supported for models that allow automatic sizing. For `dall-e-2`, use one of
-    `256x256`, `512x512`, or `1024x1024`. For `dall-e-3`, use one of `1024x1024`,
-    `1792x1024`, or `1024x1792`.
+    For `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
+    `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and
+    `gpt-image-2.5-flare-2026-09-08`, arbitrary resolutions are supported as
+    `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height must both be
+    divisible by 16 and the requested aspect ratio must be between 1:3 and 3:1.
+    Resolutions above `2560x1440` are experimental, and the maximum supported
+    resolution is `3840x2160`. The requested size must also satisfy the model's
+    current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and
+    `1024x1536` are supported by the GPT image models; `auto` is supported for
+    models that allow automatic sizing.
+
+    Deprecated values:
+
+    - "256x256", "512x512", "1792x1024", "1024x1792": This legacy size suggestion is
+      retained for SDK compatibility. Check the selected GPT image model's supported
+      sizes.
     """
 
     style: Optional[Literal["vivid", "natural"]]
-    """The style of the generated images.
+    """Legacy style parameter for retired image models.
 
-    This parameter is only supported for `dall-e-3`. Must be one of `vivid` or
-    `natural`. Vivid causes the model to lean towards generating hyper-real and
-    dramatic images. Natural causes the model to produce more natural, less
-    hyper-real looking images.
+    Unsupported for GPT image models; describe the desired style in the prompt
+    instead.
     """
 
     user: str
-    """
-    A unique identifier representing your end-user, which can help OpenAI to monitor
-    and detect abuse.
-    [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+    """Deprecated: use `safety_identifier` instead.
+
+    This parameter remains accepted for backward compatibility and is used when
+    `safety_identifier` is omitted, null, or empty.
+    [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
     """
 
 
@@ -136,7 +163,7 @@ class ImageGenerateParamsNonStreaming(ImageGenerateParamsBase, total=False):
     """Generate the image in streaming mode.
 
     Defaults to `false`. See the
-    [Image generation guide](https://platform.openai.com/docs/guides/image-generation)
+    [Image generation guide](https://developers.openai.com/api/docs/guides/image-generation)
     for more information. This parameter is only supported for the GPT image models.
     """
 
@@ -146,7 +173,7 @@ class ImageGenerateParamsStreaming(ImageGenerateParamsBase):
     """Generate the image in streaming mode.
 
     Defaults to `false`. See the
-    [Image generation guide](https://platform.openai.com/docs/guides/image-generation)
+    [Image generation guide](https://developers.openai.com/api/docs/guides/image-generation)
     for more information. This parameter is only supported for the GPT image models.
     """
 

@@ -60,16 +60,17 @@ class Moderations(SyncAPIResource):
         """Classifies if text and/or image inputs are potentially harmful.
 
         Learn more in
-        the [moderation guide](https://platform.openai.com/docs/guides/moderation).
+        the
+        [moderation guide](https://developers.openai.com/api/docs/guides/moderation).
 
         Args:
           input: Input (or inputs) to classify. Can be a single string, an array of strings, or
               an array of multi-modal input objects similar to other models.
 
           model: The content moderation model you would like to use. Learn more in
-              [the moderation guide](https://platform.openai.com/docs/guides/moderation), and
-              learn about available models
-              [here](https://platform.openai.com/docs/models#moderation).
+              [the moderation guide](https://developers.openai.com/api/docs/guides/moderation),
+              and learn about available models
+              [here](https://developers.openai.com/api/docs/guides/moderation).
 
           extra_headers: Send extra headers
 
@@ -83,8 +84,8 @@ class Moderations(SyncAPIResource):
             "/moderations",
             body=maybe_transform(
                 {
-                    "input": input,
                     "model": model,
+                    "input": input,
                 },
                 moderation_create_params.ModerationCreateParams,
             ),
@@ -138,16 +139,17 @@ class AsyncModerations(AsyncAPIResource):
         """Classifies if text and/or image inputs are potentially harmful.
 
         Learn more in
-        the [moderation guide](https://platform.openai.com/docs/guides/moderation).
+        the
+        [moderation guide](https://developers.openai.com/api/docs/guides/moderation).
 
         Args:
           input: Input (or inputs) to classify. Can be a single string, an array of strings, or
               an array of multi-modal input objects similar to other models.
 
           model: The content moderation model you would like to use. Learn more in
-              [the moderation guide](https://platform.openai.com/docs/guides/moderation), and
-              learn about available models
-              [here](https://platform.openai.com/docs/models#moderation).
+              [the moderation guide](https://developers.openai.com/api/docs/guides/moderation),
+              and learn about available models
+              [here](https://developers.openai.com/api/docs/guides/moderation).
 
           extra_headers: Send extra headers
 
@@ -161,8 +163,8 @@ class AsyncModerations(AsyncAPIResource):
             "/moderations",
             body=await async_maybe_transform(
                 {
-                    "input": input,
                     "model": model,
+                    "input": input,
                 },
                 moderation_create_params.ModerationCreateParams,
             ),

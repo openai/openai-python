@@ -13,6 +13,8 @@ if TYPE_CHECKING:
     from .resources.batches import Batches
     from .resources.beta.beta import Beta
     from .resources.chat.chat import Chat
+    from .resources.decisions import Decisions
+    from .resources.live.live import Live
     from .resources.embeddings import Embeddings
     from .resources.admin.admin import Admin
     from .resources.audio.audio import Audio
@@ -45,6 +47,12 @@ class BetaProxy(LazyProxy["Beta"]):
     @override
     def __load__(self) -> Beta:
         return _load_client().beta
+
+
+class LiveProxy(LazyProxy["Live"]):
+    @override
+    def __load__(self) -> Live:
+        return _load_client().live
 
 
 class FilesProxy(LazyProxy["Files"]):
@@ -125,6 +133,12 @@ class RealtimeProxy(LazyProxy["Realtime"]):
         return _load_client().realtime
 
 
+class DecisionsProxy(LazyProxy["Decisions"]):
+    @override
+    def __load__(self) -> Decisions:
+        return _load_client().decisions
+
+
 class ResponsesProxy(LazyProxy["Responses"]):
     @override
     def __load__(self) -> Responses:
@@ -181,6 +195,7 @@ class ContentProvenanceChecksProxy(LazyProxy["ContentProvenanceChecks"]):
 
 chat: Chat = ChatProxy().__as_proxied__()
 beta: Beta = BetaProxy().__as_proxied__()
+live: Live = LiveProxy().__as_proxied__()
 files: Files = FilesProxy().__as_proxied__()
 audio: Audio = AudioProxy().__as_proxied__()
 admin: Admin = AdminProxy().__as_proxied__()
@@ -194,6 +209,7 @@ batches: Batches = BatchesProxy().__as_proxied__()
 uploads: Uploads = UploadsProxy().__as_proxied__()
 webhooks: Webhooks = WebhooksProxy().__as_proxied__()
 realtime: Realtime = RealtimeProxy().__as_proxied__()
+decisions: Decisions = DecisionsProxy().__as_proxied__()
 responses: Responses = ResponsesProxy().__as_proxied__()
 embeddings: Embeddings = EmbeddingsProxy().__as_proxied__()
 containers: Containers = ContainersProxy().__as_proxied__()

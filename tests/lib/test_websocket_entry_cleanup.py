@@ -1,0 +1,238 @@
+from __future__ import annotations
+
+import json
+import asyncio
+import importlib
+from typing import Any
+
+import pytest
+
+from openai import OpenAI, AsyncOpenAI
+
+PRODUCTS = [
+    "realtime",
+    "transcription",
+    "sideband",
+    "responses",
+    "beta.responses",
+    "live",
+    "live-sideband",
+    "live-forks",
+    "translation",
+]
+
+
+def manager(client: Any, product: str) -> Any:
+    if product == "realtime":
+        return client.realtime.connect(model="test")
+    if product == "transcription":
+        return client.realtime.connect(extra_query={"intent": "transcription"})
+    if product == "sideband":
+        return client.realtime.connect(call_id="call_1")
+    if product == "responses":
+        return client.responses.connect()
+    if product == "beta.responses":
+        return client.beta.responses.connect()
+    if product == "live":
+        return client.live.connect()
+    if product == "live-sideband":
+        return client.live.sideband.connect(session_id="live_1")
+    if product == "live-forks":
+        return client.live.forks.connect(session_id="live_1")
+    return client.realtime.translations.connect("test")
+
+
+@pytest.fixture(autouse=True)
+def no_proxies(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("NO_PROXY", "*")
+    monkeypatch.setenv("no_proxy", "*")
+
+
+@pytest.mark.parametrize("product", PRODUCTS)
+@pytest.mark.parametrize("cancel", [False, True])
+@pytest.mark.asyncio
+async def test_enter_owns_socket_through_initial_flush(
+    monkeypatch: pytest.MonkeyPatch, product: str, cancel: bool
+) -> None:
+    sending, release = asyncio.Event(), asyncio.Event()
+
+    class Socket:
+        closed = False
+        close_count = 0
+        sent: list[str] = []
+
+        async def send(self, value: str) -> None:
+            sending.set()
+            await release.wait()
+            self.sent.append(value)
+
+        async def close(self, **_kwargs: Any) -> None:
+            self.closed = True
+            self.close_count += 1
+            if cancel and product in {"responses", "beta.responses"} and self.close_count == 1:
+                # Reentrant exit must not close a failed entry's socket again.
+                await session.__aexit__(None, None, None)
+
+    sock = Socket()
+
+    async def connect(*_args: Any, **_kwargs: Any) -> Socket:
+        return sock
+
+    monkeypatch.setattr("openai.lib._websocket._WebSocketConnect", connect)
+    async with AsyncOpenAI(api_key="fake-key") as client:
+        session = manager(client, product)
+        session.send({"type": "synthetic.first"})
+
+        async def open_and_close() -> None:
+            async with session:
+                pass
+
+        entering = asyncio.create_task(open_and_close())
+        try:
+            await asyncio.wait_for(sending.wait(), timeout=10)
+            if cancel:
+                entering.cancel()
+                with pytest.raises(asyncio.CancelledError):
+                    await asyncio.wait_for(entering, timeout=10)
+            else:
+                release.set()
+                await asyncio.wait_for(entering, timeout=10)
+                assert [json.loads(value)["type"] for value in sock.sent] == ["synthetic.first"]
+            assert sock.closed
+            if cancel and product in {"responses", "beta.responses"}:
+                assert sock.close_count == 1
+        finally:
+            release.set()
+            if not entering.done():
+                entering.cancel()
+            await asyncio.gather(entering, return_exceptions=True)
+
+
+@pytest.mark.parametrize("product", PRODUCTS)
+@pytest.mark.parametrize("close_fails", [False, True])
+def test_interrupted_sync_entry_closes_socket_and_preserves_error(
+    monkeypatch: pytest.MonkeyPatch, product: str, close_fails: bool
+) -> None:
+    original = KeyboardInterrupt("initial send interrupted")
+
+    class Socket:
+        close_called = False
+        close_count = 0
+
+        def send(self, _value: str) -> None:
+            raise original
+
+        def close(self, **_kwargs: Any) -> None:
+            self.close_called = True
+            self.close_count += 1
+            if product in {"responses", "beta.responses"} and self.close_count == 1:
+                # Reentrant exit must not close a failed entry's socket again.
+                session.__exit__(None, None, None)
+            if close_fails:
+                raise RuntimeError("cleanup also failed")
+
+    sock = Socket()
+
+    def connect(*_args: Any, **_kwargs: Any) -> Socket:
+        return sock
+
+    monkeypatch.setattr("websockets.sync.client.connect", connect)
+    with OpenAI(api_key="fake-key") as client:
+        session = manager(client, product)
+        session.send({"type": "synthetic.first"})
+        with pytest.raises(KeyboardInterrupt) as raised:
+            with session:
+                pytest.fail("entry must not succeed")
+        assert raised.value is original
+        assert sock.close_called
+        if product in {"responses", "beta.responses"}:
+            assert sock.close_count == 1
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("product", ["realtime", "responses", "beta.responses"])
+async def test_async_constructor_failure_closes_acquired_socket(monkeypatch: pytest.MonkeyPatch, product: str) -> None:
+    module = importlib.import_module(f"openai.resources.{product}.{product.rsplit('.', 1)[-1]}")
+
+    original = RuntimeError("cannot initialize connection")
+
+    class Socket:
+        close_called = False
+
+        async def close(self, **_kwargs: Any) -> None:
+            self.close_called = True
+            raise ValueError("cannot close cleanly")
+
+    sock = Socket()
+
+    async def connect(*_args: Any, **_kwargs: Any) -> Socket:
+        return sock
+
+    def fail_construct(*_args: Any, **_kwargs: Any) -> None:
+        raise original
+
+    monkeypatch.setattr("openai.lib._websocket._WebSocketConnect", connect)
+    async with AsyncOpenAI(api_key="fake-key") as client:
+        session = manager(client, product)
+        connection_type = "AsyncRealtimeConnection" if product == "realtime" else "AsyncResponsesConnection"
+        monkeypatch.setattr(module, connection_type, fail_construct)
+        with pytest.raises(RuntimeError) as raised:
+            await session.enter()
+        assert raised.value is original
+        assert sock.close_called
+
+
+@pytest.mark.parametrize("product", ["responses", "beta.responses"])
+@pytest.mark.asyncio
+async def test_task_cancel_during_exit_preserves_new_cancellation(
+    monkeypatch: pytest.MonkeyPatch, product: str
+) -> None:
+    entered_close = asyncio.Event()
+    body_error = ValueError("synthetic ordinary body failure")
+    close_cancel: list[asyncio.CancelledError] = []
+
+    class Socket:
+        close_count = 0
+        sent: list[str] = []
+
+        async def send(self, data: str) -> None:
+            self.sent.append(data)
+
+        async def close(self, **_kwargs: Any) -> None:
+            self.close_count += 1
+            entered_close.set()
+            try:
+                await asyncio.Event().wait()
+            except asyncio.CancelledError as exc:
+                close_cancel.append(exc)
+                raise
+
+    sock = Socket()
+
+    async def connect(*_args: Any, **_kwargs: Any) -> Socket:
+        return sock
+
+    monkeypatch.setattr("openai.lib._websocket._WebSocketConnect", connect)
+    async with AsyncOpenAI(api_key="fake-key") as client:
+        session = manager(client, product)
+        session.send({"type": "synthetic.first"})
+
+        async def use_session() -> None:
+            async with session:
+                assert [json.loads(data)["type"] for data in sock.sent] == ["synthetic.first"]
+                raise body_error
+
+        task = asyncio.create_task(use_session())
+        try:
+            await asyncio.wait_for(entered_close.wait(), timeout=3)
+            assert not task.done() and sock.close_count == 1
+            assert task.cancel("new cancellation during cleanup")
+            with pytest.raises(asyncio.CancelledError):
+                await asyncio.wait_for(task, timeout=3)
+            assert task.cancelled()
+            assert len(close_cancel) == 1
+            assert close_cancel[0].args == ("new cancellation during cleanup",)
+        finally:
+            if not task.done():
+                task.cancel()
+            await asyncio.gather(task, return_exceptions=True)

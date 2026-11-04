@@ -43,7 +43,7 @@ elif ! steady_is_running ; then
   echo -e "To run the server, pass in the path or url of your OpenAPI"
   echo -e "spec to the steady command:"
   echo
-  echo -e "  \$ ${YELLOW}./scripts/bootstrap${NC}"
+  echo -e "  \$ ${YELLOW}./scripts/steady/install${NC}"
   echo -e "  \$ ${YELLOW}./scripts/mock path/to/your.openapi.yml${NC}"
   echo
 

@@ -86,8 +86,8 @@ class Batch(BaseModel):
 
     OpenAI offers a wide range of models with different capabilities, performance
     characteristics, and price points. Refer to the
-    [model guide](https://platform.openai.com/docs/models) to browse and compare
-    available models.
+    [model guide](https://developers.openai.com/api/docs/models) to browse and
+    compare available models.
     """
 
     output_file_id: Optional[str] = None

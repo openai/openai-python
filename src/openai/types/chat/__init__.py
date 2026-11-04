@@ -85,6 +85,9 @@ from .chat_completion_function_call_option_param import (
 from .chat_completion_message_function_tool_call import (
     ChatCompletionMessageFunctionToolCall as ChatCompletionMessageFunctionToolCall,
 )
+from .create_chat_completion_request_message_param import (
+    CreateChatCompletionRequestMessageParam as CreateChatCompletionRequestMessageParam,
+)
 from .chat_completion_message_tool_call_union_param import (
     ChatCompletionMessageToolCallUnionParam as ChatCompletionMessageToolCallUnionParam,
 )

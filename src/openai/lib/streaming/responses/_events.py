@@ -30,6 +30,7 @@ from ....types.responses import (
     ResponseMcpListToolsFailedEvent,
     ResponseAudioTranscriptDoneEvent,
     ResponseAudioTranscriptDeltaEvent,
+    ResponseCompactionCompactingEvent,
     ResponseMcpCallArgumentsDoneEvent,
     ResponseShellCallCommandDoneEvent,
     ResponseImageGenCallCompletedEvent,
@@ -87,7 +88,7 @@ class ResponseFunctionCallArgumentsDeltaEvent(RawResponseFunctionCallArgumentsDe
 
 
 class ResponseCompletedEvent(RawResponseCompletedEvent, GenericModel, Generic[TextFormatT]):
-    response: ParsedResponse[TextFormatT]  # type: ignore[assignment]
+    response: ParsedResponse[TextFormatT]
 
 
 ResponseStreamEvent: TypeAlias = Annotated[
@@ -107,6 +108,7 @@ ResponseStreamEvent: TypeAlias = Annotated[
         ResponseCodeInterpreterCallCompletedEvent,
         ResponseCodeInterpreterCallInProgressEvent,
         ResponseCodeInterpreterCallInterpretingEvent,
+        ResponseCompactionCompactingEvent,
         ResponseContentPartAddedEvent,
         ResponseContentPartDoneEvent,
         ResponseCreatedEvent,

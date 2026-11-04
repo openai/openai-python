@@ -1,0 +1,185 @@
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
+
+from __future__ import annotations
+
+from typing import Dict, Union, Iterable, Optional
+from typing_extensions import Literal, Required, Annotated, TypedDict
+
+from ...._types import SequenceNotStr
+from ...._utils import PropertyInfo
+from ..agent_text_param import AgentTextParam
+from ..agent_tool_param import AgentToolParam
+from ..environment_param import EnvironmentParam
+from ..agent_reasoning_param import AgentReasoningParam
+from ..multi_agent_config_param import MultiAgentConfigParam
+from ..agent_session_input_message_param import AgentSessionInputMessageParam
+
+__all__ = [
+    "SessionCreateParamsBase",
+    "Agent",
+    "AgentCompaction",
+    "AgentExperimental",
+    "SpendControl",
+    "SessionCreateParamsNonStreaming",
+    "SessionCreateParamsStreaming",
+]
+
+
+class SessionCreateParamsBase(TypedDict, total=False):
+    environment: Required[EnvironmentParam]
+    """An inline execution environment or a reference to an environment template."""
+
+    agent: Agent
+    """Agent configuration.
+
+    With `agent_id`, supplied fields override the saved agent for this session.
+    Without `agent_id`, `model` is required.
+    """
+
+    agent_id: str
+    """The ID of a saved reusable agent.
+
+    Omit `agent` to use its configuration unchanged.
+    """
+
+    input: Union[str, Iterable[AgentSessionInputMessageParam], None]
+    """Initial input to submit when the session is created.
+
+    A string is shorthand for a single user message. Required when
+    `environment.type` is `none`, or when `stream` is `true` for an environment that
+    is not `self_hosted`; optional for self-hosted and non-streaming execution
+    environments.
+    """
+
+    metadata: Optional[Dict[str, str]]
+    """
+    Up to 16 string key-value pairs, with keys up to 64 and values up to 512
+    characters. Omission or null defaults to an empty map.
+    """
+
+    review: Literal["none", "auto_review"]
+    """Action review mode. Omit to use none.
+
+    - `none` - Keep the existing execution behavior without automatic action review.
+    - `auto_review` - Review eligible actions automatically. Deny manual approval
+      fallbacks.
+    """
+
+    spend_control: Optional[SpendControl]
+    """Optional spending limit in USD cents.
+
+    Omission or null creates an unlimited session.
+    """
+
+    vault_ids: Optional[SequenceNotStr[str]]
+    """The IDs of vaults made available to the session."""
+
+
+class AgentCompaction(TypedDict, total=False):
+    """Context compaction settings.
+
+    Omit to keep the current settings. A supplied object replaces the settings; null or an empty object enables background compaction.
+    """
+
+    async_: Annotated[Optional[bool], PropertyInfo(alias="async")]
+    """Whether to compact context in the background.
+
+    Omission or null defaults to true. Set to false to use blocking compaction.
+    Background compaction may increase token usage.
+    """
+
+
+class AgentExperimental(TypedDict, total=False):
+    """Experimental settings to merge by key.
+
+    Omitted settings keep their current values.
+    """
+
+    time_awareness: bool
+    """Whether to give the model periodic current-time reminders.
+
+    Omit to keep the current setting.
+    """
+
+
+class Agent(TypedDict, total=False):
+    """Agent configuration.
+
+    With `agent_id`, supplied fields override the saved agent for this session. Without `agent_id`, `model` is required.
+    """
+
+    compaction: Optional[AgentCompaction]
+    """Context compaction settings.
+
+    Omit to keep the current settings. A supplied object replaces the settings; null
+    or an empty object enables background compaction.
+    """
+
+    experimental: AgentExperimental
+    """Experimental settings to merge by key.
+
+    Omitted settings keep their current values.
+    """
+
+    instructions: Optional[str]
+    """Additional instructions appended to the agent's default base instructions.
+
+    Omit to leave unchanged.
+    """
+
+    model: str
+    """The model to use for the agent. The requested model name is preserved."""
+
+    multi_agent: Optional[MultiAgentConfigParam]
+    """Configuration for creating and coordinating subagents."""
+
+    reasoning: Optional[AgentReasoningParam]
+    """Configuration for model reasoning.
+
+    Omit to keep the current settings; pass `null` to reset to the model's default
+    effort.
+    """
+
+    service_tier: Optional[Literal["auto", "default", "flex", "priority", "fast", "ultrafast"]]
+    """The service tier used for model requests.
+
+    - `auto` - Selects the service tier automatically.
+    - `default` - Uses the default service tier.
+    - `flex` - Uses the flex service tier.
+    - `priority` - Uses the priority service tier.
+    - `fast` - Uses the fast service tier.
+    - `ultrafast` - Uses the ultrafast service tier.
+    """
+
+    text: Optional[AgentTextParam]
+    """Configuration for text generated by the agent."""
+
+    tools: Optional[Iterable[AgentToolParam]]
+    """Tools available to the agent.
+
+    Omit to inherit, or pass null to clear them. The resolved tool list must fit
+    within 3 MiB (3,145,728 bytes) of compact UTF-8 JSON.
+    """
+
+
+class SpendControl(TypedDict, total=False):
+    """Optional spending limit in USD cents.
+
+    Omission or null creates an unlimited session.
+    """
+
+    limit: Required[Optional[int]]
+    """Positive USD cents, or null to remove the limit."""
+
+
+class SessionCreateParamsNonStreaming(SessionCreateParamsBase, total=False):
+    stream: Literal[False]
+    """Whether to stream session events as server-sent events. Defaults to `false`."""
+
+
+class SessionCreateParamsStreaming(SessionCreateParamsBase):
+    stream: Required[Literal[True]]
+    """Whether to stream session events as server-sent events. Defaults to `false`."""
+
+
+SessionCreateParams = Union[SessionCreateParamsNonStreaming, SessionCreateParamsStreaming]
