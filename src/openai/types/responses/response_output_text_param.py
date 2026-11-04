@@ -27,7 +27,7 @@ class AnnotationFileCitation(TypedDict, total=False):
     """The filename of the file cited."""
 
     index: Required[int]
-    """The index of the file in the list of files."""
+    """The index in the output text at which to insert the file citation."""
 
     type: Required[Literal["file_citation"]]
     """The type of the file citation. Always `file_citation`."""

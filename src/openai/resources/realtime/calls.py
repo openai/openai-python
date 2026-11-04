@@ -208,6 +208,14 @@ class Calls(SyncAPIResource):
 
           model: The Realtime model used for this session.
 
+              Deprecated values:
+
+              - "gpt-realtime", "gpt-realtime-2025-08-28", "gpt-realtime-mini",
+                "gpt-realtime-mini-2025-12-15", "gpt-audio-mini", "gpt-audio-mini-2025-12-15":
+                Announced shutdown date: 2027-01-20. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+
           output_modalities: The set of modalities the model can respond with. It defaults to `["audio"]`,
               indicating that the model will respond with audio plus a transcript. `["text"]`
               can be used to make the model respond with text only. It is not possible to
@@ -217,7 +225,7 @@ class Calls(SyncAPIResource):
               reasoning Realtime models such as `gpt-realtime-2`.
 
           prompt: Reference to a prompt template and its variables.
-              [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
+              [Learn more](https://developers.openai.com/api/docs/guides/text?api-mode=responses#version-prompts-in-code).
 
           reasoning: Configuration for reasoning-capable Realtime models such as `gpt-realtime-2`.
 
@@ -268,12 +276,12 @@ class Calls(SyncAPIResource):
             path_template("/realtime/calls/{call_id}/accept", call_id=call_id),
             body=maybe_transform(
                 {
+                    "model": model,
                     "type": type,
                     "audio": audio,
                     "include": include,
                     "instructions": instructions,
                     "max_output_tokens": max_output_tokens,
-                    "model": model,
                     "output_modalities": output_modalities,
                     "parallel_tool_calls": parallel_tool_calls,
                     "prompt": prompt,
@@ -588,6 +596,14 @@ class AsyncCalls(AsyncAPIResource):
 
           model: The Realtime model used for this session.
 
+              Deprecated values:
+
+              - "gpt-realtime", "gpt-realtime-2025-08-28", "gpt-realtime-mini",
+                "gpt-realtime-mini-2025-12-15", "gpt-audio-mini", "gpt-audio-mini-2025-12-15":
+                Announced shutdown date: 2027-01-20. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+
           output_modalities: The set of modalities the model can respond with. It defaults to `["audio"]`,
               indicating that the model will respond with audio plus a transcript. `["text"]`
               can be used to make the model respond with text only. It is not possible to
@@ -597,7 +613,7 @@ class AsyncCalls(AsyncAPIResource):
               reasoning Realtime models such as `gpt-realtime-2`.
 
           prompt: Reference to a prompt template and its variables.
-              [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
+              [Learn more](https://developers.openai.com/api/docs/guides/text?api-mode=responses#version-prompts-in-code).
 
           reasoning: Configuration for reasoning-capable Realtime models such as `gpt-realtime-2`.
 
@@ -648,12 +664,12 @@ class AsyncCalls(AsyncAPIResource):
             path_template("/realtime/calls/{call_id}/accept", call_id=call_id),
             body=await async_maybe_transform(
                 {
+                    "model": model,
                     "type": type,
                     "audio": audio,
                     "include": include,
                     "instructions": instructions,
                     "max_output_tokens": max_output_tokens,
-                    "model": model,
                     "output_modalities": output_modalities,
                     "parallel_tool_calls": parallel_tool_calls,
                     "prompt": prompt,

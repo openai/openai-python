@@ -26,6 +26,11 @@ def find_breaking_changes(
     *,
     path: list[str],
 ) -> Iterator[Text | str]:
+    if isinstance(new_obj, griffe.Alias) and not isinstance(old_obj, griffe.Alias):
+        # A concrete public class may move to a submodule without changing its import path.
+        # Still compare its members, including any that the moved class really removed.
+        new_obj = new_obj.final_target
+
     new_members = public_members(new_obj)
     old_members = public_members(old_obj)
 
@@ -76,4 +81,5 @@ def main() -> None:
         sys.exit(1)
 
 
-main()
+if __name__ == "__main__":
+    main()

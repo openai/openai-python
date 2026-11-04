@@ -65,6 +65,8 @@ class AuditLogs(SyncAPIResource):
                 "checkpoint.permission.deleted",
                 "external_key.registered",
                 "external_key.removed",
+                "external_storage.registered",
+                "external_storage.removed",
                 "group.created",
                 "group.updated",
                 "group.deleted",
@@ -237,7 +239,7 @@ class AuditLogs(SyncAPIResource):
 
           event_types: Return only events with a `type` in one of these values. For example,
               `project.created`. For all options, see the documentation for the
-              [audit log object](https://platform.openai.com/docs/api-reference/audit-logs/object).
+              [audit log object](https://developers.openai.com/api/reference/resources/admin/subresources/organization/subresources/audit_logs).
 
           limit: A limit on the number of objects to be returned. Limit can range between 1 and
               100, and the default is 20.
@@ -334,6 +336,8 @@ class AsyncAuditLogs(AsyncAPIResource):
                 "checkpoint.permission.deleted",
                 "external_key.registered",
                 "external_key.removed",
+                "external_storage.registered",
+                "external_storage.removed",
                 "group.created",
                 "group.updated",
                 "group.deleted",
@@ -506,7 +510,7 @@ class AsyncAuditLogs(AsyncAPIResource):
 
           event_types: Return only events with a `type` in one of these values. For example,
               `project.created`. For all options, see the documentation for the
-              [audit log object](https://platform.openai.com/docs/api-reference/audit-logs/object).
+              [audit log object](https://developers.openai.com/api/reference/resources/admin/subresources/organization/subresources/audit_logs).
 
           limit: A limit on the number of objects to be returned. Limit can range between 1 and
               100, and the default is 20.

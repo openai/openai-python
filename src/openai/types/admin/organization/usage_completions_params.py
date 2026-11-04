@@ -32,11 +32,14 @@ class UsageCompletionsParams(TypedDict, total=False):
     end_time: int
     """End time (Unix seconds) of the query time range, exclusive."""
 
-    group_by: List[Literal["project_id", "user_id", "api_key_id", "model", "batch", "service_tier"]]
+    group_by: List[Literal["project_id", "user_id", "api_key_id", "model", "batch", "service_tier", "api_source"]]
     """Group the usage data by the specified fields.
 
     Support fields include `project_id`, `user_id`, `api_key_id`, `model`, `batch`,
-    `service_tier` or any combination of them.
+    `service_tier`, `api_source` or any combination of them. When grouped by
+    `api_source`, results use `agents_api` for attributed Agents API activity and
+    `unlabeled` for all other activity. Without source grouping, `api_source` is
+    null.
     """
 
     limit: int

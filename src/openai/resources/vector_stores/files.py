@@ -18,7 +18,13 @@ from ...pagination import SyncPage, AsyncPage, SyncCursorPage, AsyncCursorPage
 from ..._base_client import AsyncPaginator, make_request_options
 from ...lib._vector_stores import (
     poll_vector_store_file as _poll_vector_store_file,
+    upload_vector_store_file as _upload_vector_store_file,
     async_poll_vector_store_file as _async_poll_vector_store_file,
+    async_upload_vector_store_file as _async_upload_vector_store_file,
+    create_and_poll_vector_store_file as _create_and_poll_vector_store_file,
+    upload_and_poll_vector_store_file as _upload_and_poll_vector_store_file,
+    async_create_and_poll_vector_store_file as _async_create_and_poll_vector_store_file,
+    async_upload_and_poll_vector_store_file as _async_upload_and_poll_vector_store_file,
 )
 from ...types.vector_stores import file_list_params, file_create_params, file_update_params
 from ...types.file_chunking_strategy_param import FileChunkingStrategyParam
@@ -65,14 +71,14 @@ class Files(SyncAPIResource):
     ) -> VectorStoreFile:
         """
         Create a vector store file by attaching a
-        [File](https://platform.openai.com/docs/api-reference/files) to a
-        [vector store](https://platform.openai.com/docs/api-reference/vector-stores/object).
+        [File](https://developers.openai.com/api/reference/resources/files) to a
+        [vector store](https://developers.openai.com/api/reference/resources/vector_stores).
 
         Args:
-          file_id: A [File](https://platform.openai.com/docs/api-reference/files) ID that the
-              vector store should use. Useful for tools like `file_search` that can access
+          file_id: A [File](https://developers.openai.com/api/reference/resources/files) ID that
+              the vector store should use. Useful for tools like `file_search` that can access
               files. For multi-file ingestion, we recommend
-              [`file_batches`](https://platform.openai.com/docs/api-reference/vector-stores-file-batches/createBatch)
+              [`file_batches`](https://developers.openai.com/api/reference/resources/vector_stores/subresources/file_batches/methods/create)
               to minimize per-vector-store write requests.
 
           attributes: Set of 16 key-value pairs that can be attached to an object. This can be useful
@@ -297,7 +303,7 @@ class Files(SyncAPIResource):
 
         This will remove the file from the vector store but
         the file itself will not be deleted. To delete the file, use the
-        [delete file](https://platform.openai.com/docs/api-reference/files/delete)
+        [delete file](https://developers.openai.com/api/reference/resources/files/methods/delete)
         endpoint.
 
         Args:
@@ -326,92 +332,6 @@ class Files(SyncAPIResource):
                 security={"bearer_auth": True},
             ),
             cast_to=VectorStoreFileDeleted,
-        )
-
-    def create_and_poll(
-        self,
-        file_id: str,
-        *,
-        vector_store_id: str,
-        attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
-        poll_interval_ms: int | Omit = omit,
-        chunking_strategy: FileChunkingStrategyParam | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> VectorStoreFile:
-        """Attach a file to the given vector store and wait for it to be processed."""
-        self.create(
-            vector_store_id=vector_store_id,
-            file_id=file_id,
-            chunking_strategy=chunking_strategy,
-            attributes=attributes,
-            extra_headers=extra_headers,
-            extra_query=extra_query,
-            extra_body=extra_body,
-            timeout=timeout,
-        )
-
-        return self.poll(
-            file_id,
-            vector_store_id=vector_store_id,
-            poll_interval_ms=poll_interval_ms,
-        )
-
-    def poll(
-        self,
-        file_id: str,
-        *,
-        vector_store_id: str,
-        poll_interval_ms: int | Omit = omit,
-    ) -> VectorStoreFile:
-        """Wait for the vector store file to finish processing.
-
-        Note: this will return even if the file failed to process, you need to check
-        file.last_error and file.status to handle these cases
-        """
-        return _poll_vector_store_file(
-            self,
-            file_id,
-            vector_store_id=vector_store_id,
-            poll_interval_ms=poll_interval_ms,
-        )
-
-    def upload(
-        self,
-        *,
-        vector_store_id: str,
-        file: FileTypes,
-        chunking_strategy: FileChunkingStrategyParam | Omit = omit,
-    ) -> VectorStoreFile:
-        """Upload a file to the `files` API and then attach it to the given vector store.
-
-        Note the file will be asynchronously processed (you can use the alternative
-        polling helper method to wait for processing to complete).
-        """
-        file_obj = self._client.files.create(file=file, purpose="assistants")
-        return self.create(vector_store_id=vector_store_id, file_id=file_obj.id, chunking_strategy=chunking_strategy)
-
-    def upload_and_poll(
-        self,
-        *,
-        vector_store_id: str,
-        file: FileTypes,
-        attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
-        poll_interval_ms: int | Omit = omit,
-        chunking_strategy: FileChunkingStrategyParam | Omit = omit,
-    ) -> VectorStoreFile:
-        """Add a file to a vector store and poll until processing is complete."""
-        file_obj = self._client.files.create(file=file, purpose="assistants")
-        return self.create_and_poll(
-            vector_store_id=vector_store_id,
-            file_id=file_obj.id,
-            chunking_strategy=chunking_strategy,
-            poll_interval_ms=poll_interval_ms,
-            attributes=attributes,
         )
 
     def content(
@@ -460,6 +380,88 @@ class Files(SyncAPIResource):
             model=FileContentResponse,
         )
 
+    def create_and_poll(
+        self,
+        file_id: str,
+        *,
+        vector_store_id: str,
+        attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
+        poll_interval_ms: int | Omit = omit,
+        max_wait_seconds: float | Omit = omit,
+        chunking_strategy: FileChunkingStrategyParam | Omit = omit,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> VectorStoreFile:
+        "Attach a file to the given vector store and wait for it to be processed.\n\n        `max_wait_seconds` limits polling after attachment; see `poll` for details.\n"
+        return _create_and_poll_vector_store_file(
+            self,
+            file_id,
+            vector_store_id=vector_store_id,
+            attributes=attributes,
+            poll_interval_ms=poll_interval_ms,
+            max_wait_seconds=max_wait_seconds,
+            chunking_strategy=chunking_strategy,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
+
+    def upload(
+        self,
+        *,
+        vector_store_id: str,
+        file: FileTypes,
+        chunking_strategy: FileChunkingStrategyParam | Omit = omit,
+    ) -> VectorStoreFile:
+        "Upload a file to the `files` API and then attach it to the given vector store.\n\n        Note the file will be asynchronously processed (you can use the alternative\n        polling helper method to wait for processing to complete).\n"
+        return _upload_vector_store_file(
+            self,
+            vector_store_id=vector_store_id,
+            file=file,
+            chunking_strategy=chunking_strategy,
+        )
+
+    def upload_and_poll(
+        self,
+        *,
+        vector_store_id: str,
+        file: FileTypes,
+        attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
+        poll_interval_ms: int | Omit = omit,
+        max_wait_seconds: float | Omit = omit,
+        chunking_strategy: FileChunkingStrategyParam | Omit = omit,
+    ) -> VectorStoreFile:
+        "Add a file to a vector store and poll until processing is complete.\n\n        `max_wait_seconds` limits polling after upload and attachment; see `poll` for details.\n"
+        return _upload_and_poll_vector_store_file(
+            self,
+            vector_store_id=vector_store_id,
+            file=file,
+            attributes=attributes,
+            poll_interval_ms=poll_interval_ms,
+            max_wait_seconds=max_wait_seconds,
+            chunking_strategy=chunking_strategy,
+        )
+
+    def poll(
+        self,
+        file_id: str,
+        *,
+        vector_store_id: str,
+        poll_interval_ms: int | Omit = omit,
+        max_wait_seconds: float | Omit = omit,
+    ) -> VectorStoreFile:
+        "Wait for the vector store file to finish processing.\n\n        `max_wait_seconds` must be finite and non-negative. When provided, it limits\n        polling and raises `TimeoutError` on expiry; zero prevents any polling requests.\n        Omit it to wait indefinitely. In-flight requests and retries use the client's\n        HTTP timeout settings and may finish after the polling deadline. Timing out\n        does not cancel processing on the server.\n\n        Note: this will return even if the file failed to process, you need to check\n        file.last_error and file.status to handle these cases\n"
+        return _poll_vector_store_file(
+            self,
+            file_id,
+            vector_store_id=vector_store_id,
+            poll_interval_ms=poll_interval_ms,
+            max_wait_seconds=max_wait_seconds,
+        )
+
 
 class AsyncFiles(AsyncAPIResource):
     @cached_property
@@ -497,14 +499,14 @@ class AsyncFiles(AsyncAPIResource):
     ) -> VectorStoreFile:
         """
         Create a vector store file by attaching a
-        [File](https://platform.openai.com/docs/api-reference/files) to a
-        [vector store](https://platform.openai.com/docs/api-reference/vector-stores/object).
+        [File](https://developers.openai.com/api/reference/resources/files) to a
+        [vector store](https://developers.openai.com/api/reference/resources/vector_stores).
 
         Args:
-          file_id: A [File](https://platform.openai.com/docs/api-reference/files) ID that the
-              vector store should use. Useful for tools like `file_search` that can access
+          file_id: A [File](https://developers.openai.com/api/reference/resources/files) ID that
+              the vector store should use. Useful for tools like `file_search` that can access
               files. For multi-file ingestion, we recommend
-              [`file_batches`](https://platform.openai.com/docs/api-reference/vector-stores-file-batches/createBatch)
+              [`file_batches`](https://developers.openai.com/api/reference/resources/vector_stores/subresources/file_batches/methods/create)
               to minimize per-vector-store write requests.
 
           attributes: Set of 16 key-value pairs that can be attached to an object. This can be useful
@@ -729,7 +731,7 @@ class AsyncFiles(AsyncAPIResource):
 
         This will remove the file from the vector store but
         the file itself will not be deleted. To delete the file, use the
-        [delete file](https://platform.openai.com/docs/api-reference/files/delete)
+        [delete file](https://developers.openai.com/api/reference/resources/files/methods/delete)
         endpoint.
 
         Args:
@@ -758,94 +760,6 @@ class AsyncFiles(AsyncAPIResource):
                 security={"bearer_auth": True},
             ),
             cast_to=VectorStoreFileDeleted,
-        )
-
-    async def create_and_poll(
-        self,
-        file_id: str,
-        *,
-        vector_store_id: str,
-        attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
-        poll_interval_ms: int | Omit = omit,
-        chunking_strategy: FileChunkingStrategyParam | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> VectorStoreFile:
-        """Attach a file to the given vector store and wait for it to be processed."""
-        await self.create(
-            vector_store_id=vector_store_id,
-            file_id=file_id,
-            chunking_strategy=chunking_strategy,
-            attributes=attributes,
-            extra_headers=extra_headers,
-            extra_query=extra_query,
-            extra_body=extra_body,
-            timeout=timeout,
-        )
-
-        return await self.poll(
-            file_id,
-            vector_store_id=vector_store_id,
-            poll_interval_ms=poll_interval_ms,
-        )
-
-    async def poll(
-        self,
-        file_id: str,
-        *,
-        vector_store_id: str,
-        poll_interval_ms: int | Omit = omit,
-    ) -> VectorStoreFile:
-        """Wait for the vector store file to finish processing.
-
-        Note: this will return even if the file failed to process, you need to check
-        file.last_error and file.status to handle these cases
-        """
-        return await _async_poll_vector_store_file(
-            self,
-            file_id,
-            vector_store_id=vector_store_id,
-            poll_interval_ms=poll_interval_ms,
-        )
-
-    async def upload(
-        self,
-        *,
-        vector_store_id: str,
-        file: FileTypes,
-        chunking_strategy: FileChunkingStrategyParam | Omit = omit,
-    ) -> VectorStoreFile:
-        """Upload a file to the `files` API and then attach it to the given vector store.
-
-        Note the file will be asynchronously processed (you can use the alternative
-        polling helper method to wait for processing to complete).
-        """
-        file_obj = await self._client.files.create(file=file, purpose="assistants")
-        return await self.create(
-            vector_store_id=vector_store_id, file_id=file_obj.id, chunking_strategy=chunking_strategy
-        )
-
-    async def upload_and_poll(
-        self,
-        *,
-        vector_store_id: str,
-        file: FileTypes,
-        attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
-        poll_interval_ms: int | Omit = omit,
-        chunking_strategy: FileChunkingStrategyParam | Omit = omit,
-    ) -> VectorStoreFile:
-        """Add a file to a vector store and poll until processing is complete."""
-        file_obj = await self._client.files.create(file=file, purpose="assistants")
-        return await self.create_and_poll(
-            vector_store_id=vector_store_id,
-            file_id=file_obj.id,
-            poll_interval_ms=poll_interval_ms,
-            chunking_strategy=chunking_strategy,
-            attributes=attributes,
         )
 
     def content(
@@ -892,6 +806,88 @@ class AsyncFiles(AsyncAPIResource):
                 security={"bearer_auth": True},
             ),
             model=FileContentResponse,
+        )
+
+    async def create_and_poll(
+        self,
+        file_id: str,
+        *,
+        vector_store_id: str,
+        attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
+        poll_interval_ms: int | Omit = omit,
+        max_wait_seconds: float | Omit = omit,
+        chunking_strategy: FileChunkingStrategyParam | Omit = omit,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> VectorStoreFile:
+        "Attach a file to the given vector store and wait for it to be processed.\n\n        `max_wait_seconds` limits polling after attachment; see `poll` for details.\n"
+        return await _async_create_and_poll_vector_store_file(
+            self,
+            file_id,
+            vector_store_id=vector_store_id,
+            attributes=attributes,
+            poll_interval_ms=poll_interval_ms,
+            max_wait_seconds=max_wait_seconds,
+            chunking_strategy=chunking_strategy,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
+
+    async def upload(
+        self,
+        *,
+        vector_store_id: str,
+        file: FileTypes,
+        chunking_strategy: FileChunkingStrategyParam | Omit = omit,
+    ) -> VectorStoreFile:
+        "Upload a file to the `files` API and then attach it to the given vector store.\n\n        Note the file will be asynchronously processed (you can use the alternative\n        polling helper method to wait for processing to complete).\n"
+        return await _async_upload_vector_store_file(
+            self,
+            vector_store_id=vector_store_id,
+            file=file,
+            chunking_strategy=chunking_strategy,
+        )
+
+    async def upload_and_poll(
+        self,
+        *,
+        vector_store_id: str,
+        file: FileTypes,
+        attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
+        poll_interval_ms: int | Omit = omit,
+        max_wait_seconds: float | Omit = omit,
+        chunking_strategy: FileChunkingStrategyParam | Omit = omit,
+    ) -> VectorStoreFile:
+        "Add a file to a vector store and poll until processing is complete.\n\n        `max_wait_seconds` limits polling after upload and attachment; see `poll` for details.\n"
+        return await _async_upload_and_poll_vector_store_file(
+            self,
+            vector_store_id=vector_store_id,
+            file=file,
+            attributes=attributes,
+            poll_interval_ms=poll_interval_ms,
+            max_wait_seconds=max_wait_seconds,
+            chunking_strategy=chunking_strategy,
+        )
+
+    async def poll(
+        self,
+        file_id: str,
+        *,
+        vector_store_id: str,
+        poll_interval_ms: int | Omit = omit,
+        max_wait_seconds: float | Omit = omit,
+    ) -> VectorStoreFile:
+        "Wait for the vector store file to finish processing.\n\n        `max_wait_seconds` must be finite and non-negative. When provided, it limits\n        polling and raises `TimeoutError` on expiry; zero prevents any polling requests.\n        Omit it to wait indefinitely. In-flight requests and retries use the client's\n        HTTP timeout settings and may finish after the polling deadline. Timing out\n        does not cancel processing on the server.\n\n        Note: this will return even if the file failed to process, you need to check\n        file.last_error and file.status to handle these cases\n"
+        return await _async_poll_vector_store_file(
+            self,
+            file_id,
+            vector_store_id=vector_store_id,
+            poll_interval_ms=poll_interval_ms,
+            max_wait_seconds=max_wait_seconds,
         )
 
 

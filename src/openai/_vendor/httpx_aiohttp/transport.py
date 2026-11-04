@@ -9,12 +9,12 @@ from logging import warning
 
 import aiohttp
 import httpx2 as httpx
-from aiohttp import BasicAuth, ClientTimeout
+from aiohttp import BasicAuth, ClientTimeout, SocketTimeoutError
 from aiohttp.client import ClientResponse, ClientSession
 
 AIOHTTP_EXC_MAP = {
     aiohttp.ServerTimeoutError: httpx.TimeoutException,
-    aiohttp.SocketTimeoutError: httpx.ReadTimeout,
+    SocketTimeoutError: httpx.ReadTimeout,
     aiohttp.ClientConnectionError: httpx.ConnectTimeout,
     aiohttp.ClientConnectorError: httpx.ConnectError,
     aiohttp.ClientPayloadError: httpx.ReadError,

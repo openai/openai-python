@@ -27,6 +27,7 @@ from .response_reasoning_text_done_event import ResponseReasoningTextDoneEvent
 from .response_mcp_call_in_progress_event import ResponseMcpCallInProgressEvent
 from .response_reasoning_text_delta_event import ResponseReasoningTextDeltaEvent
 from .response_audio_transcript_done_event import ResponseAudioTranscriptDoneEvent
+from .response_compaction_compacting_event import ResponseCompactionCompactingEvent
 from .response_mcp_list_tools_failed_event import ResponseMcpListToolsFailedEvent
 from .response_audio_transcript_delta_event import ResponseAudioTranscriptDeltaEvent
 from .response_mcp_call_arguments_done_event import ResponseMcpCallArgumentsDoneEvent
@@ -76,6 +77,7 @@ ResponseStreamEvent: TypeAlias = Annotated[
         ResponseCodeInterpreterCallCompletedEvent,
         ResponseCodeInterpreterCallInProgressEvent,
         ResponseCodeInterpreterCallInterpretingEvent,
+        ResponseCompactionCompactingEvent,
         ResponseCompletedEvent,
         ResponseContentPartAddedEvent,
         ResponseContentPartDoneEvent,

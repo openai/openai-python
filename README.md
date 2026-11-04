@@ -24,7 +24,7 @@ pip install openai
 
 The full API of this library can be found in [api.md](api.md).
 
-The primary API for interacting with OpenAI models is the [Responses API](https://platform.openai.com/docs/api-reference/responses). You can generate text from the model with the code below.
+The primary API for interacting with OpenAI models is the [Responses API](https://developers.openai.com/api/reference/resources/responses). You can generate text from the model with the code below.
 
 ```python
 import os
@@ -85,9 +85,7 @@ client = OpenAI(
     workload_identity={
         "identity_provider_id": "idp-123",
         "service_account_id": "sa-456",
-        "provider": k8s_service_account_token_provider(
-            "/var/run/secrets/kubernetes.io/serviceaccount/token"
-        ),
+        "provider": k8s_service_account_token_provider("/var/run/secrets/kubernetes.io/serviceaccount/token"),
     },
 )
 
@@ -232,7 +230,7 @@ With an image URL:
 
 ```python
 prompt = "What is in this image?"
-img_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/2023_06_08_Raccoon1.jpg/1599px-2023_06_08_Raccoon1.jpg"
+img_url = "https://api.nga.gov/iiif/a2e6da57-3cd1-4235-b20e-95dcaefed6c8/full/!800,800/0/default.jpg"
 
 response = client.responses.create(
     model="gpt-5.5",
@@ -346,7 +344,7 @@ HTTPX2 is the default HTTP client. If you configure a custom HTTP client, transp
 
 ## Streaming responses
 
-We provide support for streaming responses using Server Side Events (SSE).
+We provide support for streaming responses using Server-Sent Events (SSE).
 
 ```python
 from openai import OpenAI
@@ -392,21 +390,24 @@ The Realtime API enables you to build low-latency, multi-modal conversational ex
 
 Under the hood the SDK uses the [`websockets`](https://websockets.readthedocs.io/en/stable/) library to manage connections.
 
+The retained `client.beta.realtime` interface does not exchange workload-identity tokens or sign Bedrock requests. A client using either method must supply its own `Authorization` settings through `default_headers` or `connect(extra_headers=...)`. Otherwise, the SDK rejects the WebSocket connection locally.
+
+Connection headers override default headers case-insensitively, and `omit` removes a header. These settings preserve the caller's header choices without enabling provider authentication. X.509 workload identity supports HTTP only. Beta WebSockets always reject X.509 clients, even with explicit headers.
+
 The Realtime API works through a combination of client-sent events and server-sent events. Clients can send events to do things like update session configuration or send text and audio inputs. Server events confirm when audio responses have completed, or when a text response from the model has been received. A full event reference can be found [here](https://platform.openai.com/docs/api-reference/realtime-client-events) and a guide can be found [here](https://platform.openai.com/docs/guides/realtime).
 
 Basic text based example:
 
 ```py
 import asyncio
-from openai import AsyncOpenAI
+from openai import AsyncOpenAI, OpenAIError
+
 
 async def main():
     client = AsyncOpenAI()
 
     async with client.realtime.connect(model="gpt-realtime-2") as connection:
-        await connection.session.update(
-            session={"type": "realtime", "output_modalities": ["text"]}
-        )
+        await connection.session.update(session={"type": "realtime", "output_modalities": ["text"]})
 
         await connection.conversation.item.create(
             item={
@@ -425,7 +426,14 @@ async def main():
                 print()
 
             elif event.type == "response.done":
+                if event.response.status != "completed":
+                    raise OpenAIError("The Realtime response did not complete")
                 break
+            elif event.type == "error":
+                raise OpenAIError("Realtime returned an error; inspect the event in your application")
+        else:
+            raise OpenAIError("Realtime disconnected before response.done")
+
 
 asyncio.run(main())
 ```
@@ -442,12 +450,14 @@ client = AsyncOpenAI()
 async with client.realtime.connect(model="gpt-realtime-2") as connection:
     ...
     async for event in connection:
-        if event.type == 'error':
+        if event.type == "error":
             print(event.error.type)
             print(event.error.code)
             print(event.error.event_id)
             print(event.error.message)
 ```
+
+Use the [Translation session helper](docs/realtime-translation.md) to send audio, finish input, and receive final events.
 
 ## Using types
 
@@ -552,7 +562,7 @@ response = client.responses.create(
 
 ## File uploads
 
-Request parameters that correspond to file uploads can be passed as `bytes`, or a [`PathLike`](https://docs.python.org/3/library/os.html#os.PathLike) instance or a tuple of `(filename, contents, media type)`.
+Request parameters that correspond to file uploads can be passed as `bytes`, a file-like object, a [`PathLike`](https://docs.python.org/3/library/os.html#os.PathLike) instance, or a tuple of `(filename, contents, media type)`.
 
 ```python
 from pathlib import Path
@@ -565,6 +575,20 @@ client.files.create(
     purpose="fine-tune",
 )
 ```
+
+When uploading an in-memory file-like object such as `io.BytesIO`, include a filename when the API needs the file extension to determine its format. Passing a tuple is the most explicit option:
+
+```python
+import io
+
+audio = io.BytesIO(audio_bytes)
+transcription = client.audio.transcriptions.create(
+    model="gpt-4o-transcribe",
+    file=("audio.wav", audio, "audio/wav"),
+)
+```
+
+You can also set a `.name` attribute such as `audio.name = "audio.wav"` on a mutable file-like object before passing it directly. Without a filename, multipart transports may use a generic name such as `upload`, which does not provide an audio extension for format detection.
 
 The async client uses the exact same interface. If you pass a [`PathLike`](https://docs.python.org/3/library/os.html#os.PathLike) instance, the file contents will be read asynchronously automatically.
 
@@ -657,6 +681,14 @@ response), a subclass of `openai.APIStatusError` is raised, containing `status_c
 
 All errors inherit from `openai.APIError`.
 
+When consuming a `Stream` or `AsyncStream`, read timeouts raise `APITimeoutError`
+and other HTTPX request failures raise `APIConnectionError`. Catch these SDK
+exceptions instead of raw HTTPX exceptions; the original exception is available
+as `__cause__`. Stream consumption is not automatically retried, because replaying
+a request could duplicate output already delivered to your application.
+The Assistants event-handler helpers and raw `with_streaming_response` iterators
+retain their existing exception behavior.
+
 ```python
 import openai
 from openai import OpenAI
@@ -731,6 +763,8 @@ Certain errors are automatically retried 2 times by default, with a short expone
 Connection errors (for example, due to a network connectivity problem), 408 Request Timeout, 409 Conflict,
 429 Rate Limit, and >=500 Internal errors are all retried by default.
 
+Requests are retried only when their body can be safely resent.
+
 You can use the `max_retries` option to configure or disable retry settings:
 
 ```python
@@ -753,6 +787,13 @@ client.with_options(max_retries=5).chat.completions.create(
     model="gpt-5.5",
 )
 ```
+
+`max_retries` must be a non-negative integer. `0` disables retries. Use a large
+integer, such as `1000`, for a larger retry budget. Other values raise an error
+before a request is sent.
+
+Application exceptions raised by custom transports or hooks propagate unchanged,
+including task-executor cancellation signals.
 
 ## Timeouts
 
@@ -802,7 +843,9 @@ You can enable logging by setting the environment variable `OPENAI_LOG` to `info
 $ export OPENAI_LOG=info
 ```
 
-Or to `debug` for more verbose logging.
+Or to `debug` for more verbose logging. Set it to `warning`, `error`, or `critical`
+to show only messages at that level or higher. `OPENAI_LOG` configures the `openai`
+logger; configure HTTP transport loggers separately using Python logging.
 
 ### How to tell whether `None` means `null` or missing
 
@@ -810,10 +853,10 @@ In an API response, a field may be explicitly `null`, or missing entirely; in ei
 
 ```py
 if response.my_field is None:
-  if 'my_field' not in response.model_fields_set:
-    print('Got json like {}, without a "my_field" key present at all.')
-  else:
-    print('Got json like {"my_field": null}.')
+    if "my_field" not in response.model_fields_set:
+        print('Got json like {}, without a "my_field" key present at all.')
+    else:
+        print('Got json like {"my_field": null}.')
 ```
 
 ### Accessing raw response data (e.g. headers)
@@ -825,13 +868,15 @@ from openai import OpenAI
 
 client = OpenAI()
 response = client.chat.completions.with_raw_response.create(
-    messages=[{
-        "role": "user",
-        "content": "Say this is a test",
-    }],
+    messages=[
+        {
+            "role": "user",
+            "content": "Say this is a test",
+        }
+    ],
     model="gpt-5.5",
 )
-print(response.headers.get('X-My-Header'))
+print(response.headers.get("X-My-Header"))
 
 completion = response.parse()  # get the object that `chat.completions.create()` would have returned
 print(completion)
@@ -1042,10 +1087,27 @@ By default the library closes underlying HTTP connections whenever the client is
 from openai import OpenAI
 
 with OpenAI() as client:
-  # make requests here
-  ...
+    # make requests here
+    ...
 
 # HTTP client is now closed
+```
+
+For `AsyncOpenAI`, use `async with` or `await client.close()` before shutting down
+the event loop. Garbage collection cannot reliably await asynchronous cleanup.
+
+```py
+import asyncio
+from openai import AsyncOpenAI
+
+
+async def main() -> None:
+    async with AsyncOpenAI() as client:
+        response = await client.responses.create(model="gpt-5.5", input="Say this is a test")
+        print(response.output_text)
+
+
+asyncio.run(main())
 ```
 
 ## Microsoft Azure OpenAI
@@ -1188,6 +1250,7 @@ You can determine the version that is being used at runtime with:
 
 ```py
 import openai
+
 print(openai.__version__)
 ```
 
@@ -1197,4 +1260,7 @@ Python 3.10 or higher.
 
 ## Contributing
 
-See [the contributing documentation](./CONTRIBUTING.md).
+Please share bug reports and feature requests through [GitHub issues](https://github.com/openai/openai-python/issues).
+Pull requests are limited to repository collaborators; we do not accept pull requests from non-collaborators.
+See [CONTRIBUTING.md](https://github.com/openai/openai-python/blob/main/CONTRIBUTING.md) for the contribution policy and development guide.
+For security vulnerabilities, follow [SECURITY.md](https://github.com/openai/openai-python/blob/main/SECURITY.md).

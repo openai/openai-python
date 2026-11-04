@@ -1,5 +1,6 @@
 # File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
+from typing import Union
 from typing_extensions import Literal
 
 from .._models import BaseModel
@@ -25,11 +26,11 @@ class ImageEditPartialImageEvent(BaseModel):
     partial_image_index: int
     """0-based index for the partial image (streaming)."""
 
-    quality: Literal["low", "medium", "high", "auto"]
+    quality: Literal["low", "medium", "high", "xhigh", "max", "auto"]
     """The quality setting for the requested edited image."""
 
-    size: Literal["1024x1024", "1024x1536", "1536x1024", "auto"]
-    """The size of the requested edited image."""
+    size: Union[str, Literal["1024x1024", "1024x1536", "1536x1024", "auto"]]
+    """The image dimensions as a `WIDTHxHEIGHT` string, for example `1536x864`."""
 
     type: Literal["image_edit.partial_image"]
     """The type of the event. Always `image_edit.partial_image`."""

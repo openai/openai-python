@@ -1,5 +1,6 @@
 import json
-from typing import TYPE_CHECKING, Any, Dict, List, Union, Iterable, Optional, cast
+from copy import deepcopy
+from typing import TYPE_CHECKING, Any, Dict, List, Union, Generic, TypeVar, Iterable, Optional, cast
 from datetime import datetime, timezone
 from collections import deque
 from typing_extensions import Literal, Annotated, TypedDict, TypeAliasType
@@ -10,7 +11,7 @@ from pydantic import Field
 
 from openai._utils import PropertyInfo
 from openai._compat import PYDANTIC_V1, parse_obj, model_dump, model_json
-from openai._models import DISCRIMINATOR_CACHE, BaseModel, EagerIterable, construct_type
+from openai._models import DISCRIMINATOR_CACHE, BaseModel, GenericModel, EagerIterable, construct_type
 
 
 class BasicModel(BaseModel):
@@ -181,6 +182,54 @@ def test_aliases() -> None:
     assert cast(Any, m.my_field) == {"hello": False}
 
 
+def test_validated_alias_keeps_wire_field_and_leaves_input_unchanged() -> None:
+    class Model(BaseModel):
+        enabled_: bool = Field(alias="enabled")
+
+    values = {"enabled": True, "enabled_": "future spelling", "future": {"nested": [1, 2]}}
+    original = deepcopy(values)
+    model = parse_obj(Model, values)
+    assert model.enabled_ is True
+    assert cast(Any, model).future == {"nested": [1, 2]}
+    assert values == original
+    emitted = model.to_dict()
+    assert emitted["enabled"] is True
+    assert emitted["future"] == {"nested": [1, 2]}
+
+
+def test_validated_alias_keeps_keys_used_as_other_fields_wire_names() -> None:
+    class Model(BaseModel):
+        name: bool = Field(alias="wire_name")
+        other: str = Field(alias="name")
+
+    values = {"wire_name": True, "name": "second field", "future": [3]}
+    original = deepcopy(values)
+    model = parse_obj(Model, values)
+    assert model.name is True
+    assert model.other == "second field"
+    assert values == original
+    assert model.to_dict() == {"wire_name": True, "name": "second field", "future": [3]}
+
+
+def test_validated_alias_in_generic_container() -> None:
+    item_type = TypeVar("item_type")
+
+    class Model(BaseModel):
+        schema_: Dict[str, object] = Field(alias="schema")
+
+    class Envelope(GenericModel, Generic[item_type]):
+        data: item_type
+
+    values = {"data": {"schema": {"type": "object"}, "schema_": "future", "later": {"nested": [4]}}}
+    original = deepcopy(values)
+    envelope = parse_obj(Envelope[Model], values)
+    assert envelope.data.schema_ == {"type": "object"}
+    assert values == original
+    emitted = cast(Dict[str, Any], envelope.to_dict()["data"])
+    assert emitted["schema"] == {"type": "object"}
+    assert emitted["later"] == {"nested": [4]}
+
+
 def test_repr() -> None:
     model = BasicModel(foo="bar")
     assert str(model) == "BasicModel(foo='bar')"
@@ -300,7 +349,7 @@ def test_nested_union_invalid_data() -> None:
         assert m.foo.name == "3"
     else:
         assert isinstance(m.foo, Submodel1)
-        assert m.foo.name == 3  # type: ignore
+        assert m.foo.name == 3  # ty: ignore[unresolved-attribute]
 
 
 def test_list_of_unions() -> None:
@@ -357,6 +406,38 @@ def test_union_of_lists() -> None:
     assert isinstance(m.items[0], SubModel1)
     assert m.items[0].level == -1
     assert cast(Any, m.items[1]) == 156
+
+
+def test_bare_dict_annotation() -> None:
+    # a bare `dict` has no type arguments so the values are left as-is
+    class Model(BaseModel):
+        metadata: dict
+
+    m = Model.construct(metadata={"key": "value"})
+    assert m.metadata == {"key": "value"}
+
+    assert construct_type(value={"key": "value"}, type_=dict) == {"key": "value"}
+    assert construct_type(value={"key": "value"}, type_=Dict) == {"key": "value"}
+    assert construct_type(value={}, type_=dict) == {}
+
+    # non-mapping values are still passed through unchanged
+    assert construct_type(value="not a dict", type_=dict) == "not a dict"
+
+
+def test_bare_list_annotation() -> None:
+    # a bare `list` has no type arguments so the entries are left as-is
+    class Model(BaseModel):
+        items: list
+
+    m = Model.construct(items=[{"key": "value"}, 1])
+    assert m.items == [{"key": "value"}, 1]
+
+    assert construct_type(value=[1, 2], type_=list) == [1, 2]
+    assert construct_type(value=[1, 2], type_=List) == [1, 2]
+    assert construct_type(value=[], type_=list) == []
+
+    # non-list values are still passed through unchanged
+    assert construct_type(value="not a list", type_=list) == "not a list"
 
 
 def test_dict_of_union() -> None:
@@ -447,7 +528,7 @@ def test_does_not_coerce_int() -> None:
 
     assert Model.construct(bar=1).bar == 1
     assert Model.construct(bar=10.9).bar == 10.9
-    assert Model.construct(bar="19").bar == "19"  # type: ignore[comparison-overlap]
+    assert Model.construct(bar="19").bar == "19"
     assert Model.construct(bar=False).bar is False
 
 
@@ -672,7 +753,7 @@ def test_discriminated_unions_invalid_data() -> None:
     )
     assert isinstance(m, B)
     assert m.type == "b"
-    assert m.data == "foo"  # type: ignore[comparison-overlap]
+    assert m.data == "foo"
 
     m = construct_type(
         value={"type": "a", "data": 100},
@@ -685,7 +766,7 @@ def test_discriminated_unions_invalid_data() -> None:
         # if the expected type is a str
         assert m.data == "100"
     else:
-        assert m.data == 100  # type: ignore[comparison-overlap]
+        assert m.data == 100
 
 
 def test_discriminated_unions_unknown_variant() -> None:
@@ -706,8 +787,8 @@ def test_discriminated_unions_unknown_variant() -> None:
 
     # just chooses the first variant
     assert isinstance(m, A)
-    assert m.type == "c"  # type: ignore[comparison-overlap]
-    assert m.data == None  # type: ignore[unreachable]
+    assert m.type == "c"
+    assert m.data == None
     assert m.new_thing == "bar"
 
 
@@ -733,7 +814,7 @@ def test_discriminated_unions_invalid_data_nested_unions() -> None:
     )
     assert isinstance(m, B)
     assert m.type == "b"
-    assert m.data == "foo"  # type: ignore[comparison-overlap]
+    assert m.data == "foo"
 
     m = construct_type(
         value={"type": "c", "data": "foo"},
@@ -741,7 +822,7 @@ def test_discriminated_unions_invalid_data_nested_unions() -> None:
     )
     assert isinstance(m, C)
     assert m.type == "c"
-    assert m.data == "foo"  # type: ignore[comparison-overlap]
+    assert m.data == "foo"
 
 
 def test_discriminated_unions_with_aliases_invalid_data() -> None:
@@ -761,7 +842,7 @@ def test_discriminated_unions_with_aliases_invalid_data() -> None:
     )
     assert isinstance(m, B)
     assert m.foo_type == "b"
-    assert m.data == "foo"  # type: ignore[comparison-overlap]
+    assert m.data == "foo"
 
     m = construct_type(
         value={"type": "a", "data": 100},
@@ -774,7 +855,7 @@ def test_discriminated_unions_with_aliases_invalid_data() -> None:
         # if the expected type is a str
         assert m.data == "100"
     else:
-        assert m.data == 100  # type: ignore[comparison-overlap]
+        assert m.data == 100
 
 
 def test_discriminated_unions_overlapping_discriminators_invalid_data() -> None:
@@ -794,7 +875,7 @@ def test_discriminated_unions_overlapping_discriminators_invalid_data() -> None:
     )
     assert isinstance(m, B)
     assert m.type == "a"
-    assert m.data == "foo"  # type: ignore[comparison-overlap]
+    assert m.data == "foo"
 
 
 def test_discriminated_unions_invalid_data_uses_cache() -> None:
@@ -817,7 +898,7 @@ def test_discriminated_unions_invalid_data_uses_cache() -> None:
     )
     assert isinstance(m, B)
     assert m.type == "b"
-    assert m.data == "foo"  # type: ignore[comparison-overlap]
+    assert m.data == "foo"
 
     discriminator = DISCRIMINATOR_CACHE.get(UnionType)
     assert discriminator is not None
@@ -827,7 +908,7 @@ def test_discriminated_unions_invalid_data_uses_cache() -> None:
     )
     assert isinstance(m, B)
     assert m.type == "b"
-    assert m.data == "foo"  # type: ignore[comparison-overlap]
+    assert m.data == "foo"
 
     # if the discriminator details object stays the same between invocations then
     # we hit the cache
@@ -836,7 +917,7 @@ def test_discriminated_unions_invalid_data_uses_cache() -> None:
 
 @pytest.mark.skipif(PYDANTIC_V1, reason="TypeAliasType is not supported in Pydantic v1")
 def test_type_alias_type() -> None:
-    Alias = TypeAliasType("Alias", str)  # pyright: ignore
+    Alias = TypeAliasType("Alias", str)
 
     class Model(BaseModel):
         alias: Alias
@@ -943,7 +1024,7 @@ def test_extra_properties() -> None:
         prop: int
 
     class Model(BaseModel):
-        __pydantic_extra__: Dict[str, Item] = Field(init=False)  # pyright: ignore[reportIncompatibleVariableOverride]
+        __pydantic_extra__: Dict[str, Item] = Field(init=False)
 
         other: str
 

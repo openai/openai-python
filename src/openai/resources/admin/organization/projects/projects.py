@@ -94,6 +94,14 @@ from .model_permissions import (
     ModelPermissionsWithStreamingResponse,
     AsyncModelPermissionsWithStreamingResponse,
 )
+from .service_tier_settings import (
+    ServiceTierSettings,
+    AsyncServiceTierSettings,
+    ServiceTierSettingsWithRawResponse,
+    AsyncServiceTierSettingsWithRawResponse,
+    ServiceTierSettingsWithStreamingResponse,
+    AsyncServiceTierSettingsWithStreamingResponse,
+)
 from .hosted_tool_permissions import (
     HostedToolPermissions,
     AsyncHostedToolPermissions,
@@ -142,6 +150,10 @@ class Projects(SyncAPIResource):
     @cached_property
     def model_permissions(self) -> ModelPermissions:
         return ModelPermissions(self._client)
+
+    @cached_property
+    def service_tier_settings(self) -> ServiceTierSettings:
+        return ServiceTierSettings(self._client)
 
     @cached_property
     def hosted_tool_permissions(self) -> HostedToolPermissions:
@@ -216,14 +228,14 @@ class Projects(SyncAPIResource):
 
           geography: Create the project with the specified data residency region. Your organization
               must have access to Data residency functionality in order to use. See
-              [data residency controls](https://platform.openai.com/docs/guides/your-data#data-residency-controls)
+              [data residency controls](https://developers.openai.com/api/docs/guides/your-data#data-residency-controls)
               to review the functionality and limitations of setting this field. Deprecated:
               use `residency` instead. Do not provide both `geography` and `residency`.
 
           residency: Create the project with the specified residency configuration. Your organization
               must have access to the requested residency configuration in order to use it.
               See
-              [data residency controls](https://platform.openai.com/docs/guides/your-data#data-residency-controls)
+              [data residency controls](https://developers.openai.com/api/docs/guides/your-data#data-residency-controls)
               to review the functionality and limitations of setting this field.
 
           extra_headers: Send extra headers
@@ -467,6 +479,10 @@ class AsyncProjects(AsyncAPIResource):
         return AsyncModelPermissions(self._client)
 
     @cached_property
+    def service_tier_settings(self) -> AsyncServiceTierSettings:
+        return AsyncServiceTierSettings(self._client)
+
+    @cached_property
     def hosted_tool_permissions(self) -> AsyncHostedToolPermissions:
         return AsyncHostedToolPermissions(self._client)
 
@@ -539,14 +555,14 @@ class AsyncProjects(AsyncAPIResource):
 
           geography: Create the project with the specified data residency region. Your organization
               must have access to Data residency functionality in order to use. See
-              [data residency controls](https://platform.openai.com/docs/guides/your-data#data-residency-controls)
+              [data residency controls](https://developers.openai.com/api/docs/guides/your-data#data-residency-controls)
               to review the functionality and limitations of setting this field. Deprecated:
               use `residency` instead. Do not provide both `geography` and `residency`.
 
           residency: Create the project with the specified residency configuration. Your organization
               must have access to the requested residency configuration in order to use it.
               See
-              [data residency controls](https://platform.openai.com/docs/guides/your-data#data-residency-controls)
+              [data residency controls](https://developers.openai.com/api/docs/guides/your-data#data-residency-controls)
               to review the functionality and limitations of setting this field.
 
           extra_headers: Send extra headers
@@ -809,6 +825,10 @@ class ProjectsWithRawResponse:
         return ModelPermissionsWithRawResponse(self._projects.model_permissions)
 
     @cached_property
+    def service_tier_settings(self) -> ServiceTierSettingsWithRawResponse:
+        return ServiceTierSettingsWithRawResponse(self._projects.service_tier_settings)
+
+    @cached_property
     def hosted_tool_permissions(self) -> HostedToolPermissionsWithRawResponse:
         return HostedToolPermissionsWithRawResponse(self._projects.hosted_tool_permissions)
 
@@ -876,6 +896,10 @@ class AsyncProjectsWithRawResponse:
     @cached_property
     def model_permissions(self) -> AsyncModelPermissionsWithRawResponse:
         return AsyncModelPermissionsWithRawResponse(self._projects.model_permissions)
+
+    @cached_property
+    def service_tier_settings(self) -> AsyncServiceTierSettingsWithRawResponse:
+        return AsyncServiceTierSettingsWithRawResponse(self._projects.service_tier_settings)
 
     @cached_property
     def hosted_tool_permissions(self) -> AsyncHostedToolPermissionsWithRawResponse:
@@ -947,6 +971,10 @@ class ProjectsWithStreamingResponse:
         return ModelPermissionsWithStreamingResponse(self._projects.model_permissions)
 
     @cached_property
+    def service_tier_settings(self) -> ServiceTierSettingsWithStreamingResponse:
+        return ServiceTierSettingsWithStreamingResponse(self._projects.service_tier_settings)
+
+    @cached_property
     def hosted_tool_permissions(self) -> HostedToolPermissionsWithStreamingResponse:
         return HostedToolPermissionsWithStreamingResponse(self._projects.hosted_tool_permissions)
 
@@ -1014,6 +1042,10 @@ class AsyncProjectsWithStreamingResponse:
     @cached_property
     def model_permissions(self) -> AsyncModelPermissionsWithStreamingResponse:
         return AsyncModelPermissionsWithStreamingResponse(self._projects.model_permissions)
+
+    @cached_property
+    def service_tier_settings(self) -> AsyncServiceTierSettingsWithStreamingResponse:
+        return AsyncServiceTierSettingsWithStreamingResponse(self._projects.service_tier_settings)
 
     @cached_property
     def hosted_tool_permissions(self) -> AsyncHostedToolPermissionsWithStreamingResponse:

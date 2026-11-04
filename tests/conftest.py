@@ -12,7 +12,7 @@ from openai import OpenAI, AsyncOpenAI, DefaultHttpx2Client, DefaultAioHttpClien
 from openai._utils import is_dict
 
 if TYPE_CHECKING:
-    from _pytest.fixtures import FixtureRequest  # pyright: ignore[reportPrivateImportUsage]
+    from _pytest.fixtures import FixtureRequest
 
 pytest_plugins = ["tests.respx2.plugin"]
 

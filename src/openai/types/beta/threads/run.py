@@ -106,7 +106,7 @@ class Usage(BaseModel):
 
 class Run(BaseModel):
     """
-    Represents an execution run on a [thread](https://platform.openai.com/docs/api-reference/threads).
+    Represents an execution run on a [thread](https://developers.openai.com/api/docs/assistants/migration).
     """
 
     id: str
@@ -115,8 +115,8 @@ class Run(BaseModel):
     assistant_id: str
     """
     The ID of the
-    [assistant](https://platform.openai.com/docs/api-reference/assistants) used for
-    execution of this run.
+    [assistant](https://developers.openai.com/api/docs/assistants/migration) used
+    for execution of this run.
     """
 
     cancelled_at: Optional[int] = None
@@ -143,8 +143,8 @@ class Run(BaseModel):
     instructions: str
     """
     The instructions that the
-    [assistant](https://platform.openai.com/docs/api-reference/assistants) used for
-    this run.
+    [assistant](https://developers.openai.com/api/docs/assistants/migration) used
+    for this run.
     """
 
     last_error: Optional[LastError] = None
@@ -175,8 +175,8 @@ class Run(BaseModel):
     model: str
     """
     The model that the
-    [assistant](https://platform.openai.com/docs/api-reference/assistants) used for
-    this run.
+    [assistant](https://developers.openai.com/api/docs/assistants/migration) used
+    for this run.
     """
 
     object: Literal["thread.run"]
@@ -185,7 +185,7 @@ class Run(BaseModel):
     parallel_tool_calls: bool
     """
     Whether to enable
-    [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
+    [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
     during tool use.
     """
 
@@ -198,14 +198,14 @@ class Run(BaseModel):
     response_format: Optional[AssistantResponseFormatOption] = None
     """Specifies the format that the model must output.
 
-    Compatible with [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-    [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
-    and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+    Compatible with [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o),
+    [GPT-4 Turbo](https://developers.openai.com/api/docs/models/gpt-4-turbo), and
+    all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
     Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
     Outputs which ensures the model will match your supplied JSON schema. Learn more
     in the
-    [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+    [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
     Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
     message the model generates is valid JSON.
@@ -231,8 +231,9 @@ class Run(BaseModel):
 
     thread_id: str
     """
-    The ID of the [thread](https://platform.openai.com/docs/api-reference/threads)
-    that was executed on as a part of this run.
+    The ID of the
+    [thread](https://developers.openai.com/api/docs/assistants/migration) that was
+    executed on as a part of this run.
     """
 
     tool_choice: Optional[AssistantToolChoiceOption] = None
@@ -249,8 +250,8 @@ class Run(BaseModel):
     tools: List[AssistantTool]
     """
     The list of tools that the
-    [assistant](https://platform.openai.com/docs/api-reference/assistants) used for
-    this run.
+    [assistant](https://developers.openai.com/api/docs/assistants/migration) used
+    for this run.
     """
 
     truncation_strategy: Optional[TruncationStrategy] = None

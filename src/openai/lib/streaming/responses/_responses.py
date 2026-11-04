@@ -15,16 +15,24 @@ from ._events import (
 )
 from ...._types import Omit, omit
 from ...._utils import is_given, consume_sync_iterator, consume_async_iterator
+from ...._compat import PYDANTIC_V1, model_copy
 from ...._models import build, construct_type_unchecked
 from ...._streaming import Stream, AsyncStream
-from ....types.responses import ParsedResponse, ResponseStreamEvent as RawResponseStreamEvent
+from ....types.responses import (
+    ParsedResponse,
+    ResponseStreamEvent as RawResponseStreamEvent,
+    ResponseOutputItemDoneEvent,
+    ResponseOutputItemAddedEvent,
+)
 from ..._parsing._responses import TextFormatT, parse_text, parse_response
 from ....types.responses.tool_param import ToolParam
 from ....types.responses.parsed_response import (
     ParsedContent,
+    ParsedResponseOutputItem,
     ParsedResponseOutputMessage,
     ParsedResponseFunctionToolCall,
 )
+from ....types.responses.response_output_item import ResponseOutputItem
 
 
 class ResponseStream(Generic[TextFormatT]):
@@ -231,6 +239,24 @@ class AsyncResponseStreamManager(Generic[TextFormatT]):
             await self.__stream.close()
 
 
+def _output_identity(
+    item: ResponseOutputItem | ParsedResponseOutputItem[object],
+) -> tuple[str, str | None, str | None]:
+    call_id = getattr(item, "call_id", None)
+    if item.type in ("function_call", "custom_tool_call", "shell_call", "shell_call_output"):
+        return item.type, None, call_id
+    return item.type, getattr(item, "id", None), call_id
+
+
+def _compatible_output_id(
+    previous: ResponseOutputItem | ParsedResponseOutputItem[object], replacement: ResponseOutputItem
+) -> bool:
+    previous_id = getattr(previous, "id", None)
+    return previous_id == getattr(replacement, "id", None) or (
+        previous_id is None and previous.type in ("function_call", "custom_tool_call")
+    )
+
+
 class ResponseStreamState(Generic[TextFormatT]):
     def __init__(
         self,
@@ -240,17 +266,42 @@ class ResponseStreamState(Generic[TextFormatT]):
     ) -> None:
         self.__current_snapshot: ParsedResponseSnapshot | None = None
         self._completed_response: ParsedResponse[TextFormatT] | None = None
+        self._completed_output: dict[int, ResponseOutputItem] = {}
+        self._completed_positions: dict[tuple[str, str | None, str | None], int] = {}
+        self._output_items: dict[int, ParsedResponseOutputItem[object]] = {}
         self._input_tools = [tool for tool in input_tools] if is_given(input_tools) else []
         self._text_format = text_format
         self._rich_text_format: type | Omit = text_format if inspect.isclass(text_format) else omit
 
     def handle_event(self, event: RawResponseStreamEvent) -> List[ResponseStreamEvent[TextFormatT]]:
-        self.__current_snapshot = snapshot = self.accumulate_event(event)
+        if event.type == "response.output_item.added":
+            event = construct_type_unchecked(
+                type_=ResponseOutputItemAddedEvent,
+                value={
+                    **vars(event),
+                    **cast("dict[str, Any]", {} if PYDANTIC_V1 else (getattr(event, "__pydantic_extra__", None) or {})),
+                    "item": getattr(event, "item", None),
+                    "output_index": event.output_index,
+                },
+            )
+        elif event.type == "response.output_item.done":
+            event = construct_type_unchecked(
+                type_=ResponseOutputItemDoneEvent,
+                value={
+                    **vars(event),
+                    **cast("dict[str, Any]", {} if PYDANTIC_V1 else (getattr(event, "__pydantic_extra__", None) or {})),
+                    "item": event.item,
+                    "output_index": event.output_index,
+                },
+            )
+        self.__current_snapshot = self.accumulate_event(event)
 
         events: List[ResponseStreamEvent[TextFormatT]] = []
 
-        if event.type == "response.output_text.delta":
-            output = snapshot.output[event.output_index]
+        if event.type == "response.output_item.added" and getattr(event, "item", None) is None:
+            return events
+        elif event.type == "response.output_text.delta":
+            output = self._get_output_item(event.output_index)
             assert output.type == "message"
 
             content = output.content[event.content_index]
@@ -270,7 +321,7 @@ class ResponseStreamState(Generic[TextFormatT]):
                 )
             )
         elif event.type == "response.output_text.done":
-            output = snapshot.output[event.output_index]
+            output = self._get_output_item(event.output_index)
             assert output.type == "message"
 
             content = output.content[event.content_index]
@@ -278,7 +329,7 @@ class ResponseStreamState(Generic[TextFormatT]):
 
             events.append(
                 build(
-                    ResponseTextDoneEvent[TextFormatT],
+                    cast("type[ResponseTextDoneEvent[TextFormatT]]", ResponseTextDoneEvent),
                     content_index=event.content_index,
                     item_id=event.item_id,
                     output_index=event.output_index,
@@ -286,11 +337,11 @@ class ResponseStreamState(Generic[TextFormatT]):
                     logprobs=event.logprobs,
                     type="response.output_text.done",
                     text=event.text,
-                    parsed=parse_text(event.text, text_format=self._text_format),
+                    parsed=parse_text(event.text, text_format=self._text_format, phase=output.phase),
                 )
             )
         elif event.type == "response.function_call_arguments.delta":
-            output = snapshot.output[event.output_index]
+            output = self._get_output_item(event.output_index)
             assert output.type == "function_call"
 
             events.append(
@@ -317,6 +368,32 @@ class ResponseStreamState(Generic[TextFormatT]):
                     response=response,
                 )
             )
+        elif (
+            event.type == "response.created"
+            or event.type == "response.queued"
+            or event.type == "response.in_progress"
+            or event.type == "response.failed"
+            or event.type == "response.incomplete"
+        ):
+            if getattr(event.response, "output", None) is None:
+                event = model_copy(event, deep=True)
+                event.response.output = (
+                    [
+                        cast(
+                            ResponseOutputItem,
+                            model_copy(
+                                self._completed_output[index]
+                                if index in self._completed_output
+                                else self._output_items[index],
+                                deep=True,
+                            ),
+                        )
+                        for index in sorted(self._output_items.keys() | self._completed_output.keys())
+                    ]
+                    if event.type == "response.failed" or event.type == "response.incomplete"
+                    else []
+                )
+            events.append(event)
         else:
             events.append(event)
 
@@ -327,7 +404,36 @@ class ResponseStreamState(Generic[TextFormatT]):
         if snapshot is None:
             return self._create_initial_response(event)
 
-        if event.type == "response.output_item.added":
+        if (
+            event.type == "response.created"
+            or event.type == "response.queued"
+            or event.type == "response.in_progress"
+            or event.type == "response.completed"
+            or event.type == "response.failed"
+            or event.type == "response.incomplete"
+        ) and getattr(event.response, "id", None) != getattr(snapshot, "id", None):
+            raise RuntimeError("Lifecycle response identity changed.")
+
+        if event.type == "response.created" or event.type == "response.queued" or event.type == "response.in_progress":
+            replacements: dict[tuple[str, str | None, str | None], ResponseOutputItem] = {}
+            lifecycle_output = cast("list[ResponseOutputItem] | None", getattr(event.response, "output", None))
+            for replacement_item in lifecycle_output or []:
+                identity = _output_identity(replacement_item)
+                if identity in replacements:
+                    raise RuntimeError("Response snapshot has conflicting output identities.")
+                replacements[identity] = replacement_item
+            for updated_identity, replacement in replacements.items():
+                index = self._completed_positions.get(updated_identity)
+                if index is not None:
+                    if not _compatible_output_id(self._completed_output[index], replacement):
+                        raise RuntimeError("Response snapshot has conflicting output identities.")
+                    self._completed_output[index] = model_copy(replacement, deep=True)
+        elif event.type == "response.output_item.added":
+            if getattr(event, "item", None) is None:
+                return snapshot
+            if event.output_index in self._output_items:
+                raise RuntimeError(f"Duplicate response output index {event.output_index}.")
+
             if event.item.type == "function_call":
                 snapshot.output.append(
                     construct_type_unchecked(
@@ -340,33 +446,79 @@ class ResponseStreamState(Generic[TextFormatT]):
                 )
             else:
                 snapshot.output.append(event.item)
+            self._output_items[event.output_index] = snapshot.output[-1]
         elif event.type == "response.content_part.added":
-            output = snapshot.output[event.output_index]
+            output = self._get_output_item(event.output_index)
             if output.type == "message":
                 output.content.append(
                     construct_type_unchecked(type_=cast(Any, ParsedContent), value=event.part.to_dict())
                 )
         elif event.type == "response.output_text.delta":
-            output = snapshot.output[event.output_index]
+            output = self._get_output_item(event.output_index)
             if output.type == "message":
                 content = output.content[event.content_index]
                 assert content.type == "output_text"
                 content.text += event.delta
         elif event.type == "response.function_call_arguments.delta":
-            output = snapshot.output[event.output_index]
+            output = self._get_output_item(event.output_index)
             if output.type == "function_call":
                 output.arguments += event.delta
+        elif event.type == "response.output_item.done":
+            added = self._output_items.get(event.output_index)
+            if added is not None and (
+                _output_identity(added) != _output_identity(event.item) or not _compatible_output_id(added, event.item)
+            ):
+                raise RuntimeError("Completed output item identity changed.")
+            identity = _output_identity(event.item)
+            position = self._completed_positions.get(identity)
+            if position is not None and position != event.output_index:
+                raise RuntimeError("Response snapshot has conflicting output identities.")
+            previous = self._completed_output.get(event.output_index)
+            if previous is not None:
+                del self._completed_positions[_output_identity(previous)]
+            self._completed_output[event.output_index] = event.item
+            self._completed_positions[identity] = event.output_index
         elif event.type == "response.completed":
+            response = event.response
+            final_output = cast("list[ResponseOutputItem] | None", getattr(response, "output", None))
+            final_items = {_output_identity(item): item for item in (final_output or [])}
+            for completed_item in self._completed_output.values():
+                final_completed_item = final_items.get(_output_identity(completed_item))
+                if final_completed_item is not None and not _compatible_output_id(completed_item, final_completed_item):
+                    raise RuntimeError("Completed response output identity changed.")
+            for index, item in self._output_items.items():
+                final_item = final_items.get(_output_identity(item))
+                if index not in self._completed_output and (
+                    final_item is None or not _compatible_output_id(item, final_item)
+                ):
+                    raise RuntimeError("Cannot complete response with unfinished output items.")
+            if getattr(response, "output", None) is None:
+                # Recover finalized items; deltas can omit final status, annotations, or refusals.
+                response = model_copy(response)
+                response.output = [self._completed_output[index] for index in sorted(self._completed_output)]
             self._completed_response = parse_response(
                 text_format=self._text_format,
-                response=event.response,
+                response=response,
                 input_tools=self._input_tools,
             )
 
         return snapshot
 
+    def _get_output_item(self, output_index: int) -> ParsedResponseOutputItem[object]:
+        try:
+            return self._output_items[output_index]
+        except KeyError:
+            raise RuntimeError(
+                f"Received a content event for output index {output_index} before receiving its output item"
+            ) from None
+
     def _create_initial_response(self, event: RawResponseStreamEvent) -> ParsedResponseSnapshot:
         if event.type != "response.created":
             raise RuntimeError(f"Expected to have received `response.created` before `{event.type}`")
 
-        return construct_type_unchecked(type_=ParsedResponseSnapshot, value=event.response.to_dict())
+        snapshot = construct_type_unchecked(type_=ParsedResponseSnapshot, value=event.response.to_dict())
+        # Stream indexes can have gaps when a provider emits an empty added event.
+        if getattr(snapshot, "output", None) is None:
+            snapshot.output = []
+        self._output_items = dict(enumerate(snapshot.output))
+        return snapshot
