@@ -23,6 +23,14 @@ class NoiseReduction(TypedDict, total=False):
     Filtering the audio can improve VAD and turn detection accuracy (reducing false positives) and model performance by improving perception of the input audio.
     """
 
+    strength: float
+    """Input noise suppression strength.
+
+    Higher values apply more suppression. Defaults to 1 when noise reduction is
+    first enabled. Omitting strength from a session update preserves the current
+    strength.
+    """
+
     type: NoiseReductionType
     """Type of noise reduction.
 

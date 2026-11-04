@@ -8,7 +8,7 @@ from typing_extensions import Literal, Required, Annotated, TypedDict
 from ..._utils import PropertyInfo
 from .beta_response_input_item_param import BetaResponseInputItemParam
 
-__all__ = ["ResponseCompactParams", "PromptCacheOptions"]
+__all__ = ["ResponseCompactParams", "Image", "PromptCacheOptions"]
 
 
 class ResponseCompactParams(TypedDict, total=False):
@@ -215,6 +215,9 @@ class ResponseCompactParams(TypedDict, total=False):
       recommended replacements.
     """
 
+    image: Image
+    """Request level image options."""
+
     input: Union[str, Iterable[BetaResponseInputItemParam], None]
     """Text, image, or file inputs to the model, used to generate a response"""
 
@@ -276,6 +279,18 @@ class ResponseCompactParams(TypedDict, total=False):
     """
 
     betas: Annotated[List[Literal["responses_multi_agent=v1"]], PropertyInfo(alias="openai-beta")]
+
+
+class Image(TypedDict, total=False):
+    """Request level image options."""
+
+    context_compression: Literal["auto", "enabled", "disabled"]
+    """Controls image context optimization.
+
+    Defaults to `auto`, which uses the model, transport, and input to select a
+    policy. Use `enabled` to require compression support or `disabled` to turn it
+    off.
+    """
 
 
 class PromptCacheOptions(TypedDict, total=False):

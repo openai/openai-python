@@ -7,7 +7,7 @@ from typing_extensions import Literal, Required, TypedDict
 
 from .response_input_item_param import ResponseInputItemParam
 
-__all__ = ["ResponseCompactParams", "PromptCacheOptions"]
+__all__ = ["ResponseCompactParams", "Image", "PromptCacheOptions"]
 
 
 class ResponseCompactParams(TypedDict, total=False):
@@ -215,6 +215,9 @@ class ResponseCompactParams(TypedDict, total=False):
       recommended replacements.
     """
 
+    image: Image
+    """Request level image options."""
+
     input: Union[str, Iterable[ResponseInputItemParam], None]
     """Text, image, or file inputs to the model, used to generate a response"""
 
@@ -273,6 +276,18 @@ class ResponseCompactParams(TypedDict, total=False):
       `service_tier` value based on the processing mode actually used to serve the
       request. This response value may be different from the value set in the
       parameter.
+    """
+
+
+class Image(TypedDict, total=False):
+    """Request level image options."""
+
+    context_compression: Literal["auto", "enabled", "disabled"]
+    """Controls image context optimization.
+
+    Defaults to `auto`, which uses the model, transport, and input to select a
+    policy. Use `enabled` to require compression support or `disabled` to turn it
+    off.
     """
 
 

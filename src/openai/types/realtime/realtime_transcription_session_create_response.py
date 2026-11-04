@@ -15,6 +15,14 @@ __all__ = ["RealtimeTranscriptionSessionCreateResponse", "Audio", "AudioInput", 
 class AudioInputNoiseReduction(BaseModel):
     """Configuration for input audio noise reduction."""
 
+    strength: Optional[float] = None
+    """Input noise suppression strength.
+
+    Higher values apply more suppression. Defaults to 1 when noise reduction is
+    first enabled. Omitting strength from a session update preserves the current
+    strength.
+    """
+
     type: Optional[NoiseReductionType] = None
     """Type of noise reduction.
 

@@ -31,6 +31,7 @@ __all__ = [
     "ResponseCreateAccessPrograms",
     "ResponseCreateContextManagement",
     "ResponseCreateConversation",
+    "ResponseCreateImage",
     "ResponseCreateModeration",
     "ResponseCreateModerationPolicy",
     "ResponseCreateModerationPolicyInput",
@@ -79,6 +80,18 @@ class ResponseCreateContextManagement(BaseModel):
 
 
 ResponseCreateConversation: TypeAlias = Union[str, ResponseConversationParam, None]
+
+
+class ResponseCreateImage(BaseModel):
+    """Request level image options."""
+
+    context_compression: Optional[Literal["auto", "enabled", "disabled"]] = None
+    """Controls image context optimization.
+
+    Defaults to `auto`, which uses the model, transport, and input to select a
+    policy. Use `enabled` to require compression support or `disabled` to turn it
+    off.
+    """
 
 
 class ResponseCreateModerationPolicyInput(BaseModel):
@@ -229,6 +242,9 @@ class ResponseCreate(BaseModel):
     model output; the response ID can be used as previous_response_id on a later
     turn.
     """
+
+    image: Optional[ResponseCreateImage] = None
+    """Request level image options."""
 
     include: Optional[List[ResponseIncludable]] = None
     """Specify additional output data to include in the model response.

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from typing_extensions import TypeVar
 
 import pytest
@@ -10,7 +11,7 @@ from tests.respx2 import MockRouter
 from openai._types import omit
 from openai._utils import assert_signatures_in_sync
 from openai._models import construct_type_unchecked
-from openai.types.responses import Response, ResponseCreatedEvent, ResponseOutputItemAddedEvent
+from openai.types.responses import Response, ResponseCreatedEvent, ResponseOutputItemAddedEvent, response_create_params
 from openai.lib._parsing._responses import parse_response
 from openai.lib.streaming.responses._responses import ResponseStreamState
 
@@ -107,6 +108,31 @@ def test_parse_response_preserves_program_items(item: dict[str, object]) -> None
     parsed = parse_response(text_format=omit, input_tools=omit, response=response)
 
     assert parsed.output[0].to_dict() == item
+
+
+@pytest.mark.respx2(base_url=base_url)
+@pytest.mark.parametrize("client,async_client", [(False, False)], indirect=True)
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+async def test_responses_helpers_forward_image_options(
+    client: OpenAI, async_client: AsyncOpenAI, respx2_mock: MockRouter, sync: bool
+) -> None:
+    image: response_create_params.Image = {"context_compression": "disabled"}
+    route = respx2_mock.post("/responses").respond(json={"output": []})
+
+    if sync:
+        client.responses.parse(model="test-model", input="test", image=image)
+    else:
+        await async_client.responses.parse(model="test-model", input="test", image=image)
+
+    route.respond(content="data: [DONE]\n\n", headers={"content-type": "text/event-stream"})
+    if sync:
+        with client.responses.stream(model="test-model", input="test", image=image) as stream:
+            assert list(stream) == []
+    else:
+        async with async_client.responses.stream(model="test-model", input="test", image=image) as stream:
+            assert [event async for event in stream] == []
+
+    assert [json.loads(call.request.content)["image"] for call in route.calls] == [image, image]
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])

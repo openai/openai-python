@@ -43,7 +43,10 @@ class TestCalls:
                             "rate": 24000,
                             "type": "audio/pcm",
                         },
-                        "noise_reduction": {"type": "near_field"},
+                        "noise_reduction": {
+                            "strength": 0,
+                            "type": "near_field",
+                        },
                         "transcription": {
                             "delay": "minimal",
                             "keywords": ["string"],
@@ -147,7 +150,10 @@ class TestCalls:
                         "rate": 24000,
                         "type": "audio/pcm",
                     },
-                    "noise_reduction": {"type": "near_field"},
+                    "noise_reduction": {
+                        "strength": 0,
+                        "type": "near_field",
+                    },
                     "transcription": {
                         "delay": "minimal",
                         "keywords": ["string"],
@@ -391,7 +397,10 @@ class TestAsyncCalls:
                             "rate": 24000,
                             "type": "audio/pcm",
                         },
-                        "noise_reduction": {"type": "near_field"},
+                        "noise_reduction": {
+                            "strength": 0,
+                            "type": "near_field",
+                        },
                         "transcription": {
                             "delay": "minimal",
                             "keywords": ["string"],
@@ -495,7 +504,10 @@ class TestAsyncCalls:
                         "rate": 24000,
                         "type": "audio/pcm",
                     },
-                    "noise_reduction": {"type": "near_field"},
+                    "noise_reduction": {
+                        "strength": 0,
+                        "type": "near_field",
+                    },
                     "transcription": {
                         "delay": "minimal",
                         "keywords": ["string"],

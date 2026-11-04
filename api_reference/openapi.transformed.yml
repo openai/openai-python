@@ -26920,6 +26920,567 @@ paths:
       x-oaiMeta:
         group: live
         returns: The stored session recording as binary stereo WAV audio.
+  /organization/workload_identity_providers:
+    get:
+      summary: List Platform workload identity providers
+      description: List OIDC providers in the authenticated Admin API key's organization.
+      operationId: ListPlatformworkloadidentityproviders
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+      - name: order
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - default: asc
+            x-stainless-const: true
+            type: string
+            enum:
+            - asc
+          - default: desc
+            x-stainless-const: true
+            type: string
+            enum:
+            - desc
+      - name: after
+        in: query
+        required: false
+        schema:
+          type: string
+          minLength: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlatformProviderListResource'
+      x-oaiMeta:
+        group: administration
+        examples:
+          request:
+            curl: |
+              curl -X GET "https://api.openai.com/v1/organization/workload_identity_providers?limit=20&order=asc" \
+                -H "Authorization: Bearer $OPENAI_ADMIN_KEY"
+          response: |
+            {
+              "object": "list",
+              "data": [
+                {
+                  "object": "organization.workload_identity_provider",
+                  "id": "wip_example",
+                  "type": "oidc",
+                  "name": "CI provider",
+                  "issuer": "https://issuer.example.com",
+                  "audience": "openai",
+                  "verification": {
+                    "type": "discovery",
+                    "discovery_url": null
+                  },
+                  "description": null,
+                  "attribute_transformations": [],
+                  "enabled": true,
+                  "created_at": 1793664000,
+                  "updated_at": 1793664000
+                }
+              ],
+              "first_id": "wip_example",
+              "last_id": "wip_example",
+              "has_more": false
+            }
+      security:
+      - AdminApiKeyAuth: []
+    post:
+      summary: Create Platform workload identity provider
+      description: Register an OIDC provider for keyless project service-account authentication.
+      operationId: CreatePlatformworkloadidentityprovider
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePlatformWorkloadIdentityProviderBody'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlatformProvider'
+      x-oaiMeta:
+        group: administration
+        examples:
+          request:
+            curl: |
+              curl -X POST "https://api.openai.com/v1/organization/workload_identity_providers" \
+                -H "Authorization: Bearer $OPENAI_ADMIN_KEY" \
+                -H "Content-Type: application/json" \
+                -d '{
+                "name": "CI provider",
+                "type": "oidc",
+                "issuer": "https://issuer.example.com",
+                "audience": "openai"
+              }'
+          response: |
+            {
+              "object": "organization.workload_identity_provider",
+              "id": "wip_example",
+              "type": "oidc",
+              "name": "CI provider",
+              "issuer": "https://issuer.example.com",
+              "audience": "openai",
+              "verification": {
+                "type": "discovery",
+                "discovery_url": null
+              },
+              "description": null,
+              "attribute_transformations": [],
+              "enabled": true,
+              "created_at": 1793664000,
+              "updated_at": 1793664000
+            }
+      security:
+      - AdminApiKeyAuth: []
+  /organization/workload_identity_providers/{workload_identity_provider_id}:
+    get:
+      summary: Retrieve Platform workload identity provider
+      description: Retrieve an OIDC provider in the authenticated organization.
+      operationId: RetrievePlatformworkloadidentityprovider
+      parameters:
+      - name: workload_identity_provider_id
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlatformProvider'
+      x-oaiMeta:
+        group: administration
+        examples:
+          request:
+            curl: |
+              curl -X GET "https://api.openai.com/v1/organization/workload_identity_providers/wip_example" \
+                -H "Authorization: Bearer $OPENAI_ADMIN_KEY"
+          response: |
+            {
+              "object": "organization.workload_identity_provider",
+              "id": "wip_example",
+              "type": "oidc",
+              "name": "CI provider",
+              "issuer": "https://issuer.example.com",
+              "audience": "openai",
+              "verification": {
+                "type": "discovery",
+                "discovery_url": null
+              },
+              "description": null,
+              "attribute_transformations": [],
+              "enabled": true,
+              "created_at": 1793664000,
+              "updated_at": 1793664000
+            }
+      security:
+      - AdminApiKeyAuth: []
+    post:
+      summary: Update Platform workload identity provider
+      description: Update supplied provider fields, preserving omitted fields.
+      operationId: UpdatePlatformworkloadidentityprovider
+      parameters:
+      - name: workload_identity_provider_id
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePlatformWorkloadIdentityProviderBody'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlatformProvider'
+      x-oaiMeta:
+        group: administration
+        examples:
+          request:
+            curl: |
+              curl -X POST "https://api.openai.com/v1/organization/workload_identity_providers/wip_example" \
+                -H "Authorization: Bearer $OPENAI_ADMIN_KEY" \
+                -H "Content-Type: application/json" \
+                -d '{
+                "enabled": false
+              }'
+          response: |
+            {
+              "object": "organization.workload_identity_provider",
+              "id": "wip_example",
+              "type": "oidc",
+              "name": "CI provider",
+              "issuer": "https://issuer.example.com",
+              "audience": "openai",
+              "verification": {
+                "type": "discovery",
+                "discovery_url": null
+              },
+              "description": null,
+              "attribute_transformations": [],
+              "enabled": false,
+              "created_at": 1793664000,
+              "updated_at": 1793664000
+            }
+      security:
+      - AdminApiKeyAuth: []
+    delete:
+      summary: Delete Platform workload identity provider
+      description: Delete a provider after deleting all its federation rules.
+      operationId: DeletePlatformworkloadidentityprovider
+      parameters:
+      - name: workload_identity_provider_id
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlatformProviderDeletedResource'
+      x-oaiMeta:
+        group: administration
+        examples:
+          request:
+            curl: |
+              curl -X DELETE "https://api.openai.com/v1/organization/workload_identity_providers/wip_example" \
+                -H "Authorization: Bearer $OPENAI_ADMIN_KEY"
+          response: |
+            {
+              "object": "organization.workload_identity_provider.deleted",
+              "id": "wip_example",
+              "deleted": true
+            }
+      security:
+      - AdminApiKeyAuth: []
+  /organization/workload_identity_providers/{workload_identity_provider_id}/federation_rules:
+    get:
+      summary: List Platform workload identity federation rules
+      description: List the provider's federation rules to project service accounts.
+      operationId: ListPlatformworkloadidentityfederationrules
+      parameters:
+      - name: workload_identity_provider_id
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+      - name: order
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - default: asc
+            x-stainless-const: true
+            type: string
+            enum:
+            - asc
+          - default: desc
+            x-stainless-const: true
+            type: string
+            enum:
+            - desc
+      - name: after
+        in: query
+        required: false
+        schema:
+          type: string
+          minLength: 1
+      - name: service_account_id
+        in: query
+        required: false
+        schema:
+          type: string
+          minLength: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlatformFederationRuleListResource'
+      x-oaiMeta:
+        group: administration
+        examples:
+          request:
+            curl: |
+              curl -X GET "https://api.openai.com/v1/organization/workload_identity_providers/wip_example/federation_rules?limit=20&order=asc" \
+                -H "Authorization: Bearer $OPENAI_ADMIN_KEY"
+          response: |
+            {
+              "object": "list",
+              "data": [
+                {
+                  "object": "organization.workload_identity_federation_rule",
+                  "id": "wifr_example",
+                  "workload_identity_provider_id": "wip_example",
+                  "project_id": "proj_example",
+                  "service_account_id": "svc_acct_example",
+                  "name": null,
+                  "description": null,
+                  "attribute_matchers": {
+                    "sub": "ci:release"
+                  },
+                  "permissions": {
+                    "type": "service_account_default"
+                  },
+                  "enabled": true,
+                  "created_at": 1793664000,
+                  "updated_at": 1793664000
+                }
+              ],
+              "first_id": "wifr_example",
+              "last_id": "wifr_example",
+              "has_more": false
+            }
+      security:
+      - AdminApiKeyAuth: []
+    post:
+      summary: Create Platform workload identity federation rule
+      description: Bind verified token attributes to an existing project service account.
+      operationId: CreatePlatformworkloadidentityfederationrule
+      parameters:
+      - name: workload_identity_provider_id
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePlatformWorkloadIdentityFederationRuleBody'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlatformFederationRule'
+      x-oaiMeta:
+        group: administration
+        examples:
+          request:
+            curl: |
+              curl -X POST "https://api.openai.com/v1/organization/workload_identity_providers/wip_example/federation_rules" \
+                -H "Authorization: Bearer $OPENAI_ADMIN_KEY" \
+                -H "Content-Type: application/json" \
+                -d '{
+                "project_id": "proj_example",
+                "service_account_id": "svc_acct_example",
+                "attribute_matchers": {
+                  "sub": "ci:release"
+                }
+              }'
+          response: |
+            {
+              "object": "organization.workload_identity_federation_rule",
+              "id": "wifr_example",
+              "workload_identity_provider_id": "wip_example",
+              "project_id": "proj_example",
+              "service_account_id": "svc_acct_example",
+              "name": null,
+              "description": null,
+              "attribute_matchers": {
+                "sub": "ci:release"
+              },
+              "permissions": {
+                "type": "service_account_default"
+              },
+              "enabled": true,
+              "created_at": 1793664000,
+              "updated_at": 1793664000
+            }
+      security:
+      - AdminApiKeyAuth: []
+  ? /organization/workload_identity_providers/{workload_identity_provider_id}/federation_rules/{workload_identity_federation_rule_id}
+  : get:
+      summary: Retrieve Platform workload identity federation rule
+      description: Retrieve a federation rule owned by the authenticated organization and provider.
+      operationId: RetrievePlatformworkloadidentityfederationrule
+      parameters:
+      - name: workload_identity_provider_id
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - name: workload_identity_federation_rule_id
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlatformFederationRule'
+      x-oaiMeta:
+        group: administration
+        examples:
+          request:
+            curl: |
+              curl -X GET "https://api.openai.com/v1/organization/workload_identity_providers/wip_example/federation_rules/wifr_example" \
+                -H "Authorization: Bearer $OPENAI_ADMIN_KEY"
+          response: |
+            {
+              "object": "organization.workload_identity_federation_rule",
+              "id": "wifr_example",
+              "workload_identity_provider_id": "wip_example",
+              "project_id": "proj_example",
+              "service_account_id": "svc_acct_example",
+              "name": null,
+              "description": null,
+              "attribute_matchers": {
+                "sub": "ci:release"
+              },
+              "permissions": {
+                "type": "service_account_default"
+              },
+              "enabled": true,
+              "created_at": 1793664000,
+              "updated_at": 1793664000
+            }
+      security:
+      - AdminApiKeyAuth: []
+    post:
+      summary: Update Platform workload identity federation rule
+      description: Update supplied matcher, permission, metadata, or enabled fields.
+      operationId: UpdatePlatformworkloadidentityfederationrule
+      parameters:
+      - name: workload_identity_provider_id
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - name: workload_identity_federation_rule_id
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePlatformWorkloadIdentityFederationRuleBody'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlatformFederationRule'
+      x-oaiMeta:
+        group: administration
+        examples:
+          request:
+            curl: |
+              curl -X POST "https://api.openai.com/v1/organization/workload_identity_providers/wip_example/federation_rules/wifr_example" \
+                -H "Authorization: Bearer $OPENAI_ADMIN_KEY" \
+                -H "Content-Type: application/json" \
+                -d '{
+                "enabled": false
+              }'
+          response: |
+            {
+              "object": "organization.workload_identity_federation_rule",
+              "id": "wifr_example",
+              "workload_identity_provider_id": "wip_example",
+              "project_id": "proj_example",
+              "service_account_id": "svc_acct_example",
+              "name": null,
+              "description": null,
+              "attribute_matchers": {
+                "sub": "ci:release"
+              },
+              "permissions": {
+                "type": "service_account_default"
+              },
+              "enabled": false,
+              "created_at": 1793664000,
+              "updated_at": 1793664000
+            }
+      security:
+      - AdminApiKeyAuth: []
+    delete:
+      summary: Delete Platform workload identity federation rule
+      description: Delete a federation rule to a project service account.
+      operationId: DeletePlatformworkloadidentityfederationrule
+      parameters:
+      - name: workload_identity_provider_id
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - name: workload_identity_federation_rule_id
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlatformFederationRuleDeletedResource'
+      x-oaiMeta:
+        group: administration
+        examples:
+          request:
+            curl: |
+              curl -X DELETE "https://api.openai.com/v1/organization/workload_identity_providers/wip_example/federation_rules/wifr_example" \
+                -H "Authorization: Bearer $OPENAI_ADMIN_KEY"
+          response: |
+            {
+              "object": "organization.workload_identity_federation_rule.deleted",
+              "id": "wifr_example",
+              "deleted": true
+            }
+      security:
+      - AdminApiKeyAuth: []
   /organization/usage/decisions:
     get:
       summary: Decisions
@@ -27926,6 +28487,83 @@ paths:
                 "enforcement": {
                     "status": "enforcing"
                 }
+            }
+      security:
+      - AdminApiKeyAuth: []
+  /organization/projects/{project_id}/service_tier_settings:
+    get:
+      summary: Retrieve project service tier settings
+      description: Retrieve the configured default and enabled service tiers for a project.
+      operationId: Retrieveprojectservicetiersettings
+      parameters:
+      - name: project_id
+        in: path
+        description: The ID of the project
+        required: true
+        schema:
+          description: The ID of the project
+          type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectServiceTierSettingsResource'
+      x-oaiMeta:
+        group: administration
+        examples:
+          request:
+            curl: |
+              curl https://api.openai.com/v1/organization/projects/proj_abc/service_tier_settings \
+                -H "Authorization: Bearer $OPENAI_ADMIN_KEY"
+          response: |
+            {
+              "object": "project.service_tier_settings",
+              "default": "standard",
+              "enabled_tiers": "all"
+            }
+      security:
+      - AdminApiKeyAuth: []
+    post:
+      summary: Update project service tier settings
+      description: Update the default or enabled service tiers atomically. Supply at least one field. Omitted fields keep their current values.
+      operationId: Updateprojectservicetiersettings
+      parameters:
+      - name: project_id
+        in: path
+        description: The ID of the project
+        required: true
+        schema:
+          description: The ID of the project
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProjectServiceTierSettingsBody'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectServiceTierSettingsResource'
+      x-oaiMeta:
+        group: administration
+        examples:
+          request:
+            curl: |
+              curl https://api.openai.com/v1/organization/projects/proj_abc/service_tier_settings \
+                -H "Authorization: Bearer $OPENAI_ADMIN_KEY" \
+                -H "Content-Type: application/json" \
+                -d '{"default":"standard","enabled_tiers":[]}'
+          response: |
+            {
+              "object": "project.service_tier_settings",
+              "default": "standard",
+              "enabled_tiers": []
             }
       security:
       - AdminApiKeyAuth: []
@@ -37672,644 +38310,6 @@ paths:
               "object": "response.input_tokens",
               "input_tokens": 11
             }
-  /organization/workload_identity_providers:
-    get:
-      summary: List Platform workload identity providers
-      description: List OIDC providers in the authenticated Admin API key's organization.
-      operationId: ListPlatformworkloadidentityproviders
-      parameters:
-      - name: limit
-        in: query
-        required: false
-        schema:
-          type: integer
-          minimum: 1
-          maximum: 100
-      - name: order
-        in: query
-        required: false
-        schema:
-          anyOf:
-          - default: asc
-            x-stainless-const: true
-            type: string
-            enum:
-            - asc
-          - default: desc
-            x-stainless-const: true
-            type: string
-            enum:
-            - desc
-      - name: after
-        in: query
-        required: false
-        schema:
-          type: string
-          minLength: 1
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PlatformProviderListResource'
-      x-oaiMeta:
-        group: administration
-        examples:
-          request:
-            curl: |
-              curl -X GET "https://api.openai.com/v1/organization/workload_identity_providers?limit=20&order=asc" \
-                -H "Authorization: Bearer $OPENAI_ADMIN_KEY"
-          response: |
-            {
-              "object": "list",
-              "data": [
-                {
-                  "object": "organization.workload_identity_provider",
-                  "id": "wip_example",
-                  "type": "oidc",
-                  "name": "CI provider",
-                  "issuer": "https://issuer.example.com",
-                  "audience": "openai",
-                  "verification": {
-                    "type": "discovery",
-                    "discovery_url": null
-                  },
-                  "description": null,
-                  "attribute_transformations": [],
-                  "enabled": true,
-                  "created_at": 1793664000,
-                  "updated_at": 1793664000
-                }
-              ],
-              "first_id": "wip_example",
-              "last_id": "wip_example",
-              "has_more": false
-            }
-      security:
-      - AdminApiKeyAuth: []
-    post:
-      summary: Create Platform workload identity provider
-      description: Register an OIDC provider for keyless project service-account authentication.
-      operationId: CreatePlatformworkloadidentityprovider
-      parameters: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreatePlatformWorkloadIdentityProviderBody'
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PlatformProvider'
-      x-oaiMeta:
-        group: administration
-        examples:
-          request:
-            curl: |
-              curl -X POST "https://api.openai.com/v1/organization/workload_identity_providers" \
-                -H "Authorization: Bearer $OPENAI_ADMIN_KEY" \
-                -H "Content-Type: application/json" \
-                -d '{
-                "name": "CI provider",
-                "type": "oidc",
-                "issuer": "https://issuer.example.com",
-                "audience": "openai"
-              }'
-          response: |
-            {
-              "object": "organization.workload_identity_provider",
-              "id": "wip_example",
-              "type": "oidc",
-              "name": "CI provider",
-              "issuer": "https://issuer.example.com",
-              "audience": "openai",
-              "verification": {
-                "type": "discovery",
-                "discovery_url": null
-              },
-              "description": null,
-              "attribute_transformations": [],
-              "enabled": true,
-              "created_at": 1793664000,
-              "updated_at": 1793664000
-            }
-      security:
-      - AdminApiKeyAuth: []
-  /organization/workload_identity_providers/{workload_identity_provider_id}:
-    get:
-      summary: Retrieve Platform workload identity provider
-      description: Retrieve an OIDC provider in the authenticated organization.
-      operationId: RetrievePlatformworkloadidentityprovider
-      parameters:
-      - name: workload_identity_provider_id
-        in: path
-        required: true
-        schema:
-          type: string
-          minLength: 1
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PlatformProvider'
-      x-oaiMeta:
-        group: administration
-        examples:
-          request:
-            curl: |
-              curl -X GET "https://api.openai.com/v1/organization/workload_identity_providers/wip_example" \
-                -H "Authorization: Bearer $OPENAI_ADMIN_KEY"
-          response: |
-            {
-              "object": "organization.workload_identity_provider",
-              "id": "wip_example",
-              "type": "oidc",
-              "name": "CI provider",
-              "issuer": "https://issuer.example.com",
-              "audience": "openai",
-              "verification": {
-                "type": "discovery",
-                "discovery_url": null
-              },
-              "description": null,
-              "attribute_transformations": [],
-              "enabled": true,
-              "created_at": 1793664000,
-              "updated_at": 1793664000
-            }
-      security:
-      - AdminApiKeyAuth: []
-    post:
-      summary: Update Platform workload identity provider
-      description: Update supplied provider fields, preserving omitted fields.
-      operationId: UpdatePlatformworkloadidentityprovider
-      parameters:
-      - name: workload_identity_provider_id
-        in: path
-        required: true
-        schema:
-          type: string
-          minLength: 1
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdatePlatformWorkloadIdentityProviderBody'
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PlatformProvider'
-      x-oaiMeta:
-        group: administration
-        examples:
-          request:
-            curl: |
-              curl -X POST "https://api.openai.com/v1/organization/workload_identity_providers/wip_example" \
-                -H "Authorization: Bearer $OPENAI_ADMIN_KEY" \
-                -H "Content-Type: application/json" \
-                -d '{
-                "enabled": false
-              }'
-          response: |
-            {
-              "object": "organization.workload_identity_provider",
-              "id": "wip_example",
-              "type": "oidc",
-              "name": "CI provider",
-              "issuer": "https://issuer.example.com",
-              "audience": "openai",
-              "verification": {
-                "type": "discovery",
-                "discovery_url": null
-              },
-              "description": null,
-              "attribute_transformations": [],
-              "enabled": false,
-              "created_at": 1793664000,
-              "updated_at": 1793664000
-            }
-      security:
-      - AdminApiKeyAuth: []
-    delete:
-      summary: Delete Platform workload identity provider
-      description: Delete a provider after deleting all its federation rules.
-      operationId: DeletePlatformworkloadidentityprovider
-      parameters:
-      - name: workload_identity_provider_id
-        in: path
-        required: true
-        schema:
-          type: string
-          minLength: 1
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PlatformProviderDeletedResource'
-      x-oaiMeta:
-        group: administration
-        examples:
-          request:
-            curl: |
-              curl -X DELETE "https://api.openai.com/v1/organization/workload_identity_providers/wip_example" \
-                -H "Authorization: Bearer $OPENAI_ADMIN_KEY"
-          response: |
-            {
-              "object": "organization.workload_identity_provider.deleted",
-              "id": "wip_example",
-              "deleted": true
-            }
-      security:
-      - AdminApiKeyAuth: []
-  /organization/workload_identity_providers/{workload_identity_provider_id}/federation_rules:
-    get:
-      summary: List Platform workload identity federation rules
-      description: List the provider's federation rules to project service accounts.
-      operationId: ListPlatformworkloadidentityfederationrules
-      parameters:
-      - name: workload_identity_provider_id
-        in: path
-        required: true
-        schema:
-          type: string
-          minLength: 1
-      - name: limit
-        in: query
-        required: false
-        schema:
-          type: integer
-          minimum: 1
-          maximum: 100
-      - name: order
-        in: query
-        required: false
-        schema:
-          anyOf:
-          - default: asc
-            x-stainless-const: true
-            type: string
-            enum:
-            - asc
-          - default: desc
-            x-stainless-const: true
-            type: string
-            enum:
-            - desc
-      - name: after
-        in: query
-        required: false
-        schema:
-          type: string
-          minLength: 1
-      - name: service_account_id
-        in: query
-        required: false
-        schema:
-          type: string
-          minLength: 1
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PlatformFederationRuleListResource'
-      x-oaiMeta:
-        group: administration
-        examples:
-          request:
-            curl: |
-              curl -X GET "https://api.openai.com/v1/organization/workload_identity_providers/wip_example/federation_rules?limit=20&order=asc" \
-                -H "Authorization: Bearer $OPENAI_ADMIN_KEY"
-          response: |
-            {
-              "object": "list",
-              "data": [
-                {
-                  "object": "organization.workload_identity_federation_rule",
-                  "id": "wifr_example",
-                  "workload_identity_provider_id": "wip_example",
-                  "project_id": "proj_example",
-                  "service_account_id": "svc_acct_example",
-                  "name": null,
-                  "description": null,
-                  "attribute_matchers": {
-                    "sub": "ci:release"
-                  },
-                  "permissions": {
-                    "type": "service_account_default"
-                  },
-                  "enabled": true,
-                  "created_at": 1793664000,
-                  "updated_at": 1793664000
-                }
-              ],
-              "first_id": "wifr_example",
-              "last_id": "wifr_example",
-              "has_more": false
-            }
-      security:
-      - AdminApiKeyAuth: []
-    post:
-      summary: Create Platform workload identity federation rule
-      description: Bind verified token attributes to an existing project service account.
-      operationId: CreatePlatformworkloadidentityfederationrule
-      parameters:
-      - name: workload_identity_provider_id
-        in: path
-        required: true
-        schema:
-          type: string
-          minLength: 1
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreatePlatformWorkloadIdentityFederationRuleBody'
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PlatformFederationRule'
-      x-oaiMeta:
-        group: administration
-        examples:
-          request:
-            curl: |
-              curl -X POST "https://api.openai.com/v1/organization/workload_identity_providers/wip_example/federation_rules" \
-                -H "Authorization: Bearer $OPENAI_ADMIN_KEY" \
-                -H "Content-Type: application/json" \
-                -d '{
-                "project_id": "proj_example",
-                "service_account_id": "svc_acct_example",
-                "attribute_matchers": {
-                  "sub": "ci:release"
-                }
-              }'
-          response: |
-            {
-              "object": "organization.workload_identity_federation_rule",
-              "id": "wifr_example",
-              "workload_identity_provider_id": "wip_example",
-              "project_id": "proj_example",
-              "service_account_id": "svc_acct_example",
-              "name": null,
-              "description": null,
-              "attribute_matchers": {
-                "sub": "ci:release"
-              },
-              "permissions": {
-                "type": "service_account_default"
-              },
-              "enabled": true,
-              "created_at": 1793664000,
-              "updated_at": 1793664000
-            }
-      security:
-      - AdminApiKeyAuth: []
-  ? /organization/workload_identity_providers/{workload_identity_provider_id}/federation_rules/{workload_identity_federation_rule_id}
-  : get:
-      summary: Retrieve Platform workload identity federation rule
-      description: Retrieve a federation rule owned by the authenticated organization and provider.
-      operationId: RetrievePlatformworkloadidentityfederationrule
-      parameters:
-      - name: workload_identity_provider_id
-        in: path
-        required: true
-        schema:
-          type: string
-          minLength: 1
-      - name: workload_identity_federation_rule_id
-        in: path
-        required: true
-        schema:
-          type: string
-          minLength: 1
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PlatformFederationRule'
-      x-oaiMeta:
-        group: administration
-        examples:
-          request:
-            curl: |
-              curl -X GET "https://api.openai.com/v1/organization/workload_identity_providers/wip_example/federation_rules/wifr_example" \
-                -H "Authorization: Bearer $OPENAI_ADMIN_KEY"
-          response: |
-            {
-              "object": "organization.workload_identity_federation_rule",
-              "id": "wifr_example",
-              "workload_identity_provider_id": "wip_example",
-              "project_id": "proj_example",
-              "service_account_id": "svc_acct_example",
-              "name": null,
-              "description": null,
-              "attribute_matchers": {
-                "sub": "ci:release"
-              },
-              "permissions": {
-                "type": "service_account_default"
-              },
-              "enabled": true,
-              "created_at": 1793664000,
-              "updated_at": 1793664000
-            }
-      security:
-      - AdminApiKeyAuth: []
-    post:
-      summary: Update Platform workload identity federation rule
-      description: Update supplied matcher, permission, metadata, or enabled fields.
-      operationId: UpdatePlatformworkloadidentityfederationrule
-      parameters:
-      - name: workload_identity_provider_id
-        in: path
-        required: true
-        schema:
-          type: string
-          minLength: 1
-      - name: workload_identity_federation_rule_id
-        in: path
-        required: true
-        schema:
-          type: string
-          minLength: 1
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdatePlatformWorkloadIdentityFederationRuleBody'
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PlatformFederationRule'
-      x-oaiMeta:
-        group: administration
-        examples:
-          request:
-            curl: |
-              curl -X POST "https://api.openai.com/v1/organization/workload_identity_providers/wip_example/federation_rules/wifr_example" \
-                -H "Authorization: Bearer $OPENAI_ADMIN_KEY" \
-                -H "Content-Type: application/json" \
-                -d '{
-                "enabled": false
-              }'
-          response: |
-            {
-              "object": "organization.workload_identity_federation_rule",
-              "id": "wifr_example",
-              "workload_identity_provider_id": "wip_example",
-              "project_id": "proj_example",
-              "service_account_id": "svc_acct_example",
-              "name": null,
-              "description": null,
-              "attribute_matchers": {
-                "sub": "ci:release"
-              },
-              "permissions": {
-                "type": "service_account_default"
-              },
-              "enabled": false,
-              "created_at": 1793664000,
-              "updated_at": 1793664000
-            }
-      security:
-      - AdminApiKeyAuth: []
-    delete:
-      summary: Delete Platform workload identity federation rule
-      description: Delete a federation rule to a project service account.
-      operationId: DeletePlatformworkloadidentityfederationrule
-      parameters:
-      - name: workload_identity_provider_id
-        in: path
-        required: true
-        schema:
-          type: string
-          minLength: 1
-      - name: workload_identity_federation_rule_id
-        in: path
-        required: true
-        schema:
-          type: string
-          minLength: 1
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PlatformFederationRuleDeletedResource'
-      x-oaiMeta:
-        group: administration
-        examples:
-          request:
-            curl: |
-              curl -X DELETE "https://api.openai.com/v1/organization/workload_identity_providers/wip_example/federation_rules/wifr_example" \
-                -H "Authorization: Bearer $OPENAI_ADMIN_KEY"
-          response: |
-            {
-              "object": "organization.workload_identity_federation_rule.deleted",
-              "id": "wifr_example",
-              "deleted": true
-            }
-      security:
-      - AdminApiKeyAuth: []
-  /organization/projects/{project_id}/service_tier_settings:
-    get:
-      summary: Retrieve project service tier settings
-      description: Retrieve the configured default and enabled service tiers for a project.
-      operationId: Retrieveprojectservicetiersettings
-      parameters:
-      - name: project_id
-        in: path
-        description: The ID of the project
-        required: true
-        schema:
-          description: The ID of the project
-          type: string
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProjectServiceTierSettingsResource'
-      x-oaiMeta:
-        group: administration
-        examples:
-          request:
-            curl: |
-              curl https://api.openai.com/v1/organization/projects/proj_abc/service_tier_settings \
-                -H "Authorization: Bearer $OPENAI_ADMIN_KEY"
-          response: |
-            {
-              "object": "project.service_tier_settings",
-              "default": "standard",
-              "enabled_tiers": "all"
-            }
-      security:
-      - AdminApiKeyAuth: []
-    post:
-      summary: Update project service tier settings
-      description: Update the default or enabled service tiers atomically. Supply at least one field. Omitted fields keep their current values.
-      operationId: Updateprojectservicetiersettings
-      parameters:
-      - name: project_id
-        in: path
-        description: The ID of the project
-        required: true
-        schema:
-          description: The ID of the project
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdateProjectServiceTierSettingsBody'
-        required: true
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProjectServiceTierSettingsResource'
-      x-oaiMeta:
-        group: administration
-        examples:
-          request:
-            curl: |
-              curl https://api.openai.com/v1/organization/projects/proj_abc/service_tier_settings \
-                -H "Authorization: Bearer $OPENAI_ADMIN_KEY" \
-                -H "Content-Type: application/json" \
-                -d '{"default":"standard","enabled_tiers":[]}'
-          response: |
-            {
-              "object": "project.service_tier_settings",
-              "default": "standard",
-              "enabled_tiers": []
-            }
-      security:
-      - AdminApiKeyAuth: []
 webhooks:
   agent_environment_expired:
     post:
@@ -38735,30 +38735,6 @@ webhooks:
           description: Return any 2xx status code to acknowledge receipt. A 410 Gone response also stops retries; other non-2xx responses are retried.
 components:
   schemas:
-    CacheWriteTokensDetails:
-      properties:
-        ttl_30m_tokens:
-          type: integer
-          description: The number of input tokens written with 30-minute retention.
-        ttl_12h_tokens:
-          type: integer
-          description: The number of input tokens written with 12-hour retention.
-      type: object
-      required:
-      - ttl_30m_tokens
-      - ttl_12h_tokens
-    BetaCacheWriteTokensDetails:
-      properties:
-        ttl_30m_tokens:
-          type: integer
-          description: The number of input tokens written with 30-minute retention.
-        ttl_12h_tokens:
-          type: integer
-          description: The number of input tokens written with 12-hour retention.
-      type: object
-      required:
-      - ttl_30m_tokens
-      - ttl_12h_tokens
     AddUploadPartRequest:
       type: object
       additionalProperties: false
@@ -39472,6 +39448,12 @@ components:
           description: |
             The possible input audio languages configured for transcription, in [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) format.
           minItems: 1
+          items:
+            type: string
+        keywords:
+          type: array
+          description: |
+            Words or phrases configured to guide transcription of the input audio.
           items:
             type: string
         prompt:
@@ -43098,6 +43080,8 @@ components:
       - $ref: '#/components/schemas/CreateModelResponseProperties'
       - type: object
         properties:
+          prompt_cache_options:
+            $ref: '#/components/schemas/PromptCacheOptionsParam'
           messages:
             description: |
               A list of messages comprising the conversation so far. Depending on the
@@ -43334,8 +43318,8 @@ components:
             - integer
             - 'null'
             format: int64
-            minimum: -9.223372036854776e18
-            maximum: 9.223372036854776e18
+            minimum: -9223372036854775808
+            maximum: 9223372036854775807
             deprecated: true
             description: |
               This feature is in Beta.
@@ -43406,8 +43390,6 @@ components:
             maxItems: 128
             items:
               $ref: '#/components/schemas/ChatCompletionFunctions'
-          prompt_cache_options:
-            $ref: '#/components/schemas/PromptCacheOptionsParam'
         required:
         - model
         - messages
@@ -44967,6 +44949,7 @@ components:
             exampleFilePath: mask.png
         markup:
           $ref: '#/components/schemas/markup'
+          description: A transparent PNG overlaid on the first image to guide the edit. Must match that image's dimensions after orientation and contain transparent pixels. Supports GPT Image 2.5. Cannot be combined with mask.
         background:
           anyOf:
           - type: string
@@ -45878,6 +45861,8 @@ components:
         properties:
           access_programs:
             $ref: '#/components/schemas/AccessProgramsParam'
+          image:
+            $ref: '#/components/schemas/ImageOptionsParam'
           prompt_cache_options:
             $ref: '#/components/schemas/ResponsePromptCacheOptionsParam'
           service_tier:
@@ -47582,7 +47567,7 @@ components:
           $ref: '#/components/schemas/ImageRefParam'
         markup:
           $ref: '#/components/schemas/ImageRefParam'
-          description: A transparent PNG overlaid on the first image, referenced by file ID, HTTPS URL, or base64 data URL. Must match that image's dimensions after orientation and contain transparent pixels. Supports GPT Image 2.5 and 2.6. Cannot be combined with mask.
+          description: A transparent PNG overlaid on the first image, referenced by file ID, HTTPS URL, or base64 data URL. Must match that image's dimensions after orientation and contain transparent pixels. Supports GPT Image 2.5. Cannot be combined with mask.
         prompt:
           type: string
           minLength: 1
@@ -52652,7 +52637,7 @@ components:
       additionalProperties: false
     LiveSIPTransport:
       type: object
-      description: Place an outbound SIP call using your provider's trunk. Outbound SIP calling must be enabled for your organization. The trunk must support TLS signaling, Opus audio, and SDES-SRTP media. See [Telephony and SIP](https://developers.openai.com/api/docs/guides/voice-sip?api=live#place-an-outbound-call).
+      description: Place an outbound SIP call using your provider's trunk. The trunk must support TLS signaling, Opus audio, and SDES-SRTP media. See [Telephony and SIP](https://developers.openai.com/api/docs/guides/voice-sip?api=live#place-an-outbound-call).
       properties:
         type:
           type: string
@@ -59930,6 +59915,15 @@ components:
       required:
       - type
       - message
+    RealtimeNoiseReductionStrength:
+      type: number
+      minimum: 0
+      maximum: 1
+      default: 1
+      description: |
+        Input noise suppression strength. Higher values apply more suppression.
+        Defaults to 1 when noise reduction is first enabled. Omitting strength
+        from a session update preserves the current strength.
     RealtimeReasoning:
       type: object
       title: Realtime reasoning configuration
@@ -60216,61 +60210,6 @@ components:
             using their id.
           items:
             $ref: '#/components/schemas/RealtimeConversationItem'
-    RunStatus:
-      description: The status of the run, which can be either `queued`, `in_progress`, `requires_action`, `cancelling`, `cancelled`, `failed`, `completed`, `incomplete`, or `expired`.
-      type: string
-      enum:
-      - queued
-      - in_progress
-      - requires_action
-      - cancelling
-      - cancelled
-      - failed
-      - completed
-      - incomplete
-      - expired
-    LiveMCPToolChoiceParam:
-      type: object
-      properties:
-        type:
-          default: mcp
-          x-stainless-const: true
-          type: string
-          enum:
-          - mcp
-        server_label:
-          type: string
-          minLength: 1
-          maxLength: 64
-          pattern: ^[a-zA-Z0-9_-]+$
-        name:
-          type: string
-          minLength: 1
-          maxLength: 64
-          pattern: ^[a-zA-Z0-9_-]+$
-      required:
-      - type
-      - server_label
-      - name
-      x-stainless-variantName: LiveMCPToolChoiceParam
-    LiveFunctionToolChoiceParam:
-      type: object
-      properties:
-        type:
-          default: function
-          x-stainless-const: true
-          type: string
-          enum:
-          - function
-        name:
-          type: string
-          minLength: 1
-          maxLength: 64
-          pattern: ^[a-zA-Z0-9_-]+$
-      required:
-      - type
-      - name
-      x-stainless-variantName: LiveFunctionToolChoiceParam
     SubmitToolOutputsRunRequestWithoutStream:
       type: object
       additionalProperties: false
@@ -60289,6 +60228,155 @@ components:
                 description: The output of the tool call to be submitted to continue the run.
       required:
       - tool_outputs
+    LiveFunctionToolChoiceParam:
+      type: object
+      properties:
+        type:
+          default: function
+          x-stainless-const: true
+          type: string
+          enum:
+          - function
+        name:
+          type: string
+          minLength: 1
+          maxLength: 64
+          pattern: ^[a-zA-Z0-9_-]+$
+      required:
+      - type
+      - name
+      x-stainless-variantName: LiveFunctionToolChoiceParam
+    CodeInterpreterContainerAuto:
+      properties:
+        type:
+          type: string
+          enum:
+          - auto
+          description: Always `auto`.
+          default: auto
+          x-stainless-const: true
+        file_ids:
+          items:
+            type: string
+            example: file-123
+          type: array
+          maxItems: 50
+          description: An optional list of uploaded files to make available to your code.
+        memory_limit:
+          anyOf:
+          - $ref: '#/components/schemas/ContainerMemoryLimit'
+            description: The memory limit for the code interpreter container.
+          - type: 'null'
+        network_policy:
+          discriminator:
+            propertyName: type
+          description: Network access policy for the container.
+          anyOf:
+          - $ref: '#/components/schemas/ContainerNetworkPolicyDisabledParam'
+          - $ref: '#/components/schemas/ContainerNetworkPolicyAllowlistParam'
+      type: object
+      required:
+      - type
+      title: CodeInterpreterToolAuto
+      description: Configuration for a code interpreter container. Optionally specify the IDs of the files to run the code on.
+      x-stainless-naming:
+        go:
+          type_name: ToolCodeInterpreterContainerCodeInterpreterContainerAuto
+    CreateRunRequestWithoutStream:
+      type: object
+      additionalProperties: false
+      properties:
+        assistant_id:
+          description: The ID of the [assistant](https://developers.openai.com/api/docs/assistants/migration) to use to execute this run.
+          type: string
+        model:
+          description: The ID of the [Model](https://developers.openai.com/api/reference/resources/models) to be used to execute this run. If a value is provided here, it will override the model associated with the assistant. If not, the model associated with the assistant will be used.
+          example: gpt-4.1
+          anyOf:
+          - type: string
+          - $ref: '#/components/schemas/AssistantSupportedModels'
+          x-oaiTypeLabel: string
+          nullable: true
+        reasoning_effort:
+          $ref: '#/components/schemas/ReasoningEffort'
+        instructions:
+          description: Overrides the [instructions](https://developers.openai.com/api/docs/assistants/migration) of the assistant. This is useful for modifying the behavior on a per-run basis.
+          type:
+          - string
+          - 'null'
+        additional_instructions:
+          description: Appends additional instructions at the end of the instructions for the run. This is useful for modifying the behavior on a per-run basis without overriding other instructions.
+          type:
+          - string
+          - 'null'
+        additional_messages:
+          description: Adds additional messages to the thread before creating the run.
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/CreateMessageRequest'
+        tools:
+          description: Override the tools the assistant can use for this run. This is useful for modifying the behavior on a per-run basis.
+          type:
+          - array
+          - 'null'
+          maxItems: 20
+          items:
+            $ref: '#/components/schemas/AssistantTool'
+        metadata:
+          $ref: '#/components/schemas/Metadata'
+        temperature:
+          type:
+          - number
+          - 'null'
+          minimum: 0
+          maximum: 2
+          default: 1
+          example: 1
+          description: |
+            What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
+        top_p:
+          type:
+          - number
+          - 'null'
+          minimum: 0
+          maximum: 1
+          default: 1
+          example: 1
+          description: |
+            An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.
+
+            We generally recommend altering this or temperature but not both.
+        response_format:
+          $ref: '#/components/schemas/AssistantsApiResponseFormatOption'
+          nullable: true
+        max_prompt_tokens:
+          type:
+          - integer
+          - 'null'
+          description: |
+            The maximum number of prompt tokens that may be used over the course of the run. The run will make a best effort to use only the number of prompt tokens specified, across multiple turns of the run. If the run exceeds the number of prompt tokens specified, the run will end with status `incomplete`. See `incomplete_details` for more info.
+          minimum: 256
+        max_completion_tokens:
+          type:
+          - integer
+          - 'null'
+          description: |
+            The maximum number of completion tokens that may be used over the course of the run. The run will make a best effort to use only the number of completion tokens specified, across multiple turns of the run. If the run exceeds the number of completion tokens specified, the run will end with status `incomplete`. See `incomplete_details` for more info.
+          minimum: 256
+        truncation_strategy:
+          allOf:
+          - $ref: '#/components/schemas/TruncationObject'
+          - nullable: true
+        tool_choice:
+          allOf:
+          - $ref: '#/components/schemas/AssistantsApiToolChoiceOption'
+          - nullable: true
+        parallel_tool_calls:
+          $ref: '#/components/schemas/ParallelToolCalls'
+      required:
+      - assistant_id
     RealtimeClientEventResponseCreateWithReferencesParam:
       type: object
       description: "This event instructs the server to create a Response, which means triggering \nmodel inference. When in Server VAD mode, the server will create Responses \nautomatically.\n\nA Response will include at least one Item, and may have two, in which case \nthe second will be a function call. These Items will be appended to the \nconversation history by default.\n\nThe server will respond with a `response.created` event, events for Items \nand content created, and finally a `response.done` event to indicate the \nResponse is complete.\n\nThe `response.create` event includes inference configuration like \n`instructions` and `tools`. If these are set, they will override the Session's \nconfiguration for this Response only.\n\nResponses can be created out-of-band of the default Conversation, meaning that they can\nhave arbitrary input, and it's possible to disable writing the output to the Conversation.\nOnly one Response can write to the default Conversation at a time, but otherwise multiple\nResponses can be created in parallel. The `metadata` field is a good way to disambiguate\nmultiple simultaneous Responses.\n\nClients can set `conversation` to `none` to create a Response that does not write to the default\nConversation. Arbitrary input can be provided with the `input` field, which is an array accepting\nraw Items and references to existing Items.\n"
@@ -60447,45 +60535,33 @@ components:
             using their id.
           items:
             $ref: '#/components/schemas/RealtimeConversationItem'
-    Summary:
-      properties:
-        type:
-          type: string
-          enum:
-          - summary_text
-          description: The type of the object. Always `summary_text`.
-          default: summary_text
-          x-stainless-const: true
-        text:
-          type: string
-          description: A summary of the reasoning output from the model so far.
-      type: object
-      required:
-      - type
-      - text
-      title: Summary text
-      description: A summary text from the model.
-    LiveDecisionStoredItemValidation:
-      discriminator:
-        propertyName: type
-      x-oai-default-discriminator-value: message
-      anyOf:
-      - discriminator:
-          propertyName: role
-        properties:
-          type:
-            type: string
-            enum:
-            - message
-        anyOf:
-        - $ref: '#/components/schemas/LiveDecisionStoredUserMessageParam'
-        - $ref: '#/components/schemas/LiveDecisionStoredDeveloperMessageParam'
-        - $ref: '#/components/schemas/LiveDecisionStoredSystemMessageParam'
-        - $ref: '#/components/schemas/LiveDecisionStoredAssistantMessageParam'
-      - $ref: '#/components/schemas/LiveDecisionStoredFunctionCallParam'
-      - $ref: '#/components/schemas/LiveDecisionStoredFunctionCallOutputParam'
-      - $ref: '#/components/schemas/LiveDecisionStoredCustomToolCallParam'
-      - $ref: '#/components/schemas/LiveDecisionStoredCustomToolCallOutputParam'
+    LiveBuiltInVoice:
+      type: string
+      enum:
+      - alloy
+      - ash
+      - ballad
+      - beacon
+      - bossa
+      - cedar
+      - cinder
+      - coral
+      - delta
+      - echo
+      - gleam
+      - marin
+      - meridian
+      - quartz
+      - ripple
+      - sage
+      - shida
+      - shimmer
+      - stone
+      - tempo
+      - verse
+      - vesper
+      - willow
+      description: A built-in voice available for Live speech.
     LiveDecisionInputItemValidation:
       discriminator:
         propertyName: type
@@ -60507,101 +60583,30 @@ components:
       - $ref: '#/components/schemas/LiveDecisionFunctionCallOutputParam'
       - $ref: '#/components/schemas/LiveDecisionCustomToolCallParam'
       - $ref: '#/components/schemas/LiveDecisionCustomToolCallOutputParam'
-    CreateRunRequestWithoutStream:
+    LiveMCPToolChoiceParam:
       type: object
-      additionalProperties: false
       properties:
-        assistant_id:
-          description: The ID of the [assistant](https://developers.openai.com/api/docs/assistants/migration) to use to execute this run.
+        type:
+          default: mcp
+          x-stainless-const: true
           type: string
-        model:
-          description: The ID of the [Model](https://developers.openai.com/api/reference/resources/models) to be used to execute this run. If a value is provided here, it will override the model associated with the assistant. If not, the model associated with the assistant will be used.
-          example: gpt-4.1
-          anyOf:
-          - type: string
-          - $ref: '#/components/schemas/AssistantSupportedModels'
-          x-oaiTypeLabel: string
-          nullable: true
-        reasoning_effort:
-          $ref: '#/components/schemas/ReasoningEffort'
-        instructions:
-          description: Overrides the [instructions](https://developers.openai.com/api/docs/assistants/migration) of the assistant. This is useful for modifying the behavior on a per-run basis.
-          type:
-          - string
-          - 'null'
-        additional_instructions:
-          description: Appends additional instructions at the end of the instructions for the run. This is useful for modifying the behavior on a per-run basis without overriding other instructions.
-          type:
-          - string
-          - 'null'
-        additional_messages:
-          description: Adds additional messages to the thread before creating the run.
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/CreateMessageRequest'
-        tools:
-          description: Override the tools the assistant can use for this run. This is useful for modifying the behavior on a per-run basis.
-          type:
-          - array
-          - 'null'
-          maxItems: 20
-          items:
-            $ref: '#/components/schemas/AssistantTool'
-        metadata:
-          $ref: '#/components/schemas/Metadata'
-        temperature:
-          type:
-          - number
-          - 'null'
-          minimum: 0
-          maximum: 2
-          default: 1
-          example: 1
-          description: |
-            What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
-        top_p:
-          type:
-          - number
-          - 'null'
-          minimum: 0
-          maximum: 1
-          default: 1
-          example: 1
-          description: |
-            An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.
-
-            We generally recommend altering this or temperature but not both.
-        response_format:
-          $ref: '#/components/schemas/AssistantsApiResponseFormatOption'
-          nullable: true
-        max_prompt_tokens:
-          type:
-          - integer
-          - 'null'
-          description: |
-            The maximum number of prompt tokens that may be used over the course of the run. The run will make a best effort to use only the number of prompt tokens specified, across multiple turns of the run. If the run exceeds the number of prompt tokens specified, the run will end with status `incomplete`. See `incomplete_details` for more info.
-          minimum: 256
-        max_completion_tokens:
-          type:
-          - integer
-          - 'null'
-          description: |
-            The maximum number of completion tokens that may be used over the course of the run. The run will make a best effort to use only the number of completion tokens specified, across multiple turns of the run. If the run exceeds the number of completion tokens specified, the run will end with status `incomplete`. See `incomplete_details` for more info.
-          minimum: 256
-        truncation_strategy:
-          allOf:
-          - $ref: '#/components/schemas/TruncationObject'
-          - nullable: true
-        tool_choice:
-          allOf:
-          - $ref: '#/components/schemas/AssistantsApiToolChoiceOption'
-          - nullable: true
-        parallel_tool_calls:
-          $ref: '#/components/schemas/ParallelToolCalls'
+          enum:
+          - mcp
+        server_label:
+          type: string
+          minLength: 1
+          maxLength: 64
+          pattern: ^[a-zA-Z0-9_-]+$
+        name:
+          type: string
+          minLength: 1
+          maxLength: 64
+          pattern: ^[a-zA-Z0-9_-]+$
       required:
-      - assistant_id
+      - type
+      - server_label
+      - name
+      x-stainless-variantName: LiveMCPToolChoiceParam
     CreateThreadAndRunRequestWithoutStream:
       type: object
       additionalProperties: false
@@ -60765,42 +60770,37 @@ components:
           $ref: '#/components/schemas/ParallelToolCalls'
       required:
       - assistant_id
-    CodeInterpreterContainerAuto:
+    Summary:
       properties:
         type:
           type: string
           enum:
-          - auto
-          description: Always `auto`.
-          default: auto
+          - summary_text
+          description: The type of the object. Always `summary_text`.
+          default: summary_text
           x-stainless-const: true
-        file_ids:
-          items:
-            type: string
-            example: file-123
-          type: array
-          maxItems: 50
-          description: An optional list of uploaded files to make available to your code.
-        memory_limit:
-          anyOf:
-          - $ref: '#/components/schemas/ContainerMemoryLimit'
-            description: The memory limit for the code interpreter container.
-          - type: 'null'
-        network_policy:
-          discriminator:
-            propertyName: type
-          description: Network access policy for the container.
-          anyOf:
-          - $ref: '#/components/schemas/ContainerNetworkPolicyDisabledParam'
-          - $ref: '#/components/schemas/ContainerNetworkPolicyAllowlistParam'
+        text:
+          type: string
+          description: A summary of the reasoning output from the model so far.
       type: object
       required:
       - type
-      title: CodeInterpreterToolAuto
-      description: Configuration for a code interpreter container. Optionally specify the IDs of the files to run the code on.
-      x-stainless-naming:
-        go:
-          type_name: ToolCodeInterpreterContainerCodeInterpreterContainerAuto
+      - text
+      title: Summary text
+      description: A summary text from the model.
+    RunStatus:
+      description: The status of the run, which can be either `queued`, `in_progress`, `requires_action`, `cancelling`, `cancelled`, `failed`, `completed`, `incomplete`, or `expired`.
+      type: string
+      enum:
+      - queued
+      - in_progress
+      - requires_action
+      - cancelling
+      - cancelled
+      - failed
+      - completed
+      - incomplete
+      - expired
     RealtimeResponseItemReference:
       type: object
       description: |
@@ -63617,6 +63617,8 @@ components:
                   properties:
                     type:
                       $ref: '#/components/schemas/NoiseReductionType'
+                    strength:
+                      $ref: '#/components/schemas/RealtimeNoiseReductionStrength'
                   description: |
                     Configuration for input audio noise reduction. This can be set to `null` to turn off.
                     Noise reduction filters audio added to the input audio buffer before it is sent to VAD and the model.
@@ -64065,6 +64067,8 @@ components:
                   properties:
                     type:
                       $ref: '#/components/schemas/NoiseReductionType'
+                    strength:
+                      $ref: '#/components/schemas/RealtimeNoiseReductionStrength'
                   description: |
                     Configuration for input audio noise reduction. This can be set to `null` to turn off.
                     Noise reduction filters audio added to the input audio buffer before it is sent to VAD and the model.
@@ -64294,6 +64298,8 @@ components:
                   properties:
                     type:
                       $ref: '#/components/schemas/NoiseReductionType'
+                    strength:
+                      $ref: '#/components/schemas/RealtimeNoiseReductionStrength'
                   description: |
                     Configuration for input audio noise reduction. This can be set to `null` to turn off.
                     Noise reduction filters audio added to the input audio buffer before it is sent to VAD and the model.
@@ -64465,6 +64471,8 @@ components:
                   properties:
                     type:
                       $ref: '#/components/schemas/NoiseReductionType'
+                    strength:
+                      $ref: '#/components/schemas/RealtimeNoiseReductionStrength'
                 turn_detection:
                   description: |
                     Configuration for turn detection. For `gpt-realtime-whisper`, this must be `null`; VAD is not supported.
@@ -65062,6 +65070,8 @@ components:
                     properties:
                       type:
                         $ref: '#/components/schemas/NoiseReductionType'
+                      strength:
+                        $ref: '#/components/schemas/RealtimeNoiseReductionStrength'
                     required:
                     - type
                   - type: 'null'
@@ -65140,6 +65150,8 @@ components:
                     properties:
                       type:
                         $ref: '#/components/schemas/NoiseReductionType'
+                      strength:
+                        $ref: '#/components/schemas/RealtimeNoiseReductionStrength'
                     required:
                     - type
                   - type: 'null'
@@ -65188,6 +65200,8 @@ components:
                     properties:
                       type:
                         $ref: '#/components/schemas/NoiseReductionType'
+                      strength:
+                        $ref: '#/components/schemas/RealtimeNoiseReductionStrength'
                     required:
                     - type
                   - type: 'null'
@@ -65499,6 +65513,8 @@ components:
       - $ref: '#/components/schemas/ResponseProperties'
       - type: object
         properties:
+          image:
+            $ref: '#/components/schemas/ResolvedImageOptions'
           service_tier:
             $ref: '#/components/schemas/ServiceTierResponses'
           truncation:
@@ -69250,6 +69266,12 @@ components:
             description: |
               The type of the client event. Always `response.create`.
             x-stainless-const: true
+          generate:
+            type: boolean
+            description: |
+              Whether to generate output for this response. Defaults to true when omitted.
+              Set to false to prepare request state without model output; the response
+              ID can be used as previous_response_id on a later turn.
           stream_id:
             type: string
             minLength: 1
@@ -69263,12 +69285,6 @@ components:
               `stream_id` controls routing; `previous_response_id` controls
               conversation lineage, so a new lane can fork from a response created
               on another lane.
-          generate:
-            type: boolean
-            description: |
-              Whether to generate output for this response. Defaults to true when omitted.
-              Set to false to prepare request state without model output; the response
-              ID can be used as previous_response_id on a later turn.
         required:
         - type
       - $ref: '#/components/schemas/CreateResponse'
@@ -81686,14 +81702,29 @@ components:
       type: object
       required: []
       description: Domain-specific access programs to use for this request.
+    ImageContextCompression:
+      type: string
+      enum:
+      - auto
+      - enabled
+      - disabled
+    ImageOptionsParam:
+      properties:
+        context_compression:
+          $ref: '#/components/schemas/ImageContextCompression'
+          description: Controls image context optimization. Defaults to `auto`, which uses the model, transport, and input to select a policy. Use `enabled` to require compression support or `disabled` to turn it off.
+      additionalProperties: false
+      type: object
+      required: []
+      description: Request level image options.
     ResponsePromptCacheOptionsParam:
       properties:
         ttl:
-          description: The minimum lifetime applied to every implicit and explicit cache breakpoint written by the request. Supported values are `30m` (the default) and `12h`. The backend may retain cache entries for longer.
           type: string
           enum:
           - 30m
           - 12h
+          description: The minimum lifetime applied to every implicit and explicit cache breakpoint written by the request. Supported values are `30m` (the default) and `12h`. The backend may retain cache entries for longer.
         mode:
           $ref: '#/components/schemas/PromptCacheModeEnum'
           description: Controls whether OpenAI automatically creates an implicit cache breakpoint. Defaults to `implicit`. With `implicit`, OpenAI creates one implicit breakpoint and writes up to the latest three explicit breakpoints in the request. With `explicit`, OpenAI does not create an implicit breakpoint and writes up to the latest four explicit breakpoints. If there are no explicit breakpoints, the request does not use prompt caching.
@@ -81742,6 +81773,19 @@ components:
       type: object
       required:
       - type
+    ResolvedImageContextCompressionEnum:
+      type: string
+      enum:
+      - enabled
+      - disabled
+    ResolvedImageOptions:
+      properties:
+        context_compression:
+          $ref: '#/components/schemas/ResolvedImageContextCompressionEnum'
+          description: Effective image context optimization policy.
+      type: object
+      required:
+      - context_compression
     AccessProgramsBody:
       properties:
         cyber:
@@ -81750,6 +81794,18 @@ components:
       type: object
       required:
       - cyber
+    CacheWriteTokensDetails:
+      properties:
+        ttl_30m_tokens:
+          type: integer
+          description: The number of input tokens written with 30-minute retention.
+        ttl_12h_tokens:
+          type: integer
+          description: The number of input tokens written with 12-hour retention.
+      type: object
+      required:
+      - ttl_30m_tokens
+      - ttl_12h_tokens
     CachedUsageDetails:
       properties:
         cached_text_tokens:
@@ -81814,11 +81870,11 @@ components:
     PromptCacheOptions:
       properties:
         ttl:
-          description: The minimum lifetime applied to each cache breakpoint.
           type: string
           enum:
           - 30m
           - 12h
+          description: The minimum lifetime applied to each cache breakpoint.
         mode:
           $ref: '#/components/schemas/PromptCacheModeEnum'
           description: Whether implicit prompt-cache breakpoints were enabled.
@@ -82540,6 +82596,486 @@ components:
       type: object
       required:
       - status
+    DiscoveryVerification:
+      properties:
+        type:
+          type: string
+          enum:
+          - discovery
+          default: discovery
+          x-stainless-const: true
+        discovery_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+      type: object
+      required:
+      - type
+      - discovery_url
+    UploadedJwksVerification:
+      properties:
+        type:
+          type: string
+          enum:
+          - uploaded_jwks
+          default: uploaded_jwks
+          x-stainless-const: true
+        jwks:
+          additionalProperties: {}
+          type: object
+          x-oaiTypeLabel: map
+      type: object
+      required:
+      - type
+      - jwks
+    Transformation:
+      properties:
+        attribute:
+          type: string
+        expression:
+          type: string
+      type: object
+      required:
+      - attribute
+      - expression
+    PlatformProvider:
+      properties:
+        object:
+          type: string
+          enum:
+          - organization.workload_identity_provider
+          default: organization.workload_identity_provider
+          x-stainless-const: true
+        id:
+          type: string
+        type:
+          type: string
+          enum:
+          - oidc
+          default: oidc
+          x-stainless-const: true
+        name:
+          type: string
+        issuer:
+          type: string
+        audience:
+          type: string
+        verification:
+          anyOf:
+          - $ref: '#/components/schemas/DiscoveryVerification'
+          - $ref: '#/components/schemas/UploadedJwksVerification'
+          discriminator:
+            propertyName: type
+        description:
+          anyOf:
+          - type: string
+          - type: 'null'
+        attribute_transformations:
+          items:
+            $ref: '#/components/schemas/Transformation'
+          type: array
+        enabled:
+          type: boolean
+        created_at:
+          type: integer
+        updated_at:
+          type: integer
+      type: object
+      required:
+      - object
+      - id
+      - type
+      - name
+      - issuer
+      - audience
+      - verification
+      - description
+      - attribute_transformations
+      - enabled
+      - created_at
+      - updated_at
+    PlatformProviderListResource:
+      properties:
+        object:
+          type: string
+          enum:
+          - list
+          default: list
+          x-stainless-const: true
+        data:
+          items:
+            $ref: '#/components/schemas/PlatformProvider'
+          type: array
+        first_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+        last_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+        has_more:
+          type: boolean
+      type: object
+      required:
+      - object
+      - data
+      - first_id
+      - last_id
+      - has_more
+    DiscoveryVerificationParam:
+      properties:
+        type:
+          type: string
+          enum:
+          - discovery
+          default: discovery
+          x-stainless-const: true
+        discovery_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+      type: object
+      required:
+      - type
+      - discovery_url
+    UploadedJwksVerificationParam:
+      properties:
+        type:
+          type: string
+          enum:
+          - uploaded_jwks
+          default: uploaded_jwks
+          x-stainless-const: true
+        jwks:
+          additionalProperties: {}
+          type: object
+          x-oaiTypeLabel: map
+      type: object
+      required:
+      - type
+      - jwks
+    TransformationParam:
+      properties:
+        attribute:
+          type: string
+          maxLength: 256
+          minLength: 1
+        expression:
+          type: string
+          maxLength: 4096
+          minLength: 1
+      type: object
+      required:
+      - attribute
+      - expression
+    CreatePlatformWorkloadIdentityProviderBody:
+      properties:
+        name:
+          type: string
+          minLength: 1
+        type:
+          type: string
+          enum:
+          - oidc
+          default: oidc
+          x-stainless-const: true
+        issuer:
+          type: string
+          minLength: 1
+        audience:
+          type: string
+          minLength: 1
+        verification:
+          anyOf:
+          - $ref: '#/components/schemas/DiscoveryVerificationParam'
+          - $ref: '#/components/schemas/UploadedJwksVerificationParam'
+          discriminator:
+            propertyName: type
+        description:
+          type: string
+        attribute_transformations:
+          items:
+            $ref: '#/components/schemas/TransformationParam'
+          type: array
+          maxItems: 20
+        enabled:
+          type: boolean
+      type: object
+      required:
+      - name
+      - type
+      - issuer
+      - audience
+    UpdatePlatformWorkloadIdentityProviderBody:
+      properties:
+        name:
+          type: string
+          minLength: 1
+        issuer:
+          type: string
+          minLength: 1
+        audience:
+          type: string
+          minLength: 1
+        verification:
+          anyOf:
+          - $ref: '#/components/schemas/DiscoveryVerificationParam'
+          - $ref: '#/components/schemas/UploadedJwksVerificationParam'
+        description:
+          anyOf:
+          - type: string
+          - type: 'null'
+        attribute_transformations:
+          items:
+            $ref: '#/components/schemas/TransformationParam'
+          type: array
+          maxItems: 20
+        enabled:
+          type: boolean
+      type: object
+      required: []
+    PlatformProviderDeletedResource:
+      properties:
+        object:
+          type: string
+          enum:
+          - organization.workload_identity_provider.deleted
+          default: organization.workload_identity_provider.deleted
+          x-stainless-const: true
+        id:
+          type: string
+        deleted:
+          type: boolean
+      type: object
+      required:
+      - object
+      - id
+      - deleted
+    DefaultPermissions:
+      properties:
+        type:
+          type: string
+          enum:
+          - service_account_default
+          default: service_account_default
+          x-stainless-const: true
+      type: object
+      required:
+      - type
+    RestrictedPermissions:
+      properties:
+        type:
+          type: string
+          enum:
+          - restricted
+          default: restricted
+          x-stainless-const: true
+        scopes:
+          items:
+            type: string
+          type: array
+      type: object
+      required:
+      - type
+      - scopes
+    PlatformFederationRule:
+      properties:
+        object:
+          type: string
+          enum:
+          - organization.workload_identity_federation_rule
+          default: organization.workload_identity_federation_rule
+          x-stainless-const: true
+        id:
+          type: string
+        workload_identity_provider_id:
+          type: string
+        project_id:
+          type: string
+        service_account_id:
+          type: string
+        name:
+          anyOf:
+          - type: string
+          - type: 'null'
+        description:
+          anyOf:
+          - type: string
+          - type: 'null'
+        attribute_matchers:
+          additionalProperties:
+            anyOf:
+            - type: string
+            - type: boolean
+            - anyOf:
+              - type: integer
+              - type: number
+          type: object
+          x-oaiTypeLabel: map
+        permissions:
+          anyOf:
+          - $ref: '#/components/schemas/DefaultPermissions'
+          - $ref: '#/components/schemas/RestrictedPermissions'
+          discriminator:
+            propertyName: type
+        enabled:
+          type: boolean
+        created_at:
+          type: integer
+        updated_at:
+          type: integer
+      type: object
+      required:
+      - object
+      - id
+      - workload_identity_provider_id
+      - project_id
+      - service_account_id
+      - name
+      - description
+      - attribute_matchers
+      - permissions
+      - enabled
+      - created_at
+      - updated_at
+    PlatformFederationRuleListResource:
+      properties:
+        object:
+          type: string
+          enum:
+          - list
+          default: list
+          x-stainless-const: true
+        data:
+          items:
+            $ref: '#/components/schemas/PlatformFederationRule'
+          type: array
+        first_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+        last_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+        has_more:
+          type: boolean
+      type: object
+      required:
+      - object
+      - data
+      - first_id
+      - last_id
+      - has_more
+    DefaultPermissionsParam:
+      properties:
+        type:
+          type: string
+          enum:
+          - service_account_default
+          default: service_account_default
+          x-stainless-const: true
+      type: object
+      required:
+      - type
+    RestrictedPermissionsParam:
+      properties:
+        type:
+          type: string
+          enum:
+          - restricted
+          default: restricted
+          x-stainless-const: true
+        scopes:
+          items:
+            type: string
+          type: array
+          minItems: 1
+      type: object
+      required:
+      - type
+      - scopes
+    CreatePlatformWorkloadIdentityFederationRuleBody:
+      properties:
+        project_id:
+          type: string
+          minLength: 1
+        service_account_id:
+          type: string
+          minLength: 1
+        name:
+          type: string
+        description:
+          type: string
+        attribute_matchers:
+          additionalProperties:
+            anyOf:
+            - type: string
+            - type: boolean
+            - anyOf:
+              - type: integer
+              - type: number
+          type: object
+          x-oaiTypeLabel: map
+        permissions:
+          anyOf:
+          - $ref: '#/components/schemas/DefaultPermissionsParam'
+          - $ref: '#/components/schemas/RestrictedPermissionsParam'
+          discriminator:
+            propertyName: type
+        enabled:
+          type: boolean
+      type: object
+      required:
+      - project_id
+      - service_account_id
+      - attribute_matchers
+    UpdatePlatformWorkloadIdentityFederationRuleBody:
+      properties:
+        name:
+          anyOf:
+          - type: string
+          - type: 'null'
+        description:
+          anyOf:
+          - type: string
+          - type: 'null'
+        attribute_matchers:
+          additionalProperties:
+            anyOf:
+            - type: string
+            - type: boolean
+            - anyOf:
+              - type: integer
+              - type: number
+          type: object
+          x-oaiTypeLabel: map
+        permissions:
+          anyOf:
+          - $ref: '#/components/schemas/DefaultPermissionsParam'
+          - $ref: '#/components/schemas/RestrictedPermissionsParam'
+        enabled:
+          type: boolean
+      type: object
+      required: []
+    PlatformFederationRuleDeletedResource:
+      properties:
+        object:
+          type: string
+          enum:
+          - organization.workload_identity_federation_rule.deleted
+          default: organization.workload_identity_federation_rule.deleted
+          x-stainless-const: true
+        id:
+          type: string
+        deleted:
+          type: boolean
+      type: object
+      required:
+      - object
+      - id
+      - deleted
     DecisionsUsageBucketWidth:
       type: string
       enum:
@@ -83135,6 +83671,68 @@ components:
       - object
       - deleted
       description: Confirmation payload returned after deleting a project hard spend limit.
+    ProjectDefaultServiceTier:
+      type: string
+      enum:
+      - standard
+      - fast
+      - scale
+    ProjectOptionalServiceTier:
+      type: string
+      enum:
+      - flex
+      - fast
+      - ultrafast
+    ProjectServiceTierSettingsResource:
+      properties:
+        object:
+          type: string
+          enum:
+          - project.service_tier_settings
+          default: project.service_tier_settings
+          x-stainless-const: true
+        default:
+          $ref: '#/components/schemas/ProjectDefaultServiceTier'
+          description: Default tier for requests that omit service_tier or use auto.
+        enabled_tiers:
+          description: Additional service tiers enabled for this project. "all" includes future tiers. An empty array allows only Standard. Organization policy and eligibility still apply.
+          anyOf:
+          - type: string
+            enum:
+            - all
+            default: all
+            x-stainless-const: true
+          - items:
+              $ref: '#/components/schemas/ProjectOptionalServiceTier'
+            type: array
+      type: object
+      required:
+      - object
+      - default
+      - enabled_tiers
+    UpdateProjectServiceTierSettingsBody:
+      anyOf:
+      - required:
+        - default
+      - required:
+        - enabled_tiers
+      properties:
+        default:
+          $ref: '#/components/schemas/ProjectDefaultServiceTier'
+          description: Default tier for requests that omit service_tier or use auto.
+        enabled_tiers:
+          description: Additional service tiers enabled for this project. "all" includes future tiers. An empty array allows only Standard. Organization policy and eligibility still apply.
+          anyOf:
+          - type: string
+            enum:
+            - all
+            default: all
+            x-stainless-const: true
+          - items:
+              $ref: '#/components/schemas/ProjectOptionalServiceTier'
+            type: array
+      type: object
+      required: []
     CreateProjectServiceAccountApiKeyBody:
       properties:
         name:
@@ -83858,6 +84456,9 @@ components:
               A system (or developer) message inserted into the model's context.
               When used along with `previous_response_id`, the instructions from a previous response will not be carried over to the next response. This makes it simple to swap out system (or developer) messages in new responses.
           - type: 'null'
+        image:
+          $ref: '#/components/schemas/ImageOptionsParam'
+          description: Request level image options.
         prompt_cache_key:
           anyOf:
           - type: string
@@ -83921,6 +84522,8 @@ components:
       - $ref: '#/components/schemas/CustomToolCallOutput'
     CompactResource:
       properties:
+        image:
+          $ref: '#/components/schemas/ResolvedImageOptions'
         id:
           type: string
           description: The unique identifier for the compacted response.
@@ -88458,8 +89061,6 @@ components:
           - application/zip
           default: application/zip
           x-stainless-const: true
-          x-enumDescriptions:
-          - A ZIP archive.
           description: The archive media type, always `application/zip`.
         data:
           type: string
@@ -90769,8 +91370,6 @@ components:
           - interrupt_subagent_call
           default: interrupt_subagent_call
           x-stainless-const: true
-          x-enumDescriptions:
-          - The current public item type.
           description: The item type. Always `interrupt_subagent_call`.
         id:
           type: string
@@ -90809,8 +91408,6 @@ components:
           - create_subagent_call
           default: create_subagent_call
           x-stainless-const: true
-          x-enumDescriptions:
-          - The current public item type.
           description: The item type. Always `create_subagent_call`.
         id:
           type: string
@@ -90866,8 +91463,6 @@ components:
           - send_subagent_input_call
           default: send_subagent_input_call
           x-stainless-const: true
-          x-enumDescriptions:
-          - The current public item type.
           description: The item type. Always `send_subagent_input_call`.
         id:
           type: string
@@ -90914,8 +91509,6 @@ components:
           - resume_subagent_call
           default: resume_subagent_call
           x-stainless-const: true
-          x-enumDescriptions:
-          - The current public item type.
           description: The item type. Always `resume_subagent_call`.
         id:
           type: string
@@ -90954,8 +91547,6 @@ components:
           - wait_for_subagents_call
           default: wait_for_subagents_call
           x-stainless-const: true
-          x-enumDescriptions:
-          - The current public item type.
           description: The item type. Always `wait_for_subagents_call`.
         id:
           type: string
@@ -90998,8 +91589,6 @@ components:
           - close_subagent_call
           default: close_subagent_call
           x-stainless-const: true
-          x-enumDescriptions:
-          - The current public item type.
           description: The item type. Always `close_subagent_call`.
         id:
           type: string
@@ -91155,6 +91744,7 @@ components:
       type: string
       enum:
       - context_length_exceeded
+      - max_output_tokens
       - session_budget_exceeded
       - usage_limit_exceeded
       - project_spend_limit_exceeded
@@ -91179,6 +91769,7 @@ components:
       - internal_error
       x-enumDescriptions:
       - The request exceeds the model's context window.
+      - The model reached its output token limit before finishing the response.
       - The session has reached its usage budget.
       - The organization has reached a usage, plan, or billing limit.
       - The project has reached its enforced spend limit.
@@ -92661,6 +93252,12 @@ components:
       - deleted
       additionalProperties: false
       description: A deleted reusable environment template.
+    SessionReviewResource:
+      type: string
+      enum:
+      - none
+      - auto_review
+      description: The configured action review mode.
     SessionStatusResource:
       type: string
       enum:
@@ -93052,6 +93649,9 @@ components:
     SessionResource:
       type: object
       properties:
+        review:
+          $ref: '#/components/schemas/SessionReviewResource'
+          description: Review applied to eligible actions in this session. Omitted when review is none and automatic review is not enabled. Omission means none.
         metadata:
           type: object
           additionalProperties:
@@ -93116,9 +93716,6 @@ components:
           - $ref: '#/components/schemas/TokenUsageResource'
           - type: 'null'
           description: Best-effort token usage for the session, or null if unknown. Recorded usage may change.
-        review:
-          $ref: '#/components/schemas/SessionReviewResource'
-          description: Review applied to eligible actions in this session. Omitted when review is none and automatic review is not enabled. Omission means none.
         spend_control:
           $ref: '#/components/schemas/SessionSpendControlResource'
           description: Configured spending limit and best-effort consumption, in USD cents. Unlimited sessions omit this object.
@@ -93177,6 +93774,15 @@ components:
       - has_more
       additionalProperties: false
       description: A page of Agents API resources, with IDs for retrieving additional pages.
+    SessionReviewParam:
+      type: string
+      enum:
+      - none
+      - auto_review
+      x-enumDescriptions:
+      - Keep the existing execution behavior without automatic action review.
+      - Review eligible actions automatically. Deny manual approval fallbacks.
+      description: Review applied to eligible actions in a session.
     CreateSessionInputParam:
       description: Initial input submitted when creating a session.
       anyOf:
@@ -93191,6 +93797,9 @@ components:
     CreateAgentSessionParams:
       type: object
       properties:
+        review:
+          $ref: '#/components/schemas/SessionReviewParam'
+          description: Action review mode. Omit to use none.
         metadata:
           type:
           - object
@@ -93237,9 +93846,6 @@ components:
           type: boolean
           default: false
           description: Whether to stream session events as server-sent events. Defaults to `false`.
-        review:
-          $ref: '#/components/schemas/SessionReviewParam'
-          description: Action review mode. Omit to use none.
         spend_control:
           anyOf:
           - $ref: '#/components/schemas/SessionSpendControlParam'
@@ -94836,6 +95442,15 @@ components:
     UpdateSessionAgentParam:
       type: object
       properties:
+        tools:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/AgentToolConfigParam'
+          minItems: 0
+          maxItems: 16384
+          description: Replaces the session tools. Functions and MCP servers change on the next model call. Built-in tools change by the next turn. Omit to keep the current tools, or pass null or an empty array to clear them.
         model:
           type: string
           minLength: 0
@@ -94850,20 +95465,14 @@ components:
           - type: 'null'
           description: Omit to keep the current tier. Null resets it to auto.
           x-openai-go-optional-enum: true
-        tools:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/AgentToolConfigParam'
-          minItems: 0
-          maxItems: 16384
-          description: Replaces the session tools. Functions and MCP servers change on the next model call. Built-in tools change by the next turn. Omit to keep the current tools, or pass null or an empty array to clear them.
       additionalProperties: false
       description: Agent settings that can change after session creation.
     UpdateAgentSessionParams:
       type: object
       properties:
+        review:
+          $ref: '#/components/schemas/SessionReviewParam'
+          description: Default action review for new root turns. Existing turns and their subagents keep their review mode.
         agent:
           $ref: '#/components/schemas/UpdateSessionAgentParam'
           description: Agent settings to update on this session. Omitted fields stay unchanged.
@@ -94882,9 +95491,6 @@ components:
           minProperties: 0
           maxProperties: 16
           description: Replaces all metadata. Omit to leave unchanged, or pass null or {} to clear it. Up to 16 string key-value pairs, with keys up to 64 and values up to 512 characters.
-        review:
-          $ref: '#/components/schemas/SessionReviewParam'
-          description: Default action review for new root turns. Existing turns and their subagents keep their review mode.
         spend_control:
           anyOf:
           - $ref: '#/components/schemas/SessionSpendControlParam'
@@ -105217,6 +105823,9 @@ components:
               A system (or developer) message inserted into the model's context.
               When used along with `previous_response_id`, the instructions from a previous response will not be carried over to the next response. This makes it simple to swap out system (or developer) messages in new responses.
           - type: 'null'
+        image:
+          $ref: '#/components/schemas/BetaImageOptionsParam'
+          description: Request level image options.
         prompt_cache_key:
           anyOf:
           - type: string
@@ -105277,6 +105886,21 @@ components:
       enum:
       - in_memory
       - 24h
+    BetaImageOptionsParam:
+      properties:
+        context_compression:
+          $ref: '#/components/schemas/BetaImageContextCompression'
+          description: Controls image context optimization. Defaults to `auto`, which uses the model, transport, and input to select a policy. Use `enabled` to require compression support or `disabled` to turn it off.
+      additionalProperties: false
+      type: object
+      required: []
+      description: Request level image options.
+    BetaImageContextCompression:
+      type: string
+      enum:
+      - auto
+      - enabled
+      - disabled
     BetaModelIdsCompaction:
       anyOf:
       - $ref: '#/components/schemas/BetaModelIdsResponses'
@@ -106635,6 +107259,8 @@ components:
         - type
     BetaCompactResource:
       properties:
+        image:
+          $ref: '#/components/schemas/BetaResolvedImageOptions'
         id:
           type: string
           description: The unique identifier for the compacted response.
@@ -106712,6 +107338,18 @@ components:
       - output_tokens
       - output_tokens_details
       - total_tokens
+    BetaCacheWriteTokensDetails:
+      properties:
+        ttl_30m_tokens:
+          type: integer
+          description: The number of input tokens written with 30-minute retention.
+        ttl_12h_tokens:
+          type: integer
+          description: The number of input tokens written with 12-hour retention.
+      type: object
+      required:
+      - ttl_30m_tokens
+      - ttl_12h_tokens
     BetaItemField:
       discriminator:
         propertyName: type
@@ -106814,6 +107452,19 @@ components:
       - in_progress
       - completed
       - incomplete
+    BetaResolvedImageOptions:
+      properties:
+        context_compression:
+          $ref: '#/components/schemas/BetaResolvedImageContextCompressionEnum'
+          description: Effective image context optimization policy.
+      type: object
+      required:
+      - context_compression
+    BetaResolvedImageContextCompressionEnum:
+      type: string
+      enum:
+      - enabled
+      - disabled
     BetaResponseCustomToolCallInputDoneEvent:
       title: ResponseCustomToolCallInputDone
       type: object
@@ -106966,6 +107617,8 @@ components:
       - $ref: '#/components/schemas/BetaResponseProperties'
       - type: object
         properties:
+          image:
+            $ref: '#/components/schemas/BetaResolvedImageOptions'
           service_tier:
             $ref: '#/components/schemas/BetaServiceTierResponses'
           truncation:
@@ -107335,11 +107988,11 @@ components:
     BetaPromptCacheOptions:
       properties:
         ttl:
-          description: The minimum lifetime applied to each cache breakpoint.
           type: string
           enum:
           - 30m
           - 12h
+          description: The minimum lifetime applied to each cache breakpoint.
         mode:
           $ref: '#/components/schemas/BetaPromptCacheModeEnum'
           description: Whether implicit prompt-cache breakpoints were enabled.
@@ -112283,6 +112936,12 @@ components:
             description: |
               The type of the client event. Always `response.create`.
             x-stainless-const: true
+          generate:
+            type: boolean
+            description: |
+              Whether to generate output for this response. Defaults to true when omitted.
+              Set to false to prepare request state without model output; the response
+              ID can be used as previous_response_id on a later turn.
           stream_id:
             type: string
             minLength: 1
@@ -112296,12 +112955,6 @@ components:
               `stream_id` controls routing; `previous_response_id` controls
               conversation lineage, so a new lane can fork from a response created
               on another lane.
-          generate:
-            type: boolean
-            description: |
-              Whether to generate output for this response. Defaults to true when omitted.
-              Set to false to prepare request state without model output; the response
-              ID can be used as previous_response_id on a later turn.
         required:
         - type
       - $ref: '#/components/schemas/BetaCreateResponse'
@@ -112330,6 +112983,8 @@ components:
         properties:
           access_programs:
             $ref: '#/components/schemas/BetaAccessProgramsParam'
+          image:
+            $ref: '#/components/schemas/BetaImageOptionsParam'
           prompt_cache_options:
             $ref: '#/components/schemas/BetaResponsePromptCacheOptionsParam'
           service_tier:
@@ -112538,11 +113193,11 @@ components:
     BetaResponsePromptCacheOptionsParam:
       properties:
         ttl:
-          description: The minimum lifetime applied to every implicit and explicit cache breakpoint written by the request. Supported values are `30m` (the default) and `12h`. The backend may retain cache entries for longer.
           type: string
           enum:
           - 30m
           - 12h
+          description: The minimum lifetime applied to every implicit and explicit cache breakpoint written by the request. Supported values are `30m` (the default) and `12h`. The backend may retain cache entries for longer.
         mode:
           $ref: '#/components/schemas/BetaPromptCacheModeEnum'
           description: Controls whether OpenAI automatically creates an implicit cache breakpoint. Defaults to `implicit`. With `implicit`, OpenAI creates one implicit breakpoint and writes up to the latest three explicit breakpoints in the request. With `explicit`, OpenAI does not create an implicit breakpoint and writes up to the latest four explicit breakpoints. If there are no explicit breakpoints, the request does not use prompt caching.
@@ -112649,563 +113304,6 @@ components:
       - $ref: '#/components/schemas/BetaResponseCustomToolCallInputDoneEvent'
       discriminator:
         propertyName: type
-    SessionReviewParam:
-      type: string
-      enum:
-      - none
-      - auto_review
-      x-enumDescriptions:
-      - Keep the existing execution behavior without automatic action review.
-      - Review eligible actions automatically. Deny manual approval fallbacks.
-      description: Review applied to eligible actions in a session.
-    SessionReviewResource:
-      type: string
-      enum:
-      - none
-      - auto_review
-      description: The configured action review mode.
-    PlatformProviderListResource:
-      properties:
-        object:
-          type: string
-          enum:
-          - list
-          default: list
-          x-stainless-const: true
-        data:
-          items:
-            $ref: '#/components/schemas/PlatformProvider'
-          type: array
-        first_id:
-          anyOf:
-          - type: string
-          - type: 'null'
-        last_id:
-          anyOf:
-          - type: string
-          - type: 'null'
-        has_more:
-          type: boolean
-      type: object
-      required:
-      - object
-      - data
-      - first_id
-      - last_id
-      - has_more
-    PlatformProvider:
-      properties:
-        object:
-          type: string
-          enum:
-          - organization.workload_identity_provider
-          default: organization.workload_identity_provider
-          x-stainless-const: true
-        id:
-          type: string
-        type:
-          type: string
-          enum:
-          - oidc
-          default: oidc
-          x-stainless-const: true
-        name:
-          type: string
-        issuer:
-          type: string
-        audience:
-          type: string
-        verification:
-          anyOf:
-          - $ref: '#/components/schemas/DiscoveryVerification'
-          - $ref: '#/components/schemas/UploadedJwksVerification'
-          discriminator:
-            propertyName: type
-        description:
-          anyOf:
-          - type: string
-          - type: 'null'
-        attribute_transformations:
-          items:
-            $ref: '#/components/schemas/Transformation'
-          type: array
-        enabled:
-          type: boolean
-        created_at:
-          type: integer
-        updated_at:
-          type: integer
-      type: object
-      required:
-      - object
-      - id
-      - type
-      - name
-      - issuer
-      - audience
-      - verification
-      - description
-      - attribute_transformations
-      - enabled
-      - created_at
-      - updated_at
-    DiscoveryVerification:
-      properties:
-        type:
-          type: string
-          enum:
-          - discovery
-          default: discovery
-          x-stainless-const: true
-        discovery_url:
-          anyOf:
-          - type: string
-          - type: 'null'
-      type: object
-      required:
-      - type
-      - discovery_url
-    UploadedJwksVerification:
-      properties:
-        type:
-          type: string
-          enum:
-          - uploaded_jwks
-          default: uploaded_jwks
-          x-stainless-const: true
-        jwks:
-          additionalProperties: {}
-          type: object
-          x-oaiTypeLabel: map
-      type: object
-      required:
-      - type
-      - jwks
-    Transformation:
-      properties:
-        attribute:
-          type: string
-        expression:
-          type: string
-      type: object
-      required:
-      - attribute
-      - expression
-    CreatePlatformWorkloadIdentityProviderBody:
-      properties:
-        name:
-          type: string
-          minLength: 1
-        type:
-          type: string
-          enum:
-          - oidc
-          default: oidc
-          x-stainless-const: true
-        issuer:
-          type: string
-          minLength: 1
-        audience:
-          type: string
-          minLength: 1
-        verification:
-          anyOf:
-          - $ref: '#/components/schemas/DiscoveryVerificationParam'
-          - $ref: '#/components/schemas/UploadedJwksVerificationParam'
-          discriminator:
-            propertyName: type
-        description:
-          type: string
-        attribute_transformations:
-          items:
-            $ref: '#/components/schemas/TransformationParam'
-          type: array
-          maxItems: 20
-        enabled:
-          type: boolean
-      type: object
-      required:
-      - name
-      - type
-      - issuer
-      - audience
-    DiscoveryVerificationParam:
-      properties:
-        type:
-          type: string
-          enum:
-          - discovery
-          default: discovery
-          x-stainless-const: true
-        discovery_url:
-          anyOf:
-          - type: string
-          - type: 'null'
-      type: object
-      required:
-      - type
-      - discovery_url
-    UploadedJwksVerificationParam:
-      properties:
-        type:
-          type: string
-          enum:
-          - uploaded_jwks
-          default: uploaded_jwks
-          x-stainless-const: true
-        jwks:
-          additionalProperties: {}
-          type: object
-          x-oaiTypeLabel: map
-      type: object
-      required:
-      - type
-      - jwks
-    TransformationParam:
-      properties:
-        attribute:
-          type: string
-          maxLength: 256
-          minLength: 1
-        expression:
-          type: string
-          maxLength: 4096
-          minLength: 1
-      type: object
-      required:
-      - attribute
-      - expression
-    UpdatePlatformWorkloadIdentityProviderBody:
-      properties:
-        name:
-          type: string
-          minLength: 1
-        issuer:
-          type: string
-          minLength: 1
-        audience:
-          type: string
-          minLength: 1
-        verification:
-          anyOf:
-          - $ref: '#/components/schemas/DiscoveryVerificationParam'
-          - $ref: '#/components/schemas/UploadedJwksVerificationParam'
-        description:
-          anyOf:
-          - type: string
-          - type: 'null'
-        attribute_transformations:
-          items:
-            $ref: '#/components/schemas/TransformationParam'
-          type: array
-          maxItems: 20
-        enabled:
-          type: boolean
-      type: object
-      required: []
-    PlatformProviderDeletedResource:
-      properties:
-        object:
-          type: string
-          enum:
-          - organization.workload_identity_provider.deleted
-          default: organization.workload_identity_provider.deleted
-          x-stainless-const: true
-        id:
-          type: string
-        deleted:
-          type: boolean
-      type: object
-      required:
-      - object
-      - id
-      - deleted
-    PlatformFederationRuleListResource:
-      properties:
-        object:
-          type: string
-          enum:
-          - list
-          default: list
-          x-stainless-const: true
-        data:
-          items:
-            $ref: '#/components/schemas/PlatformFederationRule'
-          type: array
-        first_id:
-          anyOf:
-          - type: string
-          - type: 'null'
-        last_id:
-          anyOf:
-          - type: string
-          - type: 'null'
-        has_more:
-          type: boolean
-      type: object
-      required:
-      - object
-      - data
-      - first_id
-      - last_id
-      - has_more
-    PlatformFederationRule:
-      properties:
-        object:
-          type: string
-          enum:
-          - organization.workload_identity_federation_rule
-          default: organization.workload_identity_federation_rule
-          x-stainless-const: true
-        id:
-          type: string
-        workload_identity_provider_id:
-          type: string
-        project_id:
-          type: string
-        service_account_id:
-          type: string
-        name:
-          anyOf:
-          - type: string
-          - type: 'null'
-        description:
-          anyOf:
-          - type: string
-          - type: 'null'
-        attribute_matchers:
-          additionalProperties:
-            anyOf:
-            - type: string
-            - type: boolean
-            - anyOf:
-              - type: integer
-              - type: number
-          type: object
-          x-oaiTypeLabel: map
-        permissions:
-          anyOf:
-          - $ref: '#/components/schemas/DefaultPermissions'
-          - $ref: '#/components/schemas/RestrictedPermissions'
-          discriminator:
-            propertyName: type
-        enabled:
-          type: boolean
-        created_at:
-          type: integer
-        updated_at:
-          type: integer
-      type: object
-      required:
-      - object
-      - id
-      - workload_identity_provider_id
-      - project_id
-      - service_account_id
-      - name
-      - description
-      - attribute_matchers
-      - permissions
-      - enabled
-      - created_at
-      - updated_at
-    DefaultPermissions:
-      properties:
-        type:
-          type: string
-          enum:
-          - service_account_default
-          default: service_account_default
-          x-stainless-const: true
-      type: object
-      required:
-      - type
-    RestrictedPermissions:
-      properties:
-        type:
-          type: string
-          enum:
-          - restricted
-          default: restricted
-          x-stainless-const: true
-        scopes:
-          items:
-            type: string
-          type: array
-      type: object
-      required:
-      - type
-      - scopes
-    CreatePlatformWorkloadIdentityFederationRuleBody:
-      properties:
-        project_id:
-          type: string
-          minLength: 1
-        service_account_id:
-          type: string
-          minLength: 1
-        name:
-          type: string
-        description:
-          type: string
-        attribute_matchers:
-          additionalProperties:
-            anyOf:
-            - type: string
-            - type: boolean
-            - anyOf:
-              - type: integer
-              - type: number
-          type: object
-          x-oaiTypeLabel: map
-        permissions:
-          anyOf:
-          - $ref: '#/components/schemas/DefaultPermissionsParam'
-          - $ref: '#/components/schemas/RestrictedPermissionsParam'
-          discriminator:
-            propertyName: type
-        enabled:
-          type: boolean
-      type: object
-      required:
-      - project_id
-      - service_account_id
-      - attribute_matchers
-    DefaultPermissionsParam:
-      properties:
-        type:
-          type: string
-          enum:
-          - service_account_default
-          default: service_account_default
-          x-stainless-const: true
-      type: object
-      required:
-      - type
-    RestrictedPermissionsParam:
-      properties:
-        type:
-          type: string
-          enum:
-          - restricted
-          default: restricted
-          x-stainless-const: true
-        scopes:
-          items:
-            type: string
-          type: array
-          minItems: 1
-      type: object
-      required:
-      - type
-      - scopes
-    UpdatePlatformWorkloadIdentityFederationRuleBody:
-      properties:
-        name:
-          anyOf:
-          - type: string
-          - type: 'null'
-        description:
-          anyOf:
-          - type: string
-          - type: 'null'
-        attribute_matchers:
-          additionalProperties:
-            anyOf:
-            - type: string
-            - type: boolean
-            - anyOf:
-              - type: integer
-              - type: number
-          type: object
-          x-oaiTypeLabel: map
-        permissions:
-          anyOf:
-          - $ref: '#/components/schemas/DefaultPermissionsParam'
-          - $ref: '#/components/schemas/RestrictedPermissionsParam'
-        enabled:
-          type: boolean
-      type: object
-      required: []
-    PlatformFederationRuleDeletedResource:
-      properties:
-        object:
-          type: string
-          enum:
-          - organization.workload_identity_federation_rule.deleted
-          default: organization.workload_identity_federation_rule.deleted
-          x-stainless-const: true
-        id:
-          type: string
-        deleted:
-          type: boolean
-      type: object
-      required:
-      - object
-      - id
-      - deleted
-    ProjectServiceTierSettingsResource:
-      properties:
-        object:
-          type: string
-          enum:
-          - project.service_tier_settings
-          default: project.service_tier_settings
-          x-stainless-const: true
-        default:
-          $ref: '#/components/schemas/ProjectDefaultServiceTier'
-          description: Default tier for requests that omit service_tier or use auto.
-        enabled_tiers:
-          description: Additional service tiers enabled for this project. "all" includes future tiers. An empty array allows only Standard. Organization policy and eligibility still apply.
-          anyOf:
-          - type: string
-            enum:
-            - all
-            default: all
-            x-stainless-const: true
-          - items:
-              $ref: '#/components/schemas/ProjectOptionalServiceTier'
-            type: array
-      type: object
-      required:
-      - object
-      - default
-      - enabled_tiers
-    UpdateProjectServiceTierSettingsBody:
-      anyOf:
-      - required:
-        - default
-      - required:
-        - enabled_tiers
-      properties:
-        default:
-          $ref: '#/components/schemas/ProjectDefaultServiceTier'
-          description: Default tier for requests that omit service_tier or use auto.
-        enabled_tiers:
-          description: Additional service tiers enabled for this project. "all" includes future tiers. An empty array allows only Standard. Organization policy and eligibility still apply.
-          anyOf:
-          - type: string
-            enum:
-            - all
-            default: all
-            x-stainless-const: true
-          - items:
-              $ref: '#/components/schemas/ProjectOptionalServiceTier'
-            type: array
-      type: object
-      required: []
-    ProjectDefaultServiceTier:
-      type: string
-      enum:
-      - standard
-      - fast
-      - scale
-    ProjectOptionalServiceTier:
-      type: string
-      enum:
-      - flex
-      - fast
-      - ultrafast
     SessionSpendControlResource:
       type: object
       properties:
@@ -113651,33 +113749,6 @@ components:
         gpt-5.1-mini:
           message: Not a supported model ID. Retained for SDK compatibility.
       x-stainless-nominal: false
-    LiveBuiltInVoice:
-      type: string
-      enum:
-      - alloy
-      - ash
-      - ballad
-      - beacon
-      - bossa
-      - cedar
-      - cinder
-      - coral
-      - delta
-      - echo
-      - gleam
-      - marin
-      - meridian
-      - quartz
-      - ripple
-      - sage
-      - shida
-      - shimmer
-      - stone
-      - tempo
-      - verse
-      - vesper
-      - willow
-      description: A built-in voice available for Live speech.
   responses:
     TooManyRequests:
       description: The request was rejected because a rate limit was exceeded.
