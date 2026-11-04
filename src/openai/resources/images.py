@@ -200,7 +200,7 @@ class Images(SyncAPIResource):
 
           markup: A transparent PNG overlaid on the first image to guide the edit. Must match that
               image's dimensions after orientation and contain transparent pixels. Supports
-              GPT Image 2.5 and 2.6. Cannot be combined with mask.
+              GPT Image 2.5. Cannot be combined with mask.
 
           mask: An additional image whose fully transparent areas (e.g. where alpha is zero)
               indicate where `image` should be edited. If there are multiple images provided,
@@ -364,7 +364,7 @@ class Images(SyncAPIResource):
 
           markup: A transparent PNG overlaid on the first image to guide the edit. Must match that
               image's dimensions after orientation and contain transparent pixels. Supports
-              GPT Image 2.5 and 2.6. Cannot be combined with mask.
+              GPT Image 2.5. Cannot be combined with mask.
 
           mask: An additional image whose fully transparent areas (e.g. where alpha is zero)
               indicate where `image` should be edited. If there are multiple images provided,
@@ -524,7 +524,7 @@ class Images(SyncAPIResource):
 
           markup: A transparent PNG overlaid on the first image to guide the edit. Must match that
               image's dimensions after orientation and contain transparent pixels. Supports
-              GPT Image 2.5 and 2.6. Cannot be combined with mask.
+              GPT Image 2.5. Cannot be combined with mask.
 
           mask: An additional image whose fully transparent areas (e.g. where alpha is zero)
               indicate where `image` should be edited. If there are multiple images provided,
@@ -1376,7 +1376,7 @@ class AsyncImages(AsyncAPIResource):
 
           markup: A transparent PNG overlaid on the first image to guide the edit. Must match that
               image's dimensions after orientation and contain transparent pixels. Supports
-              GPT Image 2.5 and 2.6. Cannot be combined with mask.
+              GPT Image 2.5. Cannot be combined with mask.
 
           mask: An additional image whose fully transparent areas (e.g. where alpha is zero)
               indicate where `image` should be edited. If there are multiple images provided,
@@ -1540,7 +1540,7 @@ class AsyncImages(AsyncAPIResource):
 
           markup: A transparent PNG overlaid on the first image to guide the edit. Must match that
               image's dimensions after orientation and contain transparent pixels. Supports
-              GPT Image 2.5 and 2.6. Cannot be combined with mask.
+              GPT Image 2.5. Cannot be combined with mask.
 
           mask: An additional image whose fully transparent areas (e.g. where alpha is zero)
               indicate where `image` should be edited. If there are multiple images provided,
@@ -1700,7 +1700,7 @@ class AsyncImages(AsyncAPIResource):
 
           markup: A transparent PNG overlaid on the first image to guide the edit. Must match that
               image's dimensions after orientation and contain transparent pixels. Supports
-              GPT Image 2.5 and 2.6. Cannot be combined with mask.
+              GPT Image 2.5. Cannot be combined with mask.
 
           mask: An additional image whose fully transparent areas (e.g. where alpha is zero)
               indicate where `image` should be edited. If there are multiple images provided,

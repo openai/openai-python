@@ -14,10 +14,7 @@ class InlineCapabilitySourceParam(TypedDict, total=False):
     """Standard-base64 encoded ZIP archive bytes."""
 
     media_type: Required[Literal["application/zip"]]
-    """The archive media type, always `application/zip`.
-
-    - `application/zip` - A ZIP archive.
-    """
+    """The archive media type, always `application/zip`."""
 
     type: Required[Literal["base64"]]
     """The type of the object. Always `base64`."""

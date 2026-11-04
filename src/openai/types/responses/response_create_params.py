@@ -29,6 +29,7 @@ __all__ = [
     "AccessPrograms",
     "ContextManagement",
     "Conversation",
+    "Image",
     "Moderation",
     "ModerationPolicy",
     "ModerationPolicyInput",
@@ -62,6 +63,9 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     request. Input items and output items from this response are automatically added
     to this conversation after this response completes.
     """
+
+    image: Image
+    """Request level image options."""
 
     include: Optional[List[ResponseIncludable]]
     """Specify additional output data to include in the model response.
@@ -367,6 +371,18 @@ class ContextManagement(TypedDict, total=False):
 
 
 Conversation: TypeAlias = Union[str, ResponseConversationParamParam]
+
+
+class Image(TypedDict, total=False):
+    """Request level image options."""
+
+    context_compression: Literal["auto", "enabled", "disabled"]
+    """Controls image context optimization.
+
+    Defaults to `auto`, which uses the model, transport, and input to select a
+    policy. Use `enabled` to require compression support or `disabled` to turn it
+    off.
+    """
 
 
 class ModerationPolicyInput(TypedDict, total=False):

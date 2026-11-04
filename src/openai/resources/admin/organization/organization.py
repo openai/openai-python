@@ -167,6 +167,10 @@ class Organization(SyncAPIResource):
         return ExternalKeys(self._client)
 
     @cached_property
+    def workload_identity_providers(self) -> WorkloadIdentityProviders:
+        return WorkloadIdentityProviders(self._client)
+
+    @cached_property
     def external_storage(self) -> ExternalStorage:
         return ExternalStorage(self._client)
 
@@ -185,10 +189,6 @@ class Organization(SyncAPIResource):
     @cached_property
     def projects(self) -> Projects:
         return Projects(self._client)
-
-    @cached_property
-    def workload_identity_providers(self) -> WorkloadIdentityProviders:
-        return WorkloadIdentityProviders(self._client)
 
     @cached_property
     def with_raw_response(self) -> OrganizationWithRawResponse:
@@ -249,6 +249,10 @@ class AsyncOrganization(AsyncAPIResource):
         return AsyncExternalKeys(self._client)
 
     @cached_property
+    def workload_identity_providers(self) -> AsyncWorkloadIdentityProviders:
+        return AsyncWorkloadIdentityProviders(self._client)
+
+    @cached_property
     def external_storage(self) -> AsyncExternalStorage:
         return AsyncExternalStorage(self._client)
 
@@ -267,10 +271,6 @@ class AsyncOrganization(AsyncAPIResource):
     @cached_property
     def projects(self) -> AsyncProjects:
         return AsyncProjects(self._client)
-
-    @cached_property
-    def workload_identity_providers(self) -> AsyncWorkloadIdentityProviders:
-        return AsyncWorkloadIdentityProviders(self._client)
 
     @cached_property
     def with_raw_response(self) -> AsyncOrganizationWithRawResponse:
@@ -334,6 +334,10 @@ class OrganizationWithRawResponse:
         return ExternalKeysWithRawResponse(self._organization.external_keys)
 
     @cached_property
+    def workload_identity_providers(self) -> WorkloadIdentityProvidersWithRawResponse:
+        return WorkloadIdentityProvidersWithRawResponse(self._organization.workload_identity_providers)
+
+    @cached_property
     def external_storage(self) -> ExternalStorageWithRawResponse:
         return ExternalStorageWithRawResponse(self._organization.external_storage)
 
@@ -352,10 +356,6 @@ class OrganizationWithRawResponse:
     @cached_property
     def projects(self) -> ProjectsWithRawResponse:
         return ProjectsWithRawResponse(self._organization.projects)
-
-    @cached_property
-    def workload_identity_providers(self) -> WorkloadIdentityProvidersWithRawResponse:
-        return WorkloadIdentityProvidersWithRawResponse(self._organization.workload_identity_providers)
 
 
 class AsyncOrganizationWithRawResponse:
@@ -400,6 +400,10 @@ class AsyncOrganizationWithRawResponse:
         return AsyncExternalKeysWithRawResponse(self._organization.external_keys)
 
     @cached_property
+    def workload_identity_providers(self) -> AsyncWorkloadIdentityProvidersWithRawResponse:
+        return AsyncWorkloadIdentityProvidersWithRawResponse(self._organization.workload_identity_providers)
+
+    @cached_property
     def external_storage(self) -> AsyncExternalStorageWithRawResponse:
         return AsyncExternalStorageWithRawResponse(self._organization.external_storage)
 
@@ -418,10 +422,6 @@ class AsyncOrganizationWithRawResponse:
     @cached_property
     def projects(self) -> AsyncProjectsWithRawResponse:
         return AsyncProjectsWithRawResponse(self._organization.projects)
-
-    @cached_property
-    def workload_identity_providers(self) -> AsyncWorkloadIdentityProvidersWithRawResponse:
-        return AsyncWorkloadIdentityProvidersWithRawResponse(self._organization.workload_identity_providers)
 
 
 class OrganizationWithStreamingResponse:
@@ -466,6 +466,10 @@ class OrganizationWithStreamingResponse:
         return ExternalKeysWithStreamingResponse(self._organization.external_keys)
 
     @cached_property
+    def workload_identity_providers(self) -> WorkloadIdentityProvidersWithStreamingResponse:
+        return WorkloadIdentityProvidersWithStreamingResponse(self._organization.workload_identity_providers)
+
+    @cached_property
     def external_storage(self) -> ExternalStorageWithStreamingResponse:
         return ExternalStorageWithStreamingResponse(self._organization.external_storage)
 
@@ -484,10 +488,6 @@ class OrganizationWithStreamingResponse:
     @cached_property
     def projects(self) -> ProjectsWithStreamingResponse:
         return ProjectsWithStreamingResponse(self._organization.projects)
-
-    @cached_property
-    def workload_identity_providers(self) -> WorkloadIdentityProvidersWithStreamingResponse:
-        return WorkloadIdentityProvidersWithStreamingResponse(self._organization.workload_identity_providers)
 
 
 class AsyncOrganizationWithStreamingResponse:
@@ -532,6 +532,10 @@ class AsyncOrganizationWithStreamingResponse:
         return AsyncExternalKeysWithStreamingResponse(self._organization.external_keys)
 
     @cached_property
+    def workload_identity_providers(self) -> AsyncWorkloadIdentityProvidersWithStreamingResponse:
+        return AsyncWorkloadIdentityProvidersWithStreamingResponse(self._organization.workload_identity_providers)
+
+    @cached_property
     def external_storage(self) -> AsyncExternalStorageWithStreamingResponse:
         return AsyncExternalStorageWithStreamingResponse(self._organization.external_storage)
 
@@ -550,7 +554,3 @@ class AsyncOrganizationWithStreamingResponse:
     @cached_property
     def projects(self) -> AsyncProjectsWithStreamingResponse:
         return AsyncProjectsWithStreamingResponse(self._organization.projects)
-
-    @cached_property
-    def workload_identity_providers(self) -> AsyncWorkloadIdentityProvidersWithStreamingResponse:
-        return AsyncWorkloadIdentityProvidersWithStreamingResponse(self._organization.workload_identity_providers)

@@ -37,6 +37,7 @@ class TestResponses:
                 }
             ],
             conversation="string",
+            image={"context_compression": "auto"},
             include=["file_search_call.results"],
             input="string",
             instructions="instructions",
@@ -144,6 +145,7 @@ class TestResponses:
                 }
             ],
             conversation="string",
+            image={"context_compression": "auto"},
             include=["file_search_call.results"],
             input="string",
             instructions="instructions",
@@ -425,6 +427,7 @@ class TestResponses:
     def test_method_compact_with_all_params(self, client: OpenAI) -> None:
         response = client.responses.compact(
             model="gpt-6-astra",
+            image={"context_compression": "auto"},
             input="string",
             instructions="instructions",
             previous_response_id="resp_123",
@@ -485,6 +488,7 @@ class TestAsyncResponses:
                 }
             ],
             conversation="string",
+            image={"context_compression": "auto"},
             include=["file_search_call.results"],
             input="string",
             instructions="instructions",
@@ -592,6 +596,7 @@ class TestAsyncResponses:
                 }
             ],
             conversation="string",
+            image={"context_compression": "auto"},
             include=["file_search_call.results"],
             input="string",
             instructions="instructions",
@@ -873,6 +878,7 @@ class TestAsyncResponses:
     async def test_method_compact_with_all_params(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.responses.compact(
             model="gpt-6-astra",
+            image={"context_compression": "auto"},
             input="string",
             instructions="instructions",
             previous_response_id="resp_123",

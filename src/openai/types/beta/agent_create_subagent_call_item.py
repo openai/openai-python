@@ -35,7 +35,4 @@ class AgentCreateSubagentCallItem(BaseModel):
     """The ID of the turn that contains this item."""
 
     type: Literal["create_subagent_call"]
-    """The item type. Always `create_subagent_call`.
-
-    - `create_subagent_call` - The current public item type.
-    """
+    """The item type. Always `create_subagent_call`."""

@@ -33,6 +33,7 @@ __all__ = [
     "ToolChoice",
     "ToolChoiceSpecificProgrammaticToolCallingParam",
     "Conversation",
+    "Image",
     "Moderation",
     "ModerationInput",
     "ModerationInputModerationResult",
@@ -98,6 +99,11 @@ class Conversation(BaseModel):
 
     id: str
     """The unique ID of the conversation that this response was associated with."""
+
+
+class Image(BaseModel):
+    context_compression: Literal["enabled", "disabled"]
+    """Effective image context optimization policy."""
 
 
 class ModerationInputModerationResult(BaseModel):
@@ -473,6 +479,8 @@ class Response(BaseModel):
     Input items and output items from this response were automatically added to this
     conversation.
     """
+
+    image: Optional[Image] = None
 
     max_output_tokens: Optional[int] = None
     """
