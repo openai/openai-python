@@ -11,7 +11,7 @@ install this source and the browser dependency:
 ```sh
 python3 -m venv .venv-browser
 . .venv-browser/bin/activate
-python -m pip install -e . playwright==1.63.0
+python -m pip install -e . playwright==1.64.1
 python -m playwright install chromium
 ```
 
