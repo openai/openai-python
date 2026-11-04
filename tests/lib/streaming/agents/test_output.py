@@ -339,7 +339,8 @@ def test_pattern_keyed_mapping_matches_responses() -> None:
     from pydantic import constr
 
     key_type = cast(Any, constr)(**{("regex" if PYDANTIC_V1 else "pattern"): "^item_"})
-    model = type("PatternMapping", (BaseModel,), {"__annotations__": {"values": dict[key_type, str]}})
+    mapping_type = dict.__class_getitem__((key_type, str))
+    model = type("PatternMapping", (BaseModel,), {"__annotations__": {"values": mapping_type}})
     schema = _assert_matches_responses(model)
     assert schema["properties"]["values"]["patternProperties"] == {"^item_": {"type": "string"}}
 

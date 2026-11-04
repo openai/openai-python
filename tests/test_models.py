@@ -894,7 +894,7 @@ def test_discriminated_unions_invalid_data_uses_cache() -> None:
     assert not DISCRIMINATOR_CACHE.get(UnionType)
 
     m = construct_type(
-        value={"type": "b", "data": "foo"}, type_=cast(Any, Annotated[UnionType, PropertyInfo(discriminator="type")])
+        value={"type": "b", "data": "foo"}, type_=cast(Any, Annotated[Union[A, B], PropertyInfo(discriminator="type")])
     )
     assert isinstance(m, B)
     assert m.type == "b"
@@ -904,7 +904,7 @@ def test_discriminated_unions_invalid_data_uses_cache() -> None:
     assert discriminator is not None
 
     m = construct_type(
-        value={"type": "b", "data": "foo"}, type_=cast(Any, Annotated[UnionType, PropertyInfo(discriminator="type")])
+        value={"type": "b", "data": "foo"}, type_=cast(Any, Annotated[Union[A, B], PropertyInfo(discriminator="type")])
     )
     assert isinstance(m, B)
     assert m.type == "b"
