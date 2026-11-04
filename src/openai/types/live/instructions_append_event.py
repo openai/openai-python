@@ -10,7 +10,7 @@ __all__ = ["InstructionsAppendEvent"]
 
 class InstructionsAppendEvent(BaseModel):
     """
-    Append instructions to the Live conversation while it is running, optionally associating them with an existing client delegation.
+    Append developer instructions to the Live conversation while it is running, optionally associating them with an existing client delegation. Rejected while an audio fixture is active. These instructions remain in conversation history through compaction and are included in future backend delegations. For external audio, describe content already delivered so the assistant does not repeat it.
     """
 
     content: str

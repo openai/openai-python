@@ -7,6 +7,7 @@ from typing_extensions import TypeAlias
 
 from .session_close_event_param import SessionCloseEventParam
 from .session_update_event_param import SessionUpdateEventParam
+from .decision_create_event_param import DecisionCreateEventParam
 from .response_create_event_param import ResponseCreateEventParam
 from .thinking_append_event_param import ThinkingAppendEventParam
 from .input_audio_mute_event_param import InputAudioMuteEventParam
@@ -15,7 +16,10 @@ from .fork_session_start_event_param import ForkSessionStartEventParam
 from .input_audio_append_event_param import InputAudioAppendEventParam
 from .input_audio_unmute_event_param import InputAudioUnmuteEventParam
 from .instructions_append_event_param import InstructionsAppendEventParam
+from .decision_item_create_event_param import DecisionItemCreateEventParam
+from .decision_item_delete_event_param import DecisionItemDeleteEventParam
 from .response_item_create_event_param import ResponseItemCreateEventParam
+from .output_audio_fixture_play_event_param import OutputAudioFixturePlayEventParam
 
 __all__ = ["ForkClientEventParam"]
 
@@ -25,9 +29,13 @@ ForkClientEventParam: TypeAlias = Union[
     InputAudioAppendEventParam,
     InputAudioMuteEventParam,
     InputAudioUnmuteEventParam,
+    OutputAudioFixturePlayEventParam,
     InstructionsAppendEventParam,
     ThinkingAppendEventParam,
     CommentaryAppendEventParam,
+    DecisionCreateEventParam,
+    DecisionItemCreateEventParam,
+    DecisionItemDeleteEventParam,
     ResponseItemCreateEventParam,
     ResponseCreateEventParam,
     SessionCloseEventParam,

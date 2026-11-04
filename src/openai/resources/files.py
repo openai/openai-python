@@ -373,7 +373,7 @@ class Files(SyncAPIResource):
         poll_interval: float = 5.0,
         max_wait_seconds: float = 30 * 60,
     ) -> FileObject:
-        """Waits for the given file to be processed, default timeout is 30 mins."""
+        "Waits for the given file to be processed, default timeout is 30 mins."
         return _wait_for_file_processing(self, id, poll_interval=poll_interval, max_wait_seconds=max_wait_seconds)
 
 
@@ -714,7 +714,7 @@ class AsyncFiles(AsyncAPIResource):
         poll_interval: float = 5.0,
         max_wait_seconds: float = 30 * 60,
     ) -> FileObject:
-        """Waits for the given file to be processed, default timeout is 30 mins."""
+        "Waits for the given file to be processed, default timeout is 30 mins."
         return await _async_wait_for_file_processing(
             self, id, poll_interval=poll_interval, max_wait_seconds=max_wait_seconds
         )
@@ -739,10 +739,8 @@ class FilesWithRawResponse:
         self.content = _legacy_response.to_raw_response_wrapper(
             files.content,
         )
-        self.retrieve_content = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.to_raw_response_wrapper(
-                files.retrieve_content,  # pyright: ignore[reportDeprecated],
-            )
+        self.retrieve_content = _legacy_response.to_raw_response_wrapper(
+            files.retrieve_content,
         )
 
 
@@ -765,10 +763,8 @@ class AsyncFilesWithRawResponse:
         self.content = _legacy_response.async_to_raw_response_wrapper(
             files.content,
         )
-        self.retrieve_content = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.async_to_raw_response_wrapper(
-                files.retrieve_content,  # pyright: ignore[reportDeprecated],
-            )
+        self.retrieve_content = _legacy_response.async_to_raw_response_wrapper(
+            files.retrieve_content,
         )
 
 
@@ -792,10 +788,8 @@ class FilesWithStreamingResponse:
             files.content,
             StreamedBinaryAPIResponse,
         )
-        self.retrieve_content = (  # pyright: ignore[reportDeprecated]
-            to_streamed_response_wrapper(
-                files.retrieve_content,  # pyright: ignore[reportDeprecated],
-            )
+        self.retrieve_content = to_streamed_response_wrapper(
+            files.retrieve_content,
         )
 
 
@@ -819,8 +813,6 @@ class AsyncFilesWithStreamingResponse:
             files.content,
             AsyncStreamedBinaryAPIResponse,
         )
-        self.retrieve_content = (  # pyright: ignore[reportDeprecated]
-            async_to_streamed_response_wrapper(
-                files.retrieve_content,  # pyright: ignore[reportDeprecated],
-            )
+        self.retrieve_content = async_to_streamed_response_wrapper(
+            files.retrieve_content,
         )

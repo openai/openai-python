@@ -26,8 +26,10 @@ from .beta_response_conversation_param import BetaResponseConversationParam
 __all__ = [
     "BetaResponsesClientEvent",
     "ResponseCreate",
+    "ResponseCreateAccessPrograms",
     "ResponseCreateContextManagement",
     "ResponseCreateConversation",
+    "ResponseCreateImage",
     "ResponseCreateModeration",
     "ResponseCreateModerationPolicy",
     "ResponseCreateModerationPolicyInput",
@@ -41,6 +43,24 @@ __all__ = [
 ]
 
 
+class ResponseCreateAccessPrograms(BaseModel):
+    """Domain-specific access programs to use for this request."""
+
+    cyber: Optional[Literal["standard", "daybreak_blue", "daybreak_red"]] = None
+    """The Cyber access program to use for this request.
+
+    Supported values are `standard`, `daybreak_blue`, and `daybreak_red`. If
+    omitted, the API resolves the program from the model's Cyber tier and your
+    organization and project access, subject to model-specific eligibility
+    restrictions. By default, models without a Cyber tier use Standard. Blue-tier
+    models use Daybreak Blue when authorized; otherwise they fall back to Standard
+    unless the model requires Daybreak access. Red-tier models use Daybreak Red and
+    require authorization. Requests that require unavailable Daybreak access
+    return 403. An implicit Standard fallback is represented by null in the
+    response's access_programs field, rather than an explicit Standard selection.
+    """
+
+
 class ResponseCreateContextManagement(BaseModel):
     type: str
     """The context management entry type. Currently only 'compaction' is supported."""
@@ -50,6 +70,18 @@ class ResponseCreateContextManagement(BaseModel):
 
 
 ResponseCreateConversation: TypeAlias = Union[str, BetaResponseConversationParam, None]
+
+
+class ResponseCreateImage(BaseModel):
+    """Request level image options."""
+
+    context_compression: Optional[Literal["auto", "enabled", "disabled"]] = None
+    """Controls image context optimization.
+
+    Defaults to `auto`, which uses the model, transport, and input to select a
+    policy. Use `enabled` to require compression support or `disabled` to turn it
+    off.
+    """
 
 
 class ResponseCreateModerationPolicyInput(BaseModel):
@@ -107,7 +139,7 @@ class ResponseCreateMultiAgent(BaseModel):
 class ResponseCreatePromptCacheOptions(BaseModel):
     """Options for prompt caching.
 
-    Supported for `gpt-5.6` and later models. By default, OpenAI automatically chooses one implicit cache breakpoint. You can add explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each request can write up to four breakpoints. For cache matching, OpenAI considers up to the latest 80 breakpoints in the conversation, without a content-block lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The `ttl` defaults to `30m`, which is currently the only supported value. See the [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching) for current details.
+    Supported for `gpt-5.6` and later models. By default, OpenAI automatically chooses one implicit cache breakpoint. You can add explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each request can write up to four breakpoints. For cache matching, OpenAI considers up to the latest 80 breakpoints in the conversation, without a content-block lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The `ttl` defaults to `30m`. Supported lifetimes depend on the API. See the [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching) for current details.
     """
 
     comparison_response_id: Optional[str] = None
@@ -127,11 +159,18 @@ class ResponseCreatePromptCacheOptions(BaseModel):
     request does not use prompt caching.
     """
 
-    ttl: Optional[Literal["30m"]] = None
+    prewarm: Optional[bool] = None
+    """Prepares the prompt cache without generating output.
+
+    Defaults to `false`. When set to `true`, overrides the `generate` field to
+    `false`.
+    """
+
+    ttl: Optional[Literal["30m", "12h"]] = None
     """
     The minimum lifetime applied to every implicit and explicit cache breakpoint
-    written by the request. Defaults to `30m`, which is currently the only supported
-    value. The backend may retain cache entries for longer.
+    written by the request. Supported values are `30m` (the default) and `12h`. The
+    backend may retain cache entries for longer.
     """
 
 
@@ -235,6 +274,9 @@ class ResponseCreate(BaseModel):
     type: Literal["response.create"]
     """The type of the client event. Always `response.create`."""
 
+    access_programs: Optional[ResponseCreateAccessPrograms] = None
+    """Domain-specific access programs to use for this request."""
+
     background: Optional[bool] = None
     """
     Whether to run the model response in the background.
@@ -251,6 +293,17 @@ class ResponseCreate(BaseModel):
     request. Input items and output items from this response are automatically added
     to this conversation after this response completes.
     """
+
+    generate: Optional[bool] = None
+    """Whether to generate output for this response.
+
+    Defaults to true when omitted. Set to false to prepare request state without
+    model output; the response ID can be used as previous_response_id on a later
+    turn.
+    """
+
+    image: Optional[ResponseCreateImage] = None
+    """Request level image options."""
 
     include: Optional[List[BetaResponseIncludable]] = None
     """Specify additional output data to include in the model response.
@@ -322,6 +375,10 @@ class ResponseCreate(BaseModel):
     model: Union[
         Literal[
             "gpt-6-astra",
+            "gpt-6.1-sol",
+            "gpt-6.1-terra",
+            "gpt-6-sol",
+            "gpt-6-luna",
             "gpt-5.6-sol",
             "gpt-5.6-terra",
             "gpt-5.6-luna",
@@ -372,6 +429,8 @@ class ResponseCreate(BaseModel):
             "gpt-4o-2024-11-20",
             "gpt-4o-2024-08-06",
             "gpt-4o-2024-05-13",
+            "gpt-audio-mini",
+            "gpt-audio-mini-2025-12-15",
             "gpt-4o-audio-preview",
             "gpt-4o-audio-preview-2024-10-01",
             "gpt-4o-audio-preview-2024-12-17",
@@ -424,6 +483,7 @@ class ResponseCreate(BaseModel):
             "gpt-daybreak-blue-latest",
             "gpt-daybreak-red-latest",
             "gpt-5.6-cyber",
+            "gpt-rosalind-research",
         ],
         str,
         None,
@@ -434,6 +494,83 @@ class ResponseCreate(BaseModel):
     characteristics, and price points. Refer to the
     [model guide](https://developers.openai.com/api/docs/models) to browse and
     compare available models.
+
+    Deprecated values:
+
+    - "gpt-5.4-nano", "gpt-5.4-nano-2026-03-17", "gpt-5.1", "gpt-5.1-2025-11-13":
+      Announced shutdown date: 2027-04-01. See
+      https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
+    - "gpt-5.3-chat-latest", "gpt-5.2-chat-latest": Announced shutdown date:
+      2026-08-10. See https://developers.openai.com/api/docs/deprecations for
+      details and recommended replacements.
+    - "gpt-5.1-codex", "gpt-5.1-chat-latest", "gpt-5-chat-latest",
+      "gpt-4o-search-preview", "gpt-4o-mini-search-preview",
+      "gpt-4o-search-preview-2025-03-11", "gpt-4o-mini-search-preview-2025-03-11",
+      "o3-deep-research", "o3-deep-research-2025-06-26", "o4-mini-deep-research",
+      "o4-mini-deep-research-2025-06-26", "computer-use-preview",
+      "computer-use-preview-2025-03-11", "gpt-5-codex", "gpt-5.1-codex-max":
+      Announced shutdown date: 2026-07-23. See
+      https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
+    - "gpt-5.1-mini": Not a supported model ID. Retained for SDK compatibility.
+    - "gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-5-2025-08-07",
+      "gpt-5-mini-2025-08-07", "gpt-5-nano-2025-08-07", "o3", "o3-2025-04-16",
+      "o3-pro", "o3-pro-2025-06-10", "gpt-5-pro", "gpt-5-pro-2025-10-06": Announced
+      shutdown date: 2026-12-11. See
+      https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
+    - "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-2025-04-14", "gpt-4.1-mini-2025-04-14",
+      "gpt-4o", "gpt-4o-2024-11-20", "gpt-4o-2024-08-06", "gpt-4o-mini",
+      "gpt-4o-mini-2024-07-18": Announced shutdown date: 2027-01-14. See
+      https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
+    - "gpt-4.1-nano", "gpt-4.1-nano-2025-04-14", "o4-mini", "o4-mini-2025-04-16",
+      "o3-mini", "o3-mini-2025-01-31", "o1", "o1-2024-12-17", "gpt-4o-2024-05-13",
+      "gpt-4-turbo", "gpt-4-turbo-2024-04-09", "gpt-4-1106-preview", "gpt-4",
+      "gpt-4-0613", "gpt-3.5-turbo", "gpt-3.5-turbo-0125", "o1-pro",
+      "o1-pro-2025-03-19": Announced shutdown date: 2026-10-23. See
+      https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
+    - "o1-preview", "o1-preview-2024-09-12": Announced shutdown date: 2025-07-28.
+      See https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
+    - "o1-mini", "o1-mini-2024-09-12": Announced shutdown date: 2025-10-27. See
+      https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
+    - "gpt-audio-mini", "gpt-audio-mini-2025-12-15": Announced shutdown date:
+      2027-01-20. See https://developers.openai.com/api/docs/deprecations for
+      details and recommended replacements.
+    - "gpt-4o-audio-preview", "gpt-4o-audio-preview-2024-12-17",
+      "gpt-4o-audio-preview-2025-06-03", "gpt-4o-mini-audio-preview",
+      "gpt-4o-mini-audio-preview-2024-12-17": Announced shutdown date: 2026-05-07.
+      See https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
+    - "gpt-4o-audio-preview-2024-10-01": Announced shutdown date: 2025-10-10. See
+      https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
+    - "chatgpt-4o-latest": Announced shutdown date: 2026-02-17. See
+      https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
+    - "codex-mini-latest": Announced shutdown date: 2026-02-12. See
+      https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
+    - "gpt-4-0125-preview", "gpt-4-turbo-preview", "gpt-4-0314": Announced shutdown
+      date: 2026-03-26. See https://developers.openai.com/api/docs/deprecations for
+      details and recommended replacements.
+    - "gpt-4-vision-preview": Announced shutdown date: 2024-12-06. See
+      https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
+    - "gpt-4-32k", "gpt-4-32k-0314", "gpt-4-32k-0613": Announced shutdown date:
+      2025-06-06. See https://developers.openai.com/api/docs/deprecations for
+      details and recommended replacements.
+    - "gpt-3.5-turbo-16k", "gpt-3.5-turbo-0301", "gpt-3.5-turbo-0613",
+      "gpt-3.5-turbo-16k-0613": Announced shutdown date: 2024-09-13. See
+      https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
+    - "gpt-3.5-turbo-1106": Announced shutdown date: 2026-09-28. See
+      https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
     """
 
     moderation: Optional[ResponseCreateModeration] = None
@@ -475,7 +612,7 @@ class ResponseCreate(BaseModel):
     breakpoints. For cache matching, OpenAI considers up to the latest 80
     breakpoints in the conversation, without a content-block lookback limit. Set
     `mode` to `explicit` to disable the implicit breakpoint. The `ttl` defaults to
-    `30m`, which is currently the only supported value. See the
+    `30m`. Supported lifetimes depend on the API. See the
     [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching)
     for current details.
     """
@@ -510,7 +647,7 @@ class ResponseCreate(BaseModel):
     """
     A stable identifier used to help detect users of your application that may be
     violating OpenAI's usage policies. The IDs should be a string that uniquely
-    identifies each user, with a maximum length of 64 characters. We recommend
+    identifies each user, with a maximum length of 128 characters. We recommend
     hashing their username or email address, in order to avoid sending us any
     identifying information.
     [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).

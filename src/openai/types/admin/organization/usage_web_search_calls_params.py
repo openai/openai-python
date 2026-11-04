@@ -29,11 +29,14 @@ class UsageWebSearchCallsParams(TypedDict, total=False):
     end_time: int
     """End time (Unix seconds) of the query time range, exclusive."""
 
-    group_by: List[Literal["project_id", "user_id", "api_key_id", "model", "context_level"]]
+    group_by: List[Literal["project_id", "user_id", "api_key_id", "model", "context_level", "api_source"]]
     """Group the usage data by the specified fields.
 
     Support fields include `project_id`, `user_id`, `api_key_id`, `model`,
-    `context_level` or any combination of them.
+    `context_level`, `api_source` or any combination of them. When grouped by
+    `api_source`, results use `agents_api` for attributed Agents API activity and
+    `unlabeled` for all other activity. Without source grouping, `api_source` is
+    null.
     """
 
     limit: int

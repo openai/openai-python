@@ -72,6 +72,13 @@ class ImagesResponse(BaseModel):
     One of `low`, `medium`, `high`, `xhigh`, or `max`.
     """
 
+    safety_identifier: Optional[str] = None
+    """The effective safety identifier used for safety monitoring and abuse detection.
+
+    This is the non-empty `safety_identifier` from the request, or the deprecated
+    `user` value when `safety_identifier` is omitted, null, or empty.
+    """
+
     size: Union[str, Literal["1024x1024", "1024x1536", "1536x1024"], None] = None
     """The image dimensions as a `WIDTHxHEIGHT` string, for example `1536x864`."""
 

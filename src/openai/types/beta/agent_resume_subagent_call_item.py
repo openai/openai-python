@@ -27,7 +27,4 @@ class AgentResumeSubagentCallItem(BaseModel):
     """The ID of the turn that contains this item."""
 
     type: Literal["resume_subagent_call"]
-    """The item type. Always `resume_subagent_call`.
-
-    - `resume_subagent_call` - The current public item type.
-    """
+    """The item type. Always `resume_subagent_call`."""

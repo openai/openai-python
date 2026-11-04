@@ -13,8 +13,6 @@ from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
 from tests.respx2 import MockRouter
 
-# pyright: reportDeprecated=false
-
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 
 
@@ -28,7 +26,7 @@ class TestSpeech:
         speech = client.audio.speech.create(
             input="input",
             model="tts-1",
-            voice="alloy",
+            voice="ash",
         )
         assert isinstance(speech, _legacy_response.HttpxBinaryResponseContent)
         assert speech.json() == {"foo": "bar"}
@@ -40,7 +38,7 @@ class TestSpeech:
         speech = client.audio.speech.create(
             input="input",
             model="tts-1",
-            voice="alloy",
+            voice="ash",
             instructions="instructions",
             response_format="mp3",
             speed=0.25,
@@ -57,7 +55,7 @@ class TestSpeech:
         response = client.audio.speech.with_raw_response.create(
             input="input",
             model="tts-1",
-            voice="alloy",
+            voice="ash",
         )
 
         assert response.is_closed is True
@@ -72,7 +70,7 @@ class TestSpeech:
         with client.audio.speech.with_streaming_response.create(
             input="input",
             model="tts-1",
-            voice="alloy",
+            voice="ash",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -95,7 +93,7 @@ class TestAsyncSpeech:
         speech = await async_client.audio.speech.create(
             input="input",
             model="tts-1",
-            voice="alloy",
+            voice="ash",
         )
         assert isinstance(speech, _legacy_response.HttpxBinaryResponseContent)
         assert speech.json() == {"foo": "bar"}
@@ -107,7 +105,7 @@ class TestAsyncSpeech:
         speech = await async_client.audio.speech.create(
             input="input",
             model="tts-1",
-            voice="alloy",
+            voice="ash",
             instructions="instructions",
             response_format="mp3",
             speed=0.25,
@@ -124,7 +122,7 @@ class TestAsyncSpeech:
         response = await async_client.audio.speech.with_raw_response.create(
             input="input",
             model="tts-1",
-            voice="alloy",
+            voice="ash",
         )
 
         assert response.is_closed is True
@@ -139,7 +137,7 @@ class TestAsyncSpeech:
         async with async_client.audio.speech.with_streaming_response.create(
             input="input",
             model="tts-1",
-            voice="alloy",
+            voice="ash",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"

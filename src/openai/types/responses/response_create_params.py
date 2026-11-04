@@ -26,8 +26,10 @@ from .response_conversation_param_param import ResponseConversationParamParam
 
 __all__ = [
     "ResponseCreateParamsBase",
+    "AccessPrograms",
     "ContextManagement",
     "Conversation",
+    "Image",
     "Moderation",
     "ModerationPolicy",
     "ModerationPolicyInput",
@@ -42,6 +44,9 @@ __all__ = [
 
 
 class ResponseCreateParamsBase(TypedDict, total=False):
+    access_programs: AccessPrograms
+    """Domain-specific access programs to use for this request."""
+
     background: Optional[bool]
     """
     Whether to run the model response in the background.
@@ -58,6 +63,9 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     request. Input items and output items from this response are automatically added
     to this conversation after this response completes.
     """
+
+    image: Image
+    """Request level image options."""
 
     include: Optional[List[ResponseIncludable]]
     """Specify additional output data to include in the model response.
@@ -171,7 +179,7 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     breakpoints. For cache matching, OpenAI considers up to the latest 80
     breakpoints in the conversation, without a content-block lookback limit. Set
     `mode` to `explicit` to disable the implicit breakpoint. The `ttl` defaults to
-    `30m`, which is currently the only supported value. See the
+    `30m`. Supported lifetimes depend on the API. See the
     [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching)
     for current details.
     """
@@ -206,7 +214,7 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     """
     A stable identifier used to help detect users of your application that may be
     violating OpenAI's usage policies. The IDs should be a string that uniquely
-    identifies each user, with a maximum length of 64 characters. We recommend
+    identifies each user, with a maximum length of 128 characters. We recommend
     hashing their username or email address, in order to avoid sending us any
     identifying information.
     [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
@@ -336,6 +344,24 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     """
 
 
+class AccessPrograms(TypedDict, total=False):
+    """Domain-specific access programs to use for this request."""
+
+    cyber: Literal["standard", "daybreak_blue", "daybreak_red"]
+    """The Cyber access program to use for this request.
+
+    Supported values are `standard`, `daybreak_blue`, and `daybreak_red`. If
+    omitted, the API resolves the program from the model's Cyber tier and your
+    organization and project access, subject to model-specific eligibility
+    restrictions. By default, models without a Cyber tier use Standard. Blue-tier
+    models use Daybreak Blue when authorized; otherwise they fall back to Standard
+    unless the model requires Daybreak access. Red-tier models use Daybreak Red and
+    require authorization. Requests that require unavailable Daybreak access
+    return 403. An implicit Standard fallback is represented by null in the
+    response's access_programs field, rather than an explicit Standard selection.
+    """
+
+
 class ContextManagement(TypedDict, total=False):
     type: Required[str]
     """The context management entry type. Currently only 'compaction' is supported."""
@@ -345,6 +371,18 @@ class ContextManagement(TypedDict, total=False):
 
 
 Conversation: TypeAlias = Union[str, ResponseConversationParamParam]
+
+
+class Image(TypedDict, total=False):
+    """Request level image options."""
+
+    context_compression: Literal["auto", "enabled", "disabled"]
+    """Controls image context optimization.
+
+    Defaults to `auto`, which uses the model, transport, and input to select a
+    policy. Use `enabled` to require compression support or `disabled` to turn it
+    off.
+    """
 
 
 class ModerationPolicyInput(TypedDict, total=False):
@@ -385,7 +423,7 @@ class Moderation(TypedDict, total=False):
 class PromptCacheOptions(TypedDict, total=False):
     """Options for prompt caching.
 
-    Supported for `gpt-5.6` and later models. By default, OpenAI automatically chooses one implicit cache breakpoint. You can add explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each request can write up to four breakpoints. For cache matching, OpenAI considers up to the latest 80 breakpoints in the conversation, without a content-block lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The `ttl` defaults to `30m`, which is currently the only supported value. See the [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching) for current details.
+    Supported for `gpt-5.6` and later models. By default, OpenAI automatically chooses one implicit cache breakpoint. You can add explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each request can write up to four breakpoints. For cache matching, OpenAI considers up to the latest 80 breakpoints in the conversation, without a content-block lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The `ttl` defaults to `30m`. Supported lifetimes depend on the API. See the [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching) for current details.
     """
 
     comparison_response_id: Optional[str]
@@ -405,11 +443,18 @@ class PromptCacheOptions(TypedDict, total=False):
     request does not use prompt caching.
     """
 
-    ttl: Literal["30m"]
+    prewarm: bool
+    """Prepares the prompt cache without generating output.
+
+    Defaults to `false`. When set to `true`, overrides the `generate` field to
+    `false`.
+    """
+
+    ttl: Literal["30m", "12h"]
     """
     The minimum lifetime applied to every implicit and explicit cache breakpoint
-    written by the request. Defaults to `30m`, which is currently the only supported
-    value. The backend may retain cache entries for longer.
+    written by the request. Supported values are `30m` (the default) and `12h`. The
+    backend may retain cache entries for longer.
     """
 
 

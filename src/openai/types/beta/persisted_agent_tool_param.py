@@ -16,6 +16,8 @@ __all__ = [
     "PersistedAgentToolConfigParamMcp",
     "PersistedAgentToolConfigParamWebSearch",
     "PersistedAgentToolConfigParamWebSearchLocation",
+    "PersistedAgentToolConfigParamComputerUse",
+    "PersistedAgentToolConfigParamAutomations",
 ]
 
 
@@ -74,7 +76,7 @@ class PersistedAgentToolConfigParamMcp(TypedDict, total=False):
     """The MCP tools the agent may call. All server tools are allowed when omitted."""
 
     connection_origin: Optional[Literal["service", "environment"]]
-    """Where outbound MCP HTTP connections originate.
+    """Selects where outbound MCP HTTP connections originate.
 
     - `service` - Uses the Managed Agents service network.
     - `environment` - Uses the session's execution environment.
@@ -97,7 +99,7 @@ class PersistedAgentToolConfigParamMcp(TypedDict, total=False):
 
 
 class PersistedAgentToolConfigParamWebSearchLocation(TypedDict, total=False):
-    """Approximate user location used to localize web search results."""
+    """Approximate location used to localize search results."""
 
     city: Optional[str]
     """The city name."""
@@ -122,18 +124,35 @@ class PersistedAgentToolConfigParamWebSearch(TypedDict, total=False):
     """Domains the search may include."""
 
     context_size: Optional[Literal["low", "medium", "high"]]
-    """The amount of web search context made available to the model."""
+    """The amount of search context made available to the model. Defaults to `medium`."""
 
     location: Optional[PersistedAgentToolConfigParamWebSearchLocation]
-    """Approximate user location used to localize web search results."""
+    """Approximate location used to localize search results."""
 
     mode: Optional[Literal["disabled", "cached", "live"]]
-    """The source used for web search results.
+    """The source used for web search results. Defaults to `live`.
 
     - `disabled` - Disables web search.
     - `cached` - Uses cached search results.
     - `live` - Searches the live web.
     """
+
+
+class PersistedAgentToolConfigParamComputerUse(TypedDict, total=False):
+    """Browser use in an OpenAI-hosted session."""
+
+    type: Required[Literal["computer_use"]]
+    """The type of the object. Always `computer_use`."""
+
+    include_screenshots: bool
+    """Whether computer tool outputs include screenshots. Defaults to `false`."""
+
+
+class PersistedAgentToolConfigParamAutomations(TypedDict, total=False):
+    """Lets the agent manage its own scheduled wakeups."""
+
+    type: Required[Literal["automations"]]
+    """The type of the object. Always `automations`."""
 
 
 PersistedAgentToolParam: TypeAlias = Union[
@@ -142,4 +161,6 @@ PersistedAgentToolParam: TypeAlias = Union[
     PersistedAgentToolConfigParamProgrammaticToolCalling,
     PersistedAgentToolConfigParamMcp,
     PersistedAgentToolConfigParamWebSearch,
+    PersistedAgentToolConfigParamComputerUse,
+    PersistedAgentToolConfigParamAutomations,
 ]

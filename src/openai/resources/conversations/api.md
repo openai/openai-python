@@ -6,7 +6,6 @@ Types:
 from openai.types.conversations import (
     ComputerScreenshotContent,
     Conversation,
-    ConversationDeleted,
     ConversationDeletedResource,
     Message,
     SummaryTextContent,

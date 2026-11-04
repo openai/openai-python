@@ -3,6 +3,8 @@
 from typing import Dict, List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
 
+from pydantic import Field as FieldInfo
+
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
 from .agent_text import AgentText
@@ -15,10 +17,33 @@ from .multi_agent_config import MultiAgentConfig
 __all__ = [
     "AgentSession",
     "Agent",
+    "AgentCompaction",
+    "AgentExperimental",
     "RequiredAction",
+    "RequiredActionSessionRequiredActionResourceComputerUseApprovalRequest",
+    "RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequest",
+    "RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequestComputerUseApprovalRequestKindResourceBrowserAuthentication",
+    "RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequestComputerUseApprovalRequestKindResourceBrowserAuthenticationField",
+    "RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequestComputerUseApprovalRequestKindResourceBrowserAuthenticationOption",
+    "RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequestComputerUseApprovalRequestKindResourceBrowserOriginAccess",
     "RequiredActionSessionRequiredActionResourceFunctionCall",
     "RequiredActionSessionRequiredActionResourceEnvironmentConnection",
+    "SpendControl",
 ]
+
+
+class AgentCompaction(BaseModel):
+    """The effective context compaction settings."""
+
+    async_: bool = FieldInfo(alias="async")
+    """Whether context is compacted in the background. Defaults to true."""
+
+
+class AgentExperimental(BaseModel):
+    """The effective experimental settings for the agent."""
+
+    time_awareness: bool
+    """Whether the model receives periodic current-time reminders."""
 
 
 class Agent(BaseModel):
@@ -45,7 +70,7 @@ class Agent(BaseModel):
     reasoning: AgentReasoning
     """The agent's reasoning configuration."""
 
-    service_tier: Literal["auto", "default", "flex", "priority", "fast"]
+    service_tier: Literal["auto", "default", "flex", "priority", "fast", "ultrafast"]
     """The effective service-tier policy for model requests. Defaults to `auto`."""
 
     text: AgentText
@@ -53,6 +78,110 @@ class Agent(BaseModel):
 
     tools: List[AgentTool]
     """Tools available to the agent."""
+
+    compaction: Optional[AgentCompaction] = None
+    """The effective context compaction settings."""
+
+    experimental: Optional[AgentExperimental] = None
+    """The effective experimental settings for the agent."""
+
+
+class RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequestComputerUseApprovalRequestKindResourceBrowserAuthenticationField(
+    BaseModel
+):
+    """A control in a registered browser-login form."""
+
+    id: str
+    """The field ID to submit as field_id in a fields entry."""
+
+    label: str
+    """The label to display beside the control."""
+
+    required: bool
+    """Whether this control requires a nonempty value."""
+
+    type: str
+    """The rendering type, such as email, password, or text."""
+
+
+class RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequestComputerUseApprovalRequestKindResourceBrowserAuthenticationOption(
+    BaseModel
+):
+    """A sign-in method and the fields that belong to it."""
+
+    id: str
+    """The option ID to submit as selected_option."""
+
+    field_ids: List[str]
+    """IDs from the registered fields that this method accepts."""
+
+    label: str
+    """The method label to display."""
+
+
+class RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequestComputerUseApprovalRequestKindResourceBrowserAuthentication(
+    BaseModel
+):
+    """A registered form awaiting the application's response."""
+
+    credential_origin: Optional[str] = None
+    """The registered form or frame origin where values will be entered."""
+
+    fields: List[
+        RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequestComputerUseApprovalRequestKindResourceBrowserAuthenticationField
+    ]
+    """Controls to render. All submitted values are sensitive."""
+
+    options: List[
+        RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequestComputerUseApprovalRequestKindResourceBrowserAuthenticationOption
+    ]
+    """Sign-in methods. Empty for a plain form."""
+
+    reason: Optional[str] = None
+    """Why the agent needs the user to sign in."""
+
+    type: Literal["browser_authentication"]
+    """The type of the object. Always `browser_authentication`."""
+
+
+class RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequestComputerUseApprovalRequestKindResourceBrowserOriginAccess(
+    BaseModel
+):
+    """A browser origin awaiting the application's approval decision."""
+
+    origin: str
+    """The origin the browser needs permission to access."""
+
+    reason: Optional[str] = None
+    """The browser's explanation for this request, or null when unavailable."""
+
+    type: Literal["browser_origin_access"]
+    """The type of the object. Always `browser_origin_access`."""
+
+
+RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequest: TypeAlias = Annotated[
+    Union[
+        RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequestComputerUseApprovalRequestKindResourceBrowserAuthentication,
+        RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequestComputerUseApprovalRequestKindResourceBrowserOriginAccess,
+    ],
+    PropertyInfo(discriminator="type"),
+]
+
+
+class RequiredActionSessionRequiredActionResourceComputerUseApprovalRequest(BaseModel):
+    """Respond to a computer-use request."""
+
+    request: RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequest
+    """The information needed to render the request."""
+
+    request_id: str
+    """The registered request ID to echo when responding."""
+
+    turn_id: str
+    """The turn that requested approval."""
+
+    type: Literal["computer_use_approval_request"]
+    """The type of the object. Always `computer_use_approval_request`."""
 
 
 class RequiredActionSessionRequiredActionResourceFunctionCall(BaseModel):
@@ -86,11 +215,27 @@ class RequiredActionSessionRequiredActionResourceEnvironmentConnection(BaseModel
 
 RequiredAction: TypeAlias = Annotated[
     Union[
+        RequiredActionSessionRequiredActionResourceComputerUseApprovalRequest,
         RequiredActionSessionRequiredActionResourceFunctionCall,
         RequiredActionSessionRequiredActionResourceEnvironmentConnection,
     ],
     PropertyInfo(discriminator="type"),
 ]
+
+
+class SpendControl(BaseModel):
+    """Configured spending limit and best-effort consumption, in USD cents.
+
+    Unlimited sessions omit this object.
+    """
+
+    consumed: Optional[int] = None
+    """
+    Best-effort recorded spend floored to whole USD cents, or null when unavailable.
+    """
+
+    limit: int
+    """The configured positive limit in USD cents."""
 
 
 class AgentSession(BaseModel):
@@ -134,10 +279,23 @@ class AgentSession(BaseModel):
     """
 
     usage: Optional[TokenUsage] = None
-    """Recorded token usage for a session or turn.
+    """Best-effort token usage for the session, or null if unknown.
 
-    Usage is best effort and may change.
+    Recorded usage may change.
     """
 
     vault_ids: List[str]
     """The IDs of vaults made available to the session."""
+
+    review: Optional[Literal["none", "auto_review"]] = None
+    """Review applied to eligible actions in this session.
+
+    Omitted when review is none and automatic review is not enabled. Omission means
+    none.
+    """
+
+    spend_control: Optional[SpendControl] = None
+    """Configured spending limit and best-effort consumption, in USD cents.
+
+    Unlimited sessions omit this object.
+    """

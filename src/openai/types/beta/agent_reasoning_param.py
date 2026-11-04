@@ -12,10 +12,13 @@ class AgentReasoningParam(TypedDict, total=False):
     """Reasoning configuration for the agent."""
 
     effort: Optional[Literal["none", "minimal", "low", "medium", "high", "xhigh", "max"]]
-    """The amount of reasoning effort the model should use."""
+    """The amount of reasoning effort the model should use.
+
+    Omission lets the model select it.
+    """
 
     summary: Optional[Literal["concise", "detailed", "auto"]]
-    """The reasoning summary format requested from the model.
+    """Controls whether the response includes a reasoning summary.
 
     - `concise` - Returns a concise reasoning summary when supported.
     - `detailed` - Returns a detailed reasoning summary when supported.

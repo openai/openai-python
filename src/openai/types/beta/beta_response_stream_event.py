@@ -27,6 +27,7 @@ from .beta_response_reasoning_text_done_event import BetaResponseReasoningTextDo
 from .beta_response_mcp_call_in_progress_event import BetaResponseMcpCallInProgressEvent
 from .beta_response_reasoning_text_delta_event import BetaResponseReasoningTextDeltaEvent
 from .beta_response_audio_transcript_done_event import BetaResponseAudioTranscriptDoneEvent
+from .beta_response_compaction_compacting_event import BetaResponseCompactionCompactingEvent
 from .beta_response_mcp_list_tools_failed_event import BetaResponseMcpListToolsFailedEvent
 from .beta_response_audio_transcript_delta_event import BetaResponseAudioTranscriptDeltaEvent
 from .beta_response_mcp_call_arguments_done_event import BetaResponseMcpCallArgumentsDoneEvent
@@ -76,6 +77,7 @@ BetaResponseStreamEvent: TypeAlias = Annotated[
         BetaResponseCodeInterpreterCallCompletedEvent,
         BetaResponseCodeInterpreterCallInProgressEvent,
         BetaResponseCodeInterpreterCallInterpretingEvent,
+        BetaResponseCompactionCompactingEvent,
         BetaResponseCompletedEvent,
         BetaResponseContentPartAddedEvent,
         BetaResponseContentPartDoneEvent,

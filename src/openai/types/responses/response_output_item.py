@@ -32,6 +32,8 @@ __all__ = [
     "ProgramOutput",
     "AdditionalTools",
     "ImageGenerationCall",
+    "ImageGenerationCallError",
+    "ImageGenerationCallErrorModerationDetails",
     "LocalShellCall",
     "LocalShellCallAction",
     "LocalShellCallOutput",
@@ -91,6 +93,35 @@ class AdditionalTools(BaseModel):
     """The type of the item. Always `additional_tools`."""
 
 
+class ImageGenerationCallErrorModerationDetails(BaseModel):
+    """Public details for a `moderation_blocked` error, when available."""
+
+    categories: List[str]
+    """Public moderation categories. New category values may be added over time."""
+
+    moderation_stage: Literal["input", "output", "unknown"]
+    """The stage where moderation blocked the image generation call."""
+
+
+class ImageGenerationCallError(BaseModel):
+    """Details of a moderation failure, when available."""
+
+    code: Optional[str] = None
+    """The error code."""
+
+    message: str
+    """A description of the error."""
+
+    param: Optional[str] = None
+    """The related request parameter."""
+
+    type: str
+    """The error type."""
+
+    moderation_details: Optional[ImageGenerationCallErrorModerationDetails] = None
+    """Public details for a `moderation_blocked` error, when available."""
+
+
 class ImageGenerationCall(BaseModel):
     """An image generation request made by the model."""
 
@@ -111,6 +142,9 @@ class ImageGenerationCall(BaseModel):
 
     background: Optional[Literal["transparent", "opaque", "auto"]] = None
     """The background setting used for generation."""
+
+    error: Optional[ImageGenerationCallError] = None
+    """Details of a moderation failure, when available."""
 
     output_format: Optional[Literal["png", "webp", "jpeg"]] = None
     """The output format used for generation."""

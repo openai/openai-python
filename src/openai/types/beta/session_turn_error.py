@@ -12,11 +12,19 @@ class SessionTurnError(BaseModel):
 
     code: Literal[
         "context_length_exceeded",
+        "max_output_tokens",
         "session_budget_exceeded",
         "usage_limit_exceeded",
+        "project_spend_limit_exceeded",
+        "organization_spend_limit_exceeded",
+        "organization_usage_limit_exceeded",
+        "billing_not_active",
+        "credit_balance_exhausted",
         "rate_limit_exceeded",
+        "flex_unavailable",
         "server_overloaded",
         "cyber_policy",
+        "misalignment_policy_violation",
         "connection_failed",
         "server_error",
         "authentication_error",
@@ -31,12 +39,25 @@ class SessionTurnError(BaseModel):
     """A stable, machine-readable failure category.
 
     - `context_length_exceeded` - The request exceeds the model's context window.
+    - `max_output_tokens` - The model reached its output token limit before
+      finishing the response.
     - `session_budget_exceeded` - The session has reached its usage budget.
     - `usage_limit_exceeded` - The organization has reached a usage, plan, or
       billing limit.
+    - `project_spend_limit_exceeded` - The project has reached its enforced spend
+      limit.
+    - `organization_spend_limit_exceeded` - The organization has reached its
+      enforced spend limit.
+    - `organization_usage_limit_exceeded` - The organization has reached its
+      OpenAI-assigned usage limit.
+    - `billing_not_active` - Billing is not active for the account.
+    - `credit_balance_exhausted` - The organization has no API credits remaining.
     - `rate_limit_exceeded` - The request exceeds the available rate limit.
+    - `flex_unavailable` - Flex processing is temporarily unavailable.
     - `server_overloaded` - The model service is temporarily overloaded.
     - `cyber_policy` - The request was rejected by a safety policy.
+    - `misalignment_policy_violation` - The request was blocked by the safety
+      systems.
     - `connection_failed` - The request could not connect to the model service.
     - `server_error` - The model service encountered an unexpected error.
     - `authentication_error` - The API credentials are invalid or lack the required

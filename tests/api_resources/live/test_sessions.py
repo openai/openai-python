@@ -16,8 +16,6 @@ from openai.types.live import (
     SessionForkResponse,
 )
 
-# pyright: reportDeprecated=false
-
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 
 
@@ -43,7 +41,10 @@ class TestSessions:
                 "model": "x",
                 "type": "live",
                 "audio": {"output": {"voice": "alloy"}},
-                "delegation": {"type": "client"},
+                "delegation": {
+                    "type": "client",
+                    "acknowledgement_delay_ms": 0,
+                },
                 "input": [
                     {
                         "content": [
@@ -60,6 +61,31 @@ class TestSessions:
                 ],
                 "instructions": "instructions",
                 "store": True,
+                "triggers": [
+                    {
+                        "decisions": {
+                            "questions": [
+                                {
+                                    "choices": [
+                                        {
+                                            "value": False,
+                                            "description": "description",
+                                        },
+                                        {
+                                            "value": True,
+                                            "description": "description",
+                                        },
+                                    ],
+                                    "instructions": "string",
+                                    "type": "choice",
+                                    "name": "name",
+                                }
+                            ]
+                        },
+                        "event_type": "session.input_transcript.delta",
+                        "type": "decisions",
+                    }
+                ],
             },
         )
         assert session is None
@@ -182,6 +208,7 @@ class TestSessions:
                 },
                 "delegation": {
                     "type": "responses",
+                    "acknowledgement_delay_ms": 0,
                     "responses": {
                         "instructions": "instructions",
                         "max_output_tokens": 16,
@@ -400,7 +427,10 @@ class TestAsyncSessions:
                 "model": "x",
                 "type": "live",
                 "audio": {"output": {"voice": "alloy"}},
-                "delegation": {"type": "client"},
+                "delegation": {
+                    "type": "client",
+                    "acknowledgement_delay_ms": 0,
+                },
                 "input": [
                     {
                         "content": [
@@ -417,6 +447,31 @@ class TestAsyncSessions:
                 ],
                 "instructions": "instructions",
                 "store": True,
+                "triggers": [
+                    {
+                        "decisions": {
+                            "questions": [
+                                {
+                                    "choices": [
+                                        {
+                                            "value": False,
+                                            "description": "description",
+                                        },
+                                        {
+                                            "value": True,
+                                            "description": "description",
+                                        },
+                                    ],
+                                    "instructions": "string",
+                                    "type": "choice",
+                                    "name": "name",
+                                }
+                            ]
+                        },
+                        "event_type": "session.input_transcript.delta",
+                        "type": "decisions",
+                    }
+                ],
             },
         )
         assert session is None
@@ -541,6 +596,7 @@ class TestAsyncSessions:
                 },
                 "delegation": {
                     "type": "responses",
+                    "acknowledgement_delay_ms": 0,
                     "responses": {
                         "instructions": "instructions",
                         "max_output_tokens": 16,

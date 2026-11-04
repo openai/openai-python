@@ -28,7 +28,4 @@ class AgentWaitForSubagentsCallItem(BaseModel):
     """The ID of the turn that contains this item."""
 
     type: Literal["wait_for_subagents_call"]
-    """The item type. Always `wait_for_subagents_call`.
-
-    - `wait_for_subagents_call` - The current public item type.
-    """
+    """The item type. Always `wait_for_subagents_call`."""

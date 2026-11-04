@@ -17,7 +17,7 @@ class AgentWebSearchCallItem(BaseModel):
     """The ID of the web search call."""
 
     action: Optional[WebSearchAction] = None
-    """An action performed by the web search tool."""
+    """The action performed by the web search tool."""
 
     status: AgentOutputItemStatus
     """The status of the web search call."""

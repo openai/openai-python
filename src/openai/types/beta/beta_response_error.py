@@ -31,6 +31,12 @@ class Misalignment(BaseModel):
     ] = None
     """An optional classification; clients must accept additional values."""
 
+    review_target: Optional[str] = None
+    """
+    An opaque target for explicitly continuing this review, or null when
+    unavailable.
+    """
+
     steer: Optional[MisalignmentSteer] = None
     """An optional public continuation instruction."""
 
@@ -67,3 +73,9 @@ class BetaResponseError(BaseModel):
     """A human-readable description of the error."""
 
     misalignment: Optional[Misalignment] = None
+
+    param: Optional[str] = None
+    """The request parameter associated with the error, or null if none was recorded."""
+
+    type: Optional[str] = None
+    """The original error type, or null if it was not recorded."""

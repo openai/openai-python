@@ -11,7 +11,7 @@ __all__ = ["InputAudioUnmuteEvent"]
 class InputAudioUnmuteEvent(BaseModel):
     """Resume audio input to a Live model after muting it.
 
-    The server acknowledges with `session.input_audio.unmuted`.
+    The server acknowledges with `session.input_audio.unmuted`. An active audio fixture still pauses inference until playback finishes.
     """
 
     type: Literal["session.input_audio.unmute"]

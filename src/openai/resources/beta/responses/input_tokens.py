@@ -23,6 +23,8 @@ __all__ = ["InputTokens", "AsyncInputTokens"]
 
 
 class InputTokens(SyncAPIResource):
+    """Create and manage model responses."""
+
     @cached_property
     def with_raw_response(self) -> InputTokensWithRawResponse:
         """
@@ -137,10 +139,10 @@ class InputTokens(SyncAPIResource):
             "/responses/input_tokens?beta=true",
             body=maybe_transform(
                 {
+                    "model": model,
                     "conversation": conversation,
                     "input": input,
                     "instructions": instructions,
-                    "model": model,
                     "parallel_tool_calls": parallel_tool_calls,
                     "personality": personality,
                     "previous_response_id": previous_response_id,
@@ -164,6 +166,8 @@ class InputTokens(SyncAPIResource):
 
 
 class AsyncInputTokens(AsyncAPIResource):
+    """Create and manage model responses."""
+
     @cached_property
     def with_raw_response(self) -> AsyncInputTokensWithRawResponse:
         """
@@ -278,10 +282,10 @@ class AsyncInputTokens(AsyncAPIResource):
             "/responses/input_tokens?beta=true",
             body=await async_maybe_transform(
                 {
+                    "model": model,
                     "conversation": conversation,
                     "input": input,
                     "instructions": instructions,
-                    "model": model,
                     "parallel_tool_calls": parallel_tool_calls,
                     "personality": personality,
                     "previous_response_id": previous_response_id,

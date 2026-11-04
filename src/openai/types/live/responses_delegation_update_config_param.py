@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
+from ..._types import SequenceNotStr
 from .function_tool_param import FunctionToolParam
 
 __all__ = [
@@ -14,8 +15,55 @@ __all__ = [
     "ToolChoice",
     "ToolChoiceLiveFunctionToolChoiceParam",
     "ToolChoiceLiveMCPToolChoiceParam",
+    "ToolChoiceFileSearch",
+    "ToolChoiceWebSearch",
+    "ToolChoiceWebSearchPreview",
+    "ToolChoiceImageGeneration",
+    "ToolChoiceComputer",
+    "ToolChoiceCodeInterpreter",
+    "ToolChoiceProgrammaticToolCalling",
+    "ToolChoiceShell",
+    "ToolChoiceCustom",
+    "ToolChoiceApplyPatch",
+    "ToolChoiceLiveAllowedToolsChoiceParam",
+    "ToolChoiceLiveAllowedToolsChoiceParamTool",
+    "ToolChoiceLiveAllowedToolsChoiceParamToolLiveFunctionToolChoiceParam",
+    "ToolChoiceLiveAllowedToolsChoiceParamToolLiveMCPToolChoiceParam",
+    "ToolChoiceLiveAllowedToolsChoiceParamToolFileSearch",
+    "ToolChoiceLiveAllowedToolsChoiceParamToolWebSearch",
+    "ToolChoiceLiveAllowedToolsChoiceParamToolWebSearchPreview",
+    "ToolChoiceLiveAllowedToolsChoiceParamToolImageGeneration",
+    "ToolChoiceLiveAllowedToolsChoiceParamToolComputer",
+    "ToolChoiceLiveAllowedToolsChoiceParamToolCodeInterpreter",
+    "ToolChoiceLiveAllowedToolsChoiceParamToolProgrammaticToolCalling",
+    "ToolChoiceLiveAllowedToolsChoiceParamToolShell",
+    "ToolChoiceLiveAllowedToolsChoiceParamToolCustom",
+    "ToolChoiceLiveAllowedToolsChoiceParamToolApplyPatch",
     "Tool",
     "ToolWebSearch",
+    "ToolFileSearch",
+    "ToolCodeInterpreter",
+    "ToolShell",
+    "ToolShellEnvironment",
+    "ToolShellEnvironmentContainerAuto",
+    "ToolShellEnvironmentContainerAutoNetworkPolicy",
+    "ToolShellEnvironmentContainerAutoNetworkPolicyDisabled",
+    "ToolShellEnvironmentContainerAutoNetworkPolicyAllowlist",
+    "ToolShellEnvironmentContainerAutoSkill",
+    "ToolShellEnvironmentContainerAutoSkillSkillReference",
+    "ToolShellEnvironmentContainerAutoSkillInline",
+    "ToolShellEnvironmentContainerAutoSkillInlineSource",
+    "ToolShellEnvironmentContainerReference",
+    "ToolShellEnvironmentLocal",
+    "ToolShellEnvironmentLocalSkill",
+    "ToolImageGeneration",
+    "ToolMcp",
+    "ToolCustom",
+    "ToolNamespace",
+    "ToolSearch",
+    "ToolProgrammaticToolCalling",
+    "ToolComputer",
+    "ToolApplyPatch",
 ]
 
 
@@ -57,10 +105,179 @@ class ToolChoiceLiveMCPToolChoiceParam(TypedDict, total=False):
     server_label: Required[str]
 
     type: Required[Literal["mcp"]]
+    """The tool choice type. Always `allowed_tools`."""
+
+
+class ToolChoiceFileSearch(TypedDict, total=False):
+    type: Required[Literal["file_search"]]
+    """The tool to call. Always `file_search`."""
+
+
+class ToolChoiceWebSearch(TypedDict, total=False):
+    type: Required[Literal["web_search"]]
+    """The tool to call. Always `web_search`."""
+
+
+class ToolChoiceWebSearchPreview(TypedDict, total=False):
+    type: Required[Literal["web_search_preview"]]
+    """The tool to call. Always `web_search_preview`."""
+
+
+class ToolChoiceImageGeneration(TypedDict, total=False):
+    type: Required[Literal["image_generation"]]
+    """The tool to call. Always `image_generation`."""
+
+
+class ToolChoiceComputer(TypedDict, total=False):
+    type: Required[Literal["computer"]]
+    """The tool to call. Always `computer`."""
+
+
+class ToolChoiceCodeInterpreter(TypedDict, total=False):
+    type: Required[Literal["code_interpreter"]]
+    """The tool to call. Always `code_interpreter`."""
+
+
+class ToolChoiceProgrammaticToolCalling(TypedDict, total=False):
+    type: Required[Literal["programmatic_tool_calling"]]
+    """The tool to call. Always `programmatic_tool_calling`."""
+
+
+class ToolChoiceShell(TypedDict, total=False):
+    """Forces the model to call the shell tool when a tool call is required."""
+
+    type: Required[Literal["shell"]]
+    """The tool to call. Always `shell`."""
+
+
+class ToolChoiceCustom(TypedDict, total=False):
+    name: Required[str]
+    """The name of the custom tool to call."""
+
+    type: Required[Literal["custom"]]
+    """The tool to call. Always `custom`."""
+
+
+class ToolChoiceApplyPatch(TypedDict, total=False):
+    """Forces the model to call the apply_patch tool when executing a tool call."""
+
+    type: Required[Literal["apply_patch"]]
+    """The tool to call. Always `apply_patch`."""
+
+
+class ToolChoiceLiveAllowedToolsChoiceParamToolLiveFunctionToolChoiceParam(TypedDict, total=False):
+    name: Required[str]
+
+    type: Required[Literal["function"]]
+
+
+class ToolChoiceLiveAllowedToolsChoiceParamToolLiveMCPToolChoiceParam(TypedDict, total=False):
+    name: Required[str]
+
+    server_label: Required[str]
+
+    type: Required[Literal["mcp"]]
+
+
+class ToolChoiceLiveAllowedToolsChoiceParamToolFileSearch(TypedDict, total=False):
+    type: Required[Literal["file_search"]]
+    """The tool to call. Always `file_search`."""
+
+
+class ToolChoiceLiveAllowedToolsChoiceParamToolWebSearch(TypedDict, total=False):
+    type: Required[Literal["web_search"]]
+    """The tool to call. Always `web_search`."""
+
+
+class ToolChoiceLiveAllowedToolsChoiceParamToolWebSearchPreview(TypedDict, total=False):
+    type: Required[Literal["web_search_preview"]]
+    """The tool to call. Always `web_search_preview`."""
+
+
+class ToolChoiceLiveAllowedToolsChoiceParamToolImageGeneration(TypedDict, total=False):
+    type: Required[Literal["image_generation"]]
+    """The tool to call. Always `image_generation`."""
+
+
+class ToolChoiceLiveAllowedToolsChoiceParamToolComputer(TypedDict, total=False):
+    type: Required[Literal["computer"]]
+    """The tool to call. Always `computer`."""
+
+
+class ToolChoiceLiveAllowedToolsChoiceParamToolCodeInterpreter(TypedDict, total=False):
+    type: Required[Literal["code_interpreter"]]
+    """The tool to call. Always `code_interpreter`."""
+
+
+class ToolChoiceLiveAllowedToolsChoiceParamToolProgrammaticToolCalling(TypedDict, total=False):
+    type: Required[Literal["programmatic_tool_calling"]]
+    """The tool to call. Always `programmatic_tool_calling`."""
+
+
+class ToolChoiceLiveAllowedToolsChoiceParamToolShell(TypedDict, total=False):
+    """Forces the model to call the shell tool when a tool call is required."""
+
+    type: Required[Literal["shell"]]
+    """The tool to call. Always `shell`."""
+
+
+class ToolChoiceLiveAllowedToolsChoiceParamToolCustom(TypedDict, total=False):
+    name: Required[str]
+    """The name of the custom tool to call."""
+
+    type: Required[Literal["custom"]]
+    """The tool to call. Always `custom`."""
+
+
+class ToolChoiceLiveAllowedToolsChoiceParamToolApplyPatch(TypedDict, total=False):
+    """Forces the model to call the apply_patch tool when executing a tool call."""
+
+    type: Required[Literal["apply_patch"]]
+    """The tool to call. Always `apply_patch`."""
+
+
+ToolChoiceLiveAllowedToolsChoiceParamTool: TypeAlias = Union[
+    ToolChoiceLiveAllowedToolsChoiceParamToolLiveFunctionToolChoiceParam,
+    ToolChoiceLiveAllowedToolsChoiceParamToolLiveMCPToolChoiceParam,
+    ToolChoiceLiveAllowedToolsChoiceParamToolFileSearch,
+    ToolChoiceLiveAllowedToolsChoiceParamToolWebSearch,
+    ToolChoiceLiveAllowedToolsChoiceParamToolWebSearchPreview,
+    ToolChoiceLiveAllowedToolsChoiceParamToolImageGeneration,
+    ToolChoiceLiveAllowedToolsChoiceParamToolComputer,
+    ToolChoiceLiveAllowedToolsChoiceParamToolCodeInterpreter,
+    ToolChoiceLiveAllowedToolsChoiceParamToolProgrammaticToolCalling,
+    ToolChoiceLiveAllowedToolsChoiceParamToolShell,
+    ToolChoiceLiveAllowedToolsChoiceParamToolCustom,
+    ToolChoiceLiveAllowedToolsChoiceParamToolApplyPatch,
+]
+
+
+class ToolChoiceLiveAllowedToolsChoiceParam(TypedDict, total=False):
+    tools: Required[Iterable[ToolChoiceLiveAllowedToolsChoiceParamTool]]
+    """The tools that the delegated Responses model may call."""
+
+    type: Required[Literal["allowed_tools"]]
+    """The tool choice type. Always `allowed_tools`."""
+
+    mode: Optional[Literal["none", "auto", "required"]]
+    """How to select a tool from the allowed set."""
 
 
 ToolChoice: TypeAlias = Union[
-    Literal["auto", "none", "required"], ToolChoiceLiveFunctionToolChoiceParam, ToolChoiceLiveMCPToolChoiceParam
+    Literal["auto", "none", "required"],
+    ToolChoiceLiveFunctionToolChoiceParam,
+    ToolChoiceLiveMCPToolChoiceParam,
+    ToolChoiceFileSearch,
+    ToolChoiceWebSearch,
+    ToolChoiceWebSearchPreview,
+    ToolChoiceImageGeneration,
+    ToolChoiceComputer,
+    ToolChoiceCodeInterpreter,
+    ToolChoiceProgrammaticToolCalling,
+    ToolChoiceShell,
+    ToolChoiceCustom,
+    ToolChoiceApplyPatch,
+    ToolChoiceLiveAllowedToolsChoiceParam,
 ]
 
 
@@ -71,7 +288,182 @@ class ToolWebSearch(TypedDict, total=False):
     """The tool type. Always `web_search`."""
 
 
-Tool: TypeAlias = Union[FunctionToolParam, ToolWebSearch]
+class ToolFileSearch(TypedDict, total=False):
+    type: Required[Literal["file_search"]]
+
+
+class ToolCodeInterpreter(TypedDict, total=False):
+    type: Required[Literal["code_interpreter"]]
+
+
+class ToolShellEnvironmentContainerAutoNetworkPolicyDisabled(TypedDict, total=False):
+    type: Required[Literal["disabled"]]
+    """Disable outbound network access. Always `disabled`."""
+
+
+class ToolShellEnvironmentContainerAutoNetworkPolicyAllowlist(TypedDict, total=False):
+    allowed_domains: Required[SequenceNotStr[str]]
+    """A list of allowed domains when type is `allowlist`."""
+
+    type: Required[Literal["allowlist"]]
+    """Allow outbound network access only to specified domains. Always `allowlist`."""
+
+
+ToolShellEnvironmentContainerAutoNetworkPolicy: TypeAlias = Union[
+    ToolShellEnvironmentContainerAutoNetworkPolicyDisabled, ToolShellEnvironmentContainerAutoNetworkPolicyAllowlist
+]
+
+
+class ToolShellEnvironmentContainerAutoSkillSkillReference(TypedDict, total=False):
+    skill_id: Required[str]
+    """The ID of the referenced skill."""
+
+    type: Required[Literal["skill_reference"]]
+    """References a skill created with the /v1/skills endpoint."""
+
+    version: Optional[str]
+    """Optional skill version. Use a positive integer or 'latest'. Omit for default."""
+
+
+class ToolShellEnvironmentContainerAutoSkillInlineSource(TypedDict, total=False):
+    """Inline skill payload"""
+
+    data: Required[str]
+    """Base64-encoded skill zip bundle."""
+
+    media_type: Required[Literal["application/zip"]]
+    """The media type of the inline skill payload. Must be `application/zip`."""
+
+    type: Required[Literal["base64"]]
+    """The type of the inline skill source. Must be `base64`."""
+
+
+class ToolShellEnvironmentContainerAutoSkillInline(TypedDict, total=False):
+    description: Required[str]
+    """The description of the skill."""
+
+    name: Required[str]
+    """The name of the skill."""
+
+    source: Required[ToolShellEnvironmentContainerAutoSkillInlineSource]
+    """Inline skill payload"""
+
+    type: Required[Literal["inline"]]
+    """Defines an inline skill for this request."""
+
+
+ToolShellEnvironmentContainerAutoSkill: TypeAlias = Union[
+    ToolShellEnvironmentContainerAutoSkillSkillReference, ToolShellEnvironmentContainerAutoSkillInline
+]
+
+
+class ToolShellEnvironmentContainerAuto(TypedDict, total=False):
+    type: Required[Literal["container_auto"]]
+    """Automatically creates a container for this request"""
+
+    file_ids: Optional[SequenceNotStr[str]]
+    """An optional list of uploaded files to make available to your code."""
+
+    memory_limit: Optional[Literal["1g", "4g", "16g", "64g"]]
+    """The memory limit for the container."""
+
+    network_policy: Optional[ToolShellEnvironmentContainerAutoNetworkPolicy]
+    """Network access policy for the container."""
+
+    skills: Optional[Iterable[ToolShellEnvironmentContainerAutoSkill]]
+    """An optional list of skills referenced by id or inline data."""
+
+
+class ToolShellEnvironmentContainerReference(TypedDict, total=False):
+    container_id: Required[str]
+    """The ID of the referenced container."""
+
+    type: Required[Literal["container_reference"]]
+    """References a container created with the /v1/containers endpoint"""
+
+
+class ToolShellEnvironmentLocalSkill(TypedDict, total=False):
+    description: Required[str]
+    """The description of the skill."""
+
+    name: Required[str]
+    """The name of the skill."""
+
+    path: Required[str]
+    """The path to the directory containing the skill."""
+
+
+class ToolShellEnvironmentLocal(TypedDict, total=False):
+    type: Required[Literal["local"]]
+    """Use a local computer environment."""
+
+    skills: Optional[Iterable[ToolShellEnvironmentLocalSkill]]
+    """An optional list of skills."""
+
+
+ToolShellEnvironment: TypeAlias = Union[
+    ToolShellEnvironmentContainerAuto, ToolShellEnvironmentContainerReference, ToolShellEnvironmentLocal
+]
+
+
+class ToolShell(TypedDict, total=False):
+    """A Responses shell tool.
+
+    Use a hosted container or return local shell results with response.item.create. Domain secrets are not supported.
+    """
+
+    type: Required[Literal["shell"]]
+
+    environment: Optional[ToolShellEnvironment]
+
+
+class ToolImageGeneration(TypedDict, total=False):
+    type: Required[Literal["image_generation"]]
+
+
+class ToolMcp(TypedDict, total=False):
+    type: Required[Literal["mcp"]]
+
+
+class ToolCustom(TypedDict, total=False):
+    type: Required[Literal["custom"]]
+
+
+class ToolNamespace(TypedDict, total=False):
+    type: Required[Literal["namespace"]]
+
+
+class ToolSearch(TypedDict, total=False):
+    type: Required[Literal["tool_search"]]
+
+
+class ToolProgrammaticToolCalling(TypedDict, total=False):
+    type: Required[Literal["programmatic_tool_calling"]]
+
+
+class ToolComputer(TypedDict, total=False):
+    type: Required[Literal["computer"]]
+
+
+class ToolApplyPatch(TypedDict, total=False):
+    type: Required[Literal["apply_patch"]]
+
+
+Tool: TypeAlias = Union[
+    FunctionToolParam,
+    ToolWebSearch,
+    ToolFileSearch,
+    ToolCodeInterpreter,
+    ToolShell,
+    ToolImageGeneration,
+    ToolMcp,
+    ToolCustom,
+    ToolNamespace,
+    ToolSearch,
+    ToolProgrammaticToolCalling,
+    ToolComputer,
+    ToolApplyPatch,
+]
 
 
 class ResponsesDelegationUpdateConfigParam(TypedDict, total=False):

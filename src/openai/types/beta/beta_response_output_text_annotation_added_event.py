@@ -27,7 +27,7 @@ class AnnotationFileCitation(BaseModel):
     """The filename of the file cited."""
 
     index: int
-    """The index of the file in the list of files."""
+    """The index in the output text at which to insert the file citation."""
 
     type: Literal["file_citation"]
     """The type of the file citation. Always `file_citation`."""
@@ -104,7 +104,7 @@ class BetaResponseOutputTextAnnotationAddedEvent(BaseModel):
     """Emitted when an annotation is added to output text content."""
 
     annotation: Optional[Annotation] = None
-    """An annotation that applies to a span of output text."""
+    """The annotation object being added. (See annotation schema for details.)"""
 
     annotation_index: int
     """The index of the annotation within the content part."""

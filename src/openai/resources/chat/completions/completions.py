@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-import inspect
-from typing import Dict, List, Type, Union, Iterable, Optional, cast
-from functools import partial
+from typing import Dict, List, Union, Iterable, Optional
 from typing_extensions import Literal, overload
 
 import httpx2
-import pydantic
+
+import openai.lib._chat_completion_resources
 
 from .... import _legacy_response
 from .messages import (
@@ -33,21 +32,16 @@ from ....types.chat import (
     completion_update_params,
 )
 from ...._base_client import AsyncPaginator, make_request_options
-from ....lib._parsing import (
-    ResponseFormatT,
-    validate_input_tools as _validate_input_tools,
-    parse_chat_completion as _parse_chat_completion,
-    type_to_response_format_param as _type_to_response_format,
-)
+from ....lib._parsing import ResponseFormatT
 from ....lib.streaming.chat import ChatCompletionStreamManager, AsyncChatCompletionStreamManager
 from ....types.shared.chat_model import ChatModel
 from ....types.chat.chat_completion import ChatCompletion
 from ....types.shared_params.metadata import Metadata
 from ....types.shared.reasoning_effort import ReasoningEffort
+from ....lib._chat_completion_resources import parse, stream, async_parse, async_stream
 from ....types.chat.chat_completion_chunk import ChatCompletionChunk
 from ....types.chat.parsed_chat_completion import ParsedChatCompletion
 from ....types.chat.chat_completion_deleted import ChatCompletionDeleted
-from ....types.chat.chat_completion_audio_param import ChatCompletionAudioParam
 from ....types.chat.chat_completion_message_param import ChatCompletionMessageParam
 from ....types.chat.chat_completion_tool_union_param import ChatCompletionToolUnionParam
 from ....types.chat.chat_completion_stream_options_param import ChatCompletionStreamOptionsParam
@@ -55,6 +49,12 @@ from ....types.chat.chat_completion_prediction_content_param import ChatCompleti
 from ....types.chat.chat_completion_tool_choice_option_param import ChatCompletionToolChoiceOptionParam
 
 __all__ = ["Completions", "AsyncCompletions"]
+
+
+def validate_response_format(
+    response_format: object,
+) -> None:
+    return openai.lib._chat_completion_resources.validate_response_format(response_format)
 
 
 class Completions(SyncAPIResource):
@@ -116,7 +116,7 @@ class Completions(SyncAPIResource):
         safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
-        stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
+        stop: Union[str, SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -127,8 +127,6 @@ class Completions(SyncAPIResource):
         user: str | Omit = omit,
         verbosity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
         web_search_options: completion_create_params.WebSearchOptions | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -142,7 +140,7 @@ class Completions(SyncAPIResource):
 
         This method will also automatically parse `function` tool calls if:
         - You use the `openai.pydantic_function_tool()` helper method
-        - You mark your tool schema with `"strict": True`
+        - You mark your tool schema with `\"strict\": True`
 
         Example usage:
         ```py
@@ -162,10 +160,10 @@ class Completions(SyncAPIResource):
 
         client = OpenAI()
         completion = client.chat.completions.parse(
-            model="gpt-4o-2024-08-06",
+            model=\"{{models.chat.default}}\",
             messages=[
-                {"role": "system", "content": "You are a helpful math tutor."},
-                {"role": "user", "content": "solve 8x + 31 = 2"},
+                {\"role\": \"system\", \"content\": \"You are a helpful math tutor.\"},
+                {\"role\": \"user\", \"content\": \"solve 8x + 31 = 2\"},
             ],
             response_format=MathResponse,
         )
@@ -173,79 +171,159 @@ class Completions(SyncAPIResource):
         message = completion.choices[0].message
         if message.parsed:
             print(message.parsed.steps)
-            print("answer: ", message.parsed.final_answer)
+            print(\"answer: \", message.parsed.final_answer)
+        ```"""
+        return parse(
+            self,
+            messages=messages,
+            model=model,
+            audio=audio,
+            response_format=response_format,
+            frequency_penalty=frequency_penalty,
+            function_call=function_call,
+            functions=functions,
+            logit_bias=logit_bias,
+            logprobs=logprobs,
+            max_completion_tokens=max_completion_tokens,
+            max_tokens=max_tokens,
+            metadata=metadata,
+            modalities=modalities,
+            moderation=moderation,
+            n=n,
+            parallel_tool_calls=parallel_tool_calls,
+            prediction=prediction,
+            presence_penalty=presence_penalty,
+            prompt_cache_key=prompt_cache_key,
+            prompt_cache_options=prompt_cache_options,
+            prompt_cache_retention=prompt_cache_retention,
+            reasoning_effort=reasoning_effort,
+            safety_identifier=safety_identifier,
+            seed=seed,
+            service_tier=service_tier,
+            stop=stop,
+            store=store,
+            stream_options=stream_options,
+            temperature=temperature,
+            tool_choice=tool_choice,
+            tools=tools,
+            top_logprobs=top_logprobs,
+            top_p=top_p,
+            user=user,
+            verbosity=verbosity,
+            web_search_options=web_search_options,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
+
+    def stream(
+        self,
+        *,
+        messages: Iterable[ChatCompletionMessageParam],
+        model: Union[str, ChatModel],
+        audio: Optional[ChatCompletionAudioParam] | Omit = omit,
+        response_format: completion_create_params.ResponseFormat | type[ResponseFormatT] | Omit = omit,
+        frequency_penalty: Optional[float] | Omit = omit,
+        function_call: completion_create_params.FunctionCall | Omit = omit,
+        functions: Iterable[completion_create_params.Function] | Omit = omit,
+        logit_bias: Optional[Dict[str, int]] | Omit = omit,
+        logprobs: Optional[bool] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        modalities: Optional[List[Literal["text", "audio"]]] | Omit = omit,
+        moderation: Optional[completion_create_params.Moderation] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
+        presence_penalty: Optional[float] | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
+        prompt_cache_options: completion_create_params.PromptCacheOptions | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
+        reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        seed: Optional[int] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        stop: Union[str, SequenceNotStr[str], None] | Omit = omit,
+        store: Optional[bool] | Omit = omit,
+        stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        tool_choice: ChatCompletionToolChoiceOptionParam | Omit = omit,
+        tools: Iterable[ChatCompletionToolUnionParam] | Omit = omit,
+        top_logprobs: Optional[int] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        user: str | Omit = omit,
+        verbosity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        web_search_options: completion_create_params.WebSearchOptions | Omit = omit,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> ChatCompletionStreamManager[ResponseFormatT]:
+        """Wrapper over the `client.chat.completions.create(stream=True)` method that provides a more granular event API
+        and automatic accumulation of each delta.
+
+        This also supports all of the parsing utilities that `.parse()` does.
+
+        Unlike `.create(stream=True)`, the `.stream()` method requires usage within a context manager to prevent accidental leakage of the response:
+
+        ```py
+        with client.chat.completions.stream(
+            model=\"{{models.chat.default}}\",
+            messages=[...],
+        ) as stream:
+            for event in stream:
+                if event.type == \"content.delta\":
+                    print(event.delta, flush=True, end=\"\")
         ```
-        """
-        chat_completion_tools = _validate_input_tools(tools)
 
-        extra_headers = {
-            "X-Stainless-Helper-Method": "chat.completions.parse",
-            **(extra_headers or {}),
-        }
+        When the context manager is entered, a `ChatCompletionStream` instance is returned which, like `.create(stream=True)` is an iterator. The full list of events that are yielded by the iterator are outlined in [these docs](https://github.com/openai/openai-python/blob/main/helpers.md#chat-completions-events).
 
-        def parser(raw_completion: ChatCompletion) -> ParsedChatCompletion[ResponseFormatT]:
-            return _parse_chat_completion(
-                response_format=response_format,
-                chat_completion=raw_completion,
-                input_tools=chat_completion_tools,
-            )
-
-        return self._post(
-            "/chat/completions",
-            body=maybe_transform(
-                {
-                    "messages": messages,
-                    "model": model,
-                    "audio": audio,
-                    "frequency_penalty": frequency_penalty,
-                    "function_call": function_call,
-                    "functions": functions,
-                    "logit_bias": logit_bias,
-                    "logprobs": logprobs,
-                    "max_completion_tokens": max_completion_tokens,
-                    "max_tokens": max_tokens,
-                    "metadata": metadata,
-                    "modalities": modalities,
-                    "moderation": moderation,
-                    "n": n,
-                    "parallel_tool_calls": parallel_tool_calls,
-                    "prediction": prediction,
-                    "presence_penalty": presence_penalty,
-                    "prompt_cache_key": prompt_cache_key,
-                    "prompt_cache_options": prompt_cache_options,
-                    "prompt_cache_retention": prompt_cache_retention,
-                    "reasoning_effort": reasoning_effort,
-                    "response_format": _type_to_response_format(response_format),
-                    "safety_identifier": safety_identifier,
-                    "seed": seed,
-                    "service_tier": service_tier,
-                    "stop": stop,
-                    "store": store,
-                    "stream": False,
-                    "stream_options": stream_options,
-                    "temperature": temperature,
-                    "tool_choice": tool_choice,
-                    "tools": tools,
-                    "top_logprobs": top_logprobs,
-                    "top_p": top_p,
-                    "user": user,
-                    "verbosity": verbosity,
-                    "web_search_options": web_search_options,
-                },
-                completion_create_params.CompletionCreateParams,
-            ),
-            options=make_request_options(
-                extra_headers=extra_headers,
-                extra_query=extra_query,
-                extra_body=extra_body,
-                timeout=timeout,
-                post_parser=parser,
-                security={"bearer_auth": True},
-            ),
-            # we turn the `ChatCompletion` instance into a `ParsedChatCompletion`
-            # in the `parser` function above
-            cast_to=cast(Type[ParsedChatCompletion[ResponseFormatT]], ChatCompletion),
-            stream=False,
+        When the context manager exits, the response will be closed, however the `stream` instance is still available outside
+        the context manager."""
+        return stream(
+            self,
+            messages=messages,
+            model=model,
+            audio=audio,
+            response_format=response_format,
+            frequency_penalty=frequency_penalty,
+            function_call=function_call,
+            functions=functions,
+            logit_bias=logit_bias,
+            logprobs=logprobs,
+            max_completion_tokens=max_completion_tokens,
+            max_tokens=max_tokens,
+            metadata=metadata,
+            modalities=modalities,
+            moderation=moderation,
+            n=n,
+            parallel_tool_calls=parallel_tool_calls,
+            prediction=prediction,
+            presence_penalty=presence_penalty,
+            prompt_cache_key=prompt_cache_key,
+            prompt_cache_options=prompt_cache_options,
+            prompt_cache_retention=prompt_cache_retention,
+            reasoning_effort=reasoning_effort,
+            safety_identifier=safety_identifier,
+            seed=seed,
+            service_tier=service_tier,
+            stop=stop,
+            store=store,
+            stream_options=stream_options,
+            temperature=temperature,
+            tool_choice=tool_choice,
+            tools=tools,
+            top_logprobs=top_logprobs,
+            top_p=top_p,
+            user=user,
+            verbosity=verbosity,
+            web_search_options=web_search_options,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
         )
 
     @overload
@@ -277,7 +355,7 @@ class Completions(SyncAPIResource):
         safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
-        stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
+        stop: Union[str, SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Omit = omit,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
@@ -331,6 +409,78 @@ class Completions(SyncAPIResource):
               characteristics, and price points. Refer to the
               [model guide](https://developers.openai.com/api/docs/models) to browse and
               compare available models.
+
+              Deprecated values:
+
+              - "gpt-5.4-nano", "gpt-5.4-nano-2026-03-17", "gpt-5.1", "gpt-5.1-2025-11-13":
+                Announced shutdown date: 2027-04-01. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.3-chat-latest", "gpt-5.2-chat-latest": Announced shutdown date:
+                2026-08-10. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-5.1-codex", "gpt-5.1-chat-latest", "gpt-5-chat-latest",
+                "gpt-4o-search-preview", "gpt-4o-mini-search-preview",
+                "gpt-4o-search-preview-2025-03-11", "gpt-4o-mini-search-preview-2025-03-11":
+                Announced shutdown date: 2026-07-23. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.1-mini": Not a supported model ID. Retained for SDK compatibility.
+              - "gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-5-2025-08-07",
+                "gpt-5-mini-2025-08-07", "gpt-5-nano-2025-08-07", "o3", "o3-2025-04-16":
+                Announced shutdown date: 2026-12-11. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-2025-04-14", "gpt-4.1-mini-2025-04-14",
+                "gpt-4o", "gpt-4o-2024-11-20", "gpt-4o-2024-08-06", "gpt-4o-mini",
+                "gpt-4o-mini-2024-07-18": Announced shutdown date: 2027-01-14. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1-nano", "gpt-4.1-nano-2025-04-14", "o4-mini", "o4-mini-2025-04-16",
+                "o3-mini", "o3-mini-2025-01-31", "o1", "o1-2024-12-17", "gpt-4o-2024-05-13",
+                "gpt-4-turbo", "gpt-4-turbo-2024-04-09", "gpt-4-1106-preview", "gpt-4",
+                "gpt-4-0613", "gpt-3.5-turbo", "gpt-3.5-turbo-0125": Announced shutdown date:
+                2026-10-23. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "o1-preview", "o1-preview-2024-09-12": Announced shutdown date: 2025-07-28.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "o1-mini", "o1-mini-2024-09-12": Announced shutdown date: 2025-10-27. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-audio-mini", "gpt-audio-mini-2025-12-15": Announced shutdown date:
+                2027-01-20. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4o-audio-preview", "gpt-4o-audio-preview-2024-12-17",
+                "gpt-4o-audio-preview-2025-06-03", "gpt-4o-mini-audio-preview",
+                "gpt-4o-mini-audio-preview-2024-12-17": Announced shutdown date: 2026-05-07.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4o-audio-preview-2024-10-01": Announced shutdown date: 2025-10-10. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "chatgpt-4o-latest": Announced shutdown date: 2026-02-17. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "codex-mini-latest": Announced shutdown date: 2026-02-12. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-0125-preview", "gpt-4-turbo-preview", "gpt-4-0314": Announced shutdown
+                date: 2026-03-26. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4-vision-preview": Announced shutdown date: 2024-12-06. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-32k", "gpt-4-32k-0314", "gpt-4-32k-0613": Announced shutdown date:
+                2025-06-06. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-3.5-turbo-16k", "gpt-3.5-turbo-0301", "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-16k-0613": Announced shutdown date: 2024-09-13. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-3.5-turbo-1106": Announced shutdown date: 2026-09-28. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
 
           audio: Parameters for audio output. Required when audio output is requested with
               `modalities: ["audio"]`.
@@ -412,8 +562,11 @@ class Completions(SyncAPIResource):
               [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
               during tool use.
 
-          prediction: Static predicted output content, such as the content of a text file that is
-              being regenerated.
+          prediction: Configuration for a
+              [Predicted Output](https://developers.openai.com/api/docs/guides/predicted-outputs),
+              which can greatly improve response times when large parts of the model response
+              are known ahead of time. This is most common when you are regenerating a file
+              with only minor changes to most of the content.
 
           presence_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on
               whether they appear in the text so far, increasing the model's likelihood to
@@ -429,7 +582,7 @@ class Completions(SyncAPIResource):
               request can write up to four breakpoints. For cache matching, OpenAI considers
               up to the latest 80 breakpoints in the conversation, without a content-block
               lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The
-              `ttl` defaults to `30m`, which is currently the only supported value. See the
+              `ttl` defaults to `30m`. Supported lifetimes depend on the API. See the
               [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching)
               for current details.
 
@@ -471,7 +624,7 @@ class Completions(SyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user, with a maximum length of 64 characters. We recommend
+              identifies each user, with a maximum length of 128 characters. We recommend
               hashing their username or email address, in order to avoid sending us any
               identifying information.
               [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
@@ -614,7 +767,7 @@ class Completions(SyncAPIResource):
         safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
-        stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
+        stop: Union[str, SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -667,6 +820,78 @@ class Completions(SyncAPIResource):
               characteristics, and price points. Refer to the
               [model guide](https://developers.openai.com/api/docs/models) to browse and
               compare available models.
+
+              Deprecated values:
+
+              - "gpt-5.4-nano", "gpt-5.4-nano-2026-03-17", "gpt-5.1", "gpt-5.1-2025-11-13":
+                Announced shutdown date: 2027-04-01. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.3-chat-latest", "gpt-5.2-chat-latest": Announced shutdown date:
+                2026-08-10. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-5.1-codex", "gpt-5.1-chat-latest", "gpt-5-chat-latest",
+                "gpt-4o-search-preview", "gpt-4o-mini-search-preview",
+                "gpt-4o-search-preview-2025-03-11", "gpt-4o-mini-search-preview-2025-03-11":
+                Announced shutdown date: 2026-07-23. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.1-mini": Not a supported model ID. Retained for SDK compatibility.
+              - "gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-5-2025-08-07",
+                "gpt-5-mini-2025-08-07", "gpt-5-nano-2025-08-07", "o3", "o3-2025-04-16":
+                Announced shutdown date: 2026-12-11. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-2025-04-14", "gpt-4.1-mini-2025-04-14",
+                "gpt-4o", "gpt-4o-2024-11-20", "gpt-4o-2024-08-06", "gpt-4o-mini",
+                "gpt-4o-mini-2024-07-18": Announced shutdown date: 2027-01-14. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1-nano", "gpt-4.1-nano-2025-04-14", "o4-mini", "o4-mini-2025-04-16",
+                "o3-mini", "o3-mini-2025-01-31", "o1", "o1-2024-12-17", "gpt-4o-2024-05-13",
+                "gpt-4-turbo", "gpt-4-turbo-2024-04-09", "gpt-4-1106-preview", "gpt-4",
+                "gpt-4-0613", "gpt-3.5-turbo", "gpt-3.5-turbo-0125": Announced shutdown date:
+                2026-10-23. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "o1-preview", "o1-preview-2024-09-12": Announced shutdown date: 2025-07-28.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "o1-mini", "o1-mini-2024-09-12": Announced shutdown date: 2025-10-27. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-audio-mini", "gpt-audio-mini-2025-12-15": Announced shutdown date:
+                2027-01-20. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4o-audio-preview", "gpt-4o-audio-preview-2024-12-17",
+                "gpt-4o-audio-preview-2025-06-03", "gpt-4o-mini-audio-preview",
+                "gpt-4o-mini-audio-preview-2024-12-17": Announced shutdown date: 2026-05-07.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4o-audio-preview-2024-10-01": Announced shutdown date: 2025-10-10. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "chatgpt-4o-latest": Announced shutdown date: 2026-02-17. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "codex-mini-latest": Announced shutdown date: 2026-02-12. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-0125-preview", "gpt-4-turbo-preview", "gpt-4-0314": Announced shutdown
+                date: 2026-03-26. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4-vision-preview": Announced shutdown date: 2024-12-06. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-32k", "gpt-4-32k-0314", "gpt-4-32k-0613": Announced shutdown date:
+                2025-06-06. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-3.5-turbo-16k", "gpt-3.5-turbo-0301", "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-16k-0613": Announced shutdown date: 2024-09-13. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-3.5-turbo-1106": Announced shutdown date: 2026-09-28. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
 
           stream: If set to true, the model response data will be streamed to the client as it is
               generated using
@@ -757,8 +982,11 @@ class Completions(SyncAPIResource):
               [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
               during tool use.
 
-          prediction: Static predicted output content, such as the content of a text file that is
-              being regenerated.
+          prediction: Configuration for a
+              [Predicted Output](https://developers.openai.com/api/docs/guides/predicted-outputs),
+              which can greatly improve response times when large parts of the model response
+              are known ahead of time. This is most common when you are regenerating a file
+              with only minor changes to most of the content.
 
           presence_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on
               whether they appear in the text so far, increasing the model's likelihood to
@@ -774,7 +1002,7 @@ class Completions(SyncAPIResource):
               request can write up to four breakpoints. For cache matching, OpenAI considers
               up to the latest 80 breakpoints in the conversation, without a content-block
               lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The
-              `ttl` defaults to `30m`, which is currently the only supported value. See the
+              `ttl` defaults to `30m`. Supported lifetimes depend on the API. See the
               [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching)
               for current details.
 
@@ -816,7 +1044,7 @@ class Completions(SyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user, with a maximum length of 64 characters. We recommend
+              identifies each user, with a maximum length of 128 characters. We recommend
               hashing their username or email address, in order to avoid sending us any
               identifying information.
               [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
@@ -950,7 +1178,7 @@ class Completions(SyncAPIResource):
         safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
-        stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
+        stop: Union[str, SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -1003,6 +1231,78 @@ class Completions(SyncAPIResource):
               characteristics, and price points. Refer to the
               [model guide](https://developers.openai.com/api/docs/models) to browse and
               compare available models.
+
+              Deprecated values:
+
+              - "gpt-5.4-nano", "gpt-5.4-nano-2026-03-17", "gpt-5.1", "gpt-5.1-2025-11-13":
+                Announced shutdown date: 2027-04-01. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.3-chat-latest", "gpt-5.2-chat-latest": Announced shutdown date:
+                2026-08-10. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-5.1-codex", "gpt-5.1-chat-latest", "gpt-5-chat-latest",
+                "gpt-4o-search-preview", "gpt-4o-mini-search-preview",
+                "gpt-4o-search-preview-2025-03-11", "gpt-4o-mini-search-preview-2025-03-11":
+                Announced shutdown date: 2026-07-23. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.1-mini": Not a supported model ID. Retained for SDK compatibility.
+              - "gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-5-2025-08-07",
+                "gpt-5-mini-2025-08-07", "gpt-5-nano-2025-08-07", "o3", "o3-2025-04-16":
+                Announced shutdown date: 2026-12-11. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-2025-04-14", "gpt-4.1-mini-2025-04-14",
+                "gpt-4o", "gpt-4o-2024-11-20", "gpt-4o-2024-08-06", "gpt-4o-mini",
+                "gpt-4o-mini-2024-07-18": Announced shutdown date: 2027-01-14. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1-nano", "gpt-4.1-nano-2025-04-14", "o4-mini", "o4-mini-2025-04-16",
+                "o3-mini", "o3-mini-2025-01-31", "o1", "o1-2024-12-17", "gpt-4o-2024-05-13",
+                "gpt-4-turbo", "gpt-4-turbo-2024-04-09", "gpt-4-1106-preview", "gpt-4",
+                "gpt-4-0613", "gpt-3.5-turbo", "gpt-3.5-turbo-0125": Announced shutdown date:
+                2026-10-23. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "o1-preview", "o1-preview-2024-09-12": Announced shutdown date: 2025-07-28.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "o1-mini", "o1-mini-2024-09-12": Announced shutdown date: 2025-10-27. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-audio-mini", "gpt-audio-mini-2025-12-15": Announced shutdown date:
+                2027-01-20. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4o-audio-preview", "gpt-4o-audio-preview-2024-12-17",
+                "gpt-4o-audio-preview-2025-06-03", "gpt-4o-mini-audio-preview",
+                "gpt-4o-mini-audio-preview-2024-12-17": Announced shutdown date: 2026-05-07.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4o-audio-preview-2024-10-01": Announced shutdown date: 2025-10-10. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "chatgpt-4o-latest": Announced shutdown date: 2026-02-17. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "codex-mini-latest": Announced shutdown date: 2026-02-12. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-0125-preview", "gpt-4-turbo-preview", "gpt-4-0314": Announced shutdown
+                date: 2026-03-26. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4-vision-preview": Announced shutdown date: 2024-12-06. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-32k", "gpt-4-32k-0314", "gpt-4-32k-0613": Announced shutdown date:
+                2025-06-06. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-3.5-turbo-16k", "gpt-3.5-turbo-0301", "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-16k-0613": Announced shutdown date: 2024-09-13. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-3.5-turbo-1106": Announced shutdown date: 2026-09-28. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
 
           stream: If set to true, the model response data will be streamed to the client as it is
               generated using
@@ -1093,8 +1393,11 @@ class Completions(SyncAPIResource):
               [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
               during tool use.
 
-          prediction: Static predicted output content, such as the content of a text file that is
-              being regenerated.
+          prediction: Configuration for a
+              [Predicted Output](https://developers.openai.com/api/docs/guides/predicted-outputs),
+              which can greatly improve response times when large parts of the model response
+              are known ahead of time. This is most common when you are regenerating a file
+              with only minor changes to most of the content.
 
           presence_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on
               whether they appear in the text so far, increasing the model's likelihood to
@@ -1110,7 +1413,7 @@ class Completions(SyncAPIResource):
               request can write up to four breakpoints. For cache matching, OpenAI considers
               up to the latest 80 breakpoints in the conversation, without a content-block
               lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The
-              `ttl` defaults to `30m`, which is currently the only supported value. See the
+              `ttl` defaults to `30m`. Supported lifetimes depend on the API. See the
               [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching)
               for current details.
 
@@ -1152,7 +1455,7 @@ class Completions(SyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user, with a maximum length of 64 characters. We recommend
+              identifies each user, with a maximum length of 128 characters. We recommend
               hashing their username or email address, in order to avoid sending us any
               identifying information.
               [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
@@ -1285,7 +1588,7 @@ class Completions(SyncAPIResource):
         safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
-        stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
+        stop: Union[str, SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
@@ -1309,8 +1612,10 @@ class Completions(SyncAPIResource):
             "/chat/completions",
             body=maybe_transform(
                 {
-                    "messages": messages,
                     "model": model,
+                    "stream": stream,
+                    "service_tier": service_tier,
+                    "messages": messages,
                     "audio": audio,
                     "frequency_penalty": frequency_penalty,
                     "function_call": function_call,
@@ -1333,10 +1638,8 @@ class Completions(SyncAPIResource):
                     "response_format": response_format,
                     "safety_identifier": safety_identifier,
                     "seed": seed,
-                    "service_tier": service_tier,
                     "stop": stop,
                     "store": store,
-                    "stream": stream,
                     "stream_options": stream_options,
                     "temperature": temperature,
                     "tool_choice": tool_choice,
@@ -1556,129 +1859,6 @@ class Completions(SyncAPIResource):
             cast_to=ChatCompletionDeleted,
         )
 
-    def stream(
-        self,
-        *,
-        messages: Iterable[ChatCompletionMessageParam],
-        model: Union[str, ChatModel],
-        audio: Optional[ChatCompletionAudioParam] | Omit = omit,
-        response_format: completion_create_params.ResponseFormat | type[ResponseFormatT] | Omit = omit,
-        frequency_penalty: Optional[float] | Omit = omit,
-        function_call: completion_create_params.FunctionCall | Omit = omit,
-        functions: Iterable[completion_create_params.Function] | Omit = omit,
-        logit_bias: Optional[Dict[str, int]] | Omit = omit,
-        logprobs: Optional[bool] | Omit = omit,
-        max_completion_tokens: Optional[int] | Omit = omit,
-        max_tokens: Optional[int] | Omit = omit,
-        metadata: Optional[Metadata] | Omit = omit,
-        modalities: Optional[List[Literal["text", "audio"]]] | Omit = omit,
-        moderation: Optional[completion_create_params.Moderation] | Omit = omit,
-        n: Optional[int] | Omit = omit,
-        parallel_tool_calls: bool | Omit = omit,
-        prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
-        presence_penalty: Optional[float] | Omit = omit,
-        prompt_cache_key: Optional[str] | Omit = omit,
-        prompt_cache_options: completion_create_params.PromptCacheOptions | Omit = omit,
-        prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
-        reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
-        safety_identifier: Optional[str] | Omit = omit,
-        seed: Optional[int] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
-        stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
-        store: Optional[bool] | Omit = omit,
-        stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
-        temperature: Optional[float] | Omit = omit,
-        tool_choice: ChatCompletionToolChoiceOptionParam | Omit = omit,
-        tools: Iterable[ChatCompletionToolUnionParam] | Omit = omit,
-        top_logprobs: Optional[int] | Omit = omit,
-        top_p: Optional[float] | Omit = omit,
-        user: str | Omit = omit,
-        verbosity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
-        web_search_options: completion_create_params.WebSearchOptions | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> ChatCompletionStreamManager[ResponseFormatT]:
-        """Wrapper over the `client.chat.completions.create(stream=True)` method that provides a more granular event API
-        and automatic accumulation of each delta.
-
-        This also supports all of the parsing utilities that `.parse()` does.
-
-        Unlike `.create(stream=True)`, the `.stream()` method requires usage within a context manager to prevent accidental leakage of the response:
-
-        ```py
-        with client.chat.completions.stream(
-            model="gpt-4o-2024-08-06",
-            messages=[...],
-        ) as stream:
-            for event in stream:
-                if event.type == "content.delta":
-                    print(event.delta, flush=True, end="")
-        ```
-
-        When the context manager is entered, a `ChatCompletionStream` instance is returned which, like `.create(stream=True)` is an iterator. The full list of events that are yielded by the iterator are outlined in [these docs](https://github.com/openai/openai-python/blob/main/helpers.md#chat-completions-events).
-
-        When the context manager exits, the response will be closed, however the `stream` instance is still available outside
-        the context manager.
-        """
-        extra_headers = {
-            "X-Stainless-Helper-Method": "chat.completions.stream",
-            **(extra_headers or {}),
-        }
-
-        api_request: partial[Stream[ChatCompletionChunk]] = partial(
-            self.create,
-            messages=messages,
-            model=model,
-            audio=audio,
-            stream=True,
-            response_format=_type_to_response_format(response_format),
-            frequency_penalty=frequency_penalty,
-            function_call=function_call,
-            functions=functions,
-            logit_bias=logit_bias,
-            logprobs=logprobs,
-            max_completion_tokens=max_completion_tokens,
-            max_tokens=max_tokens,
-            metadata=metadata,
-            modalities=modalities,
-            moderation=moderation,
-            n=n,
-            parallel_tool_calls=parallel_tool_calls,
-            prediction=prediction,
-            presence_penalty=presence_penalty,
-            prompt_cache_key=prompt_cache_key,
-            prompt_cache_options=prompt_cache_options,
-            prompt_cache_retention=prompt_cache_retention,
-            reasoning_effort=reasoning_effort,
-            safety_identifier=safety_identifier,
-            seed=seed,
-            service_tier=service_tier,
-            store=store,
-            stop=stop,
-            stream_options=stream_options,
-            temperature=temperature,
-            tool_choice=tool_choice,
-            tools=tools,
-            top_logprobs=top_logprobs,
-            top_p=top_p,
-            user=user,
-            verbosity=verbosity,
-            web_search_options=web_search_options,
-            extra_headers=extra_headers,
-            extra_query=extra_query,
-            extra_body=extra_body,
-            timeout=timeout,
-        )
-        return ChatCompletionStreamManager(
-            api_request,
-            response_format=response_format,
-            input_tools=tools,
-        )
-
 
 class AsyncCompletions(AsyncAPIResource):
     """
@@ -1739,7 +1919,7 @@ class AsyncCompletions(AsyncAPIResource):
         safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
-        stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
+        stop: Union[str, SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -1750,8 +1930,6 @@ class AsyncCompletions(AsyncAPIResource):
         user: str | Omit = omit,
         verbosity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
         web_search_options: completion_create_params.WebSearchOptions | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -1765,12 +1943,12 @@ class AsyncCompletions(AsyncAPIResource):
 
         This method will also automatically parse `function` tool calls if:
         - You use the `openai.pydantic_function_tool()` helper method
-        - You mark your tool schema with `"strict": True`
+        - You mark your tool schema with `\"strict\": True`
 
         Example usage:
         ```py
         from pydantic import BaseModel
-        from openai import AsyncOpenAI
+        from openai import OpenAI
 
 
         class Step(BaseModel):
@@ -1783,12 +1961,12 @@ class AsyncCompletions(AsyncAPIResource):
             final_answer: str
 
 
-        client = AsyncOpenAI()
-        completion = await client.chat.completions.parse(
-            model="gpt-4o-2024-08-06",
+        client = OpenAI()
+        completion = client.chat.completions.parse(
+            model=\"{{models.chat.default}}\",
             messages=[
-                {"role": "system", "content": "You are a helpful math tutor."},
-                {"role": "user", "content": "solve 8x + 31 = 2"},
+                {\"role\": \"system\", \"content\": \"You are a helpful math tutor.\"},
+                {\"role\": \"user\", \"content\": \"solve 8x + 31 = 2\"},
             ],
             response_format=MathResponse,
         )
@@ -1796,79 +1974,159 @@ class AsyncCompletions(AsyncAPIResource):
         message = completion.choices[0].message
         if message.parsed:
             print(message.parsed.steps)
-            print("answer: ", message.parsed.final_answer)
+            print(\"answer: \", message.parsed.final_answer)
+        ```"""
+        return await async_parse(
+            self,
+            messages=messages,
+            model=model,
+            audio=audio,
+            response_format=response_format,
+            frequency_penalty=frequency_penalty,
+            function_call=function_call,
+            functions=functions,
+            logit_bias=logit_bias,
+            logprobs=logprobs,
+            max_completion_tokens=max_completion_tokens,
+            max_tokens=max_tokens,
+            metadata=metadata,
+            modalities=modalities,
+            moderation=moderation,
+            n=n,
+            parallel_tool_calls=parallel_tool_calls,
+            prediction=prediction,
+            presence_penalty=presence_penalty,
+            prompt_cache_key=prompt_cache_key,
+            prompt_cache_options=prompt_cache_options,
+            prompt_cache_retention=prompt_cache_retention,
+            reasoning_effort=reasoning_effort,
+            safety_identifier=safety_identifier,
+            seed=seed,
+            service_tier=service_tier,
+            stop=stop,
+            store=store,
+            stream_options=stream_options,
+            temperature=temperature,
+            tool_choice=tool_choice,
+            tools=tools,
+            top_logprobs=top_logprobs,
+            top_p=top_p,
+            user=user,
+            verbosity=verbosity,
+            web_search_options=web_search_options,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
+
+    def stream(
+        self,
+        *,
+        messages: Iterable[ChatCompletionMessageParam],
+        model: Union[str, ChatModel],
+        audio: Optional[ChatCompletionAudioParam] | Omit = omit,
+        response_format: completion_create_params.ResponseFormat | type[ResponseFormatT] | Omit = omit,
+        frequency_penalty: Optional[float] | Omit = omit,
+        function_call: completion_create_params.FunctionCall | Omit = omit,
+        functions: Iterable[completion_create_params.Function] | Omit = omit,
+        logit_bias: Optional[Dict[str, int]] | Omit = omit,
+        logprobs: Optional[bool] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        modalities: Optional[List[Literal["text", "audio"]]] | Omit = omit,
+        moderation: Optional[completion_create_params.Moderation] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
+        presence_penalty: Optional[float] | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
+        prompt_cache_options: completion_create_params.PromptCacheOptions | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
+        reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        seed: Optional[int] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        stop: Union[str, SequenceNotStr[str], None] | Omit = omit,
+        store: Optional[bool] | Omit = omit,
+        stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        tool_choice: ChatCompletionToolChoiceOptionParam | Omit = omit,
+        tools: Iterable[ChatCompletionToolUnionParam] | Omit = omit,
+        top_logprobs: Optional[int] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        user: str | Omit = omit,
+        verbosity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        web_search_options: completion_create_params.WebSearchOptions | Omit = omit,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AsyncChatCompletionStreamManager[ResponseFormatT]:
+        """Wrapper over the `client.chat.completions.create(stream=True)` method that provides a more granular event API
+        and automatic accumulation of each delta.
+
+        This also supports all of the parsing utilities that `.parse()` does.
+
+        Unlike `.create(stream=True)`, the `.stream()` method requires usage within a context manager to prevent accidental leakage of the response:
+
+        ```py
+        with client.chat.completions.stream(
+            model=\"{{models.chat.default}}\",
+            messages=[...],
+        ) as stream:
+            for event in stream:
+                if event.type == \"content.delta\":
+                    print(event.delta, flush=True, end=\"\")
         ```
-        """
-        _validate_input_tools(tools)
 
-        extra_headers = {
-            "X-Stainless-Helper-Method": "chat.completions.parse",
-            **(extra_headers or {}),
-        }
+        When the context manager is entered, a `ChatCompletionStream` instance is returned which, like `.create(stream=True)` is an iterator. The full list of events that are yielded by the iterator are outlined in [these docs](https://github.com/openai/openai-python/blob/main/helpers.md#chat-completions-events).
 
-        def parser(raw_completion: ChatCompletion) -> ParsedChatCompletion[ResponseFormatT]:
-            return _parse_chat_completion(
-                response_format=response_format,
-                chat_completion=raw_completion,
-                input_tools=tools,
-            )
-
-        return await self._post(
-            "/chat/completions",
-            body=await async_maybe_transform(
-                {
-                    "messages": messages,
-                    "model": model,
-                    "audio": audio,
-                    "frequency_penalty": frequency_penalty,
-                    "function_call": function_call,
-                    "functions": functions,
-                    "logit_bias": logit_bias,
-                    "logprobs": logprobs,
-                    "max_completion_tokens": max_completion_tokens,
-                    "max_tokens": max_tokens,
-                    "metadata": metadata,
-                    "modalities": modalities,
-                    "moderation": moderation,
-                    "n": n,
-                    "parallel_tool_calls": parallel_tool_calls,
-                    "prediction": prediction,
-                    "presence_penalty": presence_penalty,
-                    "prompt_cache_key": prompt_cache_key,
-                    "prompt_cache_options": prompt_cache_options,
-                    "prompt_cache_retention": prompt_cache_retention,
-                    "reasoning_effort": reasoning_effort,
-                    "response_format": _type_to_response_format(response_format),
-                    "safety_identifier": safety_identifier,
-                    "seed": seed,
-                    "service_tier": service_tier,
-                    "store": store,
-                    "stop": stop,
-                    "stream": False,
-                    "stream_options": stream_options,
-                    "temperature": temperature,
-                    "tool_choice": tool_choice,
-                    "tools": tools,
-                    "top_logprobs": top_logprobs,
-                    "top_p": top_p,
-                    "user": user,
-                    "verbosity": verbosity,
-                    "web_search_options": web_search_options,
-                },
-                completion_create_params.CompletionCreateParams,
-            ),
-            options=make_request_options(
-                extra_headers=extra_headers,
-                extra_query=extra_query,
-                extra_body=extra_body,
-                timeout=timeout,
-                post_parser=parser,
-                security={"bearer_auth": True},
-            ),
-            # we turn the `ChatCompletion` instance into a `ParsedChatCompletion`
-            # in the `parser` function above
-            cast_to=cast(Type[ParsedChatCompletion[ResponseFormatT]], ChatCompletion),
-            stream=False,
+        When the context manager exits, the response will be closed, however the `stream` instance is still available outside
+        the context manager."""
+        return async_stream(
+            self,
+            messages=messages,
+            model=model,
+            audio=audio,
+            response_format=response_format,
+            frequency_penalty=frequency_penalty,
+            function_call=function_call,
+            functions=functions,
+            logit_bias=logit_bias,
+            logprobs=logprobs,
+            max_completion_tokens=max_completion_tokens,
+            max_tokens=max_tokens,
+            metadata=metadata,
+            modalities=modalities,
+            moderation=moderation,
+            n=n,
+            parallel_tool_calls=parallel_tool_calls,
+            prediction=prediction,
+            presence_penalty=presence_penalty,
+            prompt_cache_key=prompt_cache_key,
+            prompt_cache_options=prompt_cache_options,
+            prompt_cache_retention=prompt_cache_retention,
+            reasoning_effort=reasoning_effort,
+            safety_identifier=safety_identifier,
+            seed=seed,
+            service_tier=service_tier,
+            stop=stop,
+            store=store,
+            stream_options=stream_options,
+            temperature=temperature,
+            tool_choice=tool_choice,
+            tools=tools,
+            top_logprobs=top_logprobs,
+            top_p=top_p,
+            user=user,
+            verbosity=verbosity,
+            web_search_options=web_search_options,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
         )
 
     @overload
@@ -1900,7 +2158,7 @@ class AsyncCompletions(AsyncAPIResource):
         safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
-        stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
+        stop: Union[str, SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Omit = omit,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
@@ -1954,6 +2212,78 @@ class AsyncCompletions(AsyncAPIResource):
               characteristics, and price points. Refer to the
               [model guide](https://developers.openai.com/api/docs/models) to browse and
               compare available models.
+
+              Deprecated values:
+
+              - "gpt-5.4-nano", "gpt-5.4-nano-2026-03-17", "gpt-5.1", "gpt-5.1-2025-11-13":
+                Announced shutdown date: 2027-04-01. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.3-chat-latest", "gpt-5.2-chat-latest": Announced shutdown date:
+                2026-08-10. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-5.1-codex", "gpt-5.1-chat-latest", "gpt-5-chat-latest",
+                "gpt-4o-search-preview", "gpt-4o-mini-search-preview",
+                "gpt-4o-search-preview-2025-03-11", "gpt-4o-mini-search-preview-2025-03-11":
+                Announced shutdown date: 2026-07-23. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.1-mini": Not a supported model ID. Retained for SDK compatibility.
+              - "gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-5-2025-08-07",
+                "gpt-5-mini-2025-08-07", "gpt-5-nano-2025-08-07", "o3", "o3-2025-04-16":
+                Announced shutdown date: 2026-12-11. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-2025-04-14", "gpt-4.1-mini-2025-04-14",
+                "gpt-4o", "gpt-4o-2024-11-20", "gpt-4o-2024-08-06", "gpt-4o-mini",
+                "gpt-4o-mini-2024-07-18": Announced shutdown date: 2027-01-14. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1-nano", "gpt-4.1-nano-2025-04-14", "o4-mini", "o4-mini-2025-04-16",
+                "o3-mini", "o3-mini-2025-01-31", "o1", "o1-2024-12-17", "gpt-4o-2024-05-13",
+                "gpt-4-turbo", "gpt-4-turbo-2024-04-09", "gpt-4-1106-preview", "gpt-4",
+                "gpt-4-0613", "gpt-3.5-turbo", "gpt-3.5-turbo-0125": Announced shutdown date:
+                2026-10-23. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "o1-preview", "o1-preview-2024-09-12": Announced shutdown date: 2025-07-28.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "o1-mini", "o1-mini-2024-09-12": Announced shutdown date: 2025-10-27. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-audio-mini", "gpt-audio-mini-2025-12-15": Announced shutdown date:
+                2027-01-20. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4o-audio-preview", "gpt-4o-audio-preview-2024-12-17",
+                "gpt-4o-audio-preview-2025-06-03", "gpt-4o-mini-audio-preview",
+                "gpt-4o-mini-audio-preview-2024-12-17": Announced shutdown date: 2026-05-07.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4o-audio-preview-2024-10-01": Announced shutdown date: 2025-10-10. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "chatgpt-4o-latest": Announced shutdown date: 2026-02-17. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "codex-mini-latest": Announced shutdown date: 2026-02-12. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-0125-preview", "gpt-4-turbo-preview", "gpt-4-0314": Announced shutdown
+                date: 2026-03-26. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4-vision-preview": Announced shutdown date: 2024-12-06. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-32k", "gpt-4-32k-0314", "gpt-4-32k-0613": Announced shutdown date:
+                2025-06-06. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-3.5-turbo-16k", "gpt-3.5-turbo-0301", "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-16k-0613": Announced shutdown date: 2024-09-13. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-3.5-turbo-1106": Announced shutdown date: 2026-09-28. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
 
           audio: Parameters for audio output. Required when audio output is requested with
               `modalities: ["audio"]`.
@@ -2035,8 +2365,11 @@ class AsyncCompletions(AsyncAPIResource):
               [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
               during tool use.
 
-          prediction: Static predicted output content, such as the content of a text file that is
-              being regenerated.
+          prediction: Configuration for a
+              [Predicted Output](https://developers.openai.com/api/docs/guides/predicted-outputs),
+              which can greatly improve response times when large parts of the model response
+              are known ahead of time. This is most common when you are regenerating a file
+              with only minor changes to most of the content.
 
           presence_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on
               whether they appear in the text so far, increasing the model's likelihood to
@@ -2052,7 +2385,7 @@ class AsyncCompletions(AsyncAPIResource):
               request can write up to four breakpoints. For cache matching, OpenAI considers
               up to the latest 80 breakpoints in the conversation, without a content-block
               lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The
-              `ttl` defaults to `30m`, which is currently the only supported value. See the
+              `ttl` defaults to `30m`. Supported lifetimes depend on the API. See the
               [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching)
               for current details.
 
@@ -2094,7 +2427,7 @@ class AsyncCompletions(AsyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user, with a maximum length of 64 characters. We recommend
+              identifies each user, with a maximum length of 128 characters. We recommend
               hashing their username or email address, in order to avoid sending us any
               identifying information.
               [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
@@ -2237,7 +2570,7 @@ class AsyncCompletions(AsyncAPIResource):
         safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
-        stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
+        stop: Union[str, SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -2290,6 +2623,78 @@ class AsyncCompletions(AsyncAPIResource):
               characteristics, and price points. Refer to the
               [model guide](https://developers.openai.com/api/docs/models) to browse and
               compare available models.
+
+              Deprecated values:
+
+              - "gpt-5.4-nano", "gpt-5.4-nano-2026-03-17", "gpt-5.1", "gpt-5.1-2025-11-13":
+                Announced shutdown date: 2027-04-01. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.3-chat-latest", "gpt-5.2-chat-latest": Announced shutdown date:
+                2026-08-10. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-5.1-codex", "gpt-5.1-chat-latest", "gpt-5-chat-latest",
+                "gpt-4o-search-preview", "gpt-4o-mini-search-preview",
+                "gpt-4o-search-preview-2025-03-11", "gpt-4o-mini-search-preview-2025-03-11":
+                Announced shutdown date: 2026-07-23. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.1-mini": Not a supported model ID. Retained for SDK compatibility.
+              - "gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-5-2025-08-07",
+                "gpt-5-mini-2025-08-07", "gpt-5-nano-2025-08-07", "o3", "o3-2025-04-16":
+                Announced shutdown date: 2026-12-11. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-2025-04-14", "gpt-4.1-mini-2025-04-14",
+                "gpt-4o", "gpt-4o-2024-11-20", "gpt-4o-2024-08-06", "gpt-4o-mini",
+                "gpt-4o-mini-2024-07-18": Announced shutdown date: 2027-01-14. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1-nano", "gpt-4.1-nano-2025-04-14", "o4-mini", "o4-mini-2025-04-16",
+                "o3-mini", "o3-mini-2025-01-31", "o1", "o1-2024-12-17", "gpt-4o-2024-05-13",
+                "gpt-4-turbo", "gpt-4-turbo-2024-04-09", "gpt-4-1106-preview", "gpt-4",
+                "gpt-4-0613", "gpt-3.5-turbo", "gpt-3.5-turbo-0125": Announced shutdown date:
+                2026-10-23. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "o1-preview", "o1-preview-2024-09-12": Announced shutdown date: 2025-07-28.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "o1-mini", "o1-mini-2024-09-12": Announced shutdown date: 2025-10-27. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-audio-mini", "gpt-audio-mini-2025-12-15": Announced shutdown date:
+                2027-01-20. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4o-audio-preview", "gpt-4o-audio-preview-2024-12-17",
+                "gpt-4o-audio-preview-2025-06-03", "gpt-4o-mini-audio-preview",
+                "gpt-4o-mini-audio-preview-2024-12-17": Announced shutdown date: 2026-05-07.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4o-audio-preview-2024-10-01": Announced shutdown date: 2025-10-10. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "chatgpt-4o-latest": Announced shutdown date: 2026-02-17. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "codex-mini-latest": Announced shutdown date: 2026-02-12. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-0125-preview", "gpt-4-turbo-preview", "gpt-4-0314": Announced shutdown
+                date: 2026-03-26. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4-vision-preview": Announced shutdown date: 2024-12-06. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-32k", "gpt-4-32k-0314", "gpt-4-32k-0613": Announced shutdown date:
+                2025-06-06. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-3.5-turbo-16k", "gpt-3.5-turbo-0301", "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-16k-0613": Announced shutdown date: 2024-09-13. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-3.5-turbo-1106": Announced shutdown date: 2026-09-28. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
 
           stream: If set to true, the model response data will be streamed to the client as it is
               generated using
@@ -2380,8 +2785,11 @@ class AsyncCompletions(AsyncAPIResource):
               [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
               during tool use.
 
-          prediction: Static predicted output content, such as the content of a text file that is
-              being regenerated.
+          prediction: Configuration for a
+              [Predicted Output](https://developers.openai.com/api/docs/guides/predicted-outputs),
+              which can greatly improve response times when large parts of the model response
+              are known ahead of time. This is most common when you are regenerating a file
+              with only minor changes to most of the content.
 
           presence_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on
               whether they appear in the text so far, increasing the model's likelihood to
@@ -2397,7 +2805,7 @@ class AsyncCompletions(AsyncAPIResource):
               request can write up to four breakpoints. For cache matching, OpenAI considers
               up to the latest 80 breakpoints in the conversation, without a content-block
               lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The
-              `ttl` defaults to `30m`, which is currently the only supported value. See the
+              `ttl` defaults to `30m`. Supported lifetimes depend on the API. See the
               [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching)
               for current details.
 
@@ -2439,7 +2847,7 @@ class AsyncCompletions(AsyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user, with a maximum length of 64 characters. We recommend
+              identifies each user, with a maximum length of 128 characters. We recommend
               hashing their username or email address, in order to avoid sending us any
               identifying information.
               [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
@@ -2573,7 +2981,7 @@ class AsyncCompletions(AsyncAPIResource):
         safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
-        stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
+        stop: Union[str, SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -2626,6 +3034,78 @@ class AsyncCompletions(AsyncAPIResource):
               characteristics, and price points. Refer to the
               [model guide](https://developers.openai.com/api/docs/models) to browse and
               compare available models.
+
+              Deprecated values:
+
+              - "gpt-5.4-nano", "gpt-5.4-nano-2026-03-17", "gpt-5.1", "gpt-5.1-2025-11-13":
+                Announced shutdown date: 2027-04-01. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.3-chat-latest", "gpt-5.2-chat-latest": Announced shutdown date:
+                2026-08-10. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-5.1-codex", "gpt-5.1-chat-latest", "gpt-5-chat-latest",
+                "gpt-4o-search-preview", "gpt-4o-mini-search-preview",
+                "gpt-4o-search-preview-2025-03-11", "gpt-4o-mini-search-preview-2025-03-11":
+                Announced shutdown date: 2026-07-23. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.1-mini": Not a supported model ID. Retained for SDK compatibility.
+              - "gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-5-2025-08-07",
+                "gpt-5-mini-2025-08-07", "gpt-5-nano-2025-08-07", "o3", "o3-2025-04-16":
+                Announced shutdown date: 2026-12-11. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-2025-04-14", "gpt-4.1-mini-2025-04-14",
+                "gpt-4o", "gpt-4o-2024-11-20", "gpt-4o-2024-08-06", "gpt-4o-mini",
+                "gpt-4o-mini-2024-07-18": Announced shutdown date: 2027-01-14. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1-nano", "gpt-4.1-nano-2025-04-14", "o4-mini", "o4-mini-2025-04-16",
+                "o3-mini", "o3-mini-2025-01-31", "o1", "o1-2024-12-17", "gpt-4o-2024-05-13",
+                "gpt-4-turbo", "gpt-4-turbo-2024-04-09", "gpt-4-1106-preview", "gpt-4",
+                "gpt-4-0613", "gpt-3.5-turbo", "gpt-3.5-turbo-0125": Announced shutdown date:
+                2026-10-23. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "o1-preview", "o1-preview-2024-09-12": Announced shutdown date: 2025-07-28.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "o1-mini", "o1-mini-2024-09-12": Announced shutdown date: 2025-10-27. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-audio-mini", "gpt-audio-mini-2025-12-15": Announced shutdown date:
+                2027-01-20. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4o-audio-preview", "gpt-4o-audio-preview-2024-12-17",
+                "gpt-4o-audio-preview-2025-06-03", "gpt-4o-mini-audio-preview",
+                "gpt-4o-mini-audio-preview-2024-12-17": Announced shutdown date: 2026-05-07.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4o-audio-preview-2024-10-01": Announced shutdown date: 2025-10-10. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "chatgpt-4o-latest": Announced shutdown date: 2026-02-17. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "codex-mini-latest": Announced shutdown date: 2026-02-12. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-0125-preview", "gpt-4-turbo-preview", "gpt-4-0314": Announced shutdown
+                date: 2026-03-26. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4-vision-preview": Announced shutdown date: 2024-12-06. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-32k", "gpt-4-32k-0314", "gpt-4-32k-0613": Announced shutdown date:
+                2025-06-06. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-3.5-turbo-16k", "gpt-3.5-turbo-0301", "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-16k-0613": Announced shutdown date: 2024-09-13. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-3.5-turbo-1106": Announced shutdown date: 2026-09-28. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
 
           stream: If set to true, the model response data will be streamed to the client as it is
               generated using
@@ -2716,8 +3196,11 @@ class AsyncCompletions(AsyncAPIResource):
               [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
               during tool use.
 
-          prediction: Static predicted output content, such as the content of a text file that is
-              being regenerated.
+          prediction: Configuration for a
+              [Predicted Output](https://developers.openai.com/api/docs/guides/predicted-outputs),
+              which can greatly improve response times when large parts of the model response
+              are known ahead of time. This is most common when you are regenerating a file
+              with only minor changes to most of the content.
 
           presence_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on
               whether they appear in the text so far, increasing the model's likelihood to
@@ -2733,7 +3216,7 @@ class AsyncCompletions(AsyncAPIResource):
               request can write up to four breakpoints. For cache matching, OpenAI considers
               up to the latest 80 breakpoints in the conversation, without a content-block
               lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The
-              `ttl` defaults to `30m`, which is currently the only supported value. See the
+              `ttl` defaults to `30m`. Supported lifetimes depend on the API. See the
               [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching)
               for current details.
 
@@ -2775,7 +3258,7 @@ class AsyncCompletions(AsyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user, with a maximum length of 64 characters. We recommend
+              identifies each user, with a maximum length of 128 characters. We recommend
               hashing their username or email address, in order to avoid sending us any
               identifying information.
               [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
@@ -2908,7 +3391,7 @@ class AsyncCompletions(AsyncAPIResource):
         safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
-        stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
+        stop: Union[str, SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
@@ -2932,8 +3415,10 @@ class AsyncCompletions(AsyncAPIResource):
             "/chat/completions",
             body=await async_maybe_transform(
                 {
-                    "messages": messages,
                     "model": model,
+                    "stream": stream,
+                    "service_tier": service_tier,
+                    "messages": messages,
                     "audio": audio,
                     "frequency_penalty": frequency_penalty,
                     "function_call": function_call,
@@ -2956,10 +3441,8 @@ class AsyncCompletions(AsyncAPIResource):
                     "response_format": response_format,
                     "safety_identifier": safety_identifier,
                     "seed": seed,
-                    "service_tier": service_tier,
                     "stop": stop,
                     "store": store,
-                    "stream": stream,
                     "stream_options": stream_options,
                     "temperature": temperature,
                     "tool_choice": tool_choice,
@@ -3179,138 +3662,11 @@ class AsyncCompletions(AsyncAPIResource):
             cast_to=ChatCompletionDeleted,
         )
 
-    def stream(
-        self,
-        *,
-        messages: Iterable[ChatCompletionMessageParam],
-        model: Union[str, ChatModel],
-        audio: Optional[ChatCompletionAudioParam] | Omit = omit,
-        response_format: completion_create_params.ResponseFormat | type[ResponseFormatT] | Omit = omit,
-        frequency_penalty: Optional[float] | Omit = omit,
-        function_call: completion_create_params.FunctionCall | Omit = omit,
-        functions: Iterable[completion_create_params.Function] | Omit = omit,
-        logit_bias: Optional[Dict[str, int]] | Omit = omit,
-        logprobs: Optional[bool] | Omit = omit,
-        max_completion_tokens: Optional[int] | Omit = omit,
-        max_tokens: Optional[int] | Omit = omit,
-        metadata: Optional[Metadata] | Omit = omit,
-        modalities: Optional[List[Literal["text", "audio"]]] | Omit = omit,
-        moderation: Optional[completion_create_params.Moderation] | Omit = omit,
-        n: Optional[int] | Omit = omit,
-        parallel_tool_calls: bool | Omit = omit,
-        prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
-        presence_penalty: Optional[float] | Omit = omit,
-        prompt_cache_key: Optional[str] | Omit = omit,
-        prompt_cache_options: completion_create_params.PromptCacheOptions | Omit = omit,
-        prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
-        reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
-        safety_identifier: Optional[str] | Omit = omit,
-        seed: Optional[int] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
-        stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
-        store: Optional[bool] | Omit = omit,
-        stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
-        temperature: Optional[float] | Omit = omit,
-        tool_choice: ChatCompletionToolChoiceOptionParam | Omit = omit,
-        tools: Iterable[ChatCompletionToolUnionParam] | Omit = omit,
-        top_logprobs: Optional[int] | Omit = omit,
-        top_p: Optional[float] | Omit = omit,
-        user: str | Omit = omit,
-        verbosity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
-        web_search_options: completion_create_params.WebSearchOptions | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
-    ) -> AsyncChatCompletionStreamManager[ResponseFormatT]:
-        """Wrapper over the `client.chat.completions.create(stream=True)` method that provides a more granular event API
-        and automatic accumulation of each delta.
-
-        This also supports all of the parsing utilities that `.parse()` does.
-
-        Unlike `.create(stream=True)`, the `.stream()` method requires usage within a context manager to prevent accidental leakage of the response:
-
-        ```py
-        async with client.chat.completions.stream(
-            model="gpt-4o-2024-08-06",
-            messages=[...],
-        ) as stream:
-            async for event in stream:
-                if event.type == "content.delta":
-                    print(event.delta, flush=True, end="")
-        ```
-
-        When the context manager is entered, an `AsyncChatCompletionStream` instance is returned which, like `.create(stream=True)` is an async iterator. The full list of events that are yielded by the iterator are outlined in [these docs](https://github.com/openai/openai-python/blob/main/helpers.md#chat-completions-events).
-
-        When the context manager exits, the response will be closed, however the `stream` instance is still available outside
-        the context manager.
-        """
-        _validate_input_tools(tools)
-
-        extra_headers = {
-            "X-Stainless-Helper-Method": "chat.completions.stream",
-            **(extra_headers or {}),
-        }
-
-        api_request = self.create(
-            messages=messages,
-            model=model,
-            audio=audio,
-            stream=True,
-            response_format=_type_to_response_format(response_format),
-            frequency_penalty=frequency_penalty,
-            function_call=function_call,
-            functions=functions,
-            logit_bias=logit_bias,
-            logprobs=logprobs,
-            max_completion_tokens=max_completion_tokens,
-            max_tokens=max_tokens,
-            metadata=metadata,
-            modalities=modalities,
-            moderation=moderation,
-            n=n,
-            parallel_tool_calls=parallel_tool_calls,
-            prediction=prediction,
-            presence_penalty=presence_penalty,
-            prompt_cache_key=prompt_cache_key,
-            prompt_cache_options=prompt_cache_options,
-            prompt_cache_retention=prompt_cache_retention,
-            reasoning_effort=reasoning_effort,
-            safety_identifier=safety_identifier,
-            seed=seed,
-            service_tier=service_tier,
-            stop=stop,
-            store=store,
-            stream_options=stream_options,
-            temperature=temperature,
-            tool_choice=tool_choice,
-            tools=tools,
-            top_logprobs=top_logprobs,
-            top_p=top_p,
-            user=user,
-            verbosity=verbosity,
-            web_search_options=web_search_options,
-            extra_headers=extra_headers,
-            extra_query=extra_query,
-            extra_body=extra_body,
-            timeout=timeout,
-        )
-        return AsyncChatCompletionStreamManager(
-            api_request,
-            response_format=response_format,
-            input_tools=tools,
-        )
-
 
 class CompletionsWithRawResponse:
     def __init__(self, completions: Completions) -> None:
         self._completions = completions
 
-        self.parse = _legacy_response.to_raw_response_wrapper(
-            completions.parse,
-        )
         self.create = _legacy_response.to_raw_response_wrapper(
             completions.create,
         )
@@ -3327,6 +3683,10 @@ class CompletionsWithRawResponse:
             completions.delete,
         )
 
+        self.parse = _legacy_response.to_raw_response_wrapper(
+            completions.parse,
+        )
+
     @cached_property
     def messages(self) -> MessagesWithRawResponse:
         """
@@ -3339,9 +3699,6 @@ class AsyncCompletionsWithRawResponse:
     def __init__(self, completions: AsyncCompletions) -> None:
         self._completions = completions
 
-        self.parse = _legacy_response.async_to_raw_response_wrapper(
-            completions.parse,
-        )
         self.create = _legacy_response.async_to_raw_response_wrapper(
             completions.create,
         )
@@ -3358,6 +3715,10 @@ class AsyncCompletionsWithRawResponse:
             completions.delete,
         )
 
+        self.parse = _legacy_response.async_to_raw_response_wrapper(
+            completions.parse,
+        )
+
     @cached_property
     def messages(self) -> AsyncMessagesWithRawResponse:
         """
@@ -3370,9 +3731,6 @@ class CompletionsWithStreamingResponse:
     def __init__(self, completions: Completions) -> None:
         self._completions = completions
 
-        self.parse = to_streamed_response_wrapper(
-            completions.parse,
-        )
         self.create = to_streamed_response_wrapper(
             completions.create,
         )
@@ -3389,6 +3747,10 @@ class CompletionsWithStreamingResponse:
             completions.delete,
         )
 
+        self.parse = to_streamed_response_wrapper(
+            completions.parse,
+        )
+
     @cached_property
     def messages(self) -> MessagesWithStreamingResponse:
         """
@@ -3401,9 +3763,6 @@ class AsyncCompletionsWithStreamingResponse:
     def __init__(self, completions: AsyncCompletions) -> None:
         self._completions = completions
 
-        self.parse = async_to_streamed_response_wrapper(
-            completions.parse,
-        )
         self.create = async_to_streamed_response_wrapper(
             completions.create,
         )
@@ -3420,16 +3779,13 @@ class AsyncCompletionsWithStreamingResponse:
             completions.delete,
         )
 
+        self.parse = async_to_streamed_response_wrapper(
+            completions.parse,
+        )
+
     @cached_property
     def messages(self) -> AsyncMessagesWithStreamingResponse:
         """
         Given a list of messages comprising a conversation, the model will return a response.
         """
         return AsyncMessagesWithStreamingResponse(self._completions.messages)
-
-
-def validate_response_format(response_format: object) -> None:
-    if inspect.isclass(response_format) and issubclass(response_format, pydantic.BaseModel):
-        raise TypeError(
-            "You tried to pass a `BaseModel` class to `chat.completions.create()`; You must use `chat.completions.parse()` instead"
-        )

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from typing import Any, cast
+from contextlib import nullcontext
 from unittest.mock import Mock
 from typing_extensions import Literal
 
@@ -84,21 +85,17 @@ def test_fallback_keeps_resource_logger_and_method(
 
     assert select_response_type(resource, response_format) is expected_type
 
-    if resource == "transcriptions":
-        logger.warn.assert_called_once_with("Unexpected audio response format: %s", response_format)
-        logger.warning.assert_not_called()
-    else:
-        logger.warning.assert_called_once_with("Unexpected audio response format: %s", response_format)
-        logger.warn.assert_not_called()
+    logger.warning.assert_called_once_with("Unexpected audio response format: %s", response_format)
+    logger.warn.assert_not_called()
 
 
+@pytest.mark.filterwarnings("error::DeprecationWarning")
 def test_fallback_keeps_historical_logger_name_and_warning(caplog: pytest.LogCaptureFixture) -> None:
     logger = logging.getLogger("openai.audio.transcriptions")
     assert transcriptions.log is logger
     assert translations.log is logger
 
-    with pytest.warns(DeprecationWarning, match="deprecated"):
-        assert select_response_type("transcriptions", "future-format") is Transcription
+    assert select_response_type("transcriptions", "future-format") is Transcription
     assert select_response_type("translations", "future-format") is Translation
 
     records = [record for record in caplog.records if record.name == logger.name]
@@ -155,13 +152,15 @@ def test_sync_create_uses_selected_response_class(
     audio = cast(Any, client.audio.transcriptions if resource == "transcriptions" else client.audio.translations)
     kwargs: dict[str, Any] = {"file": b"fake audio", "model": "whisper-1", "response_format": response_format}
 
-    if mode == "normal":
-        response = audio.create(**kwargs)
-    elif mode == "raw":
-        response = audio.with_raw_response.create(**kwargs).parse()
-    else:
-        with audio.with_streaming_response.create(**kwargs) as raw_response:
-            response = raw_response.parse()
+    # Translation is intentionally deprecated; still verify every response mode.
+    with pytest.warns(DeprecationWarning, match="deprecated") if resource == "translations" else nullcontext():
+        if mode == "normal":
+            response = audio.create(**kwargs)
+        elif mode == "raw":
+            response = audio.with_raw_response.create(**kwargs).parse()
+        else:
+            with audio.with_streaming_response.create(**kwargs) as raw_response:
+                response = raw_response.parse()
 
     assert route.call_count == 1
     assert_request_and_response(route.calls.last.request, response, response_format, expected_type)
@@ -187,13 +186,15 @@ async def test_async_create_uses_selected_response_class(
     )
     kwargs: dict[str, Any] = {"file": b"fake audio", "model": "whisper-1", "response_format": response_format}
 
-    if mode == "normal":
-        response = await audio.create(**kwargs)
-    elif mode == "raw":
-        response = (await audio.with_raw_response.create(**kwargs)).parse()
-    else:
-        async with audio.with_streaming_response.create(**kwargs) as raw_response:
-            response = await raw_response.parse()
+    # Translation is intentionally deprecated; still verify every response mode.
+    with pytest.warns(DeprecationWarning, match="deprecated") if resource == "translations" else nullcontext():
+        if mode == "normal":
+            response = await audio.create(**kwargs)
+        elif mode == "raw":
+            response = (await audio.with_raw_response.create(**kwargs)).parse()
+        else:
+            async with audio.with_streaming_response.create(**kwargs) as raw_response:
+                response = await raw_response.parse()
 
     assert route.call_count == 1
     assert_request_and_response(route.calls.last.request, response, response_format, expected_type)
