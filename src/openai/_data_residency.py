@@ -9,13 +9,16 @@ import httpx2
 from ._types import NotGiven
 from ._exceptions import OpenAIError
 
-DataResidency = Literal["global", "us", "eu", "ae"]
+DataResidency = Literal["global", "us", "eu", "ae", "au", "in", "jp"]
 
 _DATA_RESIDENCY_BASE_URLS: dict[DataResidency, str] = {
     "global": "https://api.openai.com/v1",
     "us": "https://us.api.openai.com/v1",
     "eu": "https://eu.api.openai.com/v1",
     "ae": "https://ae.api.openai.com/v1",
+    "au": "https://au.api.openai.com/v1",
+    "in": "https://in.api.openai.com/v1",
+    "jp": "https://jp.api.openai.com/v1",
 }
 
 
@@ -36,5 +39,5 @@ def resolve_data_residency(
     if provider is not None:
         raise OpenAIError("The `data_residency` and `provider` arguments are mutually exclusive")
     if not isinstance(cast(object, data_residency), str) or data_residency not in _DATA_RESIDENCY_BASE_URLS:
-        raise ValueError("Invalid `data_residency`; expected one of 'global', 'us', 'eu', or 'ae'")
+        raise ValueError("Invalid `data_residency`; expected one of 'global', 'us', 'eu', 'ae', 'au', 'in', or 'jp'")
     return _DATA_RESIDENCY_BASE_URLS[data_residency]
