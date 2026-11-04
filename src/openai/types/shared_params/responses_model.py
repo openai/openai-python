@@ -33,5 +33,6 @@ ResponsesModel: TypeAlias = Union[
         "gpt-daybreak-red-latest",
         "gpt-5.6-cyber",
         "gpt-rosalind-research",
+        "gpt-6-rosalind",
     ],
 ]
