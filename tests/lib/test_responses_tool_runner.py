@@ -3344,7 +3344,10 @@ async def test_foreign_runner_errors_are_private_without_ledger(lane: str, strea
 
 @pytest.mark.parametrize("lane", ["sync", "async"])
 @pytest.mark.parametrize("stream", [False, True])
-async def test_completed_image_generation_is_a_terminal_response(lane: str, stream: bool) -> None:
+@pytest.mark.parametrize("output_format", [None, "gif", "svg"])
+async def test_completed_image_generation_is_a_terminal_response(
+    lane: str, stream: bool, output_format: str | None
+) -> None:
     requests: list[dict[str, Any]] = []
     image: dict[str, object] = {
         "id": "img_fixture",
@@ -3352,6 +3355,8 @@ async def test_completed_image_generation_is_a_terminal_response(lane: str, stre
         "status": "completed",
         "result": "cG5n",
     }
+    if output_format is not None:
+        image["output_format"] = output_format
     result = await run(
         lane,
         None,
@@ -3362,6 +3367,7 @@ async def test_completed_image_generation_is_a_terminal_response(lane: str, stre
     )
     assert len(requests) == 1 and result.output[0].type == "image_generation_call"
     assert result.output[0].result == "cG5n"
+    assert result.output[0].output_format == output_format
 
 
 @pytest.mark.parametrize("lane", ["sync", "async"])

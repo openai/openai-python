@@ -143,13 +143,16 @@ class Images(SyncAPIResource):
         image: Union[FileTypes, SequenceNotStr[FileTypes]],
         prompt: str,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        complexity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        frame_count: Optional[int] | Omit = omit,
+        frame_duration_ms: Optional[int] | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
         markup: FileTypes | Omit = omit,
         mask: FileTypes | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp", "gif"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
@@ -193,6 +196,20 @@ class Images(SyncAPIResource):
               `gpt-image-2-2026-04-21`, this support is in preview. When using `transparent`,
               set the output format to `png` or `webp`.
 
+          complexity: Computation spent planning the image, independently of rendering quality. Uses
+              the image model's configured default when omitted. For SVG output, controls the
+              reference image, independently of the SVG author's reasoning.
+
+          frame_count: Number of frames for GIF output. Accepts integers from 2 through 16. Defaults to
+              9 when omitted. Only supported with output_format=gif. The requested size must
+              satisfy the selected model's GIF size limits. GIF output does not support
+              streaming, partial images, masks, or custom output compression. Requires access
+              to the GIF preview for the selected model.
+
+          frame_duration_ms: Requested delay per GIF frame, in milliseconds. Defaults to 200 when omitted.
+              GIF output rounds to the nearest 10 ms and caps the encoded delay at 655,350 ms
+              per frame. Only supported with output_format=gif.
+
           input_fidelity: Control how much effort the model will exert to match the style and features,
               especially facial features, of input images. Supports `high` and `low` on
               `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For `gpt-image-2`, omit
@@ -210,8 +227,8 @@ class Images(SyncAPIResource):
           model: The GPT image model to use for image editing (`gpt-image-1-mini`,
               `gpt-image-1.5`, `gpt-image-2`, `gpt-image-2-2026-04-21`,
               `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`,
-              `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`, or
-              `chatgpt-image-latest`).
+              `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`,
+              `gpt-image-2.6-sunburst`, `gpt-image-2.6-flare`, or `chatgpt-image-latest`).
 
               `gpt-image-1` was shut down on October 23, 2026. Use `gpt-image-2.5-sunburst` or
               `gpt-image-2.5-flare` instead.
@@ -230,8 +247,7 @@ class Images(SyncAPIResource):
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for the GPT image models. Must be one of `png`, `jpeg`, or `webp`. The
-              default value is `png`.
+              supported for the GPT image models. The default value is `png`.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
               responses that return partial images. Value must be between 0 and 3. When set to
@@ -304,13 +320,16 @@ class Images(SyncAPIResource):
         prompt: str,
         stream: Literal[True],
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        complexity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        frame_count: Optional[int] | Omit = omit,
+        frame_duration_ms: Optional[int] | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
         markup: FileTypes | Omit = omit,
         mask: FileTypes | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp", "gif"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
@@ -357,6 +376,20 @@ class Images(SyncAPIResource):
               `gpt-image-2-2026-04-21`, this support is in preview. When using `transparent`,
               set the output format to `png` or `webp`.
 
+          complexity: Computation spent planning the image, independently of rendering quality. Uses
+              the image model's configured default when omitted. For SVG output, controls the
+              reference image, independently of the SVG author's reasoning.
+
+          frame_count: Number of frames for GIF output. Accepts integers from 2 through 16. Defaults to
+              9 when omitted. Only supported with output_format=gif. The requested size must
+              satisfy the selected model's GIF size limits. GIF output does not support
+              streaming, partial images, masks, or custom output compression. Requires access
+              to the GIF preview for the selected model.
+
+          frame_duration_ms: Requested delay per GIF frame, in milliseconds. Defaults to 200 when omitted.
+              GIF output rounds to the nearest 10 ms and caps the encoded delay at 655,350 ms
+              per frame. Only supported with output_format=gif.
+
           input_fidelity: Control how much effort the model will exert to match the style and features,
               especially facial features, of input images. Supports `high` and `low` on
               `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For `gpt-image-2`, omit
@@ -374,8 +407,8 @@ class Images(SyncAPIResource):
           model: The GPT image model to use for image editing (`gpt-image-1-mini`,
               `gpt-image-1.5`, `gpt-image-2`, `gpt-image-2-2026-04-21`,
               `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`,
-              `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`, or
-              `chatgpt-image-latest`).
+              `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`,
+              `gpt-image-2.6-sunburst`, `gpt-image-2.6-flare`, or `chatgpt-image-latest`).
 
               `gpt-image-1` was shut down on October 23, 2026. Use `gpt-image-2.5-sunburst` or
               `gpt-image-2.5-flare` instead.
@@ -394,8 +427,7 @@ class Images(SyncAPIResource):
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for the GPT image models. Must be one of `png`, `jpeg`, or `webp`. The
-              default value is `png`.
+              supported for the GPT image models. The default value is `png`.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
               responses that return partial images. Value must be between 0 and 3. When set to
@@ -464,13 +496,16 @@ class Images(SyncAPIResource):
         prompt: str,
         stream: bool,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        complexity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        frame_count: Optional[int] | Omit = omit,
+        frame_duration_ms: Optional[int] | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
         markup: FileTypes | Omit = omit,
         mask: FileTypes | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp", "gif"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
@@ -517,6 +552,20 @@ class Images(SyncAPIResource):
               `gpt-image-2-2026-04-21`, this support is in preview. When using `transparent`,
               set the output format to `png` or `webp`.
 
+          complexity: Computation spent planning the image, independently of rendering quality. Uses
+              the image model's configured default when omitted. For SVG output, controls the
+              reference image, independently of the SVG author's reasoning.
+
+          frame_count: Number of frames for GIF output. Accepts integers from 2 through 16. Defaults to
+              9 when omitted. Only supported with output_format=gif. The requested size must
+              satisfy the selected model's GIF size limits. GIF output does not support
+              streaming, partial images, masks, or custom output compression. Requires access
+              to the GIF preview for the selected model.
+
+          frame_duration_ms: Requested delay per GIF frame, in milliseconds. Defaults to 200 when omitted.
+              GIF output rounds to the nearest 10 ms and caps the encoded delay at 655,350 ms
+              per frame. Only supported with output_format=gif.
+
           input_fidelity: Control how much effort the model will exert to match the style and features,
               especially facial features, of input images. Supports `high` and `low` on
               `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For `gpt-image-2`, omit
@@ -534,8 +583,8 @@ class Images(SyncAPIResource):
           model: The GPT image model to use for image editing (`gpt-image-1-mini`,
               `gpt-image-1.5`, `gpt-image-2`, `gpt-image-2-2026-04-21`,
               `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`,
-              `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`, or
-              `chatgpt-image-latest`).
+              `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`,
+              `gpt-image-2.6-sunburst`, `gpt-image-2.6-flare`, or `chatgpt-image-latest`).
 
               `gpt-image-1` was shut down on October 23, 2026. Use `gpt-image-2.5-sunburst` or
               `gpt-image-2.5-flare` instead.
@@ -554,8 +603,7 @@ class Images(SyncAPIResource):
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for the GPT image models. Must be one of `png`, `jpeg`, or `webp`. The
-              default value is `png`.
+              supported for the GPT image models. The default value is `png`.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
               responses that return partial images. Value must be between 0 and 3. When set to
@@ -623,13 +671,16 @@ class Images(SyncAPIResource):
         image: Union[FileTypes, SequenceNotStr[FileTypes]],
         prompt: str,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        complexity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        frame_count: Optional[int] | Omit = omit,
+        frame_duration_ms: Optional[int] | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
         markup: FileTypes | Omit = omit,
         mask: FileTypes | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp", "gif"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
@@ -650,6 +701,9 @@ class Images(SyncAPIResource):
                 "image": image,
                 "prompt": prompt,
                 "background": background,
+                "complexity": complexity,
+                "frame_count": frame_count,
+                "frame_duration_ms": frame_duration_ms,
                 "input_fidelity": input_fidelity,
                 "markup": markup,
                 "mask": mask,
@@ -699,11 +753,14 @@ class Images(SyncAPIResource):
         *,
         prompt: str,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        complexity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        frame_count: Optional[int] | Omit = omit,
+        frame_duration_ms: Optional[int] | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
         moderation: Optional[Literal["low", "auto"]] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp", "gif", "svg"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard", "hd"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
@@ -716,6 +773,7 @@ class Images(SyncAPIResource):
         | Omit = omit,
         stream: Optional[Literal[False]] | Omit = omit,
         style: Optional[Literal["vivid", "natural"]] | Omit = omit,
+        svg: Optional[image_generate_params.Svg] | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -742,11 +800,26 @@ class Images(SyncAPIResource):
               `gpt-image-2-2026-04-21`, this support is in preview. When using `transparent`,
               set the output format to `png` or `webp`.
 
+          complexity: Computation spent planning the image, independently of rendering quality. Uses
+              the image model's configured default when omitted. For SVG output, controls the
+              reference image, independently of the SVG author's reasoning.
+
+          frame_count: Number of frames for GIF output. Accepts integers from 2 through 16. Defaults to
+              9 when omitted. Only supported with output_format=gif. The requested size must
+              satisfy the selected model's GIF size limits. GIF output does not support
+              streaming, partial images, masks, or custom output compression. Requires access
+              to the GIF preview for the selected model.
+
+          frame_duration_ms: Requested delay per GIF frame, in milliseconds. Defaults to 200 when omitted.
+              GIF output rounds to the nearest 10 ms and caps the encoded delay at 655,350 ms
+              per frame. Only supported with output_format=gif.
+
           model: The GPT image model to use for image generation. Specify a model explicitly.
               Supported models include `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
               `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
               `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`,
-              `gpt-image-2.5-flare-2026-09-08`, and `chatgpt-image-latest`.
+              `gpt-image-2.5-flare-2026-09-08`, `gpt-image-2.6-sunburst`,
+              `gpt-image-2.6-flare`, and `chatgpt-image-latest`.
 
               `gpt-image-1` was shut down on October 23, 2026. Use `gpt-image-2.5-sunburst` or
               `gpt-image-2.5-flare` instead.
@@ -769,7 +842,7 @@ class Images(SyncAPIResource):
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for the GPT image models. Must be one of `png`, `jpeg`, or `webp`.
+              supported for the GPT image models.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
               responses that return partial images. Value must be between 0 and 3. When set to
@@ -825,6 +898,13 @@ class Images(SyncAPIResource):
           style: Legacy style parameter for retired image models. Unsupported for GPT image
               models; describe the desired style in the prompt instead.
 
+          svg: Selects the model and reasoning effort used to author SVG output. Requires
+              output_format=svg and access to SVG model selection. When model selection is
+              enabled, supply svg.model. When model selection is disabled, omit this object.
+              The top-level model selects the image model that creates the reference image.
+              SVG generation requires n=1 and does not support streaming, partial images,
+              prompt_rewriter, or output_compression. SVG edits are not supported.
+
           user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
               backward compatibility and is used when `safety_identifier` is omitted, null, or
               empty.
@@ -847,11 +927,14 @@ class Images(SyncAPIResource):
         prompt: str,
         stream: Literal[True],
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        complexity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        frame_count: Optional[int] | Omit = omit,
+        frame_duration_ms: Optional[int] | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
         moderation: Optional[Literal["low", "auto"]] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp", "gif", "svg"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard", "hd"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
@@ -863,6 +946,7 @@ class Images(SyncAPIResource):
         ]
         | Omit = omit,
         style: Optional[Literal["vivid", "natural"]] | Omit = omit,
+        svg: Optional[image_generate_params.Svg] | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -893,11 +977,26 @@ class Images(SyncAPIResource):
               `gpt-image-2-2026-04-21`, this support is in preview. When using `transparent`,
               set the output format to `png` or `webp`.
 
+          complexity: Computation spent planning the image, independently of rendering quality. Uses
+              the image model's configured default when omitted. For SVG output, controls the
+              reference image, independently of the SVG author's reasoning.
+
+          frame_count: Number of frames for GIF output. Accepts integers from 2 through 16. Defaults to
+              9 when omitted. Only supported with output_format=gif. The requested size must
+              satisfy the selected model's GIF size limits. GIF output does not support
+              streaming, partial images, masks, or custom output compression. Requires access
+              to the GIF preview for the selected model.
+
+          frame_duration_ms: Requested delay per GIF frame, in milliseconds. Defaults to 200 when omitted.
+              GIF output rounds to the nearest 10 ms and caps the encoded delay at 655,350 ms
+              per frame. Only supported with output_format=gif.
+
           model: The GPT image model to use for image generation. Specify a model explicitly.
               Supported models include `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
               `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
               `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`,
-              `gpt-image-2.5-flare-2026-09-08`, and `chatgpt-image-latest`.
+              `gpt-image-2.5-flare-2026-09-08`, `gpt-image-2.6-sunburst`,
+              `gpt-image-2.6-flare`, and `chatgpt-image-latest`.
 
               `gpt-image-1` was shut down on October 23, 2026. Use `gpt-image-2.5-sunburst` or
               `gpt-image-2.5-flare` instead.
@@ -920,7 +1019,7 @@ class Images(SyncAPIResource):
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for the GPT image models. Must be one of `png`, `jpeg`, or `webp`.
+              supported for the GPT image models.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
               responses that return partial images. Value must be between 0 and 3. When set to
@@ -972,6 +1071,13 @@ class Images(SyncAPIResource):
           style: Legacy style parameter for retired image models. Unsupported for GPT image
               models; describe the desired style in the prompt instead.
 
+          svg: Selects the model and reasoning effort used to author SVG output. Requires
+              output_format=svg and access to SVG model selection. When model selection is
+              enabled, supply svg.model. When model selection is disabled, omit this object.
+              The top-level model selects the image model that creates the reference image.
+              SVG generation requires n=1 and does not support streaming, partial images,
+              prompt_rewriter, or output_compression. SVG edits are not supported.
+
           user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
               backward compatibility and is used when `safety_identifier` is omitted, null, or
               empty.
@@ -994,11 +1100,14 @@ class Images(SyncAPIResource):
         prompt: str,
         stream: bool,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        complexity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        frame_count: Optional[int] | Omit = omit,
+        frame_duration_ms: Optional[int] | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
         moderation: Optional[Literal["low", "auto"]] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp", "gif", "svg"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard", "hd"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
@@ -1010,6 +1119,7 @@ class Images(SyncAPIResource):
         ]
         | Omit = omit,
         style: Optional[Literal["vivid", "natural"]] | Omit = omit,
+        svg: Optional[image_generate_params.Svg] | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1040,11 +1150,26 @@ class Images(SyncAPIResource):
               `gpt-image-2-2026-04-21`, this support is in preview. When using `transparent`,
               set the output format to `png` or `webp`.
 
+          complexity: Computation spent planning the image, independently of rendering quality. Uses
+              the image model's configured default when omitted. For SVG output, controls the
+              reference image, independently of the SVG author's reasoning.
+
+          frame_count: Number of frames for GIF output. Accepts integers from 2 through 16. Defaults to
+              9 when omitted. Only supported with output_format=gif. The requested size must
+              satisfy the selected model's GIF size limits. GIF output does not support
+              streaming, partial images, masks, or custom output compression. Requires access
+              to the GIF preview for the selected model.
+
+          frame_duration_ms: Requested delay per GIF frame, in milliseconds. Defaults to 200 when omitted.
+              GIF output rounds to the nearest 10 ms and caps the encoded delay at 655,350 ms
+              per frame. Only supported with output_format=gif.
+
           model: The GPT image model to use for image generation. Specify a model explicitly.
               Supported models include `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
               `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
               `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`,
-              `gpt-image-2.5-flare-2026-09-08`, and `chatgpt-image-latest`.
+              `gpt-image-2.5-flare-2026-09-08`, `gpt-image-2.6-sunburst`,
+              `gpt-image-2.6-flare`, and `chatgpt-image-latest`.
 
               `gpt-image-1` was shut down on October 23, 2026. Use `gpt-image-2.5-sunburst` or
               `gpt-image-2.5-flare` instead.
@@ -1067,7 +1192,7 @@ class Images(SyncAPIResource):
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for the GPT image models. Must be one of `png`, `jpeg`, or `webp`.
+              supported for the GPT image models.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
               responses that return partial images. Value must be between 0 and 3. When set to
@@ -1119,6 +1244,13 @@ class Images(SyncAPIResource):
           style: Legacy style parameter for retired image models. Unsupported for GPT image
               models; describe the desired style in the prompt instead.
 
+          svg: Selects the model and reasoning effort used to author SVG output. Requires
+              output_format=svg and access to SVG model selection. When model selection is
+              enabled, supply svg.model. When model selection is disabled, omit this object.
+              The top-level model selects the image model that creates the reference image.
+              SVG generation requires n=1 and does not support streaming, partial images,
+              prompt_rewriter, or output_compression. SVG edits are not supported.
+
           user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
               backward compatibility and is used when `safety_identifier` is omitted, null, or
               empty.
@@ -1140,11 +1272,14 @@ class Images(SyncAPIResource):
         *,
         prompt: str,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        complexity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        frame_count: Optional[int] | Omit = omit,
+        frame_duration_ms: Optional[int] | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
         moderation: Optional[Literal["low", "auto"]] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp", "gif", "svg"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard", "hd"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
@@ -1157,6 +1292,7 @@ class Images(SyncAPIResource):
         | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
         style: Optional[Literal["vivid", "natural"]] | Omit = omit,
+        svg: Optional[image_generate_params.Svg] | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1173,6 +1309,9 @@ class Images(SyncAPIResource):
                     "stream": stream,
                     "prompt": prompt,
                     "background": background,
+                    "complexity": complexity,
+                    "frame_count": frame_count,
+                    "frame_duration_ms": frame_duration_ms,
                     "moderation": moderation,
                     "n": n,
                     "output_compression": output_compression,
@@ -1183,6 +1322,7 @@ class Images(SyncAPIResource):
                     "safety_identifier": safety_identifier,
                     "size": size,
                     "style": style,
+                    "svg": svg,
                     "user": user,
                 },
                 image_generate_params.ImageGenerateParamsStreaming
@@ -1319,13 +1459,16 @@ class AsyncImages(AsyncAPIResource):
         image: Union[FileTypes, SequenceNotStr[FileTypes]],
         prompt: str,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        complexity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        frame_count: Optional[int] | Omit = omit,
+        frame_duration_ms: Optional[int] | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
         markup: FileTypes | Omit = omit,
         mask: FileTypes | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp", "gif"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
@@ -1369,6 +1512,20 @@ class AsyncImages(AsyncAPIResource):
               `gpt-image-2-2026-04-21`, this support is in preview. When using `transparent`,
               set the output format to `png` or `webp`.
 
+          complexity: Computation spent planning the image, independently of rendering quality. Uses
+              the image model's configured default when omitted. For SVG output, controls the
+              reference image, independently of the SVG author's reasoning.
+
+          frame_count: Number of frames for GIF output. Accepts integers from 2 through 16. Defaults to
+              9 when omitted. Only supported with output_format=gif. The requested size must
+              satisfy the selected model's GIF size limits. GIF output does not support
+              streaming, partial images, masks, or custom output compression. Requires access
+              to the GIF preview for the selected model.
+
+          frame_duration_ms: Requested delay per GIF frame, in milliseconds. Defaults to 200 when omitted.
+              GIF output rounds to the nearest 10 ms and caps the encoded delay at 655,350 ms
+              per frame. Only supported with output_format=gif.
+
           input_fidelity: Control how much effort the model will exert to match the style and features,
               especially facial features, of input images. Supports `high` and `low` on
               `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For `gpt-image-2`, omit
@@ -1386,8 +1543,8 @@ class AsyncImages(AsyncAPIResource):
           model: The GPT image model to use for image editing (`gpt-image-1-mini`,
               `gpt-image-1.5`, `gpt-image-2`, `gpt-image-2-2026-04-21`,
               `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`,
-              `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`, or
-              `chatgpt-image-latest`).
+              `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`,
+              `gpt-image-2.6-sunburst`, `gpt-image-2.6-flare`, or `chatgpt-image-latest`).
 
               `gpt-image-1` was shut down on October 23, 2026. Use `gpt-image-2.5-sunburst` or
               `gpt-image-2.5-flare` instead.
@@ -1406,8 +1563,7 @@ class AsyncImages(AsyncAPIResource):
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for the GPT image models. Must be one of `png`, `jpeg`, or `webp`. The
-              default value is `png`.
+              supported for the GPT image models. The default value is `png`.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
               responses that return partial images. Value must be between 0 and 3. When set to
@@ -1480,13 +1636,16 @@ class AsyncImages(AsyncAPIResource):
         prompt: str,
         stream: Literal[True],
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        complexity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        frame_count: Optional[int] | Omit = omit,
+        frame_duration_ms: Optional[int] | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
         markup: FileTypes | Omit = omit,
         mask: FileTypes | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp", "gif"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
@@ -1533,6 +1692,20 @@ class AsyncImages(AsyncAPIResource):
               `gpt-image-2-2026-04-21`, this support is in preview. When using `transparent`,
               set the output format to `png` or `webp`.
 
+          complexity: Computation spent planning the image, independently of rendering quality. Uses
+              the image model's configured default when omitted. For SVG output, controls the
+              reference image, independently of the SVG author's reasoning.
+
+          frame_count: Number of frames for GIF output. Accepts integers from 2 through 16. Defaults to
+              9 when omitted. Only supported with output_format=gif. The requested size must
+              satisfy the selected model's GIF size limits. GIF output does not support
+              streaming, partial images, masks, or custom output compression. Requires access
+              to the GIF preview for the selected model.
+
+          frame_duration_ms: Requested delay per GIF frame, in milliseconds. Defaults to 200 when omitted.
+              GIF output rounds to the nearest 10 ms and caps the encoded delay at 655,350 ms
+              per frame. Only supported with output_format=gif.
+
           input_fidelity: Control how much effort the model will exert to match the style and features,
               especially facial features, of input images. Supports `high` and `low` on
               `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For `gpt-image-2`, omit
@@ -1550,8 +1723,8 @@ class AsyncImages(AsyncAPIResource):
           model: The GPT image model to use for image editing (`gpt-image-1-mini`,
               `gpt-image-1.5`, `gpt-image-2`, `gpt-image-2-2026-04-21`,
               `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`,
-              `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`, or
-              `chatgpt-image-latest`).
+              `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`,
+              `gpt-image-2.6-sunburst`, `gpt-image-2.6-flare`, or `chatgpt-image-latest`).
 
               `gpt-image-1` was shut down on October 23, 2026. Use `gpt-image-2.5-sunburst` or
               `gpt-image-2.5-flare` instead.
@@ -1570,8 +1743,7 @@ class AsyncImages(AsyncAPIResource):
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for the GPT image models. Must be one of `png`, `jpeg`, or `webp`. The
-              default value is `png`.
+              supported for the GPT image models. The default value is `png`.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
               responses that return partial images. Value must be between 0 and 3. When set to
@@ -1640,13 +1812,16 @@ class AsyncImages(AsyncAPIResource):
         prompt: str,
         stream: bool,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        complexity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        frame_count: Optional[int] | Omit = omit,
+        frame_duration_ms: Optional[int] | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
         markup: FileTypes | Omit = omit,
         mask: FileTypes | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp", "gif"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
@@ -1693,6 +1868,20 @@ class AsyncImages(AsyncAPIResource):
               `gpt-image-2-2026-04-21`, this support is in preview. When using `transparent`,
               set the output format to `png` or `webp`.
 
+          complexity: Computation spent planning the image, independently of rendering quality. Uses
+              the image model's configured default when omitted. For SVG output, controls the
+              reference image, independently of the SVG author's reasoning.
+
+          frame_count: Number of frames for GIF output. Accepts integers from 2 through 16. Defaults to
+              9 when omitted. Only supported with output_format=gif. The requested size must
+              satisfy the selected model's GIF size limits. GIF output does not support
+              streaming, partial images, masks, or custom output compression. Requires access
+              to the GIF preview for the selected model.
+
+          frame_duration_ms: Requested delay per GIF frame, in milliseconds. Defaults to 200 when omitted.
+              GIF output rounds to the nearest 10 ms and caps the encoded delay at 655,350 ms
+              per frame. Only supported with output_format=gif.
+
           input_fidelity: Control how much effort the model will exert to match the style and features,
               especially facial features, of input images. Supports `high` and `low` on
               `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For `gpt-image-2`, omit
@@ -1710,8 +1899,8 @@ class AsyncImages(AsyncAPIResource):
           model: The GPT image model to use for image editing (`gpt-image-1-mini`,
               `gpt-image-1.5`, `gpt-image-2`, `gpt-image-2-2026-04-21`,
               `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`,
-              `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`, or
-              `chatgpt-image-latest`).
+              `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`,
+              `gpt-image-2.6-sunburst`, `gpt-image-2.6-flare`, or `chatgpt-image-latest`).
 
               `gpt-image-1` was shut down on October 23, 2026. Use `gpt-image-2.5-sunburst` or
               `gpt-image-2.5-flare` instead.
@@ -1730,8 +1919,7 @@ class AsyncImages(AsyncAPIResource):
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for the GPT image models. Must be one of `png`, `jpeg`, or `webp`. The
-              default value is `png`.
+              supported for the GPT image models. The default value is `png`.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
               responses that return partial images. Value must be between 0 and 3. When set to
@@ -1799,13 +1987,16 @@ class AsyncImages(AsyncAPIResource):
         image: Union[FileTypes, SequenceNotStr[FileTypes]],
         prompt: str,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        complexity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        frame_count: Optional[int] | Omit = omit,
+        frame_duration_ms: Optional[int] | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
         markup: FileTypes | Omit = omit,
         mask: FileTypes | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp", "gif"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
@@ -1826,6 +2017,9 @@ class AsyncImages(AsyncAPIResource):
                 "image": image,
                 "prompt": prompt,
                 "background": background,
+                "complexity": complexity,
+                "frame_count": frame_count,
+                "frame_duration_ms": frame_duration_ms,
                 "input_fidelity": input_fidelity,
                 "markup": markup,
                 "mask": mask,
@@ -1875,11 +2069,14 @@ class AsyncImages(AsyncAPIResource):
         *,
         prompt: str,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        complexity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        frame_count: Optional[int] | Omit = omit,
+        frame_duration_ms: Optional[int] | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
         moderation: Optional[Literal["low", "auto"]] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp", "gif", "svg"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard", "hd"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
@@ -1892,6 +2089,7 @@ class AsyncImages(AsyncAPIResource):
         | Omit = omit,
         stream: Optional[Literal[False]] | Omit = omit,
         style: Optional[Literal["vivid", "natural"]] | Omit = omit,
+        svg: Optional[image_generate_params.Svg] | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1918,11 +2116,26 @@ class AsyncImages(AsyncAPIResource):
               `gpt-image-2-2026-04-21`, this support is in preview. When using `transparent`,
               set the output format to `png` or `webp`.
 
+          complexity: Computation spent planning the image, independently of rendering quality. Uses
+              the image model's configured default when omitted. For SVG output, controls the
+              reference image, independently of the SVG author's reasoning.
+
+          frame_count: Number of frames for GIF output. Accepts integers from 2 through 16. Defaults to
+              9 when omitted. Only supported with output_format=gif. The requested size must
+              satisfy the selected model's GIF size limits. GIF output does not support
+              streaming, partial images, masks, or custom output compression. Requires access
+              to the GIF preview for the selected model.
+
+          frame_duration_ms: Requested delay per GIF frame, in milliseconds. Defaults to 200 when omitted.
+              GIF output rounds to the nearest 10 ms and caps the encoded delay at 655,350 ms
+              per frame. Only supported with output_format=gif.
+
           model: The GPT image model to use for image generation. Specify a model explicitly.
               Supported models include `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
               `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
               `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`,
-              `gpt-image-2.5-flare-2026-09-08`, and `chatgpt-image-latest`.
+              `gpt-image-2.5-flare-2026-09-08`, `gpt-image-2.6-sunburst`,
+              `gpt-image-2.6-flare`, and `chatgpt-image-latest`.
 
               `gpt-image-1` was shut down on October 23, 2026. Use `gpt-image-2.5-sunburst` or
               `gpt-image-2.5-flare` instead.
@@ -1945,7 +2158,7 @@ class AsyncImages(AsyncAPIResource):
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for the GPT image models. Must be one of `png`, `jpeg`, or `webp`.
+              supported for the GPT image models.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
               responses that return partial images. Value must be between 0 and 3. When set to
@@ -2001,6 +2214,13 @@ class AsyncImages(AsyncAPIResource):
           style: Legacy style parameter for retired image models. Unsupported for GPT image
               models; describe the desired style in the prompt instead.
 
+          svg: Selects the model and reasoning effort used to author SVG output. Requires
+              output_format=svg and access to SVG model selection. When model selection is
+              enabled, supply svg.model. When model selection is disabled, omit this object.
+              The top-level model selects the image model that creates the reference image.
+              SVG generation requires n=1 and does not support streaming, partial images,
+              prompt_rewriter, or output_compression. SVG edits are not supported.
+
           user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
               backward compatibility and is used when `safety_identifier` is omitted, null, or
               empty.
@@ -2023,11 +2243,14 @@ class AsyncImages(AsyncAPIResource):
         prompt: str,
         stream: Literal[True],
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        complexity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        frame_count: Optional[int] | Omit = omit,
+        frame_duration_ms: Optional[int] | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
         moderation: Optional[Literal["low", "auto"]] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp", "gif", "svg"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard", "hd"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
@@ -2039,6 +2262,7 @@ class AsyncImages(AsyncAPIResource):
         ]
         | Omit = omit,
         style: Optional[Literal["vivid", "natural"]] | Omit = omit,
+        svg: Optional[image_generate_params.Svg] | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -2069,11 +2293,26 @@ class AsyncImages(AsyncAPIResource):
               `gpt-image-2-2026-04-21`, this support is in preview. When using `transparent`,
               set the output format to `png` or `webp`.
 
+          complexity: Computation spent planning the image, independently of rendering quality. Uses
+              the image model's configured default when omitted. For SVG output, controls the
+              reference image, independently of the SVG author's reasoning.
+
+          frame_count: Number of frames for GIF output. Accepts integers from 2 through 16. Defaults to
+              9 when omitted. Only supported with output_format=gif. The requested size must
+              satisfy the selected model's GIF size limits. GIF output does not support
+              streaming, partial images, masks, or custom output compression. Requires access
+              to the GIF preview for the selected model.
+
+          frame_duration_ms: Requested delay per GIF frame, in milliseconds. Defaults to 200 when omitted.
+              GIF output rounds to the nearest 10 ms and caps the encoded delay at 655,350 ms
+              per frame. Only supported with output_format=gif.
+
           model: The GPT image model to use for image generation. Specify a model explicitly.
               Supported models include `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
               `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
               `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`,
-              `gpt-image-2.5-flare-2026-09-08`, and `chatgpt-image-latest`.
+              `gpt-image-2.5-flare-2026-09-08`, `gpt-image-2.6-sunburst`,
+              `gpt-image-2.6-flare`, and `chatgpt-image-latest`.
 
               `gpt-image-1` was shut down on October 23, 2026. Use `gpt-image-2.5-sunburst` or
               `gpt-image-2.5-flare` instead.
@@ -2096,7 +2335,7 @@ class AsyncImages(AsyncAPIResource):
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for the GPT image models. Must be one of `png`, `jpeg`, or `webp`.
+              supported for the GPT image models.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
               responses that return partial images. Value must be between 0 and 3. When set to
@@ -2148,6 +2387,13 @@ class AsyncImages(AsyncAPIResource):
           style: Legacy style parameter for retired image models. Unsupported for GPT image
               models; describe the desired style in the prompt instead.
 
+          svg: Selects the model and reasoning effort used to author SVG output. Requires
+              output_format=svg and access to SVG model selection. When model selection is
+              enabled, supply svg.model. When model selection is disabled, omit this object.
+              The top-level model selects the image model that creates the reference image.
+              SVG generation requires n=1 and does not support streaming, partial images,
+              prompt_rewriter, or output_compression. SVG edits are not supported.
+
           user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
               backward compatibility and is used when `safety_identifier` is omitted, null, or
               empty.
@@ -2170,11 +2416,14 @@ class AsyncImages(AsyncAPIResource):
         prompt: str,
         stream: bool,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        complexity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        frame_count: Optional[int] | Omit = omit,
+        frame_duration_ms: Optional[int] | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
         moderation: Optional[Literal["low", "auto"]] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp", "gif", "svg"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard", "hd"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
@@ -2186,6 +2435,7 @@ class AsyncImages(AsyncAPIResource):
         ]
         | Omit = omit,
         style: Optional[Literal["vivid", "natural"]] | Omit = omit,
+        svg: Optional[image_generate_params.Svg] | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -2216,11 +2466,26 @@ class AsyncImages(AsyncAPIResource):
               `gpt-image-2-2026-04-21`, this support is in preview. When using `transparent`,
               set the output format to `png` or `webp`.
 
+          complexity: Computation spent planning the image, independently of rendering quality. Uses
+              the image model's configured default when omitted. For SVG output, controls the
+              reference image, independently of the SVG author's reasoning.
+
+          frame_count: Number of frames for GIF output. Accepts integers from 2 through 16. Defaults to
+              9 when omitted. Only supported with output_format=gif. The requested size must
+              satisfy the selected model's GIF size limits. GIF output does not support
+              streaming, partial images, masks, or custom output compression. Requires access
+              to the GIF preview for the selected model.
+
+          frame_duration_ms: Requested delay per GIF frame, in milliseconds. Defaults to 200 when omitted.
+              GIF output rounds to the nearest 10 ms and caps the encoded delay at 655,350 ms
+              per frame. Only supported with output_format=gif.
+
           model: The GPT image model to use for image generation. Specify a model explicitly.
               Supported models include `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
               `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
               `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`,
-              `gpt-image-2.5-flare-2026-09-08`, and `chatgpt-image-latest`.
+              `gpt-image-2.5-flare-2026-09-08`, `gpt-image-2.6-sunburst`,
+              `gpt-image-2.6-flare`, and `chatgpt-image-latest`.
 
               `gpt-image-1` was shut down on October 23, 2026. Use `gpt-image-2.5-sunburst` or
               `gpt-image-2.5-flare` instead.
@@ -2243,7 +2508,7 @@ class AsyncImages(AsyncAPIResource):
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for the GPT image models. Must be one of `png`, `jpeg`, or `webp`.
+              supported for the GPT image models.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
               responses that return partial images. Value must be between 0 and 3. When set to
@@ -2295,6 +2560,13 @@ class AsyncImages(AsyncAPIResource):
           style: Legacy style parameter for retired image models. Unsupported for GPT image
               models; describe the desired style in the prompt instead.
 
+          svg: Selects the model and reasoning effort used to author SVG output. Requires
+              output_format=svg and access to SVG model selection. When model selection is
+              enabled, supply svg.model. When model selection is disabled, omit this object.
+              The top-level model selects the image model that creates the reference image.
+              SVG generation requires n=1 and does not support streaming, partial images,
+              prompt_rewriter, or output_compression. SVG edits are not supported.
+
           user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
               backward compatibility and is used when `safety_identifier` is omitted, null, or
               empty.
@@ -2316,11 +2588,14 @@ class AsyncImages(AsyncAPIResource):
         *,
         prompt: str,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        complexity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        frame_count: Optional[int] | Omit = omit,
+        frame_duration_ms: Optional[int] | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
         moderation: Optional[Literal["low", "auto"]] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp", "gif", "svg"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard", "hd"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
@@ -2333,6 +2608,7 @@ class AsyncImages(AsyncAPIResource):
         | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
         style: Optional[Literal["vivid", "natural"]] | Omit = omit,
+        svg: Optional[image_generate_params.Svg] | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -2349,6 +2625,9 @@ class AsyncImages(AsyncAPIResource):
                     "stream": stream,
                     "prompt": prompt,
                     "background": background,
+                    "complexity": complexity,
+                    "frame_count": frame_count,
+                    "frame_duration_ms": frame_duration_ms,
                     "moderation": moderation,
                     "n": n,
                     "output_compression": output_compression,
@@ -2359,6 +2638,7 @@ class AsyncImages(AsyncAPIResource):
                     "safety_identifier": safety_identifier,
                     "size": size,
                     "style": style,
+                    "svg": svg,
                     "user": user,
                 },
                 image_generate_params.ImageGenerateParamsStreaming

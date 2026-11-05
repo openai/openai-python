@@ -264,7 +264,7 @@ def _validate_server_item(item: dict[str, object], tools: list[ToolParam]) -> No
             and (item["result"] is None or type(item["result"]) is str)
             and image_action in (None, "generate", "edit", "auto")
             and background in (None, "transparent", "opaque", "auto")
-            and output_format in (None, "png", "webp", "jpeg")
+            and output_format in (None, "png", "webp", "jpeg", "gif", "svg")
             and quality in (None, "low", "medium", "high", "xhigh", "max", "auto")
             and (prompt is None or type(prompt) is str)
             and (size is None or type(size) is str)

@@ -6,7 +6,23 @@ from typing_extensions import Literal
 from .image import Image
 from .._models import BaseModel
 
-__all__ = ["ImagesResponse", "Usage", "UsageInputTokensDetails", "UsageOutputTokensDetails"]
+__all__ = ["ImagesResponse", "SvgUsage", "Usage", "UsageInputTokensDetails", "UsageOutputTokensDetails"]
+
+
+class SvgUsage(BaseModel):
+    """
+    Token usage for the model that authored the SVG, separate from image rendering usage.
+    """
+
+    input_tokens: int
+
+    model: str
+
+    output_tokens: int
+
+    reasoning_tokens: int
+
+    total_tokens: int
 
 
 class UsageInputTokensDetails(BaseModel):
@@ -63,8 +79,8 @@ class ImagesResponse(BaseModel):
     data: Optional[List[Image]] = None
     """The list of generated images."""
 
-    output_format: Optional[Literal["png", "webp", "jpeg"]] = None
-    """The output format of the image generation. Either `png`, `webp`, or `jpeg`."""
+    output_format: Optional[Literal["png", "webp", "jpeg", "gif", "svg"]] = None
+    """The output format of the generated image."""
 
     quality: Optional[Literal["low", "medium", "high", "xhigh", "max"]] = None
     """The quality of the image generated.
@@ -81,6 +97,12 @@ class ImagesResponse(BaseModel):
 
     size: Union[str, Literal["1024x1024", "1024x1536", "1536x1024"], None] = None
     """The image dimensions as a `WIDTHxHEIGHT` string, for example `1536x864`."""
+
+    svg_usage: Optional[SvgUsage] = None
+    """
+    Token usage for the model that authored the SVG, separate from image rendering
+    usage.
+    """
 
     usage: Optional[Usage] = None
     """For `gpt-image-1` only, the token usage information for the image generation."""
