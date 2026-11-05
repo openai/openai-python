@@ -20,6 +20,7 @@ __all__ = [
     "AgentCompaction",
     "AgentExperimental",
     "SpendControl",
+    "StreamOptions",
     "SessionCreateParamsNonStreaming",
     "SessionCreateParamsStreaming",
 ]
@@ -70,6 +71,9 @@ class SessionCreateParamsBase(TypedDict, total=False):
 
     Omission or null creates an unlimited session.
     """
+
+    stream_options: StreamOptions
+    """Options for the event stream. Only allowed when `stream` is `true`."""
 
     vault_ids: Optional[SequenceNotStr[str]]
     """The IDs of vaults made available to the session."""
@@ -170,6 +174,16 @@ class SpendControl(TypedDict, total=False):
 
     limit: Required[Optional[int]]
     """Positive USD cents, or null to remove the limit."""
+
+
+class StreamOptions(TypedDict, total=False):
+    """Options for the event stream. Only allowed when `stream` is `true`."""
+
+    include_obfuscation: bool
+    """Whether to include obfuscation padding in events on this connection.
+
+    Defaults to `true`.
+    """
 
 
 class SessionCreateParamsNonStreaming(SessionCreateParamsBase, total=False):

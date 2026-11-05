@@ -834,7 +834,7 @@ Methods:
 Methods:
 
 - <code title="post /agents/sessions/{session_id}/events">client.beta.agents.sessions.events.<a href="./src/openai/resources/beta/agents/sessions/events.py">create</a>(session_id, \*\*<a href="src/openai/types/beta/agents/sessions/event_create_params.py">params</a>) -> None</code>
-- <code title="get /agents/sessions/{session_id}/events">client.beta.agents.sessions.events.<a href="./src/openai/resources/beta/agents/sessions/events.py">stream</a>(session_id) -> <a href="./src/openai/types/beta/agent_session_event.py">AgentSessionEvent</a></code>
+- <code title="get /agents/sessions/{session_id}/events">client.beta.agents.sessions.events.<a href="./src/openai/resources/beta/agents/sessions/events.py">stream</a>(session_id, \*\*<a href="src/openai/types/beta/agents/sessions/event_stream_params.py">params</a>) -> <a href="./src/openai/types/beta/agent_session_event.py">AgentSessionEvent</a></code>
 
 #### Traces
 

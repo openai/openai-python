@@ -26,3 +26,6 @@ class AgentSessionEnvironmentSuspendedEvent(BaseModel):
 
     type: Literal["agent.session.environment.suspended"]
     """The type of the object. Always `agent.session.environment.suspended`."""
+
+    obfuscation: Optional[str] = None
+    """Random alphanumeric padding. Present when stream obfuscation is enabled."""

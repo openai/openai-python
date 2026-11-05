@@ -145,14 +145,22 @@ class TestEvents:
     @parametrize
     def test_method_stream(self, client: OpenAI) -> None:
         event_stream = client.beta.agents.sessions.events.stream(
-            "session_id",
+            session_id="session_id",
+        )
+        event_stream.response.close()
+
+    @parametrize
+    def test_method_stream_with_all_params(self, client: OpenAI) -> None:
+        event_stream = client.beta.agents.sessions.events.stream(
+            session_id="session_id",
+            include_obfuscation=True,
         )
         event_stream.response.close()
 
     @parametrize
     def test_raw_response_stream(self, client: OpenAI) -> None:
         response = client.beta.agents.sessions.events.with_raw_response.stream(
-            "session_id",
+            session_id="session_id",
         )
 
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -163,7 +171,7 @@ class TestEvents:
     @parametrize
     def test_streaming_response_stream(self, client: OpenAI) -> None:
         with client.beta.agents.sessions.events.with_streaming_response.stream(
-            "session_id",
+            session_id="session_id",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -178,7 +186,7 @@ class TestEvents:
     def test_path_params_stream(self, client: OpenAI) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `session_id` but received ''"):
             client.beta.agents.sessions.events.with_raw_response.stream(
-                "",
+                session_id="",
             )
 
 
@@ -317,14 +325,22 @@ class TestAsyncEvents:
     @parametrize
     async def test_method_stream(self, async_client: AsyncOpenAI) -> None:
         event_stream = await async_client.beta.agents.sessions.events.stream(
-            "session_id",
+            session_id="session_id",
+        )
+        await event_stream.response.aclose()
+
+    @parametrize
+    async def test_method_stream_with_all_params(self, async_client: AsyncOpenAI) -> None:
+        event_stream = await async_client.beta.agents.sessions.events.stream(
+            session_id="session_id",
+            include_obfuscation=True,
         )
         await event_stream.response.aclose()
 
     @parametrize
     async def test_raw_response_stream(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.beta.agents.sessions.events.with_raw_response.stream(
-            "session_id",
+            session_id="session_id",
         )
 
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -335,7 +351,7 @@ class TestAsyncEvents:
     @parametrize
     async def test_streaming_response_stream(self, async_client: AsyncOpenAI) -> None:
         async with async_client.beta.agents.sessions.events.with_streaming_response.stream(
-            "session_id",
+            session_id="session_id",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -350,5 +366,5 @@ class TestAsyncEvents:
     async def test_path_params_stream(self, async_client: AsyncOpenAI) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `session_id` but received ''"):
             await async_client.beta.agents.sessions.events.with_raw_response.stream(
-                "",
+                session_id="",
             )

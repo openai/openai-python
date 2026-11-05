@@ -30,3 +30,6 @@ class AgentSessionTurnCancelledEvent(BaseModel):
 
     usage: Optional[TokenUsage] = None
     """Token usage by the root agent during the turn, when available."""
+
+    obfuscation: Optional[str] = None
+    """Random alphanumeric padding. Present when stream obfuscation is enabled."""

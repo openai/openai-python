@@ -35,3 +35,6 @@ class AgentSessionTurnContentPartAddedEvent(BaseModel):
 
     type: Literal["agent.session.turn.content_part.added"]
     """The type of the object. Always `agent.session.turn.content_part.added`."""
+
+    obfuscation: Optional[str] = None
+    """Random alphanumeric padding. Present when stream obfuscation is enabled."""

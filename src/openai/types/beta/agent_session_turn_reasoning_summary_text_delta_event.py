@@ -37,3 +37,6 @@ class AgentSessionTurnReasoningSummaryTextDeltaEvent(BaseModel):
 
     Always `agent.session.turn.reasoning_summary_text.delta`.
     """
+
+    obfuscation: Optional[str] = None
+    """Random alphanumeric padding. Present when stream obfuscation is enabled."""
