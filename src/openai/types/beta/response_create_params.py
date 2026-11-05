@@ -245,6 +245,7 @@ class ResponseCreateParamsBase(TypedDict, total=False):
             "gpt-daybreak-blue-latest",
             "gpt-daybreak-red-latest",
             "gpt-5.6-cyber",
+            "gpt-6-cyber",
             "gpt-rosalind-research",
         ],
         str,
