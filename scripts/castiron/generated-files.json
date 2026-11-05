@@ -15,7 +15,7 @@
     },
     "src/openai/_data_residency.py": {
       "mode": "100644",
-      "sha256": "ba3ff963256d4bafe09779326e1537b34f19e9f16f270568c6cb58774898c0ab"
+      "sha256": "0e88921105c6e331c33a4762f76c90cbb7049c4f7ea5348fb2ca81e9660010e6"
     },
     "src/openai/_module_client.py": {
       "mode": "100644",
@@ -8159,7 +8159,7 @@
     },
     "tests/test_data_residency_contract.py": {
       "mode": "100644",
-      "sha256": "9ad47179a75947000975b25b27878d80d0b9150989a3c10dd4687521e3cdda9c"
+      "sha256": "3a99e2fe54866a0e8dc892a4152b0a2c21f43fbe2e90a97af1ed579ced960633"
     },
     "tests/test_multipart_encoding.py": {
       "mode": "100644",
