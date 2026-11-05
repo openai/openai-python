@@ -64,6 +64,7 @@ __all__ = [
     "ImageGenerationCallAgent",
     "ImageGenerationCallError",
     "ImageGenerationCallErrorModerationDetails",
+    "ImageGenerationCallSvgUsage",
     "LocalShellCall",
     "LocalShellCallAction",
     "LocalShellCallAgent",
@@ -528,6 +529,18 @@ class ImageGenerationCallError(TypedDict, total=False):
     """Public details for a `moderation_blocked` error, when available."""
 
 
+class ImageGenerationCallSvgUsage(TypedDict, total=False):
+    input_tokens: Required[int]
+
+    model: Required[str]
+
+    output_tokens: Required[int]
+
+    reasoning_tokens: Required[int]
+
+    total_tokens: Required[int]
+
+
 class ImageGenerationCall(TypedDict, total=False):
     """An image generation request made by the model."""
 
@@ -555,7 +568,7 @@ class ImageGenerationCall(TypedDict, total=False):
     error: ImageGenerationCallError
     """Details of a moderation failure, when available."""
 
-    output_format: Optional[Literal["png", "webp", "jpeg"]]
+    output_format: Optional[Literal["png", "webp", "jpeg", "gif", "svg"]]
     """The output format used for generation."""
 
     quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto"]]
@@ -569,6 +582,8 @@ class ImageGenerationCall(TypedDict, total=False):
 
     size: Union[str, Literal["1024x1024", "1024x1536", "1536x1024"], None]
     """The image dimensions as a `WIDTHxHEIGHT` string, for example `1536x864`."""
+
+    svg_usage: ImageGenerationCallSvgUsage
 
 
 class LocalShellCallAction(TypedDict, total=False):

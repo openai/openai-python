@@ -43,6 +43,31 @@ class ImageEditParamsBase(TypedDict, total=False):
     set the output format to `png` or `webp`.
     """
 
+    complexity: Optional[Literal["low", "medium", "high"]]
+    """Computation spent planning the image, independently of rendering quality.
+
+    Uses the image model's configured default when omitted. For SVG output, controls
+    the reference image, independently of the SVG author's reasoning.
+    """
+
+    frame_count: Optional[int]
+    """Number of frames for GIF output.
+
+    Accepts integers from 2 through 16. Defaults to 9 when omitted. Only supported
+    with output_format=gif. The requested size must satisfy the selected model's GIF
+    size limits. GIF output does not support streaming, partial images, masks, or
+    custom output compression. Requires access to the GIF preview for the selected
+    model.
+    """
+
+    frame_duration_ms: Optional[int]
+    """Requested delay per GIF frame, in milliseconds.
+
+    Defaults to 200 when omitted. GIF output rounds to the nearest 10 ms and caps
+    the encoded delay at 655,350 ms per frame. Only supported with
+    output_format=gif.
+    """
+
     input_fidelity: Optional[Literal["high", "low"]]
     """
     Control how much effort the model will exert to match the style and features,
@@ -71,8 +96,8 @@ class ImageEditParamsBase(TypedDict, total=False):
     The GPT image model to use for image editing (`gpt-image-1-mini`,
     `gpt-image-1.5`, `gpt-image-2`, `gpt-image-2-2026-04-21`,
     `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`,
-    `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`, or
-    `chatgpt-image-latest`).
+    `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`,
+    `gpt-image-2.6-sunburst`, `gpt-image-2.6-flare`, or `chatgpt-image-latest`).
 
     `gpt-image-1` was shut down on October 23, 2026. Use `gpt-image-2.5-sunburst` or
     `gpt-image-2.5-flare` instead.
@@ -95,11 +120,11 @@ class ImageEditParamsBase(TypedDict, total=False):
     `jpeg` output formats, and defaults to 100.
     """
 
-    output_format: Optional[Literal["png", "jpeg", "webp"]]
+    output_format: Optional[Literal["png", "jpeg", "webp", "gif"]]
     """The format in which the generated images are returned.
 
-    This parameter is only supported for the GPT image models. Must be one of `png`,
-    `jpeg`, or `webp`. The default value is `png`.
+    This parameter is only supported for the GPT image models. The default value is
+    `png`.
     """
 
     partial_images: Optional[int]

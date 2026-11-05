@@ -80,6 +80,9 @@ class TestImages:
             image=b"Example data",
             prompt="A cute baby sea otter wearing a beret",
             background="transparent",
+            complexity="low",
+            frame_count=2,
+            frame_duration_ms=20,
             input_fidelity="high",
             markup=b"Example data",
             mask=b"Example data",
@@ -139,6 +142,9 @@ class TestImages:
             prompt="A cute baby sea otter wearing a beret",
             stream=True,
             background="transparent",
+            complexity="low",
+            frame_count=2,
+            frame_duration_ms=20,
             input_fidelity="high",
             markup=b"Example data",
             mask=b"Example data",
@@ -196,6 +202,9 @@ class TestImages:
         image = client.images.generate(
             prompt="A cute baby sea otter",
             background="transparent",
+            complexity="low",
+            frame_count=2,
+            frame_duration_ms=20,
             model="gpt-image-2.5-flare",
             moderation="low",
             n=1,
@@ -208,6 +217,10 @@ class TestImages:
             size="1024x1024",
             stream=False,
             style="vivid",
+            svg={
+                "model": "x",
+                "reasoning": {"effort": "none"},
+            },
             user="user-1234",
         )
         assert_matches_type(ImagesResponse, image, path=["response"])
@@ -250,6 +263,9 @@ class TestImages:
             prompt="A cute baby sea otter",
             stream=True,
             background="transparent",
+            complexity="low",
+            frame_count=2,
+            frame_duration_ms=20,
             model="gpt-image-2.5-flare",
             moderation="low",
             n=1,
@@ -261,6 +277,10 @@ class TestImages:
             safety_identifier="user-1234",
             size="1024x1024",
             style="vivid",
+            svg={
+                "model": "x",
+                "reasoning": {"effort": "none"},
+            },
             user="user-1234",
         )
         image_stream.response.close()
@@ -361,6 +381,9 @@ class TestAsyncImages:
             image=b"Example data",
             prompt="A cute baby sea otter wearing a beret",
             background="transparent",
+            complexity="low",
+            frame_count=2,
+            frame_duration_ms=20,
             input_fidelity="high",
             markup=b"Example data",
             mask=b"Example data",
@@ -420,6 +443,9 @@ class TestAsyncImages:
             prompt="A cute baby sea otter wearing a beret",
             stream=True,
             background="transparent",
+            complexity="low",
+            frame_count=2,
+            frame_duration_ms=20,
             input_fidelity="high",
             markup=b"Example data",
             mask=b"Example data",
@@ -477,6 +503,9 @@ class TestAsyncImages:
         image = await async_client.images.generate(
             prompt="A cute baby sea otter",
             background="transparent",
+            complexity="low",
+            frame_count=2,
+            frame_duration_ms=20,
             model="gpt-image-2.5-flare",
             moderation="low",
             n=1,
@@ -489,6 +518,10 @@ class TestAsyncImages:
             size="1024x1024",
             stream=False,
             style="vivid",
+            svg={
+                "model": "x",
+                "reasoning": {"effort": "none"},
+            },
             user="user-1234",
         )
         assert_matches_type(ImagesResponse, image, path=["response"])
@@ -531,6 +564,9 @@ class TestAsyncImages:
             prompt="A cute baby sea otter",
             stream=True,
             background="transparent",
+            complexity="low",
+            frame_count=2,
+            frame_duration_ms=20,
             model="gpt-image-2.5-flare",
             moderation="low",
             n=1,
@@ -542,6 +578,10 @@ class TestAsyncImages:
             safety_identifier="user-1234",
             size="1024x1024",
             style="vivid",
+            svg={
+                "model": "x",
+                "reasoning": {"effort": "none"},
+            },
             user="user-1234",
         )
         await image_stream.response.aclose()
