@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.47.0](https://github.com/openai/openai-python/compare/v3.46.0...v3.47.0) (2026-11-05)
+
+
+### Features
+
+* **api:** add a model option for Responses ([#4249](https://github.com/openai/openai-python/issues/4249)) ([090098f](https://github.com/openai/openai-python/commit/090098fd3f00fd46c529c4fd19edc2c762ce7a34))
+
 ## [3.46.0](https://github.com/openai/openai-python/compare/v3.45.0...v3.46.0) (2026-11-05)
 
 
