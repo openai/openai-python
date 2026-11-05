@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -51,6 +51,7 @@ class TestInputTokens:
                     "strict": True,
                     "type": "function",
                     "allowed_callers": ["direct"],
+                    "async": True,
                     "defer_loading": True,
                     "description": "description",
                     "output_schema": {"foo": "bar"},
@@ -120,6 +121,7 @@ class TestAsyncInputTokens:
                     "strict": True,
                     "type": "function",
                     "allowed_callers": ["direct"],
+                    "async": True,
                     "defer_loading": True,
                     "description": "description",
                     "output_schema": {"foo": "bar"},

@@ -26,7 +26,7 @@ from ...types.responses import (
     ResponseFormatTextConfigParam,
     ParsedResponseFunctionToolCall,
 )
-from ...types.chat.completion_create_params import ResponseFormat
+from ...types.responses.namespace_tool_param import ToolFunction
 
 TextFormatT = TypeVar(
     "TextFormatT",
@@ -38,7 +38,6 @@ TextFormatT = TypeVar(
 def type_to_text_format_param(type_: type) -> ResponseFormatTextConfigParam:
     response_format_dict = type_to_response_format_param(type_)
     assert is_given(response_format_dict)
-    response_format_dict = cast(ResponseFormat, response_format_dict)  # pyright: ignore[reportUnnecessaryCast]
     assert response_format_dict["type"] == "json_schema"
     assert "schema" in response_format_dict["json_schema"]
 
@@ -56,29 +55,31 @@ def parse_response(
     input_tools: Iterable[ToolParam] | Omit | None,
     response: Response | ParsedResponse[object],
 ) -> ParsedResponse[TextFormatT]:
+    # Keep generic annotations in quoted casts: runtime specialization can create
+    # new model classes in each async context and retain them in the type adapter cache.
     output_list: List[ParsedResponseOutputItem[TextFormatT]] = []
 
-    for output in response.output:
+    for output in response.output or []:
         if output.type == "message":
             content_list: List[ParsedContent[TextFormatT]] = []
-            for item in output.content:
+            for item in output.content or []:
                 if item.type != "output_text":
                     content_list.append(item)
                     continue
 
                 content_list.append(
                     construct_type_unchecked(
-                        type_=ParsedResponseOutputText[TextFormatT],
+                        type_=cast("type[ParsedResponseOutputText[TextFormatT]]", ParsedResponseOutputText),
                         value={
                             **item.to_dict(),
-                            "parsed": parse_text(item.text, text_format=text_format),
+                            "parsed": parse_text(item.text, text_format=text_format, phase=output.phase),
                         },
                     )
                 )
 
             output_list.append(
                 construct_type_unchecked(
-                    type_=ParsedResponseOutputMessage[TextFormatT],
+                    type_=cast("type[ParsedResponseOutputMessage[TextFormatT]]", ParsedResponseOutputMessage),
                     value={
                         **output.to_dict(),
                         "content": content_list,
@@ -127,13 +128,13 @@ def parse_response(
             or output.type == "custom_tool_call_output"
         ):
             output_list.append(output)
-        elif TYPE_CHECKING:  # type: ignore
+        elif TYPE_CHECKING:
             assert_never(output)
         else:
             output_list.append(output)
 
     return construct_type_unchecked(
-        type_=ParsedResponse[TextFormatT],
+        type_=cast("type[ParsedResponse[TextFormatT]]", ParsedResponse),
         value={
             **response.to_dict(),
             "output": output_list,
@@ -141,7 +142,16 @@ def parse_response(
     )
 
 
-def parse_text(text: str, text_format: type[TextFormatT] | Omit) -> TextFormatT | None:
+def parse_text(text: str, text_format: type[TextFormatT] | Omit, *, phase: str | None) -> TextFormatT | None:
+    """Parse final-answer text, retaining legacy behavior for messages without a phase.
+
+    Explicit phases other than `final_answer` are not structured results. Leave
+    their text unparsed, including phases introduced by future API versions.
+    Both completed responses and streamed text-done events use this rule.
+    """
+    if phase is not None and phase != "final_answer":
+        return None
+
     if not is_given(text_format):
         return None
 
@@ -157,7 +167,21 @@ def parse_text(text: str, text_format: type[TextFormatT] | Omit) -> TextFormatT 
     raise TypeError(f"Unable to automatically parse response format type {text_format}")
 
 
-def get_input_tool_by_name(*, input_tools: Iterable[ToolParam], name: str) -> FunctionToolParam | None:
+def get_input_tool_by_name(
+    *, input_tools: Iterable[ToolParam], name: str, namespace: str | None = None
+) -> FunctionToolParam | ToolFunction | None:
+    if namespace is not None:
+        input_tools = list(input_tools)
+        for tool in input_tools:
+            if tool["type"] == "namespace" and tool["name"] == namespace:
+                for nested_tool in tool["tools"]:
+                    if nested_tool["type"] == "function" and nested_tool["name"] == name:
+                        return nested_tool
+                return None
+
+    # Deferred top-level functions can return their own name as the namespace.
+    if namespace is not None and namespace != name:
+        return None
     for tool in input_tools:
         if tool["type"] == "function" and tool.get("name") == name:
             return tool
@@ -173,7 +197,9 @@ def parse_function_tool_arguments(
     if input_tools is None or not is_given(input_tools):
         return None
 
-    input_tool = get_input_tool_by_name(input_tools=input_tools, name=function_call.name)
+    input_tool = get_input_tool_by_name(
+        input_tools=input_tools, name=function_call.name, namespace=function_call.namespace
+    )
     if not input_tool:
         return None
 

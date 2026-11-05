@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -22,16 +22,17 @@ class GraderRunParams(TypedDict, total=False):
     """The model sample to be evaluated.
 
     This value will be used to populate the `sample` namespace. See
-    [the guide](https://platform.openai.com/docs/guides/graders) for more details.
-    The `output_json` variable will be populated if the model sample is a valid JSON
-    string.
+    [the guide](https://developers.openai.com/api/docs/guides/graders) for more
+    details. The `output_json` variable will be populated if the model sample is a
+    valid JSON string.
     """
 
     item: object
     """The dataset item provided to the grader.
 
     This will be used to populate the `item` namespace. See
-    [the guide](https://platform.openai.com/docs/guides/graders) for more details.
+    [the guide](https://developers.openai.com/api/docs/guides/graders) for more
+    details.
     """
 
 

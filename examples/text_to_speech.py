@@ -1,4 +1,4 @@
-#!/usr/bin/env rye run python
+#!/usr/bin/env -S uv run python
 
 import time
 import asyncio

@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ class ChatCompletionAudioParam(TypedDict, total=False):
     """Parameters for audio output.
 
     Required when audio output is requested with
-    `modalities: ["audio"]`. [Learn more](https://platform.openai.com/docs/guides/audio).
+    `modalities: ["audio"]`. [Learn more](https://developers.openai.com/api/docs/guides/audio).
     """
 
     format: Required[Literal["wav", "aac", "mp3", "flac", "opus", "pcm16"]]
@@ -39,5 +39,6 @@ class ChatCompletionAudioParam(TypedDict, total=False):
     Supported built-in voices are `alloy`, `ash`, `ballad`, `coral`, `echo`,
     `fable`, `nova`, `onyx`, `sage`, `shimmer`, `marin`, and `cedar`. You may also
     provide a custom voice object with an `id`, for example
-    `{ "id": "voice_1234" }`.
+    `{ "id": "voice_1234" }`. Custom voices must be created from audio samples.
+    Voices created from text prompts are supported only in Live.
     """

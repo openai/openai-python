@@ -11,7 +11,7 @@ def test_basic_attribute_access_works() -> None:
 
 def test_helpful_error_is_raised() -> None:
     with pytest.raises(APIRemovedInV1):
-        openai.Completion.create()  # type: ignore
+        openai.Completion.create()  # ty: ignore[unresolved-attribute]
 
     with pytest.raises(APIRemovedInV1):
-        openai.ChatCompletion.create()  # type: ignore
+        openai.ChatCompletion.create()  # ty: ignore[unresolved-attribute]

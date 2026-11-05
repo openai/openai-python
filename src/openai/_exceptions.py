@@ -1,11 +1,9 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
-
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Optional, cast
-from typing_extensions import Literal
+from typing_extensions import Literal, override
 
-import httpx
+import httpx2
 
 from ._utils import is_dict
 from ._models import construct_type
@@ -38,16 +36,16 @@ class OpenAIError(Exception):
 
 
 class SubjectTokenProviderError(OpenAIError):
-    response: httpx.Response | None
+    response: httpx2.Response | None
 
-    def __init__(self, message: str, *, response: httpx.Response | None = None) -> None:
+    def __init__(self, message: str, *, response: httpx2.Response | None = None) -> None:
         super().__init__(message)
         self.response = response
 
 
 class APIError(OpenAIError):
     message: str
-    request: httpx.Request
+    request: httpx2.Request
 
     body: object | None
     """The API response body.
@@ -64,14 +62,15 @@ class APIError(OpenAIError):
     param: Optional[str] = None
     type: Optional[str]
 
-    def __init__(self, message: str, request: httpx.Request, *, body: object | None) -> None:
+    def __init__(self, message: str, request: httpx2.Request, *, body: object | None) -> None:
         super().__init__(message)
         self.request = request
         self.message = message
         self.body = body
 
         if is_dict(body):
-            self.code = cast(Any, construct_type(type_=Optional[str], value=body.get("code")))
+            code = body.get("code")
+            self.code = str(code) if code is not None else None
             self.param = cast(Any, construct_type(type_=Optional[str], value=body.get("param")))
             self.type = cast(Any, construct_type(type_=str, value=body.get("type")))
         else:
@@ -81,10 +80,10 @@ class APIError(OpenAIError):
 
 
 class APIResponseValidationError(APIError):
-    response: httpx.Response
+    response: httpx2.Response
     status_code: int
 
-    def __init__(self, response: httpx.Response, body: object | None, *, message: str | None = None) -> None:
+    def __init__(self, response: httpx2.Response, body: object | None, *, message: str | None = None) -> None:
         super().__init__(message or "Data returned by API invalid for expected schema.", response.request, body=body)
         self.response = response
         self.status_code = response.status_code
@@ -93,11 +92,11 @@ class APIResponseValidationError(APIError):
 class APIStatusError(APIError):
     """Raised when an API response has a status code of 4xx or 5xx."""
 
-    response: httpx.Response
+    response: httpx2.Response
     status_code: int
     request_id: str | None
 
-    def __init__(self, message: str, *, response: httpx.Response, body: object | None) -> None:
+    def __init__(self, message: str, *, response: httpx2.Response, body: object | None) -> None:
         super().__init__(message, response.request, body=body)
         self.response = response
         self.status_code = response.status_code
@@ -105,27 +104,27 @@ class APIStatusError(APIError):
 
 
 class APIConnectionError(APIError):
-    def __init__(self, *, message: str = "Connection error.", request: httpx.Request) -> None:
+    def __init__(self, *, message: str = "Connection error.", request: httpx2.Request) -> None:
         super().__init__(message, request, body=None)
 
 
 class APITimeoutError(APIConnectionError):
-    def __init__(self, request: httpx.Request) -> None:
+    def __init__(self, request: httpx2.Request) -> None:
         super().__init__(message="Request timed out.", request=request)
 
 
 class BadRequestError(APIStatusError):
-    status_code: Literal[400] = 400  # pyright: ignore[reportIncompatibleVariableOverride]
+    status_code: Literal[400] = 400
 
 
 class AuthenticationError(APIStatusError):
-    status_code: Literal[401] = 401  # pyright: ignore[reportIncompatibleVariableOverride]
+    status_code: Literal[401] = 401
 
 
 class OAuthError(AuthenticationError):
     error: Optional[OAuthErrorCode]
 
-    def __init__(self, *, response: httpx.Response, body: object | None) -> None:
+    def __init__(self, *, response: httpx2.Response, body: object | None) -> None:
         message = "OAuth authentication error."
         error = None
 
@@ -140,23 +139,23 @@ class OAuthError(AuthenticationError):
 
 
 class PermissionDeniedError(APIStatusError):
-    status_code: Literal[403] = 403  # pyright: ignore[reportIncompatibleVariableOverride]
+    status_code: Literal[403] = 403
 
 
 class NotFoundError(APIStatusError):
-    status_code: Literal[404] = 404  # pyright: ignore[reportIncompatibleVariableOverride]
+    status_code: Literal[404] = 404
 
 
 class ConflictError(APIStatusError):
-    status_code: Literal[409] = 409  # pyright: ignore[reportIncompatibleVariableOverride]
+    status_code: Literal[409] = 409
 
 
 class UnprocessableEntityError(APIStatusError):
-    status_code: Literal[422] = 422  # pyright: ignore[reportIncompatibleVariableOverride]
+    status_code: Literal[422] = 422
 
 
 class RateLimitError(APIStatusError):
-    status_code: Literal[429] = 429  # pyright: ignore[reportIncompatibleVariableOverride]
+    status_code: Literal[429] = 429
 
 
 class InternalServerError(APIStatusError):
@@ -181,24 +180,82 @@ class LengthFinishReasonError(OpenAIError):
 
 
 class ContentFilterFinishReasonError(OpenAIError):
-    def __init__(self) -> None:
+    completion: ChatCompletion | None
+    """The completion that caused this error, if provided.
+
+    When streaming, this is the accumulated completion and may not include usage.
+    """
+
+    def __init__(self, *, completion: ChatCompletion | None = None) -> None:
         super().__init__(
-            f"Could not parse response content as the request was rejected by the content filter",
+            "Could not parse response content as the request was rejected by the content filter",
         )
+        self.completion = completion
 
 
 class InvalidWebhookSignatureError(ValueError):
     """Raised when a webhook signature is invalid, meaning the computed signature does not match the expected signature."""
 
 
+class _WebSocketRecoveryData:
+    __slots__ = ("frames", "messages")
+
+    def __init__(self, frames: list[str] | list[str | bytes], messages: list[str]) -> None:
+        self.frames = frames
+        self.messages = messages
+
+    @override
+    def __repr__(self) -> str:
+        return "<redacted WebSocket recovery data>"
+
+
 class WebSocketConnectionClosedError(OpenAIError):
-    """Raised when a WebSocket connection closes with unsent messages."""
+    """Raised when a WebSocket connection closes with unsent messages.
 
-    unsent_messages: list[str]
+    `unsent_frames` preserves the text and binary frames in their original order.
+    `unsent_messages` retains the text messages, including UTF-8 binary frames
+    represented as text for compatibility.
+    """
 
-    def __init__(self, message: str, *, unsent_messages: list[str]) -> None:
+    def __init__(self, message: str, *, unsent_messages: list[str] | list[str | bytes]) -> None:
         super().__init__(message)
-        self.unsent_messages = unsent_messages
+        messages: list[str]
+        if all(isinstance(data, str) for data in unsent_messages):
+            messages = cast("list[str]", unsent_messages)
+        else:
+            messages = []
+            for data in unsent_messages:
+                if isinstance(data, str):
+                    messages.append(data)
+                else:
+                    try:
+                        messages.append(data.decode("utf-8"))
+                    except UnicodeDecodeError:
+                        # Opaque binary remains available in unsent_frames.
+                        pass
+        # Keep raw lists out of ordinary exception-attribute snapshots.
+        # Explicit recovery access remains available through the properties.
+        self._recovery = _WebSocketRecoveryData(unsent_messages, messages)
+
+    @property
+    def unsent_messages(self) -> list[str]:
+        return self._recovery.messages
+
+    @unsent_messages.setter
+    def unsent_messages(self, messages: list[str]) -> None:
+        if hasattr(self, "_recovery"):
+            self._recovery.messages = messages
+        else:
+            # Subclasses could assign the original writable field before super().__init__.
+            self._recovery = _WebSocketRecoveryData([], messages)
+
+    @property
+    def unsent_frames(self) -> list[str] | list[str | bytes]:
+        return self._recovery.frames
+
+    @unsent_frames.setter
+    def unsent_frames(self, frames: list[str] | list[str | bytes]) -> None:
+        self._recovery.frames = frames
 
 
 class WebSocketQueueFullError(OpenAIError):

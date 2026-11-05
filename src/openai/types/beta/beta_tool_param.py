@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -36,6 +36,8 @@ __all__ = [
     "ProgrammaticToolCalling",
     "ImageGeneration",
     "ImageGenerationInputImageMask",
+    "ImageGenerationSvg",
+    "ImageGenerationSvgReasoning",
     "LocalShell",
 ]
 
@@ -109,7 +111,7 @@ McpRequireApproval: TypeAlias = Union[McpRequireApprovalMcpToolApprovalFilter, L
 class Mcp(TypedDict, total=False):
     """
     Give the model access to additional tools via remote Model Context Protocol
-    (MCP) servers. [Learn more about MCP](https://platform.openai.com/docs/guides/tools-remote-mcp).
+    (MCP) servers. [Learn more about MCP](https://developers.openai.com/api/docs/guides/tools-connectors-mcp).
     """
 
     server_label: Required[str]
@@ -145,7 +147,11 @@ class Mcp(TypedDict, total=False):
 
     One of `server_url`, `connector_id`, or `tunnel_id` must be provided. Learn more
     about service connectors
-    [here](https://platform.openai.com/docs/guides/tools-remote-mcp#connectors).
+    [here](https://developers.openai.com/api/docs/guides/tools-connectors-mcp#connectors).
+
+    This field is deprecated for models released after September 1, 2026. Use
+    `server_url` to connect to a remote MCP server, or `tunnel_id` to connect
+    through a Secure MCP Tunnel.
 
     Currently supported `connector_id` values are:
 
@@ -250,6 +256,34 @@ class ImageGenerationInputImageMask(TypedDict, total=False):
     """Base64-encoded mask image."""
 
 
+class ImageGenerationSvgReasoning(TypedDict, total=False):
+    """Reasoning effort for SVG authoring.
+
+    When omitted, uses the author model's default in both Images and Responses.
+    """
+
+    effort: Literal["none", "minimal", "low", "medium", "high", "xhigh", "max"]
+    """Controls how much effort the model should spend on reasoning for this request."""
+
+
+class ImageGenerationSvg(TypedDict, total=False):
+    """SVG author model settings.
+
+    Requires `output_format` to be `svg`.
+    When SVG model selection is enabled, omitting this object uses the
+    outer response model. Otherwise, the default SVG author is used and
+    explicit model overrides are unavailable.
+    """
+
+    model: str
+
+    reasoning: Optional[ImageGenerationSvgReasoning]
+    """Reasoning effort for SVG authoring.
+
+    When omitted, uses the author model's default in both Images and Responses.
+    """
+
+
 class ImageGeneration(TypedDict, total=False):
     """A tool that generates images using the GPT image models."""
 
@@ -260,27 +294,43 @@ class ImageGeneration(TypedDict, total=False):
     """Whether to generate a new image or edit an existing image. Default: `auto`."""
 
     background: Literal["transparent", "opaque", "auto"]
+    """Allows to set transparency for the background of the generated image(s).
+
+    Must be one of `transparent`, `opaque`, or `auto` (default value). When `auto`
+    is used, the model will automatically determine the best background for the
+    image.
+
+    `gpt-image-2.5-sunburst` and `gpt-image-2.5-flare`, including their `2026-09-08`
+    snapshots, support `opaque` and `transparent` backgrounds. Transparent
+    backgrounds are available for supported GPT Image models. For `gpt-image-2` and
+    `gpt-image-2-2026-04-21`, this support is in preview. When using `transparent`,
+    set the output format to `png` or `webp`.
     """
-    Allows to set transparency for the background of the generated image(s). This
-    parameter is only supported for GPT image models that support transparent
-    backgrounds. Must be one of `transparent`, `opaque`, or `auto` (default value).
-    When `auto` is used, the model will automatically determine the best background
-    for the image.
 
-    `gpt-image-2` and `gpt-image-2-2026-04-21` do not support transparent
-    backgrounds. Requests with `background` set to `transparent` will return an
-    error for these models; use `opaque` or `auto` instead.
+    complexity: Literal["low", "medium", "high"]
+    """
+    Computation spent planning the image, independently of rendering quality.
+    Overrides the outer response's `reasoning.effort` for image generation. When
+    omitted, inherits a supported outer reasoning effort or uses the image model's
+    configured default. For SVG output, controls the reference image, not the SVG
+    author's reasoning.
+    """
 
-    If `transparent`, the output format needs to support transparency, so it should
-    be set to either `png` (default value) or `webp`.
+    frame_count: int
+    """Number of GIF frames. Requires `output_format` to be `gif`. Default: 9."""
+
+    frame_duration_ms: int
+    """
+    Duration of each GIF frame in milliseconds, rounded to 10 ms. Requires
+    `output_format` to be `gif`. Default: 200.
     """
 
     input_fidelity: Optional[Literal["high", "low"]]
     """
     Control how much effort the model will exert to match the style and features,
-    especially facial features, of input images. This parameter is only supported
-    for `gpt-image-1` and `gpt-image-1.5` and later models, unsupported for
-    `gpt-image-1-mini`. Supports `high` and `low`. Defaults to `low`.
+    especially facial features, of input images. Supports `high` and `low` on
+    `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For `gpt-image-2`, omit
+    this parameter. Defaults to `low` on supported models.
     """
 
     input_image_mask: ImageGenerationInputImageMask
@@ -296,11 +346,32 @@ class ImageGeneration(TypedDict, total=False):
             "gpt-image-1-mini",
             "gpt-image-2",
             "gpt-image-2-2026-04-21",
+            "gpt-image-2.5-sunburst",
+            "gpt-image-2.5-sunburst-2026-09-08",
+            "gpt-image-2.5-flare",
+            "gpt-image-2.5-flare-2026-09-08",
+            "gpt-image-2.6-sunburst",
+            "gpt-image-2.6-flare",
             "gpt-image-1.5",
             "chatgpt-image-latest",
         ],
     ]
-    """The image generation model to use. Default: `gpt-image-1`."""
+    """The image generation model to use.
+
+    One of `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+    `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
+    `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`,
+    `gpt-image-2.5-flare-2026-09-08`, `gpt-image-2.6-sunburst`,
+    `gpt-image-2.6-flare`, or `chatgpt-image-latest`. Default: `gpt-image-2`.
+
+    `gpt-image-1` was shut down on October 23, 2026. Use `gpt-image-2.5-sunburst` or
+    `gpt-image-2.5-flare` instead.
+
+    Deprecated values:
+
+    - "gpt-image-1": GPT Image 1 was shut down on October 23, 2026. Use
+      gpt-image-2.5-sunburst or gpt-image-2.5-flare instead.
+    """
 
     moderation: Literal["auto", "low"]
     """Moderation level for the generated image. Default: `auto`."""
@@ -308,10 +379,14 @@ class ImageGeneration(TypedDict, total=False):
     output_compression: int
     """Compression level for the output image. Default: 100."""
 
-    output_format: Literal["png", "webp", "jpeg"]
+    output_format: Literal["png", "webp", "jpeg", "gif", "svg"]
     """The output format of the generated image.
 
-    One of `png`, `webp`, or `jpeg`. Default: `png`.
+    One of `png`, `webp`, `jpeg`, `gif`, or `svg`. Default: `png`. GIF and SVG
+    output require a model that supports the selected format. GIF output does not
+    support partial image streaming (`partial_images` greater than `0`),
+    `input_image_mask`, or custom `output_compression`. Responses lifecycle events
+    can still be streamed for GIF output.
     """
 
     partial_images: int
@@ -320,25 +395,35 @@ class ImageGeneration(TypedDict, total=False):
     to 3.
     """
 
-    quality: Literal["low", "medium", "high", "auto"]
+    quality: Literal["low", "medium", "high", "xhigh", "max", "auto"]
     """The quality of the generated image.
 
-    One of `low`, `medium`, `high`, or `auto`. Default: `auto`.
+    The GPT image models support `low`, `medium`, and `high`.
+    `gpt-image-2.5-sunburst` and `gpt-image-2.5-flare`, including their `2026-09-08`
+    snapshots, also support `xhigh` and `max`. Default: `auto`.
     """
 
     size: Union[str, Literal["1024x1024", "1024x1536", "1536x1024", "auto"]]
     """The size of the generated images.
 
-    For `gpt-image-2` and `gpt-image-2-2026-04-21`, arbitrary resolutions are
-    supported as `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height
-    must both be divisible by 16 and the requested aspect ratio must be between 1:3
-    and 3:1. Resolutions above `2560x1440` are experimental, and the maximum
-    supported resolution is `3840x2160`. The requested size must also satisfy the
-    model's current pixel and edge limits. The standard sizes `1024x1024`,
-    `1536x1024`, and `1024x1536` are supported by the GPT image models; `auto` is
-    supported for models that allow automatic sizing. For `dall-e-2`, use one of
-    `256x256`, `512x512`, or `1024x1024`. For `dall-e-3`, use one of `1024x1024`,
-    `1792x1024`, or `1024x1792`.
+    For `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
+    `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and
+    `gpt-image-2.5-flare-2026-09-08`, arbitrary resolutions are supported as
+    `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height must both be
+    divisible by 16 and the requested aspect ratio must be between 1:3 and 3:1.
+    Resolutions above `2560x1440` are experimental, and the maximum supported
+    resolution is `3840x2160`. The requested size must also satisfy the model's
+    current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and
+    `1024x1536` are supported by the GPT image models; `auto` is supported for
+    models that allow automatic sizing.
+    """
+
+    svg: ImageGenerationSvg
+    """SVG author model settings.
+
+    Requires `output_format` to be `svg`. When SVG model selection is enabled,
+    omitting this object uses the outer response model. Otherwise, the default SVG
+    author is used and explicit model overrides are unavailable.
     """
 
 

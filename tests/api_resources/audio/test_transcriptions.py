@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from typing import Any, cast
 
 import pytest
 
-from openai import OpenAI, AsyncOpenAI
+from openai import OpenAI, Stream as _Stream, AsyncOpenAI, AsyncStream as _AsyncStream
 from tests.utils import assert_matches_type
 from openai.types.audio import TranscriptionCreateResponse
 
@@ -32,9 +32,11 @@ class TestTranscriptions:
             model="gpt-4o-transcribe",
             chunking_strategy="auto",
             include=["logprobs"],
+            keywords=["string"],
             known_speaker_names=["string"],
             known_speaker_references=["string"],
             language="language",
+            languages=["string"],
             prompt="prompt",
             response_format="json",
             stream=False,
@@ -86,9 +88,11 @@ class TestTranscriptions:
             stream=True,
             chunking_strategy="auto",
             include=["logprobs"],
+            keywords=["string"],
             known_speaker_names=["string"],
             known_speaker_references=["string"],
             language="language",
+            languages=["string"],
             prompt="prompt",
             response_format="json",
             temperature=0,
@@ -106,6 +110,7 @@ class TestTranscriptions:
 
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         stream = response.parse()
+        assert isinstance(stream, _Stream)
         stream.close()
 
     @parametrize
@@ -119,6 +124,7 @@ class TestTranscriptions:
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
             stream = response.parse()
+            assert isinstance(stream, _Stream)
             stream.close()
 
         assert cast(Any, response.is_closed) is True
@@ -144,9 +150,11 @@ class TestAsyncTranscriptions:
             model="gpt-4o-transcribe",
             chunking_strategy="auto",
             include=["logprobs"],
+            keywords=["string"],
             known_speaker_names=["string"],
             known_speaker_references=["string"],
             language="language",
+            languages=["string"],
             prompt="prompt",
             response_format="json",
             stream=False,
@@ -198,9 +206,11 @@ class TestAsyncTranscriptions:
             stream=True,
             chunking_strategy="auto",
             include=["logprobs"],
+            keywords=["string"],
             known_speaker_names=["string"],
             known_speaker_references=["string"],
             language="language",
+            languages=["string"],
             prompt="prompt",
             response_format="json",
             temperature=0,
@@ -218,6 +228,7 @@ class TestAsyncTranscriptions:
 
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         stream = response.parse()
+        assert isinstance(stream, _AsyncStream)
         await stream.close()
 
     @parametrize
@@ -231,6 +242,7 @@ class TestAsyncTranscriptions:
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
             stream = await response.parse()
+            assert isinstance(stream, _AsyncStream)
             await stream.close()
 
         assert cast(Any, response.is_closed) is True

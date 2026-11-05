@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
@@ -28,7 +28,7 @@ class AnnotationFileCitation(BaseModel):
     """The filename of the file cited."""
 
     index: int
-    """The index of the file in the list of files."""
+    """The index in the output text at which to insert the file citation."""
 
     type: Literal["file_citation"]
     """The type of the file citation. Always `file_citation`."""

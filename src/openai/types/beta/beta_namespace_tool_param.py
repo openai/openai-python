@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -9,8 +9,16 @@ from .beta_custom_tool_param import BetaCustomToolParam
 
 __all__ = ["BetaNamespaceToolParam", "Tool", "ToolFunction"]
 
+_ToolFunctionReservedKeywords = TypedDict(
+    "_ToolFunctionReservedKeywords",
+    {
+        "async": bool,
+    },
+    total=False,
+)
 
-class ToolFunction(TypedDict, total=False):
+
+class ToolFunction(_ToolFunctionReservedKeywords, total=False):
     name: Required[str]
 
     type: Required[Literal["function"]]

@@ -51,7 +51,7 @@ def create_tz(minutes: int) -> timezone:
     ],
 )
 def test_date_parsing(value: Union[str, bytes, int, float], result: Union[date, Type[Exception]]) -> None:
-    if type(result) == type and issubclass(result, Exception):  # pyright: ignore[reportUnnecessaryIsInstance]
+    if type(result) == type and issubclass(result, Exception):  # ty: ignore[invalid-argument-type]
         with pytest.raises(result):
             parse_date(value)
     else:
@@ -103,7 +103,7 @@ def test_date_parsing(value: Union[str, bytes, int, float], result: Union[date, 
     ],
 )
 def test_datetime_parsing(value: Union[str, bytes, int, float], result: Union[datetime, Type[Exception]]) -> None:
-    if type(result) == type and issubclass(result, Exception):  # pyright: ignore[reportUnnecessaryIsInstance]
+    if type(result) == type and issubclass(result, Exception):  # ty: ignore[invalid-argument-type]
         with pytest.raises(result):
             parse_datetime(value)
     else:

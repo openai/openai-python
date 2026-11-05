@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -24,6 +24,15 @@ class SessionUpdateEventParam(TypedDict, total=False):
     Only the fields that are present in the `session.update` are updated. To clear a field like
     `instructions`, pass an empty string. To clear a field like `tools`, pass an empty array.
     To clear a field like `turn_detection`, pass `null`.
+
+    To turn off input audio noise reduction, send this Realtime event:
+
+    ```json
+    {"type":"session.update","session":{"type":"realtime","audio":{"input":{"noise_reduction":null}}}}
+    ```
+
+    For a transcription session, use `"type":"transcription"` inside `session`.
+    Omitting `audio.input.noise_reduction` from an update leaves its current setting unchanged.
     """
 
     session: Required[Session]

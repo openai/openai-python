@@ -30,10 +30,14 @@ from ....types.responses import (
     ResponseMcpListToolsFailedEvent,
     ResponseAudioTranscriptDoneEvent,
     ResponseAudioTranscriptDeltaEvent,
+    ResponseCompactionCompactingEvent,
     ResponseMcpCallArgumentsDoneEvent,
+    ResponseShellCallCommandDoneEvent,
     ResponseImageGenCallCompletedEvent,
     ResponseMcpCallArgumentsDeltaEvent,
     ResponseMcpListToolsCompletedEvent,
+    ResponseShellCallCommandAddedEvent,
+    ResponseShellCallCommandDeltaEvent,
     ResponseImageGenCallGeneratingEvent,
     ResponseImageGenCallInProgressEvent,
     ResponseMcpListToolsInProgressEvent,
@@ -53,7 +57,9 @@ from ....types.responses import (
     ResponseReasoningSummaryPartAddedEvent,
     ResponseReasoningSummaryTextDeltaEvent,
     ResponseFunctionCallArgumentsDeltaEvent as RawResponseFunctionCallArgumentsDeltaEvent,
+    ResponseShellCallOutputContentDoneEvent,
     ResponseCodeInterpreterCallCodeDoneEvent,
+    ResponseShellCallOutputContentDeltaEvent,
     ResponseCodeInterpreterCallCodeDeltaEvent,
     ResponseCodeInterpreterCallCompletedEvent,
     ResponseCodeInterpreterCallInProgressEvent,
@@ -82,7 +88,7 @@ class ResponseFunctionCallArgumentsDeltaEvent(RawResponseFunctionCallArgumentsDe
 
 
 class ResponseCompletedEvent(RawResponseCompletedEvent, GenericModel, Generic[TextFormatT]):
-    response: ParsedResponse[TextFormatT]  # type: ignore[assignment]
+    response: ParsedResponse[TextFormatT]
 
 
 ResponseStreamEvent: TypeAlias = Annotated[
@@ -102,6 +108,7 @@ ResponseStreamEvent: TypeAlias = Annotated[
         ResponseCodeInterpreterCallCompletedEvent,
         ResponseCodeInterpreterCallInProgressEvent,
         ResponseCodeInterpreterCallInterpretingEvent,
+        ResponseCompactionCompactingEvent,
         ResponseContentPartAddedEvent,
         ResponseContentPartDoneEvent,
         ResponseCreatedEvent,
@@ -110,6 +117,11 @@ ResponseStreamEvent: TypeAlias = Annotated[
         ResponseFileSearchCallInProgressEvent,
         ResponseFileSearchCallSearchingEvent,
         ResponseFunctionCallArgumentsDoneEvent,
+        ResponseShellCallCommandAddedEvent,
+        ResponseShellCallCommandDeltaEvent,
+        ResponseShellCallCommandDoneEvent,
+        ResponseShellCallOutputContentDeltaEvent,
+        ResponseShellCallOutputContentDoneEvent,
         ResponseInProgressEvent,
         ResponseFailedEvent,
         ResponseIncompleteEvent,

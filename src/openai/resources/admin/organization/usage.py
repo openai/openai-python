@@ -1,11 +1,11 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
-from typing import List
+from typing import List, Optional
 from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from .... import _legacy_response
 from ...._types import Body, Omit, Query, Headers, NotGiven, SequenceNotStr, omit, not_given
@@ -17,6 +17,7 @@ from ...._base_client import make_request_options
 from ....types.admin.organization import (
     usage_costs_params,
     usage_images_params,
+    usage_decisions_params,
     usage_embeddings_params,
     usage_completions_params,
     usage_moderations_params,
@@ -29,6 +30,7 @@ from ....types.admin.organization import (
 )
 from ....types.admin.organization.usage_costs_response import UsageCostsResponse
 from ....types.admin.organization.usage_images_response import UsageImagesResponse
+from ....types.admin.organization.usage_decisions_response import UsageDecisionsResponse
 from ....types.admin.organization.usage_embeddings_response import UsageEmbeddingsResponse
 from ....types.admin.organization.usage_completions_response import UsageCompletionsResponse
 from ....types.admin.organization.usage_moderations_response import UsageModerationsResponse
@@ -80,7 +82,7 @@ class Usage(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageAudioSpeechesResponse:
         """
         Get audio speeches usage details for the organization.
@@ -166,7 +168,7 @@ class Usage(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageAudioTranscriptionsResponse:
         """
         Get audio transcriptions usage details for the organization.
@@ -249,7 +251,7 @@ class Usage(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageCodeInterpreterSessionsResponse:
         """
         Get code interpreter sessions usage details for the organization.
@@ -316,7 +318,8 @@ class Usage(SyncAPIResource):
         batch: bool | Omit = omit,
         bucket_width: Literal["1m", "1h", "1d"] | Omit = omit,
         end_time: int | Omit = omit,
-        group_by: List[Literal["project_id", "user_id", "api_key_id", "model", "batch", "service_tier"]] | Omit = omit,
+        group_by: List[Literal["project_id", "user_id", "api_key_id", "model", "batch", "service_tier", "api_source"]]
+        | Omit = omit,
         limit: int | Omit = omit,
         models: SequenceNotStr[str] | Omit = omit,
         page: str | Omit = omit,
@@ -327,7 +330,7 @@ class Usage(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageCompletionsResponse:
         """
         Get completions usage details for the organization.
@@ -346,8 +349,10 @@ class Usage(SyncAPIResource):
           end_time: End time (Unix seconds) of the query time range, exclusive.
 
           group_by: Group the usage data by the specified fields. Support fields include
-              `project_id`, `user_id`, `api_key_id`, `model`, `batch`, `service_tier` or any
-              combination of them.
+              `project_id`, `user_id`, `api_key_id`, `model`, `batch`, `service_tier`,
+              `api_source` or any combination of them. When grouped by `api_source`, results
+              use `agents_api` for attributed Agents API activity and `unlabeled` for all
+              other activity. Without source grouping, `api_source` is null.
 
           limit: Specifies the number of buckets to return.
 
@@ -407,8 +412,9 @@ class Usage(SyncAPIResource):
         api_key_ids: SequenceNotStr[str] | Omit = omit,
         bucket_width: Literal["1d"] | Omit = omit,
         end_time: int | Omit = omit,
-        group_by: List[Literal["project_id", "line_item", "api_key_id"]] | Omit = omit,
+        group_by: List[Literal["project_id", "user_id", "line_item", "api_key_id", "api_source"]] | Omit = omit,
         limit: int | Omit = omit,
+        line_items: SequenceNotStr[str] | Omit = omit,
         page: str | Omit = omit,
         project_ids: SequenceNotStr[str] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -416,7 +422,7 @@ class Usage(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageCostsResponse:
         """
         Get costs details for the organization.
@@ -431,11 +437,19 @@ class Usage(SyncAPIResource):
 
           end_time: End time (Unix seconds) of the query time range, exclusive.
 
-          group_by: Group the costs by the specified fields. Support fields include `project_id`,
-              `line_item`, `api_key_id` and any combination of them.
+          group_by: Group the costs by the specified fields. Supported fields include `project_id`,
+              `user_id`, `line_item`, `api_key_id`, and `api_source`. Support for combining
+              `user_id` with `project_id` grouping or the `project_ids` filter depends on the
+              organization and requested time range. Unsupported combinations return HTTP 400.
+              When grouped by `api_source`, results use `agents_api` for attributed Agents API
+              activity and `unlabeled` for all other activity. Without source grouping,
+              `api_source` is null.
 
           limit: A limit on the number of buckets to be returned. Limit can range between 1 and
               180, and the default is 7.
+
+          line_items: Return only costs for these exact line item names. Each value must match the
+              complete `line_item` value, for example `gpt-6-astra, input_tokens`.
 
           page: A cursor for use in pagination. Corresponding to the `next_page` field from the
               previous response.
@@ -465,6 +479,7 @@ class Usage(SyncAPIResource):
                         "end_time": end_time,
                         "group_by": group_by,
                         "limit": limit,
+                        "line_items": line_items,
                         "page": page,
                         "project_ids": project_ids,
                     },
@@ -473,6 +488,103 @@ class Usage(SyncAPIResource):
                 security={"admin_api_key_auth": True},
             ),
             cast_to=UsageCostsResponse,
+        )
+
+    def decisions(
+        self,
+        *,
+        start_time: int,
+        api_key_ids: Optional[SequenceNotStr[str]] | Omit = omit,
+        batch: Optional[bool] | Omit = omit,
+        bucket_width: Optional[Literal["1m", "1h", "1d"]] | Omit = omit,
+        end_time: Optional[int] | Omit = omit,
+        group_by: Optional[
+            List[Literal["project_id", "user_id", "api_key_id", "model", "batch", "service_tier", "api_source"]]
+        ]
+        | Omit = omit,
+        limit: Optional[int] | Omit = omit,
+        models: Optional[SequenceNotStr[str]] | Omit = omit,
+        page: Optional[str] | Omit = omit,
+        project_ids: Optional[SequenceNotStr[str]] | Omit = omit,
+        user_ids: Optional[SequenceNotStr[str]] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> UsageDecisionsResponse:
+        """
+        Get Decisions API usage details for the organization.
+
+        Args:
+          start_time: Start time (Unix seconds) of the query time range, inclusive.
+
+          api_key_ids: Return only usage for these API keys.
+
+          batch: If `true`, return batch jobs only. If `false`, return non-batch jobs only. By
+              default, return both.
+
+          bucket_width: Width of each time bucket in response. Currently `1m`, `1h` and `1d` are
+              supported, default to `1d`.
+
+          end_time: End time (Unix seconds) of the query time range, exclusive.
+
+          group_by: Group the usage data by the specified fields. Support fields include
+              `project_id`, `user_id`, `api_key_id`, `model`, `batch`, `service_tier`,
+              `api_source` or any combination of them. When grouped by `api_source`, results
+              use `agents_api` for attributed Agents API activity and `unlabeled` for all
+              other activity. Without source grouping, `api_source` is null.
+
+          limit: Specifies the number of buckets to return.
+
+              - `bucket_width=1d`: default: 7, max: 31
+              - `bucket_width=1h`: default: 24, max: 168
+              - `bucket_width=1m`: default: 60, max: 1440
+
+          models: Return only usage for these models.
+
+          page: A cursor for use in pagination. Corresponding to the `next_page` field from the
+              previous response.
+
+          project_ids: Return only usage for these projects.
+
+          user_ids: Return only usage for these users.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        return self._get(
+            "/organization/usage/decisions",
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                query=maybe_transform(
+                    {
+                        "start_time": start_time,
+                        "api_key_ids": api_key_ids,
+                        "batch": batch,
+                        "bucket_width": bucket_width,
+                        "end_time": end_time,
+                        "group_by": group_by,
+                        "limit": limit,
+                        "models": models,
+                        "page": page,
+                        "project_ids": project_ids,
+                        "user_ids": user_ids,
+                    },
+                    usage_decisions_params.UsageDecisionsParams,
+                ),
+                security={"admin_api_key_auth": True},
+            ),
+            cast_to=UsageDecisionsResponse,
         )
 
     def embeddings(
@@ -493,7 +605,7 @@ class Usage(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageEmbeddingsResponse:
         """
         Get embeddings usage details for the organization.
@@ -579,7 +691,7 @@ class Usage(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageFileSearchCallsResponse:
         """
         Get file search calls usage details for the organization.
@@ -668,7 +780,7 @@ class Usage(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageImagesResponse:
         """
         Get images usage details for the organization.
@@ -763,7 +875,7 @@ class Usage(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageModerationsResponse:
         """
         Get moderations usage details for the organization.
@@ -846,7 +958,7 @@ class Usage(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageVectorStoresResponse:
         """
         Get vector stores usage details for the organization.
@@ -913,7 +1025,8 @@ class Usage(SyncAPIResource):
         bucket_width: Literal["1m", "1h", "1d"] | Omit = omit,
         context_levels: List[Literal["low", "medium", "high"]] | Omit = omit,
         end_time: int | Omit = omit,
-        group_by: List[Literal["project_id", "user_id", "api_key_id", "model", "context_level"]] | Omit = omit,
+        group_by: List[Literal["project_id", "user_id", "api_key_id", "model", "context_level", "api_source"]]
+        | Omit = omit,
         limit: int | Omit = omit,
         models: SequenceNotStr[str] | Omit = omit,
         page: str | Omit = omit,
@@ -924,7 +1037,7 @@ class Usage(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageWebSearchCallsResponse:
         """
         Get web search calls usage details for the organization.
@@ -942,8 +1055,10 @@ class Usage(SyncAPIResource):
           end_time: End time (Unix seconds) of the query time range, exclusive.
 
           group_by: Group the usage data by the specified fields. Support fields include
-              `project_id`, `user_id`, `api_key_id`, `model`, `context_level` or any
-              combination of them.
+              `project_id`, `user_id`, `api_key_id`, `model`, `context_level`, `api_source` or
+              any combination of them. When grouped by `api_source`, results use `agents_api`
+              for attributed Agents API activity and `unlabeled` for all other activity.
+              Without source grouping, `api_source` is null.
 
           limit: Specifies the number of buckets to return.
 
@@ -1035,7 +1150,7 @@ class AsyncUsage(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageAudioSpeechesResponse:
         """
         Get audio speeches usage details for the organization.
@@ -1121,7 +1236,7 @@ class AsyncUsage(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageAudioTranscriptionsResponse:
         """
         Get audio transcriptions usage details for the organization.
@@ -1204,7 +1319,7 @@ class AsyncUsage(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageCodeInterpreterSessionsResponse:
         """
         Get code interpreter sessions usage details for the organization.
@@ -1271,7 +1386,8 @@ class AsyncUsage(AsyncAPIResource):
         batch: bool | Omit = omit,
         bucket_width: Literal["1m", "1h", "1d"] | Omit = omit,
         end_time: int | Omit = omit,
-        group_by: List[Literal["project_id", "user_id", "api_key_id", "model", "batch", "service_tier"]] | Omit = omit,
+        group_by: List[Literal["project_id", "user_id", "api_key_id", "model", "batch", "service_tier", "api_source"]]
+        | Omit = omit,
         limit: int | Omit = omit,
         models: SequenceNotStr[str] | Omit = omit,
         page: str | Omit = omit,
@@ -1282,7 +1398,7 @@ class AsyncUsage(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageCompletionsResponse:
         """
         Get completions usage details for the organization.
@@ -1301,8 +1417,10 @@ class AsyncUsage(AsyncAPIResource):
           end_time: End time (Unix seconds) of the query time range, exclusive.
 
           group_by: Group the usage data by the specified fields. Support fields include
-              `project_id`, `user_id`, `api_key_id`, `model`, `batch`, `service_tier` or any
-              combination of them.
+              `project_id`, `user_id`, `api_key_id`, `model`, `batch`, `service_tier`,
+              `api_source` or any combination of them. When grouped by `api_source`, results
+              use `agents_api` for attributed Agents API activity and `unlabeled` for all
+              other activity. Without source grouping, `api_source` is null.
 
           limit: Specifies the number of buckets to return.
 
@@ -1362,8 +1480,9 @@ class AsyncUsage(AsyncAPIResource):
         api_key_ids: SequenceNotStr[str] | Omit = omit,
         bucket_width: Literal["1d"] | Omit = omit,
         end_time: int | Omit = omit,
-        group_by: List[Literal["project_id", "line_item", "api_key_id"]] | Omit = omit,
+        group_by: List[Literal["project_id", "user_id", "line_item", "api_key_id", "api_source"]] | Omit = omit,
         limit: int | Omit = omit,
+        line_items: SequenceNotStr[str] | Omit = omit,
         page: str | Omit = omit,
         project_ids: SequenceNotStr[str] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1371,7 +1490,7 @@ class AsyncUsage(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageCostsResponse:
         """
         Get costs details for the organization.
@@ -1386,11 +1505,19 @@ class AsyncUsage(AsyncAPIResource):
 
           end_time: End time (Unix seconds) of the query time range, exclusive.
 
-          group_by: Group the costs by the specified fields. Support fields include `project_id`,
-              `line_item`, `api_key_id` and any combination of them.
+          group_by: Group the costs by the specified fields. Supported fields include `project_id`,
+              `user_id`, `line_item`, `api_key_id`, and `api_source`. Support for combining
+              `user_id` with `project_id` grouping or the `project_ids` filter depends on the
+              organization and requested time range. Unsupported combinations return HTTP 400.
+              When grouped by `api_source`, results use `agents_api` for attributed Agents API
+              activity and `unlabeled` for all other activity. Without source grouping,
+              `api_source` is null.
 
           limit: A limit on the number of buckets to be returned. Limit can range between 1 and
               180, and the default is 7.
+
+          line_items: Return only costs for these exact line item names. Each value must match the
+              complete `line_item` value, for example `gpt-6-astra, input_tokens`.
 
           page: A cursor for use in pagination. Corresponding to the `next_page` field from the
               previous response.
@@ -1420,6 +1547,7 @@ class AsyncUsage(AsyncAPIResource):
                         "end_time": end_time,
                         "group_by": group_by,
                         "limit": limit,
+                        "line_items": line_items,
                         "page": page,
                         "project_ids": project_ids,
                     },
@@ -1428,6 +1556,103 @@ class AsyncUsage(AsyncAPIResource):
                 security={"admin_api_key_auth": True},
             ),
             cast_to=UsageCostsResponse,
+        )
+
+    async def decisions(
+        self,
+        *,
+        start_time: int,
+        api_key_ids: Optional[SequenceNotStr[str]] | Omit = omit,
+        batch: Optional[bool] | Omit = omit,
+        bucket_width: Optional[Literal["1m", "1h", "1d"]] | Omit = omit,
+        end_time: Optional[int] | Omit = omit,
+        group_by: Optional[
+            List[Literal["project_id", "user_id", "api_key_id", "model", "batch", "service_tier", "api_source"]]
+        ]
+        | Omit = omit,
+        limit: Optional[int] | Omit = omit,
+        models: Optional[SequenceNotStr[str]] | Omit = omit,
+        page: Optional[str] | Omit = omit,
+        project_ids: Optional[SequenceNotStr[str]] | Omit = omit,
+        user_ids: Optional[SequenceNotStr[str]] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> UsageDecisionsResponse:
+        """
+        Get Decisions API usage details for the organization.
+
+        Args:
+          start_time: Start time (Unix seconds) of the query time range, inclusive.
+
+          api_key_ids: Return only usage for these API keys.
+
+          batch: If `true`, return batch jobs only. If `false`, return non-batch jobs only. By
+              default, return both.
+
+          bucket_width: Width of each time bucket in response. Currently `1m`, `1h` and `1d` are
+              supported, default to `1d`.
+
+          end_time: End time (Unix seconds) of the query time range, exclusive.
+
+          group_by: Group the usage data by the specified fields. Support fields include
+              `project_id`, `user_id`, `api_key_id`, `model`, `batch`, `service_tier`,
+              `api_source` or any combination of them. When grouped by `api_source`, results
+              use `agents_api` for attributed Agents API activity and `unlabeled` for all
+              other activity. Without source grouping, `api_source` is null.
+
+          limit: Specifies the number of buckets to return.
+
+              - `bucket_width=1d`: default: 7, max: 31
+              - `bucket_width=1h`: default: 24, max: 168
+              - `bucket_width=1m`: default: 60, max: 1440
+
+          models: Return only usage for these models.
+
+          page: A cursor for use in pagination. Corresponding to the `next_page` field from the
+              previous response.
+
+          project_ids: Return only usage for these projects.
+
+          user_ids: Return only usage for these users.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        return await self._get(
+            "/organization/usage/decisions",
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                query=await async_maybe_transform(
+                    {
+                        "start_time": start_time,
+                        "api_key_ids": api_key_ids,
+                        "batch": batch,
+                        "bucket_width": bucket_width,
+                        "end_time": end_time,
+                        "group_by": group_by,
+                        "limit": limit,
+                        "models": models,
+                        "page": page,
+                        "project_ids": project_ids,
+                        "user_ids": user_ids,
+                    },
+                    usage_decisions_params.UsageDecisionsParams,
+                ),
+                security={"admin_api_key_auth": True},
+            ),
+            cast_to=UsageDecisionsResponse,
         )
 
     async def embeddings(
@@ -1448,7 +1673,7 @@ class AsyncUsage(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageEmbeddingsResponse:
         """
         Get embeddings usage details for the organization.
@@ -1534,7 +1759,7 @@ class AsyncUsage(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageFileSearchCallsResponse:
         """
         Get file search calls usage details for the organization.
@@ -1623,7 +1848,7 @@ class AsyncUsage(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageImagesResponse:
         """
         Get images usage details for the organization.
@@ -1718,7 +1943,7 @@ class AsyncUsage(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageModerationsResponse:
         """
         Get moderations usage details for the organization.
@@ -1801,7 +2026,7 @@ class AsyncUsage(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageVectorStoresResponse:
         """
         Get vector stores usage details for the organization.
@@ -1868,7 +2093,8 @@ class AsyncUsage(AsyncAPIResource):
         bucket_width: Literal["1m", "1h", "1d"] | Omit = omit,
         context_levels: List[Literal["low", "medium", "high"]] | Omit = omit,
         end_time: int | Omit = omit,
-        group_by: List[Literal["project_id", "user_id", "api_key_id", "model", "context_level"]] | Omit = omit,
+        group_by: List[Literal["project_id", "user_id", "api_key_id", "model", "context_level", "api_source"]]
+        | Omit = omit,
         limit: int | Omit = omit,
         models: SequenceNotStr[str] | Omit = omit,
         page: str | Omit = omit,
@@ -1879,7 +2105,7 @@ class AsyncUsage(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageWebSearchCallsResponse:
         """
         Get web search calls usage details for the organization.
@@ -1897,8 +2123,10 @@ class AsyncUsage(AsyncAPIResource):
           end_time: End time (Unix seconds) of the query time range, exclusive.
 
           group_by: Group the usage data by the specified fields. Support fields include
-              `project_id`, `user_id`, `api_key_id`, `model`, `context_level` or any
-              combination of them.
+              `project_id`, `user_id`, `api_key_id`, `model`, `context_level`, `api_source` or
+              any combination of them. When grouped by `api_source`, results use `agents_api`
+              for attributed Agents API activity and `unlabeled` for all other activity.
+              Without source grouping, `api_source` is null.
 
           limit: Specifies the number of buckets to return.
 
@@ -1971,6 +2199,9 @@ class UsageWithRawResponse:
         self.costs = _legacy_response.to_raw_response_wrapper(
             usage.costs,
         )
+        self.decisions = _legacy_response.to_raw_response_wrapper(
+            usage.decisions,
+        )
         self.embeddings = _legacy_response.to_raw_response_wrapper(
             usage.embeddings,
         )
@@ -2009,6 +2240,9 @@ class AsyncUsageWithRawResponse:
         )
         self.costs = _legacy_response.async_to_raw_response_wrapper(
             usage.costs,
+        )
+        self.decisions = _legacy_response.async_to_raw_response_wrapper(
+            usage.decisions,
         )
         self.embeddings = _legacy_response.async_to_raw_response_wrapper(
             usage.embeddings,
@@ -2049,6 +2283,9 @@ class UsageWithStreamingResponse:
         self.costs = to_streamed_response_wrapper(
             usage.costs,
         )
+        self.decisions = to_streamed_response_wrapper(
+            usage.decisions,
+        )
         self.embeddings = to_streamed_response_wrapper(
             usage.embeddings,
         )
@@ -2087,6 +2324,9 @@ class AsyncUsageWithStreamingResponse:
         )
         self.costs = async_to_streamed_response_wrapper(
             usage.costs,
+        )
+        self.decisions = async_to_streamed_response_wrapper(
+            usage.decisions,
         )
         self.embeddings = async_to_streamed_response_wrapper(
             usage.embeddings,

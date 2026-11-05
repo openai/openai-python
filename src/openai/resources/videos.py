@@ -1,11 +1,12 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
+import typing_extensions
 from typing import TYPE_CHECKING, Mapping, cast
 from typing_extensions import Literal, assert_never
 
-import httpx
+import httpx2
 
 from .. import _legacy_response
 from ..types import (
@@ -21,7 +22,7 @@ from ..types import (
 )
 from .._files import deepcopy_with_paths
 from .._types import Body, Omit, Query, Headers, NotGiven, FileTypes, omit, not_given
-from .._utils import extract_files, path_template, maybe_transform, async_maybe_transform
+from .._utils import is_given, extract_files, path_template, maybe_transform, async_maybe_transform
 from .._compat import cached_property
 from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import (
@@ -35,7 +36,6 @@ from .._response import (
 from ..pagination import SyncConversationCursorPage, AsyncConversationCursorPage
 from ..types.video import Video
 from .._base_client import AsyncPaginator, make_request_options
-from .._utils._utils import is_given
 from ..types.video_size import VideoSize
 from ..types.video_seconds import VideoSeconds
 from ..types.video_model_param import VideoModelParam
@@ -66,6 +66,7 @@ class Videos(SyncAPIResource):
         """
         return VideosWithStreamingResponse(self)
 
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
     def create(
         self,
         *,
@@ -79,7 +80,7 @@ class Videos(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Video:
         """
         Create a new video generation job from a prompt and optional reference assets.
@@ -134,79 +135,7 @@ class Videos(SyncAPIResource):
             cast_to=Video,
         )
 
-    def create_and_poll(
-        self,
-        *,
-        prompt: str,
-        input_reference: video_create_params.InputReference | Omit = omit,
-        model: VideoModelParam | Omit = omit,
-        seconds: VideoSeconds | Omit = omit,
-        size: VideoSize | Omit = omit,
-        poll_interval_ms: int | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> Video:
-        """Create a video and wait for it to be processed."""
-        video = self.create(
-            model=model,
-            prompt=prompt,
-            input_reference=input_reference,
-            seconds=seconds,
-            size=size,
-            extra_headers=extra_headers,
-            extra_query=extra_query,
-            extra_body=extra_body,
-            timeout=timeout,
-        )
-
-        return self.poll(
-            video.id,
-            poll_interval_ms=poll_interval_ms,
-        )
-
-    def poll(
-        self,
-        video_id: str,
-        *,
-        poll_interval_ms: int | Omit = omit,
-    ) -> Video:
-        """Wait for the vector store file to finish processing.
-
-        Note: this will return even if the file failed to process, you need to check
-        file.last_error and file.status to handle these cases
-        """
-        headers: dict[str, str] = {"X-Stainless-Poll-Helper": "true"}
-        if is_given(poll_interval_ms):
-            headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
-
-        while True:
-            response = self.with_raw_response.retrieve(
-                video_id,
-                extra_headers=headers,
-            )
-
-            video = response.parse()
-            if video.status == "in_progress" or video.status == "queued":
-                if not is_given(poll_interval_ms):
-                    from_header = response.headers.get("openai-poll-after-ms")
-                    if from_header is not None:
-                        poll_interval_ms = int(from_header)
-                    else:
-                        poll_interval_ms = 1000
-
-                self._sleep(poll_interval_ms / 1000)
-            elif video.status == "completed" or video.status == "failed":
-                return video
-            else:
-                if TYPE_CHECKING:  # type: ignore[unreachable]
-                    assert_never(video.status)
-                else:
-                    return video
-
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
     def retrieve(
         self,
         video_id: str,
@@ -216,7 +145,7 @@ class Videos(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Video:
         """
         Fetch the latest metadata for a generated video.
@@ -244,6 +173,7 @@ class Videos(SyncAPIResource):
             cast_to=Video,
         )
 
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
     def list(
         self,
         *,
@@ -255,7 +185,7 @@ class Videos(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncConversationCursorPage[Video]:
         """
         List recently generated videos for the current project.
@@ -297,6 +227,7 @@ class Videos(SyncAPIResource):
             model=Video,
         )
 
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
     def delete(
         self,
         video_id: str,
@@ -306,7 +237,7 @@ class Videos(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VideoDeleteResponse:
         """
         Permanently delete a completed or failed video and its stored assets.
@@ -334,6 +265,7 @@ class Videos(SyncAPIResource):
             cast_to=VideoDeleteResponse,
         )
 
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
     def create_character(
         self,
         *,
@@ -344,7 +276,7 @@ class Videos(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VideoCreateCharacterResponse:
         """
         Create a character from an uploaded video.
@@ -388,6 +320,7 @@ class Videos(SyncAPIResource):
             cast_to=VideoCreateCharacterResponse,
         )
 
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
     def download_content(
         self,
         video_id: str,
@@ -398,7 +331,7 @@ class Videos(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> _legacy_response.HttpxBinaryResponseContent:
         """
         Download the generated video bytes or a derived preview asset.
@@ -432,6 +365,7 @@ class Videos(SyncAPIResource):
             cast_to=_legacy_response.HttpxBinaryResponseContent,
         )
 
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
     def edit(
         self,
         *,
@@ -442,7 +376,7 @@ class Videos(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Video:
         """
         Create a new video generation job by editing a source video or existing
@@ -487,6 +421,7 @@ class Videos(SyncAPIResource):
             cast_to=Video,
         )
 
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
     def extend(
         self,
         *,
@@ -498,7 +433,7 @@ class Videos(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Video:
         """
         Create an extension of a completed video.
@@ -546,6 +481,7 @@ class Videos(SyncAPIResource):
             cast_to=Video,
         )
 
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
     def get_character(
         self,
         character_id: str,
@@ -555,7 +491,7 @@ class Videos(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VideoGetCharacterResponse:
         """
         Fetch a character.
@@ -583,6 +519,7 @@ class Videos(SyncAPIResource):
             cast_to=VideoGetCharacterResponse,
         )
 
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
     def remix(
         self,
         video_id: str,
@@ -593,7 +530,7 @@ class Videos(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Video:
         """
         Create a remix of a completed video using a refreshed prompt.
@@ -624,6 +561,75 @@ class Videos(SyncAPIResource):
             cast_to=Video,
         )
 
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
+    def create_and_poll(
+        self,
+        *,
+        prompt: str,
+        input_reference: video_create_params.InputReference | Omit = omit,
+        model: VideoModelParam | Omit = omit,
+        seconds: VideoSeconds | Omit = omit,
+        size: VideoSize | Omit = omit,
+        poll_interval_ms: int | Omit = omit,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Video:
+        "Create a video and wait for it to be processed."
+        video = self.create(
+            model=model,
+            prompt=prompt,
+            input_reference=input_reference,
+            seconds=seconds,
+            size=size,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
+
+        return self.poll(
+            video.id,
+            poll_interval_ms=poll_interval_ms,
+        )
+
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
+    def poll(
+        self,
+        video_id: str,
+        *,
+        poll_interval_ms: int | Omit = omit,
+    ) -> Video:
+        "Wait for the vector store file to finish processing.\n\n        Note: this will return even if the file failed to process, you need to check\n        file.last_error and file.status to handle these cases\n"
+        headers: dict[str, str] = {"X-Stainless-Poll-Helper": "true"}
+        if is_given(poll_interval_ms):
+            headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
+
+        while True:
+            response = self.with_raw_response.retrieve(
+                video_id,
+                extra_headers=headers,
+            )
+
+            video = response.parse()
+            if video.status == "in_progress" or video.status == "queued":
+                if not is_given(poll_interval_ms):
+                    from_header = response.headers.get("openai-poll-after-ms")
+                    if from_header is not None:
+                        poll_interval_ms = int(from_header)
+                    else:
+                        poll_interval_ms = 1000
+
+                self._sleep(poll_interval_ms / 1000)
+            elif video.status == "completed" or video.status == "failed":
+                return video
+            else:
+                if TYPE_CHECKING:
+                    assert_never(video.status)
+                else:
+                    return video
+
 
 class AsyncVideos(AsyncAPIResource):
     @cached_property
@@ -645,6 +651,7 @@ class AsyncVideos(AsyncAPIResource):
         """
         return AsyncVideosWithStreamingResponse(self)
 
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
     async def create(
         self,
         *,
@@ -658,7 +665,7 @@ class AsyncVideos(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Video:
         """
         Create a new video generation job from a prompt and optional reference assets.
@@ -713,79 +720,7 @@ class AsyncVideos(AsyncAPIResource):
             cast_to=Video,
         )
 
-    async def create_and_poll(
-        self,
-        *,
-        prompt: str,
-        input_reference: video_create_params.InputReference | Omit = omit,
-        model: VideoModelParam | Omit = omit,
-        seconds: VideoSeconds | Omit = omit,
-        size: VideoSize | Omit = omit,
-        poll_interval_ms: int | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> Video:
-        """Create a video and wait for it to be processed."""
-        video = await self.create(
-            model=model,
-            prompt=prompt,
-            input_reference=input_reference,
-            seconds=seconds,
-            size=size,
-            extra_headers=extra_headers,
-            extra_query=extra_query,
-            extra_body=extra_body,
-            timeout=timeout,
-        )
-
-        return await self.poll(
-            video.id,
-            poll_interval_ms=poll_interval_ms,
-        )
-
-    async def poll(
-        self,
-        video_id: str,
-        *,
-        poll_interval_ms: int | Omit = omit,
-    ) -> Video:
-        """Wait for the vector store file to finish processing.
-
-        Note: this will return even if the file failed to process, you need to check
-        file.last_error and file.status to handle these cases
-        """
-        headers: dict[str, str] = {"X-Stainless-Poll-Helper": "true"}
-        if is_given(poll_interval_ms):
-            headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
-
-        while True:
-            response = await self.with_raw_response.retrieve(
-                video_id,
-                extra_headers=headers,
-            )
-
-            video = response.parse()
-            if video.status == "in_progress" or video.status == "queued":
-                if not is_given(poll_interval_ms):
-                    from_header = response.headers.get("openai-poll-after-ms")
-                    if from_header is not None:
-                        poll_interval_ms = int(from_header)
-                    else:
-                        poll_interval_ms = 1000
-
-                await self._sleep(poll_interval_ms / 1000)
-            elif video.status == "completed" or video.status == "failed":
-                return video
-            else:
-                if TYPE_CHECKING:  # type: ignore[unreachable]
-                    assert_never(video.status)
-                else:
-                    return video
-
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
     async def retrieve(
         self,
         video_id: str,
@@ -795,7 +730,7 @@ class AsyncVideos(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Video:
         """
         Fetch the latest metadata for a generated video.
@@ -823,6 +758,7 @@ class AsyncVideos(AsyncAPIResource):
             cast_to=Video,
         )
 
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
     def list(
         self,
         *,
@@ -834,7 +770,7 @@ class AsyncVideos(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[Video, AsyncConversationCursorPage[Video]]:
         """
         List recently generated videos for the current project.
@@ -876,6 +812,7 @@ class AsyncVideos(AsyncAPIResource):
             model=Video,
         )
 
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
     async def delete(
         self,
         video_id: str,
@@ -885,7 +822,7 @@ class AsyncVideos(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VideoDeleteResponse:
         """
         Permanently delete a completed or failed video and its stored assets.
@@ -913,6 +850,7 @@ class AsyncVideos(AsyncAPIResource):
             cast_to=VideoDeleteResponse,
         )
 
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
     async def create_character(
         self,
         *,
@@ -923,7 +861,7 @@ class AsyncVideos(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VideoCreateCharacterResponse:
         """
         Create a character from an uploaded video.
@@ -967,6 +905,7 @@ class AsyncVideos(AsyncAPIResource):
             cast_to=VideoCreateCharacterResponse,
         )
 
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
     async def download_content(
         self,
         video_id: str,
@@ -977,7 +916,7 @@ class AsyncVideos(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> _legacy_response.HttpxBinaryResponseContent:
         """
         Download the generated video bytes or a derived preview asset.
@@ -1013,6 +952,7 @@ class AsyncVideos(AsyncAPIResource):
             cast_to=_legacy_response.HttpxBinaryResponseContent,
         )
 
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
     async def edit(
         self,
         *,
@@ -1023,7 +963,7 @@ class AsyncVideos(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Video:
         """
         Create a new video generation job by editing a source video or existing
@@ -1068,6 +1008,7 @@ class AsyncVideos(AsyncAPIResource):
             cast_to=Video,
         )
 
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
     async def extend(
         self,
         *,
@@ -1079,7 +1020,7 @@ class AsyncVideos(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Video:
         """
         Create an extension of a completed video.
@@ -1127,6 +1068,7 @@ class AsyncVideos(AsyncAPIResource):
             cast_to=Video,
         )
 
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
     async def get_character(
         self,
         character_id: str,
@@ -1136,7 +1078,7 @@ class AsyncVideos(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VideoGetCharacterResponse:
         """
         Fetch a character.
@@ -1164,6 +1106,7 @@ class AsyncVideos(AsyncAPIResource):
             cast_to=VideoGetCharacterResponse,
         )
 
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
     async def remix(
         self,
         video_id: str,
@@ -1174,7 +1117,7 @@ class AsyncVideos(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Video:
         """
         Create a remix of a completed video using a refreshed prompt.
@@ -1204,6 +1147,75 @@ class AsyncVideos(AsyncAPIResource):
             ),
             cast_to=Video,
         )
+
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
+    async def create_and_poll(
+        self,
+        *,
+        prompt: str,
+        input_reference: video_create_params.InputReference | Omit = omit,
+        model: VideoModelParam | Omit = omit,
+        seconds: VideoSeconds | Omit = omit,
+        size: VideoSize | Omit = omit,
+        poll_interval_ms: int | Omit = omit,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Video:
+        "Create a video and wait for it to be processed."
+        video = await self.create(
+            model=model,
+            prompt=prompt,
+            input_reference=input_reference,
+            seconds=seconds,
+            size=size,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
+
+        return await self.poll(
+            video.id,
+            poll_interval_ms=poll_interval_ms,
+        )
+
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
+    async def poll(
+        self,
+        video_id: str,
+        *,
+        poll_interval_ms: int | Omit = omit,
+    ) -> Video:
+        "Wait for the vector store file to finish processing.\n\n        Note: this will return even if the file failed to process, you need to check\n        file.last_error and file.status to handle these cases\n"
+        headers: dict[str, str] = {"X-Stainless-Poll-Helper": "true"}
+        if is_given(poll_interval_ms):
+            headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
+
+        while True:
+            response = await self.with_raw_response.retrieve(
+                video_id,
+                extra_headers=headers,
+            )
+
+            video = response.parse()
+            if video.status == "in_progress" or video.status == "queued":
+                if not is_given(poll_interval_ms):
+                    from_header = response.headers.get("openai-poll-after-ms")
+                    if from_header is not None:
+                        poll_interval_ms = int(from_header)
+                    else:
+                        poll_interval_ms = 1000
+
+                await self._sleep(poll_interval_ms / 1000)
+            elif video.status == "completed" or video.status == "failed":
+                return video
+            else:
+                if TYPE_CHECKING:
+                    assert_never(video.status)
+                else:
+                    return video
 
 
 class VideosWithRawResponse:

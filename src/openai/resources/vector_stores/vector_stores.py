@@ -1,11 +1,11 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 from typing import Union, Optional
 from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from ... import _legacy_response
 from .files import (
@@ -89,7 +89,7 @@ class VectorStores(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStore:
         """
         Create a vector store.
@@ -103,9 +103,9 @@ class VectorStores(SyncAPIResource):
 
           expires_after: The expiration policy for a vector store.
 
-          file_ids: A list of [File](https://platform.openai.com/docs/api-reference/files) IDs that
-              the vector store should use. Useful for tools like `file_search` that can access
-              files.
+          file_ids: A list of [File](https://developers.openai.com/api/reference/resources/files)
+              IDs that the vector store should use. Useful for tools like `file_search` that
+              can access files.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format, and
@@ -157,7 +157,7 @@ class VectorStores(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStore:
         """
         Retrieves a vector store.
@@ -198,7 +198,7 @@ class VectorStores(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStore:
         """
         Modifies a vector store.
@@ -258,7 +258,7 @@ class VectorStores(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[VectorStore]:
         """Returns a list of vector stores.
 
@@ -321,7 +321,7 @@ class VectorStores(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreDeleted:
         """
         Delete a vector store.
@@ -364,7 +364,7 @@ class VectorStores(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncPage[VectorStoreSearchResponse]:
         """
         Search a vector store for relevant chunks based on a query and file attributes
@@ -460,7 +460,7 @@ class AsyncVectorStores(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStore:
         """
         Create a vector store.
@@ -474,9 +474,9 @@ class AsyncVectorStores(AsyncAPIResource):
 
           expires_after: The expiration policy for a vector store.
 
-          file_ids: A list of [File](https://platform.openai.com/docs/api-reference/files) IDs that
-              the vector store should use. Useful for tools like `file_search` that can access
-              files.
+          file_ids: A list of [File](https://developers.openai.com/api/reference/resources/files)
+              IDs that the vector store should use. Useful for tools like `file_search` that
+              can access files.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format, and
@@ -528,7 +528,7 @@ class AsyncVectorStores(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStore:
         """
         Retrieves a vector store.
@@ -569,7 +569,7 @@ class AsyncVectorStores(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStore:
         """
         Modifies a vector store.
@@ -629,7 +629,7 @@ class AsyncVectorStores(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[VectorStore, AsyncCursorPage[VectorStore]]:
         """Returns a list of vector stores.
 
@@ -692,7 +692,7 @@ class AsyncVectorStores(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreDeleted:
         """
         Delete a vector store.
@@ -735,7 +735,7 @@ class AsyncVectorStores(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[VectorStoreSearchResponse, AsyncPage[VectorStoreSearchResponse]]:
         """
         Search a vector store for relevant chunks based on a query and file attributes

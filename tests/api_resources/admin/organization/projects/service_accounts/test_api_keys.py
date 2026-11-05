@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -30,6 +30,7 @@ class TestAPIKeys:
         api_key = client.admin.organization.projects.service_accounts.api_keys.create(
             service_account_id="service_account_id",
             project_id="project_id",
+            expires_in_seconds=1,
             name="name",
             scopes=["string"],
         )
@@ -94,6 +95,7 @@ class TestAsyncAPIKeys:
         api_key = await async_client.admin.organization.projects.service_accounts.api_keys.create(
             service_account_id="service_account_id",
             project_id="project_id",
+            expires_in_seconds=1,
             name="name",
             scopes=["string"],
         )

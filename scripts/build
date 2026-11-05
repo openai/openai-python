@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+# Resolve only the reviewed build group, not the SDK's development environment.
+constraints=$(mktemp)
+trap 'rm -f "$constraints"' EXIT
+uv export --locked --only-group build --no-emit-project --format requirements.txt --output-file "$constraints" >/dev/null
+uv build --no-sources --build-constraints "$constraints" --require-hashes "$@"

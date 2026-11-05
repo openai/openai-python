@@ -1,10 +1,10 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from ..... import _legacy_response
 from ....._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
@@ -53,7 +53,7 @@ class Users(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UserCreateResponse:
         """
         Adds a user to a group.
@@ -94,7 +94,7 @@ class Users(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UserRetrieveResponse:
         """
         Retrieves a user in a group.
@@ -136,7 +136,7 @@ class Users(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncNextCursorPage[OrganizationGroupUser]:
         """
         Lists the users assigned to a group.
@@ -191,7 +191,7 @@ class Users(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UserDeleteResponse:
         """
         Removes a user from a group.
@@ -252,7 +252,7 @@ class AsyncUsers(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UserCreateResponse:
         """
         Adds a user to a group.
@@ -293,7 +293,7 @@ class AsyncUsers(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UserRetrieveResponse:
         """
         Retrieves a user in a group.
@@ -335,7 +335,7 @@ class AsyncUsers(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[OrganizationGroupUser, AsyncNextCursorPage[OrganizationGroupUser]]:
         """
         Lists the users assigned to a group.
@@ -390,7 +390,7 @@ class AsyncUsers(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UserDeleteResponse:
         """
         Removes a user from a group.

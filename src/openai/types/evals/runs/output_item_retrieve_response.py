@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import TYPE_CHECKING, Dict, List, Optional
 from typing_extensions import Literal
@@ -32,7 +32,7 @@ class Result(BaseModel):
     if TYPE_CHECKING:
         # Some versions of Pydantic <2.8.0 have a bug and don’t allow assigning a
         # value to this field, so for compatibility we avoid doing it at runtime.
-        __pydantic_extra__: Dict[str, object] = FieldInfo(init=False)  # pyright: ignore[reportIncompatibleVariableOverride]
+        __pydantic_extra__: Dict[str, object] = FieldInfo(init=False)
 
         # Stub to indicate that arbitrary properties are accepted.
         # To access properties that are not valid identifiers you can use `getattr`, e.g.

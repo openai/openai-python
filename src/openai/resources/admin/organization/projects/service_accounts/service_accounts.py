@@ -1,11 +1,11 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 from typing import Optional
 from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from ...... import _legacy_response
 from .api_keys import (
@@ -65,12 +65,13 @@ class ServiceAccounts(SyncAPIResource):
         *,
         name: str,
         create_service_account_only: Optional[bool] | Omit = omit,
+        expires_in_seconds: Optional[int] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ServiceAccountCreateResponse:
         """Creates a new service account in the project.
 
@@ -81,6 +82,12 @@ class ServiceAccounts(SyncAPIResource):
           name: The name of the service account being created.
 
           create_service_account_only: Create the service account without default roles or an API key.
+
+          expires_in_seconds: Number of seconds until the initial API key expires. If omitted or null, the key
+              does not expire unless the effective organization or project policy requires an
+              expiration. When a policy sets a maximum lifetime, this value must be provided
+              and must not exceed that limit. A non-null value cannot be used when
+              `create_service_account_only` is true.
 
           extra_headers: Send extra headers
 
@@ -98,6 +105,7 @@ class ServiceAccounts(SyncAPIResource):
                 {
                     "name": name,
                     "create_service_account_only": create_service_account_only,
+                    "expires_in_seconds": expires_in_seconds,
                 },
                 service_account_create_params.ServiceAccountCreateParams,
             ),
@@ -121,7 +129,7 @@ class ServiceAccounts(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ProjectServiceAccount:
         """
         Retrieves a service account in the project.
@@ -167,7 +175,7 @@ class ServiceAccounts(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ProjectServiceAccount:
         """
         Updates a service account in the project.
@@ -223,7 +231,7 @@ class ServiceAccounts(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncConversationCursorPage[ProjectServiceAccount]:
         """
         Returns a list of service accounts in the project.
@@ -277,7 +285,7 @@ class ServiceAccounts(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ServiceAccountDeleteResponse:
         """
         Deletes a service account from the project.
@@ -345,12 +353,13 @@ class AsyncServiceAccounts(AsyncAPIResource):
         *,
         name: str,
         create_service_account_only: Optional[bool] | Omit = omit,
+        expires_in_seconds: Optional[int] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ServiceAccountCreateResponse:
         """Creates a new service account in the project.
 
@@ -361,6 +370,12 @@ class AsyncServiceAccounts(AsyncAPIResource):
           name: The name of the service account being created.
 
           create_service_account_only: Create the service account without default roles or an API key.
+
+          expires_in_seconds: Number of seconds until the initial API key expires. If omitted or null, the key
+              does not expire unless the effective organization or project policy requires an
+              expiration. When a policy sets a maximum lifetime, this value must be provided
+              and must not exceed that limit. A non-null value cannot be used when
+              `create_service_account_only` is true.
 
           extra_headers: Send extra headers
 
@@ -378,6 +393,7 @@ class AsyncServiceAccounts(AsyncAPIResource):
                 {
                     "name": name,
                     "create_service_account_only": create_service_account_only,
+                    "expires_in_seconds": expires_in_seconds,
                 },
                 service_account_create_params.ServiceAccountCreateParams,
             ),
@@ -401,7 +417,7 @@ class AsyncServiceAccounts(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ProjectServiceAccount:
         """
         Retrieves a service account in the project.
@@ -447,7 +463,7 @@ class AsyncServiceAccounts(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ProjectServiceAccount:
         """
         Updates a service account in the project.
@@ -503,7 +519,7 @@ class AsyncServiceAccounts(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[ProjectServiceAccount, AsyncConversationCursorPage[ProjectServiceAccount]]:
         """
         Returns a list of service accounts in the project.
@@ -557,7 +573,7 @@ class AsyncServiceAccounts(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ServiceAccountDeleteResponse:
         """
         Deletes a service account from the project.

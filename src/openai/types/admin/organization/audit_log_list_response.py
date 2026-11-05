@@ -1,11 +1,16 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
-from typing import List, Optional
-from typing_extensions import Literal
+from typing import List, Union, Optional
+from typing_extensions import Literal, Annotated, TypeAlias
 
 from pydantic import Field as FieldInfo
 
+from ...._utils import PropertyInfo
 from ...._models import BaseModel
+from .aws_external_storage_provider import AwsExternalStorageProvider
+from .gcp_external_storage_provider import GcpExternalStorageProvider
+from .oci_external_storage_provider import OciExternalStorageProvider
+from .azure_external_storage_provider import AzureExternalStorageProvider
 
 __all__ = [
     "AuditLogListResponse",
@@ -32,6 +37,10 @@ __all__ = [
     "CheckpointPermissionDeleted",
     "ExternalKeyRegistered",
     "ExternalKeyRemoved",
+    "ExternalStorageRegistered",
+    "ExternalStorageRegisteredData",
+    "ExternalStorageRegisteredDataProvider",
+    "ExternalStorageRemoved",
     "GroupCreated",
     "GroupCreatedData",
     "GroupDeleted",
@@ -303,6 +312,41 @@ class ExternalKeyRemoved(BaseModel):
 
     id: Optional[str] = None
     """The ID of the external key configuration."""
+
+
+ExternalStorageRegisteredDataProvider: TypeAlias = Annotated[
+    Union[
+        AwsExternalStorageProvider, AzureExternalStorageProvider, GcpExternalStorageProvider, OciExternalStorageProvider
+    ],
+    PropertyInfo(discriminator="type"),
+]
+
+
+class ExternalStorageRegisteredData(BaseModel):
+    """The configuration for the external storage."""
+
+    geography: Optional[str] = None
+    """The OpenAI geography derived from the storage region."""
+
+    provider: Optional[ExternalStorageRegisteredDataProvider] = None
+    """The external storage provider configuration."""
+
+
+class ExternalStorageRegistered(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The ID of the external storage configuration."""
+
+    data: Optional[ExternalStorageRegisteredData] = None
+    """The configuration for the external storage."""
+
+
+class ExternalStorageRemoved(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The ID of the external storage configuration."""
 
 
 class GroupCreatedData(BaseModel):
@@ -990,6 +1034,8 @@ class AuditLogListResponse(BaseModel):
         "checkpoint.permission.deleted",
         "external_key.registered",
         "external_key.removed",
+        "external_storage.registered",
+        "external_storage.removed",
         "group.created",
         "group.updated",
         "group.deleted",
@@ -1048,10 +1094,13 @@ class AuditLogListResponse(BaseModel):
         "tenant.workload_identity.mapping.archived",
         "tenant.workload_identity.binding.created",
         "tenant.workload_identity.principal.provisioned",
+        "tenant.workload_identity.access_token.issued",
         "tenant.admin_api_key.created",
         "tenant.admin_api_key.updated",
         "tenant.admin_api_key.deleted",
         "tenant.project_api_key.created",
+        "tenant.trusted_access.business_verification.started",
+        "tenant.trusted_access.application.submitted",
         "tenant.chatgpt_access_token.revoked",
         "tenant.migration.completed",
         "tenant.sso.migrated",
@@ -1104,6 +1153,7 @@ class AuditLogListResponse(BaseModel):
         "tenant.resource_role_assignment.deleted",
         "tenant.resource_access.updated",
         "tenant.resource_access.deleted",
+        "tenant.ads_account.onboarding.redemption",
         "tenant.session_policy.created",
         "tenant.session_policy.updated",
         "tenant.session_policy.deleted",
@@ -1170,6 +1220,16 @@ class AuditLogListResponse(BaseModel):
     """The details for events with this `type`."""
 
     external_key_removed: Optional[ExternalKeyRemoved] = FieldInfo(alias="external_key.removed", default=None)
+    """The details for events with this `type`."""
+
+    external_storage_registered: Optional[ExternalStorageRegistered] = FieldInfo(
+        alias="external_storage.registered", default=None
+    )
+    """The details for events with this `type`."""
+
+    external_storage_removed: Optional[ExternalStorageRemoved] = FieldInfo(
+        alias="external_storage.removed", default=None
+    )
     """The details for events with this `type`."""
 
     group_created: Optional[GroupCreated] = FieldInfo(alias="group.created", default=None)

@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -95,7 +95,7 @@ class SamplingParams(TypedDict, total=False):
     `xhigh`, and `max`. Reducing reasoning effort can result in faster responses and
     fewer tokens used on reasoning in a response. Not all reasoning models support
     every value. See the
-    [reasoning guide](https://platform.openai.com/docs/guides/reasoning) for
+    [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
     model-specific support.
     """
 
@@ -129,7 +129,7 @@ class ScoreModelGraderParam(TypedDict, total=False):
     """The object type, which is always `score_model`."""
 
     range: Iterable[float]
-    """The range of the score. Defaults to `[0, 1]`."""
+    """The service requires two numbers for the score range. Defaults to `[0, 1]`."""
 
     sampling_params: SamplingParams
     """The sampling parameters for the model."""

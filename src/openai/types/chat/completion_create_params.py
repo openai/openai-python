@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -43,27 +43,99 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     messages: Required[Iterable[ChatCompletionMessageParam]]
     """A list of messages comprising the conversation so far.
 
-    Depending on the [model](https://platform.openai.com/docs/models) you use,
+    Depending on the [model](https://developers.openai.com/api/docs/models) you use,
     different message types (modalities) are supported, like
-    [text](https://platform.openai.com/docs/guides/text-generation),
-    [images](https://platform.openai.com/docs/guides/vision), and
-    [audio](https://platform.openai.com/docs/guides/audio).
+    [text](https://developers.openai.com/api/docs/guides/text),
+    [images](https://developers.openai.com/api/docs/guides/images-vision), and
+    [audio](https://developers.openai.com/api/docs/guides/audio).
     """
 
     model: Required[Union[str, ChatModel]]
-    """Model ID used to generate the response, like `gpt-4o` or `o3`.
+    """Model ID used to generate the response, like `gpt-6-astra` or `o3`.
 
     OpenAI offers a wide range of models with different capabilities, performance
     characteristics, and price points. Refer to the
-    [model guide](https://platform.openai.com/docs/models) to browse and compare
-    available models.
+    [model guide](https://developers.openai.com/api/docs/models) to browse and
+    compare available models.
+
+    Deprecated values:
+
+    - "gpt-5.4-nano", "gpt-5.4-nano-2026-03-17", "gpt-5.1", "gpt-5.1-2025-11-13":
+      Announced shutdown date: 2027-04-01. See
+      https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
+    - "gpt-5.3-chat-latest", "gpt-5.2-chat-latest": Announced shutdown date:
+      2026-08-10. See https://developers.openai.com/api/docs/deprecations for
+      details and recommended replacements.
+    - "gpt-5.1-codex", "gpt-5.1-chat-latest", "gpt-5-chat-latest",
+      "gpt-4o-search-preview", "gpt-4o-mini-search-preview",
+      "gpt-4o-search-preview-2025-03-11", "gpt-4o-mini-search-preview-2025-03-11":
+      Announced shutdown date: 2026-07-23. See
+      https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
+    - "gpt-5.1-mini": Not a supported model ID. Retained for SDK compatibility.
+    - "gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-5-2025-08-07",
+      "gpt-5-mini-2025-08-07", "gpt-5-nano-2025-08-07", "o3", "o3-2025-04-16":
+      Announced shutdown date: 2026-12-11. See
+      https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
+    - "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-2025-04-14", "gpt-4.1-mini-2025-04-14",
+      "gpt-4o", "gpt-4o-2024-11-20", "gpt-4o-2024-08-06", "gpt-4o-mini",
+      "gpt-4o-mini-2024-07-18": Announced shutdown date: 2027-01-14. See
+      https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
+    - "gpt-4.1-nano", "gpt-4.1-nano-2025-04-14", "o4-mini", "o4-mini-2025-04-16",
+      "o3-mini", "o3-mini-2025-01-31", "o1", "o1-2024-12-17", "gpt-4o-2024-05-13",
+      "gpt-4-turbo", "gpt-4-turbo-2024-04-09", "gpt-4-1106-preview", "gpt-4",
+      "gpt-4-0613", "gpt-3.5-turbo", "gpt-3.5-turbo-0125": Announced shutdown date:
+      2026-10-23. See https://developers.openai.com/api/docs/deprecations for
+      details and recommended replacements.
+    - "o1-preview", "o1-preview-2024-09-12": Announced shutdown date: 2025-07-28.
+      See https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
+    - "o1-mini", "o1-mini-2024-09-12": Announced shutdown date: 2025-10-27. See
+      https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
+    - "gpt-audio-mini", "gpt-audio-mini-2025-12-15": Announced shutdown date:
+      2027-01-20. See https://developers.openai.com/api/docs/deprecations for
+      details and recommended replacements.
+    - "gpt-4o-audio-preview", "gpt-4o-audio-preview-2024-12-17",
+      "gpt-4o-audio-preview-2025-06-03", "gpt-4o-mini-audio-preview",
+      "gpt-4o-mini-audio-preview-2024-12-17": Announced shutdown date: 2026-05-07.
+      See https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
+    - "gpt-4o-audio-preview-2024-10-01": Announced shutdown date: 2025-10-10. See
+      https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
+    - "chatgpt-4o-latest": Announced shutdown date: 2026-02-17. See
+      https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
+    - "codex-mini-latest": Announced shutdown date: 2026-02-12. See
+      https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
+    - "gpt-4-0125-preview", "gpt-4-turbo-preview", "gpt-4-0314": Announced shutdown
+      date: 2026-03-26. See https://developers.openai.com/api/docs/deprecations for
+      details and recommended replacements.
+    - "gpt-4-vision-preview": Announced shutdown date: 2024-12-06. See
+      https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
+    - "gpt-4-32k", "gpt-4-32k-0314", "gpt-4-32k-0613": Announced shutdown date:
+      2025-06-06. See https://developers.openai.com/api/docs/deprecations for
+      details and recommended replacements.
+    - "gpt-3.5-turbo-16k", "gpt-3.5-turbo-0301", "gpt-3.5-turbo-0613",
+      "gpt-3.5-turbo-16k-0613": Announced shutdown date: 2024-09-13. See
+      https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
+    - "gpt-3.5-turbo-1106": Announced shutdown date: 2026-09-28. See
+      https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
     """
 
     audio: Optional[ChatCompletionAudioParam]
     """Parameters for audio output.
 
     Required when audio output is requested with `modalities: ["audio"]`.
-    [Learn more](https://platform.openai.com/docs/guides/audio).
+    [Learn more](https://developers.openai.com/api/docs/guides/audio).
     """
 
     frequency_penalty: Optional[float]
@@ -118,18 +190,18 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     """
     An upper bound for the number of tokens that can be generated for a completion,
     including visible output tokens and
-    [reasoning tokens](https://platform.openai.com/docs/guides/reasoning).
+    [reasoning tokens](https://developers.openai.com/api/docs/guides/reasoning).
     """
 
     max_tokens: Optional[int]
     """
-    The maximum number of [tokens](/tokenizer) that can be generated in the chat
-    completion. This value can be used to control
+    The maximum number of [tokens](https://platform.openai.com/tokenizer) that can
+    be generated in the chat completion. This value can be used to control
     [costs](https://openai.com/api/pricing/) for text generated via API.
 
     This value is now deprecated in favor of `max_completion_tokens`, and is not
     compatible with
-    [o-series models](https://platform.openai.com/docs/guides/reasoning).
+    [o-series models](https://developers.openai.com/api/docs/guides/reasoning).
     """
 
     metadata: Optional[Metadata]
@@ -150,8 +222,8 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     `["text"]`
 
     The `gpt-4o-audio-preview` model can also be used to
-    [generate audio](https://platform.openai.com/docs/guides/audio). To request that
-    this model generate both text and audio responses, you can use:
+    [generate audio](https://developers.openai.com/api/docs/guides/audio). To
+    request that this model generate both text and audio responses, you can use:
 
     `["text", "audio"]`
     """
@@ -169,14 +241,17 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     parallel_tool_calls: bool
     """
     Whether to enable
-    [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
+    [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
     during tool use.
     """
 
     prediction: Optional[ChatCompletionPredictionContentParam]
     """
-    Static predicted output content, such as the content of a text file that is
-    being regenerated.
+    Configuration for a
+    [Predicted Output](https://developers.openai.com/api/docs/guides/predicted-outputs),
+    which can greatly improve response times when large parts of the model response
+    are known ahead of time. This is most common when you are regenerating a file
+    with only minor changes to most of the content.
     """
 
     presence_penalty: Optional[float]
@@ -190,7 +265,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     """
     Used by OpenAI to cache responses for similar requests to optimize your cache
     hit rates. Replaces the `user` field.
-    [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+    [Learn more](https://developers.openai.com/api/docs/guides/prompt-caching).
     """
 
     prompt_cache_options: PromptCacheOptions
@@ -202,8 +277,8 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     breakpoints. For cache matching, OpenAI considers up to the latest 80
     breakpoints in the conversation, without a content-block lookback limit. Set
     `mode` to `explicit` to disable the implicit breakpoint. The `ttl` defaults to
-    `30m`, which is currently the only supported value. See the
-    [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching)
+    `30m`. Supported lifetimes depend on the API. See the
+    [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching)
     for current details.
     """
 
@@ -213,7 +288,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     The retention policy for the prompt cache. Set to `24h` to enable extended
     prompt caching, which keeps cached prefixes active for longer, up to a maximum
     of 24 hours.
-    [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+    [Learn more](https://developers.openai.com/api/docs/guides/prompt-caching#prompt-cache-retention).
     This field expresses a maximum retention policy, while
     `prompt_cache_options.ttl` expresses a minimum cache lifetime. The two fields
     are independent and do not interact. For `gpt-5.5`, `gpt-5.5-pro`, and future
@@ -234,7 +309,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     `xhigh`, and `max`. Reducing reasoning effort can result in faster responses and
     fewer tokens used on reasoning in a response. Not all reasoning models support
     every value. See the
-    [reasoning guide](https://platform.openai.com/docs/guides/reasoning) for
+    [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
     model-specific support.
     """
 
@@ -244,7 +319,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
     Outputs which ensures the model will match your supplied JSON schema. Learn more
     in the
-    [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+    [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
     Setting to `{ "type": "json_object" }` enables the older JSON mode, which
     ensures the message the model generates is valid JSON. Using `json_schema` is
@@ -255,10 +330,10 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     """
     A stable identifier used to help detect users of your application that may be
     violating OpenAI's usage policies. The IDs should be a string that uniquely
-    identifies each user, with a maximum length of 64 characters. We recommend
+    identifies each user, with a maximum length of 128 characters. We recommend
     hashing their username or email address, in order to avoid sending us any
     identifying information.
-    [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+    [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
     """
 
     seed: Optional[int]
@@ -270,7 +345,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     in the backend.
     """
 
-    service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]]
+    service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]]
     """Specifies the processing type used for serving the request.
 
     - If set to 'auto', then the request will be processed with the service tier
@@ -278,9 +353,15 @@ class CompletionCreateParamsBase(TypedDict, total=False):
       will use 'default'.
     - If set to 'default', then the request will be processed with the standard
       pricing and performance for the selected model.
-    - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-      '[priority](https://openai.com/api-priority-processing/)', then the request
-      will be processed with the corresponding service tier.
+    - If set to
+      '[flex](https://developers.openai.com/api/docs/guides/flex-processing)', then
+      the request will be processed with the Flex Processing service tier.
+    - To opt-in to
+      [Fast mode](https://developers.openai.com/api/docs/guides/fast-mode) at the
+      request level, include the `service_tier=fast` or `service_tier=priority`
+      parameter for Responses or Chat Completions. The response will show
+      `service_tier=priority` regardless of if you specify `service_tier=fast` or
+      `priority` in your request.
     - When not set, the default behavior is 'auto'.
 
     When the `service_tier` parameter is set, the response body will include the
@@ -289,7 +370,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     parameter.
     """
 
-    stop: Union[Optional[str], SequenceNotStr[str], None]
+    stop: Union[str, SequenceNotStr[str], None]
     """Not supported with latest reasoning models `o3` and `o4-mini`.
 
     Up to 4 sequences where the API will stop generating further tokens. The
@@ -299,8 +380,9 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     store: Optional[bool]
     """
     Whether or not to store the output of this chat completion request for use in
-    our [model distillation](https://platform.openai.com/docs/guides/distillation)
-    or [evals](https://platform.openai.com/docs/guides/evals) products.
+    our
+    [model distillation](https://developers.openai.com/api/docs/guides/supervised-fine-tuning#distilling-from-a-larger-model)
+    or [evals](https://developers.openai.com/api/docs/guides/evals) products.
 
     Supports text and image inputs. Note: image inputs over 8MB will be dropped.
     """
@@ -333,8 +415,9 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     """A list of tools the model may call.
 
     You can provide either
-    [custom tools](https://platform.openai.com/docs/guides/function-calling#custom-tools)
-    or [function tools](https://platform.openai.com/docs/guides/function-calling).
+    [custom tools](https://developers.openai.com/api/docs/guides/function-calling#custom-tools)
+    or
+    [function tools](https://developers.openai.com/api/docs/guides/function-calling).
     """
 
     top_logprobs: Optional[int]
@@ -360,7 +443,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     Use `prompt_cache_key` instead to maintain caching optimizations. A stable
     identifier for your end-users. Used to boost cache hit rates by better bucketing
     similar requests and to help OpenAI detect and prevent abuse.
-    [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+    [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
     """
 
     verbosity: Optional[Literal["low", "medium", "high"]]
@@ -375,7 +458,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     """
     This tool searches the web for relevant results to use in a response. Learn more
     about the
-    [web search tool](https://platform.openai.com/docs/guides/tools-web-search?api-mode=chat).
+    [web search tool](https://developers.openai.com/api/docs/guides/tools-web-search).
     """
 
 
@@ -399,8 +482,8 @@ class Function(TypedDict, total=False):
     parameters: FunctionParameters
     """The parameters the functions accepts, described as a JSON Schema object.
 
-    See the [guide](https://platform.openai.com/docs/guides/function-calling) for
-    examples, and the
+    See the [guide](https://developers.openai.com/api/docs/guides/function-calling)
+    for examples, and the
     [JSON Schema reference](https://json-schema.org/understanding-json-schema/) for
     documentation about the format.
 
@@ -446,7 +529,7 @@ class Moderation(TypedDict, total=False):
 class PromptCacheOptions(TypedDict, total=False):
     """Options for prompt caching.
 
-    Supported for `gpt-5.6` and later models. By default, OpenAI automatically chooses one implicit cache breakpoint. You can add explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each request can write up to four breakpoints. For cache matching, OpenAI considers up to the latest 80 breakpoints in the conversation, without a content-block lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The `ttl` defaults to `30m`, which is currently the only supported value. See the [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching) for current details.
+    Supported for `gpt-5.6` and later models. By default, OpenAI automatically chooses one implicit cache breakpoint. You can add explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each request can write up to four breakpoints. For cache matching, OpenAI considers up to the latest 80 breakpoints in the conversation, without a content-block lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The `ttl` defaults to `30m`. Supported lifetimes depend on the API. See the [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching) for current details.
     """
 
     mode: Literal["implicit", "explicit"]
@@ -505,7 +588,7 @@ class WebSearchOptionsUserLocation(TypedDict, total=False):
 class WebSearchOptions(TypedDict, total=False):
     """
     This tool searches the web for relevant results to use in a response.
-    Learn more about the [web search tool](https://platform.openai.com/docs/guides/tools-web-search?api-mode=chat).
+    Learn more about the [web search tool](https://developers.openai.com/api/docs/guides/tools-web-search).
     """
 
     search_context_size: Literal["low", "medium", "high"]
@@ -525,9 +608,9 @@ class CompletionCreateParamsNonStreaming(CompletionCreateParamsBase, total=False
     generated using
     [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
     See the
-    [Streaming section below](https://platform.openai.com/docs/api-reference/chat/streaming)
+    [Streaming section below](https://developers.openai.com/api/reference/resources/chat/subresources/completions/streaming-events)
     for more information, along with the
-    [streaming responses](https://platform.openai.com/docs/guides/streaming-responses)
+    [streaming responses](https://developers.openai.com/api/docs/guides/streaming-responses)
     guide for more information on how to handle the streaming events.
     """
 
@@ -539,9 +622,9 @@ class CompletionCreateParamsStreaming(CompletionCreateParamsBase):
     generated using
     [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
     See the
-    [Streaming section below](https://platform.openai.com/docs/api-reference/chat/streaming)
+    [Streaming section below](https://developers.openai.com/api/reference/resources/chat/subresources/completions/streaming-events)
     for more information, along with the
-    [streaming responses](https://platform.openai.com/docs/guides/streaming-responses)
+    [streaming responses](https://developers.openai.com/api/docs/guides/streaming-responses)
     guide for more information on how to handle the streaming events.
     """
 

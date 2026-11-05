@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -16,8 +16,6 @@ from openai.types.fine_tuning.checkpoints import (
     PermissionDeleteResponse,
     PermissionRetrieveResponse,
 )
-
-# pyright: reportDeprecated=false
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 

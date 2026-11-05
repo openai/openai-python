@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -68,6 +68,14 @@ from .spend_alerts import (
     SpendAlertsWithStreamingResponse,
     AsyncSpendAlertsWithStreamingResponse,
 )
+from .external_keys import (
+    ExternalKeys,
+    AsyncExternalKeys,
+    ExternalKeysWithRawResponse,
+    AsyncExternalKeysWithRawResponse,
+    ExternalKeysWithStreamingResponse,
+    AsyncExternalKeysWithStreamingResponse,
+)
 from .groups.groups import (
     Groups,
     AsyncGroups,
@@ -92,6 +100,14 @@ from .data_retention import (
     DataRetentionWithStreamingResponse,
     AsyncDataRetentionWithStreamingResponse,
 )
+from .external_storage import (
+    ExternalStorage,
+    AsyncExternalStorage,
+    ExternalStorageWithRawResponse,
+    AsyncExternalStorageWithRawResponse,
+    ExternalStorageWithStreamingResponse,
+    AsyncExternalStorageWithStreamingResponse,
+)
 from .projects.projects import (
     Projects,
     AsyncProjects,
@@ -99,6 +115,14 @@ from .projects.projects import (
     AsyncProjectsWithRawResponse,
     ProjectsWithStreamingResponse,
     AsyncProjectsWithStreamingResponse,
+)
+from .workload_identity_providers.workload_identity_providers import (
+    WorkloadIdentityProviders,
+    AsyncWorkloadIdentityProviders,
+    WorkloadIdentityProvidersWithRawResponse,
+    AsyncWorkloadIdentityProvidersWithRawResponse,
+    WorkloadIdentityProvidersWithStreamingResponse,
+    AsyncWorkloadIdentityProvidersWithStreamingResponse,
 )
 
 __all__ = ["Organization", "AsyncOrganization"]
@@ -137,6 +161,18 @@ class Organization(SyncAPIResource):
     @cached_property
     def data_retention(self) -> DataRetention:
         return DataRetention(self._client)
+
+    @cached_property
+    def external_keys(self) -> ExternalKeys:
+        return ExternalKeys(self._client)
+
+    @cached_property
+    def workload_identity_providers(self) -> WorkloadIdentityProviders:
+        return WorkloadIdentityProviders(self._client)
+
+    @cached_property
+    def external_storage(self) -> ExternalStorage:
+        return ExternalStorage(self._client)
 
     @cached_property
     def spend_limit(self) -> SpendLimit:
@@ -207,6 +243,18 @@ class AsyncOrganization(AsyncAPIResource):
     @cached_property
     def data_retention(self) -> AsyncDataRetention:
         return AsyncDataRetention(self._client)
+
+    @cached_property
+    def external_keys(self) -> AsyncExternalKeys:
+        return AsyncExternalKeys(self._client)
+
+    @cached_property
+    def workload_identity_providers(self) -> AsyncWorkloadIdentityProviders:
+        return AsyncWorkloadIdentityProviders(self._client)
+
+    @cached_property
+    def external_storage(self) -> AsyncExternalStorage:
+        return AsyncExternalStorage(self._client)
 
     @cached_property
     def spend_limit(self) -> AsyncSpendLimit:
@@ -282,6 +330,18 @@ class OrganizationWithRawResponse:
         return DataRetentionWithRawResponse(self._organization.data_retention)
 
     @cached_property
+    def external_keys(self) -> ExternalKeysWithRawResponse:
+        return ExternalKeysWithRawResponse(self._organization.external_keys)
+
+    @cached_property
+    def workload_identity_providers(self) -> WorkloadIdentityProvidersWithRawResponse:
+        return WorkloadIdentityProvidersWithRawResponse(self._organization.workload_identity_providers)
+
+    @cached_property
+    def external_storage(self) -> ExternalStorageWithRawResponse:
+        return ExternalStorageWithRawResponse(self._organization.external_storage)
+
+    @cached_property
     def spend_limit(self) -> SpendLimitWithRawResponse:
         return SpendLimitWithRawResponse(self._organization.spend_limit)
 
@@ -334,6 +394,18 @@ class AsyncOrganizationWithRawResponse:
     @cached_property
     def data_retention(self) -> AsyncDataRetentionWithRawResponse:
         return AsyncDataRetentionWithRawResponse(self._organization.data_retention)
+
+    @cached_property
+    def external_keys(self) -> AsyncExternalKeysWithRawResponse:
+        return AsyncExternalKeysWithRawResponse(self._organization.external_keys)
+
+    @cached_property
+    def workload_identity_providers(self) -> AsyncWorkloadIdentityProvidersWithRawResponse:
+        return AsyncWorkloadIdentityProvidersWithRawResponse(self._organization.workload_identity_providers)
+
+    @cached_property
+    def external_storage(self) -> AsyncExternalStorageWithRawResponse:
+        return AsyncExternalStorageWithRawResponse(self._organization.external_storage)
 
     @cached_property
     def spend_limit(self) -> AsyncSpendLimitWithRawResponse:
@@ -390,6 +462,18 @@ class OrganizationWithStreamingResponse:
         return DataRetentionWithStreamingResponse(self._organization.data_retention)
 
     @cached_property
+    def external_keys(self) -> ExternalKeysWithStreamingResponse:
+        return ExternalKeysWithStreamingResponse(self._organization.external_keys)
+
+    @cached_property
+    def workload_identity_providers(self) -> WorkloadIdentityProvidersWithStreamingResponse:
+        return WorkloadIdentityProvidersWithStreamingResponse(self._organization.workload_identity_providers)
+
+    @cached_property
+    def external_storage(self) -> ExternalStorageWithStreamingResponse:
+        return ExternalStorageWithStreamingResponse(self._organization.external_storage)
+
+    @cached_property
     def spend_limit(self) -> SpendLimitWithStreamingResponse:
         return SpendLimitWithStreamingResponse(self._organization.spend_limit)
 
@@ -442,6 +526,18 @@ class AsyncOrganizationWithStreamingResponse:
     @cached_property
     def data_retention(self) -> AsyncDataRetentionWithStreamingResponse:
         return AsyncDataRetentionWithStreamingResponse(self._organization.data_retention)
+
+    @cached_property
+    def external_keys(self) -> AsyncExternalKeysWithStreamingResponse:
+        return AsyncExternalKeysWithStreamingResponse(self._organization.external_keys)
+
+    @cached_property
+    def workload_identity_providers(self) -> AsyncWorkloadIdentityProvidersWithStreamingResponse:
+        return AsyncWorkloadIdentityProvidersWithStreamingResponse(self._organization.workload_identity_providers)
+
+    @cached_property
+    def external_storage(self) -> AsyncExternalStorageWithStreamingResponse:
+        return AsyncExternalStorageWithStreamingResponse(self._organization.external_storage)
 
     @cached_property
     def spend_limit(self) -> AsyncSpendLimitWithStreamingResponse:

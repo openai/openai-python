@@ -1,11 +1,9 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
-
 from __future__ import annotations
 
 from typing import List
 from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from .... import _legacy_response
 from ...._types import NOT_GIVEN, Body, Query, Headers, NotGiven
@@ -56,7 +54,7 @@ class TranscriptionSessions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> TranscriptionSession:
         """
         Create an ephemeral API token for use in client-side applications with the
@@ -169,7 +167,7 @@ class AsyncTranscriptionSessions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> TranscriptionSession:
         """
         Create an ephemeral API token for use in client-side applications with the

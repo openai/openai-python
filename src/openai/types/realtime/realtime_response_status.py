@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import Optional
 from typing_extensions import Literal
@@ -16,6 +16,9 @@ class Error(BaseModel):
 
     code: Optional[str] = None
     """Error code, if any."""
+
+    message: Optional[str] = None
+    """A human-readable error message."""
 
     type: Optional[str] = None
     """The type of error."""

@@ -1,5 +1,6 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
+from typing import Union, Optional
 from typing_extensions import Literal
 
 from .._models import BaseModel
@@ -50,11 +51,11 @@ class ImageEditCompletedEvent(BaseModel):
     output_format: Literal["png", "webp", "jpeg"]
     """The output format for the edited image."""
 
-    quality: Literal["low", "medium", "high", "auto"]
+    quality: Literal["low", "medium", "high", "xhigh", "max", "auto"]
     """The quality setting for the edited image."""
 
-    size: Literal["1024x1024", "1024x1536", "1536x1024", "auto"]
-    """The size of the edited image."""
+    size: Union[str, Literal["1024x1024", "1024x1536", "1536x1024", "auto"]]
+    """The image dimensions as a `WIDTHxHEIGHT` string, for example `1536x864`."""
 
     type: Literal["image_edit.completed"]
     """The type of the event. Always `image_edit.completed`."""
@@ -63,4 +64,11 @@ class ImageEditCompletedEvent(BaseModel):
     """
     For the GPT image models only, the token usage information for the image
     generation.
+    """
+
+    safety_identifier: Optional[str] = None
+    """The effective safety identifier used for safety monitoring and abuse detection.
+
+    This is the non-empty `safety_identifier` from the request, or the deprecated
+    `user` value when `safety_identifier` is omitted, null, or empty.
     """

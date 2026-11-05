@@ -8,11 +8,9 @@ SUPPORTED = ("3.10", "3.11", "3.12", "3.13", "3.14")
 MINIMUM = SUPPORTED[0]
 CURRENT_STABLE = SUPPORTED[-1]
 PRERELEASE = "3.15"
-UNMARKED_OPTIONAL_DEPENDENCIES = (
-    "aiohttp>=3.14.1",
-    "httpx_aiohttp>=0.1.9",
-    "httpx>=0.25.1, <1",
-    "httpx2>=2.7.0, <3",
+UNMARKED_DEPENDENCIES = (
+    "aiohttp>=3.14.4",
+    "httpx2>=2.12.0, <3",
     "anyio>=4.10.0, <5",
     "botocore>=1.40.0,<2",
 )
@@ -85,7 +83,11 @@ def main() -> None:
     classifiers = re.findall(r'"Programming Language :: Python :: (3\.\d+)"', pyproject)
     require(tuple(classifiers) == SUPPORTED, f"Unexpected Python classifiers: {classifiers}")
 
-    require(f'pythonVersion = "{MINIMUM}"' in pyproject, "Pyright does not target the minimum Python")
+    require(f'python-version = "{MINIMUM}"' in pyproject, "ty does not target the minimum Python")
+    require(
+        f'"pythonVersion": "{MINIMUM}"' in (ROOT / "scripts/pyrightconfig.breaking-changes.json").read_text(),
+        "Consumer compatibility check does not target the minimum Python",
+    )
     require(f'target-version = "py{MINIMUM.replace(".", "")}"' in pyproject, "Ruff does not target the minimum Python")
     require(python_version.startswith(f"{MINIMUM}."), f".python-version is not on Python {MINIMUM}: {python_version}")
     require(f"Python {MINIMUM}+" in readme, "README introduction does not state the minimum Python")
@@ -123,8 +125,8 @@ def main() -> None:
         "Policy current-compatibility text does not match the supported matrix",
     )
 
-    project_metadata = pyproject.split("[tool.rye]", 1)[0]
-    for requirement in UNMARKED_OPTIONAL_DEPENDENCIES:
+    project_metadata = pyproject.split("[dependency-groups]", 1)[0]
+    for requirement in UNMARKED_DEPENDENCIES:
         require(
             f'"{requirement}"' in project_metadata,
             f"Package metadata does not contain the unmarked requirement {requirement!r}",

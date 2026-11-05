@@ -1,0 +1,26 @@
+{
+  "/": {
+    "title": "Harbor Museum visitor guide",
+    "paragraphs": [
+      "This is a synthetic visitor guide. Read the linked pages to plan a visit.",
+      "The guide has opening hours, group visit rules and accessibility information."
+    ],
+    "links": { "/hours": "Opening hours", "/groups": "Groups and accessibility" }
+  },
+  "/hours": {
+    "title": "Opening hours",
+    "paragraphs": [
+      "The museum opens Tuesday through Sunday from 10:00 to 17:00. It is closed on Monday.",
+      "Last entry is at 16:00. Quiet hour is Wednesday from 10:00 to 11:00."
+    ],
+    "links": { "/": "Visitor guide", "/groups": "Groups and accessibility" }
+  },
+  "/groups": {
+    "title": "Groups and accessibility",
+    "paragraphs": [
+      "Groups of 12 or more visitors need a reservation. This guide cannot create reservations.",
+      "The accessible entrance is in the East Courtyard. Wheelchairs can be borrowed at the visitor desk."
+    ],
+    "links": { "/": "Visitor guide", "/hours": "Opening hours" }
+  }
+}

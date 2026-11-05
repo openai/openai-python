@@ -1,12 +1,15 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Union, Mapping, cast
-from typing_extensions import Literal, overload, assert_never
+import typing_extensions
+from typing import Union, Mapping, cast
+from typing_extensions import Literal, overload
 
-import httpx
+import httpx2
+
+import openai.lib._parsing._audio
 
 from ... import _legacy_response
 from ..._files import deepcopy_with_paths
@@ -18,13 +21,22 @@ from ..._response import to_streamed_response_wrapper, async_to_streamed_respons
 from ...types.audio import translation_create_params
 from ..._base_client import make_request_options
 from ...types.audio_model import AudioModel
+from ...lib._parsing._audio import get_translation_response_format_type as _create_response_format_type
 from ...types.audio.translation import Translation
 from ...types.audio_response_format import AudioResponseFormat
 from ...types.audio.translation_verbose import TranslationVerbose
 
 __all__ = ["Translations", "AsyncTranslations"]
 
+
 log: logging.Logger = logging.getLogger("openai.audio.transcriptions")
+
+
+# Retained module entry point; callers may live outside generated resources.
+def _get_response_format_type(
+    response_format: AudioResponseFormat | Omit,
+) -> type[Translation | TranslationVerbose | str]:
+    return openai.lib._parsing._audio.get_translation_response_format_type(response_format, log=log)
 
 
 class Translations(SyncAPIResource):
@@ -50,84 +62,122 @@ class Translations(SyncAPIResource):
         return TranslationsWithStreamingResponse(self)
 
     @overload
+    @typing_extensions.deprecated("deprecated", category=None)
     def create(
         self,
         *,
         file: FileTypes,
         model: Union[str, AudioModel],
-        response_format: Union[Literal["json"], Omit] = omit,
         prompt: str | Omit = omit,
+        response_format: Literal["json"] | Omit = omit,
         temperature: float | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Translation: ...
 
     @overload
+    @typing_extensions.deprecated("deprecated", category=None)
     def create(
         self,
         *,
         file: FileTypes,
         model: Union[str, AudioModel],
-        response_format: Literal["verbose_json"],
         prompt: str | Omit = omit,
+        response_format: Literal["verbose_json"],
         temperature: float | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> TranslationVerbose: ...
 
     @overload
+    @typing_extensions.deprecated("deprecated", category=None)
     def create(
         self,
         *,
         file: FileTypes,
         model: Union[str, AudioModel],
-        response_format: Literal["text", "srt", "vtt"],
         prompt: str | Omit = omit,
+        response_format: Literal["text", "srt", "vtt"],
         temperature: float | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> str: ...
 
+    @overload
+    @typing_extensions.deprecated("deprecated", category=None)
     def create(
         self,
         *,
         file: FileTypes,
         model: Union[str, AudioModel],
         prompt: str | Omit = omit,
-        response_format: Union[Literal["json", "text", "srt", "verbose_json", "vtt"], Omit] = omit,
+        response_format: Literal["json", "text", "srt", "verbose_json", "vtt"] | Omit = omit,
         temperature: float | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Translation | TranslationVerbose | str: ...
+
+    @typing_extensions.deprecated("deprecated")
+    def create(
+        self,
+        *,
+        file: FileTypes,
+        model: Union[str, AudioModel],
+        prompt: str | Omit = omit,
+        response_format: Literal["json", "text", "srt", "verbose_json", "vtt"] | Omit = omit,
+        temperature: float | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Translation | TranslationVerbose | str:
         """
         Translates audio into English.
 
+        This endpoint supports only `whisper-1`. The endpoint and model are deprecated
+        and scheduled to shut down on February 26, 2027. Migrate to
+        `/v1/realtime/translations`, which requires a separate integration. See the
+        [deprecation schedule](https://developers.openai.com/api/docs/deprecations) for
+        details.
+
         Args:
           file: The audio file object (not file name) translate, in one of these formats: flac,
-              mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
+              mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm. The request must include enough
+              format metadata for the file to be identified. We recommend an extension-bearing
+              filename and an appropriate content type.
 
           model: ID of the model to use. Only `whisper-1` (which is powered by our open source
               Whisper V2 model) is currently available.
 
+              Deprecated values:
+
+              - "whisper-1", "gpt-4o-transcribe", "gpt-4o-mini-transcribe",
+                "gpt-4o-mini-transcribe-2025-12-15", "gpt-4o-transcribe-diarize": Announced
+                shutdown date: 2027-02-26. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+
           prompt: An optional text to guide the model's style or continue a previous audio
               segment. The
-              [prompt](https://platform.openai.com/docs/guides/speech-to-text#prompting)
+              [prompt](https://developers.openai.com/api/docs/guides/speech-to-text#prompting)
               should be in English.
 
           response_format: The format of the output, in one of these options: `json`, `text`, `srt`,
@@ -162,7 +212,7 @@ class Translations(SyncAPIResource):
         # sent to the server will contain a `boundary` parameter, e.g.
         # multipart/form-data; boundary=---abc--
         extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
-        return self._post(  # type: ignore[return-value]
+        return self._post(
             "/audio/translations",
             body=maybe_transform(body, translation_create_params.TranslationCreateParams),
             files=files,
@@ -173,7 +223,7 @@ class Translations(SyncAPIResource):
                 timeout=timeout,
                 security={"bearer_auth": True},
             ),
-            cast_to=_get_response_format_type(response_format),
+            cast_to=_create_response_format_type(response_format, log=logging.getLogger("openai.audio.transcriptions")),
         )
 
 
@@ -200,84 +250,122 @@ class AsyncTranslations(AsyncAPIResource):
         return AsyncTranslationsWithStreamingResponse(self)
 
     @overload
+    @typing_extensions.deprecated("deprecated", category=None)
     async def create(
         self,
         *,
         file: FileTypes,
         model: Union[str, AudioModel],
-        response_format: Union[Literal["json"], Omit] = omit,
         prompt: str | Omit = omit,
+        response_format: Literal["json"] | Omit = omit,
         temperature: float | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Translation: ...
 
     @overload
+    @typing_extensions.deprecated("deprecated", category=None)
     async def create(
         self,
         *,
         file: FileTypes,
         model: Union[str, AudioModel],
-        response_format: Literal["verbose_json"],
         prompt: str | Omit = omit,
+        response_format: Literal["verbose_json"],
         temperature: float | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> TranslationVerbose: ...
 
     @overload
+    @typing_extensions.deprecated("deprecated", category=None)
     async def create(
         self,
         *,
         file: FileTypes,
         model: Union[str, AudioModel],
-        response_format: Literal["text", "srt", "vtt"],
         prompt: str | Omit = omit,
+        response_format: Literal["text", "srt", "vtt"],
         temperature: float | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> str: ...
 
+    @overload
+    @typing_extensions.deprecated("deprecated", category=None)
     async def create(
         self,
         *,
         file: FileTypes,
         model: Union[str, AudioModel],
         prompt: str | Omit = omit,
-        response_format: Union[AudioResponseFormat, Omit] = omit,
+        response_format: Literal["json", "text", "srt", "verbose_json", "vtt"] | Omit = omit,
         temperature: float | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Translation | TranslationVerbose | str: ...
+
+    @typing_extensions.deprecated("deprecated")
+    async def create(
+        self,
+        *,
+        file: FileTypes,
+        model: Union[str, AudioModel],
+        prompt: str | Omit = omit,
+        response_format: Literal["json", "text", "srt", "verbose_json", "vtt"] | Omit = omit,
+        temperature: float | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Translation | TranslationVerbose | str:
         """
         Translates audio into English.
 
+        This endpoint supports only `whisper-1`. The endpoint and model are deprecated
+        and scheduled to shut down on February 26, 2027. Migrate to
+        `/v1/realtime/translations`, which requires a separate integration. See the
+        [deprecation schedule](https://developers.openai.com/api/docs/deprecations) for
+        details.
+
         Args:
           file: The audio file object (not file name) translate, in one of these formats: flac,
-              mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
+              mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm. The request must include enough
+              format metadata for the file to be identified. We recommend an extension-bearing
+              filename and an appropriate content type.
 
           model: ID of the model to use. Only `whisper-1` (which is powered by our open source
               Whisper V2 model) is currently available.
 
+              Deprecated values:
+
+              - "whisper-1", "gpt-4o-transcribe", "gpt-4o-mini-transcribe",
+                "gpt-4o-mini-transcribe-2025-12-15", "gpt-4o-transcribe-diarize": Announced
+                shutdown date: 2027-02-26. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+
           prompt: An optional text to guide the model's style or continue a previous audio
               segment. The
-              [prompt](https://platform.openai.com/docs/guides/speech-to-text#prompting)
+              [prompt](https://developers.openai.com/api/docs/guides/speech-to-text#prompting)
               should be in English.
 
           response_format: The format of the output, in one of these options: `json`, `text`, `srt`,
@@ -323,7 +411,7 @@ class AsyncTranslations(AsyncAPIResource):
                 timeout=timeout,
                 security={"bearer_auth": True},
             ),
-            cast_to=_get_response_format_type(response_format),
+            cast_to=_create_response_format_type(response_format, log=logging.getLogger("openai.audio.transcriptions")),
         )
 
 
@@ -361,22 +449,3 @@ class AsyncTranslationsWithStreamingResponse:
         self.create = async_to_streamed_response_wrapper(
             translations.create,
         )
-
-
-def _get_response_format_type(
-    response_format: AudioResponseFormat | Omit,
-) -> type[Translation | TranslationVerbose | str]:
-    if isinstance(response_format, Omit) or response_format is None:  # pyright: ignore[reportUnnecessaryComparison]
-        return Translation
-
-    if response_format == "json":
-        return Translation
-    elif response_format == "verbose_json":
-        return TranslationVerbose
-    elif response_format == "srt" or response_format == "text" or response_format == "vtt":
-        return str
-    elif TYPE_CHECKING and response_format != "diarized_json":  # type: ignore[unreachable]
-        assert_never(response_format)
-    else:
-        log.warning("Unexpected audio response format: %s", response_format)
-        return Translation

@@ -1,10 +1,11 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
 
 from ...._utils import PropertyInfo
 from ...._models import BaseModel
+from .cost_quantity_unit import CostQuantityUnit
 
 __all__ = [
     "UsageCompletionsResponse",
@@ -53,6 +54,14 @@ class DataResultOrganizationUsageCompletionsResult(BaseModel):
     usage result.
     """
 
+    api_source: Optional[Literal["agents_api", "unlabeled"]] = None
+    """
+    When grouped by `api_source`, `agents_api` identifies attributed Agents API
+    activity and `unlabeled` includes all records without published source
+    attribution, including historical and unknown origins. Unlabeled does not imply
+    direct API usage. Without source grouping, this field is null.
+    """
+
     batch: Optional[bool] = None
     """
     When `group_by=batch`, this field tells whether the grouped usage result is
@@ -62,8 +71,23 @@ class DataResultOrganizationUsageCompletionsResult(BaseModel):
     input_audio_tokens: Optional[int] = None
     """The aggregated number of uncached audio input tokens used."""
 
+    input_cache_write_12h_tokens: Optional[int] = None
+    """
+    The aggregated number of input tokens written to the cache with a 12-hour
+    retention period.
+    """
+
+    input_cache_write_30m_tokens: Optional[int] = None
+    """
+    The aggregated number of input tokens written to the cache with a 30-minute
+    retention period. May be absent or null for older responses.
+    """
+
     input_cache_write_tokens: Optional[int] = None
-    """The aggregated number of input tokens written to the cache."""
+    """
+    The aggregated number of input tokens written to the cache across 30-minute and
+    12-hour retention periods.
+    """
 
     input_cached_audio_tokens: Optional[int] = None
     """The aggregated number of cached audio input tokens used."""
@@ -403,6 +427,14 @@ class DataResultOrganizationUsageWebSearchesResult(BaseModel):
     usage result.
     """
 
+    api_source: Optional[Literal["agents_api", "unlabeled"]] = None
+    """
+    When grouped by `api_source`, `agents_api` identifies attributed Agents API
+    activity and `unlabeled` includes all records without published source
+    attribution, including historical and unknown origins. Unlabeled does not imply
+    direct API usage. Without source grouping, this field is null.
+    """
+
     context_level: Optional[str] = None
     """
     When `group_by=context_level`, this field provides the search context size of
@@ -452,6 +484,14 @@ class DataResultOrganizationCostsResult(BaseModel):
     costs result.
     """
 
+    api_source: Optional[Literal["agents_api", "unlabeled"]] = None
+    """
+    When grouped by `api_source`, `agents_api` identifies attributed Agents API
+    activity and `unlabeled` includes all records without published source
+    attribution, including historical and unknown origins. Unlabeled does not imply
+    direct API usage. Without source grouping, this field is null.
+    """
+
     line_item: Optional[str] = None
     """
     When `group_by=line_item`, this field provides the line item of the grouped
@@ -467,6 +507,18 @@ class DataResultOrganizationCostsResult(BaseModel):
     quantity: Optional[float] = None
     """
     When `group_by=line_item`, this field provides the quantity of the grouped costs
+    result.
+    """
+
+    quantity_unit: Optional[CostQuantityUnit] = None
+    """The unit of the `quantity` value.
+
+    If no single supported unit applies to the result, this field is `null`.
+    """
+
+    user_id: Optional[str] = None
+    """
+    When `group_by=user_id`, this field provides the user ID of the grouped costs
     result.
     """
 

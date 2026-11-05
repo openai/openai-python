@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -37,10 +37,15 @@ class TestClientSecrets:
                             "rate": 24000,
                             "type": "audio/pcm",
                         },
-                        "noise_reduction": {"type": "near_field"},
+                        "noise_reduction": {
+                            "strength": 0,
+                            "type": "near_field",
+                        },
                         "transcription": {
                             "delay": "minimal",
+                            "keywords": ["string"],
                             "language": "language",
+                            "languages": ["string"],
                             "model": "whisper-1",
                             "prompt": "prompt",
                         },
@@ -136,10 +141,15 @@ class TestAsyncClientSecrets:
                             "rate": 24000,
                             "type": "audio/pcm",
                         },
-                        "noise_reduction": {"type": "near_field"},
+                        "noise_reduction": {
+                            "strength": 0,
+                            "type": "near_field",
+                        },
                         "transcription": {
                             "delay": "minimal",
+                            "keywords": ["string"],
                             "language": "language",
+                            "languages": ["string"],
                             "model": "whisper-1",
                             "prompt": "prompt",
                         },

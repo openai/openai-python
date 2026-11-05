@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -36,6 +36,7 @@ class TestServiceAccounts:
             project_id="project_id",
             name="name",
             create_service_account_only=True,
+            expires_in_seconds=1,
         )
         assert_matches_type(ServiceAccountCreateResponse, service_account, path=["response"])
 
@@ -294,6 +295,7 @@ class TestAsyncServiceAccounts:
             project_id="project_id",
             name="name",
             create_service_account_only=True,
+            expires_in_seconds=1,
         )
         assert_matches_type(ServiceAccountCreateResponse, service_account, path=["response"])
 

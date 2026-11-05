@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -11,8 +11,6 @@ from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
 from openai.pagination import SyncCursorPage, AsyncCursorPage
 from openai.types.beta.threads.runs import RunStep
-
-# pyright: reportDeprecated=false
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 

@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import List, Union, Optional
 from typing_extensions import Literal, TypeAlias
@@ -47,7 +47,7 @@ class RankingOptions(BaseModel):
 class FileSearchTool(BaseModel):
     """A tool that searches for relevant content from uploaded files.
 
-    Learn more about the [file search tool](https://platform.openai.com/docs/guides/tools-file-search).
+    Learn more about the [file search tool](https://developers.openai.com/api/docs/guides/tools-file-search).
     """
 
     type: Literal["file_search"]

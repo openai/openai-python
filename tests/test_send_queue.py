@@ -1,6 +1,8 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
-
 from __future__ import annotations
+
+import asyncio
+import threading
+from typing import Callable
 
 import pytest
 
@@ -45,7 +47,7 @@ class TestSendQueue:
         q.enqueue("b")
         q.enqueue("c")
 
-        sent: list[str] = []
+        sent: list[str | bytes] = []
         q.flush_sync(sent.append)
         assert sent == ["a", "b", "c"]
         assert len(q) == 0
@@ -56,9 +58,9 @@ class TestSendQueue:
         q.enqueue("b")
         q.enqueue("c")
 
-        sent: list[str] = []
+        sent: list[str | bytes] = []
 
-        def failing_send(data: str) -> None:
+        def failing_send(data: str | bytes) -> None:
             if data == "b":
                 raise RuntimeError("send failed")
             sent.append(data)
@@ -77,9 +79,9 @@ class TestSendQueue:
         q.enqueue("a")
         q.enqueue("b")
 
-        sent: list[str] = []
+        sent: list[str | bytes] = []
 
-        async def async_send(data: str) -> None:
+        async def async_send(data: str | bytes) -> None:
             sent.append(data)
 
         await q.flush_async(async_send)
@@ -93,9 +95,9 @@ class TestSendQueue:
         q.enqueue("b")
         q.enqueue("c")
 
-        sent: list[str] = []
+        sent: list[str | bytes] = []
 
-        async def failing_send(data: str) -> None:
+        async def failing_send(data: str | bytes) -> None:
             if data == "b":
                 raise RuntimeError("send failed")
             sent.append(data)
@@ -114,7 +116,7 @@ class TestSendQueue:
         q.enqueue("a")
         q.enqueue("b")
 
-        def failing_send(data: str) -> None:
+        def failing_send(data: str | bytes) -> None:
             if data == "b":
                 # Simulate another thread enqueuing during flush
                 q.enqueue("new")
@@ -126,3 +128,326 @@ class TestSendQueue:
         # "b" (failed) should come before "new" (added during flush)
         remaining = q.drain()
         assert remaining == ["b", "new"]
+
+
+async def flush_in_background(q: SendQueue, send: Callable[[str | bytes], None], asynchronous: bool) -> None:
+    if asynchronous:
+
+        async def async_send(data: str | bytes) -> None:
+            await asyncio.to_thread(send, data)
+
+        await q.flush_async(async_send)
+    else:
+        await asyncio.to_thread(q.flush_sync, send)
+
+
+async def wait_for_event(event: threading.Event) -> None:
+    assert await asyncio.to_thread(event.wait, 5), "send did not start"
+
+
+@pytest.mark.parametrize("asynchronous", [False, True], ids=["sync", "async"])
+@pytest.mark.asyncio
+async def test_repeated_failed_flushes_remain_bounded(asynchronous: bool) -> None:
+    q = SendQueue(max_bytes=6)
+    q.enqueue("éé")  # Four UTF-8 bytes.
+    q.enqueue("a")
+
+    for attempt in range(3):
+        entered, release = threading.Event(), threading.Event()
+
+        def send(data: str | bytes, entered: threading.Event = entered, release: threading.Event = release) -> None:
+            assert data == "éé"
+            entered.set()
+            assert release.wait(5)
+            raise RuntimeError("fake send failure")
+
+        task = asyncio.create_task(flush_in_background(q, send, asynchronous))
+        try:
+            await wait_for_event(entered)
+            if attempt == 0:
+                q.enqueue("b")
+            with pytest.raises(WebSocketQueueFullError):
+                q.enqueue("c")
+        finally:
+            release.set()
+            with pytest.raises(RuntimeError, match="fake send failure"):
+                await task
+        assert q._bytes == 6
+
+    sent: list[str | bytes] = []
+    await flush_in_background(q, sent.append, asynchronous)
+    assert sent == ["éé", "a", "b"]
+    assert q._bytes == 0
+    q.enqueue("123456")
+
+
+@pytest.mark.parametrize("asynchronous", [False, True], ids=["sync", "async"])
+@pytest.mark.parametrize("fail", [False, True], ids=["success", "failure"])
+@pytest.mark.asyncio
+async def test_partial_flush_releases_only_successful_bytes(asynchronous: bool, fail: bool) -> None:
+    q = SendQueue(max_bytes=4)
+    q.enqueue("é")
+    q.enqueue("bb")
+    entered, release = threading.Event(), threading.Event()
+    sent: list[str | bytes] = []
+
+    def send(data: str | bytes) -> None:
+        if data == "bb":
+            entered.set()
+            assert release.wait(5)
+            if fail:
+                raise RuntimeError("fake send failure")
+        sent.append(data)
+
+    task = asyncio.create_task(flush_in_background(q, send, asynchronous))
+    try:
+        await wait_for_event(entered)
+        assert q._bytes == 2
+        q.enqueue("cc")
+        with pytest.raises(WebSocketQueueFullError):
+            q.enqueue("d")
+    finally:
+        release.set()
+        if fail:
+            with pytest.raises(RuntimeError, match="fake send failure"):
+                await task
+        else:
+            await task
+    assert sent == (["é"] if fail else ["é", "bb"])
+    assert q.drain() == (["bb", "cc"] if fail else ["cc"])
+    assert q._bytes == 0
+
+
+@pytest.mark.parametrize("asynchronous", [False, True], ids=["sync", "async"])
+@pytest.mark.asyncio
+async def test_drain_during_flush_keeps_pending_bytes_charged(asynchronous: bool) -> None:
+    q = SendQueue(max_bytes=4)
+    q.enqueue("aaa")
+    entered, release = threading.Event(), threading.Event()
+
+    def send(_data: str | bytes) -> None:
+        entered.set()
+        assert release.wait(5)
+        raise RuntimeError("fake send failure")
+
+    task = asyncio.create_task(flush_in_background(q, send, asynchronous))
+    try:
+        await wait_for_event(entered)
+        q.enqueue("b")
+        assert q.drain() == ["b"]
+        assert q._bytes == 3
+        q.enqueue("c")
+        with pytest.raises(WebSocketQueueFullError):
+            q.enqueue("d")
+    finally:
+        release.set()
+        with pytest.raises(RuntimeError, match="fake send failure"):
+            await task
+    assert q.drain() == ["aaa", "c"]
+    assert q._bytes == 0
+
+
+@pytest.mark.parametrize("first_async", [False, True], ids=["sync-first", "async-first"])
+@pytest.mark.parametrize("second_async", [False, True], ids=["sync-second", "async-second"])
+@pytest.mark.parametrize("fail", [False, True], ids=["success", "failure"])
+@pytest.mark.asyncio
+async def test_overlapping_flushes_preserve_order(first_async: bool, second_async: bool, fail: bool) -> None:
+    q = SendQueue(max_bytes=3)
+    q.enqueue("a")
+    q.enqueue("b")
+    entered, release, second_sent = threading.Event(), threading.Event(), threading.Event()
+    sent: list[str | bytes] = []
+
+    def first_send(data: str | bytes) -> None:
+        if data == "a":
+            entered.set()
+            assert release.wait(5)
+            if fail:
+                raise RuntimeError("fake send failure")
+        sent.append(data)
+
+    def second_send(data: str | bytes) -> None:
+        second_sent.set()
+        sent.append(data)
+
+    first = asyncio.create_task(flush_in_background(q, first_send, first_async))
+    await wait_for_event(entered)
+    q.enqueue("c")
+    second = asyncio.create_task(flush_in_background(q, second_send, second_async))
+    try:
+        # Neither kind of waiter may overtake the active flush.
+        assert not await asyncio.to_thread(second_sent.wait, 0.05)
+    finally:
+        release.set()
+        if fail:
+            with pytest.raises(RuntimeError, match="fake send failure"):
+                await first
+        else:
+            await first
+        await asyncio.wait_for(second, 5)
+    assert sent == ["a", "b", "c"]
+    assert q._bytes == 0
+
+
+@pytest.mark.asyncio
+async def test_cancelled_flush_restores_unsent_messages() -> None:
+    q = SendQueue(max_bytes=3)
+    q.enqueue("a")
+    q.enqueue("b")
+    entered = asyncio.Event()
+
+    async def send(data: str | bytes) -> None:
+        if data == "b":
+            entered.set()
+            await asyncio.Event().wait()
+
+    task = asyncio.create_task(q.flush_async(send))
+    await asyncio.wait_for(entered.wait(), 5)
+    q.enqueue("cc")
+    task.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await task
+    with pytest.raises(WebSocketQueueFullError):
+        q.enqueue("d")
+    sent: list[str | bytes] = []
+    q.flush_sync(sent.append)
+    assert sent == ["b", "cc"]
+    assert q._bytes == 0
+
+
+@pytest.mark.asyncio
+async def test_cancelled_flush_waiter_does_not_strand_ownership() -> None:
+    q = SendQueue(max_bytes=2)
+    q.enqueue("a")
+    entered, release = asyncio.Event(), asyncio.Event()
+    sent: list[str | bytes] = []
+
+    async def first_send(data: str | bytes) -> None:
+        entered.set()
+        await release.wait()
+        sent.append(data)
+
+    async def second_send(data: str | bytes) -> None:
+        sent.append(data)
+
+    first = asyncio.create_task(q.flush_async(first_send))
+    await asyncio.wait_for(entered.wait(), 5)
+    q.enqueue("b")
+    second = asyncio.create_task(q.flush_async(second_send))
+    await asyncio.sleep(0)
+    second.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await second
+    release.set()
+    await first
+    await asyncio.wait_for(q.flush_async(second_send), 5)
+    assert sent == ["a", "b"]
+    assert q._bytes == 0
+
+
+def test_interrupted_sync_flush_restores_unsent_messages() -> None:
+    q = SendQueue(max_bytes=2)
+    q.enqueue("a")
+    q.enqueue("b")
+
+    def send(data: str | bytes) -> None:
+        if data == "b":
+            raise KeyboardInterrupt
+
+    with pytest.raises(KeyboardInterrupt):
+        q.flush_sync(send)
+    q.enqueue("c")
+    with pytest.raises(WebSocketQueueFullError):
+        q.enqueue("d")
+    sent: list[str | bytes] = []
+    q.flush_sync(sent.append)
+    assert sent == ["b", "c"]
+    assert q._bytes == 0
+
+
+def test_empty_conditional_send_does_not_allocate_utf8_copy() -> None:
+    import tracemalloc
+
+    queue = SendQueue()
+    payload = "é" * (4 * 1024 * 1024)
+    tracemalloc.start()
+    try:
+        assert not queue.enqueue(payload, only_if_pending=True)
+        _, peak = tracemalloc.get_traced_memory()
+    finally:
+        tracemalloc.stop()
+    # Generous interpreter headroom, but less than a second payload buffer.
+    assert peak < len(payload)
+    assert not queue
+
+
+def test_conditional_send_rechecks_after_reentrant_utf8_encoding() -> None:
+    queue = SendQueue()
+    queue.enqueue("older")
+    captured: list[str | bytes] = []
+    admitted: list[bool] = []
+
+    class DrainingText(str):
+        def encode(self, encoding: str = "utf-8", errors: str = "strict") -> bytes:
+            captured.extend(queue.drain())
+            return super().encode(encoding, errors)
+
+    def enqueue() -> None:
+        admitted.append(queue.enqueue(DrainingText("later"), only_if_pending=True))
+
+    worker = threading.Thread(target=enqueue, daemon=True)
+    worker.start()
+    worker.join(3)
+    assert not worker.is_alive(), "UTF-8 conversion ran under the queue lock"
+    assert captured == ["older"]
+    assert admitted == [False]
+    assert queue.drain() == []
+
+
+@pytest.mark.parametrize("asynchronous", [False, True], ids=["sync", "async"])
+@pytest.mark.parametrize("outcome", ["decline", "failure", "cancel"])
+async def test_preparing_send_restores_unconsumed_batch(asynchronous: bool, outcome: str) -> None:
+    queue = SendQueue(max_bytes=3)
+    queue.enqueue("é")
+    queue.enqueue("a")
+    sent: list[str | bytes] = []
+    failure = RuntimeError("prepare failed")
+    cancellation = asyncio.CancelledError()
+
+    def prepare() -> None:
+        if outcome == "failure":
+            raise failure
+        if outcome == "cancel":
+            raise cancellation
+        return None
+
+    async def send_async(data: str | bytes) -> None:
+        sent.append(data)
+
+    async def flush() -> None:
+        if asynchronous:
+            await queue.flush_async(send_async, requeue_failed=False, prepare_send=prepare)
+        else:
+            queue.flush_sync(sent.append, requeue_failed=False, prepare_send=prepare)
+
+    if outcome == "decline":
+        await flush()
+    elif outcome == "failure":
+        with pytest.raises(RuntimeError) as raised:
+            await flush()
+        assert raised.value is failure
+    else:
+        with pytest.raises(asyncio.CancelledError) as cancelled:
+            await flush()
+        assert cancelled.value is cancellation
+    assert sent == []
+    with pytest.raises(WebSocketQueueFullError):
+        queue.enqueue("b")
+    # A fresh ordinary flush must own the batch and release the full budget.
+    if asynchronous:
+        await queue.flush_async(send_async)
+    else:
+        queue.flush_sync(sent.append)
+    assert sent == ["é", "a"]
+    assert queue.enqueue("€")
+    assert queue.drain() == ["€"]

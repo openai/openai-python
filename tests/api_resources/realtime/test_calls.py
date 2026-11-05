@@ -1,19 +1,17 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 import os
 from typing import Any, cast
 
-import httpx
+import httpx2
 import pytest
-from respx import MockRouter
 
 import openai._legacy_response as _legacy_response
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
-
-# pyright: reportDeprecated=false
+from tests.respx2 import MockRouter
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 
@@ -22,9 +20,9 @@ class TestCalls:
     parametrize = pytest.mark.parametrize("client", [False, True], indirect=True, ids=["loose", "strict"])
 
     @parametrize
-    @pytest.mark.respx(base_url=base_url)
-    def test_method_create(self, client: OpenAI, respx_mock: MockRouter) -> None:
-        respx_mock.post("/realtime/calls").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+    @pytest.mark.respx2(base_url=base_url)
+    def test_method_create(self, client: OpenAI, respx2_mock: MockRouter) -> None:
+        respx2_mock.post("/realtime/calls").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
         call = client.realtime.calls.create(
             sdp="sdp",
         )
@@ -32,9 +30,9 @@ class TestCalls:
         assert call.json() == {"foo": "bar"}
 
     @parametrize
-    @pytest.mark.respx(base_url=base_url)
-    def test_method_create_with_all_params(self, client: OpenAI, respx_mock: MockRouter) -> None:
-        respx_mock.post("/realtime/calls").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+    @pytest.mark.respx2(base_url=base_url)
+    def test_method_create_with_all_params(self, client: OpenAI, respx2_mock: MockRouter) -> None:
+        respx2_mock.post("/realtime/calls").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
         call = client.realtime.calls.create(
             sdp="sdp",
             session={
@@ -45,10 +43,15 @@ class TestCalls:
                             "rate": 24000,
                             "type": "audio/pcm",
                         },
-                        "noise_reduction": {"type": "near_field"},
+                        "noise_reduction": {
+                            "strength": 0,
+                            "type": "near_field",
+                        },
                         "transcription": {
                             "delay": "minimal",
+                            "keywords": ["string"],
                             "language": "language",
+                            "languages": ["string"],
                             "model": "whisper-1",
                             "prompt": "prompt",
                         },
@@ -100,9 +103,9 @@ class TestCalls:
         assert call.json() == {"foo": "bar"}
 
     @parametrize
-    @pytest.mark.respx(base_url=base_url)
-    def test_raw_response_create(self, client: OpenAI, respx_mock: MockRouter) -> None:
-        respx_mock.post("/realtime/calls").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+    @pytest.mark.respx2(base_url=base_url)
+    def test_raw_response_create(self, client: OpenAI, respx2_mock: MockRouter) -> None:
+        respx2_mock.post("/realtime/calls").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
 
         response = client.realtime.calls.with_raw_response.create(
             sdp="sdp",
@@ -114,9 +117,9 @@ class TestCalls:
         assert_matches_type(_legacy_response.HttpxBinaryResponseContent, call, path=["response"])
 
     @parametrize
-    @pytest.mark.respx(base_url=base_url)
-    def test_streaming_response_create(self, client: OpenAI, respx_mock: MockRouter) -> None:
-        respx_mock.post("/realtime/calls").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+    @pytest.mark.respx2(base_url=base_url)
+    def test_streaming_response_create(self, client: OpenAI, respx2_mock: MockRouter) -> None:
+        respx2_mock.post("/realtime/calls").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
         with client.realtime.calls.with_streaming_response.create(
             sdp="sdp",
         ) as response:
@@ -147,10 +150,15 @@ class TestCalls:
                         "rate": 24000,
                         "type": "audio/pcm",
                     },
-                    "noise_reduction": {"type": "near_field"},
+                    "noise_reduction": {
+                        "strength": 0,
+                        "type": "near_field",
+                    },
                     "transcription": {
                         "delay": "minimal",
+                        "keywords": ["string"],
                         "language": "language",
+                        "languages": ["string"],
                         "model": "whisper-1",
                         "prompt": "prompt",
                     },
@@ -366,9 +374,9 @@ class TestAsyncCalls:
     )
 
     @parametrize
-    @pytest.mark.respx(base_url=base_url)
-    async def test_method_create(self, async_client: AsyncOpenAI, respx_mock: MockRouter) -> None:
-        respx_mock.post("/realtime/calls").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+    @pytest.mark.respx2(base_url=base_url)
+    async def test_method_create(self, async_client: AsyncOpenAI, respx2_mock: MockRouter) -> None:
+        respx2_mock.post("/realtime/calls").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
         call = await async_client.realtime.calls.create(
             sdp="sdp",
         )
@@ -376,9 +384,9 @@ class TestAsyncCalls:
         assert call.json() == {"foo": "bar"}
 
     @parametrize
-    @pytest.mark.respx(base_url=base_url)
-    async def test_method_create_with_all_params(self, async_client: AsyncOpenAI, respx_mock: MockRouter) -> None:
-        respx_mock.post("/realtime/calls").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+    @pytest.mark.respx2(base_url=base_url)
+    async def test_method_create_with_all_params(self, async_client: AsyncOpenAI, respx2_mock: MockRouter) -> None:
+        respx2_mock.post("/realtime/calls").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
         call = await async_client.realtime.calls.create(
             sdp="sdp",
             session={
@@ -389,10 +397,15 @@ class TestAsyncCalls:
                             "rate": 24000,
                             "type": "audio/pcm",
                         },
-                        "noise_reduction": {"type": "near_field"},
+                        "noise_reduction": {
+                            "strength": 0,
+                            "type": "near_field",
+                        },
                         "transcription": {
                             "delay": "minimal",
+                            "keywords": ["string"],
                             "language": "language",
+                            "languages": ["string"],
                             "model": "whisper-1",
                             "prompt": "prompt",
                         },
@@ -444,9 +457,9 @@ class TestAsyncCalls:
         assert call.json() == {"foo": "bar"}
 
     @parametrize
-    @pytest.mark.respx(base_url=base_url)
-    async def test_raw_response_create(self, async_client: AsyncOpenAI, respx_mock: MockRouter) -> None:
-        respx_mock.post("/realtime/calls").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+    @pytest.mark.respx2(base_url=base_url)
+    async def test_raw_response_create(self, async_client: AsyncOpenAI, respx2_mock: MockRouter) -> None:
+        respx2_mock.post("/realtime/calls").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
 
         response = await async_client.realtime.calls.with_raw_response.create(
             sdp="sdp",
@@ -458,9 +471,9 @@ class TestAsyncCalls:
         assert_matches_type(_legacy_response.HttpxBinaryResponseContent, call, path=["response"])
 
     @parametrize
-    @pytest.mark.respx(base_url=base_url)
-    async def test_streaming_response_create(self, async_client: AsyncOpenAI, respx_mock: MockRouter) -> None:
-        respx_mock.post("/realtime/calls").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+    @pytest.mark.respx2(base_url=base_url)
+    async def test_streaming_response_create(self, async_client: AsyncOpenAI, respx2_mock: MockRouter) -> None:
+        respx2_mock.post("/realtime/calls").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
         async with async_client.realtime.calls.with_streaming_response.create(
             sdp="sdp",
         ) as response:
@@ -491,10 +504,15 @@ class TestAsyncCalls:
                         "rate": 24000,
                         "type": "audio/pcm",
                     },
-                    "noise_reduction": {"type": "near_field"},
+                    "noise_reduction": {
+                        "strength": 0,
+                        "type": "near_field",
+                    },
                     "transcription": {
                         "delay": "minimal",
+                        "keywords": ["string"],
                         "language": "language",
+                        "languages": ["string"],
                         "model": "whisper-1",
                         "prompt": "prompt",
                     },

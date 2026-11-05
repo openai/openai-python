@@ -3,10 +3,10 @@ from __future__ import annotations
 import json
 from typing import Iterator, AsyncIterator
 
-import httpx
+import httpx2
 import pytest
-from respx import MockRouter
 
+from tests.respx2 import MockRouter
 from openai.lib.azure import AzureOpenAI, AsyncAzureOpenAI
 
 AZURE_ENDPOINT = "https://example-resource.azure.openai.com"
@@ -64,7 +64,7 @@ async def async_response_created_stream_body() -> AsyncIterator[bytes]:
 
 
 def mock_responses_create(
-    respx_mock: MockRouter,
+    respx2_mock: MockRouter,
     *,
     served_model_header: str | None,
     stream: bool = False,
@@ -72,16 +72,16 @@ def mock_responses_create(
     headers = {"x-ms-served-model": served_model_header} if served_model_header is not None else {}
     if stream:
         headers["content-type"] = "text/event-stream"
-        respx_mock.post(AZURE_RESPONSES_URL).mock(
-            return_value=httpx.Response(
+        respx2_mock.post(AZURE_RESPONSES_URL).mock(
+            return_value=httpx2.Response(
                 200,
                 headers=headers,
                 content=response_created_stream_body(),
             )
         )
     else:
-        respx_mock.post(AZURE_RESPONSES_URL).mock(
-            return_value=httpx.Response(
+        respx2_mock.post(AZURE_RESPONSES_URL).mock(
+            return_value=httpx2.Response(
                 200,
                 headers=headers,
                 json=azure_response_payload(),
@@ -89,9 +89,9 @@ def mock_responses_create(
         )
 
 
-@pytest.mark.respx()
-def test_azure_responses_uses_served_model_header(respx_mock: MockRouter) -> None:
-    mock_responses_create(respx_mock, served_model_header=f" {AZURE_SERVED_MODEL} ")
+@pytest.mark.respx2()
+def test_azure_responses_uses_served_model_header(respx2_mock: MockRouter) -> None:
+    mock_responses_create(respx2_mock, served_model_header=f" {AZURE_SERVED_MODEL} ")
 
     response = make_sync_client().responses.create(model=AZURE_DEPLOYMENT_MODEL, input="ping")
 
@@ -99,18 +99,18 @@ def test_azure_responses_uses_served_model_header(respx_mock: MockRouter) -> Non
 
 
 @pytest.mark.asyncio
-@pytest.mark.respx()
-async def test_async_azure_responses_uses_served_model_header(respx_mock: MockRouter) -> None:
-    mock_responses_create(respx_mock, served_model_header=AZURE_SERVED_MODEL)
+@pytest.mark.respx2()
+async def test_async_azure_responses_uses_served_model_header(respx2_mock: MockRouter) -> None:
+    mock_responses_create(respx2_mock, served_model_header=AZURE_SERVED_MODEL)
 
     response = await make_async_client().responses.create(model=AZURE_DEPLOYMENT_MODEL, input="ping")
 
     assert response.model == AZURE_SERVED_MODEL
 
 
-@pytest.mark.respx()
-def test_azure_responses_stream_uses_served_model_header(respx_mock: MockRouter) -> None:
-    mock_responses_create(respx_mock, served_model_header=AZURE_SERVED_MODEL, stream=True)
+@pytest.mark.respx2()
+def test_azure_responses_stream_uses_served_model_header(respx2_mock: MockRouter) -> None:
+    mock_responses_create(respx2_mock, served_model_header=AZURE_SERVED_MODEL, stream=True)
 
     stream = make_sync_client().responses.create(model=AZURE_DEPLOYMENT_MODEL, input="ping", stream=True)
     event = next(stream)
@@ -120,10 +120,10 @@ def test_azure_responses_stream_uses_served_model_header(respx_mock: MockRouter)
 
 
 @pytest.mark.asyncio
-@pytest.mark.respx()
-async def test_async_azure_responses_stream_uses_served_model_header(respx_mock: MockRouter) -> None:
-    respx_mock.post(AZURE_RESPONSES_URL).mock(
-        return_value=httpx.Response(
+@pytest.mark.respx2()
+async def test_async_azure_responses_stream_uses_served_model_header(respx2_mock: MockRouter) -> None:
+    respx2_mock.post(AZURE_RESPONSES_URL).mock(
+        return_value=httpx2.Response(
             200,
             headers={
                 "content-type": "text/event-stream",
@@ -141,22 +141,22 @@ async def test_async_azure_responses_stream_uses_served_model_header(respx_mock:
 
 
 @pytest.mark.parametrize("served_model_header", [None, "   "])
-@pytest.mark.respx()
+@pytest.mark.respx2()
 def test_azure_responses_preserves_body_model_without_served_model_header(
-    respx_mock: MockRouter,
+    respx2_mock: MockRouter,
     served_model_header: str | None,
 ) -> None:
-    mock_responses_create(respx_mock, served_model_header=served_model_header)
+    mock_responses_create(respx2_mock, served_model_header=served_model_header)
 
     response = make_sync_client().responses.create(model=AZURE_DEPLOYMENT_MODEL, input="ping")
 
     assert response.model == AZURE_DEPLOYMENT_MODEL
 
 
-@pytest.mark.respx()
-def test_azure_served_model_header_does_not_apply_to_non_responses_resources(respx_mock: MockRouter) -> None:
-    respx_mock.post(AZURE_CHAT_COMPLETIONS_URL).mock(
-        return_value=httpx.Response(
+@pytest.mark.respx2()
+def test_azure_served_model_header_does_not_apply_to_non_responses_resources(respx2_mock: MockRouter) -> None:
+    respx2_mock.post(AZURE_CHAT_COMPLETIONS_URL).mock(
+        return_value=httpx2.Response(
             200,
             headers={"x-ms-served-model": AZURE_SERVED_MODEL},
             json={"model": "gpt-4"},

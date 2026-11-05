@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -18,6 +18,7 @@ from .shared import (
     ResponsesModel as ResponsesModel,
     ReasoningEffort as ReasoningEffort,
     ComparisonFilter as ComparisonFilter,
+    DecisionInputJSON as DecisionInputJSON,
     FunctionDefinition as FunctionDefinition,
     FunctionParameters as FunctionParameters,
     ResponseFormatText as ResponseFormatText,
@@ -25,9 +26,13 @@ from .shared import (
     ResponseFormatJSONObject as ResponseFormatJSONObject,
     ResponseFormatJSONSchema as ResponseFormatJSONSchema,
     ResponseFormatTextPython as ResponseFormatTextPython,
+    DecisionQuestionInputPart as DecisionQuestionInputPart,
+    DecisionQuestionInputText as DecisionQuestionInputText,
     ResponseFormatTextGrammar as ResponseFormatTextGrammar,
+    DecisionQuestionInputImage as DecisionQuestionInputImage,
 )
 from .upload import Upload as Upload
+from .decision import Decision as Decision
 from .embedding import Embedding as Embedding
 from .chat_model import ChatModel as ChatModel
 from .completion import Completion as Completion
@@ -81,6 +86,7 @@ from .audio_response_format import AudioResponseFormat as AudioResponseFormat
 from .container_list_params import ContainerListParams as ContainerListParams
 from .image_generate_params import ImageGenerateParams as ImageGenerateParams
 from .video_delete_response import VideoDeleteResponse as VideoDeleteResponse
+from .decision_create_params import DecisionCreateParams as DecisionCreateParams
 from .eval_retrieve_response import EvalRetrieveResponse as EvalRetrieveResponse
 from .file_chunking_strategy import FileChunkingStrategy as FileChunkingStrategy
 from .image_gen_stream_event import ImageGenStreamEvent as ImageGenStreamEvent
@@ -94,11 +100,14 @@ from .container_list_response import ContainerListResponse as ContainerListRespo
 from .embedding_create_params import EmbeddingCreateParams as EmbeddingCreateParams
 from .image_edit_stream_event import ImageEditStreamEvent as ImageEditStreamEvent
 from .completion_create_params import CompletionCreateParams as CompletionCreateParams
+from .content_provenance_check import ContentProvenanceCheck as ContentProvenanceCheck
 from .moderation_create_params import ModerationCreateParams as ModerationCreateParams
 from .vector_store_list_params import VectorStoreListParams as VectorStoreListParams
 from .container_create_response import ContainerCreateResponse as ContainerCreateResponse
 from .create_embedding_response import CreateEmbeddingResponse as CreateEmbeddingResponse
+from .decision_input_text_param import DecisionInputTextParam as DecisionInputTextParam
 from .image_gen_completed_event import ImageGenCompletedEvent as ImageGenCompletedEvent
+from .decision_input_image_param import DecisionInputImageParam as DecisionInputImageParam
 from .image_edit_completed_event import ImageEditCompletedEvent as ImageEditCompletedEvent
 from .moderation_create_response import ModerationCreateResponse as ModerationCreateResponse
 from .vector_store_create_params import VectorStoreCreateParams as VectorStoreCreateParams
@@ -107,12 +116,17 @@ from .vector_store_update_params import VectorStoreUpdateParams as VectorStoreUp
 from .container_retrieve_response import ContainerRetrieveResponse as ContainerRetrieveResponse
 from .image_input_reference_param import ImageInputReferenceParam as ImageInputReferenceParam
 from .moderation_text_input_param import ModerationTextInputParam as ModerationTextInputParam
+from .decision_input_message_param import (
+    DecisionInputMessageParam as DecisionInputMessageParam,
+    DecisionInputMessageUnionParam as DecisionInputMessageUnionParam,
+)
 from .file_chunking_strategy_param import FileChunkingStrategyParam as FileChunkingStrategyParam
 from .vector_store_search_response import VectorStoreSearchResponse as VectorStoreSearchResponse
 from .video_get_character_response import VideoGetCharacterResponse as VideoGetCharacterResponse
 from .websocket_connection_options import (
     WebSocketConnectionOptions as WebSocketConnectionOptions,
     WebsocketConnectionOptions as WebsocketConnectionOptions,
+    SyncWebSocketConnectionOptions as SyncWebSocketConnectionOptions,
 )
 from .image_create_variation_params import ImageCreateVariationParams as ImageCreateVariationParams
 from .image_gen_partial_image_event import ImageGenPartialImageEvent as ImageGenPartialImageEvent
@@ -121,6 +135,7 @@ from .video_create_character_params import VideoCreateCharacterParams as VideoCr
 from .video_download_content_params import VideoDownloadContentParams as VideoDownloadContentParams
 from .eval_custom_data_source_config import EvalCustomDataSourceConfig as EvalCustomDataSourceConfig
 from .image_edit_partial_image_event import ImageEditPartialImageEvent as ImageEditPartialImageEvent
+from .decision_input_part_union_param import DecisionInputPartUnionParam as DecisionInputPartUnionParam
 from .video_create_character_response import VideoCreateCharacterResponse as VideoCreateCharacterResponse
 from .moderation_image_url_input_param import ModerationImageURLInputParam as ModerationImageURLInputParam
 from .auto_file_chunking_strategy_param import AutoFileChunkingStrategyParam as AutoFileChunkingStrategyParam
@@ -128,6 +143,12 @@ from .moderation_multi_modal_input_param import ModerationMultiModalInputParam a
 from .other_file_chunking_strategy_object import OtherFileChunkingStrategyObject as OtherFileChunkingStrategyObject
 from .static_file_chunking_strategy_param import StaticFileChunkingStrategyParam as StaticFileChunkingStrategyParam
 from .static_file_chunking_strategy_object import StaticFileChunkingStrategyObject as StaticFileChunkingStrategyObject
+from .content_provenance_check_create_params import (
+    ContentProvenanceCheckCreateParams as ContentProvenanceCheckCreateParams,
+)
+from .decision_prompt_cache_breakpoint_param import (
+    DecisionPromptCacheBreakpointParam as DecisionPromptCacheBreakpointParam,
+)
 from .eval_stored_completions_data_source_config import (
     EvalStoredCompletionsDataSourceConfig as EvalStoredCompletionsDataSourceConfig,
 )

@@ -20,7 +20,7 @@ from typing import (
 from typing_extensions import Awaitable, ParamSpec, override, deprecated, get_origin
 
 import anyio
-import httpx
+import httpx2
 import pydantic
 
 from ._types import NoneType
@@ -63,7 +63,7 @@ class LegacyAPIResponse(Generic[R]):
     _stream_cls: type[Stream[Any]] | type[AsyncStream[Any]] | None
     _options: FinalRequestOptions
 
-    http_response: httpx.Response
+    http_response: httpx2.Response
 
     retries_taken: int
     """The number of retries made. If no retries happened this will be `0`"""
@@ -71,7 +71,7 @@ class LegacyAPIResponse(Generic[R]):
     def __init__(
         self,
         *,
-        raw: httpx.Response,
+        raw: httpx2.Response,
         cast_to: type[R],
         client: BaseClient[Any, Any],
         stream: bool,
@@ -90,7 +90,7 @@ class LegacyAPIResponse(Generic[R]):
 
     @property
     def request_id(self) -> str | None:
-        return self.http_response.headers.get("x-request-id")  # type: ignore[no-any-return]
+        return self.http_response.headers.get("x-request-id")
 
     @overload
     def parse(self, *, to: type[_T]) -> _T: ...
@@ -128,12 +128,12 @@ class LegacyAPIResponse(Generic[R]):
           - `str`
           - `int`
           - `float`
-          - `httpx.Response`
+          - `httpx2.Response`
         """
         cache_key = to if to is not None else self._cast_to
         cached = self._parsed_by_type.get(cache_key)
         if cached is not None:
-            return cached  # type: ignore[no-any-return]
+            return cached
 
         parsed = self._parse(to=to)
         if is_given(self._options.post_parser):
@@ -146,11 +146,11 @@ class LegacyAPIResponse(Generic[R]):
         return cast(R, parsed)
 
     @property
-    def headers(self) -> httpx.Headers:
+    def headers(self) -> httpx2.Headers:
         return self.http_response.headers
 
     @property
-    def http_request(self) -> httpx.Request:
+    def http_request(self) -> httpx2.Request:
         return self.http_response.request
 
     @property
@@ -158,7 +158,7 @@ class LegacyAPIResponse(Generic[R]):
         return self.http_response.status_code
 
     @property
-    def url(self) -> httpx.URL:
+    def url(self) -> httpx2.URL:
         return self.http_response.url
 
     @property
@@ -200,7 +200,7 @@ class LegacyAPIResponse(Generic[R]):
 
         # unwrap `TypeAlias('Name', T)` -> `T`
         if is_type_alias_type(cast_to):
-            cast_to = cast_to.__value__  # type: ignore[unreachable]
+            cast_to = cast_to.__value__
 
         # unwrap `Annotated[T, ...]` -> `T`
         if cast_to and is_annotated_type(cast_to):
@@ -265,18 +265,16 @@ class LegacyAPIResponse(Generic[R]):
             return cast(R, float(response.text))
 
         if cast_to == bool:
-            return cast(R, response.text.lower() == "true")
+            return cast(R, response.text.strip().lower() == "true")
 
         if inspect.isclass(origin) and issubclass(origin, HttpxBinaryResponseContent):
-            return cast(R, cast_to(response))  # type: ignore
+            return cast(R, cast_to(response))
 
         if origin == LegacyAPIResponse:
             raise RuntimeError("Unexpected state - cast_to is `APIResponse`")
 
         response_types = http_response_types()
-        if inspect.isclass(
-            origin  # pyright: ignore[reportUnknownArgumentType]
-        ) and issubclass(origin, response_types):
+        if inspect.isclass(origin) and issubclass(origin, response_types):
             # Because of the invariance of our ResponseT TypeVar, users can subclass httpx.Response
             # and pass that class to our request functions. We cannot change the variance to be either
             # covariant or contravariant as that makes our usage of ResponseT illegal. We could construct
@@ -286,13 +284,7 @@ class LegacyAPIResponse(Generic[R]):
                 raise ValueError("Subclasses of HTTP response classes cannot be passed to `cast_to`")
             return cast(R, response)
 
-        if (
-            inspect.isclass(
-                origin  # pyright: ignore[reportUnknownArgumentType]
-            )
-            and not issubclass(origin, BaseModel)
-            and issubclass(origin, pydantic.BaseModel)
-        ):
+        if inspect.isclass(origin) and not issubclass(origin, BaseModel) and issubclass(origin, pydantic.BaseModel):
             raise TypeError("Pydantic models must subclass our base model type, e.g. `from openai import BaseModel`")
 
         if (
@@ -303,7 +295,7 @@ class LegacyAPIResponse(Generic[R]):
             and not issubclass(origin, BaseModel)
         ):
             raise RuntimeError(
-                f"Unsupported type, expected {cast_to} to be a subclass of {BaseModel}, {dict}, {list}, {Union}, {NoneType}, {str} or {httpx.Response}."
+                f"Unsupported type, expected {cast_to} to be a subclass of {BaseModel}, {dict}, {list}, {Union}, {NoneType}, {str} or {httpx2.Response}."
             )
 
         # split is required to handle cases where additional information is included
@@ -314,11 +306,12 @@ class LegacyAPIResponse(Generic[R]):
                 try:
                     data = response.json()
                 except Exception as exc:
-                    log.debug("Could not read JSON from response data due to %s - %s", type(exc), exc)
+                    log.debug("Could not read JSON from response data due to %s", type(exc).__name__)
                 else:
-                    return self._client._process_response_data(
+                    # cast_to is validated above and preserves the response generic through dynamic parsing.
+                    return self._client._process_response_data(  # ty: ignore[invalid-return-type]
                         data=data,
-                        cast_to=cast_to,  # type: ignore
+                        cast_to=cast_to,
                         response=response,
                     )
 
@@ -332,13 +325,14 @@ class LegacyAPIResponse(Generic[R]):
             # If the API responds with content that isn't JSON then we just return
             # the (decoded) text without performing any parsing so that you can still
             # handle the response however you need to.
-            return response.text  # type: ignore
+            return response.text  # ty: ignore[invalid-return-type]
 
         data = response.json()
 
-        return self._client._process_response_data(
+        # cast_to is validated above and preserves the response generic through dynamic parsing.
+        return self._client._process_response_data(  # ty: ignore[invalid-return-type]
             data=data,
-            cast_to=cast_to,  # type: ignore
+            cast_to=cast_to,
             response=response,
         )
 
@@ -364,7 +358,8 @@ def to_raw_response_wrapper(func: Callable[P, R]) -> Callable[P, LegacyAPIRespon
         extra_headers: dict[str, str] = {**(cast(Any, kwargs.get("extra_headers")) or {})}
         extra_headers[RAW_RESPONSE_HEADER] = "true"
 
-        kwargs["extra_headers"] = extra_headers
+        # All wrapped SDK request methods accept extra_headers; ParamSpec cannot express this constraint.
+        kwargs["extra_headers"] = extra_headers  # ty: ignore[invalid-assignment]
 
         return cast(LegacyAPIResponse[R], func(*args, **kwargs))
 
@@ -381,7 +376,8 @@ def async_to_raw_response_wrapper(func: Callable[P, Awaitable[R]]) -> Callable[P
         extra_headers: dict[str, str] = {**(cast(Any, kwargs.get("extra_headers")) or {})}
         extra_headers[RAW_RESPONSE_HEADER] = "true"
 
-        kwargs["extra_headers"] = extra_headers
+        # All wrapped SDK request methods accept extra_headers; ParamSpec cannot express this constraint.
+        kwargs["extra_headers"] = extra_headers  # ty: ignore[invalid-assignment]
 
         return cast(LegacyAPIResponse[R], await func(*args, **kwargs))
 
@@ -389,9 +385,9 @@ def async_to_raw_response_wrapper(func: Callable[P, Awaitable[R]]) -> Callable[P
 
 
 class HttpxBinaryResponseContent:
-    response: httpx.Response
+    response: httpx2.Response
 
-    def __init__(self, response: httpx.Response) -> None:
+    def __init__(self, response: httpx2.Response) -> None:
         self.response = response
 
     @property

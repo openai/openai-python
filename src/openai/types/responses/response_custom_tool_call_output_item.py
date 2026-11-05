@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import Optional
 from typing_extensions import Literal
@@ -11,7 +11,7 @@ __all__ = ["ResponseCustomToolCallOutputItem"]
 class ResponseCustomToolCallOutputItem(ResponseCustomToolCallOutput):
     """The output of a custom tool call from your code, being sent back to the model."""
 
-    id: str  # type: ignore
+    id: str  # ty: ignore[invalid-mutable-override]
     """The unique ID of the custom tool call output item."""
 
     status: Literal["in_progress", "completed", "incomplete"]

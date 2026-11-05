@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import List, Optional
 from typing_extensions import Literal
@@ -32,7 +32,7 @@ class ConversationItemInputAudioTranscriptionDeltaEvent(BaseModel):
     logprobs: Optional[List[LogProbProperties]] = None
     """The log probabilities of the transcription.
 
-    These can be enabled by configurating the session with
+    These can be enabled by configuring the session with
     `"include": ["item.input_audio_transcription.logprobs"]`. Each entry in the
     array corresponds a log probability of which token would be selected for this
     chunk of transcription. This can help to identify if it was possible there were

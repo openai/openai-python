@@ -1,13 +1,18 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
-from typing import List
+from typing import List, Optional
 from typing_extensions import Literal
 
 from ..._models import BaseModel
 from .response_usage import ResponseUsage
 from .response_output_item import ResponseOutputItem
 
-__all__ = ["CompactedResponse"]
+__all__ = ["CompactedResponse", "Image"]
+
+
+class Image(BaseModel):
+    context_compression: Literal["enabled", "disabled"]
+    """Effective image context optimization policy."""
 
 
 class CompactedResponse(BaseModel):
@@ -31,3 +36,5 @@ class CompactedResponse(BaseModel):
     Token accounting for the compaction pass, including cached, reasoning, and total
     tokens.
     """
+
+    image: Optional[Image] = None

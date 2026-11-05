@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ import typing_extensions
 from typing import Union, Iterable, Optional
 from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from ... import _legacy_response
 from ..._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
@@ -74,17 +74,89 @@ class Assistants(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Assistant:
         """
         Create an assistant with a model and instructions.
 
         Args:
           model: ID of the model to use. You can use the
-              [List models](https://platform.openai.com/docs/api-reference/models/list) API to
-              see all of your available models, or see our
-              [Model overview](https://platform.openai.com/docs/models) for descriptions of
-              them.
+              [List models](https://developers.openai.com/api/reference/resources/models/methods/list)
+              API to see all of your available models, or see our
+              [Model overview](https://developers.openai.com/api/docs/models) for descriptions
+              of them.
+
+              Deprecated values:
+
+              - "gpt-5.4-nano", "gpt-5.4-nano-2026-03-17", "gpt-5.1", "gpt-5.1-2025-11-13":
+                Announced shutdown date: 2027-04-01. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.3-chat-latest", "gpt-5.2-chat-latest": Announced shutdown date:
+                2026-08-10. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-5.1-codex", "gpt-5.1-chat-latest", "gpt-5-chat-latest",
+                "gpt-4o-search-preview", "gpt-4o-mini-search-preview",
+                "gpt-4o-search-preview-2025-03-11", "gpt-4o-mini-search-preview-2025-03-11":
+                Announced shutdown date: 2026-07-23. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.1-mini": Not a supported model ID. Retained for SDK compatibility.
+              - "gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-5-2025-08-07",
+                "gpt-5-mini-2025-08-07", "gpt-5-nano-2025-08-07", "o3", "o3-2025-04-16":
+                Announced shutdown date: 2026-12-11. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-2025-04-14", "gpt-4.1-mini-2025-04-14",
+                "gpt-4o", "gpt-4o-2024-11-20", "gpt-4o-2024-08-06", "gpt-4o-mini",
+                "gpt-4o-mini-2024-07-18": Announced shutdown date: 2027-01-14. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1-nano", "gpt-4.1-nano-2025-04-14", "o4-mini", "o4-mini-2025-04-16",
+                "o3-mini", "o3-mini-2025-01-31", "o1", "o1-2024-12-17", "gpt-4o-2024-05-13",
+                "gpt-4-turbo", "gpt-4-turbo-2024-04-09", "gpt-4-1106-preview", "gpt-4",
+                "gpt-4-0613", "gpt-3.5-turbo", "gpt-3.5-turbo-0125": Announced shutdown date:
+                2026-10-23. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "o1-preview", "o1-preview-2024-09-12": Announced shutdown date: 2025-07-28.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "o1-mini", "o1-mini-2024-09-12": Announced shutdown date: 2025-10-27. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-audio-mini", "gpt-audio-mini-2025-12-15": Announced shutdown date:
+                2027-01-20. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4o-audio-preview", "gpt-4o-audio-preview-2024-12-17",
+                "gpt-4o-audio-preview-2025-06-03", "gpt-4o-mini-audio-preview",
+                "gpt-4o-mini-audio-preview-2024-12-17": Announced shutdown date: 2026-05-07.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4o-audio-preview-2024-10-01": Announced shutdown date: 2025-10-10. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "chatgpt-4o-latest": Announced shutdown date: 2026-02-17. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "codex-mini-latest": Announced shutdown date: 2026-02-12. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-0125-preview", "gpt-4-turbo-preview", "gpt-4-0314": Announced shutdown
+                date: 2026-03-26. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4-vision-preview": Announced shutdown date: 2024-12-06. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-32k", "gpt-4-32k-0314", "gpt-4-32k-0613": Announced shutdown date:
+                2025-06-06. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-3.5-turbo-16k", "gpt-3.5-turbo-0301", "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-16k-0613": Announced shutdown date: 2024-09-13. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-3.5-turbo-1106": Announced shutdown date: 2026-09-28. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
 
           description: The description of the assistant. The maximum length is 512 characters.
 
@@ -104,18 +176,18 @@ class Assistants(SyncAPIResource):
               are `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, and `max`. Reducing
               reasoning effort can result in faster responses and fewer tokens used on
               reasoning in a response. Not all reasoning models support every value. See the
-              [reasoning guide](https://platform.openai.com/docs/guides/reasoning) for
+              [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
               model-specific support.
 
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
-              and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+              [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://developers.openai.com/api/docs/models/gpt-4-turbo), and
+              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
               Outputs which ensures the model will match your supplied JSON schema. Learn more
               in the
-              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+              [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
               message the model generates is valid JSON.
@@ -194,7 +266,7 @@ class Assistants(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Assistant:
         """
         Retrieves an assistant.
@@ -291,7 +363,7 @@ class Assistants(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Assistant:
         """Modifies an assistant.
 
@@ -311,10 +383,20 @@ class Assistants(SyncAPIResource):
               a maximum length of 512 characters.
 
           model: ID of the model to use. You can use the
-              [List models](https://platform.openai.com/docs/api-reference/models/list) API to
-              see all of your available models, or see our
-              [Model overview](https://platform.openai.com/docs/models) for descriptions of
-              them.
+              [List models](https://developers.openai.com/api/reference/resources/models/methods/list)
+              API to see all of your available models, or see our
+              [Model overview](https://developers.openai.com/api/docs/models) for descriptions
+              of them.
+
+              Deprecated values:
+
+              - "gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-5-2025-08-07",
+                "gpt-5-mini-2025-08-07", "gpt-5-nano-2025-08-07": Announced shutdown date:
+                2026-12-11. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4.1", "gpt-4.1-mini", "gpt-4o", "gpt-4o-mini": Announced shutdown date:
+                2027-01-14. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
 
           name: The name of the assistant. The maximum length is 256 characters.
 
@@ -322,18 +404,18 @@ class Assistants(SyncAPIResource):
               are `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, and `max`. Reducing
               reasoning effort can result in faster responses and fewer tokens used on
               reasoning in a response. Not all reasoning models support every value. See the
-              [reasoning guide](https://platform.openai.com/docs/guides/reasoning) for
+              [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
               model-specific support.
 
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
-              and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+              [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://developers.openai.com/api/docs/models/gpt-4-turbo), and
+              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
               Outputs which ensures the model will match your supplied JSON schema. Learn more
               in the
-              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+              [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
               message the model generates is valid JSON.
@@ -380,10 +462,10 @@ class Assistants(SyncAPIResource):
             path_template("/assistants/{assistant_id}", assistant_id=assistant_id),
             body=maybe_transform(
                 {
+                    "model": model,
                     "description": description,
                     "instructions": instructions,
                     "metadata": metadata,
-                    "model": model,
                     "name": name,
                     "reasoning_effort": reasoning_effort,
                     "response_format": response_format,
@@ -417,7 +499,7 @@ class Assistants(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[Assistant]:
         """Returns a list of assistants.
 
@@ -481,7 +563,7 @@ class Assistants(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AssistantDeleted:
         """
         Delete an assistant.
@@ -553,17 +635,89 @@ class AsyncAssistants(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Assistant:
         """
         Create an assistant with a model and instructions.
 
         Args:
           model: ID of the model to use. You can use the
-              [List models](https://platform.openai.com/docs/api-reference/models/list) API to
-              see all of your available models, or see our
-              [Model overview](https://platform.openai.com/docs/models) for descriptions of
-              them.
+              [List models](https://developers.openai.com/api/reference/resources/models/methods/list)
+              API to see all of your available models, or see our
+              [Model overview](https://developers.openai.com/api/docs/models) for descriptions
+              of them.
+
+              Deprecated values:
+
+              - "gpt-5.4-nano", "gpt-5.4-nano-2026-03-17", "gpt-5.1", "gpt-5.1-2025-11-13":
+                Announced shutdown date: 2027-04-01. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.3-chat-latest", "gpt-5.2-chat-latest": Announced shutdown date:
+                2026-08-10. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-5.1-codex", "gpt-5.1-chat-latest", "gpt-5-chat-latest",
+                "gpt-4o-search-preview", "gpt-4o-mini-search-preview",
+                "gpt-4o-search-preview-2025-03-11", "gpt-4o-mini-search-preview-2025-03-11":
+                Announced shutdown date: 2026-07-23. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.1-mini": Not a supported model ID. Retained for SDK compatibility.
+              - "gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-5-2025-08-07",
+                "gpt-5-mini-2025-08-07", "gpt-5-nano-2025-08-07", "o3", "o3-2025-04-16":
+                Announced shutdown date: 2026-12-11. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-2025-04-14", "gpt-4.1-mini-2025-04-14",
+                "gpt-4o", "gpt-4o-2024-11-20", "gpt-4o-2024-08-06", "gpt-4o-mini",
+                "gpt-4o-mini-2024-07-18": Announced shutdown date: 2027-01-14. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1-nano", "gpt-4.1-nano-2025-04-14", "o4-mini", "o4-mini-2025-04-16",
+                "o3-mini", "o3-mini-2025-01-31", "o1", "o1-2024-12-17", "gpt-4o-2024-05-13",
+                "gpt-4-turbo", "gpt-4-turbo-2024-04-09", "gpt-4-1106-preview", "gpt-4",
+                "gpt-4-0613", "gpt-3.5-turbo", "gpt-3.5-turbo-0125": Announced shutdown date:
+                2026-10-23. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "o1-preview", "o1-preview-2024-09-12": Announced shutdown date: 2025-07-28.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "o1-mini", "o1-mini-2024-09-12": Announced shutdown date: 2025-10-27. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-audio-mini", "gpt-audio-mini-2025-12-15": Announced shutdown date:
+                2027-01-20. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4o-audio-preview", "gpt-4o-audio-preview-2024-12-17",
+                "gpt-4o-audio-preview-2025-06-03", "gpt-4o-mini-audio-preview",
+                "gpt-4o-mini-audio-preview-2024-12-17": Announced shutdown date: 2026-05-07.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4o-audio-preview-2024-10-01": Announced shutdown date: 2025-10-10. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "chatgpt-4o-latest": Announced shutdown date: 2026-02-17. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "codex-mini-latest": Announced shutdown date: 2026-02-12. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-0125-preview", "gpt-4-turbo-preview", "gpt-4-0314": Announced shutdown
+                date: 2026-03-26. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4-vision-preview": Announced shutdown date: 2024-12-06. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-32k", "gpt-4-32k-0314", "gpt-4-32k-0613": Announced shutdown date:
+                2025-06-06. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-3.5-turbo-16k", "gpt-3.5-turbo-0301", "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-16k-0613": Announced shutdown date: 2024-09-13. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-3.5-turbo-1106": Announced shutdown date: 2026-09-28. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
 
           description: The description of the assistant. The maximum length is 512 characters.
 
@@ -583,18 +737,18 @@ class AsyncAssistants(AsyncAPIResource):
               are `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, and `max`. Reducing
               reasoning effort can result in faster responses and fewer tokens used on
               reasoning in a response. Not all reasoning models support every value. See the
-              [reasoning guide](https://platform.openai.com/docs/guides/reasoning) for
+              [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
               model-specific support.
 
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
-              and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+              [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://developers.openai.com/api/docs/models/gpt-4-turbo), and
+              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
               Outputs which ensures the model will match your supplied JSON schema. Learn more
               in the
-              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+              [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
               message the model generates is valid JSON.
@@ -673,7 +827,7 @@ class AsyncAssistants(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Assistant:
         """
         Retrieves an assistant.
@@ -770,7 +924,7 @@ class AsyncAssistants(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Assistant:
         """Modifies an assistant.
 
@@ -790,10 +944,20 @@ class AsyncAssistants(AsyncAPIResource):
               a maximum length of 512 characters.
 
           model: ID of the model to use. You can use the
-              [List models](https://platform.openai.com/docs/api-reference/models/list) API to
-              see all of your available models, or see our
-              [Model overview](https://platform.openai.com/docs/models) for descriptions of
-              them.
+              [List models](https://developers.openai.com/api/reference/resources/models/methods/list)
+              API to see all of your available models, or see our
+              [Model overview](https://developers.openai.com/api/docs/models) for descriptions
+              of them.
+
+              Deprecated values:
+
+              - "gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-5-2025-08-07",
+                "gpt-5-mini-2025-08-07", "gpt-5-nano-2025-08-07": Announced shutdown date:
+                2026-12-11. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4.1", "gpt-4.1-mini", "gpt-4o", "gpt-4o-mini": Announced shutdown date:
+                2027-01-14. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
 
           name: The name of the assistant. The maximum length is 256 characters.
 
@@ -801,18 +965,18 @@ class AsyncAssistants(AsyncAPIResource):
               are `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, and `max`. Reducing
               reasoning effort can result in faster responses and fewer tokens used on
               reasoning in a response. Not all reasoning models support every value. See the
-              [reasoning guide](https://platform.openai.com/docs/guides/reasoning) for
+              [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
               model-specific support.
 
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
-              and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+              [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://developers.openai.com/api/docs/models/gpt-4-turbo), and
+              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
               Outputs which ensures the model will match your supplied JSON schema. Learn more
               in the
-              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+              [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
               message the model generates is valid JSON.
@@ -859,10 +1023,10 @@ class AsyncAssistants(AsyncAPIResource):
             path_template("/assistants/{assistant_id}", assistant_id=assistant_id),
             body=await async_maybe_transform(
                 {
+                    "model": model,
                     "description": description,
                     "instructions": instructions,
                     "metadata": metadata,
-                    "model": model,
                     "name": name,
                     "reasoning_effort": reasoning_effort,
                     "response_format": response_format,
@@ -896,7 +1060,7 @@ class AsyncAssistants(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[Assistant, AsyncCursorPage[Assistant]]:
         """Returns a list of assistants.
 
@@ -960,7 +1124,7 @@ class AsyncAssistants(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AssistantDeleted:
         """
         Delete an assistant.
@@ -994,30 +1158,20 @@ class AssistantsWithRawResponse:
     def __init__(self, assistants: Assistants) -> None:
         self._assistants = assistants
 
-        self.create = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.to_raw_response_wrapper(
-                assistants.create,  # pyright: ignore[reportDeprecated],
-            )
+        self.create = _legacy_response.to_raw_response_wrapper(
+            assistants.create,
         )
-        self.retrieve = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.to_raw_response_wrapper(
-                assistants.retrieve,  # pyright: ignore[reportDeprecated],
-            )
+        self.retrieve = _legacy_response.to_raw_response_wrapper(
+            assistants.retrieve,
         )
-        self.update = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.to_raw_response_wrapper(
-                assistants.update,  # pyright: ignore[reportDeprecated],
-            )
+        self.update = _legacy_response.to_raw_response_wrapper(
+            assistants.update,
         )
-        self.list = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.to_raw_response_wrapper(
-                assistants.list,  # pyright: ignore[reportDeprecated],
-            )
+        self.list = _legacy_response.to_raw_response_wrapper(
+            assistants.list,
         )
-        self.delete = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.to_raw_response_wrapper(
-                assistants.delete,  # pyright: ignore[reportDeprecated],
-            )
+        self.delete = _legacy_response.to_raw_response_wrapper(
+            assistants.delete,
         )
 
 
@@ -1025,30 +1179,20 @@ class AsyncAssistantsWithRawResponse:
     def __init__(self, assistants: AsyncAssistants) -> None:
         self._assistants = assistants
 
-        self.create = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.async_to_raw_response_wrapper(
-                assistants.create,  # pyright: ignore[reportDeprecated],
-            )
+        self.create = _legacy_response.async_to_raw_response_wrapper(
+            assistants.create,
         )
-        self.retrieve = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.async_to_raw_response_wrapper(
-                assistants.retrieve,  # pyright: ignore[reportDeprecated],
-            )
+        self.retrieve = _legacy_response.async_to_raw_response_wrapper(
+            assistants.retrieve,
         )
-        self.update = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.async_to_raw_response_wrapper(
-                assistants.update,  # pyright: ignore[reportDeprecated],
-            )
+        self.update = _legacy_response.async_to_raw_response_wrapper(
+            assistants.update,
         )
-        self.list = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.async_to_raw_response_wrapper(
-                assistants.list,  # pyright: ignore[reportDeprecated],
-            )
+        self.list = _legacy_response.async_to_raw_response_wrapper(
+            assistants.list,
         )
-        self.delete = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.async_to_raw_response_wrapper(
-                assistants.delete,  # pyright: ignore[reportDeprecated],
-            )
+        self.delete = _legacy_response.async_to_raw_response_wrapper(
+            assistants.delete,
         )
 
 
@@ -1056,30 +1200,20 @@ class AssistantsWithStreamingResponse:
     def __init__(self, assistants: Assistants) -> None:
         self._assistants = assistants
 
-        self.create = (  # pyright: ignore[reportDeprecated]
-            to_streamed_response_wrapper(
-                assistants.create,  # pyright: ignore[reportDeprecated],
-            )
+        self.create = to_streamed_response_wrapper(
+            assistants.create,
         )
-        self.retrieve = (  # pyright: ignore[reportDeprecated]
-            to_streamed_response_wrapper(
-                assistants.retrieve,  # pyright: ignore[reportDeprecated],
-            )
+        self.retrieve = to_streamed_response_wrapper(
+            assistants.retrieve,
         )
-        self.update = (  # pyright: ignore[reportDeprecated]
-            to_streamed_response_wrapper(
-                assistants.update,  # pyright: ignore[reportDeprecated],
-            )
+        self.update = to_streamed_response_wrapper(
+            assistants.update,
         )
-        self.list = (  # pyright: ignore[reportDeprecated]
-            to_streamed_response_wrapper(
-                assistants.list,  # pyright: ignore[reportDeprecated],
-            )
+        self.list = to_streamed_response_wrapper(
+            assistants.list,
         )
-        self.delete = (  # pyright: ignore[reportDeprecated]
-            to_streamed_response_wrapper(
-                assistants.delete,  # pyright: ignore[reportDeprecated],
-            )
+        self.delete = to_streamed_response_wrapper(
+            assistants.delete,
         )
 
 
@@ -1087,28 +1221,18 @@ class AsyncAssistantsWithStreamingResponse:
     def __init__(self, assistants: AsyncAssistants) -> None:
         self._assistants = assistants
 
-        self.create = (  # pyright: ignore[reportDeprecated]
-            async_to_streamed_response_wrapper(
-                assistants.create,  # pyright: ignore[reportDeprecated],
-            )
+        self.create = async_to_streamed_response_wrapper(
+            assistants.create,
         )
-        self.retrieve = (  # pyright: ignore[reportDeprecated]
-            async_to_streamed_response_wrapper(
-                assistants.retrieve,  # pyright: ignore[reportDeprecated],
-            )
+        self.retrieve = async_to_streamed_response_wrapper(
+            assistants.retrieve,
         )
-        self.update = (  # pyright: ignore[reportDeprecated]
-            async_to_streamed_response_wrapper(
-                assistants.update,  # pyright: ignore[reportDeprecated],
-            )
+        self.update = async_to_streamed_response_wrapper(
+            assistants.update,
         )
-        self.list = (  # pyright: ignore[reportDeprecated]
-            async_to_streamed_response_wrapper(
-                assistants.list,  # pyright: ignore[reportDeprecated],
-            )
+        self.list = async_to_streamed_response_wrapper(
+            assistants.list,
         )
-        self.delete = (  # pyright: ignore[reportDeprecated]
-            async_to_streamed_response_wrapper(
-                assistants.delete,  # pyright: ignore[reportDeprecated],
-            )
+        self.delete = async_to_streamed_response_wrapper(
+            assistants.delete,
         )

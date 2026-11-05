@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+# Keep the compatibility environment separate from the default Pydantic v2 one.
+export UV_PROJECT_ENVIRONMENT="${OPENAI_PYDANTIC_V1_ENV:-.venv-pydantic-v1}"
+uv sync --locked --all-extras --no-default-groups --group dev --group pydantic-v1
+exec uv run --no-sync python -m pytest --ignore=tests/functional "$@"

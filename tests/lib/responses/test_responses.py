@@ -1,17 +1,19 @@
 from __future__ import annotations
 
+import json
 from typing_extensions import TypeVar
 
 import pytest
-from respx import MockRouter
 from inline_snapshot import snapshot
 
 from openai import OpenAI, AsyncOpenAI
+from tests.respx2 import MockRouter
 from openai._types import omit
 from openai._utils import assert_signatures_in_sync
 from openai._models import construct_type_unchecked
-from openai.types.responses import Response
+from openai.types.responses import Response, ResponseCreatedEvent, ResponseOutputItemAddedEvent, response_create_params
 from openai.lib._parsing._responses import parse_response
+from openai.lib.streaming.responses._responses import ResponseStreamState
 
 from ...conftest import base_url
 from ..snapshots import make_snapshot_request
@@ -25,8 +27,8 @@ _T = TypeVar("_T")
 # `OPENAI_LIVE=1 pytest --inline-snapshot=fix -p no:xdist -o addopts=""`
 
 
-@pytest.mark.respx(base_url=base_url)
-def test_output_text(client: OpenAI, respx_mock: MockRouter) -> None:
+@pytest.mark.respx2(base_url=base_url)
+def test_output_text(client: OpenAI, respx2_mock: MockRouter) -> None:
     response = make_snapshot_request(
         lambda c: c.responses.create(
             model="gpt-4o-mini",
@@ -37,12 +39,48 @@ def test_output_text(client: OpenAI, respx_mock: MockRouter) -> None:
         ),
         path="/responses",
         mock_client=client,
-        respx_mock=respx_mock,
+        respx2_mock=respx2_mock,
     )
 
     assert response.output_text == snapshot(
         "I can't provide real-time updates, but you can easily check the current weather in San Francisco using a weather website or app. Typically, San Francisco has cool, foggy summers and mild winters, so it's good to be prepared for variable weather!"
     )
+
+
+@pytest.mark.respx2(base_url=base_url)
+@pytest.mark.parametrize("client,async_client", [(False, False)], indirect=True)  # default loose validation
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+@pytest.mark.parametrize(
+    "text_fields,expected",
+    [
+        pytest.param([{"text": "hello"}, {"text": None}, {"text": " world"}], "hello world", id="mixed-null"),
+        pytest.param([{"text": None}, {"text": None}], "", id="all-null"),
+        pytest.param([{}, {"text": "hello"}], "hello", id="missing"),
+        pytest.param([{"text": "hello"}, {"text": " world"}], "hello world", id="strings"),
+        pytest.param([{"text": ""}], "", id="empty-string"),
+        pytest.param([], "", id="empty-content"),
+    ],
+)
+async def test_output_text_with_nullable_content(
+    client: OpenAI,
+    async_client: AsyncOpenAI,
+    respx2_mock: MockRouter,
+    sync: bool,
+    text_fields: list[dict[str, str | None]],
+    expected: str,
+) -> None:
+    content: list[dict[str, object]] = [{"type": "output_text", "annotations": [], **fields} for fields in text_fields]
+    output: list[dict[str, object]] = [{"type": "message", "role": "assistant", "content": content}]
+    respx2_mock.post("/responses").respond(json={"output": output})
+
+    if sync:
+        response = client.responses.create(model="gpt-4o-mini", input="Say hello")
+    else:
+        response = await async_client.responses.create(model="gpt-4o-mini", input="Say hello")
+
+    assert response.to_dict()["output"] == output
+    assert response.output_text == expected
+    assert response.to_dict()["output"] == output
 
 
 @pytest.mark.parametrize(
@@ -72,6 +110,31 @@ def test_parse_response_preserves_program_items(item: dict[str, object]) -> None
     assert parsed.output[0].to_dict() == item
 
 
+@pytest.mark.respx2(base_url=base_url)
+@pytest.mark.parametrize("client,async_client", [(False, False)], indirect=True)
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+async def test_responses_helpers_forward_image_options(
+    client: OpenAI, async_client: AsyncOpenAI, respx2_mock: MockRouter, sync: bool
+) -> None:
+    image: response_create_params.Image = {"context_compression": "disabled"}
+    route = respx2_mock.post("/responses").respond(json={"output": []})
+
+    if sync:
+        client.responses.parse(model="test-model", input="test", image=image)
+    else:
+        await async_client.responses.parse(model="test-model", input="test", image=image)
+
+    route.respond(content="data: [DONE]\n\n", headers={"content-type": "text/event-stream"})
+    if sync:
+        with client.responses.stream(model="test-model", input="test", image=image) as stream:
+            assert list(stream) == []
+    else:
+        async with async_client.responses.stream(model="test-model", input="test", image=image) as stream:
+            assert [event async for event in stream] == []
+
+    assert [json.loads(call.request.content)["image"] for call in route.calls] == [image, image]
+
+
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
 def test_stream_method_definition_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
     checking_client: OpenAI | AsyncOpenAI = client if sync else async_client
@@ -79,6 +142,17 @@ def test_stream_method_definition_in_sync(sync: bool, client: OpenAI, async_clie
     assert_signatures_in_sync(
         checking_client.responses.create,
         checking_client.responses.stream,
+        exclude_params={"stream", "tools"},
+    )
+
+
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+def test_parse_method_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
+    checking_client: OpenAI | AsyncOpenAI = client if sync else async_client
+
+    assert_signatures_in_sync(
+        checking_client.responses.create,
+        checking_client.responses.parse,
         exclude_params={"stream", "tools"},
     )
 
@@ -92,3 +166,70 @@ def test_parse_method_definition_in_sync(sync: bool, client: OpenAI, async_clien
         checking_client.responses.parse,
         exclude_params={"tools"},
     )
+
+
+def test_parse_response_with_null_output() -> None:
+    response = construct_type_unchecked(type_=Response, value={"output": None})
+
+    parsed = parse_response(text_format=omit, input_tools=omit, response=response)
+
+    assert parsed.output == []
+
+
+def test_stream_state_ignores_output_item_added_with_null_item() -> None:
+    state: ResponseStreamState[object] = ResponseStreamState(text_format=omit, input_tools=[])
+
+    created = construct_type_unchecked(
+        type_=ResponseCreatedEvent,
+        value={
+            "type": "response.created",
+            "sequence_number": 0,
+            "response": {
+                "id": "resp_123",
+                "object": "response",
+                "created_at": 0,
+                "status": "in_progress",
+                "background": False,
+                "error": None,
+                "incomplete_details": None,
+                "instructions": None,
+                "max_output_tokens": None,
+                "max_tool_calls": None,
+                "model": "gpt-4o-mini",
+                "output": [],
+                "parallel_tool_calls": True,
+                "previous_response_id": None,
+                "prompt_cache_key": None,
+                "reasoning": {"effort": None, "summary": None},
+                "safety_identifier": None,
+                "service_tier": "default",
+                "store": True,
+                "temperature": 1.0,
+                "text": {"format": {"type": "text"}, "verbosity": "medium"},
+                "tool_choice": "auto",
+                "tools": [],
+                "top_logprobs": 0,
+                "top_p": 1.0,
+                "truncation": "disabled",
+                "usage": None,
+                "user": None,
+                "metadata": {},
+            },
+        },
+    )
+    state.handle_event(created)
+
+    added = construct_type_unchecked(
+        type_=ResponseOutputItemAddedEvent,
+        value={
+            "type": "response.output_item.added",
+            "sequence_number": 1,
+            "output_index": 0,
+            "item": None,
+        },
+    )
+
+    events = state.handle_event(added)
+
+    assert events == []
+    assert state.accumulate_event(added).output == []

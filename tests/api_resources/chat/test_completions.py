@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -6,9 +6,8 @@ import os
 from typing import Any, cast
 
 import pytest
-import pydantic
 
-from openai import OpenAI, AsyncOpenAI
+from openai import OpenAI, Stream as _Stream, AsyncOpenAI, AsyncStream as _AsyncStream
 from tests.utils import assert_matches_type
 from openai.pagination import SyncCursorPage, AsyncCursorPage
 from openai.types.chat import (
@@ -31,7 +30,7 @@ class TestCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-5.4",
+            model="gpt-6-astra",
         )
         assert_matches_type(ChatCompletion, completion, path=["response"])
 
@@ -45,7 +44,7 @@ class TestCompletions:
                     "name": "name",
                 }
             ],
-            model="gpt-5.4",
+            model="gpt-6-astra",
             audio={
                 "format": "wav",
                 "voice": "alloy",
@@ -138,7 +137,7 @@ class TestCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-5.4",
+            model="gpt-6-astra",
         )
 
         assert response.is_closed is True
@@ -155,7 +154,7 @@ class TestCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-5.4",
+            model="gpt-6-astra",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -174,7 +173,7 @@ class TestCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-5.4",
+            model="gpt-6-astra",
             stream=True,
         )
         completion_stream.response.close()
@@ -189,7 +188,7 @@ class TestCompletions:
                     "name": "name",
                 }
             ],
-            model="gpt-5.4",
+            model="gpt-6-astra",
             stream=True,
             audio={
                 "format": "wav",
@@ -282,12 +281,13 @@ class TestCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-5.4",
+            model="gpt-6-astra",
             stream=True,
         )
 
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         stream = response.parse()
+        assert isinstance(stream, _Stream)
         stream.close()
 
     @parametrize
@@ -299,13 +299,14 @@ class TestCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-5.4",
+            model="gpt-6-astra",
             stream=True,
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
             stream = response.parse()
+            assert isinstance(stream, _Stream)
             stream.close()
 
         assert cast(Any, response.is_closed) is True
@@ -464,23 +465,6 @@ class TestCompletions:
                 "",
             )
 
-    @parametrize
-    def test_method_create_disallows_pydantic(self, client: OpenAI) -> None:
-        class MyModel(pydantic.BaseModel):
-            a: str
-
-        with pytest.raises(TypeError, match=r"You tried to pass a `BaseModel` class"):
-            client.chat.completions.create(
-                messages=[
-                    {
-                        "content": "string",
-                        "role": "system",
-                    }
-                ],
-                model="gpt-4o",
-                response_format=cast(Any, MyModel),
-            )
-
 
 class TestAsyncCompletions:
     parametrize = pytest.mark.parametrize(
@@ -496,7 +480,7 @@ class TestAsyncCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-5.4",
+            model="gpt-6-astra",
         )
         assert_matches_type(ChatCompletion, completion, path=["response"])
 
@@ -510,7 +494,7 @@ class TestAsyncCompletions:
                     "name": "name",
                 }
             ],
-            model="gpt-5.4",
+            model="gpt-6-astra",
             audio={
                 "format": "wav",
                 "voice": "alloy",
@@ -603,7 +587,7 @@ class TestAsyncCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-5.4",
+            model="gpt-6-astra",
         )
 
         assert response.is_closed is True
@@ -620,7 +604,7 @@ class TestAsyncCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-5.4",
+            model="gpt-6-astra",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -639,7 +623,7 @@ class TestAsyncCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-5.4",
+            model="gpt-6-astra",
             stream=True,
         )
         await completion_stream.response.aclose()
@@ -654,7 +638,7 @@ class TestAsyncCompletions:
                     "name": "name",
                 }
             ],
-            model="gpt-5.4",
+            model="gpt-6-astra",
             stream=True,
             audio={
                 "format": "wav",
@@ -747,12 +731,13 @@ class TestAsyncCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-5.4",
+            model="gpt-6-astra",
             stream=True,
         )
 
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         stream = response.parse()
+        assert isinstance(stream, _AsyncStream)
         await stream.close()
 
     @parametrize
@@ -764,13 +749,14 @@ class TestAsyncCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-5.4",
+            model="gpt-6-astra",
             stream=True,
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
             stream = await response.parse()
+            assert isinstance(stream, _AsyncStream)
             await stream.close()
 
         assert cast(Any, response.is_closed) is True
@@ -927,21 +913,4 @@ class TestAsyncCompletions:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `completion_id` but received ''"):
             await async_client.chat.completions.with_raw_response.delete(
                 "",
-            )
-
-    @parametrize
-    async def test_method_create_disallows_pydantic(self, async_client: AsyncOpenAI) -> None:
-        class MyModel(pydantic.BaseModel):
-            a: str
-
-        with pytest.raises(TypeError, match=r"You tried to pass a `BaseModel` class"):
-            await async_client.chat.completions.create(
-                messages=[
-                    {
-                        "content": "string",
-                        "role": "system",
-                    }
-                ],
-                model="gpt-4o",
-                response_format=cast(Any, MyModel),
             )

@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
@@ -6,14 +6,7 @@ from typing_extensions import Literal, Annotated, TypeAlias
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
 
-__all__ = [
-    "ResponseFunctionWebSearch",
-    "Action",
-    "ActionSearch",
-    "ActionSearchSource",
-    "ActionOpenPage",
-    "ActionFind",
-]
+__all__ = ["ResponseFunctionWebSearch", "Action", "ActionSearch", "ActionSearchSource", "ActionOpenPage", "ActionFind"]
 
 
 class ActionSearchSource(BaseModel):
@@ -72,7 +65,7 @@ class ResponseFunctionWebSearch(BaseModel):
     """The results of a web search tool call.
 
     See the
-    [web search guide](https://platform.openai.com/docs/guides/tools-web-search) for more information.
+    [web search guide](https://developers.openai.com/api/docs/guides/tools-web-search) for more information.
     """
 
     id: str
@@ -84,7 +77,7 @@ class ResponseFunctionWebSearch(BaseModel):
     details on how the model used the web (search, open_page, find_in_page).
     """
 
-    status: Literal["in_progress", "searching", "completed", "failed"]
+    status: Literal["in_progress", "searching", "completed", "failed", "incomplete"]
     """The status of the web search tool call."""
 
     type: Literal["web_search_call"]

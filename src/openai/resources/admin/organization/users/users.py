@@ -1,10 +1,10 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 from typing import Optional
 
-import httpx
+import httpx2
 
 from ..... import _legacy_response
 from .roles import (
@@ -62,7 +62,7 @@ class Users(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> OrganizationUser:
         """
         Retrieves a user by their identifier.
@@ -103,7 +103,7 @@ class Users(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> OrganizationUser:
         """
         Modifies a user's role in the organization.
@@ -159,7 +159,7 @@ class Users(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncConversationCursorPage[OrganizationUser]:
         """
         Lists all of the users in the organization.
@@ -213,7 +213,7 @@ class Users(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UserDeleteResponse:
         """
         Deletes a user from the organization.
@@ -275,7 +275,7 @@ class AsyncUsers(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> OrganizationUser:
         """
         Retrieves a user by their identifier.
@@ -316,7 +316,7 @@ class AsyncUsers(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> OrganizationUser:
         """
         Modifies a user's role in the organization.
@@ -372,7 +372,7 @@ class AsyncUsers(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[OrganizationUser, AsyncConversationCursorPage[OrganizationUser]]:
         """
         Lists all of the users in the organization.
@@ -426,7 +426,7 @@ class AsyncUsers(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UserDeleteResponse:
         """
         Deletes a user from the organization.
