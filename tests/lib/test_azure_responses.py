@@ -19,19 +19,21 @@ AZURE_DEPLOYMENT_MODEL = "gpt-5-nano"
 AZURE_SERVED_MODEL = "gpt-5-nano-2025-08-07"
 
 
-def make_sync_client() -> AzureOpenAI:
+def make_sync_client(*, azure_deployment: str | None = None) -> AzureOpenAI:
     return AzureOpenAI(
         api_version=AZURE_API_VERSION,
         api_key="example API key",
         azure_endpoint=AZURE_ENDPOINT,
+        azure_deployment=azure_deployment,
     )
 
 
-def make_async_client() -> AsyncAzureOpenAI:
+def make_async_client(*, azure_deployment: str | None = None) -> AsyncAzureOpenAI:
     return AsyncAzureOpenAI(
         api_version=AZURE_API_VERSION,
         api_key="example API key",
         azure_endpoint=AZURE_ENDPOINT,
+        azure_deployment=azure_deployment,
     )
 
 
@@ -166,3 +168,105 @@ def test_azure_served_model_header_does_not_apply_to_non_responses_resources(res
     response = make_sync_client().chat.completions.create(messages=[], model="gpt-4")
 
     assert response.model == "gpt-4"
+
+
+def mock_chat_completions(respx2_mock: MockRouter, *, deployment_path: str, stream: bool) -> None:
+    payload = {
+        "id": "chatcmpl_example",
+        "object": "chat.completion.chunk" if stream else "chat.completion",
+        "created": 0,
+        "model": "gpt-4-body",
+        "choices": [],
+    }
+    headers = {"x-ms-served-model": AZURE_SERVED_MODEL}
+    if stream:
+        headers["content-type"] = "text/event-stream"
+        response = httpx2.Response(
+            200, headers=headers, content=b"data: " + json.dumps(payload).encode() + b"\n\ndata: [DONE]\n\n"
+        )
+    else:
+        response = httpx2.Response(200, headers=headers, json=payload)
+    respx2_mock.post(
+        f"{AZURE_ENDPOINT}/openai/deployments/{deployment_path}/chat/completions?api-version={AZURE_API_VERSION}"
+    ).mock(return_value=response)
+
+
+@pytest.mark.parametrize(
+    "model,azure_deployment,deployment_path",
+    [
+        ("responses", None, "responses"),
+        ("responses", "responses", "responses"),
+        ("prefix/responses", None, "prefix%2Fresponses"),
+    ],
+)
+@pytest.mark.parametrize("stream", [False, True])
+@pytest.mark.respx2()
+def test_chat_model_is_preserved_when_deployment_contains_responses(
+    respx2_mock: MockRouter, model: str, azure_deployment: str | None, deployment_path: str, stream: bool
+) -> None:
+    mock_chat_completions(respx2_mock, deployment_path=deployment_path, stream=stream)
+
+    with make_sync_client(azure_deployment=azure_deployment) as client:
+        if stream:
+            with client.chat.completions.create(messages=[], model=model, stream=True) as chunks:
+                assert next(chunks).model == "gpt-4-body"
+        else:
+            response = client.chat.completions.create(messages=[], model=model)
+            assert response.model == "gpt-4-body"
+
+
+@pytest.mark.parametrize(
+    "model,azure_deployment,deployment_path",
+    [
+        ("responses", None, "responses"),
+        ("responses", "responses", "responses"),
+        ("prefix/responses", None, "prefix%2Fresponses"),
+    ],
+)
+@pytest.mark.parametrize("stream", [False, True])
+@pytest.mark.asyncio
+@pytest.mark.respx2()
+async def test_async_chat_model_is_preserved_when_deployment_contains_responses(
+    respx2_mock: MockRouter, model: str, azure_deployment: str | None, deployment_path: str, stream: bool
+) -> None:
+    mock_chat_completions(respx2_mock, deployment_path=deployment_path, stream=stream)
+
+    async with make_async_client(azure_deployment=azure_deployment) as client:
+        if stream:
+            async with await client.chat.completions.create(messages=[], model=model, stream=True) as chunks:
+                assert (await chunks.__anext__()).model == "gpt-4-body"
+        else:
+            response = await client.chat.completions.create(messages=[], model=model)
+            assert response.model == "gpt-4-body"
+
+
+@pytest.mark.parametrize("base_path", ["/openai", "/openai/deployments/responses", "/gateway/deployments/blue/openai"])
+@pytest.mark.respx2()
+def test_azure_responses_retrieve_uses_served_model_header(respx2_mock: MockRouter, base_path: str) -> None:
+    respx2_mock.get(f"{AZURE_ENDPOINT}{base_path}/responses/resp_123?api-version={AZURE_API_VERSION}").mock(
+        return_value=httpx2.Response(
+            200, headers={"x-ms-served-model": AZURE_SERVED_MODEL}, json=azure_response_payload()
+        )
+    )
+
+    with AzureOpenAI(
+        api_version=AZURE_API_VERSION, api_key="example API key", base_url=f"{AZURE_ENDPOINT}{base_path}"
+    ) as client:
+        assert client.responses.retrieve("resp_123").model == AZURE_SERVED_MODEL
+
+
+@pytest.mark.parametrize("base_path", ["/openai", "/openai/deployments/responses", "/gateway/deployments/blue/openai"])
+@pytest.mark.asyncio
+@pytest.mark.respx2()
+async def test_async_azure_responses_retrieve_uses_served_model_header(respx2_mock: MockRouter, base_path: str) -> None:
+    respx2_mock.get(f"{AZURE_ENDPOINT}{base_path}/responses/resp_123?api-version={AZURE_API_VERSION}").mock(
+        return_value=httpx2.Response(
+            200, headers={"x-ms-served-model": AZURE_SERVED_MODEL}, json=azure_response_payload()
+        )
+    )
+
+    async with AsyncAzureOpenAI(
+        api_version=AZURE_API_VERSION, api_key="example API key", base_url=f"{AZURE_ENDPOINT}{base_path}"
+    ) as client:
+        response = await client.responses.retrieve("resp_123")
+        assert response.model == AZURE_SERVED_MODEL

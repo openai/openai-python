@@ -82,8 +82,12 @@ async def _async_strip_azure_api_key_on_redirect(request: httpx2.Request) -> Non
 
 
 def _is_responses_request(response: httpx2.Response) -> bool:
-    path = response.request.url.path.rstrip("/")
-    return path.endswith("/responses") or "/responses/" in path
+    # Keep encoded slashes within deployment names rather than treating them as route separators.
+    path = response.request.url.raw_path.split(b"?", 1)[0].rstrip(b"/")
+    if b"/deployments/" in path:
+        path = b"/" + path.split(b"/deployments/", 1)[1].partition(b"/")[2]
+
+    return path.endswith(b"/responses") or b"/responses/" in path
 
 
 def _served_model_from_response(response: httpx2.Response) -> str | None:
