@@ -26,3 +26,6 @@ class AgentSessionEnvironmentExpiredEvent(BaseModel):
 
     type: Literal["agent.session.environment.expired"]
     """The type of the object. Always `agent.session.environment.expired`."""
+
+    obfuscation: Optional[str] = None
+    """Random alphanumeric padding. Present when stream obfuscation is enabled."""

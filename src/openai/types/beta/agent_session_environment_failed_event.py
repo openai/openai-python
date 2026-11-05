@@ -26,3 +26,6 @@ class AgentSessionEnvironmentFailedEvent(BaseModel):
 
     type: Literal["agent.session.environment.failed"]
     """The type of the object. Always `agent.session.environment.failed`."""
+
+    obfuscation: Optional[str] = None
+    """Random alphanumeric padding. Present when stream obfuscation is enabled."""

@@ -34,3 +34,6 @@ class AgentSessionTurnOutputTextDeltaEvent(BaseModel):
 
     type: Literal["agent.session.turn.output_text.delta"]
     """The type of the object. Always `agent.session.turn.output_text.delta`."""
+
+    obfuscation: Optional[str] = None
+    """Random alphanumeric padding. Present when stream obfuscation is enabled."""

@@ -31,3 +31,6 @@ class AgentOutputCommandExecutionOutputDeltaEvent(BaseModel):
 
     type: Literal["agent.output.command_execution_output.delta"]
     """The type of the object. Always `agent.output.command_execution_output.delta`."""
+
+    obfuscation: Optional[str] = None
+    """Random alphanumeric padding. Present when stream obfuscation is enabled."""

@@ -9,6 +9,7 @@ from .session_artifact import SessionArtifact as SessionArtifact
 from .turn_list_params import TurnListParams as TurnListParams
 from .trace_list_params import TraceListParams as TraceListParams
 from .event_create_params import EventCreateParams as EventCreateParams
+from .event_stream_params import EventStreamParams as EventStreamParams
 from .artifact_list_params import ArtifactListParams as ArtifactListParams
 from .subagent_list_params import SubagentListParams as SubagentListParams
 from .session_artifact_deleted import SessionArtifactDeleted as SessionArtifactDeleted
