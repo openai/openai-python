@@ -300,7 +300,8 @@ async def test_candidate_mapping_cannot_fabricate_missing_fields(lane: str) -> N
 
     class MissingID(dict[str, object]):
         @override
-        def get(self, key: str, default: object = None) -> Any:
+        # This adversarial mapping tests that validation does not trust get().
+        def get(self, key: str, default: object = None) -> Any:  # ty: ignore[invalid-method-override]
             reads.append(key)
             if key == "id":
                 return "invented"
@@ -875,7 +876,7 @@ async def test_unknown_params_stop_before_observation(lane: str, bad: dict[str, 
             [],
             observe=observe,
             candidates=lambda _: [DONE],
-            params=cast(DecisionsRunnerParams, {**PARAMS, **bad}),
+            params={**PARAMS, **bad},
         )
 
 
@@ -923,13 +924,11 @@ async def test_final_request_can_verify_done_with_255_candidates(lane: str) -> N
     effects: list[str] = []
 
     def candidates(_obs: DecisionObservation) -> list[DecisionCandidate]:
-        return [
-            *[
-                {"id": str(index), "description": "perform", "execute": lambda: effects.append("effect")}
-                for index in range(254)
-            ],
-            DONE,
+        actions: list[DecisionCandidate] = [
+            {"id": str(index), "description": "perform", "execute": lambda: effects.append("effect")}
+            for index in range(254)
         ]
+        return [*actions, DONE]
 
     result = await run(
         lane,

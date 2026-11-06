@@ -86,7 +86,7 @@ from ._constants import RAW_RESPONSE_HEADER
 if TYPE_CHECKING:
     from pydantic import GetCoreSchemaHandler, ValidatorFunctionWrapHandler
     from pydantic_core import CoreSchema, core_schema
-    from pydantic_core.core_schema import ModelField, ModelSchema, LiteralSchema, ModelFieldsSchema
+    from pydantic_core.core_schema import ModelField
 else:
     try:
         from pydantic_core import CoreSchema, core_schema
@@ -116,12 +116,12 @@ class BaseModel(pydantic.BaseModel):
         @override
         def model_fields_set(self) -> set[str]:
             # a forwards-compat shim for pydantic v2
-            return self.__fields_set__  # type: ignore
+            return self.__fields_set__
 
-        class Config(pydantic.BaseConfig):  # pyright: ignore[reportDeprecated]
-            extra: Any = pydantic.Extra.allow  # type: ignore
+        class Config(pydantic.BaseConfig):
+            extra: Any = pydantic.Extra.allow
 
-        @pydantic.root_validator(pre=True)  # pyright: ignore[reportDeprecated]
+        @pydantic.root_validator(pre=True)
         @classmethod
         def _preserve_wire_aliases(cls, values: Any) -> Any:
             if not is_dict(values):
@@ -242,14 +242,13 @@ class BaseModel(pydantic.BaseModel):
 
     @override
     def __str__(self) -> str:
-        # mypy complains about an invalid self arg
-        return f"{self.__repr_name__()}({self.__repr_str__(', ')})"  # type: ignore[misc]
+        return f"{self.__repr_name__()}({self.__repr_str__(', ')})"
 
     # Override the 'construct' method in a way that supports recursive parsing without validation.
     # Based on https://github.com/samuelcolvin/pydantic/issues/1168#issuecomment-817742836.
     @classmethod
     @override
-    def construct(  # pyright: ignore[reportIncompatibleMethodOverride]
+    def construct(
         __cls: Type[ModelT],
         _fields_set: set[str] | None = None,
         **values: object,
@@ -296,7 +295,7 @@ class BaseModel(pydantic.BaseModel):
 
         if PYDANTIC_V1:
             # init_private_attributes() does not exist in v2
-            m._init_private_attributes()  # type: ignore
+            m._init_private_attributes()
 
             # copied from Pydantic v1's `construct()` method
             object.__setattr__(m, "__fields_set__", _fields_set)
@@ -380,7 +379,7 @@ class BaseModel(pydantic.BaseModel):
                 raise ValueError("fallback is only supported in Pydantic v2")
             if exclude_computed_fields != False:
                 raise ValueError("exclude_computed_fields is only supported in Pydantic v2")
-            dumped = super().dict(  # pyright: ignore[reportDeprecated]
+            dumped = super().dict(
                 include=include,
                 exclude=exclude,
                 by_alias=by_alias if by_alias is not None else False,
@@ -442,7 +441,7 @@ class BaseModel(pydantic.BaseModel):
                 raise ValueError("ensure_ascii is only supported in Pydantic v2")
             if exclude_computed_fields != False:
                 raise ValueError("exclude_computed_fields is only supported in Pydantic v2")
-            return super().json(  # type: ignore[reportDeprecated]
+            return super().json(
                 indent=indent,
                 include=include,
                 exclude=exclude,
@@ -528,9 +527,9 @@ def _construct_field(value: object, field: FieldInfo, key: str) -> object:
         return field_get_default(field)
 
     if PYDANTIC_V1:
-        type_ = cast(type, field.outer_type_)  # type: ignore
+        type_ = cast(type, field.outer_type_)
     else:
-        type_ = field.annotation  # type: ignore
+        type_ = field.annotation
 
     if type_ is None:
         raise RuntimeError(f"Unexpected field type is None for {key}")
@@ -549,8 +548,8 @@ def _get_extra_fields_type(cls: type[pydantic.BaseModel]) -> type | None:
         if fields["type"] == "model-fields":
             extras = fields.get("extras_schema")
             if extras and "cls" in extras:
-                # mypy can't narrow the type
-                return extras["cls"]  # type: ignore[no-any-return]
+                # Pydantic core-schema metadata stores the model class as an object.
+                return extras["cls"]  # ty: ignore[invalid-return-type]
 
     return None
 
@@ -620,8 +619,8 @@ def construct_type(*, value: object, type_: object, metadata: Optional[List[Any]
     # `Literal['value']` will be reported as a type error by type checkers
     type_ = cast("type[object]", type_)
     if is_type_alias_type(type_):
-        original_type = type_  # type: ignore[unreachable]
-        type_ = type_.__value__  # type: ignore[unreachable]
+        original_type = type_
+        type_ = type_.__value__
 
     # unwrap `Annotated[T, ...]` -> `T`
     if metadata is not None and len(metadata) > 0:
@@ -639,22 +638,22 @@ def construct_type(*, value: object, type_: object, metadata: Optional[List[Any]
 
     if is_union(origin):
         try:
-            return validate_type(type_=cast("type[object]", original_type or type_), value=value)
+            return validate_type(type_=original_type or type_, value=value)
         except Exception:
             pass
 
         # if the type is a discriminated union then we want to construct the right variant
         # in the union, even if the data doesn't match exactly, otherwise we'd break code
         # that relies on the constructed class types, e.g.
-        #
+
         # class FooType:
         #   kind: Literal['foo']
         #   value: str
-        #
+
         # class BarType:
         #   kind: Literal['bar']
         #   value: int
-        #
+
         # without this block, if the data we get is something like `{'kind': 'bar', 'value': 'foo'}` then
         # we'd end up constructing `FooType` when it should be `BarType`.
         discriminator = _build_discriminated_union_meta(union=type_, meta_annotations=meta)
@@ -692,7 +691,8 @@ def construct_type(*, value: object, type_: object, metadata: Optional[List[Any]
 
         if is_mapping(value):
             if issubclass(type_, BaseModel):
-                return type_.construct(**value)  # type: ignore[arg-type]
+                # Preserve unchecked construction; input keys may include Pydantic control fields.
+                return type_.construct(**value)  # ty: ignore[invalid-argument-type]
 
             return cast(Any, type_).construct(**value)
 
@@ -714,13 +714,15 @@ def construct_type(*, value: object, type_: object, metadata: Optional[List[Any]
 
     if type_ == datetime:
         try:
-            return parse_datetime(value)  # type: ignore
+            # Try coercion on arbitrary input; failed parses fall back to the original value.
+            return parse_datetime(value)  # ty: ignore[invalid-argument-type]
         except Exception:
             return value
 
     if type_ == date:
         try:
-            return parse_date(value)  # type: ignore
+            # Try coercion on arbitrary input; failed parses fall back to the original value.
+            return parse_date(value)  # ty: ignore[invalid-argument-type]
         except Exception:
             return value
 
@@ -802,7 +804,7 @@ def _build_discriminated_union_meta(*, union: type, meta_annotations: tuple[Any,
         variant = strip_annotated_type(variant)
         if is_basemodel_type(variant):
             if PYDANTIC_V1:
-                field_info = cast("dict[str, FieldInfo]", variant.__fields__).get(discriminator_field_name)  # pyright: ignore[reportDeprecated, reportUnnecessaryCast]
+                field_info = variant.__fields__.get(discriminator_field_name)
                 if not field_info:
                     continue
 
@@ -824,7 +826,7 @@ def _build_discriminated_union_meta(*, union: type, meta_annotations: tuple[Any,
                 field_schema = field["schema"]
 
                 if field_schema["type"] == "literal":
-                    for entry in cast("LiteralSchema", field_schema)["expected"]:
+                    for entry in field_schema["expected"]:
                         if isinstance(entry, str):
                             mapping[entry] = variant
 
@@ -852,17 +854,15 @@ def _extract_field_schema_pv2(model: type[BaseModel], field_name: str) -> ModelF
     if schema["type"] != "model":
         return None
 
-    schema = cast("ModelSchema", schema)
     fields_schema = schema["schema"]
     if fields_schema["type"] != "model-fields":
         return None
 
-    fields_schema = cast("ModelFieldsSchema", fields_schema)
     field = fields_schema["fields"].get(field_name)
     if not field:
         return None
 
-    return cast("ModelField", field)  # pyright: ignore[reportUnnecessaryCast]
+    return field
 
 
 def validate_type(*, type_: type[_T], value: object) -> _T:
@@ -870,7 +870,7 @@ def validate_type(*, type_: type[_T], value: object) -> _T:
     if inspect.isclass(type_) and issubclass(type_, pydantic.BaseModel):
         return cast(_T, parse_obj(type_, value))
 
-    return cast(_T, _validate_non_model_type(type_=type_, value=value))
+    return _validate_non_model_type(type_=type_, value=value)
 
 
 def set_pydantic_config(typ: Any, config: pydantic.ConfigDict) -> None:
@@ -889,7 +889,7 @@ def add_request_id(obj: BaseModel, request_id: str | None) -> None:
     # case so we need to explicitly exclude it
     if PYDANTIC_V1:
         try:
-            exclude_fields = obj.__exclude_fields__  # type: ignore
+            exclude_fields = obj.__exclude_fields__
         except AttributeError:
             cast(Any, obj).__exclude_fields__ = {"_request_id", "__exclude_fields__"}
         else:
@@ -939,7 +939,7 @@ elif not TYPE_CHECKING:  # TODO: condition is weird
         return cast(_T, model.__root__)
 
     def _create_pydantic_model(type_: _T) -> Type[RootModel[_T]]:
-        return RootModel[type_]  # type: ignore
+        return RootModel[type_]
 
 
 class SecurityOptions(TypedDict, total=False):
@@ -990,7 +990,7 @@ class FinalRequestOptions(pydantic.BaseModel):
 
     if PYDANTIC_V1:
 
-        class Config(pydantic.BaseConfig):  # pyright: ignore[reportDeprecated]
+        class Config(pydantic.BaseConfig):
             arbitrary_types_allowed: bool = True
     else:
         model_config: ClassVar[ConfigDict] = ConfigDict(arbitrary_types_allowed=True)
@@ -1012,10 +1012,10 @@ class FinalRequestOptions(pydantic.BaseModel):
     # this is necessary as we don't want to do any actual runtime type checking
     # (which means we can't use validators) but we do want to ensure that `NotGiven`
     # values are not present
-    #
+
     # type ignore required because we're adding explicit types to `**values`
     @classmethod
-    def construct(  # type: ignore
+    def construct(  # ty: ignore[invalid-method-override]
         cls,
         _fields_set: set[str] | None = None,
         **values: Unpack[FinalRequestOptionsInput],
@@ -1027,7 +1027,7 @@ class FinalRequestOptions(pydantic.BaseModel):
             for key, value in values.items()
         }
         if PYDANTIC_V1:
-            return cast(FinalRequestOptions, super().construct(_fields_set, **kwargs))  # pyright: ignore[reportDeprecated]
+            return super().construct(_fields_set, **kwargs)
         return super().model_construct(_fields_set, **kwargs)
 
     if not TYPE_CHECKING:

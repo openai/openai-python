@@ -14,7 +14,7 @@ def test_create_and_run_helper_definition_in_sync(
     checking_client: OpenAI | AsyncOpenAI = client if sync else async_client
 
     assert_signatures_in_sync(
-        checking_client.beta.threads.create_and_run,  # pyright: ignore[reportDeprecated]
+        checking_client.beta.threads.create_and_run,
         getattr(checking_client.beta.threads, method),
         exclude_params={"stream"},
     )
@@ -25,8 +25,8 @@ def test_run_stream_method_definition_in_sync(sync: bool, client: OpenAI, async_
     checking_client: OpenAI | AsyncOpenAI = client if sync else async_client
 
     assert_signatures_in_sync(
-        checking_client.beta.threads.runs.create,  # pyright: ignore[reportDeprecated]
-        checking_client.beta.threads.runs.stream,  # pyright: ignore[reportDeprecated]
+        checking_client.beta.threads.runs.create,
+        checking_client.beta.threads.runs.stream,
         exclude_params={"stream"},
     )
 
@@ -36,7 +36,7 @@ def test_create_and_poll_method_definition_in_sync(sync: bool, client: OpenAI, a
     checking_client: OpenAI | AsyncOpenAI = client if sync else async_client
 
     assert_signatures_in_sync(
-        checking_client.beta.threads.runs.create,  # pyright: ignore[reportDeprecated]
-        checking_client.beta.threads.runs.create_and_poll,  # pyright: ignore[reportDeprecated]
+        checking_client.beta.threads.runs.create,
+        checking_client.beta.threads.runs.create_and_poll,
         exclude_params={"stream"},
     )

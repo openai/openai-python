@@ -82,8 +82,8 @@ async def test_image_safety_identifier(
             events = [event async for event in result] if isinstance(result, AsyncStream) else list(result)
             assert len(events) == 1
             event = events[0]
-            assert event.type == event_type
             assert isinstance(event, (ImageGenCompletedEvent, ImageEditCompletedEvent))
+            assert event.type == event_type
             assert event.safety_identifier == expected
         else:
             assert result.safety_identifier == expected

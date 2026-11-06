@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import inspect
-from typing import TYPE_CHECKING, Dict, List, Type, Union, Iterable, Optional, cast
+from typing import TYPE_CHECKING, Dict, List, Type, Union, Callable, Iterable, Optional, cast
 from functools import partial
 from typing_extensions import Literal
 
@@ -329,7 +329,7 @@ def stream(
         **(extra_headers or {}),
     }
 
-    api_request: partial[Stream[ChatCompletionChunk]] = partial(
+    api_request: Callable[[], Stream[ChatCompletionChunk]] = partial(
         resource.create,
         messages=messages,
         model=model,

@@ -287,7 +287,7 @@ async def test_opt_in_accumulator_never_invents_a_final(mode: str, ending: str) 
         else:
             event = {"type": "response.completed"}
             if ending == "null":
-                event["response"] = None  # type: ignore[assignment]
+                event["response"] = None
             socket.send(json.dumps(event))
 
     with script_server(script) as url:

@@ -32,7 +32,7 @@ log: logging.Logger = logging.getLogger("openai.audio.transcriptions")
 
 
 # Retained module entry point; callers may live outside generated resources.
-def _get_response_format_type(  # pyright: ignore[reportUnusedFunction]
+def _get_response_format_type(
     response_format: AudioResponseFormat | Omit,
 ) -> type[Translation | TranslationVerbose | str]:
     return openai.lib._parsing._audio.get_translation_response_format_type(response_format, log=log)

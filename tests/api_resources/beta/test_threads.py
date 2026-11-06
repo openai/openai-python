@@ -7,15 +7,13 @@ from typing import Any, cast
 
 import pytest
 
-from openai import OpenAI, AsyncOpenAI
+from openai import OpenAI, Stream as _Stream, AsyncOpenAI, AsyncStream as _AsyncStream
 from tests.utils import assert_matches_type
 from openai.types.beta import (
     Thread,
     ThreadDeleted,
 )
 from openai.types.beta.threads import Run
-
-# pyright: reportDeprecated=false
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 
@@ -401,6 +399,7 @@ class TestThreads:
 
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         stream = response.parse()
+        assert isinstance(stream, _Stream)
         stream.close()
 
     @parametrize
@@ -414,6 +413,7 @@ class TestThreads:
                 assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
                 stream = response.parse()
+                assert isinstance(stream, _Stream)
                 stream.close()
 
         assert cast(Any, response.is_closed) is True
@@ -802,6 +802,7 @@ class TestAsyncThreads:
 
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         stream = response.parse()
+        assert isinstance(stream, _AsyncStream)
         await stream.close()
 
     @parametrize
@@ -815,6 +816,7 @@ class TestAsyncThreads:
                 assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
                 stream = await response.parse()
+                assert isinstance(stream, _AsyncStream)
                 await stream.close()
 
         assert cast(Any, response.is_closed) is True

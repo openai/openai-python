@@ -18,6 +18,7 @@ from typing_extensions import Literal, AsyncIterator, override
 import anyio
 import httpx2
 import pytest
+import httpcore2
 from pydantic import ValidationError
 
 from openai import OpenAI, AsyncOpenAI, OpenAIError, APIResponseValidationError
@@ -152,6 +153,7 @@ class _NonSeekableBytesIO(io.BytesIO):
 def _get_open_connections(client: OpenAI | AsyncOpenAI) -> int:
     transport = client._client._transport
     if isinstance(transport, httpx2.HTTPTransport) or isinstance(transport, httpx2.AsyncHTTPTransport):
+        assert isinstance(transport._pool, (httpcore2.ConnectionPool, httpcore2.AsyncConnectionPool))
         return len(transport._pool._requests)
 
     assert type(transport).__module__ == "httpx2"
@@ -359,8 +361,7 @@ class TestOpenAI:
     def test_copy_signature(self, client: OpenAI) -> None:
         # ensure the same parameters that can be passed to the client are defined in the `.copy()` method
         init_signature = inspect.signature(
-            # mypy doesn't like that we access the `__init__` property.
-            client.__init__,  # type: ignore[misc]
+            client.__init__,
         )
         copy_signature = inspect.signature(client.copy)
         exclude_params = {"transport", "proxies", "_strict_response_validation"}
@@ -411,7 +412,6 @@ class TestOpenAI:
                     frame.filename.endswith(fragment)
                     for fragment in [
                         # to_raw_response_wrapper leaks through the @functools.wraps() decorator.
-                        #
                         # removing the decorator fixes the leak for reasons we don't understand.
                         "openai/_legacy_response.py",
                         "openai/_response.py",
@@ -437,11 +437,11 @@ class TestOpenAI:
 
     def test_request_timeout(self, client: OpenAI) -> None:
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
-        timeout = httpx2.Timeout(**request.extensions["timeout"])  # type: ignore
+        timeout = httpx2.Timeout(**request.extensions["timeout"])
         assert timeout == DEFAULT_TIMEOUT
 
         request = client._build_request(FinalRequestOptions(method="get", url="/foo", timeout=httpx2.Timeout(100.0)))
-        timeout = httpx2.Timeout(**request.extensions["timeout"])  # type: ignore
+        timeout = httpx2.Timeout(**request.extensions["timeout"])
         assert timeout == httpx2.Timeout(100.0)
 
     def test_client_timeout_option(self) -> None:
@@ -454,7 +454,7 @@ class TestOpenAI:
         )
 
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
-        timeout = httpx2.Timeout(**request.extensions["timeout"])  # type: ignore
+        timeout = httpx2.Timeout(**request.extensions["timeout"])
         assert timeout == httpx2.Timeout(0)
 
         client.close()
@@ -471,7 +471,7 @@ class TestOpenAI:
             )
 
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
-            timeout = httpx2.Timeout(**request.extensions["timeout"])  # type: ignore
+            timeout = httpx2.Timeout(**request.extensions["timeout"])
             assert timeout == httpx2.Timeout(None)
 
             client.close()
@@ -487,7 +487,7 @@ class TestOpenAI:
             )
 
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
-            timeout = httpx2.Timeout(**request.extensions["timeout"])  # type: ignore
+            timeout = httpx2.Timeout(**request.extensions["timeout"])
             assert timeout == DEFAULT_TIMEOUT
 
             client.close()
@@ -503,7 +503,7 @@ class TestOpenAI:
             )
 
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
-            timeout = httpx2.Timeout(**request.extensions["timeout"])  # type: ignore
+            timeout = httpx2.Timeout(**request.extensions["timeout"])
             assert timeout == DEFAULT_TIMEOUT  # our default
 
             client.close()
@@ -688,7 +688,7 @@ class TestOpenAI:
             OpenAI(
                 base_url=base_url,
                 api_key=api_key,
-                workload_identity=workload_identity,  # type: ignore[reportArgumentType]
+                workload_identity=workload_identity,
                 organization="org_123",
                 _strict_response_validation=True,
             )
@@ -1120,8 +1120,8 @@ class TestOpenAI:
     @pytest.mark.parametrize("client", [False], indirect=True)
     def test_bare_container_response(self, respx2_mock: MockRouter, client: OpenAI) -> None:
         class Model(BaseModel):
-            metadata: dict  # type: ignore[type-arg]
-            items: list  # type: ignore[type-arg]
+            metadata: dict  # pyright: ignore[reportMissingTypeArgument]
+            items: list  # pyright: ignore[reportMissingTypeArgument]
 
         data = {"metadata": {"key": "value"}, "items": [1, "two"]}
         respx2_mock.get("/foo").mock(return_value=httpx2.Response(200, json=data))
@@ -1199,7 +1199,7 @@ class TestOpenAI:
         )
         assert client.base_url == "https://example.com/from_init/"
 
-        client.base_url = "https://example.com/from_setter"  # type: ignore[assignment]
+        client.base_url = "https://example.com/from_setter"
 
         assert client.base_url == "https://example.com/from_setter/"
 
@@ -1375,7 +1375,7 @@ class TestOpenAI:
         )
 
         response = non_strict_client.get("/foo", cast_to=Model)
-        assert isinstance(response, str)  # type: ignore[unreachable]
+        assert isinstance(response, str)
 
         strict_client.close()
         non_strict_client.close()
@@ -1415,7 +1415,7 @@ class TestOpenAI:
         headers = httpx2.Headers({"retry-after": retry_after})
         options = FinalRequestOptions(method="get", url="/foo", max_retries=3)
         calculated = client._calculate_retry_timeout(remaining_retries, options, headers)
-        assert calculated == pytest.approx(timeout, 0.5 * 0.875)  # pyright: ignore[reportUnknownMemberType]
+        assert calculated == pytest.approx(timeout, 0.5 * 0.875)
 
     @pytest.mark.parametrize(
         "headers,should_retry",
@@ -1911,8 +1911,7 @@ class TestAsyncOpenAI:
     def test_copy_signature(self, async_client: AsyncOpenAI) -> None:
         # ensure the same parameters that can be passed to the client are defined in the `.copy()` method
         init_signature = inspect.signature(
-            # mypy doesn't like that we access the `__init__` property.
-            async_client.__init__,  # type: ignore[misc]
+            async_client.__init__,
         )
         copy_signature = inspect.signature(async_client.copy)
         exclude_params = {"transport", "proxies", "_strict_response_validation"}
@@ -1963,7 +1962,6 @@ class TestAsyncOpenAI:
                     frame.filename.endswith(fragment)
                     for fragment in [
                         # to_raw_response_wrapper leaks through the @functools.wraps() decorator.
-                        #
                         # removing the decorator fixes the leak for reasons we don't understand.
                         "openai/_legacy_response.py",
                         "openai/_response.py",
@@ -1989,13 +1987,13 @@ class TestAsyncOpenAI:
 
     async def test_request_timeout(self, async_client: AsyncOpenAI) -> None:
         request = async_client._build_request(FinalRequestOptions(method="get", url="/foo"))
-        timeout = httpx2.Timeout(**request.extensions["timeout"])  # type: ignore
+        timeout = httpx2.Timeout(**request.extensions["timeout"])
         assert timeout == DEFAULT_TIMEOUT
 
         request = async_client._build_request(
             FinalRequestOptions(method="get", url="/foo", timeout=httpx2.Timeout(100.0))
         )
-        timeout = httpx2.Timeout(**request.extensions["timeout"])  # type: ignore
+        timeout = httpx2.Timeout(**request.extensions["timeout"])
         assert timeout == httpx2.Timeout(100.0)
 
     async def test_client_timeout_option(self) -> None:
@@ -2008,7 +2006,7 @@ class TestAsyncOpenAI:
         )
 
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
-        timeout = httpx2.Timeout(**request.extensions["timeout"])  # type: ignore
+        timeout = httpx2.Timeout(**request.extensions["timeout"])
         assert timeout == httpx2.Timeout(0)
 
         await client.close()
@@ -2025,7 +2023,7 @@ class TestAsyncOpenAI:
             )
 
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
-            timeout = httpx2.Timeout(**request.extensions["timeout"])  # type: ignore
+            timeout = httpx2.Timeout(**request.extensions["timeout"])
             assert timeout == httpx2.Timeout(None)
 
             await client.close()
@@ -2041,7 +2039,7 @@ class TestAsyncOpenAI:
             )
 
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
-            timeout = httpx2.Timeout(**request.extensions["timeout"])  # type: ignore
+            timeout = httpx2.Timeout(**request.extensions["timeout"])
             assert timeout == DEFAULT_TIMEOUT
 
             await client.close()
@@ -2057,7 +2055,7 @@ class TestAsyncOpenAI:
             )
 
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
-            timeout = httpx2.Timeout(**request.extensions["timeout"])  # type: ignore
+            timeout = httpx2.Timeout(**request.extensions["timeout"])
             assert timeout == DEFAULT_TIMEOUT  # our default
 
             await client.close()
@@ -2512,8 +2510,8 @@ class TestAsyncOpenAI:
     @pytest.mark.parametrize("async_client", [False], indirect=True)
     async def test_bare_container_response(self, respx2_mock: MockRouter, async_client: AsyncOpenAI) -> None:
         class Model(BaseModel):
-            metadata: dict  # type: ignore[type-arg]
-            items: list  # type: ignore[type-arg]
+            metadata: dict  # pyright: ignore[reportMissingTypeArgument]
+            items: list  # pyright: ignore[reportMissingTypeArgument]
 
         data = {"metadata": {"key": "value"}, "items": [1, "two"]}
         respx2_mock.get("/foo").mock(return_value=httpx2.Response(200, json=data))
@@ -2593,7 +2591,7 @@ class TestAsyncOpenAI:
         )
         assert client.base_url == "https://example.com/from_init/"
 
-        client.base_url = "https://example.com/from_setter"  # type: ignore[assignment]
+        client.base_url = "https://example.com/from_setter"
 
         assert client.base_url == "https://example.com/from_setter/"
 
@@ -2770,7 +2768,7 @@ class TestAsyncOpenAI:
         )
 
         response = await non_strict_client.get("/foo", cast_to=Model)
-        assert isinstance(response, str)  # type: ignore[unreachable]
+        assert isinstance(response, str)
 
         await strict_client.close()
         await non_strict_client.close()
@@ -2810,7 +2808,7 @@ class TestAsyncOpenAI:
         headers = httpx2.Headers({"retry-after": retry_after})
         options = FinalRequestOptions(method="get", url="/foo", max_retries=3)
         calculated = async_client._calculate_retry_timeout(remaining_retries, options, headers)
-        assert calculated == pytest.approx(timeout, 0.5 * 0.875)  # pyright: ignore[reportUnknownMemberType]
+        assert calculated == pytest.approx(timeout, 0.5 * 0.875)
 
     @pytest.mark.respx2(base_url=base_url)
     async def test_does_not_retry_retry_after_above_max(
@@ -3543,12 +3541,12 @@ async def test_invalid_request_retry_limit(is_async: bool, value: Any) -> None:
     error = ValueError if isinstance(value, int) else TypeError
     try:
         with pytest.raises(error, match="max_retries"):
-            client.with_options(max_retries=cast(Any, value))
+            client.with_options(max_retries=value)
         with pytest.raises(error, match="max_retries"):
             if isinstance(client, AsyncOpenAI):
-                await client.get("/test", cast_to=object, options={"max_retries": cast(Any, value)})
+                await client.get("/test", cast_to=object, options={"max_retries": value})
             else:
-                client.get("/test", cast_to=object, options={"max_retries": cast(Any, value)})
+                client.get("/test", cast_to=object, options={"max_retries": value})
     finally:
         if isinstance(client, AsyncOpenAI):
             await client.close()

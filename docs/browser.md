@@ -16,7 +16,7 @@ Playwright:
 
 ```sh
 python3 -m venv .venv
-.venv/bin/python -m pip install openai playwright==1.63.0
+.venv/bin/python -m pip install openai playwright==1.64.1
 .venv/bin/python -m playwright install chromium
 ```
 

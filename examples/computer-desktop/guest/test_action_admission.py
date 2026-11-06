@@ -48,8 +48,8 @@ def guest_process(root: Path, name: str, descriptor: int) -> None:
             raise TimeoutError("Fixture read was not released.")
         return {"ok": True}
 
-    action.validate = recorded_validate
-    action.reply = controlled_reply
+    action.validate = recorded_validate  # ty: ignore[invalid-assignment]  # Test replaces a callable with a controlled fixture.
+    action.reply = controlled_reply  # ty: ignore[invalid-assignment]  # Test replaces a callable with a controlled fixture.
     action.main()
 
 

@@ -351,6 +351,9 @@ class AsyncRealtimeConnectionManager:
         await connection.close()
         ```
         """
+        from ....lib._client_auth import _validate_beta_realtime_auth
+
+        _validate_beta_realtime_auth(self.__client, self.__extra_headers)
         try:
             from ....lib._websocket import _WebSocketConnect as connect
         except ImportError as exc:
@@ -538,6 +541,9 @@ class RealtimeConnectionManager:
         connection.close()
         ```
         """
+        from ....lib._client_auth import _validate_beta_realtime_auth
+
+        _validate_beta_realtime_auth(self.__client, self.__extra_headers)
         try:
             from websockets.sync.client import connect
         except ImportError as exc:

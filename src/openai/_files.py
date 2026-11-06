@@ -154,7 +154,7 @@ def _deepcopy_with_paths(item: _T, paths: Sequence[Sequence[str]], index: int) -
 
         # if no path continues through this mapping, it won't be mutated and copying it is redundant
         if not key_to_paths:
-            return item
+            return cast(_T, item)
 
         result = dict(item)
         for key, subpaths in key_to_paths.items():

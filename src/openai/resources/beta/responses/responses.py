@@ -16,7 +16,7 @@ from ...._types import Body, Omit, Query, Headers, NoneType, NotGiven, omit, not
 from ...._utils import is_given, path_template, maybe_transform, strip_not_given, async_maybe_transform
 from ...._compat import cached_property
 from ...._httpx2 import normalize_httpx_url
-from ...._models import FinalRequestOptions, construct_type_unchecked
+from ...._models import construct_type_unchecked
 from .input_items import (
     InputItems,
     AsyncInputItems,
@@ -42,11 +42,21 @@ from ....types.beta import (
     response_retrieve_params,
     beta_responses_client_event_param,
 )
-from ...._exceptions import OpenAIError, WebSocketConnectionClosedError
+from ...._exceptions import OpenAIError
 from ...._send_queue import SendQueue
-from ...._base_client import _merge_mappings, make_request_options
+from ...._base_client import make_request_options
 from ...._event_handler import EventHandlerRegistry
-from ...._websocket_connection import WebSocketConnectionBase, AsyncWebSocketConnectionBase
+from ...._websocket_connection import (
+    WebSocketConnectionBase,
+    AsyncWebSocketConnectionBase,
+    _exit_websocket,
+    _connect_websocket,
+    _async_exit_websocket,
+    _websocket_entry_guard,
+    _async_connect_websocket,
+    _record_websocket_progress,
+    _async_websocket_entry_guard,
+)
 from ....types.beta.beta_response import BetaResponse
 from ....types.beta.beta_tool_param import BetaToolParam
 from ....types.beta.beta_service_tier import BetaServiceTier
@@ -350,6 +360,82 @@ class Responses(SyncAPIResource):
               price points. Refer to the
               [model guide](https://developers.openai.com/api/docs/models) to browse and
               compare available models.
+
+              Deprecated values:
+
+              - "gpt-5.4-nano", "gpt-5.1": Announced shutdown date: 2027-04-01. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.3-chat-latest", "gpt-5.2-chat-latest": Announced shutdown date:
+                2026-08-10. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-5.1-codex", "gpt-5.1-chat-latest", "gpt-5-chat-latest",
+                "gpt-4o-search-preview", "gpt-4o-mini-search-preview",
+                "gpt-4o-search-preview-2025-03-11", "gpt-4o-mini-search-preview-2025-03-11",
+                "o3-deep-research", "o3-deep-research-2025-06-26", "o4-mini-deep-research",
+                "o4-mini-deep-research-2025-06-26", "computer-use-preview",
+                "computer-use-preview-2025-03-11", "gpt-5-codex", "gpt-5.1-codex-max":
+                Announced shutdown date: 2026-07-23. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.1-mini": Not a supported model ID. Retained for SDK compatibility.
+              - "gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-5-2025-08-07",
+                "gpt-5-mini-2025-08-07", "gpt-5-nano-2025-08-07", "o3", "o3-2025-04-16",
+                "o3-pro", "o3-pro-2025-06-10", "gpt-5-pro", "gpt-5-pro-2025-10-06": Announced
+                shutdown date: 2026-12-11. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-2025-04-14", "gpt-4.1-mini-2025-04-14",
+                "gpt-4o", "gpt-4o-2024-11-20", "gpt-4o-2024-08-06", "gpt-4o-mini",
+                "gpt-4o-mini-2024-07-18": Announced shutdown date: 2027-01-14. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1-nano", "gpt-4.1-nano-2025-04-14", "o4-mini", "o4-mini-2025-04-16",
+                "o3-mini", "o3-mini-2025-01-31", "o1", "o1-2024-12-17", "gpt-4o-2024-05-13",
+                "gpt-4-turbo", "gpt-4-turbo-2024-04-09", "gpt-4-1106-preview", "gpt-4",
+                "gpt-4-0613", "gpt-3.5-turbo", "gpt-3.5-turbo-0125", "o1-pro",
+                "o1-pro-2025-03-19": Announced shutdown date: 2026-10-23. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "o1-preview", "o1-preview-2024-09-12": Announced shutdown date: 2025-07-28.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "o1-mini", "o1-mini-2024-09-12": Announced shutdown date: 2025-10-27. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-audio-mini", "gpt-audio-mini-2025-12-15": Announced shutdown date:
+                2027-01-20. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4o-audio-preview", "gpt-4o-audio-preview-2024-12-17",
+                "gpt-4o-audio-preview-2025-06-03", "gpt-4o-mini-audio-preview",
+                "gpt-4o-mini-audio-preview-2024-12-17": Announced shutdown date: 2026-05-07.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4o-audio-preview-2024-10-01": Announced shutdown date: 2025-10-10. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "chatgpt-4o-latest": Announced shutdown date: 2026-02-17. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "codex-mini-latest": Announced shutdown date: 2026-02-12. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-0125-preview", "gpt-4-turbo-preview", "gpt-4-0314": Announced shutdown
+                date: 2026-03-26. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4-vision-preview": Announced shutdown date: 2024-12-06. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-32k", "gpt-4-32k-0314", "gpt-4-32k-0613": Announced shutdown date:
+                2025-06-06. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-3.5-turbo-16k", "gpt-3.5-turbo-0301", "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-16k-0613": Announced shutdown date: 2024-09-13. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-3.5-turbo-1106": Announced shutdown date: 2026-09-28. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
 
           moderation: Configuration for running moderation on the input and output of this response.
 
@@ -769,6 +855,82 @@ class Responses(SyncAPIResource):
               [model guide](https://developers.openai.com/api/docs/models) to browse and
               compare available models.
 
+              Deprecated values:
+
+              - "gpt-5.4-nano", "gpt-5.1": Announced shutdown date: 2027-04-01. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.3-chat-latest", "gpt-5.2-chat-latest": Announced shutdown date:
+                2026-08-10. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-5.1-codex", "gpt-5.1-chat-latest", "gpt-5-chat-latest",
+                "gpt-4o-search-preview", "gpt-4o-mini-search-preview",
+                "gpt-4o-search-preview-2025-03-11", "gpt-4o-mini-search-preview-2025-03-11",
+                "o3-deep-research", "o3-deep-research-2025-06-26", "o4-mini-deep-research",
+                "o4-mini-deep-research-2025-06-26", "computer-use-preview",
+                "computer-use-preview-2025-03-11", "gpt-5-codex", "gpt-5.1-codex-max":
+                Announced shutdown date: 2026-07-23. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.1-mini": Not a supported model ID. Retained for SDK compatibility.
+              - "gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-5-2025-08-07",
+                "gpt-5-mini-2025-08-07", "gpt-5-nano-2025-08-07", "o3", "o3-2025-04-16",
+                "o3-pro", "o3-pro-2025-06-10", "gpt-5-pro", "gpt-5-pro-2025-10-06": Announced
+                shutdown date: 2026-12-11. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-2025-04-14", "gpt-4.1-mini-2025-04-14",
+                "gpt-4o", "gpt-4o-2024-11-20", "gpt-4o-2024-08-06", "gpt-4o-mini",
+                "gpt-4o-mini-2024-07-18": Announced shutdown date: 2027-01-14. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1-nano", "gpt-4.1-nano-2025-04-14", "o4-mini", "o4-mini-2025-04-16",
+                "o3-mini", "o3-mini-2025-01-31", "o1", "o1-2024-12-17", "gpt-4o-2024-05-13",
+                "gpt-4-turbo", "gpt-4-turbo-2024-04-09", "gpt-4-1106-preview", "gpt-4",
+                "gpt-4-0613", "gpt-3.5-turbo", "gpt-3.5-turbo-0125", "o1-pro",
+                "o1-pro-2025-03-19": Announced shutdown date: 2026-10-23. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "o1-preview", "o1-preview-2024-09-12": Announced shutdown date: 2025-07-28.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "o1-mini", "o1-mini-2024-09-12": Announced shutdown date: 2025-10-27. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-audio-mini", "gpt-audio-mini-2025-12-15": Announced shutdown date:
+                2027-01-20. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4o-audio-preview", "gpt-4o-audio-preview-2024-12-17",
+                "gpt-4o-audio-preview-2025-06-03", "gpt-4o-mini-audio-preview",
+                "gpt-4o-mini-audio-preview-2024-12-17": Announced shutdown date: 2026-05-07.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4o-audio-preview-2024-10-01": Announced shutdown date: 2025-10-10. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "chatgpt-4o-latest": Announced shutdown date: 2026-02-17. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "codex-mini-latest": Announced shutdown date: 2026-02-12. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-0125-preview", "gpt-4-turbo-preview", "gpt-4-0314": Announced shutdown
+                date: 2026-03-26. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4-vision-preview": Announced shutdown date: 2024-12-06. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-32k", "gpt-4-32k-0314", "gpt-4-32k-0613": Announced shutdown date:
+                2025-06-06. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-3.5-turbo-16k", "gpt-3.5-turbo-0301", "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-16k-0613": Announced shutdown date: 2024-09-13. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-3.5-turbo-1106": Announced shutdown date: 2026-09-28. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+
           moderation: Configuration for running moderation on the input and output of this response.
 
           multi_agent: Configuration for server-hosted multi-agent execution.
@@ -1179,6 +1341,82 @@ class Responses(SyncAPIResource):
               price points. Refer to the
               [model guide](https://developers.openai.com/api/docs/models) to browse and
               compare available models.
+
+              Deprecated values:
+
+              - "gpt-5.4-nano", "gpt-5.1": Announced shutdown date: 2027-04-01. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.3-chat-latest", "gpt-5.2-chat-latest": Announced shutdown date:
+                2026-08-10. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-5.1-codex", "gpt-5.1-chat-latest", "gpt-5-chat-latest",
+                "gpt-4o-search-preview", "gpt-4o-mini-search-preview",
+                "gpt-4o-search-preview-2025-03-11", "gpt-4o-mini-search-preview-2025-03-11",
+                "o3-deep-research", "o3-deep-research-2025-06-26", "o4-mini-deep-research",
+                "o4-mini-deep-research-2025-06-26", "computer-use-preview",
+                "computer-use-preview-2025-03-11", "gpt-5-codex", "gpt-5.1-codex-max":
+                Announced shutdown date: 2026-07-23. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.1-mini": Not a supported model ID. Retained for SDK compatibility.
+              - "gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-5-2025-08-07",
+                "gpt-5-mini-2025-08-07", "gpt-5-nano-2025-08-07", "o3", "o3-2025-04-16",
+                "o3-pro", "o3-pro-2025-06-10", "gpt-5-pro", "gpt-5-pro-2025-10-06": Announced
+                shutdown date: 2026-12-11. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-2025-04-14", "gpt-4.1-mini-2025-04-14",
+                "gpt-4o", "gpt-4o-2024-11-20", "gpt-4o-2024-08-06", "gpt-4o-mini",
+                "gpt-4o-mini-2024-07-18": Announced shutdown date: 2027-01-14. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1-nano", "gpt-4.1-nano-2025-04-14", "o4-mini", "o4-mini-2025-04-16",
+                "o3-mini", "o3-mini-2025-01-31", "o1", "o1-2024-12-17", "gpt-4o-2024-05-13",
+                "gpt-4-turbo", "gpt-4-turbo-2024-04-09", "gpt-4-1106-preview", "gpt-4",
+                "gpt-4-0613", "gpt-3.5-turbo", "gpt-3.5-turbo-0125", "o1-pro",
+                "o1-pro-2025-03-19": Announced shutdown date: 2026-10-23. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "o1-preview", "o1-preview-2024-09-12": Announced shutdown date: 2025-07-28.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "o1-mini", "o1-mini-2024-09-12": Announced shutdown date: 2025-10-27. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-audio-mini", "gpt-audio-mini-2025-12-15": Announced shutdown date:
+                2027-01-20. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4o-audio-preview", "gpt-4o-audio-preview-2024-12-17",
+                "gpt-4o-audio-preview-2025-06-03", "gpt-4o-mini-audio-preview",
+                "gpt-4o-mini-audio-preview-2024-12-17": Announced shutdown date: 2026-05-07.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4o-audio-preview-2024-10-01": Announced shutdown date: 2025-10-10. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "chatgpt-4o-latest": Announced shutdown date: 2026-02-17. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "codex-mini-latest": Announced shutdown date: 2026-02-12. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-0125-preview", "gpt-4-turbo-preview", "gpt-4-0314": Announced shutdown
+                date: 2026-03-26. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4-vision-preview": Announced shutdown date: 2024-12-06. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-32k", "gpt-4-32k-0314", "gpt-4-32k-0613": Announced shutdown date:
+                2025-06-06. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-3.5-turbo-16k", "gpt-3.5-turbo-0301", "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-16k-0613": Announced shutdown date: 2024-09-13. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-3.5-turbo-1106": Announced shutdown date: 2026-09-28. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
 
           moderation: Configuration for running moderation on the input and output of this response.
 
@@ -1990,6 +2228,82 @@ class Responses(SyncAPIResource):
               [model guide](https://developers.openai.com/api/docs/models) to browse and
               compare available models.
 
+              Deprecated values:
+
+              - "gpt-5.4-nano", "gpt-5.1": Announced shutdown date: 2027-04-01. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.3-chat-latest", "gpt-5.2-chat-latest": Announced shutdown date:
+                2026-08-10. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-5.1-codex", "gpt-5.1-chat-latest", "gpt-5-chat-latest",
+                "gpt-4o-search-preview", "gpt-4o-mini-search-preview",
+                "gpt-4o-search-preview-2025-03-11", "gpt-4o-mini-search-preview-2025-03-11",
+                "o3-deep-research", "o3-deep-research-2025-06-26", "o4-mini-deep-research",
+                "o4-mini-deep-research-2025-06-26", "computer-use-preview",
+                "computer-use-preview-2025-03-11", "gpt-5-codex", "gpt-5.1-codex-max":
+                Announced shutdown date: 2026-07-23. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.1-mini": Not a supported model ID. Retained for SDK compatibility.
+              - "gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-5-2025-08-07",
+                "gpt-5-mini-2025-08-07", "gpt-5-nano-2025-08-07", "o3", "o3-2025-04-16",
+                "o3-pro", "o3-pro-2025-06-10", "gpt-5-pro", "gpt-5-pro-2025-10-06": Announced
+                shutdown date: 2026-12-11. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-2025-04-14", "gpt-4.1-mini-2025-04-14",
+                "gpt-4o", "gpt-4o-2024-11-20", "gpt-4o-2024-08-06", "gpt-4o-mini",
+                "gpt-4o-mini-2024-07-18": Announced shutdown date: 2027-01-14. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1-nano", "gpt-4.1-nano-2025-04-14", "o4-mini", "o4-mini-2025-04-16",
+                "o3-mini", "o3-mini-2025-01-31", "o1", "o1-2024-12-17", "gpt-4o-2024-05-13",
+                "gpt-4-turbo", "gpt-4-turbo-2024-04-09", "gpt-4-1106-preview", "gpt-4",
+                "gpt-4-0613", "gpt-3.5-turbo", "gpt-3.5-turbo-0125", "o1-pro",
+                "o1-pro-2025-03-19": Announced shutdown date: 2026-10-23. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "o1-preview", "o1-preview-2024-09-12": Announced shutdown date: 2025-07-28.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "o1-mini", "o1-mini-2024-09-12": Announced shutdown date: 2025-10-27. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-audio-mini", "gpt-audio-mini-2025-12-15": Announced shutdown date:
+                2027-01-20. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4o-audio-preview", "gpt-4o-audio-preview-2024-12-17",
+                "gpt-4o-audio-preview-2025-06-03", "gpt-4o-mini-audio-preview",
+                "gpt-4o-mini-audio-preview-2024-12-17": Announced shutdown date: 2026-05-07.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4o-audio-preview-2024-10-01": Announced shutdown date: 2025-10-10. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "chatgpt-4o-latest": Announced shutdown date: 2026-02-17. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "codex-mini-latest": Announced shutdown date: 2026-02-12. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-0125-preview", "gpt-4-turbo-preview", "gpt-4-0314": Announced shutdown
+                date: 2026-03-26. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4-vision-preview": Announced shutdown date: 2024-12-06. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-32k", "gpt-4-32k-0314", "gpt-4-32k-0613": Announced shutdown date:
+                2025-06-06. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-3.5-turbo-16k", "gpt-3.5-turbo-0301", "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-16k-0613": Announced shutdown date: 2024-09-13. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-3.5-turbo-1106": Announced shutdown date: 2026-09-28. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+
           input: Text, image, or file inputs to the model, used to generate a response
 
           instructions: A system (or developer) message inserted into the model's context. When used
@@ -2373,6 +2687,82 @@ class AsyncResponses(AsyncAPIResource):
               price points. Refer to the
               [model guide](https://developers.openai.com/api/docs/models) to browse and
               compare available models.
+
+              Deprecated values:
+
+              - "gpt-5.4-nano", "gpt-5.1": Announced shutdown date: 2027-04-01. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.3-chat-latest", "gpt-5.2-chat-latest": Announced shutdown date:
+                2026-08-10. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-5.1-codex", "gpt-5.1-chat-latest", "gpt-5-chat-latest",
+                "gpt-4o-search-preview", "gpt-4o-mini-search-preview",
+                "gpt-4o-search-preview-2025-03-11", "gpt-4o-mini-search-preview-2025-03-11",
+                "o3-deep-research", "o3-deep-research-2025-06-26", "o4-mini-deep-research",
+                "o4-mini-deep-research-2025-06-26", "computer-use-preview",
+                "computer-use-preview-2025-03-11", "gpt-5-codex", "gpt-5.1-codex-max":
+                Announced shutdown date: 2026-07-23. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.1-mini": Not a supported model ID. Retained for SDK compatibility.
+              - "gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-5-2025-08-07",
+                "gpt-5-mini-2025-08-07", "gpt-5-nano-2025-08-07", "o3", "o3-2025-04-16",
+                "o3-pro", "o3-pro-2025-06-10", "gpt-5-pro", "gpt-5-pro-2025-10-06": Announced
+                shutdown date: 2026-12-11. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-2025-04-14", "gpt-4.1-mini-2025-04-14",
+                "gpt-4o", "gpt-4o-2024-11-20", "gpt-4o-2024-08-06", "gpt-4o-mini",
+                "gpt-4o-mini-2024-07-18": Announced shutdown date: 2027-01-14. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1-nano", "gpt-4.1-nano-2025-04-14", "o4-mini", "o4-mini-2025-04-16",
+                "o3-mini", "o3-mini-2025-01-31", "o1", "o1-2024-12-17", "gpt-4o-2024-05-13",
+                "gpt-4-turbo", "gpt-4-turbo-2024-04-09", "gpt-4-1106-preview", "gpt-4",
+                "gpt-4-0613", "gpt-3.5-turbo", "gpt-3.5-turbo-0125", "o1-pro",
+                "o1-pro-2025-03-19": Announced shutdown date: 2026-10-23. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "o1-preview", "o1-preview-2024-09-12": Announced shutdown date: 2025-07-28.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "o1-mini", "o1-mini-2024-09-12": Announced shutdown date: 2025-10-27. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-audio-mini", "gpt-audio-mini-2025-12-15": Announced shutdown date:
+                2027-01-20. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4o-audio-preview", "gpt-4o-audio-preview-2024-12-17",
+                "gpt-4o-audio-preview-2025-06-03", "gpt-4o-mini-audio-preview",
+                "gpt-4o-mini-audio-preview-2024-12-17": Announced shutdown date: 2026-05-07.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4o-audio-preview-2024-10-01": Announced shutdown date: 2025-10-10. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "chatgpt-4o-latest": Announced shutdown date: 2026-02-17. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "codex-mini-latest": Announced shutdown date: 2026-02-12. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-0125-preview", "gpt-4-turbo-preview", "gpt-4-0314": Announced shutdown
+                date: 2026-03-26. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4-vision-preview": Announced shutdown date: 2024-12-06. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-32k", "gpt-4-32k-0314", "gpt-4-32k-0613": Announced shutdown date:
+                2025-06-06. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-3.5-turbo-16k", "gpt-3.5-turbo-0301", "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-16k-0613": Announced shutdown date: 2024-09-13. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-3.5-turbo-1106": Announced shutdown date: 2026-09-28. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
 
           moderation: Configuration for running moderation on the input and output of this response.
 
@@ -2792,6 +3182,82 @@ class AsyncResponses(AsyncAPIResource):
               [model guide](https://developers.openai.com/api/docs/models) to browse and
               compare available models.
 
+              Deprecated values:
+
+              - "gpt-5.4-nano", "gpt-5.1": Announced shutdown date: 2027-04-01. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.3-chat-latest", "gpt-5.2-chat-latest": Announced shutdown date:
+                2026-08-10. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-5.1-codex", "gpt-5.1-chat-latest", "gpt-5-chat-latest",
+                "gpt-4o-search-preview", "gpt-4o-mini-search-preview",
+                "gpt-4o-search-preview-2025-03-11", "gpt-4o-mini-search-preview-2025-03-11",
+                "o3-deep-research", "o3-deep-research-2025-06-26", "o4-mini-deep-research",
+                "o4-mini-deep-research-2025-06-26", "computer-use-preview",
+                "computer-use-preview-2025-03-11", "gpt-5-codex", "gpt-5.1-codex-max":
+                Announced shutdown date: 2026-07-23. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.1-mini": Not a supported model ID. Retained for SDK compatibility.
+              - "gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-5-2025-08-07",
+                "gpt-5-mini-2025-08-07", "gpt-5-nano-2025-08-07", "o3", "o3-2025-04-16",
+                "o3-pro", "o3-pro-2025-06-10", "gpt-5-pro", "gpt-5-pro-2025-10-06": Announced
+                shutdown date: 2026-12-11. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-2025-04-14", "gpt-4.1-mini-2025-04-14",
+                "gpt-4o", "gpt-4o-2024-11-20", "gpt-4o-2024-08-06", "gpt-4o-mini",
+                "gpt-4o-mini-2024-07-18": Announced shutdown date: 2027-01-14. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1-nano", "gpt-4.1-nano-2025-04-14", "o4-mini", "o4-mini-2025-04-16",
+                "o3-mini", "o3-mini-2025-01-31", "o1", "o1-2024-12-17", "gpt-4o-2024-05-13",
+                "gpt-4-turbo", "gpt-4-turbo-2024-04-09", "gpt-4-1106-preview", "gpt-4",
+                "gpt-4-0613", "gpt-3.5-turbo", "gpt-3.5-turbo-0125", "o1-pro",
+                "o1-pro-2025-03-19": Announced shutdown date: 2026-10-23. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "o1-preview", "o1-preview-2024-09-12": Announced shutdown date: 2025-07-28.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "o1-mini", "o1-mini-2024-09-12": Announced shutdown date: 2025-10-27. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-audio-mini", "gpt-audio-mini-2025-12-15": Announced shutdown date:
+                2027-01-20. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4o-audio-preview", "gpt-4o-audio-preview-2024-12-17",
+                "gpt-4o-audio-preview-2025-06-03", "gpt-4o-mini-audio-preview",
+                "gpt-4o-mini-audio-preview-2024-12-17": Announced shutdown date: 2026-05-07.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4o-audio-preview-2024-10-01": Announced shutdown date: 2025-10-10. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "chatgpt-4o-latest": Announced shutdown date: 2026-02-17. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "codex-mini-latest": Announced shutdown date: 2026-02-12. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-0125-preview", "gpt-4-turbo-preview", "gpt-4-0314": Announced shutdown
+                date: 2026-03-26. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4-vision-preview": Announced shutdown date: 2024-12-06. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-32k", "gpt-4-32k-0314", "gpt-4-32k-0613": Announced shutdown date:
+                2025-06-06. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-3.5-turbo-16k", "gpt-3.5-turbo-0301", "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-16k-0613": Announced shutdown date: 2024-09-13. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-3.5-turbo-1106": Announced shutdown date: 2026-09-28. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+
           moderation: Configuration for running moderation on the input and output of this response.
 
           multi_agent: Configuration for server-hosted multi-agent execution.
@@ -3202,6 +3668,82 @@ class AsyncResponses(AsyncAPIResource):
               price points. Refer to the
               [model guide](https://developers.openai.com/api/docs/models) to browse and
               compare available models.
+
+              Deprecated values:
+
+              - "gpt-5.4-nano", "gpt-5.1": Announced shutdown date: 2027-04-01. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.3-chat-latest", "gpt-5.2-chat-latest": Announced shutdown date:
+                2026-08-10. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-5.1-codex", "gpt-5.1-chat-latest", "gpt-5-chat-latest",
+                "gpt-4o-search-preview", "gpt-4o-mini-search-preview",
+                "gpt-4o-search-preview-2025-03-11", "gpt-4o-mini-search-preview-2025-03-11",
+                "o3-deep-research", "o3-deep-research-2025-06-26", "o4-mini-deep-research",
+                "o4-mini-deep-research-2025-06-26", "computer-use-preview",
+                "computer-use-preview-2025-03-11", "gpt-5-codex", "gpt-5.1-codex-max":
+                Announced shutdown date: 2026-07-23. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.1-mini": Not a supported model ID. Retained for SDK compatibility.
+              - "gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-5-2025-08-07",
+                "gpt-5-mini-2025-08-07", "gpt-5-nano-2025-08-07", "o3", "o3-2025-04-16",
+                "o3-pro", "o3-pro-2025-06-10", "gpt-5-pro", "gpt-5-pro-2025-10-06": Announced
+                shutdown date: 2026-12-11. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-2025-04-14", "gpt-4.1-mini-2025-04-14",
+                "gpt-4o", "gpt-4o-2024-11-20", "gpt-4o-2024-08-06", "gpt-4o-mini",
+                "gpt-4o-mini-2024-07-18": Announced shutdown date: 2027-01-14. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1-nano", "gpt-4.1-nano-2025-04-14", "o4-mini", "o4-mini-2025-04-16",
+                "o3-mini", "o3-mini-2025-01-31", "o1", "o1-2024-12-17", "gpt-4o-2024-05-13",
+                "gpt-4-turbo", "gpt-4-turbo-2024-04-09", "gpt-4-1106-preview", "gpt-4",
+                "gpt-4-0613", "gpt-3.5-turbo", "gpt-3.5-turbo-0125", "o1-pro",
+                "o1-pro-2025-03-19": Announced shutdown date: 2026-10-23. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "o1-preview", "o1-preview-2024-09-12": Announced shutdown date: 2025-07-28.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "o1-mini", "o1-mini-2024-09-12": Announced shutdown date: 2025-10-27. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-audio-mini", "gpt-audio-mini-2025-12-15": Announced shutdown date:
+                2027-01-20. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4o-audio-preview", "gpt-4o-audio-preview-2024-12-17",
+                "gpt-4o-audio-preview-2025-06-03", "gpt-4o-mini-audio-preview",
+                "gpt-4o-mini-audio-preview-2024-12-17": Announced shutdown date: 2026-05-07.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4o-audio-preview-2024-10-01": Announced shutdown date: 2025-10-10. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "chatgpt-4o-latest": Announced shutdown date: 2026-02-17. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "codex-mini-latest": Announced shutdown date: 2026-02-12. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-0125-preview", "gpt-4-turbo-preview", "gpt-4-0314": Announced shutdown
+                date: 2026-03-26. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4-vision-preview": Announced shutdown date: 2024-12-06. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-32k", "gpt-4-32k-0314", "gpt-4-32k-0613": Announced shutdown date:
+                2025-06-06. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-3.5-turbo-16k", "gpt-3.5-turbo-0301", "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-16k-0613": Announced shutdown date: 2024-09-13. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-3.5-turbo-1106": Announced shutdown date: 2026-09-28. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
 
           moderation: Configuration for running moderation on the input and output of this response.
 
@@ -4013,6 +4555,82 @@ class AsyncResponses(AsyncAPIResource):
               [model guide](https://developers.openai.com/api/docs/models) to browse and
               compare available models.
 
+              Deprecated values:
+
+              - "gpt-5.4-nano", "gpt-5.1": Announced shutdown date: 2027-04-01. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.3-chat-latest", "gpt-5.2-chat-latest": Announced shutdown date:
+                2026-08-10. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-5.1-codex", "gpt-5.1-chat-latest", "gpt-5-chat-latest",
+                "gpt-4o-search-preview", "gpt-4o-mini-search-preview",
+                "gpt-4o-search-preview-2025-03-11", "gpt-4o-mini-search-preview-2025-03-11",
+                "o3-deep-research", "o3-deep-research-2025-06-26", "o4-mini-deep-research",
+                "o4-mini-deep-research-2025-06-26", "computer-use-preview",
+                "computer-use-preview-2025-03-11", "gpt-5-codex", "gpt-5.1-codex-max":
+                Announced shutdown date: 2026-07-23. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.1-mini": Not a supported model ID. Retained for SDK compatibility.
+              - "gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-5-2025-08-07",
+                "gpt-5-mini-2025-08-07", "gpt-5-nano-2025-08-07", "o3", "o3-2025-04-16",
+                "o3-pro", "o3-pro-2025-06-10", "gpt-5-pro", "gpt-5-pro-2025-10-06": Announced
+                shutdown date: 2026-12-11. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-2025-04-14", "gpt-4.1-mini-2025-04-14",
+                "gpt-4o", "gpt-4o-2024-11-20", "gpt-4o-2024-08-06", "gpt-4o-mini",
+                "gpt-4o-mini-2024-07-18": Announced shutdown date: 2027-01-14. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1-nano", "gpt-4.1-nano-2025-04-14", "o4-mini", "o4-mini-2025-04-16",
+                "o3-mini", "o3-mini-2025-01-31", "o1", "o1-2024-12-17", "gpt-4o-2024-05-13",
+                "gpt-4-turbo", "gpt-4-turbo-2024-04-09", "gpt-4-1106-preview", "gpt-4",
+                "gpt-4-0613", "gpt-3.5-turbo", "gpt-3.5-turbo-0125", "o1-pro",
+                "o1-pro-2025-03-19": Announced shutdown date: 2026-10-23. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "o1-preview", "o1-preview-2024-09-12": Announced shutdown date: 2025-07-28.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "o1-mini", "o1-mini-2024-09-12": Announced shutdown date: 2025-10-27. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-audio-mini", "gpt-audio-mini-2025-12-15": Announced shutdown date:
+                2027-01-20. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4o-audio-preview", "gpt-4o-audio-preview-2024-12-17",
+                "gpt-4o-audio-preview-2025-06-03", "gpt-4o-mini-audio-preview",
+                "gpt-4o-mini-audio-preview-2024-12-17": Announced shutdown date: 2026-05-07.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4o-audio-preview-2024-10-01": Announced shutdown date: 2025-10-10. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "chatgpt-4o-latest": Announced shutdown date: 2026-02-17. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "codex-mini-latest": Announced shutdown date: 2026-02-12. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-0125-preview", "gpt-4-turbo-preview", "gpt-4-0314": Announced shutdown
+                date: 2026-03-26. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4-vision-preview": Announced shutdown date: 2024-12-06. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-32k", "gpt-4-32k-0314", "gpt-4-32k-0613": Announced shutdown date:
+                2025-06-06. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-3.5-turbo-16k", "gpt-3.5-turbo-0301", "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-16k-0613": Announced shutdown date: 2024-09-13. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-3.5-turbo-1106": Announced shutdown date: 2026-09-28. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+
           input: Text, image, or file inputs to the model, used to generate a response
 
           instructions: A system (or developer) message inserted into the model's context. When used
@@ -4281,27 +4899,12 @@ class AsyncResponsesConnection(AsyncWebSocketConnectionBase):
 
         self.response = AsyncResponsesResponseResource(self)
 
-    async def __aiter__(self) -> AsyncIterator[BetaResponsesServerEvent]:
+    def __aiter__(self) -> AsyncIterator[BetaResponsesServerEvent]:
         """
         An infinite-iterator that will continue to yield events until
         the connection is closed.
         """
-        from websockets.exceptions import ConnectionClosedOK, ConnectionClosedError
-
-        while True:
-            try:
-                yield await self.recv()
-            except ConnectionClosedOK:
-                return
-            except ConnectionClosedError as exc:
-                if not await self._reconnect(exc):
-                    unsent = self._send_queue.drain()
-                    if unsent:
-                        raise WebSocketConnectionClosedError(
-                            "WebSocket connection closed with unsent messages",
-                            unsent_messages=unsent,
-                        ) from exc
-                    raise
+        return self._iter_events()
 
     async def recv(self) -> BetaResponsesServerEvent:
         """
@@ -4310,15 +4913,7 @@ class AsyncResponsesConnection(AsyncWebSocketConnectionBase):
         Canceling this method is safe. There's no risk of losing data.
         """
         event = self.parse_event(await self.recv_bytes())
-        event_type = (
-            cast("dict[str, object]", event).get("type")
-            if isinstance(cast(object, event), dict)
-            else getattr(event, "type", None)
-        )
-        # A successful upgrade can still be followed by an admission error.
-        # Reset the budget only after receiving a non-error application event.
-        if isinstance(event_type, str) and event_type and event_type != "error":
-            self._reconnect_attempt = 0
+        _record_websocket_progress(self, event)
         return event
 
     async def recv_bytes(self) -> bytes:
@@ -4331,15 +4926,7 @@ class AsyncResponsesConnection(AsyncWebSocketConnectionBase):
         """
         message = await self._connection.recv(decode=False)
         log.debug("Received WebSocket message: %i bytes", len(message))
-        if self._reconnect_attempt:
-            # Account for raw application progress without changing frame delivery.
-            try:
-                event_data: object = json.loads(message)
-            except (ValueError, RecursionError):
-                return message
-            event_type = cast("dict[str, object]", event_data).get("type") if isinstance(event_data, dict) else None
-            if isinstance(event_type, str) and event_type and event_type != "error":
-                self._reconnect_attempt = 0
+        _record_websocket_progress(self, message, raw=True)
         return message
 
     async def send(self, event: BetaResponsesClientEvent | BetaResponsesClientEventParam) -> None:
@@ -4348,10 +4935,7 @@ class AsyncResponsesConnection(AsyncWebSocketConnectionBase):
             if isinstance(event, BaseModel)
             else json.dumps(await async_maybe_transform(event, BetaResponsesClientEventParam))
         )
-        if self._is_reconnecting:
-            self._send_queue.enqueue(data)
-            return
-        await self._connection.send(data)
+        await AsyncWebSocketConnectionBase.send_raw(self, data)
 
     def parse_event(self, data: str | bytes) -> BetaResponsesServerEvent:
         """
@@ -4555,7 +5139,7 @@ class AsyncResponsesConnectionManager:
         """
         ws = await self._connect_ws(self.__extra_query, self.__extra_headers)
 
-        try:
+        async with _async_websocket_entry_guard(ws, self.__clear_connection):
             self.__connection = AsyncResponsesConnection(
                 ws,
                 make_ws=self._connect_ws if self.__on_reconnecting is not None else None,
@@ -4570,74 +5154,23 @@ class AsyncResponsesConnectionManager:
 
             self.__event_handler_registry.merge_into(self.__connection._event_handler_registry)
             await self.__connection._flush_send_queue()
-        except BaseException:
-            self.__connection = None
-            try:
-                await ws.close()
-            except BaseException:
-                # Preserve the exception that prevented successful entry.
-                pass
-            raise
 
         return self.__connection
+
+    def __clear_connection(self) -> None:
+        self.__connection = None
 
     enter = __aenter__
 
     async def _connect_ws(self, extra_query: Query, extra_headers: Headers) -> AsyncWebSocketConnection:
-        try:
-            from ....lib._websocket import _WebSocketConnect as connect
-        except ImportError as exc:
-            raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
-
-        url = self._prepare_url()
-        try:
-            # Older runtimes do not declare this optional helper.
-            query_params = getattr(self.__client, "_websocket_query_params")  # noqa: B009
-        except AttributeError:
-            query_params = self.__client._websocket_query_params_fallback
-        url = url.copy_with(
-            params=query_params(
-                url,
-                extra_query,
-            ),
-        )
-        url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
-        options = await self.__client._prepare_options(
-            FinalRequestOptions.construct(
-                method="get",
-                url=str(url),
-                headers=dict(extra_headers),
-                security={"bearer_auth": True},
-            )
-        )
-        url = self.__client._prepare_url(options.url).copy_merge_params(
-            self.__client.qs.stringify(cast(Any, options.params))
-        )
-        url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
-        headers = {
-            key.lower(): (key, value)
-            for header_set in (
-                self.__client.auth_headers,
-                {},
-                self.__client.default_headers,
-                options.headers if is_given(options.headers) else {},
-            )
-            for key, value in header_set.items()
-        }
-        log.debug("Connecting to WebSocket API")
-        if self.__websocket_connection_options:
-            log.debug("Custom WebSocket connection options provided")
-
-        websocket_options = self.__websocket_connection_options.copy()
-        websocket_options.setdefault("max_size", None)
-        if websocket_options.get("max_size") is None:
-            websocket_options.setdefault("compression", None)
-
-        return await connect(
-            str(url),
-            user_agent_header=None,
-            additional_headers=_merge_mappings(dict(headers.values()), {}),
-            **websocket_options,
+        return await _async_connect_websocket(
+            self.__client,
+            self._prepare_url,
+            extra_query,
+            extra_headers,
+            self.__websocket_connection_options,
+            {},
+            log,
         )
 
     def _prepare_url(self) -> httpx2.URL:
@@ -4655,8 +5188,7 @@ class AsyncResponsesConnectionManager:
     async def __aexit__(
         self, exc_type: type[BaseException] | None, exc: BaseException | None, exc_tb: TracebackType | None
     ) -> None:
-        if self.__connection is not None:
-            await self.__connection.close()
+        await _async_exit_websocket(self.__connection, exc)
 
 
 class ResponsesConnection(WebSocketConnectionBase):
@@ -4700,22 +5232,7 @@ class ResponsesConnection(WebSocketConnectionBase):
         An infinite-iterator that will continue to yield events until
         the connection is closed.
         """
-        from websockets.exceptions import ConnectionClosedOK, ConnectionClosedError
-
-        while True:
-            try:
-                yield self.recv()
-            except ConnectionClosedOK:
-                return
-            except ConnectionClosedError as exc:
-                if not self._reconnect(exc):
-                    unsent = self._send_queue.drain()
-                    if unsent:
-                        raise WebSocketConnectionClosedError(
-                            "WebSocket connection closed with unsent messages",
-                            unsent_messages=unsent,
-                        ) from exc
-                    raise
+        return self._iter_events()
 
     def recv(self) -> BetaResponsesServerEvent:
         """
@@ -4724,15 +5241,7 @@ class ResponsesConnection(WebSocketConnectionBase):
         Canceling this method is safe. There's no risk of losing data.
         """
         event = self.parse_event(self.recv_bytes())
-        event_type = (
-            cast("dict[str, object]", event).get("type")
-            if isinstance(cast(object, event), dict)
-            else getattr(event, "type", None)
-        )
-        # A successful upgrade can still be followed by an admission error.
-        # Reset the budget only after receiving a non-error application event.
-        if isinstance(event_type, str) and event_type and event_type != "error":
-            self._reconnect_attempt = 0
+        _record_websocket_progress(self, event)
         return event
 
     def recv_bytes(self) -> bytes:
@@ -4747,15 +5256,7 @@ class ResponsesConnection(WebSocketConnectionBase):
 
         message = _recv_bytes(self._connection)
         log.debug("Received WebSocket message: %i bytes", len(message))
-        if self._reconnect_attempt:
-            # Account for raw application progress without changing frame delivery.
-            try:
-                event_data: object = json.loads(message)
-            except (ValueError, RecursionError):
-                return message
-            event_type = cast("dict[str, object]", event_data).get("type") if isinstance(event_data, dict) else None
-            if isinstance(event_type, str) and event_type and event_type != "error":
-                self._reconnect_attempt = 0
+        _record_websocket_progress(self, message, raw=True)
         return message
 
     def send(self, event: BetaResponsesClientEvent | BetaResponsesClientEventParam) -> None:
@@ -4764,10 +5265,7 @@ class ResponsesConnection(WebSocketConnectionBase):
             if isinstance(event, BaseModel)
             else json.dumps(maybe_transform(event, BetaResponsesClientEventParam))
         )
-        if self._is_reconnecting:
-            self._send_queue.enqueue(data)
-            return
-        self._connection.send(data)
+        WebSocketConnectionBase.send_raw(self, data)
 
     def parse_event(self, data: str | bytes) -> BetaResponsesServerEvent:
         """
@@ -4965,7 +5463,7 @@ class ResponsesConnectionManager:
         """
         ws = self._connect_ws(self.__extra_query, self.__extra_headers)
 
-        try:
+        with _websocket_entry_guard(ws, self.__clear_connection):
             self.__connection = ResponsesConnection(
                 ws,
                 make_ws=self._connect_ws if self.__on_reconnecting is not None else None,
@@ -4980,74 +5478,23 @@ class ResponsesConnectionManager:
 
             self.__event_handler_registry.merge_into(self.__connection._event_handler_registry)
             self.__connection._flush_send_queue()
-        except BaseException:
-            self.__connection = None
-            try:
-                ws.close()
-            except BaseException:
-                # Preserve the exception that prevented successful entry.
-                pass
-            raise
 
         return self.__connection
+
+    def __clear_connection(self) -> None:
+        self.__connection = None
 
     enter = __enter__
 
     def _connect_ws(self, extra_query: Query, extra_headers: Headers) -> WebSocketConnection:
-        try:
-            from websockets.sync.client import connect
-        except ImportError as exc:
-            raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
-
-        url = self._prepare_url()
-        try:
-            # Older runtimes do not declare this optional helper.
-            query_params = getattr(self.__client, "_websocket_query_params")  # noqa: B009
-        except AttributeError:
-            query_params = self.__client._websocket_query_params_fallback
-        url = url.copy_with(
-            params=query_params(
-                url,
-                extra_query,
-            ),
-        )
-        url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
-        options = self.__client._prepare_options(
-            FinalRequestOptions.construct(
-                method="get",
-                url=str(url),
-                headers=dict(extra_headers),
-                security={"bearer_auth": True},
-            )
-        )
-        url = self.__client._prepare_url(options.url).copy_merge_params(
-            self.__client.qs.stringify(cast(Any, options.params))
-        )
-        url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
-        headers = {
-            key.lower(): (key, value)
-            for header_set in (
-                self.__client.auth_headers,
-                {},
-                self.__client.default_headers,
-                options.headers if is_given(options.headers) else {},
-            )
-            for key, value in header_set.items()
-        }
-        log.debug("Connecting to WebSocket API")
-        if self.__websocket_connection_options:
-            log.debug("Custom WebSocket connection options provided")
-
-        websocket_options = self.__websocket_connection_options.copy()
-        websocket_options.setdefault("max_size", None)
-        if websocket_options.get("max_size") is None:
-            websocket_options.setdefault("compression", None)
-
-        return connect(
-            str(url),
-            user_agent_header=None,
-            additional_headers=_merge_mappings(dict(headers.values()), {}),
-            **websocket_options,
+        return _connect_websocket(
+            self.__client,
+            self._prepare_url,
+            extra_query,
+            extra_headers,
+            self.__websocket_connection_options,
+            {},
+            log,
         )
 
     def _prepare_url(self) -> httpx2.URL:
@@ -5065,8 +5512,7 @@ class ResponsesConnectionManager:
     def __exit__(
         self, exc_type: type[BaseException] | None, exc: BaseException | None, exc_tb: TracebackType | None
     ) -> None:
-        if self.__connection is not None:
-            self.__connection.close()
+        _exit_websocket(self.__connection, exc)
 
 
 class BaseResponsesConnectionResource:

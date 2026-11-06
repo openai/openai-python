@@ -21,8 +21,6 @@ from tests.respx2 import MockRouter
 from openai._utils import assert_signatures_in_sync
 from openai.pagination import SyncConversationCursorPage, AsyncConversationCursorPage
 
-# pyright: reportDeprecated=false
-
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 
 
@@ -933,7 +931,7 @@ def test_create_and_poll_method_in_sync(sync: bool, client: OpenAI, async_client
     checking_client: OpenAI | AsyncOpenAI = client if sync else async_client
 
     assert_signatures_in_sync(
-        checking_client.videos.create,  # pyright: ignore[reportDeprecated]
-        checking_client.videos.create_and_poll,  # pyright: ignore[reportDeprecated]
+        checking_client.videos.create,
+        checking_client.videos.create_and_poll,
         exclude_params={"extra_headers", "extra_query", "extra_body", "timeout"},
     )

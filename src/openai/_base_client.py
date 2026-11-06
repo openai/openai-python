@@ -185,7 +185,7 @@ _AsyncStreamT = TypeVar("_AsyncStreamT", bound=AsyncStream[Any])
 
 if TYPE_CHECKING:
     from httpx2._config import (
-        DEFAULT_TIMEOUT_CONFIG,  # pyright: ignore[reportPrivateImportUsage]
+        DEFAULT_TIMEOUT_CONFIG,
     )
 
     HTTPX_DEFAULT_TIMEOUT = DEFAULT_TIMEOUT_CONFIG
@@ -265,13 +265,15 @@ class BasePage(GenericModel, Generic[_T]):
 
     def has_next_page(self) -> bool:
         items = self._get_page_items()
-        if not items:
+        # Preserve support for custom pages returning non-list iterables.
+        if not items:  # ty: ignore[truthiness-test-of-iterable]
             return False
         return self.next_page_info() is not None
 
     def next_page_info(self) -> Optional[PageInfo]: ...
 
-    def _get_page_items(self) -> Iterable[_T]:  # type: ignore[empty-body]
+    # Concrete page subclasses supply the items; preserve the existing base-class behavior.
+    def _get_page_items(self) -> Iterable[_T]:  # ty: ignore[empty-body]
         ...
 
     def _params_from_url(self, url: URL) -> httpx2.QueryParams:
@@ -333,7 +335,7 @@ class BaseSyncPage(BasePage[_T], Generic[_T]):
     # methods should continue to work as expected as there is an alternative method
     # to cast a model to a dictionary, model.dict(), which is used internally
     # by pydantic.
-    def __iter__(self) -> Iterator[_T]:  # type: ignore
+    def __iter__(self) -> Iterator[_T]:  # ty: ignore[invalid-method-override]
         for page in self.iter_pages():
             for item in page._get_page_items():
                 yield item
@@ -388,12 +390,7 @@ class AsyncPaginator(Generic[_T, AsyncPageT]):
         return await self._client.request(self._page_cls, self._options)
 
     async def __aiter__(self) -> AsyncIterator[_T]:
-        # https://github.com/microsoft/pyright/issues/3464
-        page = cast(
-            AsyncPageT,
-            await self,  # type: ignore
-        )
-        async for item in page:
+        async for item in await self:
             yield item
 
 
@@ -651,7 +648,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
             # request based on the truthiness of the "files" argument.
             # This gets around that issue by generating a dict value that
             # evaluates to true.
-            #
+
             # https://github.com/encode/httpx/discussions/2399#discussioncomment-3814186
             if not files:
                 files = cast(HttpxRequestFiles, ForceMultipartDict())
@@ -691,7 +688,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
             timeout = normalize_httpx2_timeout(timeout)
 
         # TODO: report this error to httpx
-        return self._client.build_request(  # pyright: ignore[reportUnknownMemberType]
+        return self._client.build_request(
             headers=request_headers,
             timeout=timeout,
             method=options.method,
@@ -708,7 +705,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         items = self.qs.stringify_items(
             # TODO: type ignore is required as stringify_items is well typed but we can't be
             # well typed without heavy validation.
-            data,  # type: ignore
+            data,  # ty: ignore[invalid-argument-type]
             array_format="brackets",
         )
         serialized: dict[str, object] = {}
@@ -723,7 +720,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
             # means we're sending data like `array[]=[1, 2, 3]` and we
             # need to tell httpx that we want to send multiple values with
             # the same key which is done by using a list or a tuple.
-            #
+
             # Note: 2d arrays should never result in the same key at both
             # levels so it's safe to assume that if the value is a list,
             # it was because we changed it to be a list.
@@ -752,7 +749,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         return cast_to
 
     def _should_stream_response_body(self, request: httpx2.Request) -> bool:
-        return request.headers.get(RAW_RESPONSE_HEADER) == "stream"  # type: ignore[no-any-return]
+        return request.headers.get(RAW_RESPONSE_HEADER) == "stream"
 
     def _process_response_data(
         self,
@@ -786,7 +783,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
                         # the response or skip validation of any other field.
                         object.__setattr__(validated, "object", data["object"])
                         return cast(ResponseT, validated)
-                return cast(ResponseT, validate_type(type_=cast_to, value=data))
+                return validate_type(type_=cast_to, value=data)
 
             return cast(ResponseT, construct_type(type_=cast_to, value=data))
         except pydantic.ValidationError as err:
@@ -1020,7 +1017,7 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
         if not is_given(timeout):
             # if the user passed in a custom http client with a non-default
             # timeout set then we use that timeout.
-            #
+
             # note: there is an edge case here where the user passes in a client
             # where they've explicitly set the timeout to match the default timeout
             # as this check is structural, meaning that we'll think they didn't
@@ -1043,8 +1040,7 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
 
         super().__init__(
             version=version,
-            # cast to a valid type because mypy doesn't understand our type narrowing
-            timeout=cast(Timeout, timeout),
+            timeout=timeout,
             base_url=base_url,
             max_retries=max_retries,
             custom_query=custom_query,
@@ -1053,8 +1049,7 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
         )
         self._client = http_client or SyncHttpxClientWrapper(
             base_url=base_url,
-            # cast to a valid type because mypy doesn't understand our type narrowing
-            timeout=cast(Timeout, timeout),
+            timeout=timeout,
         )
 
     def is_closed(self) -> bool:
@@ -1335,7 +1330,7 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
         api_response = APIResponse(
             raw=response,
             client=self,
-            cast_to=cast("type[ResponseT]", cast_to),  # pyright: ignore[reportUnnecessaryCast]
+            cast_to=cast_to,
             stream=stream,
             stream_cls=stream_cls,
             options=options,
@@ -1406,8 +1401,7 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
         stream_cls: type[_StreamT] | None = None,
     ) -> ResponseT | _StreamT:
         opts = FinalRequestOptions.construct(method="get", url=path, **options)
-        # cast is required because mypy complains about returning Any even though
-        # it understands the type variables
+        # Preserve the response type through the dynamically selected request overload.
         return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
 
     @overload
@@ -1644,7 +1638,7 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
         if not is_given(timeout):
             # if the user passed in a custom http client with a non-default
             # timeout set then we use that timeout.
-            #
+
             # note: there is an edge case here where the user passes in a client
             # where they've explicitly set the timeout to match the default timeout
             # as this check is structural, meaning that we'll think they didn't
@@ -1668,8 +1662,7 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
         super().__init__(
             version=version,
             base_url=base_url,
-            # cast to a valid type because mypy doesn't understand our type narrowing
-            timeout=cast(Timeout, timeout),
+            timeout=timeout,
             max_retries=max_retries,
             custom_query=custom_query,
             custom_headers=custom_headers,
@@ -1677,8 +1670,7 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
         )
         self._client = http_client or AsyncHttpxClientWrapper(
             base_url=base_url,
-            # cast to a valid type because mypy doesn't understand our type narrowing
-            timeout=cast(Timeout, timeout),
+            timeout=timeout,
         )
 
     def is_closed(self) -> bool:
@@ -1960,7 +1952,7 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
         api_response = AsyncAPIResponse(
             raw=response,
             client=self,
-            cast_to=cast("type[ResponseT]", cast_to),  # pyright: ignore[reportUnnecessaryCast]
+            cast_to=cast_to,
             stream=stream,
             stream_cls=stream_cls,
             options=options,
@@ -2217,8 +2209,8 @@ def make_request_options(
         options["idempotency_key"] = idempotency_key
 
     if is_given(post_parser):
-        # internal
-        options["post_parser"] = post_parser  # type: ignore
+        # Internal request hook deliberately omitted from the public RequestOptions type.
+        options["post_parser"] = post_parser  # ty: ignore[invalid-key]
 
     if security is not None:
         options["security"] = security

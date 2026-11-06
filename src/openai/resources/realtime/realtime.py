@@ -339,21 +339,28 @@ class AsyncRealtimeConnection(AsyncWebSocketConnectionBase):
         An infinite-iterator that will continue to yield events until
         the connection is closed.
         """
-        from websockets.exceptions import ConnectionClosedOK, ConnectionClosedError
+        from websockets.exceptions import ConnectionClosed, ConnectionClosedOK, ConnectionClosedError
 
         while True:
             try:
                 yield await self.recv()
-            except ConnectionClosedOK:
-                return
-            except ConnectionClosedError as exc:
-                if not await self._reconnect(exc):
+            except ConnectionClosed as exc:
+                # Older SDK bases read close codes only from ConnectionClosedError.
+                # Adapt the policy input; keep the original close for EOF and errors.
+                reconnect_exc = (
+                    ConnectionClosedError(exc.rcvd, exc.sent, exc.rcvd_then_sent)
+                    if isinstance(exc, ConnectionClosedOK)
+                    else exc
+                )
+                if not await self._reconnect(reconnect_exc):
                     unsent = self._send_queue.drain()
                     if unsent:
                         raise WebSocketConnectionClosedError(
                             "WebSocket connection closed with unsent messages",
                             unsent_messages=unsent,
                         ) from exc
+                    if isinstance(exc, ConnectionClosedOK):
+                        return
                     raise
 
     async def recv(self) -> RealtimeServerEvent:
@@ -401,10 +408,7 @@ class AsyncRealtimeConnection(AsyncWebSocketConnectionBase):
             if isinstance(event, BaseModel)
             else json.dumps(await async_maybe_transform(event, RealtimeClientEventParam))
         )
-        if self._is_reconnecting:
-            self._send_queue.enqueue(data)
-            return
-        await self._connection.send(data)
+        await AsyncWebSocketConnectionBase.send_raw(self, data)
 
     def parse_event(self, data: str | bytes) -> RealtimeServerEvent:
         """
@@ -648,14 +652,18 @@ class AsyncRealtimeConnectionManager:
         if self.__call_id is not omit:
             extra_query = {**extra_query, "call_id": self.__call_id}
         if is_async_azure_client(self.__client):
-            await self.__client._refresh_api_key()
+            api_key = await self.__client._refresh_api_key()
             from ...lib._azure_websocket import _AzureWebSocketConnect as connect
 
             model = self.__model
             if not model:
                 raise OpenAIError("`model` is required for Azure Realtime API")
             else:
-                url, auth_headers = await self.__client._configure_realtime(model, extra_query)
+                configure = getattr(self.__client, "_configure_realtime_with_api_key", None)
+                if configure is not None:
+                    url, auth_headers = await configure(model, extra_query, api_key=api_key)
+                else:
+                    url, auth_headers = await self.__client._configure_realtime(model, extra_query)
             prepared_headers: Headers = extra_headers
         else:
             url = self._prepare_url()
@@ -730,7 +738,11 @@ class AsyncRealtimeConnectionManager:
         self, exc_type: type[BaseException] | None, exc: BaseException | None, exc_tb: TracebackType | None
     ) -> None:
         if self.__connection is not None:
-            await self.__connection.close()
+            try:
+                await self.__connection.close()
+            except Exception:
+                if exc is None:
+                    raise
 
 
 class RealtimeConnection(WebSocketConnectionBase):
@@ -782,21 +794,28 @@ class RealtimeConnection(WebSocketConnectionBase):
         An infinite-iterator that will continue to yield events until
         the connection is closed.
         """
-        from websockets.exceptions import ConnectionClosedOK, ConnectionClosedError
+        from websockets.exceptions import ConnectionClosed, ConnectionClosedOK, ConnectionClosedError
 
         while True:
             try:
                 yield self.recv()
-            except ConnectionClosedOK:
-                return
-            except ConnectionClosedError as exc:
-                if not self._reconnect(exc):
+            except ConnectionClosed as exc:
+                # Older SDK bases read close codes only from ConnectionClosedError.
+                # Adapt the policy input; keep the original close for EOF and errors.
+                reconnect_exc = (
+                    ConnectionClosedError(exc.rcvd, exc.sent, exc.rcvd_then_sent)
+                    if isinstance(exc, ConnectionClosedOK)
+                    else exc
+                )
+                if not self._reconnect(reconnect_exc):
                     unsent = self._send_queue.drain()
                     if unsent:
                         raise WebSocketConnectionClosedError(
                             "WebSocket connection closed with unsent messages",
                             unsent_messages=unsent,
                         ) from exc
+                    if isinstance(exc, ConnectionClosedOK):
+                        return
                     raise
 
     def recv(self) -> RealtimeServerEvent:
@@ -846,10 +865,7 @@ class RealtimeConnection(WebSocketConnectionBase):
             if isinstance(event, BaseModel)
             else json.dumps(maybe_transform(event, RealtimeClientEventParam))
         )
-        if self._is_reconnecting:
-            self._send_queue.enqueue(data)
-            return
-        self._connection.send(data)
+        WebSocketConnectionBase.send_raw(self, data)
 
     def parse_event(self, data: str | bytes) -> RealtimeServerEvent:
         """
@@ -1087,12 +1103,16 @@ class RealtimeConnectionManager:
         if self.__call_id is not omit:
             extra_query = {**extra_query, "call_id": self.__call_id}
         if is_azure_client(self.__client):
-            self.__client._refresh_api_key()
+            api_key = self.__client._refresh_api_key()
             model = self.__model
             if not model:
                 raise OpenAIError("`model` is required for Azure Realtime API")
             else:
-                url, auth_headers = self.__client._configure_realtime(model, extra_query)
+                configure = getattr(self.__client, "_configure_realtime_with_api_key", None)
+                if configure is not None:
+                    url, auth_headers = configure(model, extra_query, api_key=api_key)
+                else:
+                    url, auth_headers = self.__client._configure_realtime(model, extra_query)
             prepared_headers: Headers = extra_headers
         else:
             url = self._prepare_url()
@@ -1167,7 +1187,11 @@ class RealtimeConnectionManager:
         self, exc_type: type[BaseException] | None, exc: BaseException | None, exc_tb: TracebackType | None
     ) -> None:
         if self.__connection is not None:
-            self.__connection.close()
+            try:
+                self.__connection.close()
+            except Exception:
+                if exc is None:
+                    raise
 
 
 class BaseRealtimeConnectionResource:

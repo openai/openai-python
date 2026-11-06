@@ -71,7 +71,7 @@ def runs_create_and_poll(
     lifecycles can be found here:
     https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps
     """
-    run = self.create(  # pyright: ignore[reportDeprecated]
+    run = self.create(
         thread_id=thread_id,
         assistant_id=assistant_id,
         include=include,
@@ -97,7 +97,7 @@ def runs_create_and_poll(
         extra_body=extra_body,
         timeout=timeout,
     )
-    return self.poll(  # pyright: ignore[reportDeprecated]
+    return self.poll(
         run.id,
         thread_id=thread_id,
         extra_headers=extra_headers,
@@ -207,7 +207,7 @@ def runs_poll(
 
     terminal_states = {"requires_action", "cancelled", "completed", "failed", "expired", "incomplete"}
     while True:
-        response = self.with_raw_response.retrieve(  # pyright: ignore[reportDeprecated]
+        response = self.with_raw_response.retrieve(
             thread_id=thread_id,
             run_id=run_id,
             extra_headers=extra_headers,
@@ -329,7 +329,7 @@ def runs_submit_tool_outputs_and_poll(
     More information on Run lifecycles can be found here:
     https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps
     """
-    run = self.submit_tool_outputs(  # pyright: ignore[reportDeprecated]
+    run = self.submit_tool_outputs(
         run_id=run_id,
         thread_id=thread_id,
         tool_outputs=tool_outputs,
@@ -339,7 +339,7 @@ def runs_submit_tool_outputs_and_poll(
         extra_body=extra_body,
         timeout=timeout,
     )
-    return self.poll(  # pyright: ignore[reportDeprecated]
+    return self.poll(
         run_id=run.id,
         thread_id=thread_id,
         extra_headers=extra_headers,
@@ -439,7 +439,7 @@ async def async_runs_create_and_poll(
     lifecycles can be found here:
     https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps
     """
-    run = await self.create(  # pyright: ignore[reportDeprecated]
+    run = await self.create(
         thread_id=thread_id,
         assistant_id=assistant_id,
         include=include,
@@ -465,7 +465,7 @@ async def async_runs_create_and_poll(
         extra_body=extra_body,
         timeout=timeout,
     )
-    return await self.poll(  # pyright: ignore[reportDeprecated]
+    return await self.poll(
         run.id,
         thread_id=thread_id,
         extra_headers=extra_headers,
@@ -572,7 +572,7 @@ async def async_runs_poll(
 
     terminal_states = {"requires_action", "cancelled", "completed", "failed", "expired", "incomplete"}
     while True:
-        response = await self.with_raw_response.retrieve(  # pyright: ignore[reportDeprecated]
+        response = await self.with_raw_response.retrieve(
             thread_id=thread_id,
             run_id=run_id,
             extra_headers=extra_headers,
@@ -693,7 +693,7 @@ async def async_runs_submit_tool_outputs_and_poll(
     More information on Run lifecycles can be found here:
     https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps
     """
-    run = await self.submit_tool_outputs(  # pyright: ignore[reportDeprecated]
+    run = await self.submit_tool_outputs(
         run_id=run_id,
         thread_id=thread_id,
         tool_outputs=tool_outputs,
@@ -703,7 +703,7 @@ async def async_runs_submit_tool_outputs_and_poll(
         extra_body=extra_body,
         timeout=timeout,
     )
-    return await self.poll(  # pyright: ignore[reportDeprecated]
+    return await self.poll(
         run_id=run.id,
         thread_id=thread_id,
         extra_headers=extra_headers,

@@ -247,7 +247,7 @@ async def run() -> None:
                 await asyncio.wait_for(release.wait(), timeout=5)
             await original_capture(cancelled=cancelled)
 
-        current.capture = hold_verified
+        current.capture = hold_verified  # ty: ignore[invalid-assignment]  # Test replaces a callable with a controlled fixture.
         try:
             await post("/api/approval", {**binding(offered), "approvalId": offered["approval"]["id"], "approved": True})
             await asyncio.wait_for(entered.wait(), timeout=5)
@@ -277,7 +277,7 @@ async def run() -> None:
             assert stopped["result"] == "unverified", "The old agent result survived human editing and Stop"
         finally:
             release.set()
-            current.capture = original_capture
+            current.capture = original_capture  # ty: ignore[invalid-assignment]  # Test replaces a callable with a controlled fixture.
         await post("/api/start", {"taskId": "reservation", "api": "decisions", "mode": "rehearsal"})
         offered = await until(lambda s: s["approval"] is not None)
         await post("/api/take-control", binding(offered))

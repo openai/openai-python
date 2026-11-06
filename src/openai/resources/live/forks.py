@@ -153,21 +153,28 @@ class AsyncForksConnection(AsyncWebSocketConnectionBase):
         An infinite-iterator that will continue to yield events until
         the connection is closed.
         """
-        from websockets.exceptions import ConnectionClosedOK, ConnectionClosedError
+        from websockets.exceptions import ConnectionClosed, ConnectionClosedOK, ConnectionClosedError
 
         while True:
             try:
                 yield await self.recv()
-            except ConnectionClosedOK:
-                return
-            except ConnectionClosedError as exc:
-                if not await self._reconnect(exc):
+            except ConnectionClosed as exc:
+                # Older SDK bases read close codes only from ConnectionClosedError.
+                # Adapt the policy input; keep the original close for EOF and errors.
+                reconnect_exc = (
+                    ConnectionClosedError(exc.rcvd, exc.sent, exc.rcvd_then_sent)
+                    if isinstance(exc, ConnectionClosedOK)
+                    else exc
+                )
+                if not await self._reconnect(reconnect_exc):
                     unsent = self._send_queue.drain()
                     if unsent:
                         raise WebSocketConnectionClosedError(
                             "WebSocket connection closed with unsent messages",
                             unsent_messages=unsent,
                         ) from exc
+                    if isinstance(exc, ConnectionClosedOK):
+                        return
                     raise
 
     async def recv(self) -> ForkServerEvent:
@@ -215,10 +222,7 @@ class AsyncForksConnection(AsyncWebSocketConnectionBase):
             if isinstance(event, BaseModel)
             else json.dumps(await async_maybe_transform(event, ForkClientEventParam))
         )
-        if self._is_reconnecting:
-            self._send_queue.enqueue(data)
-            return
-        await self._connection.send(data)
+        await AsyncWebSocketConnectionBase.send_raw(self, data)
 
     def parse_event(self, data: str | bytes) -> ForkServerEvent:
         """
@@ -527,7 +531,11 @@ class AsyncForksConnectionManager:
         self, exc_type: type[BaseException] | None, exc: BaseException | None, exc_tb: TracebackType | None
     ) -> None:
         if self.__connection is not None:
-            await self.__connection.close()
+            try:
+                await self.__connection.close()
+            except Exception:
+                if exc is None:
+                    raise
 
 
 class ForksConnection(WebSocketConnectionBase):
@@ -575,21 +583,28 @@ class ForksConnection(WebSocketConnectionBase):
         An infinite-iterator that will continue to yield events until
         the connection is closed.
         """
-        from websockets.exceptions import ConnectionClosedOK, ConnectionClosedError
+        from websockets.exceptions import ConnectionClosed, ConnectionClosedOK, ConnectionClosedError
 
         while True:
             try:
                 yield self.recv()
-            except ConnectionClosedOK:
-                return
-            except ConnectionClosedError as exc:
-                if not self._reconnect(exc):
+            except ConnectionClosed as exc:
+                # Older SDK bases read close codes only from ConnectionClosedError.
+                # Adapt the policy input; keep the original close for EOF and errors.
+                reconnect_exc = (
+                    ConnectionClosedError(exc.rcvd, exc.sent, exc.rcvd_then_sent)
+                    if isinstance(exc, ConnectionClosedOK)
+                    else exc
+                )
+                if not self._reconnect(reconnect_exc):
                     unsent = self._send_queue.drain()
                     if unsent:
                         raise WebSocketConnectionClosedError(
                             "WebSocket connection closed with unsent messages",
                             unsent_messages=unsent,
                         ) from exc
+                    if isinstance(exc, ConnectionClosedOK):
+                        return
                     raise
 
     def recv(self) -> ForkServerEvent:
@@ -639,10 +654,7 @@ class ForksConnection(WebSocketConnectionBase):
             if isinstance(event, BaseModel)
             else json.dumps(maybe_transform(event, ForkClientEventParam))
         )
-        if self._is_reconnecting:
-            self._send_queue.enqueue(data)
-            return
-        self._connection.send(data)
+        WebSocketConnectionBase.send_raw(self, data)
 
     def parse_event(self, data: str | bytes) -> ForkServerEvent:
         """
@@ -945,7 +957,11 @@ class ForksConnectionManager:
         self, exc_type: type[BaseException] | None, exc: BaseException | None, exc_tb: TracebackType | None
     ) -> None:
         if self.__connection is not None:
-            self.__connection.close()
+            try:
+                self.__connection.close()
+            except Exception:
+                if exc is None:
+                    raise
 
 
 class BaseForksConnectionResource:

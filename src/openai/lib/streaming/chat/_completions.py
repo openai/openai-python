@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import inspect
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Generic, Callable, Iterable, Awaitable, AsyncIterator, cast
+from typing import TYPE_CHECKING, Generic, Callable, Iterable, Awaitable, AsyncIterator, cast
 from typing_extensions import Self, Iterator, assert_never
 
 from jiter import from_json
@@ -23,7 +23,7 @@ from ._events import (
     FunctionToolCallArgumentsDeltaEvent,
 )
 from .._deltas import accumulate_delta
-from ...._types import Omit, IncEx, omit
+from ...._types import Omit, omit
 from ...._utils import is_given, consume_sync_iterator, consume_async_iterator
 from ...._compat import model_dump
 from ...._models import build, construct_type
@@ -321,7 +321,9 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
 
         self._input_tools = [tool for tool in input_tools] if is_given(input_tools) else []
         self._response_format = response_format
-        self._rich_response_format: type | Omit = response_format if inspect.isclass(response_format) else omit
+        self._rich_response_format: type[ResponseFormatT] | Omit = (
+            response_format if inspect.isclass(response_format) else omit
+        )
 
     def get_final_completion(self) -> ParsedChatCompletion[ResponseFormatT]:
         """Parse the final completion object.
@@ -380,17 +382,13 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                                     # we don't want to serialise / deserialise our custom properties
                                     # as they won't appear in the delta and we don't want to have to
                                     # continuously reparse the content
-                                    exclude=cast(
-                                        # cast required as mypy isn't smart enough to infer `True` here to `Literal[True]`
-                                        IncEx,
-                                        {
-                                            "parsed": True,
-                                            "tool_calls": {
-                                                idx: {"function": {"parsed_arguments": True}}
-                                                for idx, _ in enumerate(choice_snapshot.message.tool_calls or [])
-                                            },
+                                    exclude={
+                                        "parsed": True,
+                                        "tool_calls": {
+                                            idx: {"function": {"parsed_arguments": True}}
+                                            for idx, _ in enumerate(choice_snapshot.message.tool_calls or [])
                                         },
-                                    ),
+                                    },
                                 ),
                             ),
                             cast("dict[object, object]", choice.delta.to_dict()),
@@ -406,7 +404,7 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                     if prev_tool.type == "function":
                         assert new_tool.type == "function"
                         new_tool.function.parsed_arguments = prev_tool.function.parsed_arguments
-                    elif TYPE_CHECKING:  # type: ignore[unreachable]
+                    elif TYPE_CHECKING:
                         assert_never(prev_tool)
             except IndexError:
                 choice_snapshot = cast(
@@ -462,7 +460,7 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                             bytes(tool_call_snapshot.function.arguments, "utf-8"),
                             partial_mode=True,
                         )
-                elif TYPE_CHECKING:  # type: ignore[unreachable]
+                elif TYPE_CHECKING:
                     assert_never(tool_call_snapshot)
 
             if choice.logprobs is not None:
@@ -551,7 +549,7 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                                 arguments_delta=tool_call_delta.function.arguments or "",
                             )
                         )
-                    elif TYPE_CHECKING:  # type: ignore[unreachable]
+                    elif TYPE_CHECKING:
                         assert_never(tool_call)
 
             if choice.logprobs is not None and choice_snapshot.logprobs is not None:
@@ -606,7 +604,10 @@ class ChoiceEventState:
     ) -> list[ChatCompletionStreamEvent[ResponseFormatT]]:
         events_to_fire: list[ChatCompletionStreamEvent[ResponseFormatT]] = []
 
-        if choice_snapshot.finish_reason:
+        # In-progress snapshots are constructed from chunks whose finish_reason can be None,
+        # but ParsedChoiceSnapshot reuses the completed-response type, which excludes None.
+        # TODO: Model incomplete snapshots separately so their annotations reflect this state.
+        if choice_snapshot.finish_reason:  # ty: ignore[redundant-condition]
             events_to_fire.extend(
                 self._content_done_events(choice_snapshot=choice_snapshot, response_format=response_format)
             )
@@ -661,13 +662,7 @@ class ChoiceEventState:
 
             events_to_fire.append(
                 build(
-                    # we do this dance so that when the `ContentDoneEvent` instance
-                    # is printed at runtime the class name will include the solved
-                    # type variable, e.g. `ContentDoneEvent[MyModelType]`
-                    cast(  # pyright: ignore[reportUnnecessaryCast]
-                        "type[ContentDoneEvent[ResponseFormatT]]",
-                        cast(Any, ContentDoneEvent),
-                    ),
+                    ContentDoneEvent,
                     type="content.done",
                     content=choice_snapshot.message.content,
                     parsed=parsed,
@@ -737,7 +732,7 @@ class ChoiceEventState:
                     parsed_arguments=parsed_arguments,
                 )
             )
-        elif TYPE_CHECKING:  # type: ignore[unreachable]
+        elif TYPE_CHECKING:
             assert_never(tool_call_snapshot)
 
 
@@ -771,4 +766,4 @@ def _is_valid_chat_completion_chunk_weak(sse_event: ChatCompletionChunk) -> bool
     # An easy filter is to check for the "object" property:
     # - should be "chat.completion.chunk" for a ChatCompletionChunk;
     # - is an empty string for Asynchronous Filter events.
-    return sse_event.object == "chat.completion.chunk"  # type: ignore # pylance reports this as a useless check
+    return sse_event.object == "chat.completion.chunk"
