@@ -1,92 +1,41 @@
 # Repository Guidance
 
+<a id="generated-file-ownership"></a>
+
 ## Generated SDK
 
-Most SDK source is generated from the OpenAI API schema. Follow `CONTRIBUTING.md` before
-changing generated files. Handwritten policy, automation, tests, and examples
-should remain small and should not alter exported SDK APIs unless the change
-explicitly requires it.
-
-## Generated-file ownership
-
-Follow [Modifying/Adding code](CONTRIBUTING.md#modifyingadding-code) to identify the source of a fix before editing SDK files.
+Most SDK source is generated from the OpenAI API schema. Before editing, follow [Modifying/Adding code](CONTRIBUTING.md#modifyingadding-code) to identify schema/generator/handwritten ownership. Keep handwritten policy, automation, tests, and examples small; alter exported APIs only when explicitly required.
 
 ## Security requirements for coding agents
 
-- Never commit real API or admin keys, bearer tokens, webhook secrets, cloud
-  credentials, X.509 private keys, release credentials, or `.env` files. Read
-  `OPENAI_API_KEY`, `OPENAI_ADMIN_KEY`, `OPENAI_WEBHOOK_SECRET`, and other
-  credentials from the environment; use clearly fake examples and fixtures.
-- Redact credentials, `Authorization` and `api-key` headers, customer data, and
-  sensitive request or response bodies from logs, exceptions, snapshots, and
-  test output. Clearly fake or sanitized fixtures and safe `APIError.body`
-  diagnostics may remain. Preserve existing sensitive-header filtering,
-  including debug logging.
-- Review direct and transitive dependency changes in `pyproject.toml`, optional
-  extras, dependency groups, and `uv.lock`. Check
-  package provenance, build backends, and install scripts before accepting or
-  running them.
-- Pin third-party GitHub Actions to reviewed full commit SHAs. Minimize
-  job-level token permissions and never expose secrets or write-capable tokens
-  to untrusted pull-request code.
-- Preserve separate build and publish jobs, protected release credentials, and
-  PyPI Trusted Publishing. Grant `id-token: write` only to the trusted,
-  upload-only publishing job; do not introduce long-lived PyPI tokens.
-- Obtain SDK CODEOWNER review and add focused synchronous and asynchronous
-  security regression tests, as applicable, for changes to authentication,
-  X.509 or webhook verification, HTTP destinations, redirects, proxies, TLS,
-  cloud metadata, file uploads, serialization, dependencies, GitHub Actions,
-  or release workflows.
-- Report suspected vulnerabilities privately as described in `SECURITY.md`;
-  never disclose them in public issues, pull requests, or logs.
+Read and apply [contributor security requirements](CONTRIBUTING.md#security-requirements-for-contributions) for credentials, synthetic fixtures, redaction, dependency provenance/hooks, pinned actions, CI isolation, and publishing. Follow [SECURITY.md](SECURITY.md) for private reporting; never disclose vulnerabilities in public issues, PRs, or logs.
+
+- Redact sensitive data from test output; preserve sensitive-header filtering, including debug logs. Clearly fake/sanitized fixtures and safe `APIError.body` diagnostics may remain.
+- Review all dependency groups, direct/transitive packages, extras, `uv.lock`, build backends, and install hooks before accepting or executing them.
+- Keep build/publish jobs separate; grant `id-token: write` only to the trusted upload-only job with protected credentials and PyPI Trusted Publishing. No long-lived PyPI tokens.
+- Obtain SDK CODEOWNER review and focused sync/async security regressions, as applicable, for the contributor guide's sensitive-change categories, including proxies.
 
 ## Python version policy
 
-- `requires-python` in `pyproject.toml` is the authoritative technical minimum.
-- `PYTHON_VERSION_POLICY.md` is the human-readable support and release policy.
-- Support every fully released, non-EOL CPython line. A documented grace period
-  may temporarily add the most recently retired line.
-- Keep `requires-python`, classifiers, dependency markers, README requirements,
-  static-analysis targets, `.python-version`, and CI synchronized.
-- Do not combine a minimum-Python change with unrelated SDK or dependency
-  upgrades.
+Read [PYTHON_VERSION_POLICY.md](PYTHON_VERSION_POLICY.md) for support, grace periods, release rules, and testing. `pyproject.toml#requires-python` owns the technical minimum. Keep classifiers, dependency markers, README requirements, analysis targets, `.python-version`, and CI synchronized; separate floor changes from unrelated SDK/dependency upgrades.
 
 ## Changing the minimum Python version
 
-1. Update `pyproject.toml`, `.python-version`, the lock files, README,
-   `CONTRIBUTING.md`, and `PYTHON_VERSION_POLICY.md`.
-2. Remove dependency branches that only served the retired runtime.
-3. Update minimum/current and full-matrix CI coverage.
-4. Build both distributions and validate their `Requires-Python` metadata and
-   old-interpreter rejection behavior.
-5. Add a `## Release note` section to the pull request description naming the
-   new minimum and final compatible SDK release. Do not promise security
-   backports for the old release.
-6. Obtain SDK CODEOWNER approval.
+1. Update `pyproject.toml`, `.python-version`, locks, README, `CONTRIBUTING.md`, and `PYTHON_VERSION_POLICY.md`; remove dependency branches serving only the retired runtime.
+2. Update minimum/current and full-matrix CI; build both distributions and validate `Requires-Python` metadata and old-interpreter rejection.
+3. Add a `## Release note` PR section naming the new minimum and final compatible SDK release; do not promise security backports.
+4. Obtain SDK CODEOWNER approval.
 
-The deterministic Python policy check proves repository surfaces agree. It
-does not decide whether an EOL grace period or floor increase is appropriate.
+The deterministic policy check proves consistency, not whether grace or a floor increase is appropriate.
 
 ## Automation map
 
-- `.github/workflows/ci.yml`
-  - On pull requests and branch pushes: lint, build, metadata validation, and
-    tests on the minimum and current stable Python releases.
-  - Nightly and manually: smoke-tests every supported Python release and the
-    allowed-failure prerelease.
-- `.github/workflows/python-version-review.yml`
-  - Monthly on the default branch: snapshots official CPython lifecycle data
-    plus the public PyPI Python-minor distribution and asks Codex for a policy
-    review.
-  - Runs a pinned Codex runtime as an unprivileged user with no command network
-    access and read-only repository permissions.
-  - Codex cannot edit the repository or call GitHub. A separate job with no
-    OpenAI credential opens or refreshes one issue only when action is needed.
-  - Never changes the Python floor or merges code automatically.
+- [ci.yml](.github/workflows/ci.yml): PR/branch-push lint, build, metadata, and minimum/current tests; nightly/manual supported-version smoke matrix plus allowed-failure prerelease.
+- [python-version-review.yml](.github/workflows/python-version-review.yml): monthly default-branch review of official CPython lifecycle and public PyPI minor-version usage snapshots. Pinned Codex runs unprivileged, without command network access, with read-only repo permissions and no repository edits/GitHub calls. A separate job without OpenAI credentials opens/refreshes one issue only when needed. Never change the floor or merge automatically.
 
 ## Validation
 
-Before publishing a Python-version change, run:
+Before publishing Python-version changes, run:
 
 ```sh
 uv lock
@@ -101,22 +50,10 @@ uv run --locked --all-extras python scripts/utils/validate-httpx2-wheel.py
 ./scripts/test
 ```
 
-Also run the scheduled compatibility matrix before release.
+Run the scheduled compatibility matrix before release.
 
 ## Large-payload compatibility
 
-Treat large payloads as a normal API contract, not evidence of malformed or
-hostile input. Responses, Chat Completions, and other APIs can legitimately
-return large `application/json` bodies and streaming events. Do not introduce
-arbitrary fixed limits on bodies, events, or lines as a security or efficiency
-fix. Prefer incremental processing, amortized-linear buffering, timely cleanup,
-and caller cancellation. Any new rejection limit needs an explicit,
-owner-approved API contract and a review of existing supported payloads and
-transports.
+Large JSON bodies and streaming events are legitimate Responses, Chat Completions, and other API payloads, not inherently malformed/hostile. No arbitrary body/event/line caps: prefer incremental processing, amortized-linear buffering, cleanup, and caller cancellation. New rejection limits require an explicit owner-approved API contract and review of supported payloads/transports.
 
-Protect this behavior with focused, deterministic public-entrypoint tests using
-large synthetic payloads generated in memory, not committed captures or live
-image generation. Their high memory use is intentional: do not shrink the
-payloads or raise client limits to make the tests pass. Keep coverage to the main
-JSON and streaming categories, and run large cases sequentially to keep peak
-memory reasonable. The fixture size is a regression probe, not a new API maximum.
+Use deterministic public-entrypoint tests with large synthetic in-memory payloads, not committed captures or live image generation. High memory use is intentional: do not shrink payloads or raise client limits to pass. Cover main JSON/streaming categories and run large cases sequentially. Fixture size is a regression probe, not an API maximum.
