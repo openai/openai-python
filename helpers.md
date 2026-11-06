@@ -189,7 +189,7 @@ print(tool_call.function.parsed_arguments.table_name)
 
 The `chat.completions.parse()` method imposes some additional restrictions on it's usage that `chat.completions.create()` does not.
 
-- If the completion completes with `finish_reason` set to `length` or `content_filter`, the `LengthFinishReasonError` / `ContentFilterFinishReasonError` errors will be raised.
+- If you pass parseable input, such as a Pydantic model as `response_format` or a strict function tool, and the completion finishes with `finish_reason` set to `length` or `content_filter`, `.parse()` raises `LengthFinishReasonError` or `ContentFilterFinishReasonError`. Without parseable input, `.parse()` returns the completion instead.
 - Only strict function tools can be passed, e.g. `{'type': 'function', 'function': {..., 'strict': True}}`
 
 # Streaming Helpers
