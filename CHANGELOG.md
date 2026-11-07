@@ -1,5 +1,22 @@
 # Changelog
 
+## [3.48.0](https://github.com/openai/openai-python/compare/v3.47.0...v3.48.0) (2026-11-07)
+
+
+### Features
+
+* **api:** add stream options for agent sessions ([#4251](https://github.com/openai/openai-python/issues/4251)) ([c6fc264](https://github.com/openai/openai-python/commit/c6fc264689d384d5caec150fafa1a9567c4a3f56))
+
+
+### Chores
+
+* **api:** retain agent scheduling support ([#4255](https://github.com/openai/openai-python/issues/4255)) ([a1175a3](https://github.com/openai/openai-python/commit/a1175a35ba6aa2d6bf98d26088a572ab0c5f4453))
+
+
+### Documentation
+
+* consolidate AGENTS.md guidance ([#4254](https://github.com/openai/openai-python/issues/4254)) ([44b1555](https://github.com/openai/openai-python/commit/44b1555aff1c22998c008c84400e7acce39fb928))
+
 ## [3.47.0](https://github.com/openai/openai-python/compare/v3.46.0...v3.47.0) (2026-11-05)
 
 
