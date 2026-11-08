@@ -245,6 +245,7 @@ class Responses(SyncAPIResource):
                 "gpt-5.6-cyber",
                 "gpt-6-cyber",
                 "gpt-rosalind-research",
+                "gpt-6-rosalind",
             ],
             str,
         ]
@@ -738,6 +739,7 @@ class Responses(SyncAPIResource):
                 "gpt-5.6-cyber",
                 "gpt-6-cyber",
                 "gpt-rosalind-research",
+                "gpt-6-rosalind",
             ],
             str,
         ]
@@ -1230,6 +1232,7 @@ class Responses(SyncAPIResource):
                 "gpt-5.6-cyber",
                 "gpt-6-cyber",
                 "gpt-rosalind-research",
+                "gpt-6-rosalind",
             ],
             str,
         ]
@@ -1720,6 +1723,7 @@ class Responses(SyncAPIResource):
                 "gpt-5.6-cyber",
                 "gpt-6-cyber",
                 "gpt-rosalind-research",
+                "gpt-6-rosalind",
             ],
             str,
         ]
@@ -2212,6 +2216,7 @@ class Responses(SyncAPIResource):
                 "gpt-5.6-cyber",
                 "gpt-6-cyber",
                 "gpt-rosalind-research",
+                "gpt-6-rosalind",
             ],
             str,
             None,
@@ -2596,6 +2601,7 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-5.6-cyber",
                 "gpt-6-cyber",
                 "gpt-rosalind-research",
+                "gpt-6-rosalind",
             ],
             str,
         ]
@@ -3089,6 +3095,7 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-5.6-cyber",
                 "gpt-6-cyber",
                 "gpt-rosalind-research",
+                "gpt-6-rosalind",
             ],
             str,
         ]
@@ -3581,6 +3588,7 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-5.6-cyber",
                 "gpt-6-cyber",
                 "gpt-rosalind-research",
+                "gpt-6-rosalind",
             ],
             str,
         ]
@@ -4071,6 +4079,7 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-5.6-cyber",
                 "gpt-6-cyber",
                 "gpt-rosalind-research",
+                "gpt-6-rosalind",
             ],
             str,
         ]
@@ -4563,6 +4572,7 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-5.6-cyber",
                 "gpt-6-cyber",
                 "gpt-rosalind-research",
+                "gpt-6-rosalind",
             ],
             str,
             None,
@@ -5698,6 +5708,7 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
                 "gpt-5.6-cyber",
                 "gpt-6-cyber",
                 "gpt-rosalind-research",
+                "gpt-6-rosalind",
             ],
             str,
         ]
@@ -5961,6 +5972,7 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
                 "gpt-5.6-cyber",
                 "gpt-6-cyber",
                 "gpt-rosalind-research",
+                "gpt-6-rosalind",
             ],
             str,
         ]
