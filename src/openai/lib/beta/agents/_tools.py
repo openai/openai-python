@@ -151,7 +151,7 @@ class _AwaitableToolOutput:
 
 
 @overload
-def pydantic_function_tool(  # type: ignore[overload-overlap]
+def pydantic_function_tool(
     model: type[_ModelT],
     *,
     handler: Callable[[_ModelT], Awaitable[object]],
@@ -201,16 +201,14 @@ def pydantic_function_tool(
 
 class _FunctionToolDecorator(Protocol):
     @overload
-    def __call__(  # type: ignore[overload-overlap]
-        self, function: Callable[..., Awaitable[object]]
-    ) -> FunctionTool[Awaitable[ToolOutput]]: ...
+    def __call__(self, function: Callable[..., Awaitable[object]]) -> FunctionTool[Awaitable[ToolOutput]]: ...
 
     @overload
     def __call__(self, function: Callable[..., object]) -> FunctionTool[ToolOutput]: ...
 
 
 @overload
-def function_tool(  # type: ignore[overload-overlap]
+def function_tool(
     function: Callable[..., Awaitable[object]],
     *,
     name: str | None = None,
@@ -332,7 +330,7 @@ def function_tool(
     return pydantic_function_tool(
         model,
         handler=invoke_async if inspect.iscoroutinefunction(function) else invoke,
-        name=function.__name__ if name is None else name,
+        name=function.__name__ if name is None else name,  # ty: ignore[unresolved-attribute]
         description=(inspect.getdoc(function) or "") if description is None else description,
         defer_loading=defer_loading,
     )

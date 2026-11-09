@@ -24,7 +24,7 @@ class ChatSessionWorkflowParam(TypedDict, total=False):
     id: Required[str]
     """Identifier for the workflow invoked by the session."""
 
-    state_variables: Dict[str, Union[str, bool, float]]
+    state_variables: Dict[str, Union[str, int, bool, float]]
     """State variables forwarded to the workflow.
 
     Keys may be up to 64 characters, values must be primitive types, and the map

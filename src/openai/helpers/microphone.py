@@ -1,4 +1,3 @@
-# mypy: ignore-errors
 from __future__ import annotations
 
 import io
@@ -23,7 +22,8 @@ class Microphone(Generic[DType]):
     def __init__(
         self,
         channels: int = 1,
-        dtype: Type[DType] = np.int16,
+        # The historical generic default is int16; callers may select another dtype.
+        dtype: Type[DType] = np.int16,  # ty: ignore[invalid-parameter-default]
         should_record: Union[Callable[[], bool], None] = None,
         timeout: Union[float, None] = None,
     ):

@@ -49,6 +49,7 @@ from ._parsing._responses import parse_function_tool_arguments
 from ..types.responses.tool_param import ToolParam, FunctionToolParam
 from .streaming.responses._events import ResponseStreamEvent
 from .streaming.responses._responses import ResponseStream, AsyncResponseStream
+from ..types.responses.response_input import ResponseInput
 from ..types.responses.response_input_param import ComputerCallOutput, FunctionCallOutput, ResponseInputParam
 from ..types.responses.response_output_item import McpCall, McpApprovalRequest, ResponseOutputItem
 from ..types.responses.response_create_params import ResponseCreateParamsStreaming, ResponseCreateParamsNonStreaming
@@ -263,7 +264,7 @@ def _validate_server_item(item: dict[str, object], tools: list[ToolParam]) -> No
             and (item["result"] is None or type(item["result"]) is str)
             and image_action in (None, "generate", "edit", "auto")
             and background in (None, "transparent", "opaque", "auto")
-            and output_format in (None, "png", "webp", "jpeg")
+            and output_format in (None, "png", "webp", "jpeg", "gif", "svg")
             and quality in (None, "low", "medium", "high", "xhigh", "max", "auto")
             and (prompt is None or type(prompt) is str)
             and (size is None or type(size) is str)
@@ -506,8 +507,9 @@ def _history_calls(history: ResponseInputParam, tools: list[ToolParam], *, budge
     # Modern computer calls can omit the legacy checklist; validate these with
     # the same action parser as dispatch, without changing the saved input.
     try:
+        # The input models alias wire fields such as "schema" that are reserved by Pydantic v1.
         validate_type(
-            type_=ResponseInputParam,
+            type_=ResponseInput,
             value=[item for item in history if item.get("type") not in ("computer_call", "computer_call_output")],
         )
     except pydantic.ValidationError:
@@ -522,6 +524,9 @@ def _history_calls(history: ResponseInputParam, tools: list[ToolParam], *, budge
     answered: set[str] = set()
     for index, item in enumerate(cast(list[dict[str, object]], history)):
         kind = item.get("type", "message")
+        if kind == "configuration_update":
+            # Already schema-validated above. There is no tool call to pair.
+            continue
         if budget_only:
             if kind == "compaction_trigger":
                 if index != len(history) - 1:
@@ -1085,7 +1090,8 @@ class _Run:
         if eager and not stream:
             raise ValueError("Eager execution requires streaming.")
         if (
-            params.get("stream")
+            # Reject stream=True from untyped callers; select streaming through run(), not params.
+            params.get("stream")  # ty: ignore[redundant-condition]
             or params.get("background")
             or params.get("conversation") is not None
             or params.get("previous_response_id") is not None
@@ -2073,7 +2079,8 @@ class ResponsesToolRunner:
                                         if pool is None:
                                             pool = ThreadPoolExecutor(max_workers=max_concurrent_calls)
                                         jobs.append(
-                                            (item, pool.submit(copy_context().run, self._execute_function, run, item))
+                                            # Context.run forwards the callable result, which is FunctionCallOutput here.
+                                            (item, pool.submit(copy_context().run, self._execute_function, run, item))  # ty: ignore[invalid-argument-type]
                                         )
                                         if len(jobs) == max_concurrent_calls:
                                             settle()

@@ -30,7 +30,4 @@ class AgentInterruptSubagentCallItem(BaseModel):
     """The ID of the turn that contains this item."""
 
     type: Literal["interrupt_subagent_call"]
-    """The item type. Always `interrupt_subagent_call`.
-
-    - `interrupt_subagent_call` - The current public item type.
-    """
+    """The item type. Always `interrupt_subagent_call`."""

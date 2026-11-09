@@ -99,8 +99,9 @@ class BookingBrowser:
                     await handle.dispose()
                 continue
             ref = secrets.token_hex(12)
+            item: BrowserReadElement
             if role == "textbox":
-                item: BrowserReadElement = {
+                item = {
                     "ref": ref,
                     "role": "textbox",
                     "label": label,

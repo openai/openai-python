@@ -82,7 +82,7 @@ def assert_tool_arguments(steps: list[RunStep]) -> None:
 @pytest.mark.usefixtures("assistant_tool_stream")
 @pytest.mark.filterwarnings("ignore:The Assistants API is deprecated:DeprecationWarning")
 def test_assistant_tool_call_deltas(client: OpenAI) -> None:
-    with client.beta.threads.runs.stream(thread_id="thread_test", assistant_id="asst_test") as stream:  # pyright: ignore[reportDeprecated]
+    with client.beta.threads.runs.stream(thread_id="thread_test", assistant_id="asst_test") as stream:
         assert_tool_arguments(stream.get_final_run_steps())
 
 
@@ -90,5 +90,5 @@ def test_assistant_tool_call_deltas(client: OpenAI) -> None:
 @pytest.mark.usefixtures("assistant_tool_stream")
 @pytest.mark.filterwarnings("ignore:The Assistants API is deprecated:DeprecationWarning")
 async def test_async_assistant_tool_call_deltas(async_client: AsyncOpenAI) -> None:
-    async with async_client.beta.threads.runs.stream(thread_id="thread_test", assistant_id="asst_test") as stream:  # pyright: ignore[reportDeprecated]
+    async with async_client.beta.threads.runs.stream(thread_id="thread_test", assistant_id="asst_test") as stream:
         assert_tool_arguments(await stream.get_final_run_steps())

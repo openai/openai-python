@@ -181,7 +181,8 @@ async def test_direct_replay_rejects_list_drag_points_before_effects(mode: str, 
     else:
         assert pending.actions is not None
         action = pending.actions[0]
-    action.path = [ListPoint()]
+    # Deliberately inject an invalid path to exercise validation.
+    action.path = [ListPoint()]  # ty: ignore[invalid-assignment]
     if mode == "sync":
         with pytest.raises(ComputerUseError, match="Invalid computer action"):
             ComputerToolset(driver).execute(pending)
@@ -1481,7 +1482,7 @@ async def test_approval_callback_cannot_change_dispatched_action(mode: str) -> N
     requests: list[dict[str, Any]] = []
 
     def approve(action: ComputerActionInput) -> bool:
-        action.type = "__getattribute__"  # type: ignore[assignment]
+        action.type = "__getattribute__"  # ty: ignore[invalid-assignment]
         return True
 
     await run(mode, driver, [response([call()]), FINAL], requests, before_action=approve)

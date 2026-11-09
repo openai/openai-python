@@ -37,3 +37,6 @@ class AgentSessionTurnReasoningSummaryTextDoneEvent(BaseModel):
 
     Always `agent.session.turn.reasoning_summary_text.done`.
     """
+
+    obfuscation: Optional[str] = None
+    """Random alphanumeric padding. Present when stream obfuscation is enabled."""

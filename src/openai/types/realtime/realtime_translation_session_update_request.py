@@ -25,6 +25,14 @@ class AudioInputNoiseReduction(BaseModel):
     for far-field microphones such as laptop or conference room microphones.
     """
 
+    strength: Optional[float] = None
+    """Input noise suppression strength.
+
+    Higher values apply more suppression. Defaults to 1 when noise reduction is
+    first enabled. Omitting strength from a session update preserves the current
+    strength.
+    """
+
 
 class AudioInputTranscription(BaseModel):
     """Optional source-language transcription.

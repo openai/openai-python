@@ -483,7 +483,7 @@ async def test_function_allowed_callers_reject_before_local_execution(
             stream=stream,
             eager=eager,
             effects=effects,
-            function_tool=cast(FunctionToolParam, {**TOOL, **declaration}),
+            function_tool={**TOOL, **declaration},
         )
     assert effects == [] and len(requests) == 1
     assert error.value.attempted_call_ids == error.value.completed_call_ids == ()
@@ -516,7 +516,7 @@ async def test_function_allowed_callers_keep_native_selected_calls(
         stream=stream,
         eager=eager,
         effects=effects,
-        function_tool=cast(FunctionToolParam, {**TOOL, **declaration}),
+        function_tool={**TOOL, **declaration},
     )
     assert result.id == "resp_final" and effects == ["recorded"] and len(requests) == 2
     assert selected in requests[1]["input"]
@@ -2023,6 +2023,34 @@ async def test_replay_reasoning_requires_native_fields(lane: str, mode: str, fie
 
 
 @pytest.mark.parametrize("lane", ["sync", "async"])
+@pytest.mark.parametrize("mode", ["ledger", "budget"])
+async def test_replay_preserves_configuration_updates(lane: str, mode: str) -> None:
+    history: ResponseInputParam = [
+        {
+            "type": "configuration_update",
+            "text": {"format": {"type": "json_schema", "name": "answer", "schema": {"type": "object"}}},
+        },
+        {"role": "user", "content": "Continue"},
+        {"type": "configuration_update", "text": {"format": {"type": "text"}}},
+    ]
+    requests: list[dict[str, Any]] = []
+    records: list[ResponsesToolCheckpoint] = []
+    await run(
+        lane,
+        None,
+        [resp([fn("record", "one", text="once")], "r"), FINAL],
+        requests,
+        params={**PARAMS, "input": history},
+        save=records.append if mode == "ledger" else None,
+        context_budget=ContextBudget(max_input_bytes=10000, max_input_images=0) if mode == "budget" else None,
+    )
+    assert requests[0]["input"] == history
+    assert requests[1]["input"][: len(history)] == history
+    if mode == "ledger":
+        assert records[0]["history"] == history
+
+
+@pytest.mark.parametrize("lane", ["sync", "async"])
 async def test_replay_reasoning_preserves_native_fields(lane: str) -> None:
     reasoning = {
         "type": "reasoning",
@@ -3316,7 +3344,10 @@ async def test_foreign_runner_errors_are_private_without_ledger(lane: str, strea
 
 @pytest.mark.parametrize("lane", ["sync", "async"])
 @pytest.mark.parametrize("stream", [False, True])
-async def test_completed_image_generation_is_a_terminal_response(lane: str, stream: bool) -> None:
+@pytest.mark.parametrize("output_format", [None, "gif", "svg"])
+async def test_completed_image_generation_is_a_terminal_response(
+    lane: str, stream: bool, output_format: str | None
+) -> None:
     requests: list[dict[str, Any]] = []
     image: dict[str, object] = {
         "id": "img_fixture",
@@ -3324,6 +3355,8 @@ async def test_completed_image_generation_is_a_terminal_response(lane: str, stre
         "status": "completed",
         "result": "cG5n",
     }
+    if output_format is not None:
+        image["output_format"] = output_format
     result = await run(
         lane,
         None,
@@ -3334,6 +3367,7 @@ async def test_completed_image_generation_is_a_terminal_response(lane: str, stre
     )
     assert len(requests) == 1 and result.output[0].type == "image_generation_call"
     assert result.output[0].result == "cG5n"
+    assert result.output[0].output_format == output_format
 
 
 @pytest.mark.parametrize("lane", ["sync", "async"])
@@ -3781,7 +3815,7 @@ async def test_ledger_non_json_and_request_overrides_fail_before_recording(lane:
                 [FINAL],
                 requests,
                 save=records.append,
-                params=cast(ResponseCreateParamsNonStreaming, {**PARAMS, **fields}),
+                params={**PARAMS, **fields},
             )
         assert records == requests == hooks == []
 
@@ -4633,8 +4667,9 @@ async def test_selective_cancellation_waits_for_held_owned_callback(kind: str, s
     }
     call = fn("browser_click", "held", target="button", tab_id=None) if kind == "browser" else native
     first = resp([call, fn("record", "last", text="never")], "r")
+    policy: EarlyExecution
     if side == "suffix":
-        policy: EarlyExecution = {}
+        policy = {}
     else:
         policy = {"functions": ["browser_click"]} if kind == "browser" else {"computer": True}
 

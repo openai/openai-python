@@ -99,6 +99,14 @@ if _t.TYPE_CHECKING:
         ModelPermissionsWithStreamingResponse as ModelPermissionsWithStreamingResponse,
         AsyncModelPermissionsWithStreamingResponse as AsyncModelPermissionsWithStreamingResponse,
     )
+    from .service_tier_settings import (
+        ServiceTierSettings as ServiceTierSettings,
+        AsyncServiceTierSettings as AsyncServiceTierSettings,
+        ServiceTierSettingsWithRawResponse as ServiceTierSettingsWithRawResponse,
+        AsyncServiceTierSettingsWithRawResponse as AsyncServiceTierSettingsWithRawResponse,
+        ServiceTierSettingsWithStreamingResponse as ServiceTierSettingsWithStreamingResponse,
+        AsyncServiceTierSettingsWithStreamingResponse as AsyncServiceTierSettingsWithStreamingResponse,
+    )
     from .hosted_tool_permissions import (
         HostedToolPermissions as HostedToolPermissions,
         AsyncHostedToolPermissions as AsyncHostedToolPermissions,
@@ -142,6 +150,21 @@ else:
         "AsyncModelPermissionsWithStreamingResponse": (
             ".model_permissions",
             "AsyncModelPermissionsWithStreamingResponse",
+        ),
+        "ServiceTierSettings": (".service_tier_settings", "ServiceTierSettings"),
+        "AsyncServiceTierSettings": (".service_tier_settings", "AsyncServiceTierSettings"),
+        "ServiceTierSettingsWithRawResponse": (".service_tier_settings", "ServiceTierSettingsWithRawResponse"),
+        "AsyncServiceTierSettingsWithRawResponse": (
+            ".service_tier_settings",
+            "AsyncServiceTierSettingsWithRawResponse",
+        ),
+        "ServiceTierSettingsWithStreamingResponse": (
+            ".service_tier_settings",
+            "ServiceTierSettingsWithStreamingResponse",
+        ),
+        "AsyncServiceTierSettingsWithStreamingResponse": (
+            ".service_tier_settings",
+            "AsyncServiceTierSettingsWithStreamingResponse",
         ),
         "HostedToolPermissions": (".hosted_tool_permissions", "HostedToolPermissions"),
         "AsyncHostedToolPermissions": (".hosted_tool_permissions", "AsyncHostedToolPermissions"),
@@ -212,6 +235,7 @@ else:
         "rate_limits",
         "roles",
         "service_accounts",
+        "service_tier_settings",
         "spend_alerts",
         "spend_limit",
         "users",
@@ -265,6 +289,12 @@ __all__ = [
     "AsyncModelPermissionsWithRawResponse",
     "ModelPermissionsWithStreamingResponse",
     "AsyncModelPermissionsWithStreamingResponse",
+    "ServiceTierSettings",
+    "AsyncServiceTierSettings",
+    "ServiceTierSettingsWithRawResponse",
+    "AsyncServiceTierSettingsWithRawResponse",
+    "ServiceTierSettingsWithStreamingResponse",
+    "AsyncServiceTierSettingsWithStreamingResponse",
     "HostedToolPermissions",
     "AsyncHostedToolPermissions",
     "HostedToolPermissionsWithRawResponse",

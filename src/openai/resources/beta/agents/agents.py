@@ -98,6 +98,8 @@ class Agents(SyncAPIResource):
         self,
         *,
         model: str,
+        compaction: Optional[agent_create_params.Compaction] | Omit = omit,
+        experimental: agent_create_params.Experimental | Omit = omit,
         instructions: Optional[str] | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
         multi_agent: Optional[MultiAgentConfigParam] | Omit = omit,
@@ -120,6 +122,10 @@ class Agents(SyncAPIResource):
 
         Args:
           model: The model to use for the agent. The requested model name is preserved.
+
+          compaction: Context compaction settings. Omission or null enables background compaction.
+
+          experimental: Experimental agent settings. All experimental features default to disabled.
 
           instructions: Additional instructions appended to the agent's default base instructions. Omit
               or set to null to add no custom instructions.
@@ -164,6 +170,8 @@ class Agents(SyncAPIResource):
                 {
                     "model": model,
                     "service_tier": service_tier,
+                    "compaction": compaction,
+                    "experimental": experimental,
                     "instructions": instructions,
                     "metadata": metadata,
                     "multi_agent": multi_agent,
@@ -228,6 +236,8 @@ class Agents(SyncAPIResource):
         self,
         agent_id: str,
         *,
+        compaction: Optional[agent_update_params.Compaction] | Omit = omit,
+        experimental: agent_update_params.Experimental | Omit = omit,
         instructions: Optional[str] | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
         model: str | Omit = omit,
@@ -250,6 +260,13 @@ class Agents(SyncAPIResource):
         [agent configuration](https://developers.openai.com/api/docs/guides/agents-api/configuration).
 
         Args:
+          compaction: Context compaction settings. Omit to keep the current settings. A supplied
+              object replaces the settings; null or an empty object enables background
+              compaction.
+
+          experimental: Experimental settings to merge by key. Omitted settings keep their current
+              values.
+
           instructions: Additional instructions appended to the agent's default base instructions. Omit
               to leave unchanged.
 
@@ -297,6 +314,8 @@ class Agents(SyncAPIResource):
                 {
                     "model": model,
                     "service_tier": service_tier,
+                    "compaction": compaction,
+                    "experimental": experimental,
                     "instructions": instructions,
                     "metadata": metadata,
                     "multi_agent": multi_agent,
@@ -456,6 +475,8 @@ class AsyncAgents(AsyncAPIResource):
         self,
         *,
         model: str,
+        compaction: Optional[agent_create_params.Compaction] | Omit = omit,
+        experimental: agent_create_params.Experimental | Omit = omit,
         instructions: Optional[str] | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
         multi_agent: Optional[MultiAgentConfigParam] | Omit = omit,
@@ -478,6 +499,10 @@ class AsyncAgents(AsyncAPIResource):
 
         Args:
           model: The model to use for the agent. The requested model name is preserved.
+
+          compaction: Context compaction settings. Omission or null enables background compaction.
+
+          experimental: Experimental agent settings. All experimental features default to disabled.
 
           instructions: Additional instructions appended to the agent's default base instructions. Omit
               or set to null to add no custom instructions.
@@ -522,6 +547,8 @@ class AsyncAgents(AsyncAPIResource):
                 {
                     "model": model,
                     "service_tier": service_tier,
+                    "compaction": compaction,
+                    "experimental": experimental,
                     "instructions": instructions,
                     "metadata": metadata,
                     "multi_agent": multi_agent,
@@ -586,6 +613,8 @@ class AsyncAgents(AsyncAPIResource):
         self,
         agent_id: str,
         *,
+        compaction: Optional[agent_update_params.Compaction] | Omit = omit,
+        experimental: agent_update_params.Experimental | Omit = omit,
         instructions: Optional[str] | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
         model: str | Omit = omit,
@@ -608,6 +637,13 @@ class AsyncAgents(AsyncAPIResource):
         [agent configuration](https://developers.openai.com/api/docs/guides/agents-api/configuration).
 
         Args:
+          compaction: Context compaction settings. Omit to keep the current settings. A supplied
+              object replaces the settings; null or an empty object enables background
+              compaction.
+
+          experimental: Experimental settings to merge by key. Omitted settings keep their current
+              values.
+
           instructions: Additional instructions appended to the agent's default base instructions. Omit
               to leave unchanged.
 
@@ -655,6 +691,8 @@ class AsyncAgents(AsyncAPIResource):
                 {
                     "model": model,
                     "service_tier": service_tier,
+                    "compaction": compaction,
+                    "experimental": experimental,
                     "instructions": instructions,
                     "metadata": metadata,
                     "multi_agent": multi_agent,

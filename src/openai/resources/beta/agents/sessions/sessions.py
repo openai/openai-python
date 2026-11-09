@@ -164,8 +164,10 @@ class Sessions(SyncAPIResource):
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
+        review: Literal["none", "auto_review"] | Omit = omit,
         spend_control: Optional[session_create_params.SpendControl] | Omit = omit,
         stream: Literal[False] | Omit = omit,
+        stream_options: session_create_params.StreamOptions | Omit = omit,
         vault_ids: Optional[SequenceNotStr[str]] | Omit = omit,
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
@@ -185,7 +187,9 @@ class Sessions(SyncAPIResource):
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
+        review: Literal["none", "auto_review"] | Omit = omit,
         spend_control: Optional[session_create_params.SpendControl] | Omit = omit,
+        stream_options: session_create_params.StreamOptions | Omit = omit,
         vault_ids: Optional[SequenceNotStr[str]] | Omit = omit,
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
@@ -205,7 +209,9 @@ class Sessions(SyncAPIResource):
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
+        review: Literal["none", "auto_review"] | Omit = omit,
         spend_control: Optional[session_create_params.SpendControl] | Omit = omit,
+        stream_options: session_create_params.StreamOptions | Omit = omit,
         vault_ids: Optional[SequenceNotStr[str]] | Omit = omit,
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
@@ -224,8 +230,10 @@ class Sessions(SyncAPIResource):
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
+        review: Literal["none", "auto_review"] | Omit = omit,
         spend_control: Optional[session_create_params.SpendControl] | Omit = omit,
         stream: Literal[False] | Literal[True] | Omit = omit,
+        stream_options: session_create_params.StreamOptions | Omit = omit,
         vault_ids: Optional[SequenceNotStr[str]] | Omit = omit,
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
@@ -242,7 +250,9 @@ class Sessions(SyncAPIResource):
                 "agent_id": agent_id,
                 "input": input,
                 "metadata": metadata,
+                "review": review,
                 "spend_control": spend_control,
+                "stream_options": stream_options,
                 "vault_ids": vault_ids,
             },
             output_type=output_type,
@@ -318,6 +328,7 @@ class Sessions(SyncAPIResource):
         *,
         agent: session_update_params.Agent | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
+        review: Literal["none", "auto_review"] | Omit = omit,
         spend_control: Optional[session_update_params.SpendControl] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -326,18 +337,25 @@ class Sessions(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AgentSession:
-        """Updates session metadata, model, reasoning effort, or service tier.
+        """Updates session tools, metadata, model, reasoning effort, or service tier.
 
         Model
         settings apply to subsequent turns. Omitted fields are unchanged. See
         [managing sessions](https://developers.openai.com/api/docs/guides/agents-api/sessions/manage).
 
         Args:
-          agent: Model settings for subsequent turns. Omitted fields stay unchanged.
+          agent: Agent settings to update on this session. Omitted fields stay unchanged.
 
           metadata: Replaces all metadata. Omit to leave unchanged, or pass null or {} to clear it.
               Up to 16 string key-value pairs, with keys up to 64 and values up to 512
               characters.
+
+          review: Default action review for new root turns. Existing turns and their subagents
+              keep their review mode.
+
+              - `none` - Keep the existing execution behavior without automatic action review.
+              - `auto_review` - Review eligible actions automatically. Deny manual approval
+                fallbacks.
 
           spend_control: Omit to retain the limit; null or a null limit removes it without resetting
               spend.
@@ -359,6 +377,7 @@ class Sessions(SyncAPIResource):
                 {
                     "agent": agent,
                     "metadata": metadata,
+                    "review": review,
                     "spend_control": spend_control,
                 },
                 session_update_params.SessionUpdateParams,
@@ -379,6 +398,7 @@ class Sessions(SyncAPIResource):
         after: str | Omit = omit,
         agent_id: str | Omit = omit,
         limit: int | Omit = omit,
+        metadata: Dict[str, str] | Omit = omit,
         order: Literal["asc", "desc"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -399,6 +419,11 @@ class Sessions(SyncAPIResource):
               all agents.
 
           limit: The maximum number of resources to return, between 1 and 100. Defaults to 20.
+
+          metadata: Exact string matches supplied as `metadata[key]=value`. All supplied pairs must
+              match. Up to 16 pairs, with keys from 1 to 64 characters and values up to 512
+              characters. New sessions and metadata updates may take time to appear in
+              filtered results.
 
           order: The order in which resources are returned. Defaults to `desc`.
 
@@ -427,6 +452,7 @@ class Sessions(SyncAPIResource):
                         "after": after,
                         "agent_id": agent_id,
                         "limit": limit,
+                        "metadata": metadata,
                         "order": order,
                     },
                     session_list_params.SessionListParams,
@@ -566,8 +592,10 @@ class AsyncSessions(AsyncAPIResource):
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
+        review: Literal["none", "auto_review"] | Omit = omit,
         spend_control: Optional[session_create_params.SpendControl] | Omit = omit,
         stream: Literal[False] | Omit = omit,
+        stream_options: session_create_params.StreamOptions | Omit = omit,
         vault_ids: Optional[SequenceNotStr[str]] | Omit = omit,
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
@@ -587,7 +615,9 @@ class AsyncSessions(AsyncAPIResource):
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
+        review: Literal["none", "auto_review"] | Omit = omit,
         spend_control: Optional[session_create_params.SpendControl] | Omit = omit,
+        stream_options: session_create_params.StreamOptions | Omit = omit,
         vault_ids: Optional[SequenceNotStr[str]] | Omit = omit,
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
@@ -607,7 +637,9 @@ class AsyncSessions(AsyncAPIResource):
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
+        review: Literal["none", "auto_review"] | Omit = omit,
         spend_control: Optional[session_create_params.SpendControl] | Omit = omit,
+        stream_options: session_create_params.StreamOptions | Omit = omit,
         vault_ids: Optional[SequenceNotStr[str]] | Omit = omit,
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
@@ -626,8 +658,10 @@ class AsyncSessions(AsyncAPIResource):
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
+        review: Literal["none", "auto_review"] | Omit = omit,
         spend_control: Optional[session_create_params.SpendControl] | Omit = omit,
         stream: Literal[False] | Literal[True] | Omit = omit,
+        stream_options: session_create_params.StreamOptions | Omit = omit,
         vault_ids: Optional[SequenceNotStr[str]] | Omit = omit,
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
@@ -644,7 +678,9 @@ class AsyncSessions(AsyncAPIResource):
                 "agent_id": agent_id,
                 "input": input,
                 "metadata": metadata,
+                "review": review,
                 "spend_control": spend_control,
+                "stream_options": stream_options,
                 "vault_ids": vault_ids,
             },
             output_type=output_type,
@@ -720,6 +756,7 @@ class AsyncSessions(AsyncAPIResource):
         *,
         agent: session_update_params.Agent | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
+        review: Literal["none", "auto_review"] | Omit = omit,
         spend_control: Optional[session_update_params.SpendControl] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -728,18 +765,25 @@ class AsyncSessions(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AgentSession:
-        """Updates session metadata, model, reasoning effort, or service tier.
+        """Updates session tools, metadata, model, reasoning effort, or service tier.
 
         Model
         settings apply to subsequent turns. Omitted fields are unchanged. See
         [managing sessions](https://developers.openai.com/api/docs/guides/agents-api/sessions/manage).
 
         Args:
-          agent: Model settings for subsequent turns. Omitted fields stay unchanged.
+          agent: Agent settings to update on this session. Omitted fields stay unchanged.
 
           metadata: Replaces all metadata. Omit to leave unchanged, or pass null or {} to clear it.
               Up to 16 string key-value pairs, with keys up to 64 and values up to 512
               characters.
+
+          review: Default action review for new root turns. Existing turns and their subagents
+              keep their review mode.
+
+              - `none` - Keep the existing execution behavior without automatic action review.
+              - `auto_review` - Review eligible actions automatically. Deny manual approval
+                fallbacks.
 
           spend_control: Omit to retain the limit; null or a null limit removes it without resetting
               spend.
@@ -761,6 +805,7 @@ class AsyncSessions(AsyncAPIResource):
                 {
                     "agent": agent,
                     "metadata": metadata,
+                    "review": review,
                     "spend_control": spend_control,
                 },
                 session_update_params.SessionUpdateParams,
@@ -781,6 +826,7 @@ class AsyncSessions(AsyncAPIResource):
         after: str | Omit = omit,
         agent_id: str | Omit = omit,
         limit: int | Omit = omit,
+        metadata: Dict[str, str] | Omit = omit,
         order: Literal["asc", "desc"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -801,6 +847,11 @@ class AsyncSessions(AsyncAPIResource):
               all agents.
 
           limit: The maximum number of resources to return, between 1 and 100. Defaults to 20.
+
+          metadata: Exact string matches supplied as `metadata[key]=value`. All supplied pairs must
+              match. Up to 16 pairs, with keys from 1 to 64 characters and values up to 512
+              characters. New sessions and metadata updates may take time to appear in
+              filtered results.
 
           order: The order in which resources are returned. Defaults to `desc`.
 
@@ -829,6 +880,7 @@ class AsyncSessions(AsyncAPIResource):
                         "after": after,
                         "agent_id": agent_id,
                         "limit": limit,
+                        "metadata": metadata,
                         "order": order,
                     },
                     session_list_params.SessionListParams,

@@ -26,3 +26,6 @@ class AgentSessionEnvironmentReadyEvent(BaseModel):
 
     type: Literal["agent.session.environment.ready"]
     """The type of the object. Always `agent.session.environment.ready`."""
+
+    obfuscation: Optional[str] = None
+    """Random alphanumeric padding. Present when stream obfuscation is enabled."""

@@ -14,8 +14,55 @@ __all__ = [
     "ToolChoice",
     "ToolChoiceLiveFunctionToolChoiceParam",
     "ToolChoiceLiveMCPToolChoiceParam",
+    "ToolChoiceFileSearch",
+    "ToolChoiceWebSearch",
+    "ToolChoiceWebSearchPreview",
+    "ToolChoiceImageGeneration",
+    "ToolChoiceComputer",
+    "ToolChoiceCodeInterpreter",
+    "ToolChoiceProgrammaticToolCalling",
+    "ToolChoiceShell",
+    "ToolChoiceCustom",
+    "ToolChoiceApplyPatch",
+    "ToolChoiceLiveAllowedToolsChoiceParam",
+    "ToolChoiceLiveAllowedToolsChoiceParamTool",
+    "ToolChoiceLiveAllowedToolsChoiceParamToolLiveFunctionToolChoiceParam",
+    "ToolChoiceLiveAllowedToolsChoiceParamToolLiveMCPToolChoiceParam",
+    "ToolChoiceLiveAllowedToolsChoiceParamToolFileSearch",
+    "ToolChoiceLiveAllowedToolsChoiceParamToolWebSearch",
+    "ToolChoiceLiveAllowedToolsChoiceParamToolWebSearchPreview",
+    "ToolChoiceLiveAllowedToolsChoiceParamToolImageGeneration",
+    "ToolChoiceLiveAllowedToolsChoiceParamToolComputer",
+    "ToolChoiceLiveAllowedToolsChoiceParamToolCodeInterpreter",
+    "ToolChoiceLiveAllowedToolsChoiceParamToolProgrammaticToolCalling",
+    "ToolChoiceLiveAllowedToolsChoiceParamToolShell",
+    "ToolChoiceLiveAllowedToolsChoiceParamToolCustom",
+    "ToolChoiceLiveAllowedToolsChoiceParamToolApplyPatch",
     "Tool",
     "ToolWebSearch",
+    "ToolFileSearch",
+    "ToolCodeInterpreter",
+    "ToolShell",
+    "ToolShellEnvironment",
+    "ToolShellEnvironmentContainerAuto",
+    "ToolShellEnvironmentContainerAutoNetworkPolicy",
+    "ToolShellEnvironmentContainerAutoNetworkPolicyDisabled",
+    "ToolShellEnvironmentContainerAutoNetworkPolicyAllowlist",
+    "ToolShellEnvironmentContainerAutoSkill",
+    "ToolShellEnvironmentContainerAutoSkillSkillReference",
+    "ToolShellEnvironmentContainerAutoSkillInline",
+    "ToolShellEnvironmentContainerAutoSkillInlineSource",
+    "ToolShellEnvironmentContainerReference",
+    "ToolShellEnvironmentLocal",
+    "ToolShellEnvironmentLocalSkill",
+    "ToolImageGeneration",
+    "ToolMcp",
+    "ToolCustom",
+    "ToolNamespace",
+    "ToolSearch",
+    "ToolProgrammaticToolCalling",
+    "ToolComputer",
+    "ToolApplyPatch",
 ]
 
 
@@ -57,10 +104,182 @@ class ToolChoiceLiveMCPToolChoiceParam(BaseModel):
     server_label: str
 
     type: Literal["mcp"]
+    """The tool choice type. Always `allowed_tools`."""
+
+
+class ToolChoiceFileSearch(BaseModel):
+    type: Literal["file_search"]
+    """The tool to call. Always `file_search`."""
+
+
+class ToolChoiceWebSearch(BaseModel):
+    type: Literal["web_search"]
+    """The tool to call. Always `web_search`."""
+
+
+class ToolChoiceWebSearchPreview(BaseModel):
+    type: Literal["web_search_preview"]
+    """The tool to call. Always `web_search_preview`."""
+
+
+class ToolChoiceImageGeneration(BaseModel):
+    type: Literal["image_generation"]
+    """The tool to call. Always `image_generation`."""
+
+
+class ToolChoiceComputer(BaseModel):
+    type: Literal["computer"]
+    """The tool to call. Always `computer`."""
+
+
+class ToolChoiceCodeInterpreter(BaseModel):
+    type: Literal["code_interpreter"]
+    """The tool to call. Always `code_interpreter`."""
+
+
+class ToolChoiceProgrammaticToolCalling(BaseModel):
+    type: Literal["programmatic_tool_calling"]
+    """The tool to call. Always `programmatic_tool_calling`."""
+
+
+class ToolChoiceShell(BaseModel):
+    """Forces the model to call the shell tool when a tool call is required."""
+
+    type: Literal["shell"]
+    """The tool to call. Always `shell`."""
+
+
+class ToolChoiceCustom(BaseModel):
+    name: str
+    """The name of the custom tool to call."""
+
+    type: Literal["custom"]
+    """The tool to call. Always `custom`."""
+
+
+class ToolChoiceApplyPatch(BaseModel):
+    """Forces the model to call the apply_patch tool when executing a tool call."""
+
+    type: Literal["apply_patch"]
+    """The tool to call. Always `apply_patch`."""
+
+
+class ToolChoiceLiveAllowedToolsChoiceParamToolLiveFunctionToolChoiceParam(BaseModel):
+    name: str
+
+    type: Literal["function"]
+
+
+class ToolChoiceLiveAllowedToolsChoiceParamToolLiveMCPToolChoiceParam(BaseModel):
+    name: str
+
+    server_label: str
+
+    type: Literal["mcp"]
+
+
+class ToolChoiceLiveAllowedToolsChoiceParamToolFileSearch(BaseModel):
+    type: Literal["file_search"]
+    """The tool to call. Always `file_search`."""
+
+
+class ToolChoiceLiveAllowedToolsChoiceParamToolWebSearch(BaseModel):
+    type: Literal["web_search"]
+    """The tool to call. Always `web_search`."""
+
+
+class ToolChoiceLiveAllowedToolsChoiceParamToolWebSearchPreview(BaseModel):
+    type: Literal["web_search_preview"]
+    """The tool to call. Always `web_search_preview`."""
+
+
+class ToolChoiceLiveAllowedToolsChoiceParamToolImageGeneration(BaseModel):
+    type: Literal["image_generation"]
+    """The tool to call. Always `image_generation`."""
+
+
+class ToolChoiceLiveAllowedToolsChoiceParamToolComputer(BaseModel):
+    type: Literal["computer"]
+    """The tool to call. Always `computer`."""
+
+
+class ToolChoiceLiveAllowedToolsChoiceParamToolCodeInterpreter(BaseModel):
+    type: Literal["code_interpreter"]
+    """The tool to call. Always `code_interpreter`."""
+
+
+class ToolChoiceLiveAllowedToolsChoiceParamToolProgrammaticToolCalling(BaseModel):
+    type: Literal["programmatic_tool_calling"]
+    """The tool to call. Always `programmatic_tool_calling`."""
+
+
+class ToolChoiceLiveAllowedToolsChoiceParamToolShell(BaseModel):
+    """Forces the model to call the shell tool when a tool call is required."""
+
+    type: Literal["shell"]
+    """The tool to call. Always `shell`."""
+
+
+class ToolChoiceLiveAllowedToolsChoiceParamToolCustom(BaseModel):
+    name: str
+    """The name of the custom tool to call."""
+
+    type: Literal["custom"]
+    """The tool to call. Always `custom`."""
+
+
+class ToolChoiceLiveAllowedToolsChoiceParamToolApplyPatch(BaseModel):
+    """Forces the model to call the apply_patch tool when executing a tool call."""
+
+    type: Literal["apply_patch"]
+    """The tool to call. Always `apply_patch`."""
+
+
+ToolChoiceLiveAllowedToolsChoiceParamTool: TypeAlias = Annotated[
+    Union[
+        ToolChoiceLiveAllowedToolsChoiceParamToolLiveFunctionToolChoiceParam,
+        ToolChoiceLiveAllowedToolsChoiceParamToolLiveMCPToolChoiceParam,
+        ToolChoiceLiveAllowedToolsChoiceParamToolFileSearch,
+        ToolChoiceLiveAllowedToolsChoiceParamToolWebSearch,
+        ToolChoiceLiveAllowedToolsChoiceParamToolWebSearchPreview,
+        ToolChoiceLiveAllowedToolsChoiceParamToolImageGeneration,
+        ToolChoiceLiveAllowedToolsChoiceParamToolComputer,
+        ToolChoiceLiveAllowedToolsChoiceParamToolCodeInterpreter,
+        ToolChoiceLiveAllowedToolsChoiceParamToolProgrammaticToolCalling,
+        ToolChoiceLiveAllowedToolsChoiceParamToolShell,
+        ToolChoiceLiveAllowedToolsChoiceParamToolCustom,
+        ToolChoiceLiveAllowedToolsChoiceParamToolApplyPatch,
+    ],
+    PropertyInfo(discriminator="type"),
+]
+
+
+class ToolChoiceLiveAllowedToolsChoiceParam(BaseModel):
+    tools: List[ToolChoiceLiveAllowedToolsChoiceParamTool]
+    """The tools that the delegated Responses model may call."""
+
+    type: Literal["allowed_tools"]
+    """The tool choice type. Always `allowed_tools`."""
+
+    mode: Optional[Literal["none", "auto", "required"]] = None
+    """How to select a tool from the allowed set."""
 
 
 ToolChoice: TypeAlias = Union[
-    Literal["auto", "none", "required"], ToolChoiceLiveFunctionToolChoiceParam, ToolChoiceLiveMCPToolChoiceParam
+    Literal["auto", "none", "required"],
+    ToolChoiceLiveFunctionToolChoiceParam,
+    ToolChoiceLiveMCPToolChoiceParam,
+    ToolChoiceFileSearch,
+    ToolChoiceWebSearch,
+    ToolChoiceWebSearchPreview,
+    ToolChoiceImageGeneration,
+    ToolChoiceComputer,
+    ToolChoiceCodeInterpreter,
+    ToolChoiceProgrammaticToolCalling,
+    ToolChoiceShell,
+    ToolChoiceCustom,
+    ToolChoiceApplyPatch,
+    ToolChoiceLiveAllowedToolsChoiceParam,
 ]
 
 
@@ -71,7 +290,192 @@ class ToolWebSearch(BaseModel):
     """The tool type. Always `web_search`."""
 
 
-Tool: TypeAlias = Annotated[Union[FunctionTool, ToolWebSearch], PropertyInfo(discriminator="type")]
+class ToolFileSearch(BaseModel):
+    type: Literal["file_search"]
+
+
+class ToolCodeInterpreter(BaseModel):
+    type: Literal["code_interpreter"]
+
+
+class ToolShellEnvironmentContainerAutoNetworkPolicyDisabled(BaseModel):
+    type: Literal["disabled"]
+    """Disable outbound network access. Always `disabled`."""
+
+
+class ToolShellEnvironmentContainerAutoNetworkPolicyAllowlist(BaseModel):
+    allowed_domains: List[str]
+    """A list of allowed domains when type is `allowlist`."""
+
+    type: Literal["allowlist"]
+    """Allow outbound network access only to specified domains. Always `allowlist`."""
+
+
+ToolShellEnvironmentContainerAutoNetworkPolicy: TypeAlias = Annotated[
+    Union[
+        ToolShellEnvironmentContainerAutoNetworkPolicyDisabled,
+        ToolShellEnvironmentContainerAutoNetworkPolicyAllowlist,
+        None,
+    ],
+    PropertyInfo(discriminator="type"),
+]
+
+
+class ToolShellEnvironmentContainerAutoSkillSkillReference(BaseModel):
+    skill_id: str
+    """The ID of the referenced skill."""
+
+    type: Literal["skill_reference"]
+    """References a skill created with the /v1/skills endpoint."""
+
+    version: Optional[str] = None
+    """Optional skill version. Use a positive integer or 'latest'. Omit for default."""
+
+
+class ToolShellEnvironmentContainerAutoSkillInlineSource(BaseModel):
+    """Inline skill payload"""
+
+    data: str
+    """Base64-encoded skill zip bundle."""
+
+    media_type: Literal["application/zip"]
+    """The media type of the inline skill payload. Must be `application/zip`."""
+
+    type: Literal["base64"]
+    """The type of the inline skill source. Must be `base64`."""
+
+
+class ToolShellEnvironmentContainerAutoSkillInline(BaseModel):
+    description: str
+    """The description of the skill."""
+
+    name: str
+    """The name of the skill."""
+
+    source: ToolShellEnvironmentContainerAutoSkillInlineSource
+    """Inline skill payload"""
+
+    type: Literal["inline"]
+    """Defines an inline skill for this request."""
+
+
+ToolShellEnvironmentContainerAutoSkill: TypeAlias = Annotated[
+    Union[ToolShellEnvironmentContainerAutoSkillSkillReference, ToolShellEnvironmentContainerAutoSkillInline],
+    PropertyInfo(discriminator="type"),
+]
+
+
+class ToolShellEnvironmentContainerAuto(BaseModel):
+    type: Literal["container_auto"]
+    """Automatically creates a container for this request"""
+
+    file_ids: Optional[List[str]] = None
+    """An optional list of uploaded files to make available to your code."""
+
+    memory_limit: Optional[Literal["1g", "4g", "16g", "64g"]] = None
+    """The memory limit for the container."""
+
+    network_policy: Optional[ToolShellEnvironmentContainerAutoNetworkPolicy] = None
+    """Network access policy for the container."""
+
+    skills: Optional[List[ToolShellEnvironmentContainerAutoSkill]] = None
+    """An optional list of skills referenced by id or inline data."""
+
+
+class ToolShellEnvironmentContainerReference(BaseModel):
+    container_id: str
+    """The ID of the referenced container."""
+
+    type: Literal["container_reference"]
+    """References a container created with the /v1/containers endpoint"""
+
+
+class ToolShellEnvironmentLocalSkill(BaseModel):
+    description: str
+    """The description of the skill."""
+
+    name: str
+    """The name of the skill."""
+
+    path: str
+    """The path to the directory containing the skill."""
+
+
+class ToolShellEnvironmentLocal(BaseModel):
+    type: Literal["local"]
+    """Use a local computer environment."""
+
+    skills: Optional[List[ToolShellEnvironmentLocalSkill]] = None
+    """An optional list of skills."""
+
+
+ToolShellEnvironment: TypeAlias = Annotated[
+    Union[ToolShellEnvironmentContainerAuto, ToolShellEnvironmentContainerReference, ToolShellEnvironmentLocal, None],
+    PropertyInfo(discriminator="type"),
+]
+
+
+class ToolShell(BaseModel):
+    """A Responses shell tool.
+
+    Use a hosted container or return local shell results with response.item.create. Domain secrets are not supported.
+    """
+
+    type: Literal["shell"]
+
+    environment: Optional[ToolShellEnvironment] = None
+
+
+class ToolImageGeneration(BaseModel):
+    type: Literal["image_generation"]
+
+
+class ToolMcp(BaseModel):
+    type: Literal["mcp"]
+
+
+class ToolCustom(BaseModel):
+    type: Literal["custom"]
+
+
+class ToolNamespace(BaseModel):
+    type: Literal["namespace"]
+
+
+class ToolSearch(BaseModel):
+    type: Literal["tool_search"]
+
+
+class ToolProgrammaticToolCalling(BaseModel):
+    type: Literal["programmatic_tool_calling"]
+
+
+class ToolComputer(BaseModel):
+    type: Literal["computer"]
+
+
+class ToolApplyPatch(BaseModel):
+    type: Literal["apply_patch"]
+
+
+Tool: TypeAlias = Annotated[
+    Union[
+        FunctionTool,
+        ToolWebSearch,
+        ToolFileSearch,
+        ToolCodeInterpreter,
+        ToolShell,
+        ToolImageGeneration,
+        ToolMcp,
+        ToolCustom,
+        ToolNamespace,
+        ToolSearch,
+        ToolProgrammaticToolCalling,
+        ToolComputer,
+        ToolApplyPatch,
+    ],
+    PropertyInfo(discriminator="type"),
+]
 
 
 class ResponsesDelegationConfig(BaseModel):

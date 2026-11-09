@@ -65,7 +65,7 @@ class _VertexDefinition:
                             # Requests accepts separate connect/read limits, including None.
                             kwargs["timeout"] = (limits.get("connect"), limits.get("read"))
                             try:
-                                return super().__call__(*args, **kwargs)  # type: ignore[no-untyped-call]
+                                return super().__call__(*args, **kwargs)
                             except TransportError as exc:
                                 if isinstance(exc.__cause__, requests.exceptions.Timeout):
                                     raise APITimeoutError(request=request) from None
@@ -85,7 +85,7 @@ class _VertexDefinition:
                             )
                             credentials = scope_credentials(self.credentials, scopes=_CLOUD_PLATFORM_SCOPES)
                     headers: dict[str, str] = {}
-                    credentials.before_request(bounded_transport, request.method, str(request.url), headers)  # type: ignore[no-untyped-call]
+                    credentials.before_request(bounded_transport, request.method, str(request.url), headers)
                     return headers
             except (OpenAIError, APITimeoutError):
                 raise

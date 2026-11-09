@@ -171,14 +171,14 @@ async def test_uninspectable_sync_wrapper_closes_accidental_coroutine_without_su
             },
         )
     )
-    payload = json.loads(result["output"][0]["text"])  # type: ignore[index]
+    payload = json.loads(result["output"][0]["text"])  # ty: ignore[invalid-argument-type, invalid-key]
     assert payload["error"] == "Browser action failed."
     gc.collect()
     assert not [warning for warning in recwarn if "never awaited" in str(warning.message)]
 
 
 async def test_async_helper_accepts_unannotated_awaitable_wrapper() -> None:
-    def wrapped(action: object):  # type: ignore[no-untyped-def]
+    def wrapped(action: object):
         return async_read(action)
 
     browser = AsyncBrowserToolset(cast(AsyncBrowserDriver, SimpleNamespace(state=async_state, get_page_text=wrapped)))
@@ -206,4 +206,4 @@ def test_inherited_capability_protocol_cannot_advertise_a_stub() -> None:
             return {"tabs": []}
 
     with pytest.raises(TypeError, match="abstract"):
-        MissingRead()  # type: ignore[abstract]
+        MissingRead()  # ty: ignore[call-non-callable]

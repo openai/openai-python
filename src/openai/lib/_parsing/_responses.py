@@ -26,7 +26,6 @@ from ...types.responses import (
     ResponseFormatTextConfigParam,
     ParsedResponseFunctionToolCall,
 )
-from ...types.chat.completion_create_params import ResponseFormat
 from ...types.responses.namespace_tool_param import ToolFunction
 
 TextFormatT = TypeVar(
@@ -39,7 +38,6 @@ TextFormatT = TypeVar(
 def type_to_text_format_param(type_: type) -> ResponseFormatTextConfigParam:
     response_format_dict = type_to_response_format_param(type_)
     assert is_given(response_format_dict)
-    response_format_dict = cast(ResponseFormat, response_format_dict)  # pyright: ignore[reportUnnecessaryCast]
     assert response_format_dict["type"] == "json_schema"
     assert "schema" in response_format_dict["json_schema"]
 
@@ -130,7 +128,7 @@ def parse_response(
             or output.type == "custom_tool_call_output"
         ):
             output_list.append(output)
-        elif TYPE_CHECKING:  # type: ignore
+        elif TYPE_CHECKING:
             assert_never(output)
         else:
             output_list.append(output)

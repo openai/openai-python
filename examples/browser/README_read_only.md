@@ -13,7 +13,7 @@ the browser dependency:
 
 ```sh
 python3 -m venv .venv-browser
-.venv-browser/bin/python -m pip install -e . playwright==1.63.0
+.venv-browser/bin/python -m pip install -e . playwright==1.64.1
 .venv-browser/bin/python -m playwright install chromium
 ```
 

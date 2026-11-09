@@ -3,17 +3,31 @@
 from __future__ import annotations
 
 from typing import Dict, Iterable, Optional
-from typing_extensions import Literal, TypedDict
+from typing_extensions import Literal, Annotated, TypedDict
 
+from ..._utils import PropertyInfo
 from .agent_text_param import AgentTextParam
 from .agent_reasoning_param import AgentReasoningParam
 from .multi_agent_config_param import MultiAgentConfigParam
 from .persisted_agent_tool_param import PersistedAgentToolParam
 
-__all__ = ["AgentUpdateParams"]
+__all__ = ["AgentUpdateParams", "Compaction", "Experimental"]
 
 
 class AgentUpdateParams(TypedDict, total=False):
+    compaction: Optional[Compaction]
+    """Context compaction settings.
+
+    Omit to keep the current settings. A supplied object replaces the settings; null
+    or an empty object enables background compaction.
+    """
+
+    experimental: Experimental
+    """Experimental settings to merge by key.
+
+    Omitted settings keep their current values.
+    """
+
     instructions: Optional[str]
     """Additional instructions appended to the agent's default base instructions.
 
@@ -62,4 +76,31 @@ class AgentUpdateParams(TypedDict, total=False):
 
     Omit to leave it unchanged, or pass null to clear it. The replacement must fit
     within 3 MiB (3,145,728 bytes) of compact UTF-8 JSON.
+    """
+
+
+class Compaction(TypedDict, total=False):
+    """Context compaction settings.
+
+    Omit to keep the current settings. A supplied object replaces the settings; null or an empty object enables background compaction.
+    """
+
+    async_: Annotated[Optional[bool], PropertyInfo(alias="async")]
+    """Whether to compact context in the background.
+
+    Omission or null defaults to true. Set to false to use blocking compaction.
+    Background compaction may increase token usage.
+    """
+
+
+class Experimental(TypedDict, total=False):
+    """Experimental settings to merge by key.
+
+    Omitted settings keep their current values.
+    """
+
+    time_awareness: bool
+    """Whether to give the model periodic current-time reminders.
+
+    Omit to keep the current setting.
     """

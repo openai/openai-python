@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from typing import Dict, Union, Iterable, Optional
-from typing_extensions import Literal, Required, TypeAlias, TypedDict
+from typing_extensions import Literal, Required, Annotated, TypeAlias, TypedDict
 
 from ...._types import SequenceNotStr
+from ...._utils import PropertyInfo
 from ..agent_text_param import AgentTextParam
 from ..agent_tool_param import AgentToolParam
 from ..environment_param import EnvironmentParam
@@ -17,12 +18,54 @@ __all__ = [
     "AutomationTargetParam",
     "AutomationTargetParamNewSession",
     "AutomationTargetParamNewSessionAgent",
+    "AutomationTargetParamNewSessionAgentCompaction",
+    "AutomationTargetParamNewSessionAgentExperimental",
     "AutomationTargetParamExistingSession",
 ]
 
 
+class AutomationTargetParamNewSessionAgentCompaction(TypedDict, total=False):
+    """Context compaction settings.
+
+    Omit to keep the current settings. A supplied object replaces the settings; null or an empty object enables background compaction.
+    """
+
+    async_: Annotated[Optional[bool], PropertyInfo(alias="async")]
+    """Whether to compact context in the background.
+
+    Omission or null defaults to true. Set to false to use blocking compaction.
+    Background compaction may increase token usage.
+    """
+
+
+class AutomationTargetParamNewSessionAgentExperimental(TypedDict, total=False):
+    """Experimental settings to merge by key.
+
+    Omitted settings keep their current values.
+    """
+
+    time_awareness: bool
+    """Whether to give the model periodic current-time reminders.
+
+    Omit to keep the current setting.
+    """
+
+
 class AutomationTargetParamNewSessionAgent(TypedDict, total=False):
     """Inline agent configuration. Provide exactly one of agent and agent_id."""
+
+    compaction: Optional[AutomationTargetParamNewSessionAgentCompaction]
+    """Context compaction settings.
+
+    Omit to keep the current settings. A supplied object replaces the settings; null
+    or an empty object enables background compaction.
+    """
+
+    experimental: AutomationTargetParamNewSessionAgentExperimental
+    """Experimental settings to merge by key.
+
+    Omitted settings keep their current values.
+    """
 
     instructions: Optional[str]
     """Additional instructions appended to the agent's default base instructions.

@@ -834,7 +834,7 @@ Methods:
 Methods:
 
 - <code title="post /agents/sessions/{session_id}/events">client.beta.agents.sessions.events.<a href="./src/openai/resources/beta/agents/sessions/events.py">create</a>(session_id, \*\*<a href="src/openai/types/beta/agents/sessions/event_create_params.py">params</a>) -> None</code>
-- <code title="get /agents/sessions/{session_id}/events">client.beta.agents.sessions.events.<a href="./src/openai/resources/beta/agents/sessions/events.py">stream</a>(session_id) -> <a href="./src/openai/types/beta/agent_session_event.py">AgentSessionEvent</a></code>
+- <code title="get /agents/sessions/{session_id}/events">client.beta.agents.sessions.events.<a href="./src/openai/resources/beta/agents/sessions/events.py">stream</a>(session_id, \*\*<a href="src/openai/types/beta/agents/sessions/event_stream_params.py">params</a>) -> <a href="./src/openai/types/beta/agent_session_event.py">AgentSessionEvent</a></code>
 
 #### Traces
 
@@ -1524,6 +1524,60 @@ Methods:
 - <code title="get /organization/data_retention">client.admin.organization.data_retention.<a href="./src/openai/resources/admin/organization/data_retention.py">retrieve</a>() -> <a href="./src/openai/types/admin/organization/organization_data_retention.py">OrganizationDataRetention</a></code>
 - <code title="post /organization/data_retention">client.admin.organization.data_retention.<a href="./src/openai/resources/admin/organization/data_retention.py">update</a>(\*\*<a href="src/openai/types/admin/organization/data_retention_update_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/organization_data_retention.py">OrganizationDataRetention</a></code>
 
+### ExternalKeys
+
+Types:
+
+```python
+from openai.types.admin.organization import ExternalKey, ExternalKeyValidateResponse
+```
+
+Methods:
+
+- <code title="post /organization/external_keys">client.admin.organization.external_keys.<a href="./src/openai/resources/admin/organization/external_keys.py">create</a>(\*\*<a href="src/openai/types/admin/organization/external_key_create_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/external_key.py">ExternalKey</a></code>
+- <code title="get /organization/external_keys/{external_key_id}">client.admin.organization.external_keys.<a href="./src/openai/resources/admin/organization/external_keys.py">retrieve</a>(external_key_id) -> <a href="./src/openai/types/admin/organization/external_key.py">ExternalKey</a></code>
+- <code title="get /organization/external_keys">client.admin.organization.external_keys.<a href="./src/openai/resources/admin/organization/external_keys.py">list</a>(\*\*<a href="src/openai/types/admin/organization/external_key_list_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/external_key.py">SyncCursorPage[ExternalKey]</a></code>
+- <code title="delete /organization/external_keys/{external_key_id}">client.admin.organization.external_keys.<a href="./src/openai/resources/admin/organization/external_keys.py">delete</a>(external_key_id) -> <a href="./src/openai/types/admin/organization/external_key.py">ExternalKey</a></code>
+- <code title="post /organization/external_keys/{external_key_id}/validate">client.admin.organization.external_keys.<a href="./src/openai/resources/admin/organization/external_keys.py">validate</a>(external_key_id) -> <a href="./src/openai/types/admin/organization/external_key_validate_response.py">ExternalKeyValidateResponse</a></code>
+
+### WorkloadIdentityProviders
+
+Types:
+
+```python
+from openai.types.admin.organization import (
+    WorkloadIdentityProvider,
+    WorkloadIdentityProviderDeleted,
+)
+```
+
+Methods:
+
+- <code title="post /organization/workload_identity_providers">client.admin.organization.workload_identity_providers.<a href="./src/openai/resources/admin/organization/workload_identity_providers/workload_identity_providers.py">create</a>(\*\*<a href="src/openai/types/admin/organization/workload_identity_provider_create_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/workload_identity_provider.py">WorkloadIdentityProvider</a></code>
+- <code title="get /organization/workload_identity_providers/{workload_identity_provider_id}">client.admin.organization.workload_identity_providers.<a href="./src/openai/resources/admin/organization/workload_identity_providers/workload_identity_providers.py">retrieve</a>(workload_identity_provider_id) -> <a href="./src/openai/types/admin/organization/workload_identity_provider.py">WorkloadIdentityProvider</a></code>
+- <code title="post /organization/workload_identity_providers/{workload_identity_provider_id}">client.admin.organization.workload_identity_providers.<a href="./src/openai/resources/admin/organization/workload_identity_providers/workload_identity_providers.py">update</a>(workload_identity_provider_id, \*\*<a href="src/openai/types/admin/organization/workload_identity_provider_update_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/workload_identity_provider.py">WorkloadIdentityProvider</a></code>
+- <code title="get /organization/workload_identity_providers">client.admin.organization.workload_identity_providers.<a href="./src/openai/resources/admin/organization/workload_identity_providers/workload_identity_providers.py">list</a>(\*\*<a href="src/openai/types/admin/organization/workload_identity_provider_list_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/workload_identity_provider.py">SyncCursorPage[WorkloadIdentityProvider]</a></code>
+- <code title="delete /organization/workload_identity_providers/{workload_identity_provider_id}">client.admin.organization.workload_identity_providers.<a href="./src/openai/resources/admin/organization/workload_identity_providers/workload_identity_providers.py">delete</a>(workload_identity_provider_id) -> <a href="./src/openai/types/admin/organization/workload_identity_provider_deleted.py">WorkloadIdentityProviderDeleted</a></code>
+
+#### FederationRules
+
+Types:
+
+```python
+from openai.types.admin.organization.workload_identity_providers import (
+    FederationRule,
+    FederationRuleDeleted,
+)
+```
+
+Methods:
+
+- <code title="post /organization/workload_identity_providers/{workload_identity_provider_id}/federation_rules">client.admin.organization.workload_identity_providers.federation_rules.<a href="./src/openai/resources/admin/organization/workload_identity_providers/federation_rules.py">create</a>(workload_identity_provider_id, \*\*<a href="src/openai/types/admin/organization/workload_identity_providers/federation_rule_create_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/workload_identity_providers/federation_rule.py">FederationRule</a></code>
+- <code title="get /organization/workload_identity_providers/{workload_identity_provider_id}/federation_rules/{workload_identity_federation_rule_id}">client.admin.organization.workload_identity_providers.federation_rules.<a href="./src/openai/resources/admin/organization/workload_identity_providers/federation_rules.py">retrieve</a>(workload_identity_federation_rule_id, \*, workload_identity_provider_id) -> <a href="./src/openai/types/admin/organization/workload_identity_providers/federation_rule.py">FederationRule</a></code>
+- <code title="post /organization/workload_identity_providers/{workload_identity_provider_id}/federation_rules/{workload_identity_federation_rule_id}">client.admin.organization.workload_identity_providers.federation_rules.<a href="./src/openai/resources/admin/organization/workload_identity_providers/federation_rules.py">update</a>(workload_identity_federation_rule_id, \*, workload_identity_provider_id, \*\*<a href="src/openai/types/admin/organization/workload_identity_providers/federation_rule_update_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/workload_identity_providers/federation_rule.py">FederationRule</a></code>
+- <code title="get /organization/workload_identity_providers/{workload_identity_provider_id}/federation_rules">client.admin.organization.workload_identity_providers.federation_rules.<a href="./src/openai/resources/admin/organization/workload_identity_providers/federation_rules.py">list</a>(workload_identity_provider_id, \*\*<a href="src/openai/types/admin/organization/workload_identity_providers/federation_rule_list_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/workload_identity_providers/federation_rule.py">SyncCursorPage[FederationRule]</a></code>
+- <code title="delete /organization/workload_identity_providers/{workload_identity_provider_id}/federation_rules/{workload_identity_federation_rule_id}">client.admin.organization.workload_identity_providers.federation_rules.<a href="./src/openai/resources/admin/organization/workload_identity_providers/federation_rules.py">delete</a>(workload_identity_federation_rule_id, \*, workload_identity_provider_id) -> <a href="./src/openai/types/admin/organization/workload_identity_providers/federation_rule_deleted.py">FederationRuleDeleted</a></code>
+
 ### ExternalStorage
 
 Types:
@@ -1729,6 +1783,22 @@ Methods:
 - <code title="get /organization/projects/{project_id}/model_permissions">client.admin.organization.projects.model_permissions.<a href="./src/openai/resources/admin/organization/projects/model_permissions.py">retrieve</a>(project_id) -> <a href="./src/openai/types/admin/organization/projects/project_model_permissions.py">ProjectModelPermissions</a></code>
 - <code title="post /organization/projects/{project_id}/model_permissions">client.admin.organization.projects.model_permissions.<a href="./src/openai/resources/admin/organization/projects/model_permissions.py">update</a>(project_id, \*\*<a href="src/openai/types/admin/organization/projects/model_permission_update_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/project_model_permissions.py">ProjectModelPermissions</a></code>
 - <code title="delete /organization/projects/{project_id}/model_permissions">client.admin.organization.projects.model_permissions.<a href="./src/openai/resources/admin/organization/projects/model_permissions.py">delete</a>(project_id) -> <a href="./src/openai/types/admin/organization/projects/project_model_permissions_deleted.py">ProjectModelPermissionsDeleted</a></code>
+
+#### ServiceTierSettings
+
+Types:
+
+```python
+from openai.types.admin.organization.projects import (
+    ProjectOptionalServiceTier,
+    ProjectServiceTierSettings,
+)
+```
+
+Methods:
+
+- <code title="get /organization/projects/{project_id}/service_tier_settings">client.admin.organization.projects.service_tier_settings.<a href="./src/openai/resources/admin/organization/projects/service_tier_settings.py">retrieve</a>(project_id) -> <a href="./src/openai/types/admin/organization/projects/project_service_tier_settings.py">ProjectServiceTierSettings</a></code>
+- <code title="post /organization/projects/{project_id}/service_tier_settings">client.admin.organization.projects.service_tier_settings.<a href="./src/openai/resources/admin/organization/projects/service_tier_settings.py">update</a>(project_id, \*\*<a href="src/openai/types/admin/organization/projects/service_tier_setting_update_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/project_service_tier_settings.py">ProjectServiceTierSettings</a></code>
 
 #### HostedToolPermissions
 

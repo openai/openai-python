@@ -80,32 +80,32 @@ from .lib._client_auth import _has_header as _has_header, _has_omitted_header as
 
 if TYPE_CHECKING:
     from .resources import (
-        beta,
-        chat,
-        live,
-        admin,
-        audio,
-        evals,
-        files,
-        images,
-        models,
-        safety,
-        skills,
-        videos,
-        batches,
-        uploads,
-        realtime,
-        webhooks,
-        decisions,
-        responses,
-        containers,
-        embeddings,
-        completions,
-        fine_tuning,
-        moderations,
-        conversations,
-        vector_stores,
-        content_provenance_checks,
+        beta as _beta,
+        chat as _chat,
+        live as _live,
+        admin as _admin,
+        audio as _audio,
+        evals as _evals,
+        files as _files,
+        images as _images,
+        models as _models,
+        safety as _safety,
+        skills as _skills,
+        videos as _videos,
+        batches as _batches,
+        uploads as _uploads,
+        realtime as _realtime,
+        webhooks as _webhooks,
+        decisions as _decisions,
+        responses as _responses,
+        containers as _containers,
+        embeddings as _embeddings,
+        completions as _completions,
+        fine_tuning as _fine_tuning,
+        moderations as _moderations,
+        conversations as _conversations,
+        vector_stores as _vector_stores,
+        content_provenance_checks as _content_provenance_checks,
     )
     from .resources.files import Files, AsyncFiles
     from .resources.images import Images, AsyncImages
@@ -1200,13 +1200,13 @@ class OpenAIWithRawResponse:
         self._client = client
 
     @cached_property
-    def decisions(self) -> decisions.DecisionsWithRawResponse:
+    def decisions(self) -> _decisions.DecisionsWithRawResponse:
         from .resources.decisions import DecisionsWithRawResponse
 
         return DecisionsWithRawResponse(self._client.decisions)
 
     @cached_property
-    def completions(self) -> completions.CompletionsWithRawResponse:
+    def completions(self) -> _completions.CompletionsWithRawResponse:
         """
         Given a prompt, the model will return one or more predicted completions, and can also return the probabilities of alternative tokens at each position.
         """
@@ -1215,13 +1215,13 @@ class OpenAIWithRawResponse:
         return CompletionsWithRawResponse(self._client.completions)
 
     @cached_property
-    def chat(self) -> chat.ChatWithRawResponse:
+    def chat(self) -> _chat.ChatWithRawResponse:
         from .resources.chat import ChatWithRawResponse
 
         return ChatWithRawResponse(self._client.chat)
 
     @cached_property
-    def embeddings(self) -> embeddings.EmbeddingsWithRawResponse:
+    def embeddings(self) -> _embeddings.EmbeddingsWithRawResponse:
         """
         Get a vector representation of a given input that can be easily consumed by machine learning models and algorithms.
         """
@@ -1230,7 +1230,7 @@ class OpenAIWithRawResponse:
         return EmbeddingsWithRawResponse(self._client.embeddings)
 
     @cached_property
-    def files(self) -> files.FilesWithRawResponse:
+    def files(self) -> _files.FilesWithRawResponse:
         """
         Files are used to upload documents that can be used with features like Assistants and Fine-tuning.
         """
@@ -1239,26 +1239,26 @@ class OpenAIWithRawResponse:
         return FilesWithRawResponse(self._client.files)
 
     @cached_property
-    def images(self) -> images.ImagesWithRawResponse:
+    def images(self) -> _images.ImagesWithRawResponse:
         """Given a prompt and/or an input image, the model will generate a new image."""
         from .resources.images import ImagesWithRawResponse
 
         return ImagesWithRawResponse(self._client.images)
 
     @cached_property
-    def content_provenance_checks(self) -> content_provenance_checks.ContentProvenanceChecksWithRawResponse:
+    def content_provenance_checks(self) -> _content_provenance_checks.ContentProvenanceChecksWithRawResponse:
         from .resources.content_provenance_checks import ContentProvenanceChecksWithRawResponse
 
         return ContentProvenanceChecksWithRawResponse(self._client.content_provenance_checks)
 
     @cached_property
-    def audio(self) -> audio.AudioWithRawResponse:
+    def audio(self) -> _audio.AudioWithRawResponse:
         from .resources.audio import AudioWithRawResponse
 
         return AudioWithRawResponse(self._client.audio)
 
     @cached_property
-    def moderations(self) -> moderations.ModerationsWithRawResponse:
+    def moderations(self) -> _moderations.ModerationsWithRawResponse:
         """
         Given text and/or image inputs, classifies if those inputs are potentially harmful.
         """
@@ -1267,109 +1267,109 @@ class OpenAIWithRawResponse:
         return ModerationsWithRawResponse(self._client.moderations)
 
     @cached_property
-    def models(self) -> models.ModelsWithRawResponse:
+    def models(self) -> _models.ModelsWithRawResponse:
         """List and describe the various models available in the API."""
         from .resources.models import ModelsWithRawResponse
 
         return ModelsWithRawResponse(self._client.models)
 
     @cached_property
-    def fine_tuning(self) -> fine_tuning.FineTuningWithRawResponse:
+    def fine_tuning(self) -> _fine_tuning.FineTuningWithRawResponse:
         from .resources.fine_tuning import FineTuningWithRawResponse
 
         return FineTuningWithRawResponse(self._client.fine_tuning)
 
     @cached_property
-    def vector_stores(self) -> vector_stores.VectorStoresWithRawResponse:
+    def vector_stores(self) -> _vector_stores.VectorStoresWithRawResponse:
         from .resources.vector_stores import VectorStoresWithRawResponse
 
         return VectorStoresWithRawResponse(self._client.vector_stores)
 
     @cached_property
-    def safety(self) -> safety.SafetyWithRawResponse:
+    def safety(self) -> _safety.SafetyWithRawResponse:
         from .resources.safety import SafetyWithRawResponse
 
         return SafetyWithRawResponse(self._client.safety)
 
     @cached_property
-    def webhooks(self) -> webhooks.WebhooksWithRawResponse:
+    def webhooks(self) -> _webhooks.WebhooksWithRawResponse:
         from .resources.webhooks import WebhooksWithRawResponse
 
         return WebhooksWithRawResponse(self._client.webhooks)
 
     @cached_property
-    def beta(self) -> beta.BetaWithRawResponse:
+    def beta(self) -> _beta.BetaWithRawResponse:
         from .resources.beta import BetaWithRawResponse
 
         return BetaWithRawResponse(self._client.beta)
 
     @cached_property
-    def batches(self) -> batches.BatchesWithRawResponse:
+    def batches(self) -> _batches.BatchesWithRawResponse:
         """Create large batches of API requests to run asynchronously."""
         from .resources.batches import BatchesWithRawResponse
 
         return BatchesWithRawResponse(self._client.batches)
 
     @cached_property
-    def uploads(self) -> uploads.UploadsWithRawResponse:
+    def uploads(self) -> _uploads.UploadsWithRawResponse:
         """Use Uploads to upload large files in multiple parts."""
         from .resources.uploads import UploadsWithRawResponse
 
         return UploadsWithRawResponse(self._client.uploads)
 
     @cached_property
-    def admin(self) -> admin.AdminWithRawResponse:
+    def admin(self) -> _admin.AdminWithRawResponse:
         from .resources.admin import AdminWithRawResponse
 
         return AdminWithRawResponse(self._client.admin)
 
     @cached_property
-    def responses(self) -> responses.ResponsesWithRawResponse:
+    def responses(self) -> _responses.ResponsesWithRawResponse:
         """Create and manage model responses."""
         from .resources.responses import ResponsesWithRawResponse
 
         return ResponsesWithRawResponse(self._client.responses)
 
     @cached_property
-    def live(self) -> live.LiveWithRawResponse:
+    def live(self) -> _live.LiveWithRawResponse:
         from .resources.live import LiveWithRawResponse
 
         return LiveWithRawResponse(self._client.live)
 
     @cached_property
-    def realtime(self) -> realtime.RealtimeWithRawResponse:
+    def realtime(self) -> _realtime.RealtimeWithRawResponse:
         from .resources.realtime import RealtimeWithRawResponse
 
         return RealtimeWithRawResponse(self._client.realtime)
 
     @cached_property
-    def conversations(self) -> conversations.ConversationsWithRawResponse:
+    def conversations(self) -> _conversations.ConversationsWithRawResponse:
         """Manage conversations and conversation items."""
         from .resources.conversations import ConversationsWithRawResponse
 
         return ConversationsWithRawResponse(self._client.conversations)
 
     @cached_property
-    def evals(self) -> evals.EvalsWithRawResponse:
+    def evals(self) -> _evals.EvalsWithRawResponse:
         """Manage and run evals in the OpenAI platform."""
         from .resources.evals import EvalsWithRawResponse
 
         return EvalsWithRawResponse(self._client.evals)
 
     @cached_property
-    def containers(self) -> containers.ContainersWithRawResponse:
+    def containers(self) -> _containers.ContainersWithRawResponse:
         from .resources.containers import ContainersWithRawResponse
 
         return ContainersWithRawResponse(self._client.containers)
 
     @cached_property
-    def skills(self) -> skills.SkillsWithRawResponse:
+    def skills(self) -> _skills.SkillsWithRawResponse:
         from .resources.skills import SkillsWithRawResponse
 
         return SkillsWithRawResponse(self._client.skills)
 
     @cached_property
-    def videos(self) -> videos.VideosWithRawResponse:
+    def videos(self) -> _videos.VideosWithRawResponse:
         from .resources.videos import VideosWithRawResponse
 
         return VideosWithRawResponse(self._client.videos)
@@ -1382,13 +1382,13 @@ class AsyncOpenAIWithRawResponse:
         self._client = client
 
     @cached_property
-    def decisions(self) -> decisions.AsyncDecisionsWithRawResponse:
+    def decisions(self) -> _decisions.AsyncDecisionsWithRawResponse:
         from .resources.decisions import AsyncDecisionsWithRawResponse
 
         return AsyncDecisionsWithRawResponse(self._client.decisions)
 
     @cached_property
-    def completions(self) -> completions.AsyncCompletionsWithRawResponse:
+    def completions(self) -> _completions.AsyncCompletionsWithRawResponse:
         """
         Given a prompt, the model will return one or more predicted completions, and can also return the probabilities of alternative tokens at each position.
         """
@@ -1397,13 +1397,13 @@ class AsyncOpenAIWithRawResponse:
         return AsyncCompletionsWithRawResponse(self._client.completions)
 
     @cached_property
-    def chat(self) -> chat.AsyncChatWithRawResponse:
+    def chat(self) -> _chat.AsyncChatWithRawResponse:
         from .resources.chat import AsyncChatWithRawResponse
 
         return AsyncChatWithRawResponse(self._client.chat)
 
     @cached_property
-    def embeddings(self) -> embeddings.AsyncEmbeddingsWithRawResponse:
+    def embeddings(self) -> _embeddings.AsyncEmbeddingsWithRawResponse:
         """
         Get a vector representation of a given input that can be easily consumed by machine learning models and algorithms.
         """
@@ -1412,7 +1412,7 @@ class AsyncOpenAIWithRawResponse:
         return AsyncEmbeddingsWithRawResponse(self._client.embeddings)
 
     @cached_property
-    def files(self) -> files.AsyncFilesWithRawResponse:
+    def files(self) -> _files.AsyncFilesWithRawResponse:
         """
         Files are used to upload documents that can be used with features like Assistants and Fine-tuning.
         """
@@ -1421,26 +1421,26 @@ class AsyncOpenAIWithRawResponse:
         return AsyncFilesWithRawResponse(self._client.files)
 
     @cached_property
-    def images(self) -> images.AsyncImagesWithRawResponse:
+    def images(self) -> _images.AsyncImagesWithRawResponse:
         """Given a prompt and/or an input image, the model will generate a new image."""
         from .resources.images import AsyncImagesWithRawResponse
 
         return AsyncImagesWithRawResponse(self._client.images)
 
     @cached_property
-    def content_provenance_checks(self) -> content_provenance_checks.AsyncContentProvenanceChecksWithRawResponse:
+    def content_provenance_checks(self) -> _content_provenance_checks.AsyncContentProvenanceChecksWithRawResponse:
         from .resources.content_provenance_checks import AsyncContentProvenanceChecksWithRawResponse
 
         return AsyncContentProvenanceChecksWithRawResponse(self._client.content_provenance_checks)
 
     @cached_property
-    def audio(self) -> audio.AsyncAudioWithRawResponse:
+    def audio(self) -> _audio.AsyncAudioWithRawResponse:
         from .resources.audio import AsyncAudioWithRawResponse
 
         return AsyncAudioWithRawResponse(self._client.audio)
 
     @cached_property
-    def moderations(self) -> moderations.AsyncModerationsWithRawResponse:
+    def moderations(self) -> _moderations.AsyncModerationsWithRawResponse:
         """
         Given text and/or image inputs, classifies if those inputs are potentially harmful.
         """
@@ -1449,109 +1449,109 @@ class AsyncOpenAIWithRawResponse:
         return AsyncModerationsWithRawResponse(self._client.moderations)
 
     @cached_property
-    def models(self) -> models.AsyncModelsWithRawResponse:
+    def models(self) -> _models.AsyncModelsWithRawResponse:
         """List and describe the various models available in the API."""
         from .resources.models import AsyncModelsWithRawResponse
 
         return AsyncModelsWithRawResponse(self._client.models)
 
     @cached_property
-    def fine_tuning(self) -> fine_tuning.AsyncFineTuningWithRawResponse:
+    def fine_tuning(self) -> _fine_tuning.AsyncFineTuningWithRawResponse:
         from .resources.fine_tuning import AsyncFineTuningWithRawResponse
 
         return AsyncFineTuningWithRawResponse(self._client.fine_tuning)
 
     @cached_property
-    def vector_stores(self) -> vector_stores.AsyncVectorStoresWithRawResponse:
+    def vector_stores(self) -> _vector_stores.AsyncVectorStoresWithRawResponse:
         from .resources.vector_stores import AsyncVectorStoresWithRawResponse
 
         return AsyncVectorStoresWithRawResponse(self._client.vector_stores)
 
     @cached_property
-    def safety(self) -> safety.AsyncSafetyWithRawResponse:
+    def safety(self) -> _safety.AsyncSafetyWithRawResponse:
         from .resources.safety import AsyncSafetyWithRawResponse
 
         return AsyncSafetyWithRawResponse(self._client.safety)
 
     @cached_property
-    def webhooks(self) -> webhooks.AsyncWebhooksWithRawResponse:
+    def webhooks(self) -> _webhooks.AsyncWebhooksWithRawResponse:
         from .resources.webhooks import AsyncWebhooksWithRawResponse
 
         return AsyncWebhooksWithRawResponse(self._client.webhooks)
 
     @cached_property
-    def beta(self) -> beta.AsyncBetaWithRawResponse:
+    def beta(self) -> _beta.AsyncBetaWithRawResponse:
         from .resources.beta import AsyncBetaWithRawResponse
 
         return AsyncBetaWithRawResponse(self._client.beta)
 
     @cached_property
-    def batches(self) -> batches.AsyncBatchesWithRawResponse:
+    def batches(self) -> _batches.AsyncBatchesWithRawResponse:
         """Create large batches of API requests to run asynchronously."""
         from .resources.batches import AsyncBatchesWithRawResponse
 
         return AsyncBatchesWithRawResponse(self._client.batches)
 
     @cached_property
-    def uploads(self) -> uploads.AsyncUploadsWithRawResponse:
+    def uploads(self) -> _uploads.AsyncUploadsWithRawResponse:
         """Use Uploads to upload large files in multiple parts."""
         from .resources.uploads import AsyncUploadsWithRawResponse
 
         return AsyncUploadsWithRawResponse(self._client.uploads)
 
     @cached_property
-    def admin(self) -> admin.AsyncAdminWithRawResponse:
+    def admin(self) -> _admin.AsyncAdminWithRawResponse:
         from .resources.admin import AsyncAdminWithRawResponse
 
         return AsyncAdminWithRawResponse(self._client.admin)
 
     @cached_property
-    def responses(self) -> responses.AsyncResponsesWithRawResponse:
+    def responses(self) -> _responses.AsyncResponsesWithRawResponse:
         """Create and manage model responses."""
         from .resources.responses import AsyncResponsesWithRawResponse
 
         return AsyncResponsesWithRawResponse(self._client.responses)
 
     @cached_property
-    def live(self) -> live.AsyncLiveWithRawResponse:
+    def live(self) -> _live.AsyncLiveWithRawResponse:
         from .resources.live import AsyncLiveWithRawResponse
 
         return AsyncLiveWithRawResponse(self._client.live)
 
     @cached_property
-    def realtime(self) -> realtime.AsyncRealtimeWithRawResponse:
+    def realtime(self) -> _realtime.AsyncRealtimeWithRawResponse:
         from .resources.realtime import AsyncRealtimeWithRawResponse
 
         return AsyncRealtimeWithRawResponse(self._client.realtime)
 
     @cached_property
-    def conversations(self) -> conversations.AsyncConversationsWithRawResponse:
+    def conversations(self) -> _conversations.AsyncConversationsWithRawResponse:
         """Manage conversations and conversation items."""
         from .resources.conversations import AsyncConversationsWithRawResponse
 
         return AsyncConversationsWithRawResponse(self._client.conversations)
 
     @cached_property
-    def evals(self) -> evals.AsyncEvalsWithRawResponse:
+    def evals(self) -> _evals.AsyncEvalsWithRawResponse:
         """Manage and run evals in the OpenAI platform."""
         from .resources.evals import AsyncEvalsWithRawResponse
 
         return AsyncEvalsWithRawResponse(self._client.evals)
 
     @cached_property
-    def containers(self) -> containers.AsyncContainersWithRawResponse:
+    def containers(self) -> _containers.AsyncContainersWithRawResponse:
         from .resources.containers import AsyncContainersWithRawResponse
 
         return AsyncContainersWithRawResponse(self._client.containers)
 
     @cached_property
-    def skills(self) -> skills.AsyncSkillsWithRawResponse:
+    def skills(self) -> _skills.AsyncSkillsWithRawResponse:
         from .resources.skills import AsyncSkillsWithRawResponse
 
         return AsyncSkillsWithRawResponse(self._client.skills)
 
     @cached_property
-    def videos(self) -> videos.AsyncVideosWithRawResponse:
+    def videos(self) -> _videos.AsyncVideosWithRawResponse:
         from .resources.videos import AsyncVideosWithRawResponse
 
         return AsyncVideosWithRawResponse(self._client.videos)
@@ -1564,13 +1564,13 @@ class OpenAIWithStreamedResponse:
         self._client = client
 
     @cached_property
-    def decisions(self) -> decisions.DecisionsWithStreamingResponse:
+    def decisions(self) -> _decisions.DecisionsWithStreamingResponse:
         from .resources.decisions import DecisionsWithStreamingResponse
 
         return DecisionsWithStreamingResponse(self._client.decisions)
 
     @cached_property
-    def completions(self) -> completions.CompletionsWithStreamingResponse:
+    def completions(self) -> _completions.CompletionsWithStreamingResponse:
         """
         Given a prompt, the model will return one or more predicted completions, and can also return the probabilities of alternative tokens at each position.
         """
@@ -1579,13 +1579,13 @@ class OpenAIWithStreamedResponse:
         return CompletionsWithStreamingResponse(self._client.completions)
 
     @cached_property
-    def chat(self) -> chat.ChatWithStreamingResponse:
+    def chat(self) -> _chat.ChatWithStreamingResponse:
         from .resources.chat import ChatWithStreamingResponse
 
         return ChatWithStreamingResponse(self._client.chat)
 
     @cached_property
-    def embeddings(self) -> embeddings.EmbeddingsWithStreamingResponse:
+    def embeddings(self) -> _embeddings.EmbeddingsWithStreamingResponse:
         """
         Get a vector representation of a given input that can be easily consumed by machine learning models and algorithms.
         """
@@ -1594,7 +1594,7 @@ class OpenAIWithStreamedResponse:
         return EmbeddingsWithStreamingResponse(self._client.embeddings)
 
     @cached_property
-    def files(self) -> files.FilesWithStreamingResponse:
+    def files(self) -> _files.FilesWithStreamingResponse:
         """
         Files are used to upload documents that can be used with features like Assistants and Fine-tuning.
         """
@@ -1603,26 +1603,26 @@ class OpenAIWithStreamedResponse:
         return FilesWithStreamingResponse(self._client.files)
 
     @cached_property
-    def images(self) -> images.ImagesWithStreamingResponse:
+    def images(self) -> _images.ImagesWithStreamingResponse:
         """Given a prompt and/or an input image, the model will generate a new image."""
         from .resources.images import ImagesWithStreamingResponse
 
         return ImagesWithStreamingResponse(self._client.images)
 
     @cached_property
-    def content_provenance_checks(self) -> content_provenance_checks.ContentProvenanceChecksWithStreamingResponse:
+    def content_provenance_checks(self) -> _content_provenance_checks.ContentProvenanceChecksWithStreamingResponse:
         from .resources.content_provenance_checks import ContentProvenanceChecksWithStreamingResponse
 
         return ContentProvenanceChecksWithStreamingResponse(self._client.content_provenance_checks)
 
     @cached_property
-    def audio(self) -> audio.AudioWithStreamingResponse:
+    def audio(self) -> _audio.AudioWithStreamingResponse:
         from .resources.audio import AudioWithStreamingResponse
 
         return AudioWithStreamingResponse(self._client.audio)
 
     @cached_property
-    def moderations(self) -> moderations.ModerationsWithStreamingResponse:
+    def moderations(self) -> _moderations.ModerationsWithStreamingResponse:
         """
         Given text and/or image inputs, classifies if those inputs are potentially harmful.
         """
@@ -1631,109 +1631,109 @@ class OpenAIWithStreamedResponse:
         return ModerationsWithStreamingResponse(self._client.moderations)
 
     @cached_property
-    def models(self) -> models.ModelsWithStreamingResponse:
+    def models(self) -> _models.ModelsWithStreamingResponse:
         """List and describe the various models available in the API."""
         from .resources.models import ModelsWithStreamingResponse
 
         return ModelsWithStreamingResponse(self._client.models)
 
     @cached_property
-    def fine_tuning(self) -> fine_tuning.FineTuningWithStreamingResponse:
+    def fine_tuning(self) -> _fine_tuning.FineTuningWithStreamingResponse:
         from .resources.fine_tuning import FineTuningWithStreamingResponse
 
         return FineTuningWithStreamingResponse(self._client.fine_tuning)
 
     @cached_property
-    def vector_stores(self) -> vector_stores.VectorStoresWithStreamingResponse:
+    def vector_stores(self) -> _vector_stores.VectorStoresWithStreamingResponse:
         from .resources.vector_stores import VectorStoresWithStreamingResponse
 
         return VectorStoresWithStreamingResponse(self._client.vector_stores)
 
     @cached_property
-    def safety(self) -> safety.SafetyWithStreamingResponse:
+    def safety(self) -> _safety.SafetyWithStreamingResponse:
         from .resources.safety import SafetyWithStreamingResponse
 
         return SafetyWithStreamingResponse(self._client.safety)
 
     @cached_property
-    def webhooks(self) -> webhooks.WebhooksWithStreamingResponse:
+    def webhooks(self) -> _webhooks.WebhooksWithStreamingResponse:
         from .resources.webhooks import WebhooksWithStreamingResponse
 
         return WebhooksWithStreamingResponse(self._client.webhooks)
 
     @cached_property
-    def beta(self) -> beta.BetaWithStreamingResponse:
+    def beta(self) -> _beta.BetaWithStreamingResponse:
         from .resources.beta import BetaWithStreamingResponse
 
         return BetaWithStreamingResponse(self._client.beta)
 
     @cached_property
-    def batches(self) -> batches.BatchesWithStreamingResponse:
+    def batches(self) -> _batches.BatchesWithStreamingResponse:
         """Create large batches of API requests to run asynchronously."""
         from .resources.batches import BatchesWithStreamingResponse
 
         return BatchesWithStreamingResponse(self._client.batches)
 
     @cached_property
-    def uploads(self) -> uploads.UploadsWithStreamingResponse:
+    def uploads(self) -> _uploads.UploadsWithStreamingResponse:
         """Use Uploads to upload large files in multiple parts."""
         from .resources.uploads import UploadsWithStreamingResponse
 
         return UploadsWithStreamingResponse(self._client.uploads)
 
     @cached_property
-    def admin(self) -> admin.AdminWithStreamingResponse:
+    def admin(self) -> _admin.AdminWithStreamingResponse:
         from .resources.admin import AdminWithStreamingResponse
 
         return AdminWithStreamingResponse(self._client.admin)
 
     @cached_property
-    def responses(self) -> responses.ResponsesWithStreamingResponse:
+    def responses(self) -> _responses.ResponsesWithStreamingResponse:
         """Create and manage model responses."""
         from .resources.responses import ResponsesWithStreamingResponse
 
         return ResponsesWithStreamingResponse(self._client.responses)
 
     @cached_property
-    def live(self) -> live.LiveWithStreamingResponse:
+    def live(self) -> _live.LiveWithStreamingResponse:
         from .resources.live import LiveWithStreamingResponse
 
         return LiveWithStreamingResponse(self._client.live)
 
     @cached_property
-    def realtime(self) -> realtime.RealtimeWithStreamingResponse:
+    def realtime(self) -> _realtime.RealtimeWithStreamingResponse:
         from .resources.realtime import RealtimeWithStreamingResponse
 
         return RealtimeWithStreamingResponse(self._client.realtime)
 
     @cached_property
-    def conversations(self) -> conversations.ConversationsWithStreamingResponse:
+    def conversations(self) -> _conversations.ConversationsWithStreamingResponse:
         """Manage conversations and conversation items."""
         from .resources.conversations import ConversationsWithStreamingResponse
 
         return ConversationsWithStreamingResponse(self._client.conversations)
 
     @cached_property
-    def evals(self) -> evals.EvalsWithStreamingResponse:
+    def evals(self) -> _evals.EvalsWithStreamingResponse:
         """Manage and run evals in the OpenAI platform."""
         from .resources.evals import EvalsWithStreamingResponse
 
         return EvalsWithStreamingResponse(self._client.evals)
 
     @cached_property
-    def containers(self) -> containers.ContainersWithStreamingResponse:
+    def containers(self) -> _containers.ContainersWithStreamingResponse:
         from .resources.containers import ContainersWithStreamingResponse
 
         return ContainersWithStreamingResponse(self._client.containers)
 
     @cached_property
-    def skills(self) -> skills.SkillsWithStreamingResponse:
+    def skills(self) -> _skills.SkillsWithStreamingResponse:
         from .resources.skills import SkillsWithStreamingResponse
 
         return SkillsWithStreamingResponse(self._client.skills)
 
     @cached_property
-    def videos(self) -> videos.VideosWithStreamingResponse:
+    def videos(self) -> _videos.VideosWithStreamingResponse:
         from .resources.videos import VideosWithStreamingResponse
 
         return VideosWithStreamingResponse(self._client.videos)
@@ -1746,13 +1746,13 @@ class AsyncOpenAIWithStreamedResponse:
         self._client = client
 
     @cached_property
-    def decisions(self) -> decisions.AsyncDecisionsWithStreamingResponse:
+    def decisions(self) -> _decisions.AsyncDecisionsWithStreamingResponse:
         from .resources.decisions import AsyncDecisionsWithStreamingResponse
 
         return AsyncDecisionsWithStreamingResponse(self._client.decisions)
 
     @cached_property
-    def completions(self) -> completions.AsyncCompletionsWithStreamingResponse:
+    def completions(self) -> _completions.AsyncCompletionsWithStreamingResponse:
         """
         Given a prompt, the model will return one or more predicted completions, and can also return the probabilities of alternative tokens at each position.
         """
@@ -1761,13 +1761,13 @@ class AsyncOpenAIWithStreamedResponse:
         return AsyncCompletionsWithStreamingResponse(self._client.completions)
 
     @cached_property
-    def chat(self) -> chat.AsyncChatWithStreamingResponse:
+    def chat(self) -> _chat.AsyncChatWithStreamingResponse:
         from .resources.chat import AsyncChatWithStreamingResponse
 
         return AsyncChatWithStreamingResponse(self._client.chat)
 
     @cached_property
-    def embeddings(self) -> embeddings.AsyncEmbeddingsWithStreamingResponse:
+    def embeddings(self) -> _embeddings.AsyncEmbeddingsWithStreamingResponse:
         """
         Get a vector representation of a given input that can be easily consumed by machine learning models and algorithms.
         """
@@ -1776,7 +1776,7 @@ class AsyncOpenAIWithStreamedResponse:
         return AsyncEmbeddingsWithStreamingResponse(self._client.embeddings)
 
     @cached_property
-    def files(self) -> files.AsyncFilesWithStreamingResponse:
+    def files(self) -> _files.AsyncFilesWithStreamingResponse:
         """
         Files are used to upload documents that can be used with features like Assistants and Fine-tuning.
         """
@@ -1785,26 +1785,26 @@ class AsyncOpenAIWithStreamedResponse:
         return AsyncFilesWithStreamingResponse(self._client.files)
 
     @cached_property
-    def images(self) -> images.AsyncImagesWithStreamingResponse:
+    def images(self) -> _images.AsyncImagesWithStreamingResponse:
         """Given a prompt and/or an input image, the model will generate a new image."""
         from .resources.images import AsyncImagesWithStreamingResponse
 
         return AsyncImagesWithStreamingResponse(self._client.images)
 
     @cached_property
-    def content_provenance_checks(self) -> content_provenance_checks.AsyncContentProvenanceChecksWithStreamingResponse:
+    def content_provenance_checks(self) -> _content_provenance_checks.AsyncContentProvenanceChecksWithStreamingResponse:
         from .resources.content_provenance_checks import AsyncContentProvenanceChecksWithStreamingResponse
 
         return AsyncContentProvenanceChecksWithStreamingResponse(self._client.content_provenance_checks)
 
     @cached_property
-    def audio(self) -> audio.AsyncAudioWithStreamingResponse:
+    def audio(self) -> _audio.AsyncAudioWithStreamingResponse:
         from .resources.audio import AsyncAudioWithStreamingResponse
 
         return AsyncAudioWithStreamingResponse(self._client.audio)
 
     @cached_property
-    def moderations(self) -> moderations.AsyncModerationsWithStreamingResponse:
+    def moderations(self) -> _moderations.AsyncModerationsWithStreamingResponse:
         """
         Given text and/or image inputs, classifies if those inputs are potentially harmful.
         """
@@ -1813,109 +1813,109 @@ class AsyncOpenAIWithStreamedResponse:
         return AsyncModerationsWithStreamingResponse(self._client.moderations)
 
     @cached_property
-    def models(self) -> models.AsyncModelsWithStreamingResponse:
+    def models(self) -> _models.AsyncModelsWithStreamingResponse:
         """List and describe the various models available in the API."""
         from .resources.models import AsyncModelsWithStreamingResponse
 
         return AsyncModelsWithStreamingResponse(self._client.models)
 
     @cached_property
-    def fine_tuning(self) -> fine_tuning.AsyncFineTuningWithStreamingResponse:
+    def fine_tuning(self) -> _fine_tuning.AsyncFineTuningWithStreamingResponse:
         from .resources.fine_tuning import AsyncFineTuningWithStreamingResponse
 
         return AsyncFineTuningWithStreamingResponse(self._client.fine_tuning)
 
     @cached_property
-    def vector_stores(self) -> vector_stores.AsyncVectorStoresWithStreamingResponse:
+    def vector_stores(self) -> _vector_stores.AsyncVectorStoresWithStreamingResponse:
         from .resources.vector_stores import AsyncVectorStoresWithStreamingResponse
 
         return AsyncVectorStoresWithStreamingResponse(self._client.vector_stores)
 
     @cached_property
-    def safety(self) -> safety.AsyncSafetyWithStreamingResponse:
+    def safety(self) -> _safety.AsyncSafetyWithStreamingResponse:
         from .resources.safety import AsyncSafetyWithStreamingResponse
 
         return AsyncSafetyWithStreamingResponse(self._client.safety)
 
     @cached_property
-    def webhooks(self) -> webhooks.AsyncWebhooksWithStreamingResponse:
+    def webhooks(self) -> _webhooks.AsyncWebhooksWithStreamingResponse:
         from .resources.webhooks import AsyncWebhooksWithStreamingResponse
 
         return AsyncWebhooksWithStreamingResponse(self._client.webhooks)
 
     @cached_property
-    def beta(self) -> beta.AsyncBetaWithStreamingResponse:
+    def beta(self) -> _beta.AsyncBetaWithStreamingResponse:
         from .resources.beta import AsyncBetaWithStreamingResponse
 
         return AsyncBetaWithStreamingResponse(self._client.beta)
 
     @cached_property
-    def batches(self) -> batches.AsyncBatchesWithStreamingResponse:
+    def batches(self) -> _batches.AsyncBatchesWithStreamingResponse:
         """Create large batches of API requests to run asynchronously."""
         from .resources.batches import AsyncBatchesWithStreamingResponse
 
         return AsyncBatchesWithStreamingResponse(self._client.batches)
 
     @cached_property
-    def uploads(self) -> uploads.AsyncUploadsWithStreamingResponse:
+    def uploads(self) -> _uploads.AsyncUploadsWithStreamingResponse:
         """Use Uploads to upload large files in multiple parts."""
         from .resources.uploads import AsyncUploadsWithStreamingResponse
 
         return AsyncUploadsWithStreamingResponse(self._client.uploads)
 
     @cached_property
-    def admin(self) -> admin.AsyncAdminWithStreamingResponse:
+    def admin(self) -> _admin.AsyncAdminWithStreamingResponse:
         from .resources.admin import AsyncAdminWithStreamingResponse
 
         return AsyncAdminWithStreamingResponse(self._client.admin)
 
     @cached_property
-    def responses(self) -> responses.AsyncResponsesWithStreamingResponse:
+    def responses(self) -> _responses.AsyncResponsesWithStreamingResponse:
         """Create and manage model responses."""
         from .resources.responses import AsyncResponsesWithStreamingResponse
 
         return AsyncResponsesWithStreamingResponse(self._client.responses)
 
     @cached_property
-    def live(self) -> live.AsyncLiveWithStreamingResponse:
+    def live(self) -> _live.AsyncLiveWithStreamingResponse:
         from .resources.live import AsyncLiveWithStreamingResponse
 
         return AsyncLiveWithStreamingResponse(self._client.live)
 
     @cached_property
-    def realtime(self) -> realtime.AsyncRealtimeWithStreamingResponse:
+    def realtime(self) -> _realtime.AsyncRealtimeWithStreamingResponse:
         from .resources.realtime import AsyncRealtimeWithStreamingResponse
 
         return AsyncRealtimeWithStreamingResponse(self._client.realtime)
 
     @cached_property
-    def conversations(self) -> conversations.AsyncConversationsWithStreamingResponse:
+    def conversations(self) -> _conversations.AsyncConversationsWithStreamingResponse:
         """Manage conversations and conversation items."""
         from .resources.conversations import AsyncConversationsWithStreamingResponse
 
         return AsyncConversationsWithStreamingResponse(self._client.conversations)
 
     @cached_property
-    def evals(self) -> evals.AsyncEvalsWithStreamingResponse:
+    def evals(self) -> _evals.AsyncEvalsWithStreamingResponse:
         """Manage and run evals in the OpenAI platform."""
         from .resources.evals import AsyncEvalsWithStreamingResponse
 
         return AsyncEvalsWithStreamingResponse(self._client.evals)
 
     @cached_property
-    def containers(self) -> containers.AsyncContainersWithStreamingResponse:
+    def containers(self) -> _containers.AsyncContainersWithStreamingResponse:
         from .resources.containers import AsyncContainersWithStreamingResponse
 
         return AsyncContainersWithStreamingResponse(self._client.containers)
 
     @cached_property
-    def skills(self) -> skills.AsyncSkillsWithStreamingResponse:
+    def skills(self) -> _skills.AsyncSkillsWithStreamingResponse:
         from .resources.skills import AsyncSkillsWithStreamingResponse
 
         return AsyncSkillsWithStreamingResponse(self._client.skills)
 
     @cached_property
-    def videos(self) -> videos.AsyncVideosWithStreamingResponse:
+    def videos(self) -> _videos.AsyncVideosWithStreamingResponse:
         from .resources.videos import AsyncVideosWithStreamingResponse
 
         return AsyncVideosWithStreamingResponse(self._client.videos)

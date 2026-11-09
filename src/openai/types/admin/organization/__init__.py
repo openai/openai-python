@@ -7,6 +7,7 @@ from .group import Group as Group
 from .invite import Invite as Invite
 from .project import Project as Project
 from .certificate import Certificate as Certificate
+from .external_key import ExternalKey as ExternalKey
 from .admin_api_key import AdminAPIKey as AdminAPIKey
 from .role_list_params import RoleListParams as RoleListParams
 from .user_list_params import UserListParams as UserListParams
@@ -39,6 +40,7 @@ from .audit_log_list_response import AuditLogListResponse as AuditLogListRespons
 from .certificate_list_params import CertificateListParams as CertificateListParams
 from .spend_alert_list_params import SpendAlertListParams as SpendAlertListParams
 from .usage_embeddings_params import UsageEmbeddingsParams as UsageEmbeddingsParams
+from .external_key_list_params import ExternalKeyListParams as ExternalKeyListParams
 from .external_storage_deleted import ExternalStorageDeleted as ExternalStorageDeleted
 from .organization_spend_alert import OrganizationSpendAlert as OrganizationSpendAlert
 from .organization_spend_limit import OrganizationSpendLimit as OrganizationSpendLimit
@@ -53,9 +55,11 @@ from .spend_alert_create_params import SpendAlertCreateParams as SpendAlertCreat
 from .spend_alert_update_params import SpendAlertUpdateParams as SpendAlertUpdateParams
 from .spend_limit_update_params import SpendLimitUpdateParams as SpendLimitUpdateParams
 from .usage_embeddings_response import UsageEmbeddingsResponse as UsageEmbeddingsResponse
+from .external_key_create_params import ExternalKeyCreateParams as ExternalKeyCreateParams
 from .usage_completions_response import UsageCompletionsResponse as UsageCompletionsResponse
 from .usage_moderations_response import UsageModerationsResponse as UsageModerationsResponse
 from .usage_vector_stores_params import UsageVectorStoresParams as UsageVectorStoresParams
+from .workload_identity_provider import WorkloadIdentityProvider as WorkloadIdentityProvider
 from .admin_api_key_create_params import AdminAPIKeyCreateParams as AdminAPIKeyCreateParams
 from .certificate_activate_params import CertificateActivateParams as CertificateActivateParams
 from .certificate_delete_response import CertificateDeleteResponse as CertificateDeleteResponse
@@ -74,6 +78,7 @@ from .gcp_external_storage_provider import GcpExternalStorageProvider as GcpExte
 from .oci_external_storage_provider import OciExternalStorageProvider as OciExternalStorageProvider
 from .usage_audio_speeches_response import UsageAudioSpeechesResponse as UsageAudioSpeechesResponse
 from .usage_web_search_calls_params import UsageWebSearchCallsParams as UsageWebSearchCallsParams
+from .external_key_validate_response import ExternalKeyValidateResponse as ExternalKeyValidateResponse
 from .external_storage_configuration import ExternalStorageConfiguration as ExternalStorageConfiguration
 from .external_storage_create_params import ExternalStorageCreateParams as ExternalStorageCreateParams
 from .usage_file_search_calls_params import UsageFileSearchCallsParams as UsageFileSearchCallsParams
@@ -84,10 +89,20 @@ from .organization_spend_alert_deleted import OrganizationSpendAlertDeleted as O
 from .organization_spend_limit_deleted import OrganizationSpendLimitDeleted as OrganizationSpendLimitDeleted
 from .usage_file_search_calls_response import UsageFileSearchCallsResponse as UsageFileSearchCallsResponse
 from .usage_audio_transcriptions_params import UsageAudioTranscriptionsParams as UsageAudioTranscriptionsParams
+from .workload_identity_provider_deleted import WorkloadIdentityProviderDeleted as WorkloadIdentityProviderDeleted
 from .usage_audio_transcriptions_response import UsageAudioTranscriptionsResponse as UsageAudioTranscriptionsResponse
 from .usage_code_interpreter_sessions_params import (
     UsageCodeInterpreterSessionsParams as UsageCodeInterpreterSessionsParams,
 )
+from .workload_identity_provider_list_params import (
+    WorkloadIdentityProviderListParams as WorkloadIdentityProviderListParams,
+)
 from .usage_code_interpreter_sessions_response import (
     UsageCodeInterpreterSessionsResponse as UsageCodeInterpreterSessionsResponse,
+)
+from .workload_identity_provider_create_params import (
+    WorkloadIdentityProviderCreateParams as WorkloadIdentityProviderCreateParams,
+)
+from .workload_identity_provider_update_params import (
+    WorkloadIdentityProviderUpdateParams as WorkloadIdentityProviderUpdateParams,
 )

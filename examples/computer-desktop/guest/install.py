@@ -108,8 +108,8 @@ def install(root: Path) -> None:
             b"BP22-LATE-EFI-PASSED",
             b"BP22-LATE-COMPLETE",
         )
-        if reason or process.returncode or not all(value in outputs["stdout"] for value in checks):
-            raise RuntimeError(reason or "Installer did not complete its fixed guest checks.")
+        if process.returncode or not all(value in outputs["stdout"] for value in checks):
+            raise RuntimeError("Installer did not complete its fixed guest checks.")
     finally:
         if process is not None:
             if process.poll() is None:

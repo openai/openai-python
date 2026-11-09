@@ -37,6 +37,8 @@ __all__ = [
     "ToolProgrammaticToolCalling",
     "ToolImageGeneration",
     "ToolImageGenerationInputImageMask",
+    "ToolImageGenerationSvg",
+    "ToolImageGenerationSvgReasoning",
     "ToolLocalShell",
 ]
 
@@ -255,6 +257,34 @@ class ToolImageGenerationInputImageMask(TypedDict, total=False):
     """Base64-encoded mask image."""
 
 
+class ToolImageGenerationSvgReasoning(TypedDict, total=False):
+    """Reasoning effort for SVG authoring.
+
+    When omitted, uses the author model's default in both Images and Responses.
+    """
+
+    effort: Literal["none", "minimal", "low", "medium", "high", "xhigh", "max"]
+    """Controls how much effort the model should spend on reasoning for this request."""
+
+
+class ToolImageGenerationSvg(TypedDict, total=False):
+    """SVG author model settings.
+
+    Requires `output_format` to be `svg`.
+    When SVG model selection is enabled, omitting this object uses the
+    outer response model. Otherwise, the default SVG author is used and
+    explicit model overrides are unavailable.
+    """
+
+    model: str
+
+    reasoning: Optional[ToolImageGenerationSvgReasoning]
+    """Reasoning effort for SVG authoring.
+
+    When omitted, uses the author model's default in both Images and Responses.
+    """
+
+
 class ToolImageGeneration(TypedDict, total=False):
     """A tool that generates images using the GPT image models."""
 
@@ -278,12 +308,30 @@ class ToolImageGeneration(TypedDict, total=False):
     set the output format to `png` or `webp`.
     """
 
+    complexity: Literal["low", "medium", "high"]
+    """
+    Computation spent planning the image, independently of rendering quality.
+    Overrides the outer response's `reasoning.effort` for image generation. When
+    omitted, inherits a supported outer reasoning effort or uses the image model's
+    configured default. For SVG output, controls the reference image, not the SVG
+    author's reasoning.
+    """
+
+    frame_count: int
+    """Number of GIF frames. Requires `output_format` to be `gif`. Default: 9."""
+
+    frame_duration_ms: int
+    """
+    Duration of each GIF frame in milliseconds, rounded to 10 ms. Requires
+    `output_format` to be `gif`. Default: 200.
+    """
+
     input_fidelity: Optional[Literal["high", "low"]]
     """
     Control how much effort the model will exert to match the style and features,
     especially facial features, of input images. Supports `high` and `low` on
-    `gpt-image-1` and `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For
-    `gpt-image-2`, omit this parameter. Defaults to `low` on supported models.
+    `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For `gpt-image-2`, omit
+    this parameter. Defaults to `low` on supported models.
     """
 
     input_image_mask: ToolImageGenerationInputImageMask
@@ -303,6 +351,8 @@ class ToolImageGeneration(TypedDict, total=False):
             "gpt-image-2.5-sunburst-2026-09-08",
             "gpt-image-2.5-flare",
             "gpt-image-2.5-flare-2026-09-08",
+            "gpt-image-2.6-sunburst",
+            "gpt-image-2.6-flare",
             "gpt-image-1.5",
             "chatgpt-image-latest",
         ],
@@ -312,11 +362,16 @@ class ToolImageGeneration(TypedDict, total=False):
     One of `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
     `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
     `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`,
-    `gpt-image-2.5-flare-2026-09-08`, or `chatgpt-image-latest`. Default:
-    `gpt-image-2`.
+    `gpt-image-2.5-flare-2026-09-08`, `gpt-image-2.6-sunburst`,
+    `gpt-image-2.6-flare`, or `chatgpt-image-latest`. Default: `gpt-image-2`.
 
     `gpt-image-1` was shut down on October 23, 2026. Use `gpt-image-2.5-sunburst` or
     `gpt-image-2.5-flare` instead.
+
+    Deprecated values:
+
+    - "gpt-image-1": GPT Image 1 was shut down on October 23, 2026. Use
+      gpt-image-2.5-sunburst or gpt-image-2.5-flare instead.
     """
 
     moderation: Literal["auto", "low"]
@@ -325,10 +380,14 @@ class ToolImageGeneration(TypedDict, total=False):
     output_compression: int
     """Compression level for the output image. Default: 100."""
 
-    output_format: Literal["png", "webp", "jpeg"]
+    output_format: Literal["png", "webp", "jpeg", "gif", "svg"]
     """The output format of the generated image.
 
-    One of `png`, `webp`, or `jpeg`. Default: `png`.
+    One of `png`, `webp`, `jpeg`, `gif`, or `svg`. Default: `png`. GIF and SVG
+    output require a model that supports the selected format. GIF output does not
+    support partial image streaming (`partial_images` greater than `0`),
+    `input_image_mask`, or custom `output_compression`. Responses lifecycle events
+    can still be streamed for GIF output.
     """
 
     partial_images: int
@@ -358,6 +417,14 @@ class ToolImageGeneration(TypedDict, total=False):
     current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and
     `1024x1536` are supported by the GPT image models; `auto` is supported for
     models that allow automatic sizing.
+    """
+
+    svg: ToolImageGenerationSvg
+    """SVG author model settings.
+
+    Requires `output_format` to be `svg`. When SVG model selection is enabled,
+    omitting this object uses the outer response model. Otherwise, the default SVG
+    author is used and explicit model overrides are unavailable.
     """
 
 

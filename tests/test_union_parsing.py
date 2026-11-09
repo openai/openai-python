@@ -59,6 +59,6 @@ async def test_union_response_fallback(
         if discriminated:
             assert isinstance(result, NumberVariant)
             assert result.kind == "number"
-            assert result.data == "unexpected"  # type: ignore[comparison-overlap]
+            assert result.data == "unexpected"
         else:
             assert result == value

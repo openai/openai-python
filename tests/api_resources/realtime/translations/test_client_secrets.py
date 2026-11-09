@@ -31,7 +31,10 @@ class TestClientSecrets:
                 "model": "model",
                 "audio": {
                     "input": {
-                        "noise_reduction": {"type": "near_field"},
+                        "noise_reduction": {
+                            "type": "near_field",
+                            "strength": 0,
+                        },
                         "transcription": {"model": "model"},
                     },
                     "output": {"language": "language"},
@@ -88,7 +91,10 @@ class TestAsyncClientSecrets:
                 "model": "model",
                 "audio": {
                     "input": {
-                        "noise_reduction": {"type": "near_field"},
+                        "noise_reduction": {
+                            "type": "near_field",
+                            "strength": 0,
+                        },
                         "transcription": {"model": "model"},
                     },
                     "output": {"language": "language"},

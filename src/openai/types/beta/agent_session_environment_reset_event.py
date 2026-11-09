@@ -34,3 +34,6 @@ class AgentSessionEnvironmentResetEvent(BaseModel):
 
     type: Literal["agent.session.environment.reset"]
     """The type of the object. Always `agent.session.environment.reset`."""
+
+    obfuscation: Optional[str] = None
+    """Random alphanumeric padding. Present when stream obfuscation is enabled."""

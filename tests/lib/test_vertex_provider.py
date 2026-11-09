@@ -603,5 +603,6 @@ def test_google_auth_lock_wait_uses_pool_timeout() -> None:
                 client.responses.create(model="fixture", input="hi")
         finally:
             release.set()
-        assert first.result(timeout=2).id == "resp_test"
+        # Executor submission loses the non-streaming overload in ty.
+        assert first.result(timeout=2).id == "resp_test"  # ty: ignore[unresolved-attribute]
     assert credentials.before_request.call_count == 1

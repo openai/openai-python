@@ -25,7 +25,7 @@ async def test_compaction_stream_preserves_progress_and_final_output(sync: bool,
         {"type": "response.created", "response": {"id": "resp_test", "output": []}},
         {"type": "response.output_item.added", "output_index": 0, "item": item},
         *[
-            {"type": "response.compaction.compacting", "item_id": "cmp_test", "output_index": 0}
+            dict[str, object]({"type": "response.compaction.compacting", "item_id": "cmp_test", "output_index": 0})
             for _ in range(progress_count)
         ],
         {"type": "response.output_item.done", "output_index": 0, "item": final_item},

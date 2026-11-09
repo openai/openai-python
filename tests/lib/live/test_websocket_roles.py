@@ -154,15 +154,15 @@ async def test_live_recovery_never_replays_an_attempted_command(
     original_async = AsyncClientConnection.send
 
     def send_then_interrupt(self: ClientConnection, message: object, *args: object, **kwargs: object) -> None:
-        original(self, message, *args, **kwargs)  # type: ignore[arg-type]
-        if json.loads(message)["event_id"] == "attempted":  # type: ignore[arg-type]
+        original(self, message, *args, **kwargs)  # ty: ignore[invalid-argument-type]
+        if json.loads(message)["event_id"] == "attempted":  # ty: ignore[invalid-argument-type]
             raise OSError("synthetic interruption after send")
 
     async def async_send_then_interrupt(
         self: AsyncClientConnection, message: object, *args: object, **kwargs: object
     ) -> None:
-        await original_async(self, message, *args, **kwargs)  # type: ignore[arg-type]
-        if json.loads(message)["event_id"] == "attempted":  # type: ignore[arg-type]
+        await original_async(self, message, *args, **kwargs)  # ty: ignore[invalid-argument-type]
+        if json.loads(message)["event_id"] == "attempted":  # ty: ignore[invalid-argument-type]
             raise OSError("synthetic interruption after send")
 
     if mode == "sync":

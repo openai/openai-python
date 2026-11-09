@@ -18,8 +18,6 @@ from openai.types.beta.agents.sessions import (
     SessionArtifactDeleted,
 )
 
-# pyright: reportDeprecated=false
-
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 
 

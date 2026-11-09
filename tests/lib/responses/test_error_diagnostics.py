@@ -34,7 +34,7 @@ async def test_error_diagnostics_transport(route: str, sync: bool, shape: str) -
             if video:
                 # Exercise the retained deprecated API and verify its runtime warning.
                 with pytest.warns(DeprecationWarning, match="Sora API"):
-                    result = client.videos.retrieve(identifier)  # pyright: ignore[reportDeprecated]
+                    result = client.videos.retrieve(identifier)
             else:
                 result = (client.beta.responses if route == "beta" else client.responses).retrieve(identifier)
     else:
@@ -46,7 +46,7 @@ async def test_error_diagnostics_transport(route: str, sync: bool, shape: str) -
             if video:
                 # Exercise the retained deprecated API and verify its runtime warning.
                 with pytest.warns(DeprecationWarning, match="Sora API"):
-                    result = await client_async.videos.retrieve(identifier)  # pyright: ignore[reportDeprecated]
+                    result = await client_async.videos.retrieve(identifier)
             else:
                 result = await (client_async.beta.responses if route == "beta" else client_async.responses).retrieve(
                     identifier

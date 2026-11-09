@@ -90,6 +90,7 @@ async def session_for(
     connection_options: dict[str, Any] | None = None,
     client_headers: dict[str, str] | None = None,
     connection_headers: Headers | None = None,
+    session_options: dict[str, Any] | None = None,
 ) -> AsyncGenerator[Driver]:
     options = connection_options or {}
     headers = {"X-Contract-Test": "synthetic", **(connection_headers or {})}
@@ -102,7 +103,7 @@ async def session_for(
                 http_client=httpx2.Client(trust_env=False),
             ) as client,
             client.responses.connect(extra_query={"contract": "1"}, extra_headers=headers, **options) as connection,
-            ResponsesWebSocketSession(connection, limits=limits) as session,
+            ResponsesWebSocketSession(connection, limits=limits, **(session_options or {})) as session,
         ):
             yield Driver(session, mode)
     else:
@@ -116,7 +117,7 @@ async def session_for(
             async_client.responses.connect(
                 extra_query={"contract": "1"}, extra_headers=headers, **options
             ) as async_connection,
-            AsyncResponsesWebSocketSession(async_connection, limits=limits) as async_session,
+            AsyncResponsesWebSocketSession(async_connection, limits=limits, **(session_options or {})) as async_session,
         ):
             yield Driver(async_session, mode)
 
@@ -650,7 +651,8 @@ async def test_sync_close_during_replacement_handshake(monkeypatch: pytest.Monke
 
 
 @pytest.mark.parametrize("mode", ["sync", "async"])
-async def test_default_lane_can_be_recreated_after_recovery(mode: str) -> None:
+@pytest.mark.parametrize("close_code", [1011, 1001], ids=["error-close", "recoverable-clean-close"])
+async def test_default_lane_can_be_recreated_after_recovery(mode: str, close_code: int) -> None:
     disconnect = threading.Event()
 
     def reconnect(_event: ReconnectingEvent) -> ReconnectingOverrides:
@@ -661,7 +663,7 @@ async def test_default_lane_can_be_recreated_after_recovery(mode: str) -> None:
         if socket.request.headers.get("X-Recovery") != "fresh":
             assert json.loads(socket.recv(timeout=5))["input"] == "lost response"
             assert disconnect.wait(5)
-            socket.close(code=1011)
+            socket.close(code=close_code)
             return
         socket.send(json.dumps({"type": "response.future", "stream_id": "observer", "restored": True}))
         assert json.loads(socket.recv(timeout=5)) == {"type": "response.create", "input": "restored context"}

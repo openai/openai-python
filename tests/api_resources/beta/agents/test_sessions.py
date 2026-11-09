@@ -7,7 +7,7 @@ from typing import Any, cast
 
 import pytest
 
-from openai import OpenAI, AsyncOpenAI
+from openai import OpenAI, Stream as _Stream, AsyncOpenAI, AsyncStream as _AsyncStream
 from tests.utils import assert_matches_type
 from openai.pagination import SyncCursorPage, AsyncCursorPage
 from openai.types.beta import AgentSession, AgentSessionDeleted
@@ -30,6 +30,8 @@ class TestSessions:
         session = client.beta.agents.sessions.create(
             environment={"type": "none"},
             agent={
+                "compaction": {"async_": True},
+                "experimental": {"time_awareness": True},
                 "instructions": "instructions",
                 "model": "model",
                 "multi_agent": {
@@ -58,8 +60,10 @@ class TestSessions:
             agent_id="agent_id",
             input="x",
             metadata={"foo": "string"},
+            review="none",
             spend_control={"limit": 1},
             stream=False,
+            stream_options={"include_obfuscation": True},
             vault_ids=["string"],
         )
         assert_matches_type(AgentSession, session, path=["response"])
@@ -102,6 +106,8 @@ class TestSessions:
             environment={"type": "none"},
             stream=True,
             agent={
+                "compaction": {"async_": True},
+                "experimental": {"time_awareness": True},
                 "instructions": "instructions",
                 "model": "model",
                 "multi_agent": {
@@ -130,7 +136,9 @@ class TestSessions:
             agent_id="agent_id",
             input="x",
             metadata={"foo": "string"},
+            review="none",
             spend_control={"limit": 1},
+            stream_options={"include_obfuscation": True},
             vault_ids=["string"],
         )
         session_stream.response.close()
@@ -144,6 +152,7 @@ class TestSessions:
 
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         stream = response.parse()
+        assert isinstance(stream, _Stream)
         stream.close()
 
     @parametrize
@@ -156,6 +165,7 @@ class TestSessions:
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
             stream = response.parse()
+            assert isinstance(stream, _Stream)
             stream.close()
 
         assert cast(Any, response.is_closed) is True
@@ -213,8 +223,18 @@ class TestSessions:
                 "model": "model",
                 "reasoning": {"effort": "none"},
                 "service_tier": "auto",
+                "tools": [
+                    {
+                        "description": "description",
+                        "name": "name",
+                        "parameters": {"foo": "bar"},
+                        "type": "function",
+                        "defer_loading": True,
+                    }
+                ],
             },
             metadata={"foo": "string"},
+            review="none",
             spend_control={"limit": 1},
         )
         assert_matches_type(AgentSession, session, path=["response"])
@@ -261,6 +281,7 @@ class TestSessions:
             after="after",
             agent_id="agent_id",
             limit=1,
+            metadata={"foo": "string"},
             order="asc",
         )
         assert_matches_type(SyncCursorPage[AgentSession], session, path=["response"])
@@ -341,6 +362,8 @@ class TestAsyncSessions:
         session = await async_client.beta.agents.sessions.create(
             environment={"type": "none"},
             agent={
+                "compaction": {"async_": True},
+                "experimental": {"time_awareness": True},
                 "instructions": "instructions",
                 "model": "model",
                 "multi_agent": {
@@ -369,8 +392,10 @@ class TestAsyncSessions:
             agent_id="agent_id",
             input="x",
             metadata={"foo": "string"},
+            review="none",
             spend_control={"limit": 1},
             stream=False,
+            stream_options={"include_obfuscation": True},
             vault_ids=["string"],
         )
         assert_matches_type(AgentSession, session, path=["response"])
@@ -413,6 +438,8 @@ class TestAsyncSessions:
             environment={"type": "none"},
             stream=True,
             agent={
+                "compaction": {"async_": True},
+                "experimental": {"time_awareness": True},
                 "instructions": "instructions",
                 "model": "model",
                 "multi_agent": {
@@ -441,7 +468,9 @@ class TestAsyncSessions:
             agent_id="agent_id",
             input="x",
             metadata={"foo": "string"},
+            review="none",
             spend_control={"limit": 1},
+            stream_options={"include_obfuscation": True},
             vault_ids=["string"],
         )
         await session_stream.response.aclose()
@@ -455,6 +484,7 @@ class TestAsyncSessions:
 
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         stream = response.parse()
+        assert isinstance(stream, _AsyncStream)
         await stream.close()
 
     @parametrize
@@ -467,6 +497,7 @@ class TestAsyncSessions:
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
             stream = await response.parse()
+            assert isinstance(stream, _AsyncStream)
             await stream.close()
 
         assert cast(Any, response.is_closed) is True
@@ -524,8 +555,18 @@ class TestAsyncSessions:
                 "model": "model",
                 "reasoning": {"effort": "none"},
                 "service_tier": "auto",
+                "tools": [
+                    {
+                        "description": "description",
+                        "name": "name",
+                        "parameters": {"foo": "bar"},
+                        "type": "function",
+                        "defer_loading": True,
+                    }
+                ],
             },
             metadata={"foo": "string"},
+            review="none",
             spend_control={"limit": 1},
         )
         assert_matches_type(AgentSession, session, path=["response"])
@@ -572,6 +613,7 @@ class TestAsyncSessions:
             after="after",
             agent_id="agent_id",
             limit=1,
+            metadata={"foo": "string"},
             order="asc",
         )
         assert_matches_type(AsyncCursorPage[AgentSession], session, path=["response"])
