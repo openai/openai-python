@@ -56,7 +56,7 @@ vertex = ["google-auth[requests]>=2.36,<3"]
 
 [dependency-groups]
 dev = [
-    "ty==0.0.92",
+    "ty==0.0.95",
     "pytest>=9.0.3",
     "pytest-asyncio>=1.4.0",
     "Pillow==12.3.0",
@@ -64,7 +64,7 @@ dev = [
     "rich>=13.7.1",
     "inline-snapshot>=0.28.0",
     "azure-identity >=1.14.1",
-    "botocore==1.43.119",
+    "botocore==1.43.123",
     "pandas-stubs >= 1.1.0.11",
     "trio >=0.22.2",
     "pytest-xdist>=3.6.1",
@@ -78,7 +78,7 @@ provider-browser = ["playwright==1.64.1"]
 browser-demo = ["playwright==1.64.1"]
 # Isolated build requirements are exported with hashes by scripts/build.
 build = [
-    "hatchling==1.32.4",
+    "hatchling==1.33.0",
     "packaging==26.3",
     "pathspec==1.1.1",
     "pluggy==1.7.0",
@@ -108,7 +108,7 @@ constraint-dependencies = [
 ]
 # Also constrain editable/source builds performed by uv sync.
 build-constraint-dependencies = [
-    "hatchling==1.32.4",
+    "hatchling==1.33.0",
     "packaging==26.3",
     "pathspec==1.1.1",
     "pluggy==1.7.0",
@@ -118,7 +118,7 @@ build-constraint-dependencies = [
 
 
 [build-system]
-requires = ["hatchling==1.32.4"]
+requires = ["hatchling==1.33.0"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build]
