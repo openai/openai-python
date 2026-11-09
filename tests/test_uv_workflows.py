@@ -993,6 +993,7 @@ def test_untrusted_provenance_leaves_no_dependency_install_reachable(tmp_path: P
         "browser-demo-types",
         "optional-provider-types",
         "test",
+        "test-httpx2",
         "examples",
         "compatibility",
     }
