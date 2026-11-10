@@ -1951,11 +1951,11 @@
     },
     "src/openai/types/beta/agent_tool.py": {
       "mode": "100644",
-      "sha256": "ed568481e6de6956b9deccfbb7cce718bba3cfbab6270851602886141af5230c"
+      "sha256": "145a8f0a9e15d6aa46b116296c9cfbdfd3fc7f5530d99fdb070b3f43439a39b5"
     },
     "src/openai/types/beta/agent_tool_param.py": {
       "mode": "100644",
-      "sha256": "50116fba12372f68fc831149fafc3896e5b0be3f8f12bc72cc539ead14be34b3"
+      "sha256": "44b83c04613add6637b8de7bb48cbf4b1220ddde3d1a2e50e1edfb9d6d4b8990"
     },
     "src/openai/types/beta/agent_update_params.py": {
       "mode": "100644",
@@ -3479,11 +3479,11 @@
     },
     "src/openai/types/beta/persisted_agent_tool.py": {
       "mode": "100644",
-      "sha256": "337c62e5505ccc43656dad66d619b0a0be532181c8f598e7ccf047b9e6ed8824"
+      "sha256": "b44af4c00085918e647a899f0d6f3efad4b70d59ec7d3034e6130c4128b9374c"
     },
     "src/openai/types/beta/persisted_agent_tool_param.py": {
       "mode": "100644",
-      "sha256": "d9e83ab1f8347f4acc525746b1e2c0bc42cbcf64742976dea0983cc419e8fe74"
+      "sha256": "11cd9c21954b53b21883fb68c5f751811663ee653bfef429c53a81a24916b934"
     },
     "src/openai/types/beta/persisted_mcp_transport.py": {
       "mode": "100644",
@@ -7799,7 +7799,7 @@
     },
     "tests/api_resources/beta/agents/test_automations.py": {
       "mode": "100644",
-      "sha256": "34501f413c83a2ccd9aa494eb59f5c0ae1ba21fa14619dd2bc41571ad8a6422a"
+      "sha256": "2b10ce0346ce9ff87a52782763f6e544c6a7320a0075c7972624dcc4e8b9cf78"
     },
     "tests/api_resources/beta/agents/test_environments.py": {
       "mode": "100644",
@@ -7807,7 +7807,7 @@
     },
     "tests/api_resources/beta/agents/test_sessions.py": {
       "mode": "100644",
-      "sha256": "fa6f36b530895301c9bb4fe928639dfa4c4f15826f9f5a2f652b0e89ff9a956f"
+      "sha256": "eda3b15034c7e46e8fe0c4428143b35abd4aed76db58ff0d374625369591ad66"
     },
     "tests/api_resources/beta/agents/test_vaults.py": {
       "mode": "100644",
@@ -7847,7 +7847,7 @@
     },
     "tests/api_resources/beta/test_agents.py": {
       "mode": "100644",
-      "sha256": "6216ae37c6ea996da62e4916570840ed549aeb86603b607d61078b4b30c87d15"
+      "sha256": "3147acf9a9f9628c4aaed1d51aee13cde66c88bea3e9324d3c157daa68070f68"
     },
     "tests/api_resources/beta/test_assistants.py": {
       "mode": "100644",

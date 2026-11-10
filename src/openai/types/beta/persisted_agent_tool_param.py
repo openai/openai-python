@@ -20,8 +20,16 @@ __all__ = [
     "PersistedAgentToolConfigParamAutomations",
 ]
 
+_PersistedAgentToolConfigParamFunctionReservedKeywords = TypedDict(
+    "_PersistedAgentToolConfigParamFunctionReservedKeywords",
+    {
+        "async": bool,
+    },
+    total=False,
+)
 
-class PersistedAgentToolConfigParamFunction(TypedDict, total=False):
+
+class PersistedAgentToolConfigParamFunction(_PersistedAgentToolConfigParamFunctionReservedKeywords, total=False):
     """A function defined by the application."""
 
     description: Required[str]
