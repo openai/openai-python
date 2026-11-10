@@ -32,6 +32,8 @@ class TestAgents:
     def test_method_create_with_all_params(self, client: OpenAI) -> None:
         agent = client.beta.agents.create(
             model="model",
+            compaction={"async_": True},
+            experimental={"time_awareness": True},
             instructions="instructions",
             metadata={"foo": "string"},
             multi_agent={
@@ -54,6 +56,7 @@ class TestAgents:
                     "name": "name",
                     "parameters": {"foo": "bar"},
                     "type": "function",
+                    "async": True,
                     "defer_loading": True,
                 }
             ],
@@ -133,6 +136,8 @@ class TestAgents:
     def test_method_update_with_all_params(self, client: OpenAI) -> None:
         agent = client.beta.agents.update(
             agent_id="agent_id",
+            compaction={"async_": True},
+            experimental={"time_awareness": True},
             instructions="instructions",
             metadata={"foo": "string"},
             model="model",
@@ -156,6 +161,7 @@ class TestAgents:
                     "name": "name",
                     "parameters": {"foo": "bar"},
                     "type": "function",
+                    "async": True,
                     "defer_loading": True,
                 }
             ],
@@ -282,6 +288,8 @@ class TestAsyncAgents:
     async def test_method_create_with_all_params(self, async_client: AsyncOpenAI) -> None:
         agent = await async_client.beta.agents.create(
             model="model",
+            compaction={"async_": True},
+            experimental={"time_awareness": True},
             instructions="instructions",
             metadata={"foo": "string"},
             multi_agent={
@@ -304,6 +312,7 @@ class TestAsyncAgents:
                     "name": "name",
                     "parameters": {"foo": "bar"},
                     "type": "function",
+                    "async": True,
                     "defer_loading": True,
                 }
             ],
@@ -383,6 +392,8 @@ class TestAsyncAgents:
     async def test_method_update_with_all_params(self, async_client: AsyncOpenAI) -> None:
         agent = await async_client.beta.agents.update(
             agent_id="agent_id",
+            compaction={"async_": True},
+            experimental={"time_awareness": True},
             instructions="instructions",
             metadata={"foo": "string"},
             model="model",
@@ -406,6 +417,7 @@ class TestAsyncAgents:
                     "name": "name",
                     "parameters": {"foo": "bar"},
                     "type": "function",
+                    "async": True,
                     "defer_loading": True,
                 }
             ],

@@ -1,5 +1,6 @@
 # File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
+from typing import Optional
 from typing_extensions import Literal
 
 from ..._models import BaseModel
@@ -25,3 +26,6 @@ class AgentSessionTurnInProgressEvent(BaseModel):
 
     type: Literal["agent.session.turn.in_progress"]
     """The type of the object. Always `agent.session.turn.in_progress`."""
+
+    obfuscation: Optional[str] = None
+    """Random alphanumeric padding. Present when stream obfuscation is enabled."""

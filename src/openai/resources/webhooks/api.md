@@ -53,6 +53,8 @@ Methods:
 - <code title="delete /webhook_endpoints/{webhook_endpoint_id}">client.webhooks.<a href="./src/openai/resources/webhooks/webhooks.py">delete</a>(webhook_endpoint_id) -> <a href="./src/openai/types/webhooks/deleted_webhook_endpoint.py">DeletedWebhookEndpoint</a></code>
 - <code title="post /webhook_endpoints/{webhook_endpoint_id}/rotate_secret">client.webhooks.<a href="./src/openai/resources/webhooks/webhooks.py">rotate_secret</a>(webhook_endpoint_id, \*\*<a href="src/openai/types/webhooks/webhook_rotate_secret_params.py">params</a>) -> <a href="./src/openai/types/webhooks/webhook_endpoint_with_secret.py">WebhookEndpointWithSecret</a></code>
 - <code title="post /webhook_endpoints/{webhook_endpoint_id}/test">client.webhooks.<a href="./src/openai/resources/webhooks/webhooks.py">test</a>(webhook_endpoint_id, \*\*<a href="src/openai/types/webhooks/webhook_test_params.py">params</a>) -> <a href="./src/openai/types/webhooks/webhook_endpoint_test_result.py">WebhookEndpointTestResult</a></code>
+- <code>client.webhooks.<a href="webhooks.py">unwrap</a>(payload, headers, *, secret=None) -> <a href="../../types/webhooks/unwrap_webhook_event.py">UnwrapWebhookEvent</a></code>
+- <code>client.webhooks.<a href="webhooks.py">verify_signature</a>(payload, headers, *, secret=None, tolerance=300) -> None</code>
 
 ## EventTypes
 

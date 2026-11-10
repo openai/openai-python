@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import Dict
 from typing_extensions import Literal, TypedDict
 
 __all__ = ["SessionListParams"]
@@ -18,14 +18,19 @@ class SessionListParams(TypedDict, total=False):
     Omit to return sessions for all agents.
     """
 
-    limit: Optional[int]
-    """The maximum number of resources to return."""
+    limit: int
+    """The maximum number of resources to return, between 1 and 100. Defaults to 20."""
+
+    metadata: Dict[str, str]
+    """Exact string matches supplied as `metadata[key]=value`.
+
+    All supplied pairs must match. Up to 16 pairs, with keys from 1 to 64 characters
+    and values up to 512 characters. New sessions and metadata updates may take time
+    to appear in filtered results.
+    """
 
     order: Literal["asc", "desc"]
-    """Sort order by the `created_at` timestamp.
-
-    Use `asc` for ascending order or `desc` for descending order. Defaults to
-    `desc`.
+    """The order in which resources are returned. Defaults to `desc`.
 
     - `asc` - Returns resources in ascending order.
     - `desc` - Returns resources in descending order.

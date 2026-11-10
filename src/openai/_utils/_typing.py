@@ -15,7 +15,6 @@ from typing_extensions import (
 )
 
 from ._utils import lru_cache
-from .._types import InheritsGeneric
 from ._compat import is_union as _is_union
 
 
@@ -53,7 +52,7 @@ def is_not_required_type(typ: type) -> bool:
 def is_typevar(typ: type) -> bool:
     # type ignore is required because type checkers
     # think this expression will always return False
-    return type(typ) == TypeVar  # type: ignore
+    return type(typ) == TypeVar
 
 
 _TYPE_ALIAS_TYPES: tuple[type[typing_extensions.TypeAliasType], ...] = (typing_extensions.TypeAliasType,)
@@ -120,7 +119,7 @@ def extract_type_var_from_base(
     ```
     """
     cls = cast(object, get_origin(typ) or typ)
-    if cls in generic_bases:  # pyright: ignore[reportUnnecessaryContains]
+    if cls in generic_bases:
         # we're given the class directly
         return extract_type_arg(typ, index)
 
@@ -130,9 +129,10 @@ def extract_type_var_from_base(
     # because it is intended to be for internal use only, however there does
     # not seem to be a way to resolve generic TypeVars for inherited subclasses
     # without using it.
-    if isinstance(cls, InheritsGeneric):
+    orig_bases = getattr(cls, "__orig_bases__", None)
+    if isinstance(orig_bases, tuple):
         target_base_class: Any | None = None
-        for base in cls.__orig_bases__:
+        for base in orig_bases:
             if base.__origin__ in generic_bases:
                 target_base_class = base
                 break
@@ -150,7 +150,7 @@ def extract_type_var_from_base(
             # then that means the subclass itself is generic, so we have
             # to resolve the type argument from the class itself, not
             # the base class.
-            #
+
             # Note: if there is more than 1 type argument, the subclass could
             # change the ordering of the type arguments, this is not currently
             # supported.

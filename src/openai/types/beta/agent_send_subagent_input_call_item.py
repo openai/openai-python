@@ -32,7 +32,4 @@ class AgentSendSubagentInputCallItem(BaseModel):
     """The ID of the turn that contains this item."""
 
     type: Literal["send_subagent_input_call"]
-    """The item type. Always `send_subagent_input_call`.
-
-    - `send_subagent_input_call` - The current public item type.
-    """
+    """The item type. Always `send_subagent_input_call`."""

@@ -5,14 +5,17 @@ from __future__ import annotations
 from typing import Dict, List, Union, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
-from . import web_search_tool_param
-from ..chat import ChatCompletionFunctionToolParam
 from ..._types import SequenceNotStr
 from .custom_tool_param import CustomToolParam
 from .computer_tool_param import ComputerToolParam
 from .function_tool_param import FunctionToolParam
 from .namespace_tool_param import NamespaceToolParam
-from .web_search_tool_param import WebSearchToolParam
+from .web_search_tool_param import (
+    Filters as _compat_WebSearchToolFilters,
+    UserLocation as _compat_WebSearchToolUserLocation,
+    WebSearchToolParam,
+    WebSearchToolParam as _compat_WebSearchTool,
+)
 from .apply_patch_tool_param import ApplyPatchToolParam
 from .file_search_tool_param import FileSearchToolParam
 from .tool_search_tool_param import ToolSearchToolParam
@@ -21,6 +24,7 @@ from .web_search_preview_tool_param import WebSearchPreviewToolParam
 from .computer_use_preview_tool_param import ComputerUsePreviewToolParam
 from .container_network_policy_disabled_param import ContainerNetworkPolicyDisabledParam
 from .container_network_policy_allowlist_param import ContainerNetworkPolicyAllowlistParam
+from ..chat.chat_completion_function_tool_param import ChatCompletionFunctionToolParam
 
 __all__ = [
     "ToolParam",
@@ -38,12 +42,10 @@ __all__ = [
     "ProgrammaticToolCalling",
     "ImageGeneration",
     "ImageGenerationInputImageMask",
+    "ImageGenerationSvg",
+    "ImageGenerationSvgReasoning",
     "LocalShell",
 ]
-
-WebSearchTool = web_search_tool_param.WebSearchToolParam
-WebSearchToolFilters = web_search_tool_param.Filters
-WebSearchToolUserLocation = web_search_tool_param.UserLocation
 
 
 class McpAllowedToolsMcpToolFilter(TypedDict, total=False):
@@ -260,6 +262,34 @@ class ImageGenerationInputImageMask(TypedDict, total=False):
     """Base64-encoded mask image."""
 
 
+class ImageGenerationSvgReasoning(TypedDict, total=False):
+    """Reasoning effort for SVG authoring.
+
+    When omitted, uses the author model's default in both Images and Responses.
+    """
+
+    effort: Literal["none", "minimal", "low", "medium", "high", "xhigh", "max"]
+    """Controls how much effort the model should spend on reasoning for this request."""
+
+
+class ImageGenerationSvg(TypedDict, total=False):
+    """SVG author model settings.
+
+    Requires `output_format` to be `svg`.
+    When SVG model selection is enabled, omitting this object uses the
+    outer response model. Otherwise, the default SVG author is used and
+    explicit model overrides are unavailable.
+    """
+
+    model: str
+
+    reasoning: Optional[ImageGenerationSvgReasoning]
+    """Reasoning effort for SVG authoring.
+
+    When omitted, uses the author model's default in both Images and Responses.
+    """
+
+
 class ImageGeneration(TypedDict, total=False):
     """A tool that generates images using the GPT image models."""
 
@@ -283,12 +313,30 @@ class ImageGeneration(TypedDict, total=False):
     set the output format to `png` or `webp`.
     """
 
+    complexity: Literal["low", "medium", "high"]
+    """
+    Computation spent planning the image, independently of rendering quality.
+    Overrides the outer response's `reasoning.effort` for image generation. When
+    omitted, inherits a supported outer reasoning effort or uses the image model's
+    configured default. For SVG output, controls the reference image, not the SVG
+    author's reasoning.
+    """
+
+    frame_count: int
+    """Number of GIF frames. Requires `output_format` to be `gif`. Default: 9."""
+
+    frame_duration_ms: int
+    """
+    Duration of each GIF frame in milliseconds, rounded to 10 ms. Requires
+    `output_format` to be `gif`. Default: 200.
+    """
+
     input_fidelity: Optional[Literal["high", "low"]]
     """
     Control how much effort the model will exert to match the style and features,
     especially facial features, of input images. Supports `high` and `low` on
-    `gpt-image-1` and `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For
-    `gpt-image-2`, omit this parameter. Defaults to `low` on supported models.
+    `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For `gpt-image-2`, omit
+    this parameter. Defaults to `low` on supported models.
     """
 
     input_image_mask: ImageGenerationInputImageMask
@@ -308,17 +356,27 @@ class ImageGeneration(TypedDict, total=False):
             "gpt-image-2.5-sunburst-2026-09-08",
             "gpt-image-2.5-flare",
             "gpt-image-2.5-flare-2026-09-08",
+            "gpt-image-2.6-sunburst",
+            "gpt-image-2.6-flare",
             "gpt-image-1.5",
             "chatgpt-image-latest",
         ],
     ]
     """The image generation model to use.
 
-    One of `gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+    One of `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
     `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
     `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`,
-    `gpt-image-2.5-flare-2026-09-08`, or `chatgpt-image-latest`. Default:
-    `gpt-image-1`.
+    `gpt-image-2.5-flare-2026-09-08`, `gpt-image-2.6-sunburst`,
+    `gpt-image-2.6-flare`, or `chatgpt-image-latest`. Default: `gpt-image-2`.
+
+    `gpt-image-1` was shut down on October 23, 2026. Use `gpt-image-2.5-sunburst` or
+    `gpt-image-2.5-flare` instead.
+
+    Deprecated values:
+
+    - "gpt-image-1": GPT Image 1 was shut down on October 23, 2026. Use
+      gpt-image-2.5-sunburst or gpt-image-2.5-flare instead.
     """
 
     moderation: Literal["auto", "low"]
@@ -327,10 +385,14 @@ class ImageGeneration(TypedDict, total=False):
     output_compression: int
     """Compression level for the output image. Default: 100."""
 
-    output_format: Literal["png", "webp", "jpeg"]
+    output_format: Literal["png", "webp", "jpeg", "gif", "svg"]
     """The output format of the generated image.
 
-    One of `png`, `webp`, or `jpeg`. Default: `png`.
+    One of `png`, `webp`, `jpeg`, `gif`, or `svg`. Default: `png`. GIF and SVG
+    output require a model that supports the selected format. GIF output does not
+    support partial image streaming (`partial_images` greater than `0`),
+    `input_image_mask`, or custom `output_compression`. Responses lifecycle events
+    can still be streamed for GIF output.
     """
 
     partial_images: int
@@ -362,6 +424,14 @@ class ImageGeneration(TypedDict, total=False):
     models that allow automatic sizing.
     """
 
+    svg: ImageGenerationSvg
+    """SVG author model settings.
+
+    Requires `output_format` to be `svg`. When SVG model selection is enabled,
+    omitting this object uses the outer response model. Otherwise, the default SVG
+    author is used and explicit model overrides are unavailable.
+    """
+
 
 class LocalShell(TypedDict, total=False):
     """A tool that allows the model to execute shell commands in a local environment."""
@@ -391,3 +461,9 @@ ToolParam: TypeAlias = Union[
 
 
 ParseableToolParam: TypeAlias = Union[ToolParam, ChatCompletionFunctionToolParam]
+
+WebSearchTool: TypeAlias = _compat_WebSearchTool
+
+WebSearchToolFilters: TypeAlias = _compat_WebSearchToolFilters
+
+WebSearchToolUserLocation: TypeAlias = _compat_WebSearchToolUserLocation

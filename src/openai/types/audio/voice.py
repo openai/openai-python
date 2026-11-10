@@ -1,5 +1,6 @@
 # File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
+from typing import Optional
 from typing_extensions import Literal
 
 from ..._models import BaseModel
@@ -8,7 +9,10 @@ __all__ = ["Voice"]
 
 
 class Voice(BaseModel):
-    """A custom voice that can be used for audio output."""
+    """A custom voice that can be used for audio output.
+
+    Voices created from text prompts are supported only in Live.
+    """
 
     id: str
     """The voice identifier, which can be referenced in API endpoints."""
@@ -22,5 +26,12 @@ class Voice(BaseModel):
     object: Literal["audio.voice"]
     """The object type, which is always `audio.voice`."""
 
-    type: Literal["audio_sample"]
+    type: Literal["audio_sample", "prompt"]
     """How the voice was created."""
+
+    prompt: Optional[str] = None
+    """The original text prompt used to create the voice.
+
+    Present for prompt-generated voices with a stored prompt; omitted for
+    audio-sample voices and older voices without a stored prompt.
+    """

@@ -40,4 +40,5 @@ class ChatCompletionAudioParam(TypedDict, total=False):
     `fable`, `nova`, `onyx`, `sage`, `shimmer`, `marin`, and `cedar`. You may also
     provide a custom voice object with an `id`, for example
     `{ "id": "voice_1234" }`. Custom voices must be created from audio samples.
+    Voices created from text prompts are supported only in Live.
     """

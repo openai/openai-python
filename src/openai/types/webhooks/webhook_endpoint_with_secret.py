@@ -3,7 +3,7 @@
 from typing import List, Optional
 from typing_extensions import Literal
 
-from pydantic import Field
+from pydantic import Field as FieldInfo
 
 from ..._models import BaseModel
 
@@ -26,7 +26,7 @@ class WebhookEndpointWithSecret(BaseModel):
     object: Literal["webhook_endpoint"]
     """The object type, which is always webhook_endpoint."""
 
-    signing_secret: str = Field(repr=False)
+    signing_secret: str = FieldInfo(repr=False)
     """The endpoint's signing secret.
 
     This is returned only when the endpoint is created or the secret is rotated.

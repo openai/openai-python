@@ -14,7 +14,7 @@ from ....._resource import SyncAPIResource, AsyncAPIResource
 from ....._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ....._streaming import Stream, AsyncStream
 from ....._base_client import make_request_options
-from .....types.beta.agents.sessions import event_create_params
+from .....types.beta.agents.sessions import event_create_params, event_stream_params
 from .....types.beta.agent_session_event import AgentSessionEvent
 from .....types.beta.agent_session_input_param import AgentSessionInputParam
 
@@ -96,6 +96,7 @@ class Events(SyncAPIResource):
         self,
         session_id: str,
         *,
+        include_obfuscation: bool | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -109,6 +110,9 @@ class Events(SyncAPIResource):
         [session events](https://developers.openai.com/api/docs/guides/agents-api/sessions/events).
 
         Args:
+          include_obfuscation: Whether to include obfuscation padding in events on this connection. Defaults to
+              `true`.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -128,6 +132,9 @@ class Events(SyncAPIResource):
                 extra_query=extra_query,
                 extra_body=extra_body,
                 timeout=timeout,
+                query=maybe_transform(
+                    {"include_obfuscation": include_obfuscation}, event_stream_params.EventStreamParams
+                ),
                 security={"bearer_auth": True},
             ),
             cast_to=cast(Any, AgentSessionEvent),  # Union types cannot be passed in as arguments in the type system
@@ -211,6 +218,7 @@ class AsyncEvents(AsyncAPIResource):
         self,
         session_id: str,
         *,
+        include_obfuscation: bool | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -224,6 +232,9 @@ class AsyncEvents(AsyncAPIResource):
         [session events](https://developers.openai.com/api/docs/guides/agents-api/sessions/events).
 
         Args:
+          include_obfuscation: Whether to include obfuscation padding in events on this connection. Defaults to
+              `true`.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -243,6 +254,9 @@ class AsyncEvents(AsyncAPIResource):
                 extra_query=extra_query,
                 extra_body=extra_body,
                 timeout=timeout,
+                query=await async_maybe_transform(
+                    {"include_obfuscation": include_obfuscation}, event_stream_params.EventStreamParams
+                ),
                 security={"bearer_auth": True},
             ),
             cast_to=cast(Any, AgentSessionEvent),  # Union types cannot be passed in as arguments in the type system

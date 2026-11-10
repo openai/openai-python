@@ -15,6 +15,9 @@ REGIONS: list[tuple[DataResidency, str]] = [
     ("us", "https://us.api.openai.com/v1"),
     ("eu", "https://eu.api.openai.com/v1"),
     ("ae", "https://ae.api.openai.com/v1"),
+    ("au", "https://au.api.openai.com/v1"),
+    ("in", "https://in.api.openai.com/v1"),
+    ("jp", "https://jp.api.openai.com/v1"),
 ]
 
 

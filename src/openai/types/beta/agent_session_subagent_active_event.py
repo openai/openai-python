@@ -1,5 +1,6 @@
 # File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
+from typing import Optional
 from typing_extensions import Literal
 
 from .subagent import Subagent
@@ -19,3 +20,6 @@ class AgentSessionSubagentActiveEvent(BaseModel):
 
     type: Literal["agent.session.subagent.active"]
     """The type of the object. Always `agent.session.subagent.active`."""
+
+    obfuscation: Optional[str] = None
+    """Random alphanumeric padding. Present when stream obfuscation is enabled."""

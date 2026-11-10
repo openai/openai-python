@@ -3,13 +3,29 @@
 from typing import Dict, List, Optional
 from typing_extensions import Literal
 
+from pydantic import Field as FieldInfo
+
 from ..._models import BaseModel
 from .agent_text import AgentText
 from .agent_reasoning import AgentReasoning
 from .multi_agent_config import MultiAgentConfig
 from .persisted_agent_tool import PersistedAgentTool
 
-__all__ = ["Agent"]
+__all__ = ["Agent", "Compaction", "Experimental"]
+
+
+class Compaction(BaseModel):
+    """The effective context compaction settings."""
+
+    async_: bool = FieldInfo(alias="async")
+    """Whether context is compacted in the background. Defaults to true."""
+
+
+class Experimental(BaseModel):
+    """The effective experimental settings for the agent."""
+
+    time_awareness: bool
+    """Whether the model receives periodic current-time reminders."""
 
 
 class Agent(BaseModel):
@@ -56,3 +72,9 @@ class Agent(BaseModel):
 
     updated_at: int
     """The Unix timestamp, in seconds, when the agent was last updated."""
+
+    compaction: Optional[Compaction] = None
+    """The effective context compaction settings."""
+
+    experimental: Optional[Experimental] = None
+    """The effective experimental settings for the agent."""

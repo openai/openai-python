@@ -29,7 +29,7 @@ class EnvironmentInfo(BaseModel):
     skills: List[HostedSkill]
     """Skills installed in the environment, without their archive contents."""
 
-    status: Literal["pending", "ready", "connected", "disconnected", "expired", "failed", "suspended"]
+    status: Literal["pending", "ready", "connected", "disconnected", "suspended", "expired", "failed"]
     """The current environment connection status.
 
     - `ready` - Provisioning succeeded and the environment is available for

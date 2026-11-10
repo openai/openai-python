@@ -1,4 +1,21 @@
 {
-  "extends": "../pyproject.toml",
-  "reportDeprecated": false
+  "include": [
+    "../tests/api_resources",
+    "../tests/test_client.py",
+    "../tests/test_response.py",
+    "../tests/test_legacy_response.py"
+  ],
+  "typeCheckingMode": "strict",
+  "pythonVersion": "3.10",
+  "reportImplicitOverride": true,
+  "reportOverlappingOverload": false,
+  "reportImportCycles": false,
+  "reportPrivateUsage": false,
+  "reportDeprecated": false,
+  "executionEnvironments": [
+    {
+      "root": "..",
+      "extraPaths": ["../src"]
+    }
+  ]
 }

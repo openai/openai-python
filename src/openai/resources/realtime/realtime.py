@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import json
-import time
-import random
 import logging
 from types import TracebackType
 from typing import TYPE_CHECKING, Any, Union, Callable, Iterator, Awaitable, cast
@@ -47,6 +45,7 @@ from .client_secrets import (
 )
 from ..._event_handler import EventHandlerRegistry
 from ...types.realtime import session_update_event_param
+from ..._websocket_connection import WebSocketConnectionBase, AsyncWebSocketConnectionBase
 from .translations.translations import (
     Translations,
     AsyncTranslations,
@@ -55,14 +54,18 @@ from .translations.translations import (
     TranslationsWithStreamingResponse,
     AsyncTranslationsWithStreamingResponse,
 )
-from ...types.websocket_reconnection import ReconnectingEvent, ReconnectingOverrides, is_recoverable_close
-from ...types.websocket_connection_options import WebSocketConnectionOptions
+from ...types.websocket_reconnection import ReconnectingEvent, ReconnectingOverrides
+from ...types.websocket_connection_options import WebSocketConnectionOptions, SyncWebSocketConnectionOptions
 from ...types.realtime.realtime_error_event import RealtimeErrorEvent
 from ...types.realtime.realtime_client_event import RealtimeClientEvent
 from ...types.realtime.realtime_server_event import RealtimeServerEvent
 from ...types.realtime.conversation_item_param import ConversationItemParam
 from ...types.realtime.realtime_client_event_param import RealtimeClientEventParam
 from ...types.realtime.realtime_response_create_params_param import RealtimeResponseCreateParamsParam
+from ...types.realtime.response_create_event_with_references_param import ResponseCreateEventWithReferencesParam
+from ...types.realtime.realtime_response_create_params_with_references_param import (
+    RealtimeResponseCreateParamsWithReferencesParam,
+)
 
 if TYPE_CHECKING:
     from websockets.sync.client import ClientConnection as WebSocketConnection
@@ -116,7 +119,7 @@ class Realtime(SyncAPIResource):
         model: str | Omit = omit,
         extra_query: Query = {},
         extra_headers: Headers = {},
-        websocket_connection_options: WebSocketConnectionOptions = {},
+        websocket_connection_options: SyncWebSocketConnectionOptions = {},
         on_reconnecting: Callable[[ReconnectingEvent], ReconnectingOverrides | None] | None = None,
         max_retries: int = 5,
         initial_delay: float = 0.5,
@@ -133,6 +136,7 @@ class Realtime(SyncAPIResource):
         - Simultaneous multimodal output: Text is useful for moderation; faster-than-realtime audio ensures stable playback.
 
         The Realtime API is a stateful, event-based API that communicates over a WebSocket.
+        To start a Realtime conversation, set `model` in the connection URL. To join an existing call, set `call_id` instead. Transcription sessions use `intent=transcription`.
         """
         return RealtimeConnectionManager(
             client=self._client,
@@ -207,6 +211,7 @@ class AsyncRealtime(AsyncAPIResource):
         - Simultaneous multimodal output: Text is useful for moderation; faster-than-realtime audio ensures stable playback.
 
         The Realtime API is a stateful, event-based API that communicates over a WebSocket.
+        To start a Realtime conversation, set `model` in the connection URL. To join an existing call, set `call_id` instead. Transcription sessions use `intent=transcription`.
         """
         return AsyncRealtimeConnectionManager(
             client=self._client,
@@ -291,7 +296,7 @@ class AsyncRealtimeWithStreamingResponse:
         return AsyncTranslationsWithStreamingResponse(self._realtime.translations)
 
 
-class AsyncRealtimeConnection:
+class AsyncRealtimeConnection(AsyncWebSocketConnectionBase):
     """Represents a live WebSocket connection to the Realtime API"""
 
     session: AsyncRealtimeSessionResource
@@ -315,18 +320,18 @@ class AsyncRealtimeConnection:
         extra_headers: Headers = {},
         send_queue: SendQueue | None = None,
     ) -> None:
-        self._connection = connection
-        self._make_ws = make_ws
-        self._on_reconnecting = on_reconnecting
-        self._max_retries = max_retries
-        self._reconnect_attempt = 0
-        self._initial_delay = initial_delay
-        self._max_delay = max_delay
-        self._extra_query = extra_query
-        self._extra_headers = extra_headers
-        self._intentionally_closed = False
-        self._is_reconnecting = False
-        self._send_queue = send_queue if send_queue is not None else SendQueue()
+        super().__init__(
+            connection,
+            make_ws=make_ws,
+            on_reconnecting=on_reconnecting,
+            max_retries=max_retries,
+            initial_delay=initial_delay,
+            max_delay=max_delay,
+            extra_query=extra_query,
+            extra_headers=extra_headers,
+            send_queue=send_queue,
+            logger=log,
+        )
         self._event_handler_registry = EventHandlerRegistry(use_lock=False)
 
         self.session = AsyncRealtimeSessionResource(self)
@@ -340,21 +345,28 @@ class AsyncRealtimeConnection:
         An infinite-iterator that will continue to yield events until
         the connection is closed.
         """
-        from websockets.exceptions import ConnectionClosedOK, ConnectionClosedError
+        from websockets.exceptions import ConnectionClosed, ConnectionClosedOK, ConnectionClosedError
 
         while True:
             try:
                 yield await self.recv()
-            except ConnectionClosedOK:
-                return
-            except ConnectionClosedError as exc:
-                if not await self._reconnect(exc):
+            except ConnectionClosed as exc:
+                # Older SDK bases read close codes only from ConnectionClosedError.
+                # Adapt the policy input; keep the original close for EOF and errors.
+                reconnect_exc = (
+                    ConnectionClosedError(exc.rcvd, exc.sent, exc.rcvd_then_sent)
+                    if isinstance(exc, ConnectionClosedOK)
+                    else exc
+                )
+                if not await self._reconnect(reconnect_exc):
                     unsent = self._send_queue.drain()
                     if unsent:
                         raise WebSocketConnectionClosedError(
                             "WebSocket connection closed with unsent messages",
                             unsent_messages=unsent,
                         ) from exc
+                    if isinstance(exc, ConnectionClosedOK):
+                        return
                     raise
 
     async def recv(self) -> RealtimeServerEvent:
@@ -396,27 +408,19 @@ class AsyncRealtimeConnection:
                 self._reconnect_attempt = 0
         return message
 
-    async def send(self, event: RealtimeClientEvent | RealtimeClientEventParam) -> None:
+    async def send(
+        self, event: RealtimeClientEvent | Union[RealtimeClientEventParam, ResponseCreateEventWithReferencesParam]
+    ) -> None:
         data = (
             event.to_json(use_api_names=True, exclude_unset=True)
             if isinstance(event, BaseModel)
-            else json.dumps(await async_maybe_transform(event, RealtimeClientEventParam))
+            else json.dumps(
+                await async_maybe_transform(
+                    event, Union[RealtimeClientEventParam, ResponseCreateEventWithReferencesParam]
+                )
+            )
         )
-        if self._is_reconnecting:
-            self._send_queue.enqueue(data)
-            return
-        await self._connection.send(data)
-
-    async def send_raw(self, data: bytes | str) -> None:
-        if self._is_reconnecting:
-            raw = data if isinstance(data, str) else data.decode("utf-8")
-            self._send_queue.enqueue(raw)
-            return
-        await self._connection.send(data)
-
-    async def close(self, *, code: int = 1000, reason: str = "") -> None:
-        self._intentionally_closed = True
-        await self._connection.close(code=code, reason=reason)
+        await AsyncWebSocketConnectionBase.send_raw(self, data)
 
     def parse_event(self, data: str | bytes) -> RealtimeServerEvent:
         """
@@ -427,94 +431,6 @@ class AsyncRealtimeConnection:
         return cast(
             RealtimeServerEvent, construct_type_unchecked(value=json.loads(data), type_=cast(Any, RealtimeServerEvent))
         )
-
-    async def _reconnect(self, exc: Exception) -> bool:
-        """Attempt to reconnect after a connection failure.
-
-        Returns ``True`` if a new connection was established, ``False`` if the
-        caller should re-raise the original exception.
-        """
-        import asyncio
-
-        if self._on_reconnecting is None or self._make_ws is None:
-            return False
-
-        from websockets.exceptions import ConnectionClosedError
-
-        close_code = 1006
-        if isinstance(exc, ConnectionClosedError) and exc.rcvd is not None:
-            close_code = exc.rcvd.code
-
-        if not is_recoverable_close(close_code):
-            return False
-
-        self._is_reconnecting = True
-
-        for attempt in range(self._reconnect_attempt + 1, self._max_retries + 1):
-            self._reconnect_attempt = attempt
-            base_delay = min(self._initial_delay * (2 ** (attempt - 1)), self._max_delay)
-            jitter = 0.75 + random.random() * 0.25
-            delay = base_delay * jitter
-
-            event = ReconnectingEvent(
-                attempt=attempt,
-                max_attempts=self._max_retries,
-                delay=delay,
-                close_code=close_code,
-                extra_query=self._extra_query,
-                extra_headers=self._extra_headers,
-            )
-
-            try:
-                result = self._on_reconnecting(event)
-            except Exception:
-                self._is_reconnecting = False
-                return False
-
-            if result is not None and result.get("abort"):
-                self._is_reconnecting = False
-                return False
-
-            if result is not None:
-                if "extra_query" in result:
-                    self._extra_query = result["extra_query"]
-                if "extra_headers" in result:
-                    self._extra_headers = result["extra_headers"]
-
-            log.info(
-                "Reconnecting to WebSocket API (attempt %d/%d) after %.1fs delay",
-                attempt,
-                self._max_retries,
-                delay,
-            )
-            await asyncio.sleep(delay)
-
-            if self._intentionally_closed:
-                self._is_reconnecting = False
-                return False
-
-            try:
-                self._connection = await self._make_ws(self._extra_query, self._extra_headers)
-                log.info("Reconnected to WebSocket API")
-                self._is_reconnecting = False
-                await self._flush_send_queue()
-                return True
-            except Exception:
-                pass
-
-        self._is_reconnecting = False
-        return False
-
-    async def _flush_send_queue(self) -> None:
-        """Send all queued messages over the current connection."""
-
-        async def _send(data: str) -> None:
-            await self._connection.send(data)
-
-        try:
-            await self._send_queue.flush_async(_send, requeue_failed=False)
-        except Exception:
-            log.warning("Failed to flush send queue after reconnect")
 
     def on(
         self, event_type: str, handler: Callable[..., Any] | None = None
@@ -646,7 +562,9 @@ class AsyncRealtimeConnectionManager:
         self.__send_queue = SendQueue(max_bytes=max_queue_size)
         self.__event_handler_registry = EventHandlerRegistry(use_lock=False)
 
-    def send(self, event: RealtimeClientEvent | RealtimeClientEventParam) -> None:
+    def send(
+        self, event: RealtimeClientEvent | Union[RealtimeClientEventParam, ResponseCreateEventWithReferencesParam]
+    ) -> None:
         """Queue a message to be sent when the connection is established.
 
         This can be called before entering the context manager. Queued messages
@@ -655,7 +573,9 @@ class AsyncRealtimeConnectionManager:
         data = (
             event.to_json(use_api_names=True, exclude_unset=True)
             if isinstance(event, BaseModel)
-            else json.dumps(maybe_transform(event, RealtimeClientEventParam))
+            else json.dumps(
+                maybe_transform(event, Union[RealtimeClientEventParam, ResponseCreateEventWithReferencesParam])
+            )
         )
         self.__send_queue.enqueue(data)
 
@@ -711,20 +631,29 @@ class AsyncRealtimeConnectionManager:
         """
         ws = await self._connect_ws(self.__extra_query, self.__extra_headers)
 
-        self.__connection = AsyncRealtimeConnection(
-            ws,
-            make_ws=self._connect_ws if self.__on_reconnecting is not None else None,
-            on_reconnecting=self.__on_reconnecting,
-            max_retries=self.__max_retries,
-            initial_delay=self.__initial_delay,
-            max_delay=self.__max_delay,
-            extra_query=self.__extra_query,
-            extra_headers=self.__extra_headers,
-            send_queue=self.__send_queue,
-        )
+        try:
+            self.__connection = AsyncRealtimeConnection(
+                ws,
+                make_ws=self._connect_ws if self.__on_reconnecting is not None else None,
+                on_reconnecting=self.__on_reconnecting,
+                max_retries=self.__max_retries,
+                initial_delay=self.__initial_delay,
+                max_delay=self.__max_delay,
+                extra_query=self.__extra_query,
+                extra_headers=self.__extra_headers,
+                send_queue=self.__send_queue,
+            )
 
-        self.__event_handler_registry.merge_into(self.__connection._event_handler_registry)
-        await self.__connection._flush_send_queue()
+            self.__event_handler_registry.merge_into(self.__connection._event_handler_registry)
+            await self.__connection._flush_send_queue()
+        except BaseException:
+            self.__connection = None
+            try:
+                await ws.close()
+            except BaseException:
+                # Preserve the exception that prevented successful entry.
+                pass
+            raise
 
         return self.__connection
 
@@ -739,28 +668,33 @@ class AsyncRealtimeConnectionManager:
         if self.__call_id is not omit:
             extra_query = {**extra_query, "call_id": self.__call_id}
         if is_async_azure_client(self.__client):
-            await self.__client._refresh_api_key()
+            api_key = await self.__client._refresh_api_key()
             from ...lib._azure_websocket import _AzureWebSocketConnect as connect
 
             model = self.__model
             if not model:
                 raise OpenAIError("`model` is required for Azure Realtime API")
             else:
-                url, auth_headers = await self.__client._configure_realtime(model, extra_query)
+                configure = getattr(self.__client, "_configure_realtime_with_api_key", None)
+                if configure is not None:
+                    url, auth_headers = await configure(model, extra_query, api_key=api_key)
+                else:
+                    url, auth_headers = await self.__client._configure_realtime(model, extra_query)
             prepared_headers: Headers = extra_headers
         else:
             url = self._prepare_url()
+            try:
+                # Older runtimes do not declare this optional helper.
+                query_params = getattr(self.__client, "_websocket_query_params")  # noqa: B009
+            except AttributeError:
+                query_params = self.__client._websocket_query_params_fallback
             url = url.copy_with(
-                params=httpx2.QueryParams(self.__client.qs.stringify(cast(Any, self.__client.default_query)))
-                .merge(url.params)
-                .merge(
-                    cast(
-                        Any,
-                        {
-                            **({"model": self.__model} if self.__model is not omit else {}),
-                            **extra_query,
-                        },
-                    )
+                params=query_params(
+                    url,
+                    {
+                        **({"model": self.__model} if self.__model is not omit else {}),
+                        **extra_query,
+                    },
                 ),
             )
             url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
@@ -792,11 +726,16 @@ class AsyncRealtimeConnectionManager:
         if self.__websocket_connection_options:
             log.debug("Custom WebSocket connection options provided")
 
+        websocket_options = self.__websocket_connection_options.copy()
+        websocket_options.setdefault("max_size", None)
+        if websocket_options.get("max_size") is None:
+            websocket_options.setdefault("compression", None)
+
         return await connect(
             str(url),
             user_agent_header=None,
             additional_headers=_merge_mappings(dict(headers.values()), {}),
-            **self.__websocket_connection_options,
+            **websocket_options,
         )
 
     def _prepare_url(self) -> httpx2.URL:
@@ -815,10 +754,14 @@ class AsyncRealtimeConnectionManager:
         self, exc_type: type[BaseException] | None, exc: BaseException | None, exc_tb: TracebackType | None
     ) -> None:
         if self.__connection is not None:
-            await self.__connection.close()
+            try:
+                await self.__connection.close()
+            except Exception:
+                if exc is None:
+                    raise
 
 
-class RealtimeConnection:
+class RealtimeConnection(WebSocketConnectionBase):
     """Represents a live WebSocket connection to the Realtime API"""
 
     session: RealtimeSessionResource
@@ -842,18 +785,18 @@ class RealtimeConnection:
         extra_headers: Headers = {},
         send_queue: SendQueue | None = None,
     ) -> None:
-        self._connection = connection
-        self._make_ws = make_ws
-        self._on_reconnecting = on_reconnecting
-        self._max_retries = max_retries
-        self._reconnect_attempt = 0
-        self._initial_delay = initial_delay
-        self._max_delay = max_delay
-        self._extra_query = extra_query
-        self._extra_headers = extra_headers
-        self._intentionally_closed = False
-        self._is_reconnecting = False
-        self._send_queue = send_queue if send_queue is not None else SendQueue()
+        super().__init__(
+            connection,
+            make_ws=make_ws,
+            on_reconnecting=on_reconnecting,
+            max_retries=max_retries,
+            initial_delay=initial_delay,
+            max_delay=max_delay,
+            extra_query=extra_query,
+            extra_headers=extra_headers,
+            send_queue=send_queue,
+            logger=log,
+        )
         self._event_handler_registry = EventHandlerRegistry(use_lock=True)
 
         self.session = RealtimeSessionResource(self)
@@ -867,21 +810,28 @@ class RealtimeConnection:
         An infinite-iterator that will continue to yield events until
         the connection is closed.
         """
-        from websockets.exceptions import ConnectionClosedOK, ConnectionClosedError
+        from websockets.exceptions import ConnectionClosed, ConnectionClosedOK, ConnectionClosedError
 
         while True:
             try:
                 yield self.recv()
-            except ConnectionClosedOK:
-                return
-            except ConnectionClosedError as exc:
-                if not self._reconnect(exc):
+            except ConnectionClosed as exc:
+                # Older SDK bases read close codes only from ConnectionClosedError.
+                # Adapt the policy input; keep the original close for EOF and errors.
+                reconnect_exc = (
+                    ConnectionClosedError(exc.rcvd, exc.sent, exc.rcvd_then_sent)
+                    if isinstance(exc, ConnectionClosedOK)
+                    else exc
+                )
+                if not self._reconnect(reconnect_exc):
                     unsent = self._send_queue.drain()
                     if unsent:
                         raise WebSocketConnectionClosedError(
                             "WebSocket connection closed with unsent messages",
                             unsent_messages=unsent,
                         ) from exc
+                    if isinstance(exc, ConnectionClosedOK):
+                        return
                     raise
 
     def recv(self) -> RealtimeServerEvent:
@@ -910,7 +860,9 @@ class RealtimeConnection:
         If you want to parse the message into a `RealtimeServerEvent` object like `.recv()` does,
         then you can call `.parse_event(data)`.
         """
-        message = self._connection.recv(decode=False)
+        from ...lib._websocket import _recv_bytes
+
+        message = _recv_bytes(self._connection)
         log.debug("Received WebSocket message: %i bytes", len(message))
         if self._reconnect_attempt:
             # Account for raw application progress without changing frame delivery.
@@ -923,27 +875,17 @@ class RealtimeConnection:
                 self._reconnect_attempt = 0
         return message
 
-    def send(self, event: RealtimeClientEvent | RealtimeClientEventParam) -> None:
+    def send(
+        self, event: RealtimeClientEvent | Union[RealtimeClientEventParam, ResponseCreateEventWithReferencesParam]
+    ) -> None:
         data = (
             event.to_json(use_api_names=True, exclude_unset=True)
             if isinstance(event, BaseModel)
-            else json.dumps(maybe_transform(event, RealtimeClientEventParam))
+            else json.dumps(
+                maybe_transform(event, Union[RealtimeClientEventParam, ResponseCreateEventWithReferencesParam])
+            )
         )
-        if self._is_reconnecting:
-            self._send_queue.enqueue(data)
-            return
-        self._connection.send(data)
-
-    def send_raw(self, data: bytes | str) -> None:
-        if self._is_reconnecting:
-            raw = data if isinstance(data, str) else data.decode("utf-8")
-            self._send_queue.enqueue(raw)
-            return
-        self._connection.send(data)
-
-    def close(self, *, code: int = 1000, reason: str = "") -> None:
-        self._intentionally_closed = True
-        self._connection.close(code=code, reason=reason)
+        WebSocketConnectionBase.send_raw(self, data)
 
     def parse_event(self, data: str | bytes) -> RealtimeServerEvent:
         """
@@ -954,88 +896,6 @@ class RealtimeConnection:
         return cast(
             RealtimeServerEvent, construct_type_unchecked(value=json.loads(data), type_=cast(Any, RealtimeServerEvent))
         )
-
-    def _reconnect(self, exc: Exception) -> bool:
-        """Attempt to reconnect after a connection failure.
-
-        Returns ``True`` if a new connection was established, ``False`` if the
-        caller should re-raise the original exception.
-        """
-        if self._on_reconnecting is None or self._make_ws is None:
-            return False
-
-        from websockets.exceptions import ConnectionClosedError
-
-        close_code = 1006
-        if isinstance(exc, ConnectionClosedError) and exc.rcvd is not None:
-            close_code = exc.rcvd.code
-
-        if not is_recoverable_close(close_code):
-            return False
-
-        self._is_reconnecting = True
-
-        for attempt in range(self._reconnect_attempt + 1, self._max_retries + 1):
-            self._reconnect_attempt = attempt
-            base_delay = min(self._initial_delay * (2 ** (attempt - 1)), self._max_delay)
-            jitter = 0.75 + random.random() * 0.25
-            delay = base_delay * jitter
-
-            event = ReconnectingEvent(
-                attempt=attempt,
-                max_attempts=self._max_retries,
-                delay=delay,
-                close_code=close_code,
-                extra_query=self._extra_query,
-                extra_headers=self._extra_headers,
-            )
-
-            try:
-                result = self._on_reconnecting(event)
-            except Exception:
-                self._is_reconnecting = False
-                return False
-
-            if result is not None and result.get("abort"):
-                self._is_reconnecting = False
-                return False
-
-            if result is not None:
-                if "extra_query" in result:
-                    self._extra_query = result["extra_query"]
-                if "extra_headers" in result:
-                    self._extra_headers = result["extra_headers"]
-
-            log.info(
-                "Reconnecting to WebSocket API (attempt %d/%d) after %.1fs delay",
-                attempt,
-                self._max_retries,
-                delay,
-            )
-            time.sleep(delay)
-
-            if self._intentionally_closed:
-                self._is_reconnecting = False
-                return False
-
-            try:
-                self._connection = self._make_ws(self._extra_query, self._extra_headers)
-                log.info("Reconnected to WebSocket API")
-                self._is_reconnecting = False
-                self._flush_send_queue()
-                return True
-            except Exception:
-                pass
-
-        self._is_reconnecting = False
-        return False
-
-    def _flush_send_queue(self) -> None:
-        """Send all queued messages over the current connection."""
-        try:
-            self._send_queue.flush_sync(lambda data: self._connection.send(data), requeue_failed=False)
-        except Exception:
-            log.warning("Failed to flush send queue after reconnect")
 
     def on(
         self, event_type: str, handler: Callable[..., Any] | None = None
@@ -1140,7 +1000,7 @@ class RealtimeConnectionManager:
         model: str | Omit = omit,
         extra_query: Query,
         extra_headers: Headers,
-        websocket_connection_options: WebSocketConnectionOptions,
+        websocket_connection_options: SyncWebSocketConnectionOptions,
         on_reconnecting: Callable[[ReconnectingEvent], ReconnectingOverrides | None] | None = None,
         max_retries: int = 5,
         initial_delay: float = 0.5,
@@ -1161,7 +1021,9 @@ class RealtimeConnectionManager:
         self.__send_queue = SendQueue(max_bytes=max_queue_size)
         self.__event_handler_registry = EventHandlerRegistry(use_lock=True)
 
-    def send(self, event: RealtimeClientEvent | RealtimeClientEventParam) -> None:
+    def send(
+        self, event: RealtimeClientEvent | Union[RealtimeClientEventParam, ResponseCreateEventWithReferencesParam]
+    ) -> None:
         """Queue a message to be sent when the connection is established.
 
         This can be called before entering the context manager. Queued messages
@@ -1170,7 +1032,9 @@ class RealtimeConnectionManager:
         data = (
             event.to_json(use_api_names=True, exclude_unset=True)
             if isinstance(event, BaseModel)
-            else json.dumps(maybe_transform(event, RealtimeClientEventParam))
+            else json.dumps(
+                maybe_transform(event, Union[RealtimeClientEventParam, ResponseCreateEventWithReferencesParam])
+            )
         )
         self.__send_queue.enqueue(data)
 
@@ -1226,20 +1090,29 @@ class RealtimeConnectionManager:
         """
         ws = self._connect_ws(self.__extra_query, self.__extra_headers)
 
-        self.__connection = RealtimeConnection(
-            ws,
-            make_ws=self._connect_ws if self.__on_reconnecting is not None else None,
-            on_reconnecting=self.__on_reconnecting,
-            max_retries=self.__max_retries,
-            initial_delay=self.__initial_delay,
-            max_delay=self.__max_delay,
-            extra_query=self.__extra_query,
-            extra_headers=self.__extra_headers,
-            send_queue=self.__send_queue,
-        )
+        try:
+            self.__connection = RealtimeConnection(
+                ws,
+                make_ws=self._connect_ws if self.__on_reconnecting is not None else None,
+                on_reconnecting=self.__on_reconnecting,
+                max_retries=self.__max_retries,
+                initial_delay=self.__initial_delay,
+                max_delay=self.__max_delay,
+                extra_query=self.__extra_query,
+                extra_headers=self.__extra_headers,
+                send_queue=self.__send_queue,
+            )
 
-        self.__event_handler_registry.merge_into(self.__connection._event_handler_registry)
-        self.__connection._flush_send_queue()
+            self.__event_handler_registry.merge_into(self.__connection._event_handler_registry)
+            self.__connection._flush_send_queue()
+        except BaseException:
+            self.__connection = None
+            try:
+                ws.close()
+            except BaseException:
+                # Preserve the exception that prevented successful entry.
+                pass
+            raise
 
         return self.__connection
 
@@ -1254,26 +1127,31 @@ class RealtimeConnectionManager:
         if self.__call_id is not omit:
             extra_query = {**extra_query, "call_id": self.__call_id}
         if is_azure_client(self.__client):
-            self.__client._refresh_api_key()
+            api_key = self.__client._refresh_api_key()
             model = self.__model
             if not model:
                 raise OpenAIError("`model` is required for Azure Realtime API")
             else:
-                url, auth_headers = self.__client._configure_realtime(model, extra_query)
+                configure = getattr(self.__client, "_configure_realtime_with_api_key", None)
+                if configure is not None:
+                    url, auth_headers = configure(model, extra_query, api_key=api_key)
+                else:
+                    url, auth_headers = self.__client._configure_realtime(model, extra_query)
             prepared_headers: Headers = extra_headers
         else:
             url = self._prepare_url()
+            try:
+                # Older runtimes do not declare this optional helper.
+                query_params = getattr(self.__client, "_websocket_query_params")  # noqa: B009
+            except AttributeError:
+                query_params = self.__client._websocket_query_params_fallback
             url = url.copy_with(
-                params=httpx2.QueryParams(self.__client.qs.stringify(cast(Any, self.__client.default_query)))
-                .merge(url.params)
-                .merge(
-                    cast(
-                        Any,
-                        {
-                            **({"model": self.__model} if self.__model is not omit else {}),
-                            **extra_query,
-                        },
-                    )
+                params=query_params(
+                    url,
+                    {
+                        **({"model": self.__model} if self.__model is not omit else {}),
+                        **extra_query,
+                    },
                 ),
             )
             url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
@@ -1305,11 +1183,16 @@ class RealtimeConnectionManager:
         if self.__websocket_connection_options:
             log.debug("Custom WebSocket connection options provided")
 
+        websocket_options = self.__websocket_connection_options.copy()
+        websocket_options.setdefault("max_size", None)
+        if websocket_options.get("max_size") is None:
+            websocket_options.setdefault("compression", None)
+
         return connect(
             str(url),
             user_agent_header=None,
             additional_headers=_merge_mappings(dict(headers.values()), {}),
-            **self.__websocket_connection_options,
+            **websocket_options,
         )
 
     def _prepare_url(self) -> httpx2.URL:
@@ -1328,7 +1211,11 @@ class RealtimeConnectionManager:
         self, exc_type: type[BaseException] | None, exc: BaseException | None, exc_tb: TracebackType | None
     ) -> None:
         if self.__connection is not None:
-            self.__connection.close()
+            try:
+                self.__connection.close()
+            except Exception:
+                if exc is None:
+                    raise
 
 
 class BaseRealtimeConnectionResource:
@@ -1367,7 +1254,13 @@ class RealtimeSessionResource(BaseRealtimeConnectionResource):
 
 
 class RealtimeResponseResource(BaseRealtimeConnectionResource):
-    def create(self, *, event_id: str | Omit = omit, response: RealtimeResponseCreateParamsParam | Omit = omit) -> None:
+    def create(
+        self,
+        *,
+        event_id: str | Omit = omit,
+        response: Union[RealtimeResponseCreateParamsParam, RealtimeResponseCreateParamsWithReferencesParam]
+        | Omit = omit,
+    ) -> None:
         """
         This event instructs the server to create a Response, which means triggering
         model inference. When in Server VAD mode, the server will create Responses
@@ -1397,7 +1290,7 @@ class RealtimeResponseResource(BaseRealtimeConnectionResource):
         """
         self._connection.send(
             cast(
-                RealtimeClientEventParam,
+                Union[RealtimeClientEventParam, ResponseCreateEventWithReferencesParam],
                 strip_not_given({"type": "response.create", "event_id": event_id, "response": response}),
             )
         )
@@ -1611,7 +1504,11 @@ class AsyncRealtimeSessionResource(BaseAsyncRealtimeConnectionResource):
 
 class AsyncRealtimeResponseResource(BaseAsyncRealtimeConnectionResource):
     async def create(
-        self, *, event_id: str | Omit = omit, response: RealtimeResponseCreateParamsParam | Omit = omit
+        self,
+        *,
+        event_id: str | Omit = omit,
+        response: Union[RealtimeResponseCreateParamsParam, RealtimeResponseCreateParamsWithReferencesParam]
+        | Omit = omit,
     ) -> None:
         """
         This event instructs the server to create a Response, which means triggering
@@ -1642,7 +1539,7 @@ class AsyncRealtimeResponseResource(BaseAsyncRealtimeConnectionResource):
         """
         await self._connection.send(
             cast(
-                RealtimeClientEventParam,
+                Union[RealtimeClientEventParam, ResponseCreateEventWithReferencesParam],
                 strip_not_given({"type": "response.create", "event_id": event_id, "response": response}),
             )
         )

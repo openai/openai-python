@@ -148,7 +148,7 @@ class TestVaults:
     def test_method_list_with_all_params(self, client: OpenAI) -> None:
         vault = client.beta.agents.vaults.list(
             after="after",
-            limit=0,
+            limit=1,
             metadata={"foo": "string"},
             order="asc",
             status="active",
@@ -346,7 +346,7 @@ class TestAsyncVaults:
     async def test_method_list_with_all_params(self, async_client: AsyncOpenAI) -> None:
         vault = await async_client.beta.agents.vaults.list(
             after="after",
-            limit=0,
+            limit=1,
             metadata={"foo": "string"},
             order="asc",
             status="active",

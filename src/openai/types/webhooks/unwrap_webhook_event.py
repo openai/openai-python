@@ -13,7 +13,7 @@ from .response_failed_webhook_event import ResponseFailedWebhookEvent
 from .eval_run_canceled_webhook_event import EvalRunCanceledWebhookEvent
 from .agent_session_idle_webhook_event import AgentSessionIdleWebhookEvent
 from .eval_run_succeeded_webhook_event import EvalRunSucceededWebhookEvent
-from .live_call_incoming_webhook_event import LiveCallIncomingWebhookEvent  # pyright: ignore[reportDeprecated]
+from .live_call_incoming_webhook_event import LiveCallIncomingWebhookEvent
 from .response_cancelled_webhook_event import ResponseCancelledWebhookEvent
 from .response_completed_webhook_event import ResponseCompletedWebhookEvent
 from .response_incomplete_webhook_event import ResponseIncompleteWebhookEvent
@@ -39,8 +39,10 @@ __all__ = ["UnwrapWebhookEvent"]
 
 UnwrapWebhookEvent: TypeAlias = Annotated[
     Union[
+        AgentEnvironmentExpiredWebhookEvent,
         AgentEnvironmentFailedWebhookEvent,
         AgentEnvironmentReadyWebhookEvent,
+        AgentEnvironmentSuspendedWebhookEvent,
         AgentSessionActionRequiredWebhookEvent,
         AgentSessionCreatedWebhookEvent,
         AgentSessionFailedWebhookEvent,
@@ -56,7 +58,7 @@ UnwrapWebhookEvent: TypeAlias = Annotated[
         FineTuningJobCancelledWebhookEvent,
         FineTuningJobFailedWebhookEvent,
         FineTuningJobSucceededWebhookEvent,
-        LiveCallIncomingWebhookEvent,  # pyright: ignore[reportDeprecated]  # Preserve legacy payload parsing.
+        LiveCallIncomingWebhookEvent,
         LiveTransportIncomingWebhookEvent,
         RealtimeCallIncomingWebhookEvent,
         ResponseCancelledWebhookEvent,
@@ -67,8 +69,6 @@ UnwrapWebhookEvent: TypeAlias = Annotated[
         SafetyDeactivationIssuedWebhookEvent,
         SafetyOrgAlertCreatedWebhookEvent,
         SafetyWarningIssuedWebhookEvent,
-        AgentEnvironmentSuspendedWebhookEvent,
-        AgentEnvironmentExpiredWebhookEvent,
     ],
     PropertyInfo(discriminator="type"),
 ]

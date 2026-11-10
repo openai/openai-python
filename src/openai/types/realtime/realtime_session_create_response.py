@@ -47,6 +47,14 @@ class AudioInputNoiseReduction(BaseModel):
     Filtering the audio can improve VAD and turn detection accuracy (reducing false positives) and model performance by improving perception of the input audio.
     """
 
+    strength: Optional[float] = None
+    """Input noise suppression strength.
+
+    Higher values apply more suppression. Defaults to 1 when noise reduction is
+    first enabled. Omitting strength from a session update preserves the current
+    strength.
+    """
+
     type: Optional[NoiseReductionType] = None
     """Type of noise reduction.
 
@@ -492,7 +500,16 @@ class RealtimeSessionCreateResponse(BaseModel):
         ],
         None,
     ] = None
-    """The Realtime model used for this session."""
+    """The Realtime model used for this session.
+
+    Deprecated values:
+
+    - "gpt-realtime", "gpt-realtime-2025-08-28", "gpt-realtime-mini",
+      "gpt-realtime-mini-2025-12-15", "gpt-audio-mini", "gpt-audio-mini-2025-12-15":
+      Announced shutdown date: 2027-01-20. See
+      https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
+    """
 
     output_modalities: Optional[List[Literal["text", "audio"]]] = None
     """The set of modalities the model can respond with.

@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
-from typing import Optional
-from typing_extensions import Literal, Required, TypedDict
+from typing import Union, Optional
+from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from ..shared.reasoning_effort import ReasoningEffort
+from ..shared_params.response_format_text import ResponseFormatText
+from .response_format_text_json_schema_config_param import ResponseFormatTextJSONSchemaConfigParam
 
-__all__ = ["ResponseConfigurationUpdateItemParamParam", "Reasoning"]
+__all__ = ["ResponseConfigurationUpdateItemParamParam", "Reasoning", "Text", "TextFormat"]
 
 
 class Reasoning(TypedDict, total=False):
@@ -20,12 +22,21 @@ class Reasoning(TypedDict, total=False):
     """
 
 
+TextFormat: TypeAlias = Union[ResponseFormatText, ResponseFormatTextJSONSchemaConfigParam]
+
+
+class Text(TypedDict, total=False):
+    """The text output configuration for subsequent responses."""
+
+    format: Required[TextFormat]
+    """Use a JSON schema for structured output or text to return to plain text."""
+
+
 class ResponseConfigurationUpdateItemParamParam(TypedDict, total=False):
     """An update to the conversation's response configuration.
 
-    The configuration
-    remains in effect for subsequent responses until it is replaced by another
-    configuration update.
+    Supply reasoning,
+    text, or both. Each setting stays in effect until a later update replaces it.
     """
 
     type: Required[Literal["configuration_update"]]
@@ -36,3 +47,6 @@ class ResponseConfigurationUpdateItemParamParam(TypedDict, total=False):
 
     reasoning: Reasoning
     """Updates to reasoning configuration. Only effort is supported."""
+
+    text: Text
+    """The text output configuration for subsequent responses."""

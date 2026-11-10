@@ -34,6 +34,9 @@ __all__ = [
     "Program",
     "ProgramOutput",
     "ImageGenerationCall",
+    "ImageGenerationCallError",
+    "ImageGenerationCallErrorModerationDetails",
+    "ImageGenerationCallSvgUsage",
     "LocalShellCall",
     "LocalShellCallAction",
     "LocalShellCallOutput",
@@ -93,6 +96,47 @@ class ProgramOutput(BaseModel):
     """The type of the item. Always `program_output`."""
 
 
+class ImageGenerationCallErrorModerationDetails(BaseModel):
+    """Public details for a `moderation_blocked` error, when available."""
+
+    categories: List[str]
+    """Public moderation categories. New category values may be added over time."""
+
+    moderation_stage: Literal["input", "output", "unknown"]
+    """The stage where moderation blocked the image generation call."""
+
+
+class ImageGenerationCallError(BaseModel):
+    """Details of a moderation failure, when available."""
+
+    code: Optional[str] = None
+    """The error code."""
+
+    message: str
+    """A description of the error."""
+
+    param: Optional[str] = None
+    """The related request parameter."""
+
+    type: str
+    """The error type."""
+
+    moderation_details: Optional[ImageGenerationCallErrorModerationDetails] = None
+    """Public details for a `moderation_blocked` error, when available."""
+
+
+class ImageGenerationCallSvgUsage(BaseModel):
+    input_tokens: int
+
+    model: str
+
+    output_tokens: int
+
+    reasoning_tokens: int
+
+    total_tokens: int
+
+
 class ImageGenerationCall(BaseModel):
     """An image generation request made by the model."""
 
@@ -114,7 +158,10 @@ class ImageGenerationCall(BaseModel):
     background: Optional[Literal["transparent", "opaque", "auto"]] = None
     """The background setting used for generation."""
 
-    output_format: Optional[Literal["png", "webp", "jpeg"]] = None
+    error: Optional[ImageGenerationCallError] = None
+    """Details of a moderation failure, when available."""
+
+    output_format: Optional[Literal["png", "webp", "jpeg", "gif", "svg"]] = None
     """The output format used for generation."""
 
     quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto"]] = None
@@ -128,6 +175,8 @@ class ImageGenerationCall(BaseModel):
 
     size: Union[str, Literal["1024x1024", "1024x1536", "1536x1024"], None] = None
     """The image dimensions as a `WIDTHxHEIGHT` string, for example `1536x864`."""
+
+    svg_usage: Optional[ImageGenerationCallSvgUsage] = None
 
 
 class LocalShellCallAction(BaseModel):

@@ -34,3 +34,6 @@ class AgentSessionTurnOutputTextDoneEvent(BaseModel):
 
     type: Literal["agent.session.turn.output_text.done"]
     """The type of the object. Always `agent.session.turn.output_text.done`."""
+
+    obfuscation: Optional[str] = None
+    """Random alphanumeric padding. Present when stream obfuscation is enabled."""

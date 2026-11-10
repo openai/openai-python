@@ -86,6 +86,78 @@ class Assistants(SyncAPIResource):
               [Model overview](https://developers.openai.com/api/docs/models) for descriptions
               of them.
 
+              Deprecated values:
+
+              - "gpt-5.4-nano", "gpt-5.4-nano-2026-03-17", "gpt-5.1", "gpt-5.1-2025-11-13":
+                Announced shutdown date: 2027-04-01. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.3-chat-latest", "gpt-5.2-chat-latest": Announced shutdown date:
+                2026-08-10. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-5.1-codex", "gpt-5.1-chat-latest", "gpt-5-chat-latest",
+                "gpt-4o-search-preview", "gpt-4o-mini-search-preview",
+                "gpt-4o-search-preview-2025-03-11", "gpt-4o-mini-search-preview-2025-03-11":
+                Announced shutdown date: 2026-07-23. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.1-mini": Not a supported model ID. Retained for SDK compatibility.
+              - "gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-5-2025-08-07",
+                "gpt-5-mini-2025-08-07", "gpt-5-nano-2025-08-07", "o3", "o3-2025-04-16":
+                Announced shutdown date: 2026-12-11. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-2025-04-14", "gpt-4.1-mini-2025-04-14",
+                "gpt-4o", "gpt-4o-2024-11-20", "gpt-4o-2024-08-06", "gpt-4o-mini",
+                "gpt-4o-mini-2024-07-18": Announced shutdown date: 2027-01-14. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1-nano", "gpt-4.1-nano-2025-04-14", "o4-mini", "o4-mini-2025-04-16",
+                "o3-mini", "o3-mini-2025-01-31", "o1", "o1-2024-12-17", "gpt-4o-2024-05-13",
+                "gpt-4-turbo", "gpt-4-turbo-2024-04-09", "gpt-4-1106-preview", "gpt-4",
+                "gpt-4-0613", "gpt-3.5-turbo", "gpt-3.5-turbo-0125": Announced shutdown date:
+                2026-10-23. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "o1-preview", "o1-preview-2024-09-12": Announced shutdown date: 2025-07-28.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "o1-mini", "o1-mini-2024-09-12": Announced shutdown date: 2025-10-27. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-audio-mini", "gpt-audio-mini-2025-12-15": Announced shutdown date:
+                2027-01-20. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4o-audio-preview", "gpt-4o-audio-preview-2024-12-17",
+                "gpt-4o-audio-preview-2025-06-03", "gpt-4o-mini-audio-preview",
+                "gpt-4o-mini-audio-preview-2024-12-17": Announced shutdown date: 2026-05-07.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4o-audio-preview-2024-10-01": Announced shutdown date: 2025-10-10. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "chatgpt-4o-latest": Announced shutdown date: 2026-02-17. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "codex-mini-latest": Announced shutdown date: 2026-02-12. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-0125-preview", "gpt-4-turbo-preview", "gpt-4-0314": Announced shutdown
+                date: 2026-03-26. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4-vision-preview": Announced shutdown date: 2024-12-06. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-32k", "gpt-4-32k-0314", "gpt-4-32k-0613": Announced shutdown date:
+                2025-06-06. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-3.5-turbo-16k", "gpt-3.5-turbo-0301", "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-16k-0613": Announced shutdown date: 2024-09-13. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-3.5-turbo-1106": Announced shutdown date: 2026-09-28. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+
           description: The description of the assistant. The maximum length is 512 characters.
 
           instructions: The system instructions that the assistant uses. The maximum length is 256,000
@@ -315,6 +387,16 @@ class Assistants(SyncAPIResource):
               API to see all of your available models, or see our
               [Model overview](https://developers.openai.com/api/docs/models) for descriptions
               of them.
+
+              Deprecated values:
+
+              - "gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-5-2025-08-07",
+                "gpt-5-mini-2025-08-07", "gpt-5-nano-2025-08-07": Announced shutdown date:
+                2026-12-11. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4.1", "gpt-4.1-mini", "gpt-4o", "gpt-4o-mini": Announced shutdown date:
+                2027-01-14. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
 
           name: The name of the assistant. The maximum length is 256 characters.
 
@@ -565,6 +647,78 @@ class AsyncAssistants(AsyncAPIResource):
               [Model overview](https://developers.openai.com/api/docs/models) for descriptions
               of them.
 
+              Deprecated values:
+
+              - "gpt-5.4-nano", "gpt-5.4-nano-2026-03-17", "gpt-5.1", "gpt-5.1-2025-11-13":
+                Announced shutdown date: 2027-04-01. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.3-chat-latest", "gpt-5.2-chat-latest": Announced shutdown date:
+                2026-08-10. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-5.1-codex", "gpt-5.1-chat-latest", "gpt-5-chat-latest",
+                "gpt-4o-search-preview", "gpt-4o-mini-search-preview",
+                "gpt-4o-search-preview-2025-03-11", "gpt-4o-mini-search-preview-2025-03-11":
+                Announced shutdown date: 2026-07-23. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.1-mini": Not a supported model ID. Retained for SDK compatibility.
+              - "gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-5-2025-08-07",
+                "gpt-5-mini-2025-08-07", "gpt-5-nano-2025-08-07", "o3", "o3-2025-04-16":
+                Announced shutdown date: 2026-12-11. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-2025-04-14", "gpt-4.1-mini-2025-04-14",
+                "gpt-4o", "gpt-4o-2024-11-20", "gpt-4o-2024-08-06", "gpt-4o-mini",
+                "gpt-4o-mini-2024-07-18": Announced shutdown date: 2027-01-14. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1-nano", "gpt-4.1-nano-2025-04-14", "o4-mini", "o4-mini-2025-04-16",
+                "o3-mini", "o3-mini-2025-01-31", "o1", "o1-2024-12-17", "gpt-4o-2024-05-13",
+                "gpt-4-turbo", "gpt-4-turbo-2024-04-09", "gpt-4-1106-preview", "gpt-4",
+                "gpt-4-0613", "gpt-3.5-turbo", "gpt-3.5-turbo-0125": Announced shutdown date:
+                2026-10-23. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "o1-preview", "o1-preview-2024-09-12": Announced shutdown date: 2025-07-28.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "o1-mini", "o1-mini-2024-09-12": Announced shutdown date: 2025-10-27. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-audio-mini", "gpt-audio-mini-2025-12-15": Announced shutdown date:
+                2027-01-20. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4o-audio-preview", "gpt-4o-audio-preview-2024-12-17",
+                "gpt-4o-audio-preview-2025-06-03", "gpt-4o-mini-audio-preview",
+                "gpt-4o-mini-audio-preview-2024-12-17": Announced shutdown date: 2026-05-07.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4o-audio-preview-2024-10-01": Announced shutdown date: 2025-10-10. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "chatgpt-4o-latest": Announced shutdown date: 2026-02-17. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "codex-mini-latest": Announced shutdown date: 2026-02-12. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-0125-preview", "gpt-4-turbo-preview", "gpt-4-0314": Announced shutdown
+                date: 2026-03-26. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4-vision-preview": Announced shutdown date: 2024-12-06. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-32k", "gpt-4-32k-0314", "gpt-4-32k-0613": Announced shutdown date:
+                2025-06-06. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-3.5-turbo-16k", "gpt-3.5-turbo-0301", "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-16k-0613": Announced shutdown date: 2024-09-13. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-3.5-turbo-1106": Announced shutdown date: 2026-09-28. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+
           description: The description of the assistant. The maximum length is 512 characters.
 
           instructions: The system instructions that the assistant uses. The maximum length is 256,000
@@ -795,6 +949,16 @@ class AsyncAssistants(AsyncAPIResource):
               [Model overview](https://developers.openai.com/api/docs/models) for descriptions
               of them.
 
+              Deprecated values:
+
+              - "gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-5-2025-08-07",
+                "gpt-5-mini-2025-08-07", "gpt-5-nano-2025-08-07": Announced shutdown date:
+                2026-12-11. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4.1", "gpt-4.1-mini", "gpt-4o", "gpt-4o-mini": Announced shutdown date:
+                2027-01-14. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+
           name: The name of the assistant. The maximum length is 256 characters.
 
           reasoning_effort: Constrains effort on reasoning for reasoning models. Currently supported values
@@ -994,30 +1158,20 @@ class AssistantsWithRawResponse:
     def __init__(self, assistants: Assistants) -> None:
         self._assistants = assistants
 
-        self.create = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.to_raw_response_wrapper(
-                assistants.create,  # pyright: ignore[reportDeprecated],
-            )
+        self.create = _legacy_response.to_raw_response_wrapper(
+            assistants.create,
         )
-        self.retrieve = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.to_raw_response_wrapper(
-                assistants.retrieve,  # pyright: ignore[reportDeprecated],
-            )
+        self.retrieve = _legacy_response.to_raw_response_wrapper(
+            assistants.retrieve,
         )
-        self.update = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.to_raw_response_wrapper(
-                assistants.update,  # pyright: ignore[reportDeprecated],
-            )
+        self.update = _legacy_response.to_raw_response_wrapper(
+            assistants.update,
         )
-        self.list = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.to_raw_response_wrapper(
-                assistants.list,  # pyright: ignore[reportDeprecated],
-            )
+        self.list = _legacy_response.to_raw_response_wrapper(
+            assistants.list,
         )
-        self.delete = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.to_raw_response_wrapper(
-                assistants.delete,  # pyright: ignore[reportDeprecated],
-            )
+        self.delete = _legacy_response.to_raw_response_wrapper(
+            assistants.delete,
         )
 
 
@@ -1025,30 +1179,20 @@ class AsyncAssistantsWithRawResponse:
     def __init__(self, assistants: AsyncAssistants) -> None:
         self._assistants = assistants
 
-        self.create = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.async_to_raw_response_wrapper(
-                assistants.create,  # pyright: ignore[reportDeprecated],
-            )
+        self.create = _legacy_response.async_to_raw_response_wrapper(
+            assistants.create,
         )
-        self.retrieve = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.async_to_raw_response_wrapper(
-                assistants.retrieve,  # pyright: ignore[reportDeprecated],
-            )
+        self.retrieve = _legacy_response.async_to_raw_response_wrapper(
+            assistants.retrieve,
         )
-        self.update = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.async_to_raw_response_wrapper(
-                assistants.update,  # pyright: ignore[reportDeprecated],
-            )
+        self.update = _legacy_response.async_to_raw_response_wrapper(
+            assistants.update,
         )
-        self.list = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.async_to_raw_response_wrapper(
-                assistants.list,  # pyright: ignore[reportDeprecated],
-            )
+        self.list = _legacy_response.async_to_raw_response_wrapper(
+            assistants.list,
         )
-        self.delete = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.async_to_raw_response_wrapper(
-                assistants.delete,  # pyright: ignore[reportDeprecated],
-            )
+        self.delete = _legacy_response.async_to_raw_response_wrapper(
+            assistants.delete,
         )
 
 
@@ -1056,30 +1200,20 @@ class AssistantsWithStreamingResponse:
     def __init__(self, assistants: Assistants) -> None:
         self._assistants = assistants
 
-        self.create = (  # pyright: ignore[reportDeprecated]
-            to_streamed_response_wrapper(
-                assistants.create,  # pyright: ignore[reportDeprecated],
-            )
+        self.create = to_streamed_response_wrapper(
+            assistants.create,
         )
-        self.retrieve = (  # pyright: ignore[reportDeprecated]
-            to_streamed_response_wrapper(
-                assistants.retrieve,  # pyright: ignore[reportDeprecated],
-            )
+        self.retrieve = to_streamed_response_wrapper(
+            assistants.retrieve,
         )
-        self.update = (  # pyright: ignore[reportDeprecated]
-            to_streamed_response_wrapper(
-                assistants.update,  # pyright: ignore[reportDeprecated],
-            )
+        self.update = to_streamed_response_wrapper(
+            assistants.update,
         )
-        self.list = (  # pyright: ignore[reportDeprecated]
-            to_streamed_response_wrapper(
-                assistants.list,  # pyright: ignore[reportDeprecated],
-            )
+        self.list = to_streamed_response_wrapper(
+            assistants.list,
         )
-        self.delete = (  # pyright: ignore[reportDeprecated]
-            to_streamed_response_wrapper(
-                assistants.delete,  # pyright: ignore[reportDeprecated],
-            )
+        self.delete = to_streamed_response_wrapper(
+            assistants.delete,
         )
 
 
@@ -1087,28 +1221,18 @@ class AsyncAssistantsWithStreamingResponse:
     def __init__(self, assistants: AsyncAssistants) -> None:
         self._assistants = assistants
 
-        self.create = (  # pyright: ignore[reportDeprecated]
-            async_to_streamed_response_wrapper(
-                assistants.create,  # pyright: ignore[reportDeprecated],
-            )
+        self.create = async_to_streamed_response_wrapper(
+            assistants.create,
         )
-        self.retrieve = (  # pyright: ignore[reportDeprecated]
-            async_to_streamed_response_wrapper(
-                assistants.retrieve,  # pyright: ignore[reportDeprecated],
-            )
+        self.retrieve = async_to_streamed_response_wrapper(
+            assistants.retrieve,
         )
-        self.update = (  # pyright: ignore[reportDeprecated]
-            async_to_streamed_response_wrapper(
-                assistants.update,  # pyright: ignore[reportDeprecated],
-            )
+        self.update = async_to_streamed_response_wrapper(
+            assistants.update,
         )
-        self.list = (  # pyright: ignore[reportDeprecated]
-            async_to_streamed_response_wrapper(
-                assistants.list,  # pyright: ignore[reportDeprecated],
-            )
+        self.list = async_to_streamed_response_wrapper(
+            assistants.list,
         )
-        self.delete = (  # pyright: ignore[reportDeprecated]
-            async_to_streamed_response_wrapper(
-                assistants.delete,  # pyright: ignore[reportDeprecated],
-            )
+        self.delete = async_to_streamed_response_wrapper(
+            assistants.delete,
         )

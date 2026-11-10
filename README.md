@@ -85,9 +85,7 @@ client = OpenAI(
     workload_identity={
         "identity_provider_id": "idp-123",
         "service_account_id": "sa-456",
-        "provider": k8s_service_account_token_provider(
-            "/var/run/secrets/kubernetes.io/serviceaccount/token"
-        ),
+        "provider": k8s_service_account_token_provider("/var/run/secrets/kubernetes.io/serviceaccount/token"),
     },
 )
 
@@ -392,21 +390,24 @@ The Realtime API enables you to build low-latency, multi-modal conversational ex
 
 Under the hood the SDK uses the [`websockets`](https://websockets.readthedocs.io/en/stable/) library to manage connections.
 
+The retained `client.beta.realtime` interface does not exchange workload-identity tokens or sign Bedrock requests. A client using either method must supply its own `Authorization` settings through `default_headers` or `connect(extra_headers=...)`. Otherwise, the SDK rejects the WebSocket connection locally.
+
+Connection headers override default headers case-insensitively, and `omit` removes a header. These settings preserve the caller's header choices without enabling provider authentication. X.509 workload identity supports HTTP only. Beta WebSockets always reject X.509 clients, even with explicit headers.
+
 The Realtime API works through a combination of client-sent events and server-sent events. Clients can send events to do things like update session configuration or send text and audio inputs. Server events confirm when audio responses have completed, or when a text response from the model has been received. A full event reference can be found [here](https://platform.openai.com/docs/api-reference/realtime-client-events) and a guide can be found [here](https://platform.openai.com/docs/guides/realtime).
 
 Basic text based example:
 
 ```py
 import asyncio
-from openai import AsyncOpenAI
+from openai import AsyncOpenAI, OpenAIError
+
 
 async def main():
     client = AsyncOpenAI()
 
     async with client.realtime.connect(model="gpt-realtime-2") as connection:
-        await connection.session.update(
-            session={"type": "realtime", "output_modalities": ["text"]}
-        )
+        await connection.session.update(session={"type": "realtime", "output_modalities": ["text"]})
 
         await connection.conversation.item.create(
             item={
@@ -425,7 +426,14 @@ async def main():
                 print()
 
             elif event.type == "response.done":
+                if event.response.status != "completed":
+                    raise OpenAIError("The Realtime response did not complete")
                 break
+            elif event.type == "error":
+                raise OpenAIError("Realtime returned an error; inspect the event in your application")
+        else:
+            raise OpenAIError("Realtime disconnected before response.done")
+
 
 asyncio.run(main())
 ```
@@ -442,12 +450,14 @@ client = AsyncOpenAI()
 async with client.realtime.connect(model="gpt-realtime-2") as connection:
     ...
     async for event in connection:
-        if event.type == 'error':
+        if event.type == "error":
             print(event.error.type)
             print(event.error.code)
             print(event.error.event_id)
             print(event.error.message)
 ```
+
+Use the [Translation session helper](docs/realtime-translation.md) to send audio, finish input, and receive final events.
 
 ## Using types
 
@@ -875,10 +885,10 @@ In an API response, a field may be explicitly `null`, or missing entirely; in ei
 
 ```py
 if response.my_field is None:
-  if 'my_field' not in response.model_fields_set:
-    print('Got json like {}, without a "my_field" key present at all.')
-  else:
-    print('Got json like {"my_field": null}.')
+    if "my_field" not in response.model_fields_set:
+        print('Got json like {}, without a "my_field" key present at all.')
+    else:
+        print('Got json like {"my_field": null}.')
 ```
 
 ### Accessing raw response data (e.g. headers)
@@ -890,13 +900,15 @@ from openai import OpenAI
 
 client = OpenAI()
 response = client.chat.completions.with_raw_response.create(
-    messages=[{
-        "role": "user",
-        "content": "Say this is a test",
-    }],
+    messages=[
+        {
+            "role": "user",
+            "content": "Say this is a test",
+        }
+    ],
     model="gpt-5.5",
 )
-print(response.headers.get('X-My-Header'))
+print(response.headers.get("X-My-Header"))
 
 completion = response.parse()  # get the object that `chat.completions.create()` would have returned
 print(completion)
@@ -1107,8 +1119,8 @@ By default the library closes underlying HTTP connections whenever the client is
 from openai import OpenAI
 
 with OpenAI() as client:
-  # make requests here
-  ...
+    # make requests here
+    ...
 
 # HTTP client is now closed
 ```
@@ -1123,9 +1135,7 @@ from openai import AsyncOpenAI
 
 async def main() -> None:
     async with AsyncOpenAI() as client:
-        response = await client.responses.create(
-            model="gpt-5.5", input="Say this is a test"
-        )
+        response = await client.responses.create(model="gpt-5.5", input="Say this is a test")
         print(response.output_text)
 
 
@@ -1272,6 +1282,7 @@ You can determine the version that is being used at runtime with:
 
 ```py
 import openai
+
 print(openai.__version__)
 ```
 

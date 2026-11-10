@@ -9,9 +9,8 @@ __all__ = ["InputAudioUnmutedEvent"]
 
 
 class InputAudioUnmutedEvent(BaseModel):
-    """Returned when a session.input_audio.unmute command is accepted.
-
-    Input audio is sent to the model again.
+    """
+    Acknowledges a session.input_audio.unmute command, removing the independent input mute. An active audio fixture still pauses inference until playback finishes. Fixture playback does not emit this event.
     """
 
     event_id: str

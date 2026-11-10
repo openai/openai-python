@@ -39,3 +39,9 @@ class SafetyAlert(BaseModel):
     """
 
     response_id: str
+
+    detailed_explanation: Optional[str] = None
+    """
+    A generated explanation, temporarily available for eligible zero data retention
+    alerts. Omitted when unavailable.
+    """

@@ -2,21 +2,22 @@
 
 from __future__ import annotations
 
-from typing import Mapping, cast
-from typing_extensions import Literal
+from typing import Union, Mapping, cast
+from typing_extensions import Literal, overload
 
 import httpx2
 
 from ... import _legacy_response
 from ..._files import deepcopy_with_paths
 from ..._types import Body, Omit, Query, Headers, NotGiven, FileTypes, omit, not_given
-from ..._utils import extract_files, required_args, maybe_transform, async_maybe_transform
+from ..._utils import extract_files, path_template, required_args, maybe_transform, async_maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ...types.audio import voice_create_params
 from ..._base_client import make_request_options
 from ...types.audio.voice import Voice
+from ...types.audio.voice_deleted import VoiceDeleted
 
 __all__ = ["Voices", "AsyncVoices"]
 
@@ -43,7 +44,7 @@ class Voices(SyncAPIResource):
         """
         return VoicesWithStreamingResponse(self)
 
-    @required_args(["audio_sample", "consent", "name"])
+    @overload
     def create(
         self,
         *,
@@ -58,17 +59,17 @@ class Voices(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Voice:
-        """Create a custom voice you can use for audio output (for example, in
-        Text-to-Speech and the Realtime API). This requires an audio sample and a
-        previously uploaded consent recording.
+        """Creates a voice from a text prompt or from a consent recording and an audio
+        sample.
 
-        Send `name`, `audio_sample`, and the `consent` recording ID as multipart form
-        data. The optional `type` defaults to `audio_sample`.
+        For prompt-based creation, send `type: "prompt"` with a `name` and `prompt` as
+        JSON or multipart form data. For creation from an audio sample, send
+        `type: "audio_sample"` with a `name`, `audio_sample`, and `consent` recording ID
+        as multipart form data. The type defaults to `audio_sample` when omitted.
 
-        Returns the saved voice's metadata. See the
-        [custom voices guide](https://developers.openai.com/api/docs/guides/text-to-speech#custom-voices)
-        for requirements and best practices. Custom voices are limited to eligible
-        customers.
+        Returns the saved voice's metadata. Voices created from text prompts are
+        supported only in Live, not in Realtime or the speech endpoint. The response
+        does not include preview audio.
 
         Args:
           audio_sample: The sample audio recording file. Maximum size is 10 MiB.
@@ -90,12 +91,86 @@ class Voices(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        ...
+
+    @overload
+    def create(
+        self,
+        *,
+        name: str,
+        prompt: str,
+        type: Literal["prompt"],
+        model: Union[str, Union[Literal["auto"], Literal["2026-10-08"]]] | Omit = omit,
+        script_hint: str | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Voice:
+        """Creates a voice from a text prompt or from a consent recording and an audio
+        sample.
+
+        For prompt-based creation, send `type: "prompt"` with a `name` and `prompt` as
+        JSON or multipart form data. For creation from an audio sample, send
+        `type: "audio_sample"` with a `name`, `audio_sample`, and `consent` recording ID
+        as multipart form data. The type defaults to `audio_sample` when omitted.
+
+        Returns the saved voice's metadata. Voices created from text prompts are
+        supported only in Live, not in Realtime or the speech endpoint. The response
+        does not include preview audio.
+
+        Args:
+          name: The name of the new voice.
+
+          prompt: A description of the desired voice. Must not contain only whitespace.
+
+          type: Set to `prompt` to create a voice from a text description.
+
+          model: The voice creation model to use. Defaults to `auto`.
+
+          script_hint: Optional text for the voice to speak during creation. If omitted, a script is
+              generated from the prompt. Must not be blank after trimming whitespace; scripts
+              that are too short are rejected.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    @required_args(["audio_sample", "consent", "name"], ["name", "prompt", "type"])
+    def create(
+        self,
+        *,
+        audio_sample: FileTypes | Omit = omit,
+        consent: str | Omit = omit,
+        name: str,
+        type: Literal["audio_sample"] | Literal["prompt"] | Omit = omit,
+        prompt: str | Omit = omit,
+        model: Union[str, Union[Literal["auto"], Literal["2026-10-08"]]] | Omit = omit,
+        script_hint: str | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Voice:
         body = deepcopy_with_paths(
             {
                 "audio_sample": audio_sample,
                 "consent": consent,
                 "name": name,
                 "type": type,
+                "prompt": prompt,
+                "model": model,
+                "script_hint": script_hint,
             },
             [["audio_sample"]],
         )
@@ -116,6 +191,50 @@ class Voices(SyncAPIResource):
                 security={"bearer_auth": True},
             ),
             cast_to=Voice,
+        )
+
+    def delete(
+        self,
+        voice_id: str,
+        *,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> VoiceDeleted:
+        """
+        Deletes a voice created from a text prompt or an audio sample.
+
+        Requires voice write permission and access to the voice's project. Access to
+        voices created from recordings is limited to eligible customers. See the
+        [custom voices guide](https://developers.openai.com/api/docs/guides/custom-voices).
+
+        Deleting a voice does not delete its consent recording. Deleting an already
+        deleted voice returns a 404 error.
+
+        Args:
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not voice_id:
+            raise ValueError(f"Expected a non-empty value for `voice_id` but received {voice_id!r}")
+        return self._delete(
+            path_template("/audio/voices/{voice_id}", voice_id=voice_id),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+            ),
+            cast_to=VoiceDeleted,
         )
 
 
@@ -141,7 +260,7 @@ class AsyncVoices(AsyncAPIResource):
         """
         return AsyncVoicesWithStreamingResponse(self)
 
-    @required_args(["audio_sample", "consent", "name"])
+    @overload
     async def create(
         self,
         *,
@@ -156,17 +275,17 @@ class AsyncVoices(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Voice:
-        """Create a custom voice you can use for audio output (for example, in
-        Text-to-Speech and the Realtime API). This requires an audio sample and a
-        previously uploaded consent recording.
+        """Creates a voice from a text prompt or from a consent recording and an audio
+        sample.
 
-        Send `name`, `audio_sample`, and the `consent` recording ID as multipart form
-        data. The optional `type` defaults to `audio_sample`.
+        For prompt-based creation, send `type: "prompt"` with a `name` and `prompt` as
+        JSON or multipart form data. For creation from an audio sample, send
+        `type: "audio_sample"` with a `name`, `audio_sample`, and `consent` recording ID
+        as multipart form data. The type defaults to `audio_sample` when omitted.
 
-        Returns the saved voice's metadata. See the
-        [custom voices guide](https://developers.openai.com/api/docs/guides/text-to-speech#custom-voices)
-        for requirements and best practices. Custom voices are limited to eligible
-        customers.
+        Returns the saved voice's metadata. Voices created from text prompts are
+        supported only in Live, not in Realtime or the speech endpoint. The response
+        does not include preview audio.
 
         Args:
           audio_sample: The sample audio recording file. Maximum size is 10 MiB.
@@ -188,12 +307,86 @@ class AsyncVoices(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        ...
+
+    @overload
+    async def create(
+        self,
+        *,
+        name: str,
+        prompt: str,
+        type: Literal["prompt"],
+        model: Union[str, Union[Literal["auto"], Literal["2026-10-08"]]] | Omit = omit,
+        script_hint: str | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Voice:
+        """Creates a voice from a text prompt or from a consent recording and an audio
+        sample.
+
+        For prompt-based creation, send `type: "prompt"` with a `name` and `prompt` as
+        JSON or multipart form data. For creation from an audio sample, send
+        `type: "audio_sample"` with a `name`, `audio_sample`, and `consent` recording ID
+        as multipart form data. The type defaults to `audio_sample` when omitted.
+
+        Returns the saved voice's metadata. Voices created from text prompts are
+        supported only in Live, not in Realtime or the speech endpoint. The response
+        does not include preview audio.
+
+        Args:
+          name: The name of the new voice.
+
+          prompt: A description of the desired voice. Must not contain only whitespace.
+
+          type: Set to `prompt` to create a voice from a text description.
+
+          model: The voice creation model to use. Defaults to `auto`.
+
+          script_hint: Optional text for the voice to speak during creation. If omitted, a script is
+              generated from the prompt. Must not be blank after trimming whitespace; scripts
+              that are too short are rejected.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    @required_args(["audio_sample", "consent", "name"], ["name", "prompt", "type"])
+    async def create(
+        self,
+        *,
+        audio_sample: FileTypes | Omit = omit,
+        consent: str | Omit = omit,
+        name: str,
+        type: Literal["audio_sample"] | Literal["prompt"] | Omit = omit,
+        prompt: str | Omit = omit,
+        model: Union[str, Union[Literal["auto"], Literal["2026-10-08"]]] | Omit = omit,
+        script_hint: str | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Voice:
         body = deepcopy_with_paths(
             {
                 "audio_sample": audio_sample,
                 "consent": consent,
                 "name": name,
                 "type": type,
+                "prompt": prompt,
+                "model": model,
+                "script_hint": script_hint,
             },
             [["audio_sample"]],
         )
@@ -216,6 +409,50 @@ class AsyncVoices(AsyncAPIResource):
             cast_to=Voice,
         )
 
+    async def delete(
+        self,
+        voice_id: str,
+        *,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> VoiceDeleted:
+        """
+        Deletes a voice created from a text prompt or an audio sample.
+
+        Requires voice write permission and access to the voice's project. Access to
+        voices created from recordings is limited to eligible customers. See the
+        [custom voices guide](https://developers.openai.com/api/docs/guides/custom-voices).
+
+        Deleting a voice does not delete its consent recording. Deleting an already
+        deleted voice returns a 404 error.
+
+        Args:
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not voice_id:
+            raise ValueError(f"Expected a non-empty value for `voice_id` but received {voice_id!r}")
+        return await self._delete(
+            path_template("/audio/voices/{voice_id}", voice_id=voice_id),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+            ),
+            cast_to=VoiceDeleted,
+        )
+
 
 class VoicesWithRawResponse:
     def __init__(self, voices: Voices) -> None:
@@ -223,6 +460,9 @@ class VoicesWithRawResponse:
 
         self.create = _legacy_response.to_raw_response_wrapper(
             voices.create,
+        )
+        self.delete = _legacy_response.to_raw_response_wrapper(
+            voices.delete,
         )
 
 
@@ -233,6 +473,9 @@ class AsyncVoicesWithRawResponse:
         self.create = _legacy_response.async_to_raw_response_wrapper(
             voices.create,
         )
+        self.delete = _legacy_response.async_to_raw_response_wrapper(
+            voices.delete,
+        )
 
 
 class VoicesWithStreamingResponse:
@@ -242,6 +485,9 @@ class VoicesWithStreamingResponse:
         self.create = to_streamed_response_wrapper(
             voices.create,
         )
+        self.delete = to_streamed_response_wrapper(
+            voices.delete,
+        )
 
 
 class AsyncVoicesWithStreamingResponse:
@@ -250,4 +496,7 @@ class AsyncVoicesWithStreamingResponse:
 
         self.create = async_to_streamed_response_wrapper(
             voices.create,
+        )
+        self.delete = async_to_streamed_response_wrapper(
+            voices.delete,
         )

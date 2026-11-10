@@ -45,8 +45,9 @@ def test_bound_action_schema_defaults_and_nested_models() -> None:
     assert tool.name == "reserve"
     assert tool.definition["type"] == "function"
     assert tool.definition["description"] == "Reserve an item from this catalog."
-    assert set(tool.definition["parameters"]["properties"]) == {"item", "quantity", "product"}  # type: ignore
-    assert "self" not in tool.definition["parameters"]["properties"]  # type: ignore
+    # JSON-schema values are typed as object; these assertions verify the generated structure.
+    assert set(tool.definition["parameters"]["properties"]) == {"item", "quantity", "product"}  # ty: ignore[invalid-argument-type]
+    assert "self" not in tool.definition["parameters"]["properties"]  # ty: ignore[unsupported-operator]
     assert json.loads(cast(str, tool({"item": {"sku": "test-sku"}, "quantity": 3}))) == {
         "receipt": "test-receipt",
         "product": "notebook",
@@ -81,7 +82,8 @@ def test_explicit_model_and_alias() -> None:
     tool = pydantic_function_tool(Arguments, name="reserve", description="Reserve items", handler=handler)
     assert tool({"quantity_units": 2}) == "2"
     assert isinstance(seen[0], Arguments)
-    assert "quantity_units" in tool.definition["parameters"]["properties"]  # type: ignore
+    # The schema keeps dynamic JSON values rather than a fixed properties mapping.
+    assert "quantity_units" in tool.definition["parameters"]["properties"]  # ty: ignore[unsupported-operator]
     with pytest.raises(ValidationError):
         tool({"quantity_units": 0})
     assert len(seen) == 1
@@ -125,11 +127,11 @@ async def test_bound_action_through_existing_dispatch(asynchronous: bool, invali
     transport = httpx2.MockTransport(server.handle)
     if asynchronous:
         async with AsyncOpenAI(api_key="synthetic", http_client=httpx2.AsyncClient(transport=transport)) as client:
-            async with client.beta.agents.sessions.stream("session_test", **options) as stream:  # type: ignore
+            async with client.beta.agents.sessions.stream("session_test", **options) as stream:  # ty: ignore[invalid-argument-type]
                 await stream.until_done()
     else:
         with OpenAI(api_key="synthetic", http_client=httpx2.Client(transport=transport)) as client:
-            with client.beta.agents.sessions.stream("session_test", **options) as stream:  # type: ignore
+            with client.beta.agents.sessions.stream("session_test", **options) as stream:  # ty: ignore[invalid-argument-type]
                 stream.until_done()
     assert catalog.reservations == ([] if invalid else [("test-sku", 3)])
     results = server.inputs()[1:]
@@ -280,7 +282,7 @@ def test_bound_class_namespaces() -> None:
         pass
 
     class ShadowedCatalog(Catalog):
-        class Product(BaseModel):  # pyright: ignore[reportIncompatibleVariableOverride]
+        class Product(BaseModel):  # ty: ignore[invalid-attribute-override]
             sku: int
 
     for callback in (
@@ -587,11 +589,11 @@ def test_wrapped_override_uses_defining_namespace(wrap_base: bool) -> None:
             return product.name
 
     class Child(Catalog):
-        class Product(BaseModel):  # pyright: ignore[reportIncompatibleVariableOverride]
+        class Product(BaseModel):  # ty: ignore[invalid-attribute-override]
             sku: int
 
         @wraps(Catalog.lookup)
-        def lookup(self, product: Any) -> str:  # pyright: ignore[reportIncompatibleMethodOverride]
+        def lookup(self, product: Any) -> str:
             return super().lookup(product)
 
     assert function_tool(Child().lookup)({"product": {"name": "notebook"}}) == "notebook"
@@ -609,7 +611,7 @@ def test_bound_alias_keeps_lexical_annotation_owner(delete_original: bool) -> No
         reserve = lookup
 
     class Child(Catalog):
-        class Product(BaseModel):  # pyright: ignore[reportIncompatibleVariableOverride]
+        class Product(BaseModel):  # ty: ignore[invalid-attribute-override]
             sku: int
 
         alias = Catalog.lookup
@@ -702,7 +704,9 @@ def test_async_function_tool_returns_coroutine() -> None:
 
     output = lookup({"query": "test"})
     assert asyncio.iscoroutine(output)
-    assert json.loads(asyncio.run(output)) == {"query": "test"}
+    result = asyncio.run(output)
+    assert isinstance(result, str)
+    assert json.loads(result) == {"query": "test"}
 
 
 @pytest.mark.parametrize("binding", ["constructor", "pydantic", "decorator"])

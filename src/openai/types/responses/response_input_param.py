@@ -41,6 +41,9 @@ __all__ = [
     "ToolSearchCall",
     "AdditionalTools",
     "ImageGenerationCall",
+    "ImageGenerationCallError",
+    "ImageGenerationCallErrorModerationDetails",
+    "ImageGenerationCallSvgUsage",
     "LocalShellCall",
     "LocalShellCallAction",
     "LocalShellCallOutput",
@@ -232,6 +235,47 @@ class AdditionalTools(TypedDict, total=False):
     """The unique ID of this additional tools item."""
 
 
+class ImageGenerationCallErrorModerationDetails(TypedDict, total=False):
+    """Public details for a `moderation_blocked` error, when available."""
+
+    categories: Required[SequenceNotStr[str]]
+    """Public moderation categories. New category values may be added over time."""
+
+    moderation_stage: Required[Literal["input", "output", "unknown"]]
+    """The stage where moderation blocked the image generation call."""
+
+
+class ImageGenerationCallError(TypedDict, total=False):
+    """Details of a moderation failure, when available."""
+
+    code: Required[Optional[str]]
+    """The error code."""
+
+    message: Required[str]
+    """A description of the error."""
+
+    param: Required[Optional[str]]
+    """The related request parameter."""
+
+    type: Required[str]
+    """The error type."""
+
+    moderation_details: ImageGenerationCallErrorModerationDetails
+    """Public details for a `moderation_blocked` error, when available."""
+
+
+class ImageGenerationCallSvgUsage(TypedDict, total=False):
+    input_tokens: Required[int]
+
+    model: Required[str]
+
+    output_tokens: Required[int]
+
+    reasoning_tokens: Required[int]
+
+    total_tokens: Required[int]
+
+
 class ImageGenerationCall(TypedDict, total=False):
     """An image generation request made by the model."""
 
@@ -253,7 +297,10 @@ class ImageGenerationCall(TypedDict, total=False):
     background: Optional[Literal["transparent", "opaque", "auto"]]
     """The background setting used for generation."""
 
-    output_format: Optional[Literal["png", "webp", "jpeg"]]
+    error: ImageGenerationCallError
+    """Details of a moderation failure, when available."""
+
+    output_format: Optional[Literal["png", "webp", "jpeg", "gif", "svg"]]
     """The output format used for generation."""
 
     quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto"]]
@@ -267,6 +314,8 @@ class ImageGenerationCall(TypedDict, total=False):
 
     size: Union[str, Literal["1024x1024", "1024x1536", "1536x1024"], None]
     """The image dimensions as a `WIDTHxHEIGHT` string, for example `1536x864`."""
+
+    svg_usage: ImageGenerationCallSvgUsage
 
 
 class LocalShellCallAction(TypedDict, total=False):
@@ -688,6 +737,9 @@ class CompactionTrigger(TypedDict, total=False):
 
     type: Required[Literal["compaction_trigger"]]
     """The type of the item. Always `compaction_trigger`."""
+
+    id: Optional[str]
+    """The unique ID of this compaction trigger."""
 
 
 class ItemReference(TypedDict, total=False):

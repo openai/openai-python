@@ -9,16 +9,13 @@ __all__ = ["EnvironmentListParams"]
 
 class EnvironmentListParams(TypedDict, total=False):
     after: str
-    """Return environments after this environment ID in the selected order."""
+    """Return resources after this resource ID in the selected order."""
 
     limit: int
-    """The maximum number of environments to return, between 1 and 100.
-
-    Defaults to 20.
-    """
+    """The maximum number of resources to return, between 1 and 100. Defaults to 20."""
 
     order: Literal["asc", "desc"]
-    """The order in which environments are returned. Defaults to `desc`.
+    """The order in which resources are returned. Defaults to `desc`.
 
     - `asc` - Returns resources in ascending order.
     - `desc` - Returns resources in descending order.

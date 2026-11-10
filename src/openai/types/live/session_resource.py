@@ -10,10 +10,20 @@ from .custom_voice import CustomVoice
 from .initial_item import InitialItem
 from .client_config import ClientConfig
 from .built_in_voice import BuiltInVoice
+from .decision_trigger import DecisionTrigger
 from .client_delegation import ClientDelegation
+from .decisions_delegation_config import DecisionsDelegationConfig
 from .responses_delegation_config import ResponsesDelegationConfig
 
-__all__ = ["SessionResource", "Audio", "AudioOutput", "AudioOutputVoice", "Delegation", "DelegationResponses"]
+__all__ = [
+    "SessionResource",
+    "Audio",
+    "AudioOutput",
+    "AudioOutputVoice",
+    "Delegation",
+    "DelegationResponses",
+    "DelegationDecisions",
+]
 
 AudioOutputVoice: TypeAlias = Union[str, BuiltInVoice, CustomVoice]
 
@@ -59,9 +69,34 @@ class DelegationResponses(BaseModel):
     Always `responses` for tasks handled by the Responses API.
     """
 
+    acknowledgement_delay_ms: Optional[int] = None
+    """
+    Milliseconds to wait before requesting an automatic spoken acknowledgement for a
+    delegation. The model may still speak before this delay. Any commentary or
+    thinking appended to the session cancels all pending acknowledgements, including
+    those for other delegations. Defaults to 400 for Decisions sessions and 0
+    (request immediately) for other sessions. Omission in a session update preserves
+    the current value. Updates apply to subsequent delegations.
+    """
+
+
+class DelegationDecisions(BaseModel):
+    decisions: DecisionsDelegationConfig
+
+    type: Literal["decisions"]
+
+    acknowledgement_delay_ms: Optional[int] = None
+    """
+    Milliseconds to wait before requesting an automatic spoken acknowledgement for a
+    delegation. The model may still speak before this delay. Any commentary or
+    thinking appended to the session cancels all pending acknowledgements, including
+    those for other delegations. Defaults to 400. Updates apply to subsequent
+    delegations.
+    """
+
 
 Delegation: TypeAlias = Annotated[
-    Union[ClientDelegation, DelegationResponses, None], PropertyInfo(discriminator="type")
+    Union[ClientDelegation, DelegationResponses, DelegationDecisions, None], PropertyInfo(discriminator="type")
 ]
 
 
@@ -107,15 +142,15 @@ class SessionResource(BaseModel):
     delegation: Optional[Delegation] = None
     """Who handles tasks delegated by the Live model.
 
-    Omitted or null selects your application; use `responses` to let the API manage
-    a Responses backend.
+    Omitted or null selects your application; use `responses` or `decisions` to
+    delegate to the corresponding API.
     """
 
     input: Optional[List[InitialItem]] = None
     """Ordered text-only history supplied before startup.
 
     Supports developer, user, and assistant messages with one text part each; at
-    most 128 messages and 8,192 rendered tokens in total.
+    most 128 messages and a configured rendered-token limit (8,192 by default).
     """
 
     instructions: Optional[str] = None
@@ -133,4 +168,12 @@ class SessionResource(BaseModel):
     """Whether to store the session for later forking and recording download.
 
     Defaults to false for new sessions.
+    """
+
+    triggers: Optional[List[DecisionTrigger]] = None
+    """At most one Decisions trigger per transcript event type.
+
+    Triggers run independently of delegation. On update, omit triggers to keep the
+    current configuration, send a list to replace it, or send an empty list to
+    disable triggers.
     """

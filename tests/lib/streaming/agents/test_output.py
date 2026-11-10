@@ -322,7 +322,8 @@ async def test_followup_output_type_only_selects_local_parser(sdk: OpenAI | Asyn
 def test_enum_literals_match_responses(value: Any) -> None:
     from enum import Enum
 
-    enum = Enum("Example", {"A": value, "B": "other"})
+    # The runtime-generated enum name is part of this schema fixture.
+    enum = Enum("Example", {"A": value, "B": "other"})  # ty: ignore[mismatched-type-name]
     model = type("EnumReport", (BaseModel,), {"__annotations__": {"value": enum}})
     _assert_matches_responses(model)
 
@@ -338,7 +339,8 @@ def test_pattern_keyed_mapping_matches_responses() -> None:
     from pydantic import constr
 
     key_type = cast(Any, constr)(**{("regex" if PYDANTIC_V1 else "pattern"): "^item_"})
-    model = type("PatternMapping", (BaseModel,), {"__annotations__": {"values": dict[key_type, str]}})
+    mapping_type = dict.__class_getitem__((key_type, str))
+    model = type("PatternMapping", (BaseModel,), {"__annotations__": {"values": mapping_type}})
     schema = _assert_matches_responses(model)
     assert schema["properties"]["values"]["patternProperties"] == {"^item_": {"type": "string"}}
 
@@ -352,7 +354,8 @@ def test_bare_mapping_and_empty_fixed_object_match_responses() -> None:
 
 @pytest.mark.parametrize("value", ['say "hello"', "two\nlines"])
 def test_single_literals_match_responses(value: Any) -> None:
-    model = type("LiteralReport", (BaseModel,), {"__annotations__": {"value": Literal[value]}})
+    # Runtime schema construction deliberately supplies a computed Literal.
+    model = type("LiteralReport", (BaseModel,), {"__annotations__": {"value": Literal[value]}})  # ty: ignore[invalid-type-form]
     _assert_matches_responses(model)
 
 

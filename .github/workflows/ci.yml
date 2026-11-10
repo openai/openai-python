@@ -55,7 +55,7 @@ jobs:
           git show "$BASE_SHA:scripts/check-dependency-security.py" | python -I -
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           version: '0.12.5'
           enable-cache: true
@@ -77,10 +77,8 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: ./.github/actions/setup-node-tooling
-
       - name: Set up uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           version: '0.12.5'
           enable-cache: true
@@ -105,7 +103,7 @@ jobs:
           persist-credentials: false
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           version: '0.12.5'
           enable-cache: true
@@ -124,11 +122,14 @@ jobs:
       - name: Validate Bedrock wheel
         run: uv run --locked --all-extras python scripts/utils/validate-bedrock-wheel.py
 
+      - name: Validate Vertex wheel
+        run: uv run --locked --all-extras python scripts/utils/validate-vertex-wheel.py
+
       - name: Validate HTTPX2 wheel on Python 3.10
         run: uv run --locked --all-extras python scripts/utils/validate-httpx2-wheel.py
 
       - name: Set up Python 3.9 for resolver rejection
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.9'
 
@@ -136,12 +137,97 @@ jobs:
         run: python scripts/utils/validate-python-version-wheel.py --check-python-39
 
       - name: Set up Python 3.14
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.14'
 
       - name: Validate HTTPX2 wheel on Python 3.14
         run: python scripts/utils/validate-httpx2-wheel.py
+
+  browser-demo-types:
+    timeout-minutes: 10
+    name: browser demo types
+    runs-on: ubuntu-latest
+    needs: dependency-locks
+    if: github.event_name == 'push' || github.event_name == 'merge_group' || github.event.pull_request.head.repo.fork
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Use this job's Playwright installation
+        run: printf 'PLAYWRIGHT_BROWSERS_PATH=%s/openai-python-playwright\n' "$RUNNER_TEMP" >> "$GITHUB_ENV"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: '0.12.5'
+          python-version: '3.10'
+          enable-cache: true
+
+      - name: Check the optional Playwright demo
+        run: >-
+          uv run --locked --all-extras --group browser-demo
+          ty check --extra-search-path examples/browser examples/browser-use-demo
+
+      - name: Install Chromium for local demo security checks
+        run: uv run --locked --all-extras --group browser-demo playwright install --with-deps chromium
+
+      - name: Allow the sandbox for this job's installed Chromium
+        run: bash .github/scripts/setup-playwright-sandbox.sh
+
+      - name: Run local demo security checks
+        run: uv run --locked --all-extras --group browser-demo python scripts/check-example-security.py demo
+
+  optional-provider-types:
+    # Allow OS/browser setup time while retaining each security exercise's timeout.
+    timeout-minutes: ${{ matrix.provider == 'browser' && 15 || 10 }}
+    name: optional provider types (${{ matrix.provider }})
+    runs-on: ubuntu-latest
+    needs: dependency-locks
+    if: github.event_name == 'push' || github.event_name == 'merge_group' || github.event.pull_request.head.repo.fork
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - provider: browser
+            directory: examples/browser
+          - provider: computer
+            directory: examples/computer-desktop
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Use this job's Playwright installation
+        run: printf 'PLAYWRIGHT_BROWSERS_PATH=%s/openai-python-playwright\n' "$RUNNER_TEMP" >> "$GITHUB_ENV"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: '0.12.5'
+          python-version: '3.10'
+          enable-cache: true
+
+      - name: Check optional provider types against this checkout
+        run: >-
+          uv run --locked --all-extras --no-default-groups --group dev --group provider-${{ matrix.provider }}
+          ty check ${{ matrix.directory }}
+
+      - name: Install Chromium for local browser security checks
+        if: matrix.provider == 'browser'
+        run: >-
+          uv run --locked --all-extras --no-default-groups --group dev --group provider-${{ matrix.provider }}
+          playwright install --with-deps chromium
+
+      - name: Allow the sandbox for this job's installed Chromium
+        if: matrix.provider == 'browser'
+        run: bash .github/scripts/setup-playwright-sandbox.sh
+
+      - name: Run local provider and guest security checks
+        run: >-
+          uv run --locked --all-extras --no-default-groups --group dev --group provider-${{ matrix.provider }}
+          python scripts/check-example-security.py ${{ matrix.provider }}
 
   test:
     timeout-minutes: 15
@@ -159,16 +245,19 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: ./.github/actions/setup-node-tooling
+      - name: Set up Node for the mock-server tooling
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
 
       - name: Set up Python ${{ matrix.python-version }}
         id: setup-python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: ${{ matrix.python-version }}
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           version: '0.12.5'
           python-version: ${{ matrix.python-version }}
@@ -177,43 +266,13 @@ jobs:
       - name: Bootstrap
         run: ./scripts/bootstrap
 
+      - name: Install the pinned mock-server tooling
+        run: ./scripts/steady/install
+
       - name: Check concurrent Steady publication
         run: node scripts/steady/publication.test.cjs
 
       - name: Run tests
-        run: ./scripts/test
-
-  test-httpx2:
-    timeout-minutes: 20
-    name: test (HTTPX2)
-    runs-on: ubuntu-latest
-    needs: dependency-locks
-    if: github.event_name == 'push' || github.event_name == 'merge_group' || github.event.pull_request.head.repo.fork
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - uses: ./.github/actions/setup-node-tooling
-
-      - name: Set up Python 3.14
-        id: setup-python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with:
-          python-version: '3.14'
-
-      - name: Set up uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
-        with:
-          version: '0.12.5'
-          python-version: '3.14'
-          enable-cache: true
-
-      - name: Install HTTPX2 test dependencies
-        run: |
-          uv sync --locked --all-extras
-
-      - name: Run tests with HTTPX2
         env:
           OPENAI_TEST_HTTP_CLIENT: httpx2
         run: ./scripts/test
@@ -232,7 +291,7 @@ jobs:
           persist-credentials: false
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           version: '0.12.5'
           enable-cache: true
@@ -294,13 +353,13 @@ jobs:
 
       - name: Set up Python ${{ matrix.python-version }}
         id: setup-python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: ${{ matrix.python-version }}
           allow-prereleases: ${{ matrix.experimental }}
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           version: '0.12.5'
           python-version: ${{ matrix.python-version }}

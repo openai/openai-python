@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Optional
 from typing_extensions import Literal, TypedDict
 
 __all__ = ["AgentListParams"]
@@ -12,8 +11,8 @@ class AgentListParams(TypedDict, total=False):
     after: str
     """Return resources after this resource ID in the selected order."""
 
-    limit: Optional[int]
-    """The maximum number of resources to return."""
+    limit: int
+    """The maximum number of resources to return, between 1 and 100. Defaults to 20."""
 
     order: Literal["asc", "desc"]
     """The order in which resources are returned. Defaults to `desc`.

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import Any, cast
+from typing import Any
 
 import pydantic
 
@@ -15,8 +15,6 @@ def model_schema(
     # Pydantic v1 caches schema dictionaries. Input and output policies must not
     # mutate each other's schemas or the model's cache.
     schema = deepcopy(
-        model.json_schema()
-        if not PYDANTIC_V1 and isinstance(model, pydantic.TypeAdapter)
-        else model_json_schema(cast(type[pydantic.BaseModel], model))
+        model.json_schema() if not PYDANTIC_V1 and isinstance(model, pydantic.TypeAdapter) else model_json_schema(model)
     )
     return _ensure_strict_json_schema(schema, path=(), root=schema) if strict else schema

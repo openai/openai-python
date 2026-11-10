@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" />
+  <title>Desktop fixture</title>
+  <style>
+    body {
+      font: 18px sans-serif;
+      background: #f5f5ee;
+      margin: 30px;
+    }
+    button {
+      position: absolute;
+      top: 120px;
+      left: 32px;
+      width: 360px;
+      height: 96px;
+      font: inherit;
+      padding: 18px;
+      background: #124f43;
+      color: white;
+    }
+    #status {
+      position: absolute;
+      top: 238px;
+    }
+  </style>
+  <h1>Dispatch ticket</h1>
+  <p>Case D-2201. Route to the local desk.</p>
+  <button type="button" id="route">Route D-2201</button>
+  <p id="status">Waiting</p>
+  <script>
+    document.querySelector('#route').onclick = async () => {
+      const result = await fetch('/effect', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ id: 'D-2201', action: 'route' }),
+      });
+      if (result.ok) document.querySelector('#status').textContent = 'Recorded D-2201';
+    };
+  </script>
+</html>

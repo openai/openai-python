@@ -11,8 +11,8 @@ from pydantic import BaseModel
 from inline_snapshot import (
     external,
     snapshot,
-    outsource,  # pyright: ignore[reportUnknownVariableType]
-    get_snapshot_value,  # pyright: ignore[reportUnknownVariableType]
+    outsource,
+    get_snapshot_value,
 )
 
 import openai
@@ -37,9 +37,9 @@ from ...conftest import base_url
 _T = TypeVar("_T")
 
 # all the snapshots in this file are auto-generated from the live API
-#
+
 # you can update them with
-#
+
 # `OPENAI_LIVE=1 pytest --inline-snapshot=fix -p no:xdist -o addopts=""`
 
 

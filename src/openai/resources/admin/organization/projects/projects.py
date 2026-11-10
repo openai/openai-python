@@ -94,6 +94,14 @@ from .model_permissions import (
     ModelPermissionsWithStreamingResponse,
     AsyncModelPermissionsWithStreamingResponse,
 )
+from .service_tier_settings import (
+    ServiceTierSettings,
+    AsyncServiceTierSettings,
+    ServiceTierSettingsWithRawResponse,
+    AsyncServiceTierSettingsWithRawResponse,
+    ServiceTierSettingsWithStreamingResponse,
+    AsyncServiceTierSettingsWithStreamingResponse,
+)
 from .hosted_tool_permissions import (
     HostedToolPermissions,
     AsyncHostedToolPermissions,
@@ -142,6 +150,10 @@ class Projects(SyncAPIResource):
     @cached_property
     def model_permissions(self) -> ModelPermissions:
         return ModelPermissions(self._client)
+
+    @cached_property
+    def service_tier_settings(self) -> ServiceTierSettings:
+        return ServiceTierSettings(self._client)
 
     @cached_property
     def hosted_tool_permissions(self) -> HostedToolPermissions:
@@ -465,6 +477,10 @@ class AsyncProjects(AsyncAPIResource):
     @cached_property
     def model_permissions(self) -> AsyncModelPermissions:
         return AsyncModelPermissions(self._client)
+
+    @cached_property
+    def service_tier_settings(self) -> AsyncServiceTierSettings:
+        return AsyncServiceTierSettings(self._client)
 
     @cached_property
     def hosted_tool_permissions(self) -> AsyncHostedToolPermissions:
@@ -809,6 +825,10 @@ class ProjectsWithRawResponse:
         return ModelPermissionsWithRawResponse(self._projects.model_permissions)
 
     @cached_property
+    def service_tier_settings(self) -> ServiceTierSettingsWithRawResponse:
+        return ServiceTierSettingsWithRawResponse(self._projects.service_tier_settings)
+
+    @cached_property
     def hosted_tool_permissions(self) -> HostedToolPermissionsWithRawResponse:
         return HostedToolPermissionsWithRawResponse(self._projects.hosted_tool_permissions)
 
@@ -876,6 +896,10 @@ class AsyncProjectsWithRawResponse:
     @cached_property
     def model_permissions(self) -> AsyncModelPermissionsWithRawResponse:
         return AsyncModelPermissionsWithRawResponse(self._projects.model_permissions)
+
+    @cached_property
+    def service_tier_settings(self) -> AsyncServiceTierSettingsWithRawResponse:
+        return AsyncServiceTierSettingsWithRawResponse(self._projects.service_tier_settings)
 
     @cached_property
     def hosted_tool_permissions(self) -> AsyncHostedToolPermissionsWithRawResponse:
@@ -947,6 +971,10 @@ class ProjectsWithStreamingResponse:
         return ModelPermissionsWithStreamingResponse(self._projects.model_permissions)
 
     @cached_property
+    def service_tier_settings(self) -> ServiceTierSettingsWithStreamingResponse:
+        return ServiceTierSettingsWithStreamingResponse(self._projects.service_tier_settings)
+
+    @cached_property
     def hosted_tool_permissions(self) -> HostedToolPermissionsWithStreamingResponse:
         return HostedToolPermissionsWithStreamingResponse(self._projects.hosted_tool_permissions)
 
@@ -1014,6 +1042,10 @@ class AsyncProjectsWithStreamingResponse:
     @cached_property
     def model_permissions(self) -> AsyncModelPermissionsWithStreamingResponse:
         return AsyncModelPermissionsWithStreamingResponse(self._projects.model_permissions)
+
+    @cached_property
+    def service_tier_settings(self) -> AsyncServiceTierSettingsWithStreamingResponse:
+        return AsyncServiceTierSettingsWithStreamingResponse(self._projects.service_tier_settings)
 
     @cached_property
     def hosted_tool_permissions(self) -> AsyncHostedToolPermissionsWithStreamingResponse:

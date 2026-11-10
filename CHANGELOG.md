@@ -1,5 +1,399 @@
 # Changelog
 
+## [3.49.0](https://github.com/openai/openai-python/compare/v3.48.0...v3.49.0) (2026-11-10)
+
+
+### Features
+
+* **api:** add typed async function tools ([#4264](https://github.com/openai/openai-python/issues/4264)) ([ea07983](https://github.com/openai/openai-python/commit/ea07983f796144835ab3f2cad38fdca04c997a0e))
+
+
+### Bug Fixes
+
+* encode microphone recordings as valid PCM WAV ([#3900](https://github.com/openai/openai-python/issues/3900)) ([13c000d](https://github.com/openai/openai-python/commit/13c000d1f32c1e3e3c4b3e16bc6b956dfd4f5216))
+
+## [3.48.0](https://github.com/openai/openai-python/compare/v3.47.0...v3.48.0) (2026-11-09)
+
+
+### Features
+
+* **api:** add stream options for agent sessions ([#4251](https://github.com/openai/openai-python/issues/4251)) ([c6fc264](https://github.com/openai/openai-python/commit/c6fc264689d384d5caec150fafa1a9567c4a3f56))
+* **api:** recognize gpt-6-rosalind in beta Responses ([#4257](https://github.com/openai/openai-python/issues/4257)) ([3774b7e](https://github.com/openai/openai-python/commit/3774b7ed775b4bff99b45ef961c5d1f6c82b8e99))
+
+
+### Chores
+
+* **api:** retain agent scheduling support ([#4255](https://github.com/openai/openai-python/issues/4255)) ([a1175a3](https://github.com/openai/openai-python/commit/a1175a35ba6aa2d6bf98d26088a572ab0c5f4453))
+* **deps:** bump locked multidict from 6.9.1 to 7.1.0 ([#4259](https://github.com/openai/openai-python/pull/4259)) ([28cdb1b](https://github.com/openai/openai-python/commit/28cdb1beef191368a61a25bbf56371065387deb4))
+* **deps-dev:** bump the python-maintenance group with 5 updates ([#4258](https://github.com/openai/openai-python/issues/4258)) ([4b10e22](https://github.com/openai/openai-python/commit/4b10e223452ae7450a5423ee30c13115ae9652ef))
+* **deps-dev:** bump types-requests from 2.33.0.20261006 to 2.33.0.20261030 ([#4260](https://github.com/openai/openai-python/issues/4260)) ([de498d7](https://github.com/openai/openai-python/commit/de498d730cafa51f5fb0640f0335719957ea1733))
+
+
+### Documentation
+
+* consolidate AGENTS.md guidance ([#4254](https://github.com/openai/openai-python/issues/4254)) ([44b1555](https://github.com/openai/openai-python/commit/44b1555aff1c22998c008c84400e7acce39fb928))
+
+## [3.47.0](https://github.com/openai/openai-python/compare/v3.46.0...v3.47.0) (2026-11-05)
+
+
+### Features
+
+* **api:** add a model option for Responses ([#4249](https://github.com/openai/openai-python/issues/4249)) ([090098f](https://github.com/openai/openai-python/commit/090098fd3f00fd46c529c4fd19edc2c762ce7a34))
+
+## [3.46.0](https://github.com/openai/openai-python/compare/v3.45.0...v3.46.0) (2026-11-05)
+
+
+### Features
+
+* **api:** add Australia, India, and Japan residency options ([#4246](https://github.com/openai/openai-python/issues/4246)) ([2634b87](https://github.com/openai/openai-python/commit/2634b87c2f3d31960936cb0653e662356cd138a2))
+* **api:** add GPT-6 Rosalind to the model catalog ([#4243](https://github.com/openai/openai-python/issues/4243)) ([0f8e5f3](https://github.com/openai/openai-python/commit/0f8e5f382861120809b1d149a18c744f725746a0))
+* **api:** add image complexity and GIF and SVG output controls ([#4247](https://github.com/openai/openai-python/issues/4247)) ([0152e3a](https://github.com/openai/openai-python/commit/0152e3ada40e7580921aec71de2770ff02e69b05))
+* **api:** expand agent turn errors and image and audio options ([#4245](https://github.com/openai/openai-python/issues/4245)) ([1b2fb74](https://github.com/openai/openai-python/commit/1b2fb74d1ac88eca798a00d3e5c0789ab9e42833))
+
+
+### Chores
+
+* **deps:** bump github/codeql-action/init from 4.39.0 to 4.39.1 ([#4230](https://github.com/openai/openai-python/issues/4230)) ([c9fe335](https://github.com/openai/openai-python/commit/c9fe3355fd43084df817543d0d7bd5bc72065c0f))
+
+## [3.45.0](https://github.com/openai/openai-python/compare/v3.44.0...v3.45.0) (2026-11-03)
+
+
+### Features
+
+* **api:** add 12-hour Responses caching and cache-write usage ([#4240](https://github.com/openai/openai-python/issues/4240)) ([5f717b5](https://github.com/openai/openai-python/commit/5f717b537b7c230e2a38d0cebb0d5ccc8f97d00b))
+* **api:** add project service tier settings ([#4239](https://github.com/openai/openai-python/issues/4239)) ([1a2a3d0](https://github.com/openai/openai-python/commit/1a2a3d02247f9eaf0614bae9d35c60cbddf1d460))
+
+
+### Documentation
+
+* clarify generated-file ownership ([#4241](https://github.com/openai/openai-python/issues/4241)) ([0309a8c](https://github.com/openai/openai-python/commit/0309a8c10cb0ddda39b40592455e76847b78cf64))
+
+## [3.44.0](https://github.com/openai/openai-python/compare/v3.43.0...v3.44.0) (2026-11-03)
+
+
+### Features
+
+* **api:** add workload identity providers and federation rules ([#4237](https://github.com/openai/openai-python/issues/4237)) ([12709d7](https://github.com/openai/openai-python/commit/12709d708ad03291d8a81371a55a4dadfbcce31d))
+
+## [3.43.0](https://github.com/openai/openai-python/compare/v3.42.1...v3.43.0) (2026-11-03)
+
+
+### Features
+
+* **api:** expand Live Responses delegation tools ([#4233](https://github.com/openai/openai-python/issues/4233)) ([f6e8480](https://github.com/openai/openai-python/commit/f6e8480f9a5b2a4d02b17a1da54a1e57964bc312))
+* **responses:** accumulate rich WebSocket progress ([#4224](https://github.com/openai/openai-python/issues/4224)) ([48cdad3](https://github.com/openai/openai-python/commit/48cdad3a61321cf9a27834b818c6d1fcfe651138))
+* **responses:** add WebSocket lane overflow isolation ([#4225](https://github.com/openai/openai-python/issues/4225)) ([16bdad1](https://github.com/openai/openai-python/commit/16bdad17364b62254e14f52f834d15cf1036a024))
+
+
+### Chores
+
+* **deps:** bump actions/setup-node from 4.4.0 to 7.1.0 ([#4229](https://github.com/openai/openai-python/issues/4229)) ([abbfb27](https://github.com/openai/openai-python/commit/abbfb27aec2a660569d0570263d622877af64087))
+* **deps:** bump actions/setup-python from 7.0.0 to 7.1.0 ([#4232](https://github.com/openai/openai-python/issues/4232)) ([49f9a59](https://github.com/openai/openai-python/commit/49f9a596ead681644a76a54992fc10e9b87a95b0))
+* **deps:** bump pypa/gh-action-pypi-publish from 1.14.2 to 1.14.3 ([#4228](https://github.com/openai/openai-python/issues/4228)) ([f43f29b](https://github.com/openai/openai-python/commit/f43f29b5f7db37579becc2dad83f5054ef59ed6f))
+
+## [3.42.1](https://github.com/openai/openai-python/compare/v3.42.0...v3.42.1) (2026-11-01)
+
+
+### Bug Fixes
+
+* **api:** preserve Responses WebSocket connection behavior ([#4221](https://github.com/openai/openai-python/issues/4221)) ([38075d8](https://github.com/openai/openai-python/commit/38075d8c6d90ba03557e991eb75991e65cfee88b))
+* **realtime:** validate beta WebSocket authentication profiles ([#4218](https://github.com/openai/openai-python/issues/4218)) ([3622a97](https://github.com/openai/openai-python/commit/3622a973d5db2adb26e6ef5c7dd8626b6af075ed))
+
+
+### Refactors
+
+* **websocket:** add SDK-owned Responses policy helpers ([#4219](https://github.com/openai/openai-python/issues/4219)) ([83ed269](https://github.com/openai/openai-python/commit/83ed2699a0b591e544325da40cffc3862f62abe6))
+
+## [3.42.0](https://github.com/openai/openai-python/compare/v3.41.0...v3.42.0) (2026-10-31)
+
+
+### Features
+
+* **api:** add agent context compaction settings ([#4209](https://github.com/openai/openai-python/issues/4209)) ([f552fcf](https://github.com/openai/openai-python/commit/f552fcffcf774520e946121704b5fbbf7ba986e8))
+* **api:** add agent session review and tool settings ([#4217](https://github.com/openai/openai-python/issues/4217)) ([a63c4cd](https://github.com/openai/openai-python/commit/a63c4cdb1c758af3a2ca8edace3b5291f8b0318a))
+* **api:** add experimental agent time awareness ([#4211](https://github.com/openai/openai-python/issues/4211)) ([10f9dd0](https://github.com/openai/openai-python/commit/10f9dd012363229a6c6f3fddb73403427fcd5eef))
+* **api:** add image edit markup overlays ([#4210](https://github.com/openai/openai-python/issues/4210)) ([72c656d](https://github.com/openai/openai-python/commit/72c656df672989eed60c85bfafeb57f578fcc2ef))
+* **api:** add organization external key management ([#4205](https://github.com/openai/openai-python/issues/4205)) ([3ee373e](https://github.com/openai/openai-python/commit/3ee373e038dd0756eba7d748605e5209bc5b726c))
+* **api:** add SIP DTMF commands and delivery events ([#4208](https://github.com/openai/openai-python/issues/4208)) ([f9f3f76](https://github.com/openai/openai-python/commit/f9f3f76cf3af2c12675574a16804f3592a4f718a))
+* **api:** improve WebSocket recovery and delivery reporting ([#4213](https://github.com/openai/openai-python/issues/4213)) ([68b962c](https://github.com/openai/openai-python/commit/68b962c7368c2c955771c731a769e5ef15e8f781))
+* **api:** keep callable API keys scoped to each request ([#4216](https://github.com/openai/openai-python/issues/4216)) ([85bb536](https://github.com/openai/openai-python/commit/85bb536ad1ec5664d669544ca56b5e41701b1cdd))
+* **api:** support response format updates and local output types ([#4212](https://github.com/openai/openai-python/issues/4212)) ([bd61e84](https://github.com/openai/openai-python/commit/bd61e84ca80c3579f1336a2d55c79bc5dca57a57))
+* **api:** support WebSocket warmup and preserve cleanup cancellation ([#4215](https://github.com/openai/openai-python/issues/4215)) ([9abd656](https://github.com/openai/openai-python/commit/9abd656973e0c485419db159815de17d29c2b7a3))
+
+
+### Bug Fixes
+
+* preserve refusal output and authentication in WebSocket helpers ([#4214](https://github.com/openai/openai-python/issues/4214)) ([0599203](https://github.com/openai/openai-python/commit/05992039b9f7b78a48cf1e5a35727ba27d96db6e))
+
+## [3.41.0](https://github.com/openai/openai-python/compare/v3.40.0...v3.41.0) (2026-10-28)
+
+
+### Features
+
+* **api:** accept typed references in Realtime response inputs ([#4189](https://github.com/openai/openai-python/issues/4189)) ([8ecb487](https://github.com/openai/openai-python/commit/8ecb487ceb746f3af492c2d94083eb4e5d82a14f))
+* **api:** add response tool usage models ([#4201](https://github.com/openai/openai-python/issues/4201)) ([55fc500](https://github.com/openai/openai-python/commit/55fc5008533deef3ad99ab6ffe48021e95aa22c2))
+* **api:** filter agent sessions by metadata ([#4200](https://github.com/openai/openai-python/issues/4200)) ([77fd116](https://github.com/openai/openai-python/commit/77fd116d2326bc828bb23d4fd7960142972293a4))
+* **websocket:** recover queued binary frames after reconnect ([#4191](https://github.com/openai/openai-python/issues/4191)) ([f079868](https://github.com/openai/openai-python/commit/f0798682d36be3bb79293d40c260cd93dbabf939))
+
+
+### Bug Fixes
+
+* **examples:** detect incomplete WebSocket responses ([#4187](https://github.com/openai/openai-python/issues/4187)) ([8559299](https://github.com/openai/openai-python/commit/8559299f866af4931293e9392f2829a20c545c0b))
+* **examples:** handle interruptions and disconnects in push-to-talk ([#4192](https://github.com/openai/openai-python/issues/4192)) ([35fc9f3](https://github.com/openai/openai-python/commit/35fc9f33a769858475f2f512112c4256480fff41))
+* keep consumer fixtures clean under strict Pyright ([#4204](https://github.com/openai/openai-python/issues/4204)) ([5012565](https://github.com/openai/openai-python/commit/501256573272e172fb5a39ecf36ca0c27f1ea40d))
+
+
+### Chores
+
+* **api:** document upcoming model shutdowns ([#4199](https://github.com/openai/openai-python/issues/4199)) ([5b43cce](https://github.com/openai/openai-python/commit/5b43cceea4a25bc1b9ed1b08f087408b47981083))
+* **api:** update image-model documentation ([#4198](https://github.com/openai/openai-python/issues/4198)) ([fa67521](https://github.com/openai/openai-python/commit/fa67521e1c59f11fb5cba7ef8b9b35b5fcac2ae4))
+* enforce generated-file ownership ([#4193](https://github.com/openai/openai-python/issues/4193)) ([1b37b9a](https://github.com/openai/openai-python/commit/1b37b9a85e857a7ada4db661bf867bf680290ccf))
+* migrate development type checking to ty ([#4202](https://github.com/openai/openai-python/issues/4202)) ([45b9531](https://github.com/openai/openai-python/commit/45b9531d549df9b7c4af267d66ac5a5999bd9d31))
+
+## [3.40.0](https://github.com/openai/openai-python/compare/v3.39.0...v3.40.0) (2026-10-27)
+
+
+### Features
+
+* **api:** add prompt cache breakpoint TTL options ([#4188](https://github.com/openai/openai-python/issues/4188)) ([3596d18](https://github.com/openai/openai-python/commit/3596d18f05b63081fd64c6da82b515293afb98c6))
+
+
+### Bug Fixes
+
+* **ci:** use an explicit browser demo dependency ([#4185](https://github.com/openai/openai-python/issues/4185)) ([a3f4302](https://github.com/openai/openai-python/commit/a3f430241c4a2e3e25bf79cc7d0148e51795a292))
+
+
+### Chores
+
+* **api:** record completed generated-code separation ([#4190](https://github.com/openai/openai-python/issues/4190)) ([d7ab5ee](https://github.com/openai/openai-python/commit/d7ab5ee237f8d8a8fa51dd7177a47cfbd6c331e6))
+* **deps-dev:** bump griffe from 1.14.0 to 2.3.0 ([#4069](https://github.com/openai/openai-python/issues/4069)) ([766b849](https://github.com/openai/openai-python/commit/766b849c2a32f47d7a0299c919fd10dd2fec7c6d))
+* **deps:** bump actions/create-github-app-token from 3.2.0 to 3.3.0 ([#4178](https://github.com/openai/openai-python/issues/4178)) ([06dbb5d](https://github.com/openai/openai-python/commit/06dbb5d019d7b6870b5898bf5df579ca60b61d28))
+* **deps:** bump actions/download-artifact from 8.0.1 to 8.0.2 ([#4110](https://github.com/openai/openai-python/issues/4110)) ([2404d04](https://github.com/openai/openai-python/commit/2404d0453d8f8dea27b09871359dd7d36510c21b))
+* **deps:** bump actions/upload-artifact from 7.0.1 to 7.0.2 ([#4107](https://github.com/openai/openai-python/issues/4107)) ([0adf711](https://github.com/openai/openai-python/commit/0adf71130c1ad0fec62af9ed4589e5961c48fcea))
+* **deps:** bump github/codeql-action/analyze from 4.38.2 to 4.39.0 ([#4177](https://github.com/openai/openai-python/issues/4177)) ([1e42321](https://github.com/openai/openai-python/commit/1e423213f13024df53e75eb500c8b8ab6277d5cc))
+* **deps:** bump openai/codex-action from 1.12 to 1.13 ([#4070](https://github.com/openai/openai-python/issues/4070)) ([904ed3f](https://github.com/openai/openai-python/commit/904ed3f6ba0f2351af67c9456e9f020401a8a7f8))
+* update generated-code verification and preserve SDK helpers ([#4186](https://github.com/openai/openai-python/issues/4186)) ([9412200](https://github.com/openai/openai-python/commit/9412200f9d2d25201e8ad007a6da198e395853c8))
+
+## [3.39.0](https://github.com/openai/openai-python/compare/v3.38.0...v3.39.0) (2026-10-26)
+
+
+### Features
+
+* **api:** add gpt-6.1-terra model identifier ([#4180](https://github.com/openai/openai-python/issues/4180)) ([e8beb1a](https://github.com/openai/openai-python/commit/e8beb1abdf6de71ea10195c942f6566ca2696c28))
+
+## [3.38.0](https://github.com/openai/openai-python/compare/v3.37.0...v3.38.0) (2026-10-25)
+
+
+### Features
+
+* **api:** add delegation controls and prompt cache lifetimes ([#4169](https://github.com/openai/openai-python/issues/4169)) ([43045fc](https://github.com/openai/openai-python/commit/43045fcaf91aec08571e54c57706597cefd32d45))
+* **api:** expand Live Decision item and question types ([#4175](https://github.com/openai/openai-python/issues/4175)) ([5d72315](https://github.com/openai/openai-python/commit/5d72315876ffd8b72b958623ef4db26da3fb1e61))
+
+
+### Bug Fixes
+
+* **agents:** clarify result schema warnings ([#4165](https://github.com/openai/openai-python/issues/4165)) ([cfa0a79](https://github.com/openai/openai-python/commit/cfa0a79b6395bb0561b28879122a9f90a87cdada))
+* format API status errors using the server message ([#4161](https://github.com/openai/openai-python/issues/4161)) ([6ce5f05](https://github.com/openai/openai-python/commit/6ce5f058b3369dcf9f2a25f9fa67de0cca1451ab))
+* preserve fallback parsing for PEP 604 unions ([#4160](https://github.com/openai/openai-python/issues/4160)) ([05dfea0](https://github.com/openai/openai-python/commit/05dfea0a1cb41a3e6ae1cc3bd13145b57cf3ffb8))
+* **responses:** resolve function arguments within their namespace ([#4166](https://github.com/openai/openai-python/issues/4166)) ([81792ff](https://github.com/openai/openai-python/commit/81792ff040a2ca2b70348163049d3d69d5ba95cf))
+* **responses:** validate tool namespaces before runner dispatch ([#4167](https://github.com/openai/openai-python/issues/4167)) ([56a55f2](https://github.com/openai/openai-python/commit/56a55f243960e05e6268bb48ba6bf45299b8f90b))
+
+
+### Chores
+
+* **api:** preserve client and resource compatibility ([#4157](https://github.com/openai/openai-python/issues/4157)) ([56f33a1](https://github.com/openai/openai-python/commit/56f33a12591516e9ce88ee72e3a59b15ac518641))
+* enforce zero custom code in generated Python files ([#4168](https://github.com/openai/openai-python/issues/4168)) ([d622f28](https://github.com/openai/openai-python/commit/d622f28ad5cb3f947541936c0c139891211a42c5))
+
+## [3.37.0](https://github.com/openai/openai-python/compare/v3.36.1...v3.37.0) (2026-10-22)
+
+
+### ⚠ BREAKING CHANGES
+
+* **api:** This minor release includes a breaking change to Decisions types. In Live response models, question `instructions` can now be a string or a list of structured text, image, or JSON parts; check `isinstance(question.instructions, str)` before using string operations and handle the structured form. Decisions request input types also include additional message roles and tool-history items, so update exhaustive type checks accordingly. Existing string instructions and `DecisionInputMessageParam` user-message inputs remain supported.
+
+
+### Features
+
+* **api:** expand Decisions input and question types ([#4158](https://github.com/openai/openai-python/issues/4158)) ([1e45ad1](https://github.com/openai/openai-python/commit/1e45ad180ba409e3c31897710aa2a40129d58994))
+
+
+### Chores
+
+* **api:** preserve file and video polling helpers ([#4155](https://github.com/openai/openai-python/issues/4155)) ([7db9d88](https://github.com/openai/openai-python/commit/7db9d884c33b0d5ef252e9a4b6e7ae0bbd217e5b))
+* **api:** preserve upload helpers and Live connection defaults ([#4152](https://github.com/openai/openai-python/issues/4152)) ([a29dc39](https://github.com/openai/openai-python/commit/a29dc3947aeccecc2e85d8fbad4d7c03b8af13e9))
+* **deps:** bump astral-sh/setup-uv from 10.2.0 to 10.3.0 ([#4109](https://github.com/openai/openai-python/issues/4109)) ([fa9a161](https://github.com/openai/openai-python/commit/fa9a1616fd175e68dec9960d33dee2caefc0e8d3))
+
+## [3.36.1](https://github.com/openai/openai-python/compare/v3.36.0...v3.36.1) (2026-10-22)
+
+
+### Bug Fixes
+
+* **api:** honor per-call WebSocket query settings ([#4138](https://github.com/openai/openai-python/issues/4138)) ([d40a5e1](https://github.com/openai/openai-python/commit/d40a5e1283e6d91ed4bebac6e569b27d5fe02c52))
+* **examples:** stop microphone capture between recordings ([#4143](https://github.com/openai/openai-python/issues/4143)) ([26e5d92](https://github.com/openai/openai-python/commit/26e5d926966fc5c7e688790b21d66dc08d35eceb))
+* validate browser calls before reading driver state ([#4142](https://github.com/openai/openai-python/issues/4142)) ([2bfe460](https://github.com/openai/openai-python/commit/2bfe46032307f0dd8300a7819f4cea2c97c7c32e))
+
+
+### Chores
+
+* **api:** clarify service-account API key deletion ([#4151](https://github.com/openai/openai-python/issues/4151)) ([6ed945e](https://github.com/openai/openai-python/commit/6ed945e6b3e0d826048e0330b64228267b791ad3))
+
+
+### Refactors
+
+* prepare handwritten chunked upload runtime ([#4146](https://github.com/openai/openai-python/issues/4146)) ([2d58e82](https://github.com/openai/openai-python/commit/2d58e828cfda3f6ffe7b9f9b2f9f7305dbdb028a))
+* prepare handwritten vector-store polling runtime ([#4148](https://github.com/openai/openai-python/issues/4148)) ([7cd7028](https://github.com/openai/openai-python/commit/7cd702895379656bee62047ff64813ff616aeef7))
+
+## [3.36.0](https://github.com/openai/openai-python/compare/v3.35.1...v3.36.0) (2026-10-21)
+
+
+### Features
+
+* add Vertex AI support for the Responses API ([#4139](https://github.com/openai/openai-python/issues/4139)) ([3e63d33](https://github.com/openai/openai-python/commit/3e63d33f6258f47285007aaee30df251d5127820))
+* **api:** add 30-minute cache-write usage counts ([#4111](https://github.com/openai/openai-python/issues/4111)) ([5589146](https://github.com/openai/openai-python/commit/5589146d738e0c38758e117b8383a02c2e4e2ee7))
+* **api:** add compaction trigger IDs ([#4122](https://github.com/openai/openai-python/issues/4122)) ([0e5794d](https://github.com/openai/openai-python/commit/0e5794dc48b8f8d51f6047f8a0b1814eb1e65850))
+* **api:** add custom voice consent management ([#4135](https://github.com/openai/openai-python/issues/4135)) ([de6d70d](https://github.com/openai/openai-python/commit/de6d70d5c50ef1b9d3e5068b6e25ea52f447a8cb))
+* **types:** prepare native synchronous WebSocket option type ([#4118](https://github.com/openai/openai-python/issues/4118)) ([90c0bac](https://github.com/openai/openai-python/commit/90c0bacc07ddd5662598db52b3c3011973011973))
+
+
+### Bug Fixes
+
+* **api:** accept canonical batch responses in strict mode ([#4106](https://github.com/openai/openai-python/issues/4106)) ([6eaa90e](https://github.com/openai/openai-python/commit/6eaa90ee20b40bbe84a5b1a5031d7cf672c7d368))
+* clean up failed WebSocket setup and honor native options ([#4121](https://github.com/openai/openai-python/issues/4121)) ([b1a1a10](https://github.com/openai/openai-python/commit/b1a1a100d38d84dd556319e207880d85d23559cd))
+* end sync WebSocket recovery when an attempt is interrupted ([#4129](https://github.com/openai/openai-python/issues/4129)) ([337769b](https://github.com/openai/openai-python/commit/337769b3daf5772cf54cf11a14c17ff5b7a3ac27))
+* honor timed Translation receives during terminal cleanup ([#4132](https://github.com/openai/openai-python/issues/4132)) ([ca54146](https://github.com/openai/openai-python/commit/ca541462ba20dadb66eea6c67775f186dfb17e33))
+* preserve client headers in legacy Beta Realtime connections ([#4130](https://github.com/openai/openai-python/issues/4130)) ([8a2a2e0](https://github.com/openai/openai-python/commit/8a2a2e0c4fe76297a5dd2395e05ca473561644ac))
+* preserve declared aliases during Pydantic v1 validation ([#4119](https://github.com/openai/openai-python/issues/4119)) ([8b1cac9](https://github.com/openai/openai-python/commit/8b1cac931ccb32203010471b1f9d82e5c9957cff))
+* preserve Vertex API root for response lifecycle ([#4140](https://github.com/openai/openai-python/issues/4140)) ([c2b14f5](https://github.com/openai/openai-python/commit/c2b14f538de7af908d8f1fd50e6af60c0d79fcfd))
+* preserve WebSocket close across recovery and cancellation ([#4117](https://github.com/openai/openai-python/issues/4117)) ([4590ff1](https://github.com/openai/openai-python/commit/4590ff15006dfef3b55f4dc8b1b95c4a790d021b))
+* **realtime:** honor native options for legacy beta sockets ([#4120](https://github.com/openai/openai-python/issues/4120)) ([8968560](https://github.com/openai/openai-python/commit/8968560fb926240aea5fed8ee24e189eade57118))
+
+
+### Chores
+
+* **api:** clarify cache-write token totals ([#4136](https://github.com/openai/openai-python/issues/4136)) ([55b8b8a](https://github.com/openai/openai-python/commit/55b8b8a77c697c10ea89a14d6390456145687152))
+* **api:** clarify project API key update requirements ([#4131](https://github.com/openai/openai-python/issues/4131)) ([0e6be9f](https://github.com/openai/openai-python/commit/0e6be9f1f6193cdea7a3d9982b69424c22ecafda))
+* **api:** maintain voice consent compatibility ([#4137](https://github.com/openai/openai-python/issues/4137)) ([07abe06](https://github.com/openai/openai-python/commit/07abe065f058da56a92adc4168b6408b09babd34))
+* **api:** use neutral moderation examples ([#4104](https://github.com/openai/openai-python/issues/4104)) ([553703e](https://github.com/openai/openai-python/commit/553703e2d3db379a83e3ead9e40436b7a66f639e))
+* restore generated Castiron reporting scripts ([#4113](https://github.com/openai/openai-python/issues/4113)) ([9d12b56](https://github.com/openai/openai-python/commit/9d12b565554c08bcee6287c0d8f671b8c97ed911))
+* support next checkpoints in the trusted reporter ([#4128](https://github.com/openai/openai-python/issues/4128)) ([ae2a6c2](https://github.com/openai/openai-python/commit/ae2a6c2a79e462d1e5ee2240354a5714289e1670))
+
+
+### Documentation
+
+* plan the Python generated-code transition ([#4114](https://github.com/openai/openai-python/issues/4114)) ([6a52987](https://github.com/openai/openai-python/commit/6a52987f2da5c3bc9b700a7094c0cf14fe7e78dc))
+* record Python transition progress and batch follow-up work ([#4116](https://github.com/openai/openai-python/issues/4116)) ([46e3680](https://github.com/openai/openai-python/commit/46e36800ba5604044de46c88dc79f20dfd23dd35))
+
+## [3.35.1](https://github.com/openai/openai-python/compare/v3.35.0...v3.35.1) (2026-10-18)
+
+
+### Bug Fixes
+
+* preserve beta Realtime byte reads on websockets 13 ([#4102](https://github.com/openai/openai-python/issues/4102)) ([5766349](https://github.com/openai/openai-python/commit/5766349b2eda3ef63389fe8a30b6a9a1082b33e9))
+
+## [3.35.0](https://github.com/openai/openai-python/compare/v3.34.0...v3.35.0) (2026-10-17)
+
+
+### Features
+
+* **api:** add typed Live sideband events ([#4099](https://github.com/openai/openai-python/issues/4099)) ([8d5cbf0](https://github.com/openai/openai-python/commit/8d5cbf07916b8f2409d940156135ce3c11ac1552))
+* **api:** add ultrafast service tier for Agents ([#4101](https://github.com/openai/openai-python/issues/4101)) ([100bf8f](https://github.com/openai/openai-python/commit/100bf8f7ab8409594258572fbf64bbde140c1c5f))
+
+
+### Bug Fixes
+
+* **realtime:** preserve byte receives with websockets 13 ([#4098](https://github.com/openai/openai-python/issues/4098)) ([309916e](https://github.com/openai/openai-python/commit/309916eb877132359ca2e37b0340a060580e39ee))
+
+## [3.34.0](https://github.com/openai/openai-python/compare/v3.33.0...v3.34.0) (2026-10-17)
+
+
+### Features
+
+* **api:** add degraded external storage status ([#4097](https://github.com/openai/openai-python/issues/4097)) ([b216cb2](https://github.com/openai/openai-python/commit/b216cb2fbdefebba6f3997a180510f9e2b6b41af))
+* **api:** add Realtime Translation WebSocket sessions ([#4095](https://github.com/openai/openai-python/issues/4095)) ([bfada50](https://github.com/openai/openai-python/commit/bfada5040b0171cd0ae61aefae8c78fcf83c804a))
+
+## [3.33.0](https://github.com/openai/openai-python/compare/v3.32.0...v3.33.0) (2026-10-16)
+
+
+### Features
+
+* **api:** add safety identifiers to image requests and responses ([#4093](https://github.com/openai/openai-python/issues/4093)) ([c969e32](https://github.com/openai/openai-python/commit/c969e32ebb325b5910aff4543187fedc5527e172))
+* **api:** share Decisions cache breakpoint parameter type ([#4092](https://github.com/openai/openai-python/issues/4092)) ([f7cefda](https://github.com/openai/openai-python/commit/f7cefdaf059a3e6856d49b4bc2e2e5fbdef8193b))
+
+## [3.32.0](https://github.com/openai/openai-python/compare/v3.31.0...v3.32.0) (2026-10-16)
+
+
+### Features
+
+* **api:** add cache settings and key options [2/2] ([#4087](https://github.com/openai/openai-python/issues/4087)) ([325da45](https://github.com/openai/openai-python/commit/325da45934ddb1c1b6a0bed1681a8cf46c9a8712))
+* **api:** add prompt-based voice creation ([#4091](https://github.com/openai/openai-python/issues/4091)) ([2e39db7](https://github.com/openai/openai-python/commit/2e39db79e2f0ec41ce5d87b379be1e88c8298ea4))
+* **api:** add regional processing residency options ([#4081](https://github.com/openai/openai-python/issues/4081)) ([21ce0c2](https://github.com/openai/openai-python/commit/21ce0c2eae47b389f25d79095d2ac5aec7812806))
+* **api:** add response error diagnostics and model notices ([#4086](https://github.com/openai/openai-python/issues/4086)) ([e71d781](https://github.com/openai/openai-python/commit/e71d781ac5e7b3f365ac130bf338baaf13ae720d))
+* **api:** support audio fixture playback in Live sessions ([#4085](https://github.com/openai/openai-python/issues/4085)) ([9998c1a](https://github.com/openai/openai-python/commit/9998c1a3806afda55cb3923de1f7f49adcff5a7f))
+* **api:** support Decisions in Live sessions ([#4088](https://github.com/openai/openai-python/issues/4088)) ([230a923](https://github.com/openai/openai-python/commit/230a923faba5574ebdc5b45a505a26b6bad79f61))
+
+
+### Bug Fixes
+
+* **api:** declare Realtime response error messages ([#4083](https://github.com/openai/openai-python/issues/4083)) ([95dbee9](https://github.com/openai/openai-python/commit/95dbee9ee406587053a0a21296eb82418073f2aa))
+
+
+### Chores
+
+* **api:** clarify Decisions request and response fields ([#4079](https://github.com/openai/openai-python/issues/4079)) ([d42accb](https://github.com/openai/openai-python/commit/d42accb1a2d1b75b79edf694b8bfee78c4e90e6a))
+
+
+### Refactors
+
+* share WebSocket connection handling ([#4084](https://github.com/openai/openai-python/issues/4084)) ([70d4738](https://github.com/openai/openai-python/commit/70d473892f7c427a02a3b566add9c86072842e25))
+
+## [3.31.0](https://github.com/openai/openai-python/compare/v3.30.0...v3.31.0) (2026-10-14)
+
+
+### Features
+
+* add browser and computer toolsets (1/4) ([#4073](https://github.com/openai/openai-python/issues/4073)) ([47b9e4e](https://github.com/openai/openai-python/commit/47b9e4e95e44b1e825dc4e0753967c65d0733445))
+
+## [3.30.0](https://github.com/openai/openai-python/compare/v3.29.0...v3.30.0) (2026-10-14)
+
+
+### Features
+
+* **api:** add beta session spending limits ([#4058](https://github.com/openai/openai-python/issues/4058)) ([b570279](https://github.com/openai/openai-python/commit/b5702792a0adb1e86a8b51709e935c1e0acde727))
+* **api:** add OCI external-storage provider support ([#4060](https://github.com/openai/openai-python/issues/4060)) ([9eb83fe](https://github.com/openai/openai-python/commit/9eb83fe4649af0104d22da460007773a6c07119e))
+* **api:** add organization Decisions usage reporting ([#4062](https://github.com/openai/openai-python/issues/4062)) ([5e7a23e](https://github.com/openai/openai-python/commit/5e7a23ee29bcad27a5f31e3e8c1f246488aacb97))
+* **api:** expose image tool error and moderation details ([#4072](https://github.com/openai/openai-python/issues/4072)) ([c5452af](https://github.com/openai/openai-python/commit/c5452afb7ebb0378fa351d0ccdefa097625c7998))
+* **api:** support image URLs and detailed safety alert explanations ([#4061](https://github.com/openai/openai-python/issues/4061)) ([3c50399](https://github.com/openai/openai-python/commit/3c5039945fa0e1fc3bf41e970beb5274f6bdba96))
+* **api:** support updating project API key expiry ([#4066](https://github.com/openai/openai-python/issues/4066)) ([1f05e33](https://github.com/openai/openai-python/commit/1f05e33eaca67e4a6913888aec279b66ac1db206))
+
+
+### Bug Fixes
+
+* **streaming:** restore async HTTP/1.1 connection reuse ([#4041](https://github.com/openai/openai-python/issues/4041)) ([1f6cfe1](https://github.com/openai/openai-python/commit/1f6cfe1148e6cb3cc37eead5e552dc0fefb1c7a0))
+
+
+### Chores
+
+* **api:** clarify agent tool limits and environment pagination ([#4065](https://github.com/openai/openai-python/issues/4065)) ([0f73f1d](https://github.com/openai/openai-python/commit/0f73f1d519f8719b226e9084d78c8bdb4a60e48f))
+
+## [3.29.0](https://github.com/openai/openai-python/compare/v3.28.0...v3.29.0) (2026-10-11)
+
+
+### Features
+
+* **api:** add billing_not_active session error code ([#4052](https://github.com/openai/openai-python/issues/4052)) ([c88b320](https://github.com/openai/openai-python/commit/c88b32012ef0c3ebac39c79512994985a553a24c))
+* **api:** add shida to named Live voices ([#4053](https://github.com/openai/openai-python/issues/4053)) ([7352cf5](https://github.com/openai/openai-python/commit/7352cf5c80cf46b0b7c23634fb7df47c28b0604b))
+* **api:** add vault updates and metadata filters ([#4047](https://github.com/openai/openai-python/issues/4047)) ([e72f493](https://github.com/openai/openai-python/commit/e72f4931f16ae74602968348461bd3cf50b2cec5))
+* **api:** align beta pagination limits and non-null parameters ([#4057](https://github.com/openai/openai-python/issues/4057)) ([800899e](https://github.com/openai/openai-python/commit/800899eeaf9e2696703452e73a5e95f1a31e12ce))
+
+
+### Chores
+
+* **api:** clarify decision creation documentation ([#4054](https://github.com/openai/openai-python/issues/4054)) ([16d3d3b](https://github.com/openai/openai-python/commit/16d3d3b3c33b1b4f01114a16e4c3eba2293799ba))
+* **api:** clarify Decisions question and answer descriptions ([#4051](https://github.com/openai/openai-python/issues/4051)) ([895d617](https://github.com/openai/openai-python/commit/895d617f948fef82075bc83a7a2141bd845fc057))
+* **api:** document 128-character safety identifiers ([#4050](https://github.com/openai/openai-python/issues/4050)) ([2c1ae52](https://github.com/openai/openai-python/commit/2c1ae5266a67303d82ea46c57be854deaa6e5676))
+* **api:** document decision choice constraints ([#4055](https://github.com/openai/openai-python/issues/4055)) ([b7a1990](https://github.com/openai/openai-python/commit/b7a1990353baec896ee5e04b40b9f2dc2925a4f5))
+* **api:** document Files API rate-limit responses ([#4049](https://github.com/openai/openai-python/issues/4049)) ([f6a3459](https://github.com/openai/openai-python/commit/f6a34593aa12eb8e6e89803590423b8cd2aa5933))
+
 ## [3.28.0](https://github.com/openai/openai-python/compare/v3.27.0...v3.28.0) (2026-10-09)
 
 
