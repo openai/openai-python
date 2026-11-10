@@ -15,8 +15,6 @@ from openai.types import FileObject, FileDeleted
 from tests.respx2 import MockRouter
 from openai.pagination import SyncCursorPage, AsyncCursorPage
 
-# pyright: reportDeprecated=false
-
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 
 

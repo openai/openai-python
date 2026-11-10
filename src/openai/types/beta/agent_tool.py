@@ -3,6 +3,8 @@
 from typing import Dict, List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
 
+from pydantic import Field as FieldInfo
+
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
 from .mcp_transport import McpTransport
@@ -15,6 +17,7 @@ __all__ = [
     "AgentToolResourceWebSearch",
     "AgentToolResourceWebSearchLocation",
     "AgentToolResourceComputerUse",
+    "AgentToolResourceAutomations",
 ]
 
 
@@ -35,6 +38,9 @@ class AgentToolResourceFunction(BaseModel):
 
     type: Literal["function"]
     """The type of the object. Always `function`."""
+
+    async_: Optional[bool] = FieldInfo(alias="async", default=None)
+    """Whether the agent continues without waiting for the function result."""
 
 
 class AgentToolResourceProgrammaticToolCalling(BaseModel):
@@ -123,6 +129,13 @@ class AgentToolResourceComputerUse(BaseModel):
     """The type of the object. Always `computer_use`."""
 
 
+class AgentToolResourceAutomations(BaseModel):
+    """Lets the agent manage its own scheduled wakeups."""
+
+    type: Literal["automations"]
+    """The type of the object. Always `automations`."""
+
+
 AgentTool: TypeAlias = Annotated[
     Union[
         AgentToolResourceFunction,
@@ -130,6 +143,7 @@ AgentTool: TypeAlias = Annotated[
         AgentToolResourceMcp,
         AgentToolResourceWebSearch,
         AgentToolResourceComputerUse,
+        AgentToolResourceAutomations,
     ],
     PropertyInfo(discriminator="type"),
 ]

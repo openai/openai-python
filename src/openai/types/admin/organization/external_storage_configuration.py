@@ -7,12 +7,15 @@ from ...._utils import PropertyInfo
 from ...._models import BaseModel
 from .aws_external_storage_provider import AwsExternalStorageProvider
 from .gcp_external_storage_provider import GcpExternalStorageProvider
+from .oci_external_storage_provider import OciExternalStorageProvider
 from .azure_external_storage_provider import AzureExternalStorageProvider
 
 __all__ = ["ExternalStorageConfiguration", "Provider"]
 
 Provider: TypeAlias = Annotated[
-    Union[AwsExternalStorageProvider, AzureExternalStorageProvider, GcpExternalStorageProvider],
+    Union[
+        AwsExternalStorageProvider, AzureExternalStorageProvider, GcpExternalStorageProvider, OciExternalStorageProvider
+    ],
     PropertyInfo(discriminator="type"),
 ]
 
@@ -30,4 +33,4 @@ class ExternalStorageConfiguration(BaseModel):
 
     provider: Provider
 
-    status: Literal["pending", "validated", "unhealthy"]
+    status: Literal["pending", "validated", "degraded", "unhealthy"]

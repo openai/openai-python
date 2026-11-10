@@ -17,10 +17,19 @@ __all__ = [
     "PersistedAgentToolConfigParamWebSearch",
     "PersistedAgentToolConfigParamWebSearchLocation",
     "PersistedAgentToolConfigParamComputerUse",
+    "PersistedAgentToolConfigParamAutomations",
 ]
 
+_PersistedAgentToolConfigParamFunctionReservedKeywords = TypedDict(
+    "_PersistedAgentToolConfigParamFunctionReservedKeywords",
+    {
+        "async": bool,
+    },
+    total=False,
+)
 
-class PersistedAgentToolConfigParamFunction(TypedDict, total=False):
+
+class PersistedAgentToolConfigParamFunction(_PersistedAgentToolConfigParamFunctionReservedKeywords, total=False):
     """A function defined by the application."""
 
     description: Required[str]
@@ -147,6 +156,13 @@ class PersistedAgentToolConfigParamComputerUse(TypedDict, total=False):
     """Whether computer tool outputs include screenshots. Defaults to `false`."""
 
 
+class PersistedAgentToolConfigParamAutomations(TypedDict, total=False):
+    """Lets the agent manage its own scheduled wakeups."""
+
+    type: Required[Literal["automations"]]
+    """The type of the object. Always `automations`."""
+
+
 PersistedAgentToolParam: TypeAlias = Union[
     PersistedAgentToolConfigParamFunction,
     PersistedAgentToolConfigParamToolSearch,
@@ -154,4 +170,5 @@ PersistedAgentToolParam: TypeAlias = Union[
     PersistedAgentToolConfigParamMcp,
     PersistedAgentToolConfigParamWebSearch,
     PersistedAgentToolConfigParamComputerUse,
+    PersistedAgentToolConfigParamAutomations,
 ]

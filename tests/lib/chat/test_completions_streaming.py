@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from inline_snapshot import (
     external,
     snapshot,
-    outsource,  # pyright: ignore[reportUnknownVariableType]
+    outsource,
     get_snapshot_value,
 )
 
@@ -37,9 +37,9 @@ from ...conftest import base_url
 _T = TypeVar("_T")
 
 # all the snapshots in this file are auto-generated from the live API
-#
+
 # you can update them with
-#
+
 # `OPENAI_LIVE=1 pytest --inline-snapshot=fix -p no:xdist -o addopts=""`
 
 
@@ -1170,7 +1170,7 @@ def _make_stream_snapshot_request(
         respx2_mock.post("/chat/completions").mock(
             return_value=httpx2.Response(
                 200,
-                content=get_snapshot_value(content_snapshot),
+                content=cast("str | bytes", get_snapshot_value(content_snapshot)),
                 headers={"content-type": "text/event-stream"},
             )
         )
@@ -1217,7 +1217,7 @@ def _make_raw_stream_snapshot_request(
         respx2_mock.post("/chat/completions").mock(
             return_value=httpx2.Response(
                 200,
-                content=get_snapshot_value(content_snapshot),
+                content=cast("str | bytes", get_snapshot_value(content_snapshot)),
                 headers={"content-type": "text/event-stream"},
             )
         )

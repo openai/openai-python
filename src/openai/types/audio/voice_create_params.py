@@ -27,7 +27,7 @@ class CreateVoiceRequestPrompt(TypedDict, total=False):
 
     type: Required[Literal["prompt"]]
 
-    model: Union[str, Union[Literal["auto"], Literal["2026-10-01"]]]
+    model: Union[str, Union[Literal["auto"], Literal["2026-10-08"]]]
 
     script_hint: str
 

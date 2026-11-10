@@ -3,6 +3,8 @@
 from typing import Dict, List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
 
+from pydantic import Field as FieldInfo
+
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
 from .persisted_mcp_transport import PersistedMcpTransport
@@ -16,6 +18,7 @@ __all__ = [
     "PersistedAgentToolResourceWebSearch",
     "PersistedAgentToolResourceWebSearchLocation",
     "PersistedAgentToolResourceComputerUse",
+    "PersistedAgentToolResourceAutomations",
 ]
 
 
@@ -36,6 +39,9 @@ class PersistedAgentToolResourceFunction(BaseModel):
 
     type: Literal["function"]
     """The type of the object. Always `function`."""
+
+    async_: Optional[bool] = FieldInfo(alias="async", default=None)
+    """Whether the agent continues without waiting for the function result."""
 
 
 class PersistedAgentToolResourceToolSearch(BaseModel):
@@ -128,6 +134,13 @@ class PersistedAgentToolResourceComputerUse(BaseModel):
     """The type of the object. Always `computer_use`."""
 
 
+class PersistedAgentToolResourceAutomations(BaseModel):
+    """Lets the agent manage its own scheduled wakeups."""
+
+    type: Literal["automations"]
+    """The type of the object. Always `automations`."""
+
+
 PersistedAgentTool: TypeAlias = Annotated[
     Union[
         PersistedAgentToolResourceFunction,
@@ -136,6 +149,7 @@ PersistedAgentTool: TypeAlias = Annotated[
         PersistedAgentToolResourceMcp,
         PersistedAgentToolResourceWebSearch,
         PersistedAgentToolResourceComputerUse,
+        PersistedAgentToolResourceAutomations,
     ],
     PropertyInfo(discriminator="type"),
 ]

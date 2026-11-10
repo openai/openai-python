@@ -26,3 +26,6 @@ class AgentSessionEnvironmentConnectedEvent(BaseModel):
 
     type: Literal["agent.session.environment.connected"]
     """The type of the object. Always `agent.session.environment.connected`."""
+
+    obfuscation: Optional[str] = None
+    """Random alphanumeric padding. Present when stream obfuscation is enabled."""

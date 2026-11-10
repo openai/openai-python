@@ -18,7 +18,7 @@ def get_transcription_response_format_type(
     *,
     log: logging.Logger,
 ) -> type[Transcription | TranscriptionVerbose | TranscriptionDiarized | str]:
-    if isinstance(response_format, Omit) or response_format is None:  # pyright: ignore[reportUnnecessaryComparison]
+    if isinstance(response_format, Omit) or response_format is None:
         return Transcription
 
     if response_format == "json":
@@ -29,7 +29,7 @@ def get_transcription_response_format_type(
         return TranscriptionDiarized
     elif response_format == "srt" or response_format == "text" or response_format == "vtt":
         return str
-    elif TYPE_CHECKING:  # type: ignore[unreachable]
+    elif TYPE_CHECKING:
         assert_never(response_format)
     else:
         log.warning("Unexpected audio response format: %s", response_format)
@@ -41,7 +41,7 @@ def get_translation_response_format_type(
     *,
     log: logging.Logger,
 ) -> type[Translation | TranslationVerbose | str]:
-    if isinstance(response_format, Omit) or response_format is None:  # pyright: ignore[reportUnnecessaryComparison]
+    if isinstance(response_format, Omit) or response_format is None:
         return Translation
 
     if response_format == "json":
@@ -50,7 +50,7 @@ def get_translation_response_format_type(
         return TranslationVerbose
     elif response_format == "srt" or response_format == "text" or response_format == "vtt":
         return str
-    elif TYPE_CHECKING and response_format != "diarized_json":  # type: ignore[unreachable]
+    elif TYPE_CHECKING and response_format != "diarized_json":
         assert_never(response_format)
     else:
         log.warning("Unexpected audio response format: %s", response_format)

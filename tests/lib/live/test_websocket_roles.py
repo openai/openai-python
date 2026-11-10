@@ -18,6 +18,7 @@ from openai.types.live import (
     SessionStartedEvent,
     SessionUpdatedEvent,
     OutputTranscriptDeltaEvent,
+    OutputAudioFixturePlayEventParam,
 )
 from openai._exceptions import WebSocketQueueFullError
 from openai.resources.live.live import LiveConnection, AsyncLiveConnection
@@ -32,6 +33,33 @@ from ..responses.test_websocket_session import script_server
 def bypass_loopback_proxy(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("NO_PROXY", "127.0.0.1")
     monkeypatch.setenv("no_proxy", "127.0.0.1")
+
+
+@pytest.mark.parametrize("client_type", [OpenAI, AsyncOpenAI])
+async def test_default_live_queue_accepts_a_full_size_audio_fixture(
+    client_type: type[OpenAI] | type[AsyncOpenAI],
+) -> None:
+    fixture: OutputAudioFixturePlayEventParam = {
+        "type": "session.output_audio.fixture.play",
+        "audio": "A" * (30 * 24_000 * 2 * 4 // 3),
+    }
+    client = (
+        OpenAI(api_key="fake-live-key", http_client=httpx2.Client(trust_env=False))
+        if client_type is OpenAI
+        else AsyncOpenAI(api_key="fake-live-key", http_client=httpx2.AsyncClient(trust_env=False))
+    )
+    try:
+        for manager in (
+            client.live.connect(),
+            client.live.forks.connect(session_id="stored"),
+            client.live.sideband.connect(session_id="stored"),
+        ):
+            manager.send(fixture)
+    finally:
+        if isinstance(client, AsyncOpenAI):
+            await client.close()
+        else:
+            client.close()
 
 
 @pytest.mark.parametrize("role", ["primary", "fork", "sideband"])
@@ -126,15 +154,15 @@ async def test_live_recovery_never_replays_an_attempted_command(
     original_async = AsyncClientConnection.send
 
     def send_then_interrupt(self: ClientConnection, message: object, *args: object, **kwargs: object) -> None:
-        original(self, message, *args, **kwargs)  # type: ignore[arg-type]
-        if json.loads(message)["event_id"] == "attempted":  # type: ignore[arg-type]
+        original(self, message, *args, **kwargs)  # ty: ignore[invalid-argument-type]
+        if json.loads(message)["event_id"] == "attempted":  # ty: ignore[invalid-argument-type]
             raise OSError("synthetic interruption after send")
 
     async def async_send_then_interrupt(
         self: AsyncClientConnection, message: object, *args: object, **kwargs: object
     ) -> None:
-        await original_async(self, message, *args, **kwargs)  # type: ignore[arg-type]
-        if json.loads(message)["event_id"] == "attempted":  # type: ignore[arg-type]
+        await original_async(self, message, *args, **kwargs)  # ty: ignore[invalid-argument-type]
+        if json.loads(message)["event_id"] == "attempted":  # ty: ignore[invalid-argument-type]
             raise OSError("synthetic interruption after send")
 
     if mode == "sync":

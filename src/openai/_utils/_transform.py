@@ -202,7 +202,7 @@ def _transform_recursive(
         if _no_transform_needed(inner_type):
             # for some types there is no need to transform anything, so we can get a small
             # perf boost from skipping that work.
-            #
+
             # but we still need to convert to a list to ensure the data is json-serializable
             if is_list(data):
                 return data
@@ -212,7 +212,7 @@ def _transform_recursive(
 
     if is_union_type(stripped_type):
         # For union types we run the transformation against all subtypes to ensure that everything is transformed.
-        #
+
         # TODO: there may be edge cases where the same normalized field name will transform to two different names
         # in different subtypes.
         for subtype in get_args(stripped_type):
@@ -251,7 +251,7 @@ def _format_data(data: object, format_: PropertyFormat, format_template: str | N
         elif isinstance(data, io.IOBase):
             binary = data.read()
 
-            if isinstance(binary, str):  # type: ignore[unreachable]
+            if isinstance(binary, str):
                 binary = binary.encode()
 
         if not isinstance(binary, bytes):
@@ -370,7 +370,7 @@ async def _async_transform_recursive(
         if _no_transform_needed(inner_type):
             # for some types there is no need to transform anything, so we can get a small
             # perf boost from skipping that work.
-            #
+
             # but we still need to convert to a list to ensure the data is json-serializable
             if is_list(data):
                 return data
@@ -380,7 +380,7 @@ async def _async_transform_recursive(
 
     if is_union_type(stripped_type):
         # For union types we run the transformation against all subtypes to ensure that everything is transformed.
-        #
+
         # TODO: there may be edge cases where the same normalized field name will transform to two different names
         # in different subtypes.
         for subtype in get_args(stripped_type):
@@ -419,7 +419,7 @@ async def _async_format_data(data: object, format_: PropertyFormat, format_templ
         elif isinstance(data, io.IOBase):
             binary = data.read()
 
-            if isinstance(binary, str):  # type: ignore[unreachable]
+            if isinstance(binary, str):
                 binary = binary.encode()
 
         if not isinstance(binary, bytes):

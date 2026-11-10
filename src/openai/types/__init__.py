@@ -18,6 +18,7 @@ from .shared import (
     ResponsesModel as ResponsesModel,
     ReasoningEffort as ReasoningEffort,
     ComparisonFilter as ComparisonFilter,
+    DecisionInputJSON as DecisionInputJSON,
     FunctionDefinition as FunctionDefinition,
     FunctionParameters as FunctionParameters,
     ResponseFormatText as ResponseFormatText,
@@ -25,7 +26,10 @@ from .shared import (
     ResponseFormatJSONObject as ResponseFormatJSONObject,
     ResponseFormatJSONSchema as ResponseFormatJSONSchema,
     ResponseFormatTextPython as ResponseFormatTextPython,
+    DecisionQuestionInputPart as DecisionQuestionInputPart,
+    DecisionQuestionInputText as DecisionQuestionInputText,
     ResponseFormatTextGrammar as ResponseFormatTextGrammar,
+    DecisionQuestionInputImage as DecisionQuestionInputImage,
 )
 from .upload import Upload as Upload
 from .decision import Decision as Decision
@@ -112,13 +116,17 @@ from .vector_store_update_params import VectorStoreUpdateParams as VectorStoreUp
 from .container_retrieve_response import ContainerRetrieveResponse as ContainerRetrieveResponse
 from .image_input_reference_param import ImageInputReferenceParam as ImageInputReferenceParam
 from .moderation_text_input_param import ModerationTextInputParam as ModerationTextInputParam
-from .decision_input_message_param import DecisionInputMessageParam as DecisionInputMessageParam
+from .decision_input_message_param import (
+    DecisionInputMessageParam as DecisionInputMessageParam,
+    DecisionInputMessageUnionParam as DecisionInputMessageUnionParam,
+)
 from .file_chunking_strategy_param import FileChunkingStrategyParam as FileChunkingStrategyParam
 from .vector_store_search_response import VectorStoreSearchResponse as VectorStoreSearchResponse
 from .video_get_character_response import VideoGetCharacterResponse as VideoGetCharacterResponse
 from .websocket_connection_options import (
     WebSocketConnectionOptions as WebSocketConnectionOptions,
     WebsocketConnectionOptions as WebsocketConnectionOptions,
+    SyncWebSocketConnectionOptions as SyncWebSocketConnectionOptions,
 )
 from .image_create_variation_params import ImageCreateVariationParams as ImageCreateVariationParams
 from .image_gen_partial_image_event import ImageGenPartialImageEvent as ImageGenPartialImageEvent
@@ -137,6 +145,9 @@ from .static_file_chunking_strategy_param import StaticFileChunkingStrategyParam
 from .static_file_chunking_strategy_object import StaticFileChunkingStrategyObject as StaticFileChunkingStrategyObject
 from .content_provenance_check_create_params import (
     ContentProvenanceCheckCreateParams as ContentProvenanceCheckCreateParams,
+)
+from .decision_prompt_cache_breakpoint_param import (
+    DecisionPromptCacheBreakpointParam as DecisionPromptCacheBreakpointParam,
 )
 from .eval_stored_completions_data_source_config import (
     EvalStoredCompletionsDataSourceConfig as EvalStoredCompletionsDataSourceConfig,

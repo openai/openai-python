@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from typing import Union, Iterable
-from functools import partial
 from typing_extensions import Literal
 
 import httpx2
@@ -11,13 +10,13 @@ import httpx2
 from .. import _legacy_response
 from ..types import embedding_create_params
 from .._types import Body, Omit, Query, Headers, NotGiven, SequenceNotStr, omit, not_given
-from .._utils import is_given, maybe_transform
+from .._utils import maybe_transform, async_maybe_transform
 from .._compat import cached_property
 from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from .._base_client import make_request_options
 from ..types.embedding_model import EmbeddingModel
-from ..lib._parsing._embeddings import parse_embedding_response as _parse_embedding_response
+from ..lib._parsing._embeddings import prepare_embedding_request
 from ..types.create_embedding_response import CreateEmbeddingResponse
 
 __all__ = ["Embeddings", "AsyncEmbeddings"]
@@ -100,26 +99,27 @@ class Embeddings(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        params = {
-            "model": model,
-            "input": input,
-            "user": user,
-            "dimensions": dimensions,
-            "encoding_format": encoding_format,
-        }
-        if not is_given(encoding_format):
-            params["encoding_format"] = "base64"
-
+        _runtime_context = prepare_embedding_request(
+            self,
+            {
+                "model": model,
+                "input": input,
+                "dimensions": dimensions,
+                "encoding_format": encoding_format,
+                "user": user,
+            },
+            encoding_format=encoding_format,
+        )
         return self._post(
             "/embeddings",
-            body=maybe_transform(params, embedding_create_params.EmbeddingCreateParams),
+            body=maybe_transform(_runtime_context.body, embedding_create_params.EmbeddingCreateParams),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
                 extra_body=extra_body,
                 timeout=timeout,
-                post_parser=partial(_parse_embedding_response, encoding_format=encoding_format),
                 security={"bearer_auth": True},
+                post_parser=_runtime_context.post_parser,
             ),
             cast_to=CreateEmbeddingResponse,
         )
@@ -202,26 +202,27 @@ class AsyncEmbeddings(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        params = {
-            "model": model,
-            "input": input,
-            "user": user,
-            "dimensions": dimensions,
-            "encoding_format": encoding_format,
-        }
-        if not is_given(encoding_format):
-            params["encoding_format"] = "base64"
-
+        _runtime_context = prepare_embedding_request(
+            self,
+            {
+                "model": model,
+                "input": input,
+                "dimensions": dimensions,
+                "encoding_format": encoding_format,
+                "user": user,
+            },
+            encoding_format=encoding_format,
+        )
         return await self._post(
             "/embeddings",
-            body=maybe_transform(params, embedding_create_params.EmbeddingCreateParams),
+            body=await async_maybe_transform(_runtime_context.body, embedding_create_params.EmbeddingCreateParams),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
                 extra_body=extra_body,
                 timeout=timeout,
-                post_parser=partial(_parse_embedding_response, encoding_format=encoding_format),
                 security={"bearer_auth": True},
+                post_parser=_runtime_context.post_parser,
             ),
             cast_to=CreateEmbeddingResponse,
         )

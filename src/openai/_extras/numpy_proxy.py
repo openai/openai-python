@@ -30,7 +30,7 @@ if not TYPE_CHECKING:
 
 def has_numpy() -> bool:
     try:
-        import numpy  # noqa: F401  # pyright: ignore[reportUnusedImport]
+        import numpy  # noqa: F401
     except ImportError:
         return False
 

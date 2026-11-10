@@ -10,7 +10,7 @@ __all__ = ["CommentaryAppendEventParam"]
 
 class CommentaryAppendEventParam(TypedDict, total=False):
     """
-    Provide context the Live model can communicate to the user, optionally for an existing client delegation.
+    Provide context the Live model can communicate to the user, optionally for an existing client delegation. Rejected while an audio fixture is active.
     """
 
     content: Required[str]

@@ -3,6 +3,8 @@
 from typing import Dict, List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
 
+from pydantic import Field as FieldInfo
+
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
 from .agent_text import AgentText
@@ -15,6 +17,8 @@ from .multi_agent_config import MultiAgentConfig
 __all__ = [
     "AgentSession",
     "Agent",
+    "AgentCompaction",
+    "AgentExperimental",
     "RequiredAction",
     "RequiredActionSessionRequiredActionResourceComputerUseApprovalRequest",
     "RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequest",
@@ -24,7 +28,22 @@ __all__ = [
     "RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequestComputerUseApprovalRequestKindResourceBrowserOriginAccess",
     "RequiredActionSessionRequiredActionResourceFunctionCall",
     "RequiredActionSessionRequiredActionResourceEnvironmentConnection",
+    "SpendControl",
 ]
+
+
+class AgentCompaction(BaseModel):
+    """The effective context compaction settings."""
+
+    async_: bool = FieldInfo(alias="async")
+    """Whether context is compacted in the background. Defaults to true."""
+
+
+class AgentExperimental(BaseModel):
+    """The effective experimental settings for the agent."""
+
+    time_awareness: bool
+    """Whether the model receives periodic current-time reminders."""
 
 
 class Agent(BaseModel):
@@ -59,6 +78,12 @@ class Agent(BaseModel):
 
     tools: List[AgentTool]
     """Tools available to the agent."""
+
+    compaction: Optional[AgentCompaction] = None
+    """The effective context compaction settings."""
+
+    experimental: Optional[AgentExperimental] = None
+    """The effective experimental settings for the agent."""
 
 
 class RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequestComputerUseApprovalRequestKindResourceBrowserAuthenticationField(
@@ -198,6 +223,21 @@ RequiredAction: TypeAlias = Annotated[
 ]
 
 
+class SpendControl(BaseModel):
+    """Configured spending limit and best-effort consumption, in USD cents.
+
+    Unlimited sessions omit this object.
+    """
+
+    consumed: Optional[int] = None
+    """
+    Best-effort recorded spend floored to whole USD cents, or null when unavailable.
+    """
+
+    limit: int
+    """The configured positive limit in USD cents."""
+
+
 class AgentSession(BaseModel):
     """A Managed Agents session."""
 
@@ -246,3 +286,16 @@ class AgentSession(BaseModel):
 
     vault_ids: List[str]
     """The IDs of vaults made available to the session."""
+
+    review: Optional[Literal["none", "auto_review"]] = None
+    """Review applied to eligible actions in this session.
+
+    Omitted when review is none and automatic review is not enabled. Omission means
+    none.
+    """
+
+    spend_control: Optional[SpendControl] = None
+    """Configured spending limit and best-effort consumption, in USD cents.
+
+    Unlimited sessions omit this object.
+    """

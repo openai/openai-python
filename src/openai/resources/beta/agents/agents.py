@@ -33,6 +33,14 @@ from .sessions.sessions import (
     AsyncSessionsWithStreamingResponse,
 )
 from ....types.beta.agent import Agent
+from .automations.automations import (
+    Automations,
+    AsyncAutomations,
+    AutomationsWithRawResponse,
+    AsyncAutomationsWithRawResponse,
+    AutomationsWithStreamingResponse,
+    AsyncAutomationsWithStreamingResponse,
+)
 from .environments.environments import (
     Environments,
     AsyncEnvironments,
@@ -51,6 +59,10 @@ __all__ = ["Agents", "AsyncAgents"]
 
 
 class Agents(SyncAPIResource):
+    @cached_property
+    def automations(self) -> Automations:
+        return Automations(self._client)
+
     @cached_property
     def environments(self) -> Environments:
         return Environments(self._client)
@@ -86,12 +98,14 @@ class Agents(SyncAPIResource):
         self,
         *,
         model: str,
+        compaction: Optional[agent_create_params.Compaction] | Omit = omit,
+        experimental: agent_create_params.Experimental | Omit = omit,
         instructions: Optional[str] | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
         multi_agent: Optional[MultiAgentConfigParam] | Omit = omit,
         name: Optional[str] | Omit = omit,
         reasoning: Optional[AgentReasoningParam] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "priority", "fast", "ultrafast"]] | Omit = omit,
         text: Optional[AgentTextParam] | Omit = omit,
         tools: Optional[Iterable[PersistedAgentToolParam]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -108,6 +122,10 @@ class Agents(SyncAPIResource):
 
         Args:
           model: The model to use for the agent. The requested model name is preserved.
+
+          compaction: Context compaction settings. Omission or null enables background compaction.
+
+          experimental: Experimental agent settings. All experimental features default to disabled.
 
           instructions: Additional instructions appended to the agent's default base instructions. Omit
               or set to null to add no custom instructions.
@@ -129,11 +147,13 @@ class Agents(SyncAPIResource):
               - `flex` - Uses the flex service tier.
               - `priority` - Uses the priority service tier.
               - `fast` - Uses the fast service tier.
+              - `ultrafast` - Uses the ultrafast service tier.
 
           text: Configuration for generated text. Defaults to the `text` format and medium
               verbosity.
 
-          tools: Tools available to the agent. Defaults to an empty list.
+          tools: Tools available to the agent. Defaults to an empty list. The tool list must fit
+              within 3 MiB (3,145,728 bytes) of compact UTF-8 JSON.
 
           extra_headers: Send extra headers
 
@@ -150,6 +170,8 @@ class Agents(SyncAPIResource):
                 {
                     "model": model,
                     "service_tier": service_tier,
+                    "compaction": compaction,
+                    "experimental": experimental,
                     "instructions": instructions,
                     "metadata": metadata,
                     "multi_agent": multi_agent,
@@ -214,13 +236,15 @@ class Agents(SyncAPIResource):
         self,
         agent_id: str,
         *,
+        compaction: Optional[agent_update_params.Compaction] | Omit = omit,
+        experimental: agent_update_params.Experimental | Omit = omit,
         instructions: Optional[str] | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
         model: str | Omit = omit,
         multi_agent: Optional[MultiAgentConfigParam] | Omit = omit,
         name: Optional[str] | Omit = omit,
         reasoning: Optional[AgentReasoningParam] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "priority", "fast", "ultrafast"]] | Omit = omit,
         text: Optional[AgentTextParam] | Omit = omit,
         tools: Optional[Iterable[PersistedAgentToolParam]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -236,6 +260,13 @@ class Agents(SyncAPIResource):
         [agent configuration](https://developers.openai.com/api/docs/guides/agents-api/configuration).
 
         Args:
+          compaction: Context compaction settings. Omit to keep the current settings. A supplied
+              object replaces the settings; null or an empty object enables background
+              compaction.
+
+          experimental: Experimental settings to merge by key. Omitted settings keep their current
+              values.
+
           instructions: Additional instructions appended to the agent's default base instructions. Omit
               to leave unchanged.
 
@@ -259,10 +290,12 @@ class Agents(SyncAPIResource):
               - `flex` - Uses the flex service tier.
               - `priority` - Uses the priority service tier.
               - `fast` - Uses the fast service tier.
+              - `ultrafast` - Uses the ultrafast service tier.
 
           text: Configuration for text generated by the agent.
 
-          tools: Tools available to the agent.
+          tools: Replaces the tool list. Omit to leave it unchanged, or pass null to clear it.
+              The replacement must fit within 3 MiB (3,145,728 bytes) of compact UTF-8 JSON.
 
           extra_headers: Send extra headers
 
@@ -281,6 +314,8 @@ class Agents(SyncAPIResource):
                 {
                     "model": model,
                     "service_tier": service_tier,
+                    "compaction": compaction,
+                    "experimental": experimental,
                     "instructions": instructions,
                     "metadata": metadata,
                     "multi_agent": multi_agent,
@@ -305,7 +340,7 @@ class Agents(SyncAPIResource):
         self,
         *,
         after: str | Omit = omit,
-        limit: Optional[int] | Omit = omit,
+        limit: int | Omit = omit,
         order: Literal["asc", "desc"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -322,7 +357,7 @@ class Agents(SyncAPIResource):
         Args:
           after: Return resources after this resource ID in the selected order.
 
-          limit: The maximum number of resources to return.
+          limit: The maximum number of resources to return, between 1 and 100. Defaults to 20.
 
           order: The order in which resources are returned. Defaults to `desc`.
 
@@ -402,6 +437,10 @@ class Agents(SyncAPIResource):
 
 class AsyncAgents(AsyncAPIResource):
     @cached_property
+    def automations(self) -> AsyncAutomations:
+        return AsyncAutomations(self._client)
+
+    @cached_property
     def environments(self) -> AsyncEnvironments:
         return AsyncEnvironments(self._client)
 
@@ -436,12 +475,14 @@ class AsyncAgents(AsyncAPIResource):
         self,
         *,
         model: str,
+        compaction: Optional[agent_create_params.Compaction] | Omit = omit,
+        experimental: agent_create_params.Experimental | Omit = omit,
         instructions: Optional[str] | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
         multi_agent: Optional[MultiAgentConfigParam] | Omit = omit,
         name: Optional[str] | Omit = omit,
         reasoning: Optional[AgentReasoningParam] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "priority", "fast", "ultrafast"]] | Omit = omit,
         text: Optional[AgentTextParam] | Omit = omit,
         tools: Optional[Iterable[PersistedAgentToolParam]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -458,6 +499,10 @@ class AsyncAgents(AsyncAPIResource):
 
         Args:
           model: The model to use for the agent. The requested model name is preserved.
+
+          compaction: Context compaction settings. Omission or null enables background compaction.
+
+          experimental: Experimental agent settings. All experimental features default to disabled.
 
           instructions: Additional instructions appended to the agent's default base instructions. Omit
               or set to null to add no custom instructions.
@@ -479,11 +524,13 @@ class AsyncAgents(AsyncAPIResource):
               - `flex` - Uses the flex service tier.
               - `priority` - Uses the priority service tier.
               - `fast` - Uses the fast service tier.
+              - `ultrafast` - Uses the ultrafast service tier.
 
           text: Configuration for generated text. Defaults to the `text` format and medium
               verbosity.
 
-          tools: Tools available to the agent. Defaults to an empty list.
+          tools: Tools available to the agent. Defaults to an empty list. The tool list must fit
+              within 3 MiB (3,145,728 bytes) of compact UTF-8 JSON.
 
           extra_headers: Send extra headers
 
@@ -500,6 +547,8 @@ class AsyncAgents(AsyncAPIResource):
                 {
                     "model": model,
                     "service_tier": service_tier,
+                    "compaction": compaction,
+                    "experimental": experimental,
                     "instructions": instructions,
                     "metadata": metadata,
                     "multi_agent": multi_agent,
@@ -564,13 +613,15 @@ class AsyncAgents(AsyncAPIResource):
         self,
         agent_id: str,
         *,
+        compaction: Optional[agent_update_params.Compaction] | Omit = omit,
+        experimental: agent_update_params.Experimental | Omit = omit,
         instructions: Optional[str] | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
         model: str | Omit = omit,
         multi_agent: Optional[MultiAgentConfigParam] | Omit = omit,
         name: Optional[str] | Omit = omit,
         reasoning: Optional[AgentReasoningParam] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "priority", "fast", "ultrafast"]] | Omit = omit,
         text: Optional[AgentTextParam] | Omit = omit,
         tools: Optional[Iterable[PersistedAgentToolParam]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -586,6 +637,13 @@ class AsyncAgents(AsyncAPIResource):
         [agent configuration](https://developers.openai.com/api/docs/guides/agents-api/configuration).
 
         Args:
+          compaction: Context compaction settings. Omit to keep the current settings. A supplied
+              object replaces the settings; null or an empty object enables background
+              compaction.
+
+          experimental: Experimental settings to merge by key. Omitted settings keep their current
+              values.
+
           instructions: Additional instructions appended to the agent's default base instructions. Omit
               to leave unchanged.
 
@@ -609,10 +667,12 @@ class AsyncAgents(AsyncAPIResource):
               - `flex` - Uses the flex service tier.
               - `priority` - Uses the priority service tier.
               - `fast` - Uses the fast service tier.
+              - `ultrafast` - Uses the ultrafast service tier.
 
           text: Configuration for text generated by the agent.
 
-          tools: Tools available to the agent.
+          tools: Replaces the tool list. Omit to leave it unchanged, or pass null to clear it.
+              The replacement must fit within 3 MiB (3,145,728 bytes) of compact UTF-8 JSON.
 
           extra_headers: Send extra headers
 
@@ -631,6 +691,8 @@ class AsyncAgents(AsyncAPIResource):
                 {
                     "model": model,
                     "service_tier": service_tier,
+                    "compaction": compaction,
+                    "experimental": experimental,
                     "instructions": instructions,
                     "metadata": metadata,
                     "multi_agent": multi_agent,
@@ -655,7 +717,7 @@ class AsyncAgents(AsyncAPIResource):
         self,
         *,
         after: str | Omit = omit,
-        limit: Optional[int] | Omit = omit,
+        limit: int | Omit = omit,
         order: Literal["asc", "desc"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -672,7 +734,7 @@ class AsyncAgents(AsyncAPIResource):
         Args:
           after: Return resources after this resource ID in the selected order.
 
-          limit: The maximum number of resources to return.
+          limit: The maximum number of resources to return, between 1 and 100. Defaults to 20.
 
           order: The order in which resources are returned. Defaults to `desc`.
 
@@ -771,6 +833,10 @@ class AgentsWithRawResponse:
         )
 
     @cached_property
+    def automations(self) -> AutomationsWithRawResponse:
+        return AutomationsWithRawResponse(self._agents.automations)
+
+    @cached_property
     def environments(self) -> EnvironmentsWithRawResponse:
         return EnvironmentsWithRawResponse(self._agents.environments)
 
@@ -802,6 +868,10 @@ class AsyncAgentsWithRawResponse:
         self.delete = _legacy_response.async_to_raw_response_wrapper(
             agents.delete,
         )
+
+    @cached_property
+    def automations(self) -> AsyncAutomationsWithRawResponse:
+        return AsyncAutomationsWithRawResponse(self._agents.automations)
 
     @cached_property
     def environments(self) -> AsyncEnvironmentsWithRawResponse:
@@ -837,6 +907,10 @@ class AgentsWithStreamingResponse:
         )
 
     @cached_property
+    def automations(self) -> AutomationsWithStreamingResponse:
+        return AutomationsWithStreamingResponse(self._agents.automations)
+
+    @cached_property
     def environments(self) -> EnvironmentsWithStreamingResponse:
         return EnvironmentsWithStreamingResponse(self._agents.environments)
 
@@ -868,6 +942,10 @@ class AsyncAgentsWithStreamingResponse:
         self.delete = async_to_streamed_response_wrapper(
             agents.delete,
         )
+
+    @cached_property
+    def automations(self) -> AsyncAutomationsWithStreamingResponse:
+        return AsyncAutomationsWithStreamingResponse(self._agents.automations)
 
     @cached_property
     def environments(self) -> AsyncEnvironmentsWithStreamingResponse:

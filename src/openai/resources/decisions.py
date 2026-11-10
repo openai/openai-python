@@ -15,7 +15,6 @@ from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from .._base_client import make_request_options
 from ..types.decision import Decision
-from ..types.decision_input_message_param import DecisionInputMessageParam
 
 __all__ = ["Decisions", "AsyncDecisions"]
 
@@ -43,9 +42,11 @@ class Decisions(SyncAPIResource):
     def create(
         self,
         *,
-        input: Union[str, Iterable[DecisionInputMessageParam]],
+        input: Union[str, Iterable[decision_create_params.InputUnionMember1]],
         model: str,
         questions: Iterable[decision_create_params.Question],
+        prompt_cache_key: Optional[str] | Omit = omit,
+        prompt_cache_options: Optional[decision_create_params.PromptCacheOptions] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -54,24 +55,31 @@ class Decisions(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Decision:
-        """Evaluate ordered classification and scoring questions against shared input.
-
-        Answers are returned in question order.
-
-        Supply input as a string or user messages containing text and inline images.
-        Only user messages with `input_text` and `input_image` parts are supported;
-        non-user roles, function calls, files, audio, and item references are not
-        supported. Images require a data URL, not an external URL or file ID. At most
-        128 images are allowed across the request.
-
-        Each question can return a refusal instead of a scored answer. A refusal has
-        type `refusal` and the corresponding question name, or null if unnamed.
+        """
+        Use this endpoint to quickly answer classification or scoring questions about
+        some input. You can ask multiple questions in one request.
 
         Args:
-          input: Shared evidence, as a string or an array of user messages containing text and
-              inline images. Non-user roles, function calls, function-call outputs, files,
-              audio, and item references are not supported. At most 128 image parts are
-              allowed across all messages in one request.
+          input: The input to evaluate for every question. Provide a text string or an ordered
+              array of messages, function calls and outputs, or custom tool calls and outputs.
+              Each tool output must identify a matching call by call ID.
+
+          model: The model to use. Only `gpt-6-luna` is supported.
+
+          questions: Ask 1–400 questions about the input. Each question can be a predicate, choice,
+              or score. Answers come back in the same order.
+
+          prompt_cache_key: Partition prompt cache reuse by caller-provided key.
+
+          prompt_cache_options: Options for prompt caching. Supported for `gpt-5.6` and later models. By
+              default, OpenAI automatically chooses one implicit cache breakpoint. You can add
+              explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each
+              request can write up to four breakpoints. For cache matching, OpenAI considers
+              up to the latest 80 breakpoints in the conversation, without a content-block
+              lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The
+              `ttl` defaults to `30m`, which is currently the only supported value. See the
+              [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching)
+              for current details.
 
           safety_identifier: Opaque caller-provided end-user identifier, scoped by the verified org. Match
               Responses' limit; this is never the authenticated user identity.
@@ -91,6 +99,8 @@ class Decisions(SyncAPIResource):
                     "model": model,
                     "input": input,
                     "questions": questions,
+                    "prompt_cache_key": prompt_cache_key,
+                    "prompt_cache_options": prompt_cache_options,
                     "safety_identifier": safety_identifier,
                 },
                 decision_create_params.DecisionCreateParams,
@@ -129,9 +139,11 @@ class AsyncDecisions(AsyncAPIResource):
     async def create(
         self,
         *,
-        input: Union[str, Iterable[DecisionInputMessageParam]],
+        input: Union[str, Iterable[decision_create_params.InputUnionMember1]],
         model: str,
         questions: Iterable[decision_create_params.Question],
+        prompt_cache_key: Optional[str] | Omit = omit,
+        prompt_cache_options: Optional[decision_create_params.PromptCacheOptions] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -140,24 +152,31 @@ class AsyncDecisions(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Decision:
-        """Evaluate ordered classification and scoring questions against shared input.
-
-        Answers are returned in question order.
-
-        Supply input as a string or user messages containing text and inline images.
-        Only user messages with `input_text` and `input_image` parts are supported;
-        non-user roles, function calls, files, audio, and item references are not
-        supported. Images require a data URL, not an external URL or file ID. At most
-        128 images are allowed across the request.
-
-        Each question can return a refusal instead of a scored answer. A refusal has
-        type `refusal` and the corresponding question name, or null if unnamed.
+        """
+        Use this endpoint to quickly answer classification or scoring questions about
+        some input. You can ask multiple questions in one request.
 
         Args:
-          input: Shared evidence, as a string or an array of user messages containing text and
-              inline images. Non-user roles, function calls, function-call outputs, files,
-              audio, and item references are not supported. At most 128 image parts are
-              allowed across all messages in one request.
+          input: The input to evaluate for every question. Provide a text string or an ordered
+              array of messages, function calls and outputs, or custom tool calls and outputs.
+              Each tool output must identify a matching call by call ID.
+
+          model: The model to use. Only `gpt-6-luna` is supported.
+
+          questions: Ask 1–400 questions about the input. Each question can be a predicate, choice,
+              or score. Answers come back in the same order.
+
+          prompt_cache_key: Partition prompt cache reuse by caller-provided key.
+
+          prompt_cache_options: Options for prompt caching. Supported for `gpt-5.6` and later models. By
+              default, OpenAI automatically chooses one implicit cache breakpoint. You can add
+              explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each
+              request can write up to four breakpoints. For cache matching, OpenAI considers
+              up to the latest 80 breakpoints in the conversation, without a content-block
+              lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The
+              `ttl` defaults to `30m`, which is currently the only supported value. See the
+              [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching)
+              for current details.
 
           safety_identifier: Opaque caller-provided end-user identifier, scoped by the verified org. Match
               Responses' limit; this is never the authenticated user identity.
@@ -177,6 +196,8 @@ class AsyncDecisions(AsyncAPIResource):
                     "model": model,
                     "input": input,
                     "questions": questions,
+                    "prompt_cache_key": prompt_cache_key,
+                    "prompt_cache_options": prompt_cache_options,
                     "safety_identifier": safety_identifier,
                 },
                 decision_create_params.DecisionCreateParams,

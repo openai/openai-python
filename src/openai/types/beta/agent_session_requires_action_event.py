@@ -1,5 +1,6 @@
 # File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
+from typing import Optional
 from typing_extensions import Literal
 
 from ..._models import BaseModel
@@ -19,3 +20,6 @@ class AgentSessionRequiresActionEvent(BaseModel):
 
     type: Literal["agent.session.requires_action"]
     """The type of the object. Always `agent.session.requires_action`."""
+
+    obfuscation: Optional[str] = None
+    """Random alphanumeric padding. Present when stream obfuscation is enabled."""

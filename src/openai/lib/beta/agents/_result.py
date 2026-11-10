@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import warnings
 from copy import deepcopy
 from typing import Any, Generic, Iterable
 from dataclasses import dataclass
 from typing_extensions import Literal, TypeVar
 
+from pydantic import ValidationError
+
 from ._output import validate_output_type
+from ...._compat import PYDANTIC_V1, parse_obj
 from ...._exceptions import OpenAIError
 from ..._parsing._completions import _parse_content
 from ....types.beta.agent_session import RequiredAction
@@ -135,7 +139,31 @@ class AgentTurnResultCollector:
                 and item.phase != "commentary"
                 and item.status == "completed"
             ):
-                message = AgentSessionMessage.construct(_fields_set=None, **deepcopy(item.to_dict()))
+                # V1 emits no serialization warnings, but its shim rejects warnings=False.
+                data = item.to_dict(warnings=PYDANTIC_V1)
+                issues = []
+                try:
+                    parse_obj(type(item), data)
+                except ValidationError as exc:
+                    issues = [(error["loc"], error["type"]) for error in exc.errors()]
+                # Warn outside the handler so warnings-as-errors do not chain the validation error.
+                for location, code in issues:
+                    path = "".join(f"[{part}]" if isinstance(part, int) else f".{part}" for part in location).lstrip(
+                        "."
+                    )
+                    expected = {
+                        "string_type": "a string",
+                        "type_error.str": "a string",
+                        "list_type": "a list",
+                        "type_error.list": "a list",
+                    }.get(code)
+                    warnings.warn(
+                        f"Unexpected response type at {path}: expected {expected}."
+                        if expected
+                        else f"Unexpected response value at {path}: {code}.",
+                        stacklevel=2,
+                    )
+                message = AgentSessionMessage.construct(_fields_set=None, **deepcopy(data))
                 self._messages[item.id] = (event.output_index, message)
         elif event.type == "agent.session.in_progress":
             self.required_actions = []

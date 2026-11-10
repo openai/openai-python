@@ -7,7 +7,13 @@ from typing_extensions import Literal, Required, TypedDict
 
 from .image_model import ImageModel
 
-__all__ = ["ImageGenerateParamsBase", "ImageGenerateParamsNonStreaming", "ImageGenerateParamsStreaming"]
+__all__ = [
+    "ImageGenerateParamsBase",
+    "Svg",
+    "SvgReasoning",
+    "ImageGenerateParamsNonStreaming",
+    "ImageGenerateParamsStreaming",
+]
 
 
 class ImageGenerateParamsBase(TypedDict, total=False):
@@ -31,14 +37,49 @@ class ImageGenerateParamsBase(TypedDict, total=False):
     set the output format to `png` or `webp`.
     """
 
+    complexity: Optional[Literal["low", "medium", "high"]]
+    """Computation spent planning the image, independently of rendering quality.
+
+    Uses the image model's configured default when omitted. For SVG output, controls
+    the reference image, independently of the SVG author's reasoning.
+    """
+
+    frame_count: Optional[int]
+    """Number of frames for GIF output.
+
+    Accepts integers from 2 through 16. Defaults to 9 when omitted. Only supported
+    with output_format=gif. The requested size must satisfy the selected model's GIF
+    size limits. GIF output does not support streaming, partial images, masks, or
+    custom output compression. Requires access to the GIF preview for the selected
+    model.
+    """
+
+    frame_duration_ms: Optional[int]
+    """Requested delay per GIF frame, in milliseconds.
+
+    Defaults to 200 when omitted. GIF output rounds to the nearest 10 ms and caps
+    the encoded delay at 655,350 ms per frame. Only supported with
+    output_format=gif.
+    """
+
     model: Union[str, ImageModel, None]
     """The GPT image model to use for image generation.
 
-    Specify a model explicitly. Supported models include `gpt-image-1`,
-    `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`, `gpt-image-2-2026-04-21`,
+    Specify a model explicitly. Supported models include `gpt-image-1-mini`,
+    `gpt-image-1.5`, `gpt-image-2`, `gpt-image-2-2026-04-21`,
     `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`,
-    `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`, and
-    `chatgpt-image-latest`.
+    `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`,
+    `gpt-image-2.6-sunburst`, `gpt-image-2.6-flare`, and `chatgpt-image-latest`.
+
+    `gpt-image-1` was shut down on October 23, 2026. Use `gpt-image-2.5-sunburst` or
+    `gpt-image-2.5-flare` instead.
+
+    Deprecated values:
+
+    - "gpt-image-1": GPT Image 1 was shut down on October 23, 2026. Use
+      gpt-image-2.5-sunburst or gpt-image-2.5-flare instead.
+    - "dall-e-2", "dall-e-3": This model was retired on May 12, 2026. Use a GPT
+      image model instead.
     """
 
     moderation: Optional[Literal["low", "auto"]]
@@ -58,11 +99,10 @@ class ImageGenerateParamsBase(TypedDict, total=False):
     `jpeg` output formats, and defaults to 100.
     """
 
-    output_format: Optional[Literal["png", "jpeg", "webp"]]
+    output_format: Optional[Literal["png", "jpeg", "webp", "gif", "svg"]]
     """The format in which the generated images are returned.
 
-    This parameter is only supported for the GPT image models. Must be one of `png`,
-    `jpeg`, or `webp`.
+    This parameter is only supported for the GPT image models.
     """
 
     partial_images: Optional[int]
@@ -84,12 +124,27 @@ class ImageGenerateParamsBase(TypedDict, total=False):
     - `high`, `medium` and `low` are supported for the GPT image models.
     - `gpt-image-2.5-sunburst` and `gpt-image-2.5-flare`, including their
       `2026-09-08` snapshots, also support `xhigh` and `max`.
+
+    Deprecated values:
+
+    - "standard", "hd": This quality was only supported by retired DALL·E models.
+      Use a GPT image quality instead.
     """
 
     response_format: Optional[Literal["url", "b64_json"]]
     """Legacy response format parameter for retired image models.
 
     Unsupported for GPT image models, which always return base64-encoded images.
+    """
+
+    safety_identifier: Optional[str]
+    """
+    A stable identifier for an end user in your organization, used for safety
+    monitoring and abuse detection. Hash a username or email address to avoid
+    sending identifying information. A non-empty value takes precedence over the
+    deprecated `user` parameter. If omitted, null, or empty, the API uses `user`
+    when available.
+    [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
     """
 
     size: Union[
@@ -109,6 +164,12 @@ class ImageGenerateParamsBase(TypedDict, total=False):
     current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and
     `1024x1536` are supported by the GPT image models; `auto` is supported for
     models that allow automatic sizing.
+
+    Deprecated values:
+
+    - "256x256", "512x512", "1792x1024", "1024x1792": This legacy size suggestion is
+      retained for SDK compatibility. Check the selected GPT image model's supported
+      sizes.
     """
 
     style: Optional[Literal["vivid", "natural"]]
@@ -118,11 +179,53 @@ class ImageGenerateParamsBase(TypedDict, total=False):
     instead.
     """
 
-    user: str
+    svg: Optional[Svg]
+    """Selects the model and reasoning effort used to author SVG output.
+
+    Requires output_format=svg and access to SVG model selection. When model
+    selection is enabled, supply svg.model. When model selection is disabled, omit
+    this object. The top-level model selects the image model that creates the
+    reference image. SVG generation requires n=1 and does not support streaming,
+    partial images, prompt_rewriter, or output_compression. SVG edits are not
+    supported.
     """
-    A unique identifier representing your end-user, which can help OpenAI to monitor
-    and detect abuse.
+
+    user: str
+    """Deprecated: use `safety_identifier` instead.
+
+    This parameter remains accepted for backward compatibility and is used when
+    `safety_identifier` is omitted, null, or empty.
     [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
+    """
+
+
+class SvgReasoning(TypedDict, total=False):
+    """Reasoning settings for the SVG author, independent of image complexity.
+
+    Omitted or null effort uses the author model's default. Supported efforts depend on the selected author model.
+    """
+
+    effort: Optional[Literal["none", "minimal", "low", "medium", "high", "xhigh", "max"]]
+    """Controls how much effort the SVG author spends on reasoning.
+
+    Uses the author model's default when omitted or null.
+    """
+
+
+class Svg(TypedDict, total=False):
+    """Selects the model and reasoning effort used to author SVG output.
+
+    Requires output_format=svg and access to SVG model selection. When model selection is enabled, supply svg.model. When model selection is disabled, omit this object. The top-level model selects the image model that creates the reference image. SVG generation requires n=1 and does not support streaming, partial images, prompt_rewriter, or output_compression. SVG edits are not supported.
+    """
+
+    model: Required[str]
+    """Model used to author the SVG. Required when SVG model selection is enabled."""
+
+    reasoning: Optional[SvgReasoning]
+    """Reasoning settings for the SVG author, independent of image complexity.
+
+    Omitted or null effort uses the author model's default. Supported efforts depend
+    on the selected author model.
     """
 
 

@@ -10,11 +10,14 @@ __all__ = ["BetaResponseInputTextParam", "PromptCacheBreakpoint"]
 class PromptCacheBreakpoint(TypedDict, total=False):
     """Marks the exact end of a reusable prompt prefix.
 
-    The breakpoint inherits its TTL from the request's `prompt_cache_options.ttl`; the boundary is not rounded to a token block.
+    When `ttl` is omitted, the breakpoint inherits the request's `prompt_cache_options.ttl`; the boundary is not rounded to a token block.
     """
 
     mode: Required[Literal["explicit"]]
     """The breakpoint mode. Always `explicit`."""
+
+    ttl: Literal["30m", "12h"]
+    """The minimum lifetime of this cache breakpoint. Defaults to the request TTL."""
 
 
 class BetaResponseInputTextParam(TypedDict, total=False):
@@ -29,6 +32,6 @@ class BetaResponseInputTextParam(TypedDict, total=False):
     prompt_cache_breakpoint: PromptCacheBreakpoint
     """Marks the exact end of a reusable prompt prefix.
 
-    The breakpoint inherits its TTL from the request's `prompt_cache_options.ttl`;
-    the boundary is not rounded to a token block.
+    When `ttl` is omitted, the breakpoint inherits the request's
+    `prompt_cache_options.ttl`; the boundary is not rounded to a token block.
     """

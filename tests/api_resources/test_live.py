@@ -40,7 +40,10 @@ class TestLive:
                         "allowed_server_events": "all",
                     }
                 },
-                "delegation": {"type": "client"},
+                "delegation": {
+                    "type": "client",
+                    "acknowledgement_delay_ms": 0,
+                },
                 "input": [
                     {
                         "content": [
@@ -57,6 +60,31 @@ class TestLive:
                 ],
                 "instructions": "instructions",
                 "store": True,
+                "triggers": [
+                    {
+                        "decisions": {
+                            "questions": [
+                                {
+                                    "choices": [
+                                        {
+                                            "value": False,
+                                            "description": "description",
+                                        },
+                                        {
+                                            "value": True,
+                                            "description": "description",
+                                        },
+                                    ],
+                                    "instructions": "string",
+                                    "type": "choice",
+                                    "name": "name",
+                                }
+                            ]
+                        },
+                        "event_type": "session.input_transcript.delta",
+                        "type": "decisions",
+                    }
+                ],
             },
             transport={
                 "sdp": "x",
@@ -126,7 +154,10 @@ class TestAsyncLive:
                         "allowed_server_events": "all",
                     }
                 },
-                "delegation": {"type": "client"},
+                "delegation": {
+                    "type": "client",
+                    "acknowledgement_delay_ms": 0,
+                },
                 "input": [
                     {
                         "content": [
@@ -143,6 +174,31 @@ class TestAsyncLive:
                 ],
                 "instructions": "instructions",
                 "store": True,
+                "triggers": [
+                    {
+                        "decisions": {
+                            "questions": [
+                                {
+                                    "choices": [
+                                        {
+                                            "value": False,
+                                            "description": "description",
+                                        },
+                                        {
+                                            "value": True,
+                                            "description": "description",
+                                        },
+                                    ],
+                                    "instructions": "string",
+                                    "type": "choice",
+                                    "name": "name",
+                                }
+                            ]
+                        },
+                        "event_type": "session.input_transcript.delta",
+                        "type": "decisions",
+                    }
+                ],
             },
             transport={
                 "sdp": "x",

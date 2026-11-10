@@ -2,14 +2,17 @@ from __future__ import annotations
 
 import asyncio
 import inspect
-from typing import Any, Callable
+from queue import Queue
+from typing import Any, Callable, Generator
+from contextlib import AbstractContextManager
 from unittest.mock import Mock, AsyncMock
 
 import httpx2
 import pytest
 from websockets.uri import WebSocketURI
-from websockets.http11 import Response
+from websockets.http11 import Request, Response
 from websockets.exceptions import InvalidStatus, SecurityError
+from websockets.sync.server import ServerConnection
 from websockets.asyncio.client import connect
 from websockets.datastructures import Headers, HeadersLike
 
@@ -237,3 +240,129 @@ def test_sync_websocket_connector_is_unchanged(monkeypatch: pytest.MonkeyPatch, 
 def test_non_redirect_error_is_preserved() -> None:
     error = InvalidStatus(Response(401, "Unauthorized", Headers()))
     assert _WebSocketConnect("wss://origin.test/realtime").process_redirect(error) is error
+
+
+WirePeer = Callable[[str | None], AbstractContextManager[tuple[str, list[Request], Queue[bool]]]]
+
+
+@pytest.fixture
+def wire_peer(monkeypatch: pytest.MonkeyPatch) -> WirePeer:
+    """Use real sockets for both the synchronous and asynchronous clients."""
+    import threading
+    from contextlib import contextmanager
+
+    from websockets.sync.server import serve
+
+    monkeypatch.setenv("NO_PROXY", "*")
+    monkeypatch.setenv("no_proxy", "*")
+
+    @contextmanager
+    def start(redirect: str | None = None) -> Generator[tuple[str, list[Request], Queue[bool]], None, None]:
+        requests: list[Request] = []
+        closed: Queue[bool] = Queue()
+
+        def process(_socket: ServerConnection, request: Request) -> Response | None:
+            requests.append(request)
+            if redirect and not request.path.startswith("/final"):
+                return Response(302, "Found", Headers({"Location": redirect}))
+            return None
+
+        def echo(socket: ServerConnection) -> None:
+            try:
+                for message in socket:
+                    socket.send(message)
+            finally:
+                closed.put(True)
+
+        with serve(echo, "127.0.0.1", 0, process_request=process) as server:
+            thread = threading.Thread(target=server.serve_forever)
+            thread.start()
+            try:
+                yield f"ws://127.0.0.1:{server.socket.getsockname()[1]}", requests, closed
+            finally:
+                server.shutdown()
+                thread.join(timeout=5)
+                assert not thread.is_alive()
+
+    return start
+
+
+@pytest.mark.parametrize("name", RESOURCES)
+@pytest.mark.parametrize("mode", ["sync", "async"])
+@pytest.mark.parametrize("redirect", ["none", "same-origin", "cross-origin"])
+async def test_public_binding_wire_redirects(wire_peer: WirePeer, name: str, mode: str, redirect: str) -> None:
+    from websockets.exceptions import InvalidHandshake
+
+    with wire_peer(None) as (target, target_requests, _):
+        location = {"none": None, "same-origin": "/final", "cross-origin": target + "/final"}[redirect]
+        with wire_peer(location) as (base, requests, closed):
+            allowed = redirect == "none" or (redirect == "same-origin" and mode == "async" and FOLLOWS_REDIRECTS)
+
+            async def run() -> None:
+                if mode == "sync":
+                    with OpenAI(api_key="fake-wire-key", websocket_base_url=base) as client:
+                        with resource(client, name).connect(**options(client, name)) as connection:
+                            connection.send({"type": "future.event"})
+                            assert connection.recv().type == "future.event"
+                else:
+                    async with AsyncOpenAI(api_key="fake-wire-key", websocket_base_url=base) as client:
+                        async with resource(client, name).connect(**options(client, name)) as connection:
+                            await connection.send({"type": "future.event"})
+                            assert (await connection.recv()).type == "future.event"
+
+            if allowed:
+                await run()
+            else:
+                with pytest.raises(InvalidHandshake):
+                    await run()
+        assert len(requests) == (2 if allowed and redirect == "same-origin" else 1)
+        if allowed:
+            assert closed.get(timeout=5) is True
+        assert closed.empty()
+        assert target_requests == []
+        for request in requests:
+            assert request.headers["Authorization"] == "Bearer fake-wire-key"
+            for key, value in EXTRA_HEADERS.items():
+                assert request.headers[key] == value
+
+
+@pytest.mark.parametrize("name", RESOURCES)
+@pytest.mark.parametrize("mode", ["sync", "async"])
+async def test_public_binding_wire_credentials(wire_peer: WirePeer, name: str, mode: str) -> None:
+    calls = 0
+
+    def credential() -> str:
+        nonlocal calls
+        calls += 1
+        return f"fake-wire-{calls}"
+
+    async def async_credential() -> str:
+        return credential()
+
+    with wire_peer(None) as (base, requests, closed):
+        if mode == "sync":
+            with OpenAI(api_key=credential, websocket_base_url=base) as client:
+                for attempt in range(3):
+                    kwargs = options(client, name)
+                    if attempt == 2:
+                        kwargs["extra_headers"] = {"Authorization": "Bearer fake-explicit"}
+                    with resource(client, name).connect(**kwargs) as connection:
+                        connection.send({"type": "future.event"})
+                        assert connection.recv().type == "future.event"
+        else:
+            async with AsyncOpenAI(api_key=async_credential, websocket_base_url=base) as client:
+                for attempt in range(3):
+                    kwargs = options(client, name)
+                    if attempt == 2:
+                        kwargs["extra_headers"] = {"Authorization": "Bearer fake-explicit"}
+                    async with resource(client, name).connect(**kwargs) as connection:
+                        await connection.send({"type": "future.event"})
+                        assert (await connection.recv()).type == "future.event"
+    assert [request.headers["Authorization"] for request in requests] == [
+        "Bearer fake-wire-1",
+        "Bearer fake-wire-2",
+        "Bearer fake-explicit",
+    ]
+    for _ in range(3):
+        assert closed.get(timeout=5) is True
+    assert closed.empty()

@@ -7,7 +7,6 @@ __all__ = ["ParsedFunctionToolCall", "ParsedFunction"]
 # we need to disable this check because we're overriding properties
 # with subclasses of their types which is technically unsound as
 # properties can be mutated.
-# pyright: reportIncompatibleVariableOverride=false
 
 
 class ParsedFunction(Function):

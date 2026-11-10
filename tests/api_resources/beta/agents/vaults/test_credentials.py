@@ -236,7 +236,8 @@ class TestCredentials:
         credential = client.beta.agents.vaults.credentials.list(
             vault_id="vault_id",
             after="after",
-            limit=0,
+            limit=1,
+            metadata={"foo": "string"},
             order="asc",
             status="active",
         )
@@ -542,7 +543,8 @@ class TestAsyncCredentials:
         credential = await async_client.beta.agents.vaults.credentials.list(
             vault_id="vault_id",
             after="after",
-            limit=0,
+            limit=1,
+            metadata={"foo": "string"},
             order="asc",
             status="active",
         )

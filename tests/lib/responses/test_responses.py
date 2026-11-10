@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from typing_extensions import TypeVar
 
 import pytest
@@ -19,6 +20,7 @@ from openai.types.responses import (
     ResponseIncompleteEvent,
     ResponseOutputItemAddedEvent,
     ResponseContentPartAddedEvent,
+    response_create_params,
 )
 from openai.lib._parsing._responses import parse_response
 from openai.lib.streaming.responses._responses import ResponseStreamState
@@ -327,6 +329,31 @@ def test_stream_completed_response_still_raises_invalid_structured_parse() -> No
         )
 
 
+@pytest.mark.respx2(base_url=base_url)
+@pytest.mark.parametrize("client,async_client", [(False, False)], indirect=True)
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+async def test_responses_helpers_forward_image_options(
+    client: OpenAI, async_client: AsyncOpenAI, respx2_mock: MockRouter, sync: bool
+) -> None:
+    image: response_create_params.Image = {"context_compression": "disabled"}
+    route = respx2_mock.post("/responses").respond(json={"output": []})
+
+    if sync:
+        client.responses.parse(model="test-model", input="test", image=image)
+    else:
+        await async_client.responses.parse(model="test-model", input="test", image=image)
+
+    route.respond(content="data: [DONE]\n\n", headers={"content-type": "text/event-stream"})
+    if sync:
+        with client.responses.stream(model="test-model", input="test", image=image) as stream:
+            assert list(stream) == []
+    else:
+        async with async_client.responses.stream(model="test-model", input="test", image=image) as stream:
+            assert [event async for event in stream] == []
+
+    assert [json.loads(call.request.content)["image"] for call in route.calls] == [image, image]
+
+
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
 def test_stream_method_definition_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
     checking_client: OpenAI | AsyncOpenAI = client if sync else async_client
@@ -423,5 +450,5 @@ def test_stream_state_ignores_output_item_added_with_null_item() -> None:
 
     events = state.handle_event(added)
 
-    assert events == [added]
+    assert events == []
     assert state.accumulate_event(added).output == []

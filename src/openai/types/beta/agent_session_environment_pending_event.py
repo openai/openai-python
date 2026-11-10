@@ -26,3 +26,6 @@ class AgentSessionEnvironmentPendingEvent(BaseModel):
 
     type: Literal["agent.session.environment.pending"]
     """The type of the object. Always `agent.session.environment.pending`."""
+
+    obfuscation: Optional[str] = None
+    """Random alphanumeric padding. Present when stream obfuscation is enabled."""

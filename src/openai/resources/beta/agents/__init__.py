@@ -27,6 +27,14 @@ if _t.TYPE_CHECKING:
         SessionsWithStreamingResponse as SessionsWithStreamingResponse,
         AsyncSessionsWithStreamingResponse as AsyncSessionsWithStreamingResponse,
     )
+    from .automations import (
+        Automations as Automations,
+        AsyncAutomations as AsyncAutomations,
+        AutomationsWithRawResponse as AutomationsWithRawResponse,
+        AsyncAutomationsWithRawResponse as AsyncAutomationsWithRawResponse,
+        AutomationsWithStreamingResponse as AutomationsWithStreamingResponse,
+        AsyncAutomationsWithStreamingResponse as AsyncAutomationsWithStreamingResponse,
+    )
     from .environments import (
         Environments as Environments,
         AsyncEnvironments as AsyncEnvironments,
@@ -38,6 +46,12 @@ if _t.TYPE_CHECKING:
 
 else:
     _EXPORTS = {
+        "Automations": (".automations", "Automations"),
+        "AsyncAutomations": (".automations", "AsyncAutomations"),
+        "AutomationsWithRawResponse": (".automations", "AutomationsWithRawResponse"),
+        "AsyncAutomationsWithRawResponse": (".automations", "AsyncAutomationsWithRawResponse"),
+        "AutomationsWithStreamingResponse": (".automations", "AutomationsWithStreamingResponse"),
+        "AsyncAutomationsWithStreamingResponse": (".automations", "AsyncAutomationsWithStreamingResponse"),
         "Environments": (".environments", "Environments"),
         "AsyncEnvironments": (".environments", "AsyncEnvironments"),
         "EnvironmentsWithRawResponse": (".environments", "EnvironmentsWithRawResponse"),
@@ -65,6 +79,7 @@ else:
     }
     _SUBMODULES = {
         "agents",
+        "automations",
         "environments",
         "sessions",
         "vaults",
@@ -88,6 +103,12 @@ else:
 
 
 __all__ = [
+    "Automations",
+    "AsyncAutomations",
+    "AutomationsWithRawResponse",
+    "AsyncAutomationsWithRawResponse",
+    "AutomationsWithStreamingResponse",
+    "AsyncAutomationsWithStreamingResponse",
     "Environments",
     "AsyncEnvironments",
     "EnvironmentsWithRawResponse",

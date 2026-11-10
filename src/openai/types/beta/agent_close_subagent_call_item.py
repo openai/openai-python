@@ -27,7 +27,4 @@ class AgentCloseSubagentCallItem(BaseModel):
     """The ID of the turn that contains this item."""
 
     type: Literal["close_subagent_call"]
-    """The item type. Always `close_subagent_call`.
-
-    - `close_subagent_call` - The current public item type.
-    """
+    """The item type. Always `close_subagent_call`."""

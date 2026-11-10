@@ -9,17 +9,17 @@ __all__ = ["ArtifactListParams"]
 
 
 class ArtifactListParams(TypedDict, total=False):
-    after: Optional[str]
-    """Return artifacts after this immutable artifact ID."""
+    after: str
+    """Return resources after this resource ID in the selected order."""
 
     environment_id: Optional[str]
     """Restrict the listing to artifacts produced by this environment."""
 
-    limit: Optional[int]
-    """The maximum number of artifacts to return, between 1 and 100."""
+    limit: int
+    """The maximum number of resources to return, between 1 and 100. Defaults to 20."""
 
     order: Literal["asc", "desc"]
-    """Sort by creation time and ID. Defaults to descending.
+    """The order in which resources are returned. Defaults to `desc`.
 
     - `asc` - Returns resources in ascending order.
     - `desc` - Returns resources in descending order.

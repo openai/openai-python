@@ -6,14 +6,7 @@ from typing_extensions import Literal, Annotated, TypeAlias
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
 
-__all__ = [
-    "ResponseFunctionWebSearch",
-    "Action",
-    "ActionSearch",
-    "ActionSearchSource",
-    "ActionOpenPage",
-    "ActionFind",
-]
+__all__ = ["ResponseFunctionWebSearch", "Action", "ActionSearch", "ActionSearchSource", "ActionOpenPage", "ActionFind"]
 
 
 class ActionSearchSource(BaseModel):

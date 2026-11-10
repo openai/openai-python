@@ -1,0 +1,18 @@
+[Unit]
+Description=One bounded desktop action
+Requires=desktop.service
+After=desktop.service
+
+[Service]
+User=root
+Group=root
+Environment=DISPLAY=:1 HOME=/home/desktop
+ExecStart=/usr/bin/python3 -I /opt/desktop/action.py
+StandardInput=null
+StandardOutput=null
+StandardError=null
+RuntimeMaxSec=14s
+TimeoutStopSec=1s
+KillMode=control-group
+TasksMax=16
+MemoryMax=256M

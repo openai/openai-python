@@ -78,6 +78,13 @@ class Images(SyncAPIResource):
           model: The legacy model used by the retired image variations endpoint. This endpoint no
               longer accepts requests.
 
+              Deprecated values:
+
+              - "gpt-image-1": GPT Image 1 was shut down on October 23, 2026. Use
+                gpt-image-2.5-sunburst or gpt-image-2.5-flare instead.
+              - "dall-e-2", "dall-e-3": This model was retired on May 12, 2026. Use a GPT
+                image model instead.
+
           n: The number of images to generate. Must be between 1 and 10.
 
           response_format: The format in which the generated images are returned. Must be one of `url` or
@@ -136,15 +143,20 @@ class Images(SyncAPIResource):
         image: Union[FileTypes, SequenceNotStr[FileTypes]],
         prompt: str,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        complexity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        frame_count: Optional[int] | Omit = omit,
+        frame_duration_ms: Optional[int] | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
+        markup: FileTypes | Omit = omit,
         mask: FileTypes | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp", "gif"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         size: Union[str, Literal["1024x1024", "1536x1024", "1024x1536", "auto", "256x256", "512x512"], None]
         | Omit = omit,
         stream: Optional[Literal[False]] | Omit = omit,
@@ -164,12 +176,12 @@ class Images(SyncAPIResource):
         Args:
           image: The image(s) to edit. Must be a supported image file or an array of images.
 
-              For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`,
-              `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
-              `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`,
-              `gpt-image-2.5-flare-2026-09-08`, and `chatgpt-image-latest`), each image should
-              be a `png`, `webp`, or `jpg` file less than 50MB. You can provide up to 16
-              images.
+              For the GPT image models (`gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+              `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
+              `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and
+              `gpt-image-2.5-flare-2026-09-08`), each image should be a `png`, `webp`, or
+              `jpg` file less than 50MB. You can provide up to 16 images.
+              `chatgpt-image-latest` follows the same input constraints as GPT image models.
 
           prompt: A text description of the desired image(s). The maximum length is 32000
               characters for the GPT image models.
@@ -184,21 +196,49 @@ class Images(SyncAPIResource):
               `gpt-image-2-2026-04-21`, this support is in preview. When using `transparent`,
               set the output format to `png` or `webp`.
 
+          complexity: Computation spent planning the image, independently of rendering quality. Uses
+              the image model's configured default when omitted. For SVG output, controls the
+              reference image, independently of the SVG author's reasoning.
+
+          frame_count: Number of frames for GIF output. Accepts integers from 2 through 16. Defaults to
+              9 when omitted. Only supported with output_format=gif. The requested size must
+              satisfy the selected model's GIF size limits. GIF output does not support
+              streaming, partial images, masks, or custom output compression. Requires access
+              to the GIF preview for the selected model.
+
+          frame_duration_ms: Requested delay per GIF frame, in milliseconds. Defaults to 200 when omitted.
+              GIF output rounds to the nearest 10 ms and caps the encoded delay at 655,350 ms
+              per frame. Only supported with output_format=gif.
+
           input_fidelity: Control how much effort the model will exert to match the style and features,
               especially facial features, of input images. Supports `high` and `low` on
-              `gpt-image-1` and `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For
-              `gpt-image-2`, omit this parameter. Defaults to `low` on supported models.
+              `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For `gpt-image-2`, omit
+              this parameter. Defaults to `low` on supported models.
+
+          markup: A transparent PNG overlaid on the first image to guide the edit. Must match that
+              image's dimensions after orientation and contain transparent pixels. Supports
+              GPT Image 2.5. Cannot be combined with mask.
 
           mask: An additional image whose fully transparent areas (e.g. where alpha is zero)
               indicate where `image` should be edited. If there are multiple images provided,
               the mask will be applied on the first image. Must be a valid PNG file, less than
               4MB, and have the same dimensions as `image`.
 
-          model: The GPT image model to use for image editing (`gpt-image-1`, `gpt-image-1-mini`,
+          model: The GPT image model to use for image editing (`gpt-image-1-mini`,
               `gpt-image-1.5`, `gpt-image-2`, `gpt-image-2-2026-04-21`,
               `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`,
-              `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`, or
-              `chatgpt-image-latest`).
+              `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`,
+              `gpt-image-2.6-sunburst`, `gpt-image-2.6-flare`, or `chatgpt-image-latest`).
+
+              `gpt-image-1` was shut down on October 23, 2026. Use `gpt-image-2.5-sunburst` or
+              `gpt-image-2.5-flare` instead.
+
+              Deprecated values:
+
+              - "gpt-image-1": GPT Image 1 was shut down on October 23, 2026. Use
+                gpt-image-2.5-sunburst or gpt-image-2.5-flare instead.
+              - "dall-e-2", "dall-e-3": This model was retired on May 12, 2026. Use a GPT
+                image model instead.
 
           n: The number of images to generate. Must be between 1 and 10.
 
@@ -207,8 +247,7 @@ class Images(SyncAPIResource):
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for the GPT image models. Must be one of `png`, `jpeg`, or `webp`. The
-              default value is `png`.
+              supported for the GPT image models. The default value is `png`.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
               responses that return partial images. Value must be between 0 and 3. When set to
@@ -222,8 +261,20 @@ class Images(SyncAPIResource):
               `gpt-image-2.5-flare`, including their `2026-09-08` snapshots, also support
               `xhigh` and `max`. Defaults to `auto`.
 
+              Deprecated values:
+
+              - "standard": This quality was only supported by retired DALL·E models. Use a
+                GPT image quality instead.
+
           response_format: Legacy response format parameter for retired image models. Unsupported for GPT
               image models, which always return base64-encoded images.
+
+          safety_identifier: A stable identifier for an end user in your organization, used for safety
+              monitoring and abuse detection. Hash a username or email address to avoid
+              sending identifying information. A non-empty value takes precedence over the
+              deprecated `user` parameter. If omitted, null, or empty, the API uses `user`
+              when available.
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           size: The size of the generated images. Defaults to `auto`. For `gpt-image-2`,
               `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
@@ -237,12 +288,18 @@ class Images(SyncAPIResource):
               `1024x1536` are supported by the GPT image models; `auto` is supported for
               models that allow automatic sizing.
 
+              Deprecated values:
+
+              - "256x256", "512x512": This legacy size suggestion is retained for SDK
+                compatibility. Check the selected GPT image model's supported sizes.
+
           stream: Edit the image in streaming mode. Defaults to `false`. See the
               [Image generation guide](https://developers.openai.com/api/docs/guides/image-generation)
               for more information.
 
-          user: A unique identifier representing your end-user, which can help OpenAI to monitor
-              and detect abuse.
+          user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
+              backward compatibility and is used when `safety_identifier` is omitted, null, or
+              empty.
               [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           extra_headers: Send extra headers
@@ -263,15 +320,20 @@ class Images(SyncAPIResource):
         prompt: str,
         stream: Literal[True],
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        complexity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        frame_count: Optional[int] | Omit = omit,
+        frame_duration_ms: Optional[int] | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
+        markup: FileTypes | Omit = omit,
         mask: FileTypes | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp", "gif"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         size: Union[str, Literal["1024x1024", "1536x1024", "1024x1536", "auto", "256x256", "512x512"], None]
         | Omit = omit,
         user: str | Omit = omit,
@@ -290,12 +352,12 @@ class Images(SyncAPIResource):
         Args:
           image: The image(s) to edit. Must be a supported image file or an array of images.
 
-              For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`,
-              `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
-              `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`,
-              `gpt-image-2.5-flare-2026-09-08`, and `chatgpt-image-latest`), each image should
-              be a `png`, `webp`, or `jpg` file less than 50MB. You can provide up to 16
-              images.
+              For the GPT image models (`gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+              `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
+              `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and
+              `gpt-image-2.5-flare-2026-09-08`), each image should be a `png`, `webp`, or
+              `jpg` file less than 50MB. You can provide up to 16 images.
+              `chatgpt-image-latest` follows the same input constraints as GPT image models.
 
           prompt: A text description of the desired image(s). The maximum length is 32000
               characters for the GPT image models.
@@ -314,21 +376,49 @@ class Images(SyncAPIResource):
               `gpt-image-2-2026-04-21`, this support is in preview. When using `transparent`,
               set the output format to `png` or `webp`.
 
+          complexity: Computation spent planning the image, independently of rendering quality. Uses
+              the image model's configured default when omitted. For SVG output, controls the
+              reference image, independently of the SVG author's reasoning.
+
+          frame_count: Number of frames for GIF output. Accepts integers from 2 through 16. Defaults to
+              9 when omitted. Only supported with output_format=gif. The requested size must
+              satisfy the selected model's GIF size limits. GIF output does not support
+              streaming, partial images, masks, or custom output compression. Requires access
+              to the GIF preview for the selected model.
+
+          frame_duration_ms: Requested delay per GIF frame, in milliseconds. Defaults to 200 when omitted.
+              GIF output rounds to the nearest 10 ms and caps the encoded delay at 655,350 ms
+              per frame. Only supported with output_format=gif.
+
           input_fidelity: Control how much effort the model will exert to match the style and features,
               especially facial features, of input images. Supports `high` and `low` on
-              `gpt-image-1` and `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For
-              `gpt-image-2`, omit this parameter. Defaults to `low` on supported models.
+              `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For `gpt-image-2`, omit
+              this parameter. Defaults to `low` on supported models.
+
+          markup: A transparent PNG overlaid on the first image to guide the edit. Must match that
+              image's dimensions after orientation and contain transparent pixels. Supports
+              GPT Image 2.5. Cannot be combined with mask.
 
           mask: An additional image whose fully transparent areas (e.g. where alpha is zero)
               indicate where `image` should be edited. If there are multiple images provided,
               the mask will be applied on the first image. Must be a valid PNG file, less than
               4MB, and have the same dimensions as `image`.
 
-          model: The GPT image model to use for image editing (`gpt-image-1`, `gpt-image-1-mini`,
+          model: The GPT image model to use for image editing (`gpt-image-1-mini`,
               `gpt-image-1.5`, `gpt-image-2`, `gpt-image-2-2026-04-21`,
               `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`,
-              `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`, or
-              `chatgpt-image-latest`).
+              `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`,
+              `gpt-image-2.6-sunburst`, `gpt-image-2.6-flare`, or `chatgpt-image-latest`).
+
+              `gpt-image-1` was shut down on October 23, 2026. Use `gpt-image-2.5-sunburst` or
+              `gpt-image-2.5-flare` instead.
+
+              Deprecated values:
+
+              - "gpt-image-1": GPT Image 1 was shut down on October 23, 2026. Use
+                gpt-image-2.5-sunburst or gpt-image-2.5-flare instead.
+              - "dall-e-2", "dall-e-3": This model was retired on May 12, 2026. Use a GPT
+                image model instead.
 
           n: The number of images to generate. Must be between 1 and 10.
 
@@ -337,8 +427,7 @@ class Images(SyncAPIResource):
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for the GPT image models. Must be one of `png`, `jpeg`, or `webp`. The
-              default value is `png`.
+              supported for the GPT image models. The default value is `png`.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
               responses that return partial images. Value must be between 0 and 3. When set to
@@ -352,8 +441,20 @@ class Images(SyncAPIResource):
               `gpt-image-2.5-flare`, including their `2026-09-08` snapshots, also support
               `xhigh` and `max`. Defaults to `auto`.
 
+              Deprecated values:
+
+              - "standard": This quality was only supported by retired DALL·E models. Use a
+                GPT image quality instead.
+
           response_format: Legacy response format parameter for retired image models. Unsupported for GPT
               image models, which always return base64-encoded images.
+
+          safety_identifier: A stable identifier for an end user in your organization, used for safety
+              monitoring and abuse detection. Hash a username or email address to avoid
+              sending identifying information. A non-empty value takes precedence over the
+              deprecated `user` parameter. If omitted, null, or empty, the API uses `user`
+              when available.
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           size: The size of the generated images. Defaults to `auto`. For `gpt-image-2`,
               `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
@@ -367,8 +468,14 @@ class Images(SyncAPIResource):
               `1024x1536` are supported by the GPT image models; `auto` is supported for
               models that allow automatic sizing.
 
-          user: A unique identifier representing your end-user, which can help OpenAI to monitor
-              and detect abuse.
+              Deprecated values:
+
+              - "256x256", "512x512": This legacy size suggestion is retained for SDK
+                compatibility. Check the selected GPT image model's supported sizes.
+
+          user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
+              backward compatibility and is used when `safety_identifier` is omitted, null, or
+              empty.
               [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           extra_headers: Send extra headers
@@ -389,15 +496,20 @@ class Images(SyncAPIResource):
         prompt: str,
         stream: bool,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        complexity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        frame_count: Optional[int] | Omit = omit,
+        frame_duration_ms: Optional[int] | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
+        markup: FileTypes | Omit = omit,
         mask: FileTypes | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp", "gif"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         size: Union[str, Literal["1024x1024", "1536x1024", "1024x1536", "auto", "256x256", "512x512"], None]
         | Omit = omit,
         user: str | Omit = omit,
@@ -416,12 +528,12 @@ class Images(SyncAPIResource):
         Args:
           image: The image(s) to edit. Must be a supported image file or an array of images.
 
-              For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`,
-              `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
-              `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`,
-              `gpt-image-2.5-flare-2026-09-08`, and `chatgpt-image-latest`), each image should
-              be a `png`, `webp`, or `jpg` file less than 50MB. You can provide up to 16
-              images.
+              For the GPT image models (`gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+              `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
+              `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and
+              `gpt-image-2.5-flare-2026-09-08`), each image should be a `png`, `webp`, or
+              `jpg` file less than 50MB. You can provide up to 16 images.
+              `chatgpt-image-latest` follows the same input constraints as GPT image models.
 
           prompt: A text description of the desired image(s). The maximum length is 32000
               characters for the GPT image models.
@@ -440,21 +552,49 @@ class Images(SyncAPIResource):
               `gpt-image-2-2026-04-21`, this support is in preview. When using `transparent`,
               set the output format to `png` or `webp`.
 
+          complexity: Computation spent planning the image, independently of rendering quality. Uses
+              the image model's configured default when omitted. For SVG output, controls the
+              reference image, independently of the SVG author's reasoning.
+
+          frame_count: Number of frames for GIF output. Accepts integers from 2 through 16. Defaults to
+              9 when omitted. Only supported with output_format=gif. The requested size must
+              satisfy the selected model's GIF size limits. GIF output does not support
+              streaming, partial images, masks, or custom output compression. Requires access
+              to the GIF preview for the selected model.
+
+          frame_duration_ms: Requested delay per GIF frame, in milliseconds. Defaults to 200 when omitted.
+              GIF output rounds to the nearest 10 ms and caps the encoded delay at 655,350 ms
+              per frame. Only supported with output_format=gif.
+
           input_fidelity: Control how much effort the model will exert to match the style and features,
               especially facial features, of input images. Supports `high` and `low` on
-              `gpt-image-1` and `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For
-              `gpt-image-2`, omit this parameter. Defaults to `low` on supported models.
+              `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For `gpt-image-2`, omit
+              this parameter. Defaults to `low` on supported models.
+
+          markup: A transparent PNG overlaid on the first image to guide the edit. Must match that
+              image's dimensions after orientation and contain transparent pixels. Supports
+              GPT Image 2.5. Cannot be combined with mask.
 
           mask: An additional image whose fully transparent areas (e.g. where alpha is zero)
               indicate where `image` should be edited. If there are multiple images provided,
               the mask will be applied on the first image. Must be a valid PNG file, less than
               4MB, and have the same dimensions as `image`.
 
-          model: The GPT image model to use for image editing (`gpt-image-1`, `gpt-image-1-mini`,
+          model: The GPT image model to use for image editing (`gpt-image-1-mini`,
               `gpt-image-1.5`, `gpt-image-2`, `gpt-image-2-2026-04-21`,
               `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`,
-              `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`, or
-              `chatgpt-image-latest`).
+              `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`,
+              `gpt-image-2.6-sunburst`, `gpt-image-2.6-flare`, or `chatgpt-image-latest`).
+
+              `gpt-image-1` was shut down on October 23, 2026. Use `gpt-image-2.5-sunburst` or
+              `gpt-image-2.5-flare` instead.
+
+              Deprecated values:
+
+              - "gpt-image-1": GPT Image 1 was shut down on October 23, 2026. Use
+                gpt-image-2.5-sunburst or gpt-image-2.5-flare instead.
+              - "dall-e-2", "dall-e-3": This model was retired on May 12, 2026. Use a GPT
+                image model instead.
 
           n: The number of images to generate. Must be between 1 and 10.
 
@@ -463,8 +603,7 @@ class Images(SyncAPIResource):
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for the GPT image models. Must be one of `png`, `jpeg`, or `webp`. The
-              default value is `png`.
+              supported for the GPT image models. The default value is `png`.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
               responses that return partial images. Value must be between 0 and 3. When set to
@@ -478,8 +617,20 @@ class Images(SyncAPIResource):
               `gpt-image-2.5-flare`, including their `2026-09-08` snapshots, also support
               `xhigh` and `max`. Defaults to `auto`.
 
+              Deprecated values:
+
+              - "standard": This quality was only supported by retired DALL·E models. Use a
+                GPT image quality instead.
+
           response_format: Legacy response format parameter for retired image models. Unsupported for GPT
               image models, which always return base64-encoded images.
+
+          safety_identifier: A stable identifier for an end user in your organization, used for safety
+              monitoring and abuse detection. Hash a username or email address to avoid
+              sending identifying information. A non-empty value takes precedence over the
+              deprecated `user` parameter. If omitted, null, or empty, the API uses `user`
+              when available.
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           size: The size of the generated images. Defaults to `auto`. For `gpt-image-2`,
               `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
@@ -493,8 +644,14 @@ class Images(SyncAPIResource):
               `1024x1536` are supported by the GPT image models; `auto` is supported for
               models that allow automatic sizing.
 
-          user: A unique identifier representing your end-user, which can help OpenAI to monitor
-              and detect abuse.
+              Deprecated values:
+
+              - "256x256", "512x512": This legacy size suggestion is retained for SDK
+                compatibility. Check the selected GPT image model's supported sizes.
+
+          user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
+              backward compatibility and is used when `safety_identifier` is omitted, null, or
+              empty.
               [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           extra_headers: Send extra headers
@@ -514,15 +671,20 @@ class Images(SyncAPIResource):
         image: Union[FileTypes, SequenceNotStr[FileTypes]],
         prompt: str,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        complexity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        frame_count: Optional[int] | Omit = omit,
+        frame_duration_ms: Optional[int] | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
+        markup: FileTypes | Omit = omit,
         mask: FileTypes | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp", "gif"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         size: Union[str, Literal["1024x1024", "1536x1024", "1024x1536", "auto", "256x256", "512x512"], None]
         | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
@@ -539,7 +701,11 @@ class Images(SyncAPIResource):
                 "image": image,
                 "prompt": prompt,
                 "background": background,
+                "complexity": complexity,
+                "frame_count": frame_count,
+                "frame_duration_ms": frame_duration_ms,
                 "input_fidelity": input_fidelity,
+                "markup": markup,
                 "mask": mask,
                 "model": model,
                 "n": n,
@@ -548,13 +714,16 @@ class Images(SyncAPIResource):
                 "partial_images": partial_images,
                 "quality": quality,
                 "response_format": response_format,
+                "safety_identifier": safety_identifier,
                 "size": size,
                 "stream": stream,
                 "user": user,
             },
-            [["image"], ["image", "<array>"], ["mask"]],
+            [["image"], ["image", "<array>"], ["markup"], ["mask"]],
         )
-        files = extract_files(cast(Mapping[str, object], body), paths=[["image"], ["image", "<array>"], ["mask"]])
+        files = extract_files(
+            cast(Mapping[str, object], body), paths=[["image"], ["image", "<array>"], ["markup"], ["mask"]]
+        )
         # It should be noted that the actual Content-Type header that will be
         # sent to the server will contain a `boundary` parameter, e.g.
         # multipart/form-data; boundary=---abc--
@@ -584,14 +753,18 @@ class Images(SyncAPIResource):
         *,
         prompt: str,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        complexity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        frame_count: Optional[int] | Omit = omit,
+        frame_duration_ms: Optional[int] | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
         moderation: Optional[Literal["low", "auto"]] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp", "gif", "svg"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard", "hd"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         size: Union[
             str,
             Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"],
@@ -600,6 +773,7 @@ class Images(SyncAPIResource):
         | Omit = omit,
         stream: Optional[Literal[False]] | Omit = omit,
         style: Optional[Literal["vivid", "natural"]] | Omit = omit,
+        svg: Optional[image_generate_params.Svg] | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -626,11 +800,36 @@ class Images(SyncAPIResource):
               `gpt-image-2-2026-04-21`, this support is in preview. When using `transparent`,
               set the output format to `png` or `webp`.
 
+          complexity: Computation spent planning the image, independently of rendering quality. Uses
+              the image model's configured default when omitted. For SVG output, controls the
+              reference image, independently of the SVG author's reasoning.
+
+          frame_count: Number of frames for GIF output. Accepts integers from 2 through 16. Defaults to
+              9 when omitted. Only supported with output_format=gif. The requested size must
+              satisfy the selected model's GIF size limits. GIF output does not support
+              streaming, partial images, masks, or custom output compression. Requires access
+              to the GIF preview for the selected model.
+
+          frame_duration_ms: Requested delay per GIF frame, in milliseconds. Defaults to 200 when omitted.
+              GIF output rounds to the nearest 10 ms and caps the encoded delay at 655,350 ms
+              per frame. Only supported with output_format=gif.
+
           model: The GPT image model to use for image generation. Specify a model explicitly.
-              Supported models include `gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`,
-              `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
+              Supported models include `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+              `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
               `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`,
-              `gpt-image-2.5-flare-2026-09-08`, and `chatgpt-image-latest`.
+              `gpt-image-2.5-flare-2026-09-08`, `gpt-image-2.6-sunburst`,
+              `gpt-image-2.6-flare`, and `chatgpt-image-latest`.
+
+              `gpt-image-1` was shut down on October 23, 2026. Use `gpt-image-2.5-sunburst` or
+              `gpt-image-2.5-flare` instead.
+
+              Deprecated values:
+
+              - "gpt-image-1": GPT Image 1 was shut down on October 23, 2026. Use
+                gpt-image-2.5-sunburst or gpt-image-2.5-flare instead.
+              - "dall-e-2", "dall-e-3": This model was retired on May 12, 2026. Use a GPT
+                image model instead.
 
           moderation: Control the content-moderation level for images generated by the GPT image
               models. Must be either `low` for less restrictive filtering or `auto` (default
@@ -643,7 +842,7 @@ class Images(SyncAPIResource):
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for the GPT image models. Must be one of `png`, `jpeg`, or `webp`.
+              supported for the GPT image models.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
               responses that return partial images. Value must be between 0 and 3. When set to
@@ -660,8 +859,20 @@ class Images(SyncAPIResource):
               - `gpt-image-2.5-sunburst` and `gpt-image-2.5-flare`, including their
                 `2026-09-08` snapshots, also support `xhigh` and `max`.
 
+              Deprecated values:
+
+              - "standard", "hd": This quality was only supported by retired DALL·E models.
+                Use a GPT image quality instead.
+
           response_format: Legacy response format parameter for retired image models. Unsupported for GPT
               image models, which always return base64-encoded images.
+
+          safety_identifier: A stable identifier for an end user in your organization, used for safety
+              monitoring and abuse detection. Hash a username or email address to avoid
+              sending identifying information. A non-empty value takes precedence over the
+              deprecated `user` parameter. If omitted, null, or empty, the API uses `user`
+              when available.
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           size: The size of the generated images. For `gpt-image-2`, `gpt-image-2-2026-04-21`,
               `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`,
@@ -674,6 +885,12 @@ class Images(SyncAPIResource):
               `1024x1024`, `1536x1024`, and `1024x1536` are supported by the GPT image models;
               `auto` is supported for models that allow automatic sizing.
 
+              Deprecated values:
+
+              - "256x256", "512x512", "1792x1024", "1024x1792": This legacy size suggestion is
+                retained for SDK compatibility. Check the selected GPT image model's supported
+                sizes.
+
           stream: Generate the image in streaming mode. Defaults to `false`. See the
               [Image generation guide](https://developers.openai.com/api/docs/guides/image-generation)
               for more information. This parameter is only supported for the GPT image models.
@@ -681,8 +898,16 @@ class Images(SyncAPIResource):
           style: Legacy style parameter for retired image models. Unsupported for GPT image
               models; describe the desired style in the prompt instead.
 
-          user: A unique identifier representing your end-user, which can help OpenAI to monitor
-              and detect abuse.
+          svg: Selects the model and reasoning effort used to author SVG output. Requires
+              output_format=svg and access to SVG model selection. When model selection is
+              enabled, supply svg.model. When model selection is disabled, omit this object.
+              The top-level model selects the image model that creates the reference image.
+              SVG generation requires n=1 and does not support streaming, partial images,
+              prompt_rewriter, or output_compression. SVG edits are not supported.
+
+          user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
+              backward compatibility and is used when `safety_identifier` is omitted, null, or
+              empty.
               [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           extra_headers: Send extra headers
@@ -702,14 +927,18 @@ class Images(SyncAPIResource):
         prompt: str,
         stream: Literal[True],
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        complexity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        frame_count: Optional[int] | Omit = omit,
+        frame_duration_ms: Optional[int] | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
         moderation: Optional[Literal["low", "auto"]] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp", "gif", "svg"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard", "hd"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         size: Union[
             str,
             Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"],
@@ -717,6 +946,7 @@ class Images(SyncAPIResource):
         ]
         | Omit = omit,
         style: Optional[Literal["vivid", "natural"]] | Omit = omit,
+        svg: Optional[image_generate_params.Svg] | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -747,11 +977,36 @@ class Images(SyncAPIResource):
               `gpt-image-2-2026-04-21`, this support is in preview. When using `transparent`,
               set the output format to `png` or `webp`.
 
+          complexity: Computation spent planning the image, independently of rendering quality. Uses
+              the image model's configured default when omitted. For SVG output, controls the
+              reference image, independently of the SVG author's reasoning.
+
+          frame_count: Number of frames for GIF output. Accepts integers from 2 through 16. Defaults to
+              9 when omitted. Only supported with output_format=gif. The requested size must
+              satisfy the selected model's GIF size limits. GIF output does not support
+              streaming, partial images, masks, or custom output compression. Requires access
+              to the GIF preview for the selected model.
+
+          frame_duration_ms: Requested delay per GIF frame, in milliseconds. Defaults to 200 when omitted.
+              GIF output rounds to the nearest 10 ms and caps the encoded delay at 655,350 ms
+              per frame. Only supported with output_format=gif.
+
           model: The GPT image model to use for image generation. Specify a model explicitly.
-              Supported models include `gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`,
-              `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
+              Supported models include `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+              `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
               `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`,
-              `gpt-image-2.5-flare-2026-09-08`, and `chatgpt-image-latest`.
+              `gpt-image-2.5-flare-2026-09-08`, `gpt-image-2.6-sunburst`,
+              `gpt-image-2.6-flare`, and `chatgpt-image-latest`.
+
+              `gpt-image-1` was shut down on October 23, 2026. Use `gpt-image-2.5-sunburst` or
+              `gpt-image-2.5-flare` instead.
+
+              Deprecated values:
+
+              - "gpt-image-1": GPT Image 1 was shut down on October 23, 2026. Use
+                gpt-image-2.5-sunburst or gpt-image-2.5-flare instead.
+              - "dall-e-2", "dall-e-3": This model was retired on May 12, 2026. Use a GPT
+                image model instead.
 
           moderation: Control the content-moderation level for images generated by the GPT image
               models. Must be either `low` for less restrictive filtering or `auto` (default
@@ -764,7 +1019,7 @@ class Images(SyncAPIResource):
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for the GPT image models. Must be one of `png`, `jpeg`, or `webp`.
+              supported for the GPT image models.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
               responses that return partial images. Value must be between 0 and 3. When set to
@@ -781,8 +1036,20 @@ class Images(SyncAPIResource):
               - `gpt-image-2.5-sunburst` and `gpt-image-2.5-flare`, including their
                 `2026-09-08` snapshots, also support `xhigh` and `max`.
 
+              Deprecated values:
+
+              - "standard", "hd": This quality was only supported by retired DALL·E models.
+                Use a GPT image quality instead.
+
           response_format: Legacy response format parameter for retired image models. Unsupported for GPT
               image models, which always return base64-encoded images.
+
+          safety_identifier: A stable identifier for an end user in your organization, used for safety
+              monitoring and abuse detection. Hash a username or email address to avoid
+              sending identifying information. A non-empty value takes precedence over the
+              deprecated `user` parameter. If omitted, null, or empty, the API uses `user`
+              when available.
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           size: The size of the generated images. For `gpt-image-2`, `gpt-image-2-2026-04-21`,
               `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`,
@@ -795,11 +1062,25 @@ class Images(SyncAPIResource):
               `1024x1024`, `1536x1024`, and `1024x1536` are supported by the GPT image models;
               `auto` is supported for models that allow automatic sizing.
 
+              Deprecated values:
+
+              - "256x256", "512x512", "1792x1024", "1024x1792": This legacy size suggestion is
+                retained for SDK compatibility. Check the selected GPT image model's supported
+                sizes.
+
           style: Legacy style parameter for retired image models. Unsupported for GPT image
               models; describe the desired style in the prompt instead.
 
-          user: A unique identifier representing your end-user, which can help OpenAI to monitor
-              and detect abuse.
+          svg: Selects the model and reasoning effort used to author SVG output. Requires
+              output_format=svg and access to SVG model selection. When model selection is
+              enabled, supply svg.model. When model selection is disabled, omit this object.
+              The top-level model selects the image model that creates the reference image.
+              SVG generation requires n=1 and does not support streaming, partial images,
+              prompt_rewriter, or output_compression. SVG edits are not supported.
+
+          user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
+              backward compatibility and is used when `safety_identifier` is omitted, null, or
+              empty.
               [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           extra_headers: Send extra headers
@@ -819,14 +1100,18 @@ class Images(SyncAPIResource):
         prompt: str,
         stream: bool,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        complexity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        frame_count: Optional[int] | Omit = omit,
+        frame_duration_ms: Optional[int] | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
         moderation: Optional[Literal["low", "auto"]] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp", "gif", "svg"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard", "hd"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         size: Union[
             str,
             Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"],
@@ -834,6 +1119,7 @@ class Images(SyncAPIResource):
         ]
         | Omit = omit,
         style: Optional[Literal["vivid", "natural"]] | Omit = omit,
+        svg: Optional[image_generate_params.Svg] | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -864,11 +1150,36 @@ class Images(SyncAPIResource):
               `gpt-image-2-2026-04-21`, this support is in preview. When using `transparent`,
               set the output format to `png` or `webp`.
 
+          complexity: Computation spent planning the image, independently of rendering quality. Uses
+              the image model's configured default when omitted. For SVG output, controls the
+              reference image, independently of the SVG author's reasoning.
+
+          frame_count: Number of frames for GIF output. Accepts integers from 2 through 16. Defaults to
+              9 when omitted. Only supported with output_format=gif. The requested size must
+              satisfy the selected model's GIF size limits. GIF output does not support
+              streaming, partial images, masks, or custom output compression. Requires access
+              to the GIF preview for the selected model.
+
+          frame_duration_ms: Requested delay per GIF frame, in milliseconds. Defaults to 200 when omitted.
+              GIF output rounds to the nearest 10 ms and caps the encoded delay at 655,350 ms
+              per frame. Only supported with output_format=gif.
+
           model: The GPT image model to use for image generation. Specify a model explicitly.
-              Supported models include `gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`,
-              `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
+              Supported models include `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+              `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
               `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`,
-              `gpt-image-2.5-flare-2026-09-08`, and `chatgpt-image-latest`.
+              `gpt-image-2.5-flare-2026-09-08`, `gpt-image-2.6-sunburst`,
+              `gpt-image-2.6-flare`, and `chatgpt-image-latest`.
+
+              `gpt-image-1` was shut down on October 23, 2026. Use `gpt-image-2.5-sunburst` or
+              `gpt-image-2.5-flare` instead.
+
+              Deprecated values:
+
+              - "gpt-image-1": GPT Image 1 was shut down on October 23, 2026. Use
+                gpt-image-2.5-sunburst or gpt-image-2.5-flare instead.
+              - "dall-e-2", "dall-e-3": This model was retired on May 12, 2026. Use a GPT
+                image model instead.
 
           moderation: Control the content-moderation level for images generated by the GPT image
               models. Must be either `low` for less restrictive filtering or `auto` (default
@@ -881,7 +1192,7 @@ class Images(SyncAPIResource):
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for the GPT image models. Must be one of `png`, `jpeg`, or `webp`.
+              supported for the GPT image models.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
               responses that return partial images. Value must be between 0 and 3. When set to
@@ -898,8 +1209,20 @@ class Images(SyncAPIResource):
               - `gpt-image-2.5-sunburst` and `gpt-image-2.5-flare`, including their
                 `2026-09-08` snapshots, also support `xhigh` and `max`.
 
+              Deprecated values:
+
+              - "standard", "hd": This quality was only supported by retired DALL·E models.
+                Use a GPT image quality instead.
+
           response_format: Legacy response format parameter for retired image models. Unsupported for GPT
               image models, which always return base64-encoded images.
+
+          safety_identifier: A stable identifier for an end user in your organization, used for safety
+              monitoring and abuse detection. Hash a username or email address to avoid
+              sending identifying information. A non-empty value takes precedence over the
+              deprecated `user` parameter. If omitted, null, or empty, the API uses `user`
+              when available.
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           size: The size of the generated images. For `gpt-image-2`, `gpt-image-2-2026-04-21`,
               `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`,
@@ -912,11 +1235,25 @@ class Images(SyncAPIResource):
               `1024x1024`, `1536x1024`, and `1024x1536` are supported by the GPT image models;
               `auto` is supported for models that allow automatic sizing.
 
+              Deprecated values:
+
+              - "256x256", "512x512", "1792x1024", "1024x1792": This legacy size suggestion is
+                retained for SDK compatibility. Check the selected GPT image model's supported
+                sizes.
+
           style: Legacy style parameter for retired image models. Unsupported for GPT image
               models; describe the desired style in the prompt instead.
 
-          user: A unique identifier representing your end-user, which can help OpenAI to monitor
-              and detect abuse.
+          svg: Selects the model and reasoning effort used to author SVG output. Requires
+              output_format=svg and access to SVG model selection. When model selection is
+              enabled, supply svg.model. When model selection is disabled, omit this object.
+              The top-level model selects the image model that creates the reference image.
+              SVG generation requires n=1 and does not support streaming, partial images,
+              prompt_rewriter, or output_compression. SVG edits are not supported.
+
+          user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
+              backward compatibility and is used when `safety_identifier` is omitted, null, or
+              empty.
               [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           extra_headers: Send extra headers
@@ -935,14 +1272,18 @@ class Images(SyncAPIResource):
         *,
         prompt: str,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        complexity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        frame_count: Optional[int] | Omit = omit,
+        frame_duration_ms: Optional[int] | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
         moderation: Optional[Literal["low", "auto"]] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp", "gif", "svg"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard", "hd"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         size: Union[
             str,
             Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"],
@@ -951,6 +1292,7 @@ class Images(SyncAPIResource):
         | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
         style: Optional[Literal["vivid", "natural"]] | Omit = omit,
+        svg: Optional[image_generate_params.Svg] | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -967,6 +1309,9 @@ class Images(SyncAPIResource):
                     "stream": stream,
                     "prompt": prompt,
                     "background": background,
+                    "complexity": complexity,
+                    "frame_count": frame_count,
+                    "frame_duration_ms": frame_duration_ms,
                     "moderation": moderation,
                     "n": n,
                     "output_compression": output_compression,
@@ -974,8 +1319,10 @@ class Images(SyncAPIResource):
                     "partial_images": partial_images,
                     "quality": quality,
                     "response_format": response_format,
+                    "safety_identifier": safety_identifier,
                     "size": size,
                     "style": style,
+                    "svg": svg,
                     "user": user,
                 },
                 image_generate_params.ImageGenerateParamsStreaming
@@ -1047,6 +1394,13 @@ class AsyncImages(AsyncAPIResource):
           model: The legacy model used by the retired image variations endpoint. This endpoint no
               longer accepts requests.
 
+              Deprecated values:
+
+              - "gpt-image-1": GPT Image 1 was shut down on October 23, 2026. Use
+                gpt-image-2.5-sunburst or gpt-image-2.5-flare instead.
+              - "dall-e-2", "dall-e-3": This model was retired on May 12, 2026. Use a GPT
+                image model instead.
+
           n: The number of images to generate. Must be between 1 and 10.
 
           response_format: The format in which the generated images are returned. Must be one of `url` or
@@ -1105,15 +1459,20 @@ class AsyncImages(AsyncAPIResource):
         image: Union[FileTypes, SequenceNotStr[FileTypes]],
         prompt: str,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        complexity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        frame_count: Optional[int] | Omit = omit,
+        frame_duration_ms: Optional[int] | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
+        markup: FileTypes | Omit = omit,
         mask: FileTypes | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp", "gif"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         size: Union[str, Literal["1024x1024", "1536x1024", "1024x1536", "auto", "256x256", "512x512"], None]
         | Omit = omit,
         stream: Optional[Literal[False]] | Omit = omit,
@@ -1133,12 +1492,12 @@ class AsyncImages(AsyncAPIResource):
         Args:
           image: The image(s) to edit. Must be a supported image file or an array of images.
 
-              For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`,
-              `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
-              `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`,
-              `gpt-image-2.5-flare-2026-09-08`, and `chatgpt-image-latest`), each image should
-              be a `png`, `webp`, or `jpg` file less than 50MB. You can provide up to 16
-              images.
+              For the GPT image models (`gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+              `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
+              `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and
+              `gpt-image-2.5-flare-2026-09-08`), each image should be a `png`, `webp`, or
+              `jpg` file less than 50MB. You can provide up to 16 images.
+              `chatgpt-image-latest` follows the same input constraints as GPT image models.
 
           prompt: A text description of the desired image(s). The maximum length is 32000
               characters for the GPT image models.
@@ -1153,21 +1512,49 @@ class AsyncImages(AsyncAPIResource):
               `gpt-image-2-2026-04-21`, this support is in preview. When using `transparent`,
               set the output format to `png` or `webp`.
 
+          complexity: Computation spent planning the image, independently of rendering quality. Uses
+              the image model's configured default when omitted. For SVG output, controls the
+              reference image, independently of the SVG author's reasoning.
+
+          frame_count: Number of frames for GIF output. Accepts integers from 2 through 16. Defaults to
+              9 when omitted. Only supported with output_format=gif. The requested size must
+              satisfy the selected model's GIF size limits. GIF output does not support
+              streaming, partial images, masks, or custom output compression. Requires access
+              to the GIF preview for the selected model.
+
+          frame_duration_ms: Requested delay per GIF frame, in milliseconds. Defaults to 200 when omitted.
+              GIF output rounds to the nearest 10 ms and caps the encoded delay at 655,350 ms
+              per frame. Only supported with output_format=gif.
+
           input_fidelity: Control how much effort the model will exert to match the style and features,
               especially facial features, of input images. Supports `high` and `low` on
-              `gpt-image-1` and `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For
-              `gpt-image-2`, omit this parameter. Defaults to `low` on supported models.
+              `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For `gpt-image-2`, omit
+              this parameter. Defaults to `low` on supported models.
+
+          markup: A transparent PNG overlaid on the first image to guide the edit. Must match that
+              image's dimensions after orientation and contain transparent pixels. Supports
+              GPT Image 2.5. Cannot be combined with mask.
 
           mask: An additional image whose fully transparent areas (e.g. where alpha is zero)
               indicate where `image` should be edited. If there are multiple images provided,
               the mask will be applied on the first image. Must be a valid PNG file, less than
               4MB, and have the same dimensions as `image`.
 
-          model: The GPT image model to use for image editing (`gpt-image-1`, `gpt-image-1-mini`,
+          model: The GPT image model to use for image editing (`gpt-image-1-mini`,
               `gpt-image-1.5`, `gpt-image-2`, `gpt-image-2-2026-04-21`,
               `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`,
-              `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`, or
-              `chatgpt-image-latest`).
+              `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`,
+              `gpt-image-2.6-sunburst`, `gpt-image-2.6-flare`, or `chatgpt-image-latest`).
+
+              `gpt-image-1` was shut down on October 23, 2026. Use `gpt-image-2.5-sunburst` or
+              `gpt-image-2.5-flare` instead.
+
+              Deprecated values:
+
+              - "gpt-image-1": GPT Image 1 was shut down on October 23, 2026. Use
+                gpt-image-2.5-sunburst or gpt-image-2.5-flare instead.
+              - "dall-e-2", "dall-e-3": This model was retired on May 12, 2026. Use a GPT
+                image model instead.
 
           n: The number of images to generate. Must be between 1 and 10.
 
@@ -1176,8 +1563,7 @@ class AsyncImages(AsyncAPIResource):
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for the GPT image models. Must be one of `png`, `jpeg`, or `webp`. The
-              default value is `png`.
+              supported for the GPT image models. The default value is `png`.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
               responses that return partial images. Value must be between 0 and 3. When set to
@@ -1191,8 +1577,20 @@ class AsyncImages(AsyncAPIResource):
               `gpt-image-2.5-flare`, including their `2026-09-08` snapshots, also support
               `xhigh` and `max`. Defaults to `auto`.
 
+              Deprecated values:
+
+              - "standard": This quality was only supported by retired DALL·E models. Use a
+                GPT image quality instead.
+
           response_format: Legacy response format parameter for retired image models. Unsupported for GPT
               image models, which always return base64-encoded images.
+
+          safety_identifier: A stable identifier for an end user in your organization, used for safety
+              monitoring and abuse detection. Hash a username or email address to avoid
+              sending identifying information. A non-empty value takes precedence over the
+              deprecated `user` parameter. If omitted, null, or empty, the API uses `user`
+              when available.
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           size: The size of the generated images. Defaults to `auto`. For `gpt-image-2`,
               `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
@@ -1206,12 +1604,18 @@ class AsyncImages(AsyncAPIResource):
               `1024x1536` are supported by the GPT image models; `auto` is supported for
               models that allow automatic sizing.
 
+              Deprecated values:
+
+              - "256x256", "512x512": This legacy size suggestion is retained for SDK
+                compatibility. Check the selected GPT image model's supported sizes.
+
           stream: Edit the image in streaming mode. Defaults to `false`. See the
               [Image generation guide](https://developers.openai.com/api/docs/guides/image-generation)
               for more information.
 
-          user: A unique identifier representing your end-user, which can help OpenAI to monitor
-              and detect abuse.
+          user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
+              backward compatibility and is used when `safety_identifier` is omitted, null, or
+              empty.
               [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           extra_headers: Send extra headers
@@ -1232,15 +1636,20 @@ class AsyncImages(AsyncAPIResource):
         prompt: str,
         stream: Literal[True],
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        complexity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        frame_count: Optional[int] | Omit = omit,
+        frame_duration_ms: Optional[int] | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
+        markup: FileTypes | Omit = omit,
         mask: FileTypes | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp", "gif"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         size: Union[str, Literal["1024x1024", "1536x1024", "1024x1536", "auto", "256x256", "512x512"], None]
         | Omit = omit,
         user: str | Omit = omit,
@@ -1259,12 +1668,12 @@ class AsyncImages(AsyncAPIResource):
         Args:
           image: The image(s) to edit. Must be a supported image file or an array of images.
 
-              For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`,
-              `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
-              `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`,
-              `gpt-image-2.5-flare-2026-09-08`, and `chatgpt-image-latest`), each image should
-              be a `png`, `webp`, or `jpg` file less than 50MB. You can provide up to 16
-              images.
+              For the GPT image models (`gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+              `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
+              `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and
+              `gpt-image-2.5-flare-2026-09-08`), each image should be a `png`, `webp`, or
+              `jpg` file less than 50MB. You can provide up to 16 images.
+              `chatgpt-image-latest` follows the same input constraints as GPT image models.
 
           prompt: A text description of the desired image(s). The maximum length is 32000
               characters for the GPT image models.
@@ -1283,21 +1692,49 @@ class AsyncImages(AsyncAPIResource):
               `gpt-image-2-2026-04-21`, this support is in preview. When using `transparent`,
               set the output format to `png` or `webp`.
 
+          complexity: Computation spent planning the image, independently of rendering quality. Uses
+              the image model's configured default when omitted. For SVG output, controls the
+              reference image, independently of the SVG author's reasoning.
+
+          frame_count: Number of frames for GIF output. Accepts integers from 2 through 16. Defaults to
+              9 when omitted. Only supported with output_format=gif. The requested size must
+              satisfy the selected model's GIF size limits. GIF output does not support
+              streaming, partial images, masks, or custom output compression. Requires access
+              to the GIF preview for the selected model.
+
+          frame_duration_ms: Requested delay per GIF frame, in milliseconds. Defaults to 200 when omitted.
+              GIF output rounds to the nearest 10 ms and caps the encoded delay at 655,350 ms
+              per frame. Only supported with output_format=gif.
+
           input_fidelity: Control how much effort the model will exert to match the style and features,
               especially facial features, of input images. Supports `high` and `low` on
-              `gpt-image-1` and `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For
-              `gpt-image-2`, omit this parameter. Defaults to `low` on supported models.
+              `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For `gpt-image-2`, omit
+              this parameter. Defaults to `low` on supported models.
+
+          markup: A transparent PNG overlaid on the first image to guide the edit. Must match that
+              image's dimensions after orientation and contain transparent pixels. Supports
+              GPT Image 2.5. Cannot be combined with mask.
 
           mask: An additional image whose fully transparent areas (e.g. where alpha is zero)
               indicate where `image` should be edited. If there are multiple images provided,
               the mask will be applied on the first image. Must be a valid PNG file, less than
               4MB, and have the same dimensions as `image`.
 
-          model: The GPT image model to use for image editing (`gpt-image-1`, `gpt-image-1-mini`,
+          model: The GPT image model to use for image editing (`gpt-image-1-mini`,
               `gpt-image-1.5`, `gpt-image-2`, `gpt-image-2-2026-04-21`,
               `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`,
-              `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`, or
-              `chatgpt-image-latest`).
+              `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`,
+              `gpt-image-2.6-sunburst`, `gpt-image-2.6-flare`, or `chatgpt-image-latest`).
+
+              `gpt-image-1` was shut down on October 23, 2026. Use `gpt-image-2.5-sunburst` or
+              `gpt-image-2.5-flare` instead.
+
+              Deprecated values:
+
+              - "gpt-image-1": GPT Image 1 was shut down on October 23, 2026. Use
+                gpt-image-2.5-sunburst or gpt-image-2.5-flare instead.
+              - "dall-e-2", "dall-e-3": This model was retired on May 12, 2026. Use a GPT
+                image model instead.
 
           n: The number of images to generate. Must be between 1 and 10.
 
@@ -1306,8 +1743,7 @@ class AsyncImages(AsyncAPIResource):
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for the GPT image models. Must be one of `png`, `jpeg`, or `webp`. The
-              default value is `png`.
+              supported for the GPT image models. The default value is `png`.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
               responses that return partial images. Value must be between 0 and 3. When set to
@@ -1321,8 +1757,20 @@ class AsyncImages(AsyncAPIResource):
               `gpt-image-2.5-flare`, including their `2026-09-08` snapshots, also support
               `xhigh` and `max`. Defaults to `auto`.
 
+              Deprecated values:
+
+              - "standard": This quality was only supported by retired DALL·E models. Use a
+                GPT image quality instead.
+
           response_format: Legacy response format parameter for retired image models. Unsupported for GPT
               image models, which always return base64-encoded images.
+
+          safety_identifier: A stable identifier for an end user in your organization, used for safety
+              monitoring and abuse detection. Hash a username or email address to avoid
+              sending identifying information. A non-empty value takes precedence over the
+              deprecated `user` parameter. If omitted, null, or empty, the API uses `user`
+              when available.
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           size: The size of the generated images. Defaults to `auto`. For `gpt-image-2`,
               `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
@@ -1336,8 +1784,14 @@ class AsyncImages(AsyncAPIResource):
               `1024x1536` are supported by the GPT image models; `auto` is supported for
               models that allow automatic sizing.
 
-          user: A unique identifier representing your end-user, which can help OpenAI to monitor
-              and detect abuse.
+              Deprecated values:
+
+              - "256x256", "512x512": This legacy size suggestion is retained for SDK
+                compatibility. Check the selected GPT image model's supported sizes.
+
+          user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
+              backward compatibility and is used when `safety_identifier` is omitted, null, or
+              empty.
               [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           extra_headers: Send extra headers
@@ -1358,15 +1812,20 @@ class AsyncImages(AsyncAPIResource):
         prompt: str,
         stream: bool,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        complexity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        frame_count: Optional[int] | Omit = omit,
+        frame_duration_ms: Optional[int] | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
+        markup: FileTypes | Omit = omit,
         mask: FileTypes | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp", "gif"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         size: Union[str, Literal["1024x1024", "1536x1024", "1024x1536", "auto", "256x256", "512x512"], None]
         | Omit = omit,
         user: str | Omit = omit,
@@ -1385,12 +1844,12 @@ class AsyncImages(AsyncAPIResource):
         Args:
           image: The image(s) to edit. Must be a supported image file or an array of images.
 
-              For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`,
-              `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
-              `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`,
-              `gpt-image-2.5-flare-2026-09-08`, and `chatgpt-image-latest`), each image should
-              be a `png`, `webp`, or `jpg` file less than 50MB. You can provide up to 16
-              images.
+              For the GPT image models (`gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+              `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
+              `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and
+              `gpt-image-2.5-flare-2026-09-08`), each image should be a `png`, `webp`, or
+              `jpg` file less than 50MB. You can provide up to 16 images.
+              `chatgpt-image-latest` follows the same input constraints as GPT image models.
 
           prompt: A text description of the desired image(s). The maximum length is 32000
               characters for the GPT image models.
@@ -1409,21 +1868,49 @@ class AsyncImages(AsyncAPIResource):
               `gpt-image-2-2026-04-21`, this support is in preview. When using `transparent`,
               set the output format to `png` or `webp`.
 
+          complexity: Computation spent planning the image, independently of rendering quality. Uses
+              the image model's configured default when omitted. For SVG output, controls the
+              reference image, independently of the SVG author's reasoning.
+
+          frame_count: Number of frames for GIF output. Accepts integers from 2 through 16. Defaults to
+              9 when omitted. Only supported with output_format=gif. The requested size must
+              satisfy the selected model's GIF size limits. GIF output does not support
+              streaming, partial images, masks, or custom output compression. Requires access
+              to the GIF preview for the selected model.
+
+          frame_duration_ms: Requested delay per GIF frame, in milliseconds. Defaults to 200 when omitted.
+              GIF output rounds to the nearest 10 ms and caps the encoded delay at 655,350 ms
+              per frame. Only supported with output_format=gif.
+
           input_fidelity: Control how much effort the model will exert to match the style and features,
               especially facial features, of input images. Supports `high` and `low` on
-              `gpt-image-1` and `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For
-              `gpt-image-2`, omit this parameter. Defaults to `low` on supported models.
+              `gpt-image-1.5`; `gpt-image-1-mini` supports only `low`. For `gpt-image-2`, omit
+              this parameter. Defaults to `low` on supported models.
+
+          markup: A transparent PNG overlaid on the first image to guide the edit. Must match that
+              image's dimensions after orientation and contain transparent pixels. Supports
+              GPT Image 2.5. Cannot be combined with mask.
 
           mask: An additional image whose fully transparent areas (e.g. where alpha is zero)
               indicate where `image` should be edited. If there are multiple images provided,
               the mask will be applied on the first image. Must be a valid PNG file, less than
               4MB, and have the same dimensions as `image`.
 
-          model: The GPT image model to use for image editing (`gpt-image-1`, `gpt-image-1-mini`,
+          model: The GPT image model to use for image editing (`gpt-image-1-mini`,
               `gpt-image-1.5`, `gpt-image-2`, `gpt-image-2-2026-04-21`,
               `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`,
-              `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`, or
-              `chatgpt-image-latest`).
+              `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`,
+              `gpt-image-2.6-sunburst`, `gpt-image-2.6-flare`, or `chatgpt-image-latest`).
+
+              `gpt-image-1` was shut down on October 23, 2026. Use `gpt-image-2.5-sunburst` or
+              `gpt-image-2.5-flare` instead.
+
+              Deprecated values:
+
+              - "gpt-image-1": GPT Image 1 was shut down on October 23, 2026. Use
+                gpt-image-2.5-sunburst or gpt-image-2.5-flare instead.
+              - "dall-e-2", "dall-e-3": This model was retired on May 12, 2026. Use a GPT
+                image model instead.
 
           n: The number of images to generate. Must be between 1 and 10.
 
@@ -1432,8 +1919,7 @@ class AsyncImages(AsyncAPIResource):
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for the GPT image models. Must be one of `png`, `jpeg`, or `webp`. The
-              default value is `png`.
+              supported for the GPT image models. The default value is `png`.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
               responses that return partial images. Value must be between 0 and 3. When set to
@@ -1447,8 +1933,20 @@ class AsyncImages(AsyncAPIResource):
               `gpt-image-2.5-flare`, including their `2026-09-08` snapshots, also support
               `xhigh` and `max`. Defaults to `auto`.
 
+              Deprecated values:
+
+              - "standard": This quality was only supported by retired DALL·E models. Use a
+                GPT image quality instead.
+
           response_format: Legacy response format parameter for retired image models. Unsupported for GPT
               image models, which always return base64-encoded images.
+
+          safety_identifier: A stable identifier for an end user in your organization, used for safety
+              monitoring and abuse detection. Hash a username or email address to avoid
+              sending identifying information. A non-empty value takes precedence over the
+              deprecated `user` parameter. If omitted, null, or empty, the API uses `user`
+              when available.
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           size: The size of the generated images. Defaults to `auto`. For `gpt-image-2`,
               `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
@@ -1462,8 +1960,14 @@ class AsyncImages(AsyncAPIResource):
               `1024x1536` are supported by the GPT image models; `auto` is supported for
               models that allow automatic sizing.
 
-          user: A unique identifier representing your end-user, which can help OpenAI to monitor
-              and detect abuse.
+              Deprecated values:
+
+              - "256x256", "512x512": This legacy size suggestion is retained for SDK
+                compatibility. Check the selected GPT image model's supported sizes.
+
+          user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
+              backward compatibility and is used when `safety_identifier` is omitted, null, or
+              empty.
               [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           extra_headers: Send extra headers
@@ -1483,15 +1987,20 @@ class AsyncImages(AsyncAPIResource):
         image: Union[FileTypes, SequenceNotStr[FileTypes]],
         prompt: str,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        complexity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        frame_count: Optional[int] | Omit = omit,
+        frame_duration_ms: Optional[int] | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
+        markup: FileTypes | Omit = omit,
         mask: FileTypes | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp", "gif"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         size: Union[str, Literal["1024x1024", "1536x1024", "1024x1536", "auto", "256x256", "512x512"], None]
         | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
@@ -1508,7 +2017,11 @@ class AsyncImages(AsyncAPIResource):
                 "image": image,
                 "prompt": prompt,
                 "background": background,
+                "complexity": complexity,
+                "frame_count": frame_count,
+                "frame_duration_ms": frame_duration_ms,
                 "input_fidelity": input_fidelity,
+                "markup": markup,
                 "mask": mask,
                 "model": model,
                 "n": n,
@@ -1517,13 +2030,16 @@ class AsyncImages(AsyncAPIResource):
                 "partial_images": partial_images,
                 "quality": quality,
                 "response_format": response_format,
+                "safety_identifier": safety_identifier,
                 "size": size,
                 "stream": stream,
                 "user": user,
             },
-            [["image"], ["image", "<array>"], ["mask"]],
+            [["image"], ["image", "<array>"], ["markup"], ["mask"]],
         )
-        files = extract_files(cast(Mapping[str, object], body), paths=[["image"], ["image", "<array>"], ["mask"]])
+        files = extract_files(
+            cast(Mapping[str, object], body), paths=[["image"], ["image", "<array>"], ["markup"], ["mask"]]
+        )
         # It should be noted that the actual Content-Type header that will be
         # sent to the server will contain a `boundary` parameter, e.g.
         # multipart/form-data; boundary=---abc--
@@ -1553,14 +2069,18 @@ class AsyncImages(AsyncAPIResource):
         *,
         prompt: str,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        complexity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        frame_count: Optional[int] | Omit = omit,
+        frame_duration_ms: Optional[int] | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
         moderation: Optional[Literal["low", "auto"]] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp", "gif", "svg"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard", "hd"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         size: Union[
             str,
             Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"],
@@ -1569,6 +2089,7 @@ class AsyncImages(AsyncAPIResource):
         | Omit = omit,
         stream: Optional[Literal[False]] | Omit = omit,
         style: Optional[Literal["vivid", "natural"]] | Omit = omit,
+        svg: Optional[image_generate_params.Svg] | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1595,11 +2116,36 @@ class AsyncImages(AsyncAPIResource):
               `gpt-image-2-2026-04-21`, this support is in preview. When using `transparent`,
               set the output format to `png` or `webp`.
 
+          complexity: Computation spent planning the image, independently of rendering quality. Uses
+              the image model's configured default when omitted. For SVG output, controls the
+              reference image, independently of the SVG author's reasoning.
+
+          frame_count: Number of frames for GIF output. Accepts integers from 2 through 16. Defaults to
+              9 when omitted. Only supported with output_format=gif. The requested size must
+              satisfy the selected model's GIF size limits. GIF output does not support
+              streaming, partial images, masks, or custom output compression. Requires access
+              to the GIF preview for the selected model.
+
+          frame_duration_ms: Requested delay per GIF frame, in milliseconds. Defaults to 200 when omitted.
+              GIF output rounds to the nearest 10 ms and caps the encoded delay at 655,350 ms
+              per frame. Only supported with output_format=gif.
+
           model: The GPT image model to use for image generation. Specify a model explicitly.
-              Supported models include `gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`,
-              `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
+              Supported models include `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+              `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
               `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`,
-              `gpt-image-2.5-flare-2026-09-08`, and `chatgpt-image-latest`.
+              `gpt-image-2.5-flare-2026-09-08`, `gpt-image-2.6-sunburst`,
+              `gpt-image-2.6-flare`, and `chatgpt-image-latest`.
+
+              `gpt-image-1` was shut down on October 23, 2026. Use `gpt-image-2.5-sunburst` or
+              `gpt-image-2.5-flare` instead.
+
+              Deprecated values:
+
+              - "gpt-image-1": GPT Image 1 was shut down on October 23, 2026. Use
+                gpt-image-2.5-sunburst or gpt-image-2.5-flare instead.
+              - "dall-e-2", "dall-e-3": This model was retired on May 12, 2026. Use a GPT
+                image model instead.
 
           moderation: Control the content-moderation level for images generated by the GPT image
               models. Must be either `low` for less restrictive filtering or `auto` (default
@@ -1612,7 +2158,7 @@ class AsyncImages(AsyncAPIResource):
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for the GPT image models. Must be one of `png`, `jpeg`, or `webp`.
+              supported for the GPT image models.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
               responses that return partial images. Value must be between 0 and 3. When set to
@@ -1629,8 +2175,20 @@ class AsyncImages(AsyncAPIResource):
               - `gpt-image-2.5-sunburst` and `gpt-image-2.5-flare`, including their
                 `2026-09-08` snapshots, also support `xhigh` and `max`.
 
+              Deprecated values:
+
+              - "standard", "hd": This quality was only supported by retired DALL·E models.
+                Use a GPT image quality instead.
+
           response_format: Legacy response format parameter for retired image models. Unsupported for GPT
               image models, which always return base64-encoded images.
+
+          safety_identifier: A stable identifier for an end user in your organization, used for safety
+              monitoring and abuse detection. Hash a username or email address to avoid
+              sending identifying information. A non-empty value takes precedence over the
+              deprecated `user` parameter. If omitted, null, or empty, the API uses `user`
+              when available.
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           size: The size of the generated images. For `gpt-image-2`, `gpt-image-2-2026-04-21`,
               `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`,
@@ -1643,6 +2201,12 @@ class AsyncImages(AsyncAPIResource):
               `1024x1024`, `1536x1024`, and `1024x1536` are supported by the GPT image models;
               `auto` is supported for models that allow automatic sizing.
 
+              Deprecated values:
+
+              - "256x256", "512x512", "1792x1024", "1024x1792": This legacy size suggestion is
+                retained for SDK compatibility. Check the selected GPT image model's supported
+                sizes.
+
           stream: Generate the image in streaming mode. Defaults to `false`. See the
               [Image generation guide](https://developers.openai.com/api/docs/guides/image-generation)
               for more information. This parameter is only supported for the GPT image models.
@@ -1650,8 +2214,16 @@ class AsyncImages(AsyncAPIResource):
           style: Legacy style parameter for retired image models. Unsupported for GPT image
               models; describe the desired style in the prompt instead.
 
-          user: A unique identifier representing your end-user, which can help OpenAI to monitor
-              and detect abuse.
+          svg: Selects the model and reasoning effort used to author SVG output. Requires
+              output_format=svg and access to SVG model selection. When model selection is
+              enabled, supply svg.model. When model selection is disabled, omit this object.
+              The top-level model selects the image model that creates the reference image.
+              SVG generation requires n=1 and does not support streaming, partial images,
+              prompt_rewriter, or output_compression. SVG edits are not supported.
+
+          user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
+              backward compatibility and is used when `safety_identifier` is omitted, null, or
+              empty.
               [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           extra_headers: Send extra headers
@@ -1671,14 +2243,18 @@ class AsyncImages(AsyncAPIResource):
         prompt: str,
         stream: Literal[True],
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        complexity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        frame_count: Optional[int] | Omit = omit,
+        frame_duration_ms: Optional[int] | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
         moderation: Optional[Literal["low", "auto"]] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp", "gif", "svg"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard", "hd"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         size: Union[
             str,
             Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"],
@@ -1686,6 +2262,7 @@ class AsyncImages(AsyncAPIResource):
         ]
         | Omit = omit,
         style: Optional[Literal["vivid", "natural"]] | Omit = omit,
+        svg: Optional[image_generate_params.Svg] | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1716,11 +2293,36 @@ class AsyncImages(AsyncAPIResource):
               `gpt-image-2-2026-04-21`, this support is in preview. When using `transparent`,
               set the output format to `png` or `webp`.
 
+          complexity: Computation spent planning the image, independently of rendering quality. Uses
+              the image model's configured default when omitted. For SVG output, controls the
+              reference image, independently of the SVG author's reasoning.
+
+          frame_count: Number of frames for GIF output. Accepts integers from 2 through 16. Defaults to
+              9 when omitted. Only supported with output_format=gif. The requested size must
+              satisfy the selected model's GIF size limits. GIF output does not support
+              streaming, partial images, masks, or custom output compression. Requires access
+              to the GIF preview for the selected model.
+
+          frame_duration_ms: Requested delay per GIF frame, in milliseconds. Defaults to 200 when omitted.
+              GIF output rounds to the nearest 10 ms and caps the encoded delay at 655,350 ms
+              per frame. Only supported with output_format=gif.
+
           model: The GPT image model to use for image generation. Specify a model explicitly.
-              Supported models include `gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`,
-              `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
+              Supported models include `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+              `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
               `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`,
-              `gpt-image-2.5-flare-2026-09-08`, and `chatgpt-image-latest`.
+              `gpt-image-2.5-flare-2026-09-08`, `gpt-image-2.6-sunburst`,
+              `gpt-image-2.6-flare`, and `chatgpt-image-latest`.
+
+              `gpt-image-1` was shut down on October 23, 2026. Use `gpt-image-2.5-sunburst` or
+              `gpt-image-2.5-flare` instead.
+
+              Deprecated values:
+
+              - "gpt-image-1": GPT Image 1 was shut down on October 23, 2026. Use
+                gpt-image-2.5-sunburst or gpt-image-2.5-flare instead.
+              - "dall-e-2", "dall-e-3": This model was retired on May 12, 2026. Use a GPT
+                image model instead.
 
           moderation: Control the content-moderation level for images generated by the GPT image
               models. Must be either `low` for less restrictive filtering or `auto` (default
@@ -1733,7 +2335,7 @@ class AsyncImages(AsyncAPIResource):
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for the GPT image models. Must be one of `png`, `jpeg`, or `webp`.
+              supported for the GPT image models.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
               responses that return partial images. Value must be between 0 and 3. When set to
@@ -1750,8 +2352,20 @@ class AsyncImages(AsyncAPIResource):
               - `gpt-image-2.5-sunburst` and `gpt-image-2.5-flare`, including their
                 `2026-09-08` snapshots, also support `xhigh` and `max`.
 
+              Deprecated values:
+
+              - "standard", "hd": This quality was only supported by retired DALL·E models.
+                Use a GPT image quality instead.
+
           response_format: Legacy response format parameter for retired image models. Unsupported for GPT
               image models, which always return base64-encoded images.
+
+          safety_identifier: A stable identifier for an end user in your organization, used for safety
+              monitoring and abuse detection. Hash a username or email address to avoid
+              sending identifying information. A non-empty value takes precedence over the
+              deprecated `user` parameter. If omitted, null, or empty, the API uses `user`
+              when available.
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           size: The size of the generated images. For `gpt-image-2`, `gpt-image-2-2026-04-21`,
               `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`,
@@ -1764,11 +2378,25 @@ class AsyncImages(AsyncAPIResource):
               `1024x1024`, `1536x1024`, and `1024x1536` are supported by the GPT image models;
               `auto` is supported for models that allow automatic sizing.
 
+              Deprecated values:
+
+              - "256x256", "512x512", "1792x1024", "1024x1792": This legacy size suggestion is
+                retained for SDK compatibility. Check the selected GPT image model's supported
+                sizes.
+
           style: Legacy style parameter for retired image models. Unsupported for GPT image
               models; describe the desired style in the prompt instead.
 
-          user: A unique identifier representing your end-user, which can help OpenAI to monitor
-              and detect abuse.
+          svg: Selects the model and reasoning effort used to author SVG output. Requires
+              output_format=svg and access to SVG model selection. When model selection is
+              enabled, supply svg.model. When model selection is disabled, omit this object.
+              The top-level model selects the image model that creates the reference image.
+              SVG generation requires n=1 and does not support streaming, partial images,
+              prompt_rewriter, or output_compression. SVG edits are not supported.
+
+          user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
+              backward compatibility and is used when `safety_identifier` is omitted, null, or
+              empty.
               [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           extra_headers: Send extra headers
@@ -1788,14 +2416,18 @@ class AsyncImages(AsyncAPIResource):
         prompt: str,
         stream: bool,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        complexity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        frame_count: Optional[int] | Omit = omit,
+        frame_duration_ms: Optional[int] | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
         moderation: Optional[Literal["low", "auto"]] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp", "gif", "svg"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard", "hd"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         size: Union[
             str,
             Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"],
@@ -1803,6 +2435,7 @@ class AsyncImages(AsyncAPIResource):
         ]
         | Omit = omit,
         style: Optional[Literal["vivid", "natural"]] | Omit = omit,
+        svg: Optional[image_generate_params.Svg] | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1833,11 +2466,36 @@ class AsyncImages(AsyncAPIResource):
               `gpt-image-2-2026-04-21`, this support is in preview. When using `transparent`,
               set the output format to `png` or `webp`.
 
+          complexity: Computation spent planning the image, independently of rendering quality. Uses
+              the image model's configured default when omitted. For SVG output, controls the
+              reference image, independently of the SVG author's reasoning.
+
+          frame_count: Number of frames for GIF output. Accepts integers from 2 through 16. Defaults to
+              9 when omitted. Only supported with output_format=gif. The requested size must
+              satisfy the selected model's GIF size limits. GIF output does not support
+              streaming, partial images, masks, or custom output compression. Requires access
+              to the GIF preview for the selected model.
+
+          frame_duration_ms: Requested delay per GIF frame, in milliseconds. Defaults to 200 when omitted.
+              GIF output rounds to the nearest 10 ms and caps the encoded delay at 655,350 ms
+              per frame. Only supported with output_format=gif.
+
           model: The GPT image model to use for image generation. Specify a model explicitly.
-              Supported models include `gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`,
-              `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
+              Supported models include `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+              `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
               `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`,
-              `gpt-image-2.5-flare-2026-09-08`, and `chatgpt-image-latest`.
+              `gpt-image-2.5-flare-2026-09-08`, `gpt-image-2.6-sunburst`,
+              `gpt-image-2.6-flare`, and `chatgpt-image-latest`.
+
+              `gpt-image-1` was shut down on October 23, 2026. Use `gpt-image-2.5-sunburst` or
+              `gpt-image-2.5-flare` instead.
+
+              Deprecated values:
+
+              - "gpt-image-1": GPT Image 1 was shut down on October 23, 2026. Use
+                gpt-image-2.5-sunburst or gpt-image-2.5-flare instead.
+              - "dall-e-2", "dall-e-3": This model was retired on May 12, 2026. Use a GPT
+                image model instead.
 
           moderation: Control the content-moderation level for images generated by the GPT image
               models. Must be either `low` for less restrictive filtering or `auto` (default
@@ -1850,7 +2508,7 @@ class AsyncImages(AsyncAPIResource):
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for the GPT image models. Must be one of `png`, `jpeg`, or `webp`.
+              supported for the GPT image models.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
               responses that return partial images. Value must be between 0 and 3. When set to
@@ -1867,8 +2525,20 @@ class AsyncImages(AsyncAPIResource):
               - `gpt-image-2.5-sunburst` and `gpt-image-2.5-flare`, including their
                 `2026-09-08` snapshots, also support `xhigh` and `max`.
 
+              Deprecated values:
+
+              - "standard", "hd": This quality was only supported by retired DALL·E models.
+                Use a GPT image quality instead.
+
           response_format: Legacy response format parameter for retired image models. Unsupported for GPT
               image models, which always return base64-encoded images.
+
+          safety_identifier: A stable identifier for an end user in your organization, used for safety
+              monitoring and abuse detection. Hash a username or email address to avoid
+              sending identifying information. A non-empty value takes precedence over the
+              deprecated `user` parameter. If omitted, null, or empty, the API uses `user`
+              when available.
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           size: The size of the generated images. For `gpt-image-2`, `gpt-image-2-2026-04-21`,
               `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`,
@@ -1881,11 +2551,25 @@ class AsyncImages(AsyncAPIResource):
               `1024x1024`, `1536x1024`, and `1024x1536` are supported by the GPT image models;
               `auto` is supported for models that allow automatic sizing.
 
+              Deprecated values:
+
+              - "256x256", "512x512", "1792x1024", "1024x1792": This legacy size suggestion is
+                retained for SDK compatibility. Check the selected GPT image model's supported
+                sizes.
+
           style: Legacy style parameter for retired image models. Unsupported for GPT image
               models; describe the desired style in the prompt instead.
 
-          user: A unique identifier representing your end-user, which can help OpenAI to monitor
-              and detect abuse.
+          svg: Selects the model and reasoning effort used to author SVG output. Requires
+              output_format=svg and access to SVG model selection. When model selection is
+              enabled, supply svg.model. When model selection is disabled, omit this object.
+              The top-level model selects the image model that creates the reference image.
+              SVG generation requires n=1 and does not support streaming, partial images,
+              prompt_rewriter, or output_compression. SVG edits are not supported.
+
+          user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
+              backward compatibility and is used when `safety_identifier` is omitted, null, or
+              empty.
               [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           extra_headers: Send extra headers
@@ -1904,14 +2588,18 @@ class AsyncImages(AsyncAPIResource):
         *,
         prompt: str,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        complexity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        frame_count: Optional[int] | Omit = omit,
+        frame_duration_ms: Optional[int] | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
         moderation: Optional[Literal["low", "auto"]] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp", "gif", "svg"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard", "hd"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         size: Union[
             str,
             Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"],
@@ -1920,6 +2608,7 @@ class AsyncImages(AsyncAPIResource):
         | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
         style: Optional[Literal["vivid", "natural"]] | Omit = omit,
+        svg: Optional[image_generate_params.Svg] | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1936,6 +2625,9 @@ class AsyncImages(AsyncAPIResource):
                     "stream": stream,
                     "prompt": prompt,
                     "background": background,
+                    "complexity": complexity,
+                    "frame_count": frame_count,
+                    "frame_duration_ms": frame_duration_ms,
                     "moderation": moderation,
                     "n": n,
                     "output_compression": output_compression,
@@ -1943,8 +2635,10 @@ class AsyncImages(AsyncAPIResource):
                     "partial_images": partial_images,
                     "quality": quality,
                     "response_format": response_format,
+                    "safety_identifier": safety_identifier,
                     "size": size,
                     "style": style,
+                    "svg": svg,
                     "user": user,
                 },
                 image_generate_params.ImageGenerateParamsStreaming
@@ -1968,10 +2662,8 @@ class ImagesWithRawResponse:
     def __init__(self, images: Images) -> None:
         self._images = images
 
-        self.create_variation = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.to_raw_response_wrapper(
-                images.create_variation,  # pyright: ignore[reportDeprecated],
-            )
+        self.create_variation = _legacy_response.to_raw_response_wrapper(
+            images.create_variation,
         )
         self.edit = _legacy_response.to_raw_response_wrapper(
             images.edit,
@@ -1985,10 +2677,8 @@ class AsyncImagesWithRawResponse:
     def __init__(self, images: AsyncImages) -> None:
         self._images = images
 
-        self.create_variation = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.async_to_raw_response_wrapper(
-                images.create_variation,  # pyright: ignore[reportDeprecated],
-            )
+        self.create_variation = _legacy_response.async_to_raw_response_wrapper(
+            images.create_variation,
         )
         self.edit = _legacy_response.async_to_raw_response_wrapper(
             images.edit,
@@ -2002,10 +2692,8 @@ class ImagesWithStreamingResponse:
     def __init__(self, images: Images) -> None:
         self._images = images
 
-        self.create_variation = (  # pyright: ignore[reportDeprecated]
-            to_streamed_response_wrapper(
-                images.create_variation,  # pyright: ignore[reportDeprecated],
-            )
+        self.create_variation = to_streamed_response_wrapper(
+            images.create_variation,
         )
         self.edit = to_streamed_response_wrapper(
             images.edit,
@@ -2019,10 +2707,8 @@ class AsyncImagesWithStreamingResponse:
     def __init__(self, images: AsyncImages) -> None:
         self._images = images
 
-        self.create_variation = (  # pyright: ignore[reportDeprecated]
-            async_to_streamed_response_wrapper(
-                images.create_variation,  # pyright: ignore[reportDeprecated],
-            )
+        self.create_variation = async_to_streamed_response_wrapper(
+            images.create_variation,
         )
         self.edit = async_to_streamed_response_wrapper(
             images.edit,

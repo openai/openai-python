@@ -8,7 +8,7 @@ const root = path.resolve(__dirname, '../..');
 const manifest = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 
 function fail(message) {
-  console.error(`${message}\nRun ./scripts/bootstrap after installing the versions documented in CONTRIBUTING.md.`);
+  console.error(`${message}\nRun ./scripts/bootstrap-node after installing the versions documented in CONTRIBUTING.md.`);
   process.exit(1);
 }
 

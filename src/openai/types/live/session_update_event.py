@@ -10,17 +10,16 @@ __all__ = ["SessionUpdateEvent"]
 
 
 class SessionUpdateEvent(BaseModel):
-    """Update the delegation settings of an active Live session.
+    """Update the delegation settings or transcript triggers of an active Live session.
 
     The server acknowledges accepted changes with `session.updated`.
     """
 
     session: SessionUpdateConfig
-    """Sparse delegation updates.
+    """Sparse delegation and trigger updates.
 
-    Omitted settings retain their values. The delegation type cannot change,
-    including resetting Responses delegation to null or client. Model, frontend
-    instructions, audio, and startup input are immutable.
+    Omitted settings retain their values. The delegation type cannot change. Model,
+    frontend instructions, audio, and startup input are immutable.
     """
 
     type: Literal["session.update"]

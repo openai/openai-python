@@ -103,6 +103,12 @@ class EnvironmentParamOpenAIHosted(TypedDict, total=False):
     env: Optional[Dict[str, str]]
     """Environment variables made available to the agent."""
 
+    environment_id: str
+    """An existing prewarmed environment.
+
+    Cannot be combined with a template or inline configuration.
+    """
+
     environment_template_id: str
     """A reusable hosted template applied before inline session configuration.
 

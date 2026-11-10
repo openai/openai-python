@@ -77,7 +77,16 @@ class CallAcceptParams(TypedDict, total=False):
             "gpt-audio-mini-2025-12-15",
         ],
     ]
-    """The Realtime model used for this session."""
+    """The Realtime model used for this session.
+
+    Deprecated values:
+
+    - "gpt-realtime", "gpt-realtime-2025-08-28", "gpt-realtime-mini",
+      "gpt-realtime-mini-2025-12-15", "gpt-audio-mini", "gpt-audio-mini-2025-12-15":
+      Announced shutdown date: 2027-01-20. See
+      https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
+    """
 
     output_modalities: List[Literal["text", "audio"]]
     """The set of modalities the model can respond with.

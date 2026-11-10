@@ -12,6 +12,8 @@ ImageModel: TypeAlias = Literal[
     "gpt-image-2.5-sunburst-2026-09-08",
     "gpt-image-2.5-flare",
     "gpt-image-2.5-flare-2026-09-08",
+    "gpt-image-2.6-sunburst",
+    "gpt-image-2.6-flare",
     "gpt-image-1",
     "gpt-image-1-mini",
     "chatgpt-image-latest",
@@ -20,6 +22,8 @@ ImageModel: TypeAlias = Literal[
 ]
 """Deprecated values:
 
+- "gpt-image-1": GPT Image 1 was shut down on October 23, 2026. Use
+  gpt-image-2.5-sunburst or gpt-image-2.5-flare instead.
 - "dall-e-2", "dall-e-3": This model was retired on May 12, 2026. Use a GPT
   image model instead.
 """

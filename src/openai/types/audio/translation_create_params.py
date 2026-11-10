@@ -25,6 +25,14 @@ class TranslationCreateParams(TypedDict, total=False):
 
     Only `whisper-1` (which is powered by our open source Whisper V2 model) is
     currently available.
+
+    Deprecated values:
+
+    - "whisper-1", "gpt-4o-transcribe", "gpt-4o-mini-transcribe",
+      "gpt-4o-mini-transcribe-2025-12-15", "gpt-4o-transcribe-diarize": Announced
+      shutdown date: 2027-02-26. See
+      https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
     """
 
     prompt: str

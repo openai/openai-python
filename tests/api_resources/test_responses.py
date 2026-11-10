@@ -7,7 +7,7 @@ from typing import Any, cast
 
 import pytest
 
-from openai import OpenAI, AsyncOpenAI
+from openai import OpenAI, Stream as _Stream, AsyncOpenAI, AsyncStream as _AsyncStream
 from tests.utils import assert_matches_type
 from openai.types.responses import (
     Response,
@@ -37,6 +37,7 @@ class TestResponses:
                 }
             ],
             conversation="string",
+            image={"context_compression": "auto"},
             include=["file_search_call.results"],
             input="string",
             instructions="instructions",
@@ -144,6 +145,7 @@ class TestResponses:
                 }
             ],
             conversation="string",
+            image={"context_compression": "auto"},
             include=["file_search_call.results"],
             input="string",
             instructions="instructions",
@@ -218,6 +220,7 @@ class TestResponses:
 
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         stream = response.parse()
+        assert isinstance(stream, _Stream)
         stream.close()
 
     @parametrize
@@ -229,6 +232,7 @@ class TestResponses:
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
             stream = response.parse()
+            assert isinstance(stream, _Stream)
             stream.close()
 
         assert cast(Any, response.is_closed) is True
@@ -310,6 +314,7 @@ class TestResponses:
 
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         stream = response.parse()
+        assert isinstance(stream, _Stream)
         stream.close()
 
     @parametrize
@@ -322,6 +327,7 @@ class TestResponses:
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
             stream = response.parse()
+            assert isinstance(stream, _Stream)
             stream.close()
 
         assert cast(Any, response.is_closed) is True
@@ -421,6 +427,7 @@ class TestResponses:
     def test_method_compact_with_all_params(self, client: OpenAI) -> None:
         response = client.responses.compact(
             model="gpt-6-astra",
+            image={"context_compression": "auto"},
             input="string",
             instructions="instructions",
             previous_response_id="resp_123",
@@ -481,6 +488,7 @@ class TestAsyncResponses:
                 }
             ],
             conversation="string",
+            image={"context_compression": "auto"},
             include=["file_search_call.results"],
             input="string",
             instructions="instructions",
@@ -588,6 +596,7 @@ class TestAsyncResponses:
                 }
             ],
             conversation="string",
+            image={"context_compression": "auto"},
             include=["file_search_call.results"],
             input="string",
             instructions="instructions",
@@ -662,6 +671,7 @@ class TestAsyncResponses:
 
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         stream = response.parse()
+        assert isinstance(stream, _AsyncStream)
         await stream.close()
 
     @parametrize
@@ -673,6 +683,7 @@ class TestAsyncResponses:
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
             stream = await response.parse()
+            assert isinstance(stream, _AsyncStream)
             await stream.close()
 
         assert cast(Any, response.is_closed) is True
@@ -754,6 +765,7 @@ class TestAsyncResponses:
 
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         stream = response.parse()
+        assert isinstance(stream, _AsyncStream)
         await stream.close()
 
     @parametrize
@@ -766,6 +778,7 @@ class TestAsyncResponses:
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
             stream = await response.parse()
+            assert isinstance(stream, _AsyncStream)
             await stream.close()
 
         assert cast(Any, response.is_closed) is True
@@ -865,6 +878,7 @@ class TestAsyncResponses:
     async def test_method_compact_with_all_params(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.responses.compact(
             model="gpt-6-astra",
+            image={"context_compression": "auto"},
             input="string",
             instructions="instructions",
             previous_response_id="resp_123",

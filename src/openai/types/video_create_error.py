@@ -57,3 +57,9 @@ class VideoCreateError(BaseModel):
     """
 
     misalignment: Optional[Misalignment] = None
+
+    param: Optional[str] = None
+    """The request parameter associated with the error, or null if none was recorded."""
+
+    type: Optional[str] = None
+    """The original error type, or null if it was not recorded."""

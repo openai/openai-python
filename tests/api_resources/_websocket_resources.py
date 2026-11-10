@@ -8,4 +8,5 @@ WEBSOCKET_RESOURCES = [
     "live.sideband",
     "live.forks",
     "realtime",
+    "realtime.translations",
 ]
