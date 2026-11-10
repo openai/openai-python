@@ -56,6 +56,7 @@ class TestAgents:
                     "name": "name",
                     "parameters": {"foo": "bar"},
                     "type": "function",
+                    "async": True,
                     "defer_loading": True,
                 }
             ],
@@ -160,6 +161,7 @@ class TestAgents:
                     "name": "name",
                     "parameters": {"foo": "bar"},
                     "type": "function",
+                    "async": True,
                     "defer_loading": True,
                 }
             ],
@@ -310,6 +312,7 @@ class TestAsyncAgents:
                     "name": "name",
                     "parameters": {"foo": "bar"},
                     "type": "function",
+                    "async": True,
                     "defer_loading": True,
                 }
             ],
@@ -414,6 +417,7 @@ class TestAsyncAgents:
                     "name": "name",
                     "parameters": {"foo": "bar"},
                     "type": "function",
+                    "async": True,
                     "defer_loading": True,
                 }
             ],

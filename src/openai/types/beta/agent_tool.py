@@ -3,6 +3,8 @@
 from typing import Dict, List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
 
+from pydantic import Field as FieldInfo
+
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
 from .mcp_transport import McpTransport
@@ -36,6 +38,9 @@ class AgentToolResourceFunction(BaseModel):
 
     type: Literal["function"]
     """The type of the object. Always `function`."""
+
+    async_: Optional[bool] = FieldInfo(alias="async", default=None)
+    """Whether the agent continues without waiting for the function result."""
 
 
 class AgentToolResourceProgrammaticToolCalling(BaseModel):
