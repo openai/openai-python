@@ -272,7 +272,7 @@ Completion sequence:
    Run the unchanged authoritative ownership/patch reporter against authentic
    checkpoints; require **zero mixed files and zero custom patch lines**, without
    changing ownership, exclusions or budgets. Record final per-file physical lines.
-5. Request reviews for each required PR/Delta in #sdk-reviews, address all findings,
+5. Address all review findings,
    pass current-head CI and protected merging, then verify public post-merge CI.
 
 The implementation previews and compiler tests are development evidence. They do
@@ -478,7 +478,7 @@ Reproduce with the existing reporter using `--base 5589146d738e0c38758e117b8383a
 
 [#4114](https://github.com/openai/openai-python/pull/4114) also merged as `6a52987f2da5c3bc9b700a7094c0cf14fe7e78dc`, verified on main. It adds only the two handwritten plan/inventory documents, leaving the generated-owned tree and measured counts unchanged. Conductor separately verified post-merge push CI, CodeQL and release checks successful on that merge commit, including [run 39316813847](https://github.com/openai/openai-python/actions/runs/39316813847).
 
-The confirmed T0 merge immediately started two independent successors: T10 handwritten video polling compatibility coverage and T15 compiler generation of the existing Beta resource aliases. Neither waits for the pending upload-test PR. Review requests and updates belong in root `#sdk-reviews` posts, deduplicated against existing requests.
+The confirmed T0 merge immediately started two independent successors: T10 handwritten video polling compatibility coverage and T15 compiler generation of the existing Beta resource aliases. Neither waits for the pending upload-test PR.
 
 ## Complete file inventory (fixed baseline)
 
