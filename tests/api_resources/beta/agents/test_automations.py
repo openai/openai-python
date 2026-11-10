@@ -331,6 +331,7 @@ class TestAutomations:
                             "name": "name",
                             "parameters": {"foo": "bar"},
                             "type": "function",
+                            "async": True,
                             "defer_loading": True,
                         }
                     ],
@@ -839,6 +840,7 @@ class TestAsyncAutomations:
                             "name": "name",
                             "parameters": {"foo": "bar"},
                             "type": "function",
+                            "async": True,
                             "defer_loading": True,
                         }
                     ],

@@ -53,6 +53,7 @@ class TestSessions:
                         "name": "name",
                         "parameters": {"foo": "bar"},
                         "type": "function",
+                        "async": True,
                         "defer_loading": True,
                     }
                 ],
@@ -129,6 +130,7 @@ class TestSessions:
                         "name": "name",
                         "parameters": {"foo": "bar"},
                         "type": "function",
+                        "async": True,
                         "defer_loading": True,
                     }
                 ],
@@ -229,6 +231,7 @@ class TestSessions:
                         "name": "name",
                         "parameters": {"foo": "bar"},
                         "type": "function",
+                        "async": True,
                         "defer_loading": True,
                     }
                 ],
@@ -385,6 +388,7 @@ class TestAsyncSessions:
                         "name": "name",
                         "parameters": {"foo": "bar"},
                         "type": "function",
+                        "async": True,
                         "defer_loading": True,
                     }
                 ],
@@ -461,6 +465,7 @@ class TestAsyncSessions:
                         "name": "name",
                         "parameters": {"foo": "bar"},
                         "type": "function",
+                        "async": True,
                         "defer_loading": True,
                     }
                 ],
@@ -561,6 +566,7 @@ class TestAsyncSessions:
                         "name": "name",
                         "parameters": {"foo": "bar"},
                         "type": "function",
+                        "async": True,
                         "defer_loading": True,
                     }
                 ],
