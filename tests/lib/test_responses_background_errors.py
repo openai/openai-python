@@ -18,7 +18,8 @@ from openai import (
 )
 from openai.lib import raise_for_status
 from tests.respx2 import MockRouter
-from openai._models import add_request_id, construct_type_unchecked
+from openai._compat import field_outer_type, get_model_fields
+from openai._models import BaseModel, add_request_id, construct_type_unchecked
 from openai.types.responses.response import Response, IncompleteDetails
 from openai.types.responses.response_error import ResponseError
 from openai.types.responses.response_status import ResponseStatus
@@ -28,12 +29,33 @@ from ..conftest import base_url
 RESPONSE_ID = "resp_synthetic"
 RETRIEVE_PATH = f"{str(base_url).rstrip('/')}/responses/{RESPONSE_ID}"
 
+
+def _literal_values(model: type[BaseModel], field_name: str) -> tuple[str, ...]:
+    """Collect the ``Literal`` members declared for a field on a generated model.
+
+    Pydantic v1 and v2 disagree both on where the field lives and on whether
+    ``Optional`` survives on the annotation, so walk whatever shape comes back
+    and keep the strings.
+    """
+    values: list[str] = []
+
+    def walk(annotation: Any) -> None:
+        args = get_args(annotation)
+        if not args:
+            if isinstance(annotation, str):
+                values.append(annotation)
+            return
+        for arg in args:
+            walk(arg)
+
+    walk(field_outer_type(get_model_fields(model)[field_name]))
+    return tuple(values)
+
+
 # Pulled from the generated models so that a spec change shows up here as a test
 # failure rather than as silently unclassified behaviour.
-ERROR_CODES: tuple[str, ...] = get_args(ResponseError.model_fields["code"].annotation)
-INCOMPLETE_REASONS: tuple[str, ...] = tuple(
-    arg for arg in get_args(get_args(IncompleteDetails.model_fields["reason"].annotation)[0]) if isinstance(arg, str)
-)
+ERROR_CODES: tuple[str, ...] = _literal_values(ResponseError, "code")
+INCOMPLETE_REASONS: tuple[str, ...] = _literal_values(IncompleteDetails, "reason")
 ALL_STATUSES: tuple[str, ...] = get_args(ResponseStatus)
 
 # The only codes where creating the run again is worth trying. Spelled out here
@@ -371,10 +393,12 @@ def retrieve_sync(client: OpenAI, mode: RetrievalMode) -> Response:
     if mode == "raw":
         raw = client.responses.with_raw_response.retrieve(RESPONSE_ID)
         assert raw.http_response.status_code == 200
-        return raw.parse()
+        # retrieve() is overloaded for stream=True, so parse() is typed as a union
+        # here even though this call site never requests a stream.
+        return cast(Response, raw.parse())
     with client.responses.with_streaming_response.retrieve(RESPONSE_ID) as streamed:
         assert streamed.http_response.status_code == 200
-        return streamed.parse()
+        return cast(Response, streamed.parse())
 
 
 async def retrieve_async(client: AsyncOpenAI, mode: RetrievalMode) -> Response:
@@ -384,10 +408,10 @@ async def retrieve_async(client: AsyncOpenAI, mode: RetrievalMode) -> Response:
     if mode == "raw":
         raw = await client.responses.with_raw_response.retrieve(RESPONSE_ID)
         assert raw.http_response.status_code == 200
-        return raw.parse()
+        return cast(Response, raw.parse())
     async with client.responses.with_streaming_response.retrieve(RESPONSE_ID) as streamed:
         assert streamed.http_response.status_code == 200
-        return await streamed.parse()
+        return cast(Response, await streamed.parse())
 
 
 def assert_transport_returned_200(respx2_mock: MockRouter) -> None:
