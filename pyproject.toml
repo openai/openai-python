@@ -100,8 +100,10 @@ constraint-dependencies = [
     # HTTPX2 also publishes an exact pin to its matching httpcore2 release.
     "httpcore2>=2.12.0",
     "azure-core>=1.38.0",
+    "certifi>=2026.10.18",
     "cryptography>=50.0.0",
     "msal>=1.37.0",
+    "pyasn1>=0.6.5",
     "pygments>=2.20.0",
     "pyjwt>=2.15.0",
     "requests>=2.33.0",
