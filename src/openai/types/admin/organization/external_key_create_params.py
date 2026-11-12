@@ -10,6 +10,7 @@ __all__ = [
     "V1OrganizationExternalKeysPostRequestAws",
     "V1OrganizationExternalKeysPostRequestGcp",
     "V1OrganizationExternalKeysPostRequestAzure",
+    "V1OrganizationExternalKeysPostRequestOci",
 ]
 
 
@@ -69,8 +70,25 @@ class V1OrganizationExternalKeysPostRequestAzure(TypedDict, total=False):
     purpose: Union[Literal["ekm"], Literal["psp_decryption"]]
 
 
+class V1OrganizationExternalKeysPostRequestOci(TypedDict, total=False):
+    key_ocid: Required[str]
+
+    name: Required[str]
+
+    region: Required[str]
+
+    type: Required[Literal["oci"]]
+
+    vault_ocid: Required[str]
+
+    key_version_ocid: str
+
+    purpose: Union[Literal["ekm"], Literal["psp_decryption"]]
+
+
 ExternalKeyCreateParams: TypeAlias = Union[
     V1OrganizationExternalKeysPostRequestAws,
     V1OrganizationExternalKeysPostRequestGcp,
     V1OrganizationExternalKeysPostRequestAzure,
+    V1OrganizationExternalKeysPostRequestOci,
 ]

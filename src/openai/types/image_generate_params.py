@@ -99,7 +99,7 @@ class ImageGenerateParamsBase(TypedDict, total=False):
     `jpeg` output formats, and defaults to 100.
     """
 
-    output_format: Optional[Literal["png", "jpeg", "webp", "gif", "svg"]]
+    output_format: Optional[Literal["png", "webp", "jpeg", "gif", "svg"]]
     """The format in which the generated images are returned.
 
     This parameter is only supported for the GPT image models.
@@ -186,8 +186,7 @@ class ImageGenerateParamsBase(TypedDict, total=False):
     selection is enabled, supply svg.model. When model selection is disabled, omit
     this object. The top-level model selects the image model that creates the
     reference image. SVG generation requires n=1 and does not support streaming,
-    partial images, prompt_rewriter, or output_compression. SVG edits are not
-    supported.
+    partial images, prompt_rewriter, or output_compression.
     """
 
     user: str
@@ -215,7 +214,7 @@ class SvgReasoning(TypedDict, total=False):
 class Svg(TypedDict, total=False):
     """Selects the model and reasoning effort used to author SVG output.
 
-    Requires output_format=svg and access to SVG model selection. When model selection is enabled, supply svg.model. When model selection is disabled, omit this object. The top-level model selects the image model that creates the reference image. SVG generation requires n=1 and does not support streaming, partial images, prompt_rewriter, or output_compression. SVG edits are not supported.
+    Requires output_format=svg and access to SVG model selection. When model selection is enabled, supply svg.model. When model selection is disabled, omit this object. The top-level model selects the image model that creates the reference image. SVG generation requires n=1 and does not support streaming, partial images, prompt_rewriter, or output_compression.
     """
 
     model: Required[str]

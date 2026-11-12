@@ -26,6 +26,7 @@ from .realtime_call_incoming_webhook_event import RealtimeCallIncomingWebhookEve
 from .agent_environment_ready_webhook_event import AgentEnvironmentReadyWebhookEvent
 from .live_transport_incoming_webhook_event import LiveTransportIncomingWebhookEvent
 from .agent_environment_failed_webhook_event import AgentEnvironmentFailedWebhookEvent
+from .live_transport_connected_webhook_event import LiveTransportConnectedWebhookEvent
 from .safety_org_alert_created_webhook_event import SafetyOrgAlertCreatedWebhookEvent
 from .agent_environment_expired_webhook_event import AgentEnvironmentExpiredWebhookEvent
 from .agent_session_in_progress_webhook_event import AgentSessionInProgressWebhookEvent
@@ -59,6 +60,7 @@ UnwrapWebhookEvent: TypeAlias = Annotated[
         FineTuningJobFailedWebhookEvent,
         FineTuningJobSucceededWebhookEvent,
         LiveCallIncomingWebhookEvent,
+        LiveTransportConnectedWebhookEvent,
         LiveTransportIncomingWebhookEvent,
         RealtimeCallIncomingWebhookEvent,
         ResponseCancelledWebhookEvent,

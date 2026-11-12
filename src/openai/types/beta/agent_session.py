@@ -20,6 +20,8 @@ __all__ = [
     "AgentCompaction",
     "AgentExperimental",
     "RequiredAction",
+    "RequiredActionSessionRequiredActionResourceMcpApprovalRequest",
+    "RequiredActionSessionRequiredActionResourceMcpApprovalRequestRequest",
     "RequiredActionSessionRequiredActionResourceComputerUseApprovalRequest",
     "RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequest",
     "RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequestComputerUseApprovalRequestKindResourceBrowserAuthentication",
@@ -28,6 +30,7 @@ __all__ = [
     "RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequestComputerUseApprovalRequestKindResourceBrowserOriginAccess",
     "RequiredActionSessionRequiredActionResourceFunctionCall",
     "RequiredActionSessionRequiredActionResourceEnvironmentConnection",
+    "PromptCacheOptions",
     "SpendControl",
 ]
 
@@ -84,6 +87,39 @@ class Agent(BaseModel):
 
     experimental: Optional[AgentExperimental] = None
     """The effective experimental settings for the agent."""
+
+
+class RequiredActionSessionRequiredActionResourceMcpApprovalRequestRequest(BaseModel):
+    """Information for presenting an MCP approval."""
+
+    arguments: object
+    """The tool arguments as JSON, or null when CCA does not provide them."""
+
+    message: str
+
+    name: Optional[str] = None
+    """The tool name, or null when CCA does not provide it."""
+
+    server_label: str
+
+    type: Literal["mcp_tool_call"]
+    """The type of the object. Always `mcp_tool_call`."""
+
+
+class RequiredActionSessionRequiredActionResourceMcpApprovalRequest(BaseModel):
+    """Respond to an MCP tool-call approval request."""
+
+    request: RequiredActionSessionRequiredActionResourceMcpApprovalRequestRequest
+    """Information for presenting an MCP approval."""
+
+    request_id: str
+    """The opaque approval ID to echo when responding."""
+
+    turn_id: str
+    """The turn that requested approval."""
+
+    type: Literal["mcp_approval_request"]
+    """The type of the object. Always `mcp_approval_request`."""
 
 
 class RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequestComputerUseApprovalRequestKindResourceBrowserAuthenticationField(
@@ -215,12 +251,19 @@ class RequiredActionSessionRequiredActionResourceEnvironmentConnection(BaseModel
 
 RequiredAction: TypeAlias = Annotated[
     Union[
+        RequiredActionSessionRequiredActionResourceMcpApprovalRequest,
         RequiredActionSessionRequiredActionResourceComputerUseApprovalRequest,
         RequiredActionSessionRequiredActionResourceFunctionCall,
         RequiredActionSessionRequiredActionResourceEnvironmentConnection,
     ],
     PropertyInfo(discriminator="type"),
 ]
+
+
+class PromptCacheOptions(BaseModel):
+    """Default prompt cache lifetime for turns in this session, when configured."""
+
+    ttl: Literal["30m", "12h"]
 
 
 class SpendControl(BaseModel):
@@ -286,6 +329,9 @@ class AgentSession(BaseModel):
 
     vault_ids: List[str]
     """The IDs of vaults made available to the session."""
+
+    prompt_cache_options: Optional[PromptCacheOptions] = None
+    """Default prompt cache lifetime for turns in this session, when configured."""
 
     review: Optional[Literal["none", "auto_review"]] = None
     """Review applied to eligible actions in this session.

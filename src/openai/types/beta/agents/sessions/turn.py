@@ -7,7 +7,15 @@ from ....._models import BaseModel
 from ...token_usage import TokenUsage
 from ...session_turn_error import SessionTurnError
 
-__all__ = ["Turn"]
+__all__ = ["Turn", "PromptCacheOptions"]
+
+
+class PromptCacheOptions(BaseModel):
+    """
+    Prompt cache lifetime selected when this turn started, including an inherited session TTL. Null when the turn used the model default or no TTL was recorded.
+    """
+
+    ttl: Literal["30m", "12h"]
 
 
 class Turn(BaseModel):
@@ -59,4 +67,10 @@ class Turn(BaseModel):
     """Best-effort token usage for the turn, or null if unknown.
 
     Recorded usage may change.
+    """
+
+    prompt_cache_options: Optional[PromptCacheOptions] = None
+    """
+    Prompt cache lifetime selected when this turn started, including an inherited
+    session TTL. Null when the turn used the model default or no TTL was recorded.
     """

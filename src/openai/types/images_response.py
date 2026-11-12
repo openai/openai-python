@@ -10,9 +10,7 @@ __all__ = ["ImagesResponse", "SvgUsage", "Usage", "UsageInputTokensDetails", "Us
 
 
 class SvgUsage(BaseModel):
-    """
-    Token usage for the model that authored the SVG, separate from image rendering usage.
-    """
+    """Token usage for SVG authoring, separate from image rendering usage."""
 
     input_tokens: int
 
@@ -46,7 +44,7 @@ class UsageOutputTokensDetails(BaseModel):
 
 
 class Usage(BaseModel):
-    """For `gpt-image-1` only, the token usage information for the image generation."""
+    """Token usage information for image generation with GPT Image models."""
 
     input_tokens: int
     """The number of tokens (images and text) in the input prompt."""
@@ -80,7 +78,7 @@ class ImagesResponse(BaseModel):
     """The list of generated images."""
 
     output_format: Optional[Literal["png", "webp", "jpeg", "gif", "svg"]] = None
-    """The output format of the generated image."""
+    """The output format of the generated or edited image."""
 
     quality: Optional[Literal["low", "medium", "high", "xhigh", "max"]] = None
     """The quality of the image generated.
@@ -99,10 +97,7 @@ class ImagesResponse(BaseModel):
     """The image dimensions as a `WIDTHxHEIGHT` string, for example `1536x864`."""
 
     svg_usage: Optional[SvgUsage] = None
-    """
-    Token usage for the model that authored the SVG, separate from image rendering
-    usage.
-    """
+    """Token usage for SVG authoring, separate from image rendering usage."""
 
     usage: Optional[Usage] = None
-    """For `gpt-image-1` only, the token usage information for the image generation."""
+    """Token usage information for image generation with GPT Image models."""

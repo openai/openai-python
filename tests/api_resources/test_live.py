@@ -59,6 +59,7 @@ class TestLive:
                     }
                 ],
                 "instructions": "instructions",
+                "safety_identifier": "safety_identifier",
                 "store": True,
                 "triggers": [
                     {
@@ -173,6 +174,7 @@ class TestAsyncLive:
                     }
                 ],
                 "instructions": "instructions",
+                "safety_identifier": "safety_identifier",
                 "store": True,
                 "triggers": [
                     {

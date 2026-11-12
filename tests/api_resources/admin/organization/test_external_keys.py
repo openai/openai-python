@@ -209,6 +209,62 @@ class TestExternalKeys:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
+    def test_method_create_overload_4(self, client: OpenAI) -> None:
+        external_key = client.admin.organization.external_keys.create(
+            key_ocid="key_ocid",
+            name="name",
+            region="region",
+            type="oci",
+            vault_ocid="vault_ocid",
+        )
+        assert_matches_type(ExternalKey, external_key, path=["response"])
+
+    @parametrize
+    def test_method_create_with_all_params_overload_4(self, client: OpenAI) -> None:
+        external_key = client.admin.organization.external_keys.create(
+            key_ocid="key_ocid",
+            name="name",
+            region="region",
+            type="oci",
+            vault_ocid="vault_ocid",
+            key_version_ocid="key_version_ocid",
+            purpose="ekm",
+        )
+        assert_matches_type(ExternalKey, external_key, path=["response"])
+
+    @parametrize
+    def test_raw_response_create_overload_4(self, client: OpenAI) -> None:
+        response = client.admin.organization.external_keys.with_raw_response.create(
+            key_ocid="key_ocid",
+            name="name",
+            region="region",
+            type="oci",
+            vault_ocid="vault_ocid",
+        )
+
+        assert response.is_closed is True
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        external_key = response.parse()
+        assert_matches_type(ExternalKey, external_key, path=["response"])
+
+    @parametrize
+    def test_streaming_response_create_overload_4(self, client: OpenAI) -> None:
+        with client.admin.organization.external_keys.with_streaming_response.create(
+            key_ocid="key_ocid",
+            name="name",
+            region="region",
+            type="oci",
+            vault_ocid="vault_ocid",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            external_key = response.parse()
+            assert_matches_type(ExternalKey, external_key, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
+
+    @parametrize
     def test_method_retrieve(self, client: OpenAI) -> None:
         external_key = client.admin.organization.external_keys.retrieve(
             "external_key_id",
@@ -541,6 +597,62 @@ class TestAsyncExternalKeys:
             tenant_id="tenant_id",
             type="azure",
             vault_uri="vault_uri",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            external_key = await response.parse()
+            assert_matches_type(ExternalKey, external_key, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    async def test_method_create_overload_4(self, async_client: AsyncOpenAI) -> None:
+        external_key = await async_client.admin.organization.external_keys.create(
+            key_ocid="key_ocid",
+            name="name",
+            region="region",
+            type="oci",
+            vault_ocid="vault_ocid",
+        )
+        assert_matches_type(ExternalKey, external_key, path=["response"])
+
+    @parametrize
+    async def test_method_create_with_all_params_overload_4(self, async_client: AsyncOpenAI) -> None:
+        external_key = await async_client.admin.organization.external_keys.create(
+            key_ocid="key_ocid",
+            name="name",
+            region="region",
+            type="oci",
+            vault_ocid="vault_ocid",
+            key_version_ocid="key_version_ocid",
+            purpose="ekm",
+        )
+        assert_matches_type(ExternalKey, external_key, path=["response"])
+
+    @parametrize
+    async def test_raw_response_create_overload_4(self, async_client: AsyncOpenAI) -> None:
+        response = await async_client.admin.organization.external_keys.with_raw_response.create(
+            key_ocid="key_ocid",
+            name="name",
+            region="region",
+            type="oci",
+            vault_ocid="vault_ocid",
+        )
+
+        assert response.is_closed is True
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        external_key = response.parse()
+        assert_matches_type(ExternalKey, external_key, path=["response"])
+
+    @parametrize
+    async def test_streaming_response_create_overload_4(self, async_client: AsyncOpenAI) -> None:
+        async with async_client.admin.organization.external_keys.with_streaming_response.create(
+            key_ocid="key_ocid",
+            name="name",
+            region="region",
+            type="oci",
+            vault_ocid="vault_ocid",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"

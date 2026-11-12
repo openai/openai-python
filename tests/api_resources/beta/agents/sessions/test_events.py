@@ -23,16 +23,10 @@ class TestEvents:
                 {
                     "request_id": "request_id",
                     "response": {
-                        "action": "submit",
-                        "fields": [
-                            {
-                                "field_id": "field_id",
-                                "value": "value",
-                            }
-                        ],
-                        "type": "browser_authentication",
+                        "decision": "approve",
+                        "type": "mcp_tool_call",
                     },
-                    "type": "agent.session.input.computer_use_approval_request_result",
+                    "type": "agent.session.input.mcp_approval_request_result",
                 }
             ],
         )
@@ -46,17 +40,10 @@ class TestEvents:
                 {
                     "request_id": "request_id",
                     "response": {
-                        "action": "submit",
-                        "fields": [
-                            {
-                                "field_id": "field_id",
-                                "value": "value",
-                            }
-                        ],
-                        "type": "browser_authentication",
-                        "selected_option": "selected_option",
+                        "decision": "approve",
+                        "type": "mcp_tool_call",
                     },
-                    "type": "agent.session.input.computer_use_approval_request_result",
+                    "type": "agent.session.input.mcp_approval_request_result",
                 }
             ],
             idempotency_key="x",
@@ -71,16 +58,10 @@ class TestEvents:
                 {
                     "request_id": "request_id",
                     "response": {
-                        "action": "submit",
-                        "fields": [
-                            {
-                                "field_id": "field_id",
-                                "value": "value",
-                            }
-                        ],
-                        "type": "browser_authentication",
+                        "decision": "approve",
+                        "type": "mcp_tool_call",
                     },
-                    "type": "agent.session.input.computer_use_approval_request_result",
+                    "type": "agent.session.input.mcp_approval_request_result",
                 }
             ],
         )
@@ -98,16 +79,10 @@ class TestEvents:
                 {
                     "request_id": "request_id",
                     "response": {
-                        "action": "submit",
-                        "fields": [
-                            {
-                                "field_id": "field_id",
-                                "value": "value",
-                            }
-                        ],
-                        "type": "browser_authentication",
+                        "decision": "approve",
+                        "type": "mcp_tool_call",
                     },
-                    "type": "agent.session.input.computer_use_approval_request_result",
+                    "type": "agent.session.input.mcp_approval_request_result",
                 }
             ],
         ) as response:
@@ -128,16 +103,10 @@ class TestEvents:
                     {
                         "request_id": "request_id",
                         "response": {
-                            "action": "submit",
-                            "fields": [
-                                {
-                                    "field_id": "field_id",
-                                    "value": "value",
-                                }
-                            ],
-                            "type": "browser_authentication",
+                            "decision": "approve",
+                            "type": "mcp_tool_call",
                         },
-                        "type": "agent.session.input.computer_use_approval_request_result",
+                        "type": "agent.session.input.mcp_approval_request_result",
                     }
                 ],
             )
@@ -203,16 +172,10 @@ class TestAsyncEvents:
                 {
                     "request_id": "request_id",
                     "response": {
-                        "action": "submit",
-                        "fields": [
-                            {
-                                "field_id": "field_id",
-                                "value": "value",
-                            }
-                        ],
-                        "type": "browser_authentication",
+                        "decision": "approve",
+                        "type": "mcp_tool_call",
                     },
-                    "type": "agent.session.input.computer_use_approval_request_result",
+                    "type": "agent.session.input.mcp_approval_request_result",
                 }
             ],
         )
@@ -226,17 +189,10 @@ class TestAsyncEvents:
                 {
                     "request_id": "request_id",
                     "response": {
-                        "action": "submit",
-                        "fields": [
-                            {
-                                "field_id": "field_id",
-                                "value": "value",
-                            }
-                        ],
-                        "type": "browser_authentication",
-                        "selected_option": "selected_option",
+                        "decision": "approve",
+                        "type": "mcp_tool_call",
                     },
-                    "type": "agent.session.input.computer_use_approval_request_result",
+                    "type": "agent.session.input.mcp_approval_request_result",
                 }
             ],
             idempotency_key="x",
@@ -251,16 +207,10 @@ class TestAsyncEvents:
                 {
                     "request_id": "request_id",
                     "response": {
-                        "action": "submit",
-                        "fields": [
-                            {
-                                "field_id": "field_id",
-                                "value": "value",
-                            }
-                        ],
-                        "type": "browser_authentication",
+                        "decision": "approve",
+                        "type": "mcp_tool_call",
                     },
-                    "type": "agent.session.input.computer_use_approval_request_result",
+                    "type": "agent.session.input.mcp_approval_request_result",
                 }
             ],
         )
@@ -278,16 +228,10 @@ class TestAsyncEvents:
                 {
                     "request_id": "request_id",
                     "response": {
-                        "action": "submit",
-                        "fields": [
-                            {
-                                "field_id": "field_id",
-                                "value": "value",
-                            }
-                        ],
-                        "type": "browser_authentication",
+                        "decision": "approve",
+                        "type": "mcp_tool_call",
                     },
-                    "type": "agent.session.input.computer_use_approval_request_result",
+                    "type": "agent.session.input.mcp_approval_request_result",
                 }
             ],
         ) as response:
@@ -308,16 +252,10 @@ class TestAsyncEvents:
                     {
                         "request_id": "request_id",
                         "response": {
-                            "action": "submit",
-                            "fields": [
-                                {
-                                    "field_id": "field_id",
-                                    "value": "value",
-                                }
-                            ],
-                            "type": "browser_authentication",
+                            "decision": "approve",
+                            "type": "mcp_tool_call",
                         },
-                        "type": "agent.session.input.computer_use_approval_request_result",
+                        "type": "agent.session.input.mcp_approval_request_result",
                     }
                 ],
             )

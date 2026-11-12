@@ -64,6 +64,7 @@ class ContentProvenanceChecks(SyncAPIResource):
 
         Args:
           file: The image or audio file to check for supported OpenAI provenance signals.
+              Supported image formats are PNG, JPEG, WebP, and GIF (including animated GIFs).
 
           extra_headers: Send extra headers
 
@@ -138,6 +139,7 @@ class AsyncContentProvenanceChecks(AsyncAPIResource):
 
         Args:
           file: The image or audio file to check for supported OpenAI provenance signals.
+              Supported image formats are PNG, JPEG, WebP, and GIF (including animated GIFs).
 
           extra_headers: Send extra headers
 

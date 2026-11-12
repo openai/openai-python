@@ -164,6 +164,7 @@ class Sessions(SyncAPIResource):
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
+        prompt_cache_options: Optional[session_create_params.PromptCacheOptions] | Omit = omit,
         review: Literal["none", "auto_review"] | Omit = omit,
         spend_control: Optional[session_create_params.SpendControl] | Omit = omit,
         stream: Literal[False] | Omit = omit,
@@ -187,6 +188,7 @@ class Sessions(SyncAPIResource):
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
+        prompt_cache_options: Optional[session_create_params.PromptCacheOptions] | Omit = omit,
         review: Literal["none", "auto_review"] | Omit = omit,
         spend_control: Optional[session_create_params.SpendControl] | Omit = omit,
         stream_options: session_create_params.StreamOptions | Omit = omit,
@@ -209,6 +211,7 @@ class Sessions(SyncAPIResource):
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
+        prompt_cache_options: Optional[session_create_params.PromptCacheOptions] | Omit = omit,
         review: Literal["none", "auto_review"] | Omit = omit,
         spend_control: Optional[session_create_params.SpendControl] | Omit = omit,
         stream_options: session_create_params.StreamOptions | Omit = omit,
@@ -230,6 +233,7 @@ class Sessions(SyncAPIResource):
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
+        prompt_cache_options: Optional[session_create_params.PromptCacheOptions] | Omit = omit,
         review: Literal["none", "auto_review"] | Omit = omit,
         spend_control: Optional[session_create_params.SpendControl] | Omit = omit,
         stream: Literal[False] | Literal[True] | Omit = omit,
@@ -250,6 +254,7 @@ class Sessions(SyncAPIResource):
                 "agent_id": agent_id,
                 "input": input,
                 "metadata": metadata,
+                "prompt_cache_options": prompt_cache_options,
                 "review": review,
                 "spend_control": spend_control,
                 "stream_options": stream_options,
@@ -328,6 +333,7 @@ class Sessions(SyncAPIResource):
         *,
         agent: session_update_params.Agent | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
+        prompt_cache_options: Optional[session_update_params.PromptCacheOptions] | Omit = omit,
         review: Literal["none", "auto_review"] | Omit = omit,
         spend_control: Optional[session_update_params.SpendControl] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -337,10 +343,10 @@ class Sessions(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AgentSession:
-        """Updates session tools, metadata, model, reasoning effort, or service tier.
-
-        Model
-        settings apply to subsequent turns. Omitted fields are unchanged. See
+        """
+        Updates session tools, metadata, model, reasoning effort, service tier, or the
+        default prompt cache lifetime. Model settings apply to subsequent turns. Omitted
+        fields are unchanged. See
         [managing sessions](https://developers.openai.com/api/docs/guides/agents-api/sessions/manage).
 
         Args:
@@ -349,6 +355,9 @@ class Sessions(SyncAPIResource):
           metadata: Replaces all metadata. Omit to leave unchanged, or pass null or {} to clear it.
               Up to 16 string key-value pairs, with keys up to 64 and values up to 512
               characters.
+
+          prompt_cache_options: Default prompt cache lifetime for future turns. Send null to clear the session
+              default.
 
           review: Default action review for new root turns. Existing turns and their subagents
               keep their review mode.
@@ -377,6 +386,7 @@ class Sessions(SyncAPIResource):
                 {
                     "agent": agent,
                     "metadata": metadata,
+                    "prompt_cache_options": prompt_cache_options,
                     "review": review,
                     "spend_control": spend_control,
                 },
@@ -592,6 +602,7 @@ class AsyncSessions(AsyncAPIResource):
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
+        prompt_cache_options: Optional[session_create_params.PromptCacheOptions] | Omit = omit,
         review: Literal["none", "auto_review"] | Omit = omit,
         spend_control: Optional[session_create_params.SpendControl] | Omit = omit,
         stream: Literal[False] | Omit = omit,
@@ -615,6 +626,7 @@ class AsyncSessions(AsyncAPIResource):
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
+        prompt_cache_options: Optional[session_create_params.PromptCacheOptions] | Omit = omit,
         review: Literal["none", "auto_review"] | Omit = omit,
         spend_control: Optional[session_create_params.SpendControl] | Omit = omit,
         stream_options: session_create_params.StreamOptions | Omit = omit,
@@ -637,6 +649,7 @@ class AsyncSessions(AsyncAPIResource):
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
+        prompt_cache_options: Optional[session_create_params.PromptCacheOptions] | Omit = omit,
         review: Literal["none", "auto_review"] | Omit = omit,
         spend_control: Optional[session_create_params.SpendControl] | Omit = omit,
         stream_options: session_create_params.StreamOptions | Omit = omit,
@@ -658,6 +671,7 @@ class AsyncSessions(AsyncAPIResource):
         agent_id: str | Omit = omit,
         input: Union[str, Iterable[AgentSessionInputMessageParam], None] | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
+        prompt_cache_options: Optional[session_create_params.PromptCacheOptions] | Omit = omit,
         review: Literal["none", "auto_review"] | Omit = omit,
         spend_control: Optional[session_create_params.SpendControl] | Omit = omit,
         stream: Literal[False] | Literal[True] | Omit = omit,
@@ -678,6 +692,7 @@ class AsyncSessions(AsyncAPIResource):
                 "agent_id": agent_id,
                 "input": input,
                 "metadata": metadata,
+                "prompt_cache_options": prompt_cache_options,
                 "review": review,
                 "spend_control": spend_control,
                 "stream_options": stream_options,
@@ -756,6 +771,7 @@ class AsyncSessions(AsyncAPIResource):
         *,
         agent: session_update_params.Agent | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
+        prompt_cache_options: Optional[session_update_params.PromptCacheOptions] | Omit = omit,
         review: Literal["none", "auto_review"] | Omit = omit,
         spend_control: Optional[session_update_params.SpendControl] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -765,10 +781,10 @@ class AsyncSessions(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AgentSession:
-        """Updates session tools, metadata, model, reasoning effort, or service tier.
-
-        Model
-        settings apply to subsequent turns. Omitted fields are unchanged. See
+        """
+        Updates session tools, metadata, model, reasoning effort, service tier, or the
+        default prompt cache lifetime. Model settings apply to subsequent turns. Omitted
+        fields are unchanged. See
         [managing sessions](https://developers.openai.com/api/docs/guides/agents-api/sessions/manage).
 
         Args:
@@ -777,6 +793,9 @@ class AsyncSessions(AsyncAPIResource):
           metadata: Replaces all metadata. Omit to leave unchanged, or pass null or {} to clear it.
               Up to 16 string key-value pairs, with keys up to 64 and values up to 512
               characters.
+
+          prompt_cache_options: Default prompt cache lifetime for future turns. Send null to clear the session
+              default.
 
           review: Default action review for new root turns. Existing turns and their subagents
               keep their review mode.
@@ -805,6 +824,7 @@ class AsyncSessions(AsyncAPIResource):
                 {
                     "agent": agent,
                     "metadata": metadata,
+                    "prompt_cache_options": prompt_cache_options,
                     "review": review,
                     "spend_control": spend_control,
                 },
