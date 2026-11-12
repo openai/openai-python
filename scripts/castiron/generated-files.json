@@ -2503,7 +2503,7 @@
     },
     "src/openai/types/beta/beta_response.py": {
       "mode": "100644",
-      "sha256": "7b0a8482b950312722f54bc6a33177977b2a47961f934378855331f434679025"
+      "sha256": "860132575fca6b8f5e1a11f56ee733657e3ddc4754c6bafa0f1d86b0ac204563"
     },
     "src/openai/types/beta/beta_response_apply_patch_tool_call.py": {
       "mode": "100644",
@@ -6143,7 +6143,7 @@
     },
     "src/openai/types/responses/response.py": {
       "mode": "100644",
-      "sha256": "8a7779a4d70816c1cb2ce8d90295423b252e319422e7a677309e82671c072944"
+      "sha256": "9937ed8b5c0f63c842a83d7e7871327e607da852dae0dbe146468e654f2b1d8a"
     },
     "src/openai/types/responses/response_apply_patch_tool_call.py": {
       "mode": "100644",
