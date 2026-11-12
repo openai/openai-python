@@ -65613,6 +65613,39 @@ components:
       - id
       - summary
       - type
+    InputRemovalReason:
+      type: string
+      enum:
+      - organization_mismatch
+      - end_user_mismatch
+      - model_mismatch
+      - prefix_mismatch
+      - turn_boundary
+    ReasoningInputTransformation:
+      properties:
+        type:
+          type: string
+          enum:
+          - reasoning
+          default: reasoning
+          x-stainless-const: true
+        id:
+          type: string
+          description: The original reasoning item ID.
+        action:
+          type: string
+          enum:
+          - removed
+          default: removed
+          x-stainless-const: true
+        reason:
+          $ref: '#/components/schemas/InputRemovalReason'
+      type: object
+      required:
+      - type
+      - id
+      - action
+      - reason
     Response:
       title: The response object
       allOf:
@@ -65700,6 +65733,11 @@ components:
                   - content_filter
                   - steered
             - type: 'null'
+          input_transformations:
+            type: array
+            description: Reasoning inputs withheld from the model, in input order.
+            items:
+              $ref: '#/components/schemas/ReasoningInputTransformation'
           output:
             type: array
             description: |
@@ -107920,6 +107958,39 @@ components:
             },
             "sequence_number": 1
           }
+    BetaReasoningInputTransformation:
+      properties:
+        type:
+          type: string
+          enum:
+          - reasoning
+          default: reasoning
+          x-stainless-const: true
+        id:
+          type: string
+          description: The original reasoning item ID.
+        action:
+          type: string
+          enum:
+          - removed
+          default: removed
+          x-stainless-const: true
+        reason:
+          $ref: '#/components/schemas/BetaInputRemovalReason'
+      type: object
+      required:
+      - type
+      - id
+      - action
+      - reason
+    BetaInputRemovalReason:
+      type: string
+      enum:
+      - organization_mismatch
+      - end_user_mismatch
+      - model_mismatch
+      - prefix_mismatch
+      - turn_boundary
     BetaResponse:
       title: The response object
       allOf:
@@ -108007,6 +108078,11 @@ components:
                   - content_filter
                   - steered
             - type: 'null'
+          input_transformations:
+            type: array
+            description: Reasoning inputs withheld from the model, in input order.
+            items:
+              $ref: '#/components/schemas/BetaReasoningInputTransformation'
           output:
             type: array
             description: |

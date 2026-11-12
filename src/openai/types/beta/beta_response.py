@@ -31,6 +31,7 @@ __all__ = [
     "ToolChoiceBetaSpecificProgrammaticToolCallingParam",
     "Conversation",
     "Image",
+    "InputTransformation",
     "Moderation",
     "ModerationInput",
     "ModerationInputModerationResult",
@@ -102,6 +103,17 @@ class Conversation(BaseModel):
 class Image(BaseModel):
     context_compression: Literal["enabled", "disabled"]
     """Effective image context optimization policy."""
+
+
+class InputTransformation(BaseModel):
+    id: str
+    """The original reasoning item ID."""
+
+    action: Literal["removed"]
+
+    reason: Literal["organization_mismatch", "end_user_mismatch", "model_mismatch", "prefix_mismatch", "turn_boundary"]
+
+    type: Literal["reasoning"]
 
 
 class ModerationInputModerationResult(BaseModel):
@@ -724,6 +736,9 @@ class BetaResponse(BaseModel):
     """
 
     image: Optional[Image] = None
+
+    input_transformations: Optional[List[InputTransformation]] = None
+    """Reasoning inputs withheld from the model, in input order."""
 
     max_output_tokens: Optional[int] = None
     """
