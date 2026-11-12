@@ -69,7 +69,7 @@ class Steps(SyncAPIResource):
               to fetch the file search result content.
 
               See the
-              [file search tool documentation](https://platform.openai.com/docs/assistants/tools/file-search#customizing-file-search-settings)
+              [file search tool documentation](https://developers.openai.com/api/docs/guides/tools-file-search#retrieval-customization)
               for more information.
 
           extra_headers: Send extra headers
@@ -142,7 +142,7 @@ class Steps(SyncAPIResource):
               to fetch the file search result content.
 
               See the
-              [file search tool documentation](https://platform.openai.com/docs/assistants/tools/file-search#customizing-file-search-settings)
+              [file search tool documentation](https://developers.openai.com/api/docs/guides/tools-file-search#retrieval-customization)
               for more information.
 
           limit: A limit on the number of objects to be returned. Limit can range between 1 and
@@ -234,7 +234,7 @@ class AsyncSteps(AsyncAPIResource):
               to fetch the file search result content.
 
               See the
-              [file search tool documentation](https://platform.openai.com/docs/assistants/tools/file-search#customizing-file-search-settings)
+              [file search tool documentation](https://developers.openai.com/api/docs/guides/tools-file-search#retrieval-customization)
               for more information.
 
           extra_headers: Send extra headers
@@ -307,7 +307,7 @@ class AsyncSteps(AsyncAPIResource):
               to fetch the file search result content.
 
               See the
-              [file search tool documentation](https://platform.openai.com/docs/assistants/tools/file-search#customizing-file-search-settings)
+              [file search tool documentation](https://developers.openai.com/api/docs/guides/tools-file-search#retrieval-customization)
               for more information.
 
           limit: A limit on the number of objects to be returned. Limit can range between 1 and
@@ -357,15 +357,11 @@ class StepsWithRawResponse:
     def __init__(self, steps: Steps) -> None:
         self._steps = steps
 
-        self.retrieve = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.to_raw_response_wrapper(
-                steps.retrieve,  # pyright: ignore[reportDeprecated],
-            )
+        self.retrieve = _legacy_response.to_raw_response_wrapper(
+            steps.retrieve,
         )
-        self.list = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.to_raw_response_wrapper(
-                steps.list,  # pyright: ignore[reportDeprecated],
-            )
+        self.list = _legacy_response.to_raw_response_wrapper(
+            steps.list,
         )
 
 
@@ -373,15 +369,11 @@ class AsyncStepsWithRawResponse:
     def __init__(self, steps: AsyncSteps) -> None:
         self._steps = steps
 
-        self.retrieve = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.async_to_raw_response_wrapper(
-                steps.retrieve,  # pyright: ignore[reportDeprecated],
-            )
+        self.retrieve = _legacy_response.async_to_raw_response_wrapper(
+            steps.retrieve,
         )
-        self.list = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.async_to_raw_response_wrapper(
-                steps.list,  # pyright: ignore[reportDeprecated],
-            )
+        self.list = _legacy_response.async_to_raw_response_wrapper(
+            steps.list,
         )
 
 
@@ -389,15 +381,11 @@ class StepsWithStreamingResponse:
     def __init__(self, steps: Steps) -> None:
         self._steps = steps
 
-        self.retrieve = (  # pyright: ignore[reportDeprecated]
-            to_streamed_response_wrapper(
-                steps.retrieve,  # pyright: ignore[reportDeprecated],
-            )
+        self.retrieve = to_streamed_response_wrapper(
+            steps.retrieve,
         )
-        self.list = (  # pyright: ignore[reportDeprecated]
-            to_streamed_response_wrapper(
-                steps.list,  # pyright: ignore[reportDeprecated],
-            )
+        self.list = to_streamed_response_wrapper(
+            steps.list,
         )
 
 
@@ -405,13 +393,9 @@ class AsyncStepsWithStreamingResponse:
     def __init__(self, steps: AsyncSteps) -> None:
         self._steps = steps
 
-        self.retrieve = (  # pyright: ignore[reportDeprecated]
-            async_to_streamed_response_wrapper(
-                steps.retrieve,  # pyright: ignore[reportDeprecated],
-            )
+        self.retrieve = async_to_streamed_response_wrapper(
+            steps.retrieve,
         )
-        self.list = (  # pyright: ignore[reportDeprecated]
-            async_to_streamed_response_wrapper(
-                steps.list,  # pyright: ignore[reportDeprecated],
-            )
+        self.list = async_to_streamed_response_wrapper(
+            steps.list,
         )

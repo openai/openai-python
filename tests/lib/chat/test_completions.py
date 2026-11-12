@@ -86,7 +86,6 @@ recommend checking a reliable weather website or app like the Weather Channel or
             rejected_prediction_tokens=None,
             text_tokens=None
         ),
-        compute_units=None,
         prompt_tokens=14,
         prompt_tokens_details=None,
         total_tokens=51
@@ -159,7 +158,6 @@ ParsedChatCompletion(
             rejected_prediction_tokens=None,
             text_tokens=None
         ),
-        compute_units=None,
         prompt_tokens=79,
         prompt_tokens_details=None,
         total_tokens=93
@@ -234,7 +232,6 @@ ParsedChatCompletion(
             rejected_prediction_tokens=None,
             text_tokens=None
         ),
-        compute_units=None,
         prompt_tokens=88,
         prompt_tokens_details=None,
         total_tokens=102
@@ -258,7 +255,7 @@ def test_parse_pydantic_model_enum(client: OpenAI, respx2_mock: MockRouter, monk
         hex_color_code: str = Field(description="The hex color code of the detected color")
 
     if PYDANTIC_V1:
-        ColorDetection.update_forward_refs(**locals())  # type: ignore
+        ColorDetection.update_forward_refs(**locals())
 
     completion = make_snapshot_request(
         lambda c: c.chat.completions.parse(
@@ -444,7 +441,6 @@ ParsedChatCompletion(
             rejected_prediction_tokens=None,
             text_tokens=None
         ),
-        compute_units=None,
         prompt_tokens=92,
         prompt_tokens_details=None,
         total_tokens=109
@@ -921,7 +917,6 @@ ParsedChatCompletion(
             rejected_prediction_tokens=None,
             text_tokens=None
         ),
-        compute_units=None,
         prompt_tokens=79,
         prompt_tokens_details=None,
         total_tokens=93
@@ -1002,7 +997,6 @@ ParsedChatCompletion(
             rejected_prediction_tokens=None,
             text_tokens=None
         ),
-        compute_units=None,
         prompt_tokens=79,
         prompt_tokens_details=None,
         total_tokens=93

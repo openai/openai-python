@@ -43,6 +43,8 @@ def test_response_parse_mismatched_basemodel(client: OpenAI) -> None:
         ("True", True),
         ("TrUe", True),
         ("FalSe", False),
+        (" \ttrue\r\n", True),
+        (" \tfalse\r\n", False),
     ],
 )
 def test_response_parse_bool(client: OpenAI, content: str, expected: bool) -> None:

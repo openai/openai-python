@@ -16,9 +16,6 @@ class ResponseFunctionCallArgumentsDoneEvent(BaseModel):
     item_id: str
     """The ID of the item."""
 
-    name: str
-    """The name of the function that was called."""
-
     output_index: int
     """The index of the output item."""
 

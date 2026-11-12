@@ -18,7 +18,8 @@ from .._provider import _Provider
 from .._streaming import Stream, AsyncStream
 from ..auth._x509 import is_x509_workload_identity
 from .._exceptions import OpenAIError
-from .._base_client import DEFAULT_MAX_RETRIES, BaseClient
+from ._client_auth import _MissingAPIKey
+from .._base_client import DEFAULT_MAX_RETRIES, BaseClient, _merge_headers
 from .._data_residency import DataResidency
 
 _deployments_endpoints = set(
@@ -53,7 +54,10 @@ def _has_header(headers: Headers, header: str) -> bool:
 
 
 def _has_auth_header(headers: Headers) -> bool:
-    return _has_header(headers, "Authorization") or _has_header(headers, "api-key")
+    return any(
+        name.lower() in ("authorization", "api-key") and not isinstance(value, _MissingAPIKey)
+        for name, value in headers.items()
+    )
 
 
 _AZURE_AUTH_ORIGIN = "openai.azure_auth_origin"
@@ -136,6 +140,13 @@ def _copy_azure_auth(
 class BaseAzureClient(BaseClient[_HttpxClientT, _DefaultStreamT]):
     _azure_endpoint: httpx2.URL | None
     _azure_deployment: str | None
+
+    @property
+    @override
+    def auth_headers(self) -> dict[str, str]:
+        # WebSocket upgrades use this legacy accessor before prepared options.
+        # Reuse Azure's HTTP policy; prepared options own token refresh.
+        return self._auth_headers({"bearer_auth": True})
 
     @override
     def _build_request(
@@ -391,7 +402,7 @@ class AzureOpenAI(BaseAzureClient[httpx2.Client, Stream[Any]], OpenAI):
         _extra_kwargs: Mapping[str, Any] = {},
     ) -> Self:
         """
-        Create a new client instance re-using the same options given to the current client with optional overriding.
+        Create a new client instance reusing the same options given to the current client with optional overriding.
         """
         if data_residency is not None:
             raise OpenAIError("`data_residency` is only supported by OpenAI clients")
@@ -410,7 +421,7 @@ class AzureOpenAI(BaseAzureClient[httpx2.Client, Stream[Any]], OpenAI):
             current_provider=self._azure_ad_token_provider,
         )
 
-        return super().copy(
+        copied = super().copy(
             api_key=api_key,
             admin_api_key=admin_api_key,
             workload_identity=workload_identity,
@@ -434,6 +445,14 @@ class AzureOpenAI(BaseAzureClient[httpx2.Client, Stream[Any]], OpenAI):
                 **_extra_kwargs,
             },
         )
+        # `super().copy()` reconstructs the client from `base_url`, which does not carry the
+        # Azure endpoint/deployment context that `_prepare_url` relies on to route
+        # non-deployment endpoints (e.g. `/models`). Preserve it unless the caller overrides
+        # the base URL.
+        if base_url is None:
+            copied._azure_endpoint = self._azure_endpoint
+            copied._azure_deployment = self._azure_deployment
+        return copied
 
     with_options = copy
 
@@ -474,8 +493,7 @@ class AzureOpenAI(BaseAzureClient[httpx2.Client, Stream[Any]], OpenAI):
 
     @override
     def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
-        if self._api_key_provider is not None:
-            self._refresh_api_key()
+        api_key = self._refresh_api_key() if self._api_key_provider is not None else self.api_key
 
         headers: dict[str, str | Omit] = {**options.headers} if is_given(options.headers) else {}
 
@@ -486,26 +504,43 @@ class AzureOpenAI(BaseAzureClient[httpx2.Client, Stream[Any]], OpenAI):
         if azure_ad_token is not None:
             if not _has_header(headers, "Authorization"):
                 headers["Authorization"] = f"Bearer {azure_ad_token}"
-        elif self.api_key and self.api_key != API_KEY_SENTINEL:
+        elif api_key and api_key != API_KEY_SENTINEL:
             if not _has_header(headers, "api-key"):
-                headers["api-key"] = self.api_key
+                headers["api-key"] = api_key
         elif _has_auth_header(headers) or _has_auth_header(self.default_headers):
             pass
         else:
             # should never be hit
             raise ValueError("Unable to handle auth")
 
+        if self._api_key_provider is not None and not _has_header(headers, "api-key"):
+            # An empty callable result must not inherit another request's key.
+            default_api_key = next(
+                (value for name, value in _merge_headers(self.default_headers).items() if name.lower() == "api-key"),
+                None,
+            )
+            headers["api-key"] = default_api_key if default_api_key is not None else _MissingAPIKey()
+
         return options
 
-    def _configure_realtime(self, model: str, extra_query: Query) -> tuple[httpx2.URL, dict[str, str]]:
+    def _configure_realtime_with_api_key(
+        self, model: str, extra_query: Query, *, api_key: str
+    ) -> tuple[httpx2.URL, dict[str, str]]:
+        return self._configure_realtime(model, extra_query, api_key=api_key)
+
+    def _configure_realtime(
+        self, model: str, extra_query: Query, *, api_key: str | NotGiven = NOT_GIVEN
+    ) -> tuple[httpx2.URL, dict[str, str]]:
+        if not is_given(api_key):
+            api_key = self.api_key
         auth_headers = {}
         query = {
             **extra_query,
             "api-version": self._api_version,
             "deployment": self._azure_deployment or model,
         }
-        if self.api_key and self.api_key != "<missing API key>":
-            auth_headers = {"api-key": self.api_key}
+        if api_key and api_key != "<missing API key>":
+            auth_headers = {"api-key": api_key}
         else:
             token = self._get_azure_ad_token()
             if token:
@@ -513,13 +548,14 @@ class AzureOpenAI(BaseAzureClient[httpx2.Client, Stream[Any]], OpenAI):
 
         if self.websocket_base_url is not None:
             base_url = normalize_httpx_url(self.websocket_base_url)
-            merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/realtime"
+            path, separator, url_query = base_url.raw_path.partition(b"?")
+            merge_raw_path = path.rstrip(b"/") + b"/realtime" + separator + url_query
             realtime_url = base_url.copy_with(raw_path=merge_raw_path)
         else:
             base_url = self._prepare_url("/realtime")
             realtime_url = base_url.copy_with(scheme="wss")
 
-        url = realtime_url.copy_with(params={**query})
+        url = realtime_url.copy_with(params=self._websocket_query_params(realtime_url, query))
         return url, auth_headers
 
 
@@ -743,7 +779,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx2.AsyncClient, AsyncStream[Any]], As
         _extra_kwargs: Mapping[str, Any] = {},
     ) -> Self:
         """
-        Create a new client instance re-using the same options given to the current client with optional overriding.
+        Create a new client instance reusing the same options given to the current client with optional overriding.
         """
         if data_residency is not None:
             raise OpenAIError("`data_residency` is only supported by OpenAI clients")
@@ -762,7 +798,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx2.AsyncClient, AsyncStream[Any]], As
             current_provider=self._azure_ad_token_provider,
         )
 
-        return super().copy(
+        copied = super().copy(
             api_key=api_key,
             admin_api_key=admin_api_key,
             workload_identity=workload_identity,
@@ -786,6 +822,14 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx2.AsyncClient, AsyncStream[Any]], As
                 **_extra_kwargs,
             },
         )
+        # `super().copy()` reconstructs the client from `base_url`, which does not carry the
+        # Azure endpoint/deployment context that `_prepare_url` relies on to route
+        # non-deployment endpoints (e.g. `/models`). Preserve it unless the caller overrides
+        # the base URL.
+        if base_url is None:
+            copied._azure_endpoint = self._azure_endpoint
+            copied._azure_deployment = self._azure_deployment
+        return copied
 
     with_options = copy
 
@@ -828,8 +872,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx2.AsyncClient, AsyncStream[Any]], As
 
     @override
     async def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
-        if self._api_key_provider is not None:
-            await self._refresh_api_key()
+        api_key = await self._refresh_api_key() if self._api_key_provider is not None else self.api_key
 
         headers: dict[str, str | Omit] = {**options.headers} if is_given(options.headers) else {}
 
@@ -840,26 +883,43 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx2.AsyncClient, AsyncStream[Any]], As
         if azure_ad_token is not None:
             if not _has_header(headers, "Authorization"):
                 headers["Authorization"] = f"Bearer {azure_ad_token}"
-        elif self.api_key and self.api_key != API_KEY_SENTINEL:
+        elif api_key and api_key != API_KEY_SENTINEL:
             if not _has_header(headers, "api-key"):
-                headers["api-key"] = self.api_key
+                headers["api-key"] = api_key
         elif _has_auth_header(headers) or _has_auth_header(self.default_headers):
             pass
         else:
             # should never be hit
             raise ValueError("Unable to handle auth")
 
+        if self._api_key_provider is not None and not _has_header(headers, "api-key"):
+            # An empty callable result must not inherit another request's key.
+            default_api_key = next(
+                (value for name, value in _merge_headers(self.default_headers).items() if name.lower() == "api-key"),
+                None,
+            )
+            headers["api-key"] = default_api_key if default_api_key is not None else _MissingAPIKey()
+
         return options
 
-    async def _configure_realtime(self, model: str, extra_query: Query) -> tuple[httpx2.URL, dict[str, str]]:
+    async def _configure_realtime_with_api_key(
+        self, model: str, extra_query: Query, *, api_key: str
+    ) -> tuple[httpx2.URL, dict[str, str]]:
+        return await self._configure_realtime(model, extra_query, api_key=api_key)
+
+    async def _configure_realtime(
+        self, model: str, extra_query: Query, *, api_key: str | NotGiven = NOT_GIVEN
+    ) -> tuple[httpx2.URL, dict[str, str]]:
+        if not is_given(api_key):
+            api_key = self.api_key
         auth_headers = {}
         query = {
             **extra_query,
             "api-version": self._api_version,
             "deployment": self._azure_deployment or model,
         }
-        if self.api_key and self.api_key != "<missing API key>":
-            auth_headers = {"api-key": self.api_key}
+        if api_key and api_key != "<missing API key>":
+            auth_headers = {"api-key": api_key}
         else:
             token = await self._get_azure_ad_token()
             if token:
@@ -867,11 +927,12 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx2.AsyncClient, AsyncStream[Any]], As
 
         if self.websocket_base_url is not None:
             base_url = normalize_httpx_url(self.websocket_base_url)
-            merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/realtime"
+            path, separator, url_query = base_url.raw_path.partition(b"?")
+            merge_raw_path = path.rstrip(b"/") + b"/realtime" + separator + url_query
             realtime_url = base_url.copy_with(raw_path=merge_raw_path)
         else:
             base_url = self._prepare_url("/realtime")
             realtime_url = base_url.copy_with(scheme="wss")
 
-        url = realtime_url.copy_with(params={**query})
+        url = realtime_url.copy_with(params=self._websocket_query_params(realtime_url, query))
         return url, auth_headers

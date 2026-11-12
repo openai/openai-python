@@ -188,7 +188,7 @@ def parse_args() -> argparse.Namespace:
 def parse_tool_name(name: str) -> ToolName:
     if name not in {"get_sku_inventory", "get_supplier_eta", "get_quality_alerts"}:
         raise ValueError(f"Unsupported tool requested: {name}")
-    return cast(ToolName, name)
+    return name
 
 
 def parse_sku_arguments(raw_arguments: str) -> SKUArguments:
@@ -277,7 +277,6 @@ def run_response(
     connection.response.create(
         model=model,
         input=input_payload,
-        stream=True,
         previous_response_id=previous_response_id,
         tools=tools,
         tool_choice=tool_choice,
@@ -314,8 +313,8 @@ def run_response(
             break
 
         if getattr(event, "type", None) == "response.done":
-            # Responses over WebSocket currently emit `response.done` as the final event.
-            # The payload still includes `response.id`, which we use for chaining.
+            # Preserve compatibility with older response.done event producers.
+            # The payload includes response.id, which we use for chaining.
             event_response = getattr(event, "response", None)
             event_response_id: Optional[str] = None
             if isinstance(event_response, dict):

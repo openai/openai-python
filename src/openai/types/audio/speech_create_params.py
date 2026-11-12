@@ -16,8 +16,16 @@ class SpeechCreateParams(TypedDict, total=False):
 
     model: Required[Union[str, SpeechModel]]
     """
-    One of the available [TTS models](https://platform.openai.com/docs/models#tts):
+    One of the available
+    [TTS models](https://developers.openai.com/api/docs/guides/text-to-speech):
     `tts-1`, `tts-1-hd`, `gpt-4o-mini-tts`, or `gpt-4o-mini-tts-2025-12-15`.
+
+    Deprecated values:
+
+    - "tts-1", "tts-1-hd", "gpt-4o-mini-tts", "gpt-4o-mini-tts-2025-12-15":
+      Announced shutdown date: 2027-01-06. See
+      https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
     """
 
     voice: Required[Voice]
@@ -27,7 +35,9 @@ class SpeechCreateParams(TypedDict, total=False):
     `fable`, `onyx`, `nova`, `sage`, `shimmer`, `verse`, `marin`, and `cedar`. You
     may also provide a custom voice object with an `id`, for example
     `{ "id": "voice_1234" }`. Previews of the voices are available in the
-    [Text to speech guide](https://platform.openai.com/docs/guides/text-to-speech#voice-options).
+    [Text to speech guide](https://developers.openai.com/api/docs/guides/text-to-speech#voice-options).
+    Custom voices must be created from audio samples. Voices created from text
+    prompts are supported only in Live.
     """
 
     instructions: str
@@ -64,5 +74,9 @@ class VoiceID(TypedDict, total=False):
 
 
 Voice: TypeAlias = Union[
-    str, Literal["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse", "marin", "cedar"], VoiceID
+    str,
+    Literal[
+        "alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse", "marin", "cedar", "fable", "onyx", "nova"
+    ],
+    VoiceID,
 ]

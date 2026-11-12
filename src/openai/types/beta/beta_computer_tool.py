@@ -10,7 +10,7 @@ __all__ = ["BetaComputerTool"]
 class BetaComputerTool(BaseModel):
     """A tool that controls a virtual computer.
 
-    Learn more about the [computer tool](https://platform.openai.com/docs/guides/tools-computer-use).
+    Learn more about the [computer tool](https://developers.openai.com/api/docs/guides/tools-computer-use).
     """
 
     type: Literal["computer"]

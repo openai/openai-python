@@ -15,8 +15,6 @@ from openai.types.beta import (
     AssistantDeleted,
 )
 
-# pyright: reportDeprecated=false
-
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 
 
@@ -27,7 +25,7 @@ class TestAssistants:
     def test_method_create(self, client: OpenAI) -> None:
         with pytest.warns(DeprecationWarning):
             assistant = client.beta.assistants.create(
-                model="gpt-4o",
+                model="gpt-4.1",
             )
 
         assert_matches_type(Assistant, assistant, path=["response"])
@@ -36,7 +34,7 @@ class TestAssistants:
     def test_method_create_with_all_params(self, client: OpenAI) -> None:
         with pytest.warns(DeprecationWarning):
             assistant = client.beta.assistants.create(
-                model="gpt-4o",
+                model="gpt-4.1",
                 description="description",
                 instructions="instructions",
                 metadata={"foo": "string"},
@@ -67,7 +65,7 @@ class TestAssistants:
     def test_raw_response_create(self, client: OpenAI) -> None:
         with pytest.warns(DeprecationWarning):
             response = client.beta.assistants.with_raw_response.create(
-                model="gpt-4o",
+                model="gpt-4.1",
             )
 
         assert response.is_closed is True
@@ -79,7 +77,7 @@ class TestAssistants:
     def test_streaming_response_create(self, client: OpenAI) -> None:
         with pytest.warns(DeprecationWarning):
             with client.beta.assistants.with_streaming_response.create(
-                model="gpt-4o",
+                model="gpt-4.1",
             ) as response:
                 assert not response.is_closed
                 assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -292,7 +290,7 @@ class TestAsyncAssistants:
     async def test_method_create(self, async_client: AsyncOpenAI) -> None:
         with pytest.warns(DeprecationWarning):
             assistant = await async_client.beta.assistants.create(
-                model="gpt-4o",
+                model="gpt-4.1",
             )
 
         assert_matches_type(Assistant, assistant, path=["response"])
@@ -301,7 +299,7 @@ class TestAsyncAssistants:
     async def test_method_create_with_all_params(self, async_client: AsyncOpenAI) -> None:
         with pytest.warns(DeprecationWarning):
             assistant = await async_client.beta.assistants.create(
-                model="gpt-4o",
+                model="gpt-4.1",
                 description="description",
                 instructions="instructions",
                 metadata={"foo": "string"},
@@ -332,7 +330,7 @@ class TestAsyncAssistants:
     async def test_raw_response_create(self, async_client: AsyncOpenAI) -> None:
         with pytest.warns(DeprecationWarning):
             response = await async_client.beta.assistants.with_raw_response.create(
-                model="gpt-4o",
+                model="gpt-4.1",
             )
 
         assert response.is_closed is True
@@ -344,7 +342,7 @@ class TestAsyncAssistants:
     async def test_streaming_response_create(self, async_client: AsyncOpenAI) -> None:
         with pytest.warns(DeprecationWarning):
             async with async_client.beta.assistants.with_streaming_response.create(
-                model="gpt-4o",
+                model="gpt-4.1",
             ) as response:
                 assert not response.is_closed
                 assert response.http_request.headers.get("X-Stainless-Lang") == "python"

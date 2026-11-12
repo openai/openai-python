@@ -322,7 +322,15 @@ def test_x509_rejects_data_residency_without_a_confirmed_mtls_endpoint(
         client.with_options(data_residency="ae")
 
 
-@pytest.mark.parametrize("headers", [{"x-should-retry": "false"}, {"retry-after-ms": "120001"}])
+@pytest.mark.parametrize(
+    "headers",
+    [
+        {"x-should-retry": "false"},
+        {"retry-after-ms": "120001"},
+        {"retry-after": "1e999"},
+        {"retry-after-ms": "9" * 400},
+    ],
+)
 def test_sync_x509_token_exchange_honors_server_retry_refusals(headers: dict[str, str]) -> None:
     requests: list[httpx2.Request] = []
 
@@ -339,7 +347,15 @@ def test_sync_x509_token_exchange_honors_server_retry_refusals(headers: dict[str
     assert len(requests) == 1
 
 
-@pytest.mark.parametrize("headers", [{"x-should-retry": "false"}, {"retry-after-ms": "120001"}])
+@pytest.mark.parametrize(
+    "headers",
+    [
+        {"x-should-retry": "false"},
+        {"retry-after-ms": "120001"},
+        {"retry-after": "1e999"},
+        {"retry-after-ms": "9" * 400},
+    ],
+)
 async def test_async_x509_token_exchange_honors_server_retry_refusals(headers: dict[str, str]) -> None:
     requests: list[httpx2.Request] = []
 
@@ -931,7 +947,8 @@ async def test_async_x509_pins_concurrent_reconstructed_requests_to_the_correct_
                 both_arrived.set()
             await asyncio.wait_for(both_arrived.wait(), timeout=5)
             copied = httpx2.Request(request.method, request.url, headers=dict(request.headers))
-            return await Context().run(asyncio.create_task, super().send(copied, **kwargs))
+            # Context.run forwards the task result; ty loses its type variable here.
+            return await Context().run(asyncio.create_task, super().send(copied, **kwargs))  # ty: ignore[invalid-return-type]
 
     transport = CrossContextClient(transport=httpx2.MockTransport(handler), event_hooks={"request": [replace]})
     clients = [

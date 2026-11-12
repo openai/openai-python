@@ -718,7 +718,7 @@ class AsyncBedrockOpenAI(AsyncOpenAI):
 
         self._bedrock_provider = _provider
         self._bedrock_state = _state
-        self._bedrock_token_provider = cast("AsyncBedrockTokenProvider | None", _state.token_provider)
+        self._bedrock_token_provider = _state.token_provider
         self._uses_region_derived_base_url = _state.uses_region_derived_base_url
         canonical_endpoint = _parse_bedrock_endpoint_hostname(self.base_url.host)
         provider_region = (

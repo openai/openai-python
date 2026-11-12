@@ -12,6 +12,8 @@ __all__ = [
     "AsyncConversationCursorPage",
     "SyncNextCursorPage",
     "AsyncNextCursorPage",
+    "SyncTokenPage",
+    "AsyncTokenPage",
 ]
 
 _T = TypeVar("_T")
@@ -246,3 +248,61 @@ class AsyncNextCursorPage(BaseAsyncPage[_T], BasePage[_T], Generic[_T]):
             return None
 
         return PageInfo(params={"after": next})
+
+
+class SyncTokenPage(BaseSyncPage[_T], BasePage[_T], Generic[_T]):
+    data: List[_T]
+    has_more: Optional[bool] = None
+    next: Optional[str] = None
+
+    @override
+    def _get_page_items(self) -> List[_T]:
+        data = self.data
+        if not data:
+            return []
+        return data
+
+    @override
+    def has_next_page(self) -> bool:
+        has_more = self.has_more
+        if has_more is not None and has_more is False:
+            return False
+
+        return super().has_next_page()
+
+    @override
+    def next_page_info(self) -> Optional[PageInfo]:
+        next = self.next
+        if not next:
+            return None
+
+        return PageInfo(params={"page": next})
+
+
+class AsyncTokenPage(BaseAsyncPage[_T], BasePage[_T], Generic[_T]):
+    data: List[_T]
+    has_more: Optional[bool] = None
+    next: Optional[str] = None
+
+    @override
+    def _get_page_items(self) -> List[_T]:
+        data = self.data
+        if not data:
+            return []
+        return data
+
+    @override
+    def has_next_page(self) -> bool:
+        has_more = self.has_more
+        if has_more is not None and has_more is False:
+            return False
+
+        return super().has_next_page()
+
+    @override
+    def next_page_info(self) -> Optional[PageInfo]:
+        next = self.next
+        if not next:
+            return None
+
+        return PageInfo(params={"page": next})

@@ -19,9 +19,16 @@ class ImageCreateVariationParams(TypedDict, total=False):
     """
 
     model: Union[str, ImageModel, None]
-    """The model to use for image generation.
+    """The legacy model used by the retired image variations endpoint.
 
-    Only `dall-e-2` is supported at this time.
+    This endpoint no longer accepts requests.
+
+    Deprecated values:
+
+    - "gpt-image-1": GPT Image 1 was shut down on October 23, 2026. Use
+      gpt-image-2.5-sunburst or gpt-image-2.5-flare instead.
+    - "dall-e-2", "dall-e-3": This model was retired on May 12, 2026. Use a GPT
+      image model instead.
     """
 
     n: Optional[int]
@@ -44,5 +51,5 @@ class ImageCreateVariationParams(TypedDict, total=False):
     """
     A unique identifier representing your end-user, which can help OpenAI to monitor
     and detect abuse.
-    [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+    [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
     """

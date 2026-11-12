@@ -3,6 +3,8 @@
 from typing import List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
 
+from pydantic import Field as FieldInfo
+
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
 
@@ -35,7 +37,7 @@ Format: TypeAlias = Annotated[Union[FormatText, FormatGrammar], PropertyInfo(dis
 class BetaCustomTool(BaseModel):
     """A custom tool that processes input using a specified format.
 
-    Learn more about   [custom tools](https://platform.openai.com/docs/guides/function-calling#custom-tools)
+    Learn more about   [custom tools](https://developers.openai.com/api/docs/guides/function-calling#custom-tools)
     """
 
     name: str
@@ -46,6 +48,12 @@ class BetaCustomTool(BaseModel):
 
     allowed_callers: Optional[List[Literal["direct", "programmatic"]]] = None
     """The tool invocation context(s)."""
+
+    async_: Optional[bool] = FieldInfo(alias="async", default=None)
+    """
+    Whether the tool response can be returned asynchronously versus immediately
+    returned on next response creation.
+    """
 
     defer_loading: Optional[bool] = None
     """Whether this tool should be deferred and discovered via tool search."""

@@ -11,7 +11,9 @@ from typing_extensions import Self, Protocol, TypeGuard, override, get_origin, r
 import httpx2
 
 from ._utils import is_mapping, extract_type_var_from_base
-from ._exceptions import APIError
+from ._httpx2 import request_exceptions, timeout_exceptions
+from ._exceptions import APIError, APITimeoutError, APIConnectionError
+from ._streaming_cleanup import drain_response_async
 
 if TYPE_CHECKING:
     from ._client import OpenAI, AsyncOpenAI
@@ -51,7 +53,12 @@ class Stream(Generic[_T]):
             yield item
 
     def _iter_events(self) -> Iterator[ServerSentEvent]:
-        yield from self._decoder.iter_bytes(self.response.iter_bytes())
+        try:
+            yield from self._decoder.iter_bytes(self.response.iter_bytes())
+        except timeout_exceptions() as err:
+            raise APITimeoutError(request=self.response.request) from err
+        except request_exceptions() as err:
+            raise APIConnectionError(request=self.response.request) from err
 
     def __stream__(self) -> Iterator[_T]:
         cast_to = cast(Any, self._cast_to)
@@ -160,8 +167,13 @@ class AsyncStream(Generic[_T]):
             yield item
 
     async def _iter_events(self) -> AsyncIterator[ServerSentEvent]:
-        async for sse in self._decoder.aiter_bytes(self.response.aiter_bytes()):
-            yield sse
+        try:
+            async for sse in self._decoder.aiter_bytes(self.response.aiter_bytes()):
+                yield sse
+        except timeout_exceptions() as err:
+            raise APITimeoutError(request=self.response.request) from err
+        except request_exceptions() as err:
+            raise APIConnectionError(request=self.response.request) from err
 
     async def __stream__(self) -> AsyncIterator[_T]:
         cast_to = cast(Any, self._cast_to)
@@ -172,6 +184,11 @@ class AsyncStream(Generic[_T]):
         try:
             async for sse in iterator:
                 if sse.data.startswith("[DONE]"):
+                    # HTTP/1.1 needs the remaining body consumed for connection reuse.
+                    # HTTP/2 can close this stream and keep the connection, so draining
+                    # it would add unnecessary latency after [DONE].
+                    if response.http_version == "HTTP/1.1":
+                        await drain_response_async(response)
                     break
 
                 # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
@@ -238,6 +255,10 @@ class AsyncStream(Generic[_T]):
         Automatically called if the response body is read to completion.
         """
         await self.response.aclose()
+
+    async def aclose(self) -> None:
+        """Close the response and release the connection. Alias for `close()`."""
+        await self.close()
 
 
 class ServerSentEvent:

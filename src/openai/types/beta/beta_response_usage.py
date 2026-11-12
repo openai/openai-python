@@ -4,7 +4,20 @@ from typing import Optional
 
 from ..._models import BaseModel
 
-__all__ = ["BetaResponseUsage", "InputTokensDetails", "OutputTokensDetails"]
+__all__ = [
+    "BetaResponseUsage",
+    "InputTokensDetails",
+    "InputTokensDetailsCacheWriteTokensDetails",
+    "OutputTokensDetails",
+]
+
+
+class InputTokensDetailsCacheWriteTokensDetails(BaseModel):
+    ttl_12h_tokens: int
+    """The number of input tokens written with 12-hour retention."""
+
+    ttl_30m_tokens: int
+    """The number of input tokens written with 30-minute retention."""
 
 
 class InputTokensDetails(BaseModel):
@@ -14,10 +27,12 @@ class InputTokensDetails(BaseModel):
     """The number of input tokens that were written to the cache."""
 
     cached_tokens: int
-    """The number of tokens that were retrieved from the cache.
-
-    [More on prompt caching](https://platform.openai.com/docs/guides/prompt-caching).
     """
+    The number of tokens that were retrieved from the cache.
+    [More on prompt caching](https://developers.openai.com/api/docs/guides/prompt-caching).
+    """
+
+    cache_write_tokens_details: Optional[InputTokensDetailsCacheWriteTokensDetails] = None
 
 
 class OutputTokensDetails(BaseModel):
@@ -47,6 +62,3 @@ class BetaResponseUsage(BaseModel):
 
     total_tokens: int
     """The total number of tokens used."""
-
-    compute_units: Optional[int] = None
-    """Compute units for the request. Currently null when available."""

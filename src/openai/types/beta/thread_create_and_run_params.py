@@ -42,8 +42,8 @@ class ThreadCreateAndRunParamsBase(TypedDict, total=False):
     assistant_id: Required[str]
     """
     The ID of the
-    [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
-    execute this run.
+    [assistant](https://developers.openai.com/api/docs/assistants/migration) to use
+    to execute this run.
     """
 
     instructions: Optional[str]
@@ -82,30 +82,103 @@ class ThreadCreateAndRunParamsBase(TypedDict, total=False):
 
     model: Union[str, ChatModel, None]
     """
-    The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
-    be used to execute this run. If a value is provided here, it will override the
-    model associated with the assistant. If not, the model associated with the
-    assistant will be used.
+    The ID of the
+    [Model](https://developers.openai.com/api/reference/resources/models) to be used
+    to execute this run. If a value is provided here, it will override the model
+    associated with the assistant. If not, the model associated with the assistant
+    will be used.
+
+    Deprecated values:
+
+    - "gpt-5.4-nano", "gpt-5.4-nano-2026-03-17", "gpt-5.1", "gpt-5.1-2025-11-13":
+      Announced shutdown date: 2027-04-01. See
+      https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
+    - "gpt-5.3-chat-latest", "gpt-5.2-chat-latest": Announced shutdown date:
+      2026-08-10. See https://developers.openai.com/api/docs/deprecations for
+      details and recommended replacements.
+    - "gpt-5.1-codex", "gpt-5.1-chat-latest", "gpt-5-chat-latest",
+      "gpt-4o-search-preview", "gpt-4o-mini-search-preview",
+      "gpt-4o-search-preview-2025-03-11", "gpt-4o-mini-search-preview-2025-03-11":
+      Announced shutdown date: 2026-07-23. See
+      https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
+    - "gpt-5.1-mini": Not a supported model ID. Retained for SDK compatibility.
+    - "gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-5-2025-08-07",
+      "gpt-5-mini-2025-08-07", "gpt-5-nano-2025-08-07", "o3", "o3-2025-04-16":
+      Announced shutdown date: 2026-12-11. See
+      https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
+    - "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-2025-04-14", "gpt-4.1-mini-2025-04-14",
+      "gpt-4o", "gpt-4o-2024-11-20", "gpt-4o-2024-08-06", "gpt-4o-mini",
+      "gpt-4o-mini-2024-07-18": Announced shutdown date: 2027-01-14. See
+      https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
+    - "gpt-4.1-nano", "gpt-4.1-nano-2025-04-14", "o4-mini", "o4-mini-2025-04-16",
+      "o3-mini", "o3-mini-2025-01-31", "o1", "o1-2024-12-17", "gpt-4o-2024-05-13",
+      "gpt-4-turbo", "gpt-4-turbo-2024-04-09", "gpt-4-1106-preview", "gpt-4",
+      "gpt-4-0613", "gpt-3.5-turbo", "gpt-3.5-turbo-0125": Announced shutdown date:
+      2026-10-23. See https://developers.openai.com/api/docs/deprecations for
+      details and recommended replacements.
+    - "o1-preview", "o1-preview-2024-09-12": Announced shutdown date: 2025-07-28.
+      See https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
+    - "o1-mini", "o1-mini-2024-09-12": Announced shutdown date: 2025-10-27. See
+      https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
+    - "gpt-audio-mini", "gpt-audio-mini-2025-12-15": Announced shutdown date:
+      2027-01-20. See https://developers.openai.com/api/docs/deprecations for
+      details and recommended replacements.
+    - "gpt-4o-audio-preview", "gpt-4o-audio-preview-2024-12-17",
+      "gpt-4o-audio-preview-2025-06-03", "gpt-4o-mini-audio-preview",
+      "gpt-4o-mini-audio-preview-2024-12-17": Announced shutdown date: 2026-05-07.
+      See https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
+    - "gpt-4o-audio-preview-2024-10-01": Announced shutdown date: 2025-10-10. See
+      https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
+    - "chatgpt-4o-latest": Announced shutdown date: 2026-02-17. See
+      https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
+    - "codex-mini-latest": Announced shutdown date: 2026-02-12. See
+      https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
+    - "gpt-4-0125-preview", "gpt-4-turbo-preview", "gpt-4-0314": Announced shutdown
+      date: 2026-03-26. See https://developers.openai.com/api/docs/deprecations for
+      details and recommended replacements.
+    - "gpt-4-vision-preview": Announced shutdown date: 2024-12-06. See
+      https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
+    - "gpt-4-32k", "gpt-4-32k-0314", "gpt-4-32k-0613": Announced shutdown date:
+      2025-06-06. See https://developers.openai.com/api/docs/deprecations for
+      details and recommended replacements.
+    - "gpt-3.5-turbo-16k", "gpt-3.5-turbo-0301", "gpt-3.5-turbo-0613",
+      "gpt-3.5-turbo-16k-0613": Announced shutdown date: 2024-09-13. See
+      https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
+    - "gpt-3.5-turbo-1106": Announced shutdown date: 2026-09-28. See
+      https://developers.openai.com/api/docs/deprecations for details and
+      recommended replacements.
     """
 
     parallel_tool_calls: bool
     """
     Whether to enable
-    [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
+    [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
     during tool use.
     """
 
     response_format: Optional[AssistantResponseFormatOptionParam]
     """Specifies the format that the model must output.
 
-    Compatible with [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-    [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
-    and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+    Compatible with [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o),
+    [GPT-4 Turbo](https://developers.openai.com/api/docs/models/gpt-4-turbo), and
+    all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
     Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
     Outputs which ensures the model will match your supplied JSON schema. Learn more
     in the
-    [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+    [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
     Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
     message the model generates is valid JSON.
@@ -220,9 +293,9 @@ class ThreadMessage(TypedDict, total=False):
 class ThreadToolResourcesCodeInterpreter(TypedDict, total=False):
     file_ids: SequenceNotStr[str]
     """
-    A list of [file](https://platform.openai.com/docs/api-reference/files) IDs made
-    available to the `code_interpreter` tool. There can be a maximum of 20 files
-    associated with the tool.
+    A list of [file](https://developers.openai.com/api/reference/resources/files)
+    IDs made available to the `code_interpreter` tool. There can be a maximum of 20
+    files associated with the tool.
     """
 
 
@@ -273,10 +346,10 @@ class ThreadToolResourcesFileSearchVectorStore(TypedDict, total=False):
 
     file_ids: SequenceNotStr[str]
     """
-    A list of [file](https://platform.openai.com/docs/api-reference/files) IDs to
-    add to the vector store. For vector stores created before Nov 2025, there can be
-    a maximum of 10,000 files in a vector store. For vector stores created starting
-    in Nov 2025, the limit is 100,000,000 files.
+    A list of [file](https://developers.openai.com/api/reference/resources/files)
+    IDs to add to the vector store. For vector stores created before Nov 2025, there
+    can be a maximum of 10,000 files in a vector store. For vector stores created
+    starting in Nov 2025, the limit is 100,000,000 files.
     """
 
     metadata: Optional[Metadata]
@@ -294,7 +367,7 @@ class ThreadToolResourcesFileSearch(TypedDict, total=False):
     vector_store_ids: SequenceNotStr[str]
     """
     The
-    [vector store](https://platform.openai.com/docs/api-reference/vector-stores/object)
+    [vector store](https://developers.openai.com/api/reference/resources/vector_stores)
     attached to this thread. There can be a maximum of 1 vector store attached to
     the thread.
     """
@@ -302,7 +375,7 @@ class ThreadToolResourcesFileSearch(TypedDict, total=False):
     vector_stores: Iterable[ThreadToolResourcesFileSearchVectorStore]
     """
     A helper to create a
-    [vector store](https://platform.openai.com/docs/api-reference/vector-stores/object)
+    [vector store](https://developers.openai.com/api/reference/resources/vector_stores)
     with file_ids and attach it to this thread. There can be a maximum of 1 vector
     store attached to the thread.
     """
@@ -327,8 +400,9 @@ class Thread(TypedDict, total=False):
 
     messages: Iterable[ThreadMessage]
     """
-    A list of [messages](https://platform.openai.com/docs/api-reference/messages) to
-    start the thread with.
+    A list of
+    [messages](https://developers.openai.com/api/docs/assistants/migration) to start
+    the thread with.
     """
 
     metadata: Optional[Metadata]
@@ -353,9 +427,9 @@ class Thread(TypedDict, total=False):
 class ToolResourcesCodeInterpreter(TypedDict, total=False):
     file_ids: SequenceNotStr[str]
     """
-    A list of [file](https://platform.openai.com/docs/api-reference/files) IDs made
-    available to the `code_interpreter` tool. There can be a maximum of 20 files
-    associated with the tool.
+    A list of [file](https://developers.openai.com/api/reference/resources/files)
+    IDs made available to the `code_interpreter` tool. There can be a maximum of 20
+    files associated with the tool.
     """
 
 
@@ -363,7 +437,7 @@ class ToolResourcesFileSearch(TypedDict, total=False):
     vector_store_ids: SequenceNotStr[str]
     """
     The ID of the
-    [vector store](https://platform.openai.com/docs/api-reference/vector-stores/object)
+    [vector store](https://developers.openai.com/api/reference/resources/vector_stores)
     attached to this assistant. There can be a maximum of 1 vector store attached to
     the assistant.
     """

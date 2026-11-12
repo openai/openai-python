@@ -29,16 +29,19 @@ class FileFile(TypedDict, total=False):
 class FilePromptCacheBreakpoint(TypedDict, total=False):
     """Marks the exact end of a reusable prompt prefix.
 
-    The breakpoint inherits its TTL from the request's `prompt_cache_options.ttl`; the boundary is not rounded to a token block.
+    When `ttl` is omitted, the breakpoint inherits the request's `prompt_cache_options.ttl`; the boundary is not rounded to a token block.
     """
 
     mode: Required[Literal["explicit"]]
     """The breakpoint mode. Always `explicit`."""
 
+    ttl: Literal["30m", "12h"]
+    """The minimum lifetime of this cache breakpoint. Defaults to the request TTL."""
+
 
 class File(TypedDict, total=False):
     """
-    Learn about [file inputs](https://platform.openai.com/docs/guides/text) for text generation.
+    Learn about [file inputs](https://developers.openai.com/api/docs/guides/text) for text generation.
     """
 
     file: Required[FileFile]
@@ -49,8 +52,8 @@ class File(TypedDict, total=False):
     prompt_cache_breakpoint: FilePromptCacheBreakpoint
     """Marks the exact end of a reusable prompt prefix.
 
-    The breakpoint inherits its TTL from the request's `prompt_cache_options.ttl`;
-    the boundary is not rounded to a token block.
+    When `ttl` is omitted, the breakpoint inherits the request's
+    `prompt_cache_options.ttl`; the boundary is not rounded to a token block.
     """
 
 

@@ -131,7 +131,7 @@ class RankingOptions(BaseModel):
 class BetaFileSearchTool(BaseModel):
     """A tool that searches for relevant content from uploaded files.
 
-    Learn more about the [file search tool](https://platform.openai.com/docs/guides/tools-file-search).
+    Learn more about the [file search tool](https://developers.openai.com/api/docs/guides/tools-file-search).
     """
 
     type: Literal["file_search"]
