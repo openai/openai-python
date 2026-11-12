@@ -93,7 +93,7 @@ class TestOpenapiDumps:
 
         if _compat.PYDANTIC_V1:
             # to handle forward references in Pydantic v1
-            User.update_forward_refs(**locals())  # type: ignore[reportDeprecated]
+            User.update_forward_refs(**locals())
 
         address = Address(street="123 Main St")
         user = User(name="Diana", address=address)

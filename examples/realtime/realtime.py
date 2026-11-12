@@ -1,7 +1,10 @@
 #!/usr/bin/env -S uv run python
-import asyncio
+import os
+import sys
+import codecs
+import select
 
-from openai import AsyncOpenAI
+from openai import OpenAI
 
 # Azure OpenAI Realtime Docs
 
@@ -10,7 +13,34 @@ from openai import AsyncOpenAI
 # Entra ID auth: https://learn.microsoft.com/azure/ai-services/openai/how-to/managed-identity
 
 
-async def main() -> None:
+def read_input(prompt: str) -> str:
+    if sys.platform == "win32":
+        # Windows console input does not support select().
+        return input(prompt)
+
+    # SIGINT may reach a WebSocket thread. Poll on the main thread so Python
+    # can run its signal handler, without leaving a stdin reader at shutdown.
+    print(prompt, end="", flush=True)
+    decoder = codecs.getincrementaldecoder(sys.stdin.encoding)(errors=sys.stdin.errors or "strict")
+    characters: list[str] = []
+    while True:
+        readable, _, _ = select.select([sys.stdin], [], [], 0.1)
+        if not readable:
+            continue
+        # Do not read ahead into the next prompt or block on a partial line.
+        data = os.read(sys.stdin.fileno(), 1)
+        character = decoder.decode(data, final=not data)
+        if character == "\n":
+            return "".join(characters).removesuffix("\r")
+        characters.append(character)
+        if not data:
+            text = "".join(characters)
+            if not text:
+                raise EOFError
+            return text
+
+
+def main() -> None:
     """The following example demonstrates how to configure OpenAI to use the Realtime API.
     For an audio example, see push_to_talk_app.py and update the client and model parameter accordingly.
 
@@ -18,11 +48,11 @@ async def main() -> None:
     Enter "q" to quit the conversation.
     """
 
-    client = AsyncOpenAI()
-    async with client.realtime.connect(
+    client = OpenAI()
+    with client.realtime.connect(
         model="gpt-realtime",
     ) as connection:
-        await connection.session.update(
+        connection.session.update(
             session={
                 "output_modalities": ["text"],
                 "model": "gpt-realtime",
@@ -30,19 +60,19 @@ async def main() -> None:
             }
         )
         while True:
-            user_input = input("Enter a message: ")
+            user_input = read_input("Enter a message: ")
             if user_input == "q":
                 break
 
-            await connection.conversation.item.create(
+            connection.conversation.item.create(
                 item={
                     "type": "message",
                     "role": "user",
                     "content": [{"type": "input_text", "text": user_input}],
                 }
             )
-            await connection.response.create()
-            async for event in connection:
+            connection.response.create()
+            for event in connection:
                 if event.type == "response.output_text.delta":
                     print(event.delta, flush=True, end="")
                 elif event.type == "response.output_text.done":
@@ -51,4 +81,4 @@ async def main() -> None:
                     break
 
 
-asyncio.run(main())
+main()

@@ -5,11 +5,12 @@ import os
 import inspect
 import traceback
 import contextlib
-from typing import Any, TypeVar, Iterator, Sequence, ForwardRef, cast
+from typing import Any, TypeVar, Sequence, Generator, ForwardRef
 from datetime import date, datetime
-from typing_extensions import Literal, get_args, get_origin, assert_type
+from typing_extensions import Literal, get_args, get_origin
 
 import rich
+from pydantic import StrictInt, StrictStr, StrictBool, StrictFloat
 
 from openai._types import Omit, NoneType
 from openai._utils import (
@@ -29,7 +30,7 @@ BaseModelT = TypeVar("BaseModelT", bound=BaseModel)
 
 
 def evaluate_forwardref(forwardref: ForwardRef, globalns: dict[str, Any]) -> type:
-    return eval(str(forwardref), globalns)  # type: ignore[no-any-return]
+    return eval(str(forwardref), globalns)
 
 
 def assert_matches_model(model: type[BaseModelT], value: BaseModelT, *, path: list[str]) -> bool:
@@ -63,6 +64,12 @@ def assert_matches_type(
     if is_type_alias_type(type_):
         type_ = type_.__value__
 
+    # Pydantic v1 strict annotations are classes, but parsed values are builtins.
+    strict_scalars = {StrictStr: str, StrictBool: bool, StrictInt: int, StrictFloat: float}
+    if type_ in strict_scalars:
+        assert type(value) is strict_scalars[type_]
+        return
+
     # unwrap `Annotated[T, ...]` -> `T`
     if is_annotated_type(type_):
         type_ = extract_type_arg(type_, 0)
@@ -77,13 +84,13 @@ def assert_matches_type(
     origin = get_origin(type_) or type_
 
     if is_list_type(type_):
-        return _assert_list_type(type_, value)
+        return _assert_list_type(type_, value, path=path)
 
     if is_sequence_type(type_):
         assert isinstance(value, Sequence)
         inner_type = get_args(type_)[0]
-        for entry in value:  # type: ignore
-            assert_type(inner_type, entry)  # type: ignore
+        for index, entry in enumerate(value):
+            assert_matches_type(inner_type, entry, path=[*path, str(index)])
         return
 
     if origin == str:
@@ -141,20 +148,22 @@ def assert_matches_type(
 
         raise AssertionError("Did not match any variants")
     elif issubclass(origin, BaseModel):
+        assert inspect.isclass(type_) and issubclass(type_, BaseModel)
         assert isinstance(value, type_)
-        assert assert_matches_model(type_, cast(Any, value), path=path)
+        assert isinstance(value, BaseModel)
+        assert assert_matches_model(type_, value, path=path)
     elif inspect.isclass(origin) and origin.__name__ == "HttpxBinaryResponseContent":
         assert value.__class__.__name__ == "HttpxBinaryResponseContent"
     else:
         assert None, f"Unhandled field type: {type_}"
 
 
-def _assert_list_type(type_: type[object], value: object) -> None:
+def _assert_list_type(type_: type[object], value: object, *, path: list[str]) -> None:
     assert is_list(value)
 
     inner_type = get_args(type_)[0]
-    for entry in value:
-        assert_type(inner_type, entry)  # type: ignore
+    for index, entry in enumerate(value):
+        assert_matches_type(inner_type, entry, path=[*path, str(index)])
 
 
 def rich_print_str(obj: object) -> str:
@@ -168,7 +177,7 @@ def rich_print_str(obj: object) -> str:
 
 
 @contextlib.contextmanager
-def update_env(**new_env: str | Omit) -> Iterator[None]:
+def update_env(**new_env: str | Omit) -> Generator[None, None, None]:
     old = os.environ.copy()
 
     try:

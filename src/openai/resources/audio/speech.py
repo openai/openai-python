@@ -69,19 +69,37 @@ class Speech(SyncAPIResource):
 
         Returns the audio file content, or a stream of audio events.
 
+        The `tts-1`, `tts-1-hd`, `gpt-4o-mini-tts`, `gpt-4o-mini-tts-2025-03-20`, and
+        `gpt-4o-mini-tts-2025-12-15` models are deprecated and scheduled to shut down on
+        January 6, 2027. These examples use the existing Speech API; for new
+        integrations, migrate to `gpt-realtime-2.1-mini` through the
+        [Realtime API](https://developers.openai.com/api/docs/guides/realtime). See the
+        [deprecation schedule](https://developers.openai.com/api/docs/deprecations) for
+        migration details.
+
         Args:
           input: The text to generate audio for. The maximum length is 4096 characters.
 
           model:
-              One of the available [TTS models](https://platform.openai.com/docs/models#tts):
+              One of the available
+              [TTS models](https://developers.openai.com/api/docs/guides/text-to-speech):
               `tts-1`, `tts-1-hd`, `gpt-4o-mini-tts`, or `gpt-4o-mini-tts-2025-12-15`.
+
+              Deprecated values:
+
+              - "tts-1", "tts-1-hd", "gpt-4o-mini-tts", "gpt-4o-mini-tts-2025-12-15":
+                Announced shutdown date: 2027-01-06. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
 
           voice: The voice to use when generating the audio. Supported built-in voices are
               `alloy`, `ash`, `ballad`, `coral`, `echo`, `fable`, `onyx`, `nova`, `sage`,
               `shimmer`, `verse`, `marin`, and `cedar`. You may also provide a custom voice
               object with an `id`, for example `{ "id": "voice_1234" }`. Previews of the
               voices are available in the
-              [Text to speech guide](https://platform.openai.com/docs/guides/text-to-speech#voice-options).
+              [Text to speech guide](https://developers.openai.com/api/docs/guides/text-to-speech#voice-options).
+              Custom voices must be created from audio samples. Voices created from text
+              prompts are supported only in Live.
 
           instructions: Control the voice of your generated audio with additional instructions. Does not
               work with `tts-1` or `tts-1-hd`.
@@ -108,8 +126,8 @@ class Speech(SyncAPIResource):
             "/audio/speech",
             body=maybe_transform(
                 {
-                    "input": input,
                     "model": model,
+                    "input": input,
                     "voice": voice,
                     "instructions": instructions,
                     "response_format": response_format,
@@ -173,19 +191,37 @@ class AsyncSpeech(AsyncAPIResource):
 
         Returns the audio file content, or a stream of audio events.
 
+        The `tts-1`, `tts-1-hd`, `gpt-4o-mini-tts`, `gpt-4o-mini-tts-2025-03-20`, and
+        `gpt-4o-mini-tts-2025-12-15` models are deprecated and scheduled to shut down on
+        January 6, 2027. These examples use the existing Speech API; for new
+        integrations, migrate to `gpt-realtime-2.1-mini` through the
+        [Realtime API](https://developers.openai.com/api/docs/guides/realtime). See the
+        [deprecation schedule](https://developers.openai.com/api/docs/deprecations) for
+        migration details.
+
         Args:
           input: The text to generate audio for. The maximum length is 4096 characters.
 
           model:
-              One of the available [TTS models](https://platform.openai.com/docs/models#tts):
+              One of the available
+              [TTS models](https://developers.openai.com/api/docs/guides/text-to-speech):
               `tts-1`, `tts-1-hd`, `gpt-4o-mini-tts`, or `gpt-4o-mini-tts-2025-12-15`.
+
+              Deprecated values:
+
+              - "tts-1", "tts-1-hd", "gpt-4o-mini-tts", "gpt-4o-mini-tts-2025-12-15":
+                Announced shutdown date: 2027-01-06. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
 
           voice: The voice to use when generating the audio. Supported built-in voices are
               `alloy`, `ash`, `ballad`, `coral`, `echo`, `fable`, `onyx`, `nova`, `sage`,
               `shimmer`, `verse`, `marin`, and `cedar`. You may also provide a custom voice
               object with an `id`, for example `{ "id": "voice_1234" }`. Previews of the
               voices are available in the
-              [Text to speech guide](https://platform.openai.com/docs/guides/text-to-speech#voice-options).
+              [Text to speech guide](https://developers.openai.com/api/docs/guides/text-to-speech#voice-options).
+              Custom voices must be created from audio samples. Voices created from text
+              prompts are supported only in Live.
 
           instructions: Control the voice of your generated audio with additional instructions. Does not
               work with `tts-1` or `tts-1-hd`.
@@ -212,8 +248,8 @@ class AsyncSpeech(AsyncAPIResource):
             "/audio/speech",
             body=await async_maybe_transform(
                 {
-                    "input": input,
                     "model": model,
+                    "input": input,
                     "voice": voice,
                     "instructions": instructions,
                     "response_format": response_format,

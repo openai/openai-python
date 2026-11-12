@@ -63,7 +63,8 @@ class Permissions(SyncAPIResource):
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncPage[PermissionCreateResponse]:
         """
-        **NOTE:** Calling this endpoint requires an [admin API key](../admin-api-keys).
+        **NOTE:** Calling this endpoint requires an
+        [admin API key](https://developers.openai.com/api/reference/resources/admin/subresources/organization/subresources/admin_api_keys).
 
         This enables organization owners to share fine-tuned models with other projects
         in their organization.
@@ -118,7 +119,8 @@ class Permissions(SyncAPIResource):
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> PermissionRetrieveResponse:
         """
-        **NOTE:** This endpoint requires an [admin API key](../admin-api-keys).
+        **NOTE:** This endpoint requires an
+        [admin API key](https://developers.openai.com/api/reference/resources/admin/subresources/organization/subresources/admin_api_keys).
 
         Organization owners can use this endpoint to view all permissions for a
         fine-tuned model checkpoint.
@@ -184,7 +186,8 @@ class Permissions(SyncAPIResource):
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncConversationCursorPage[PermissionListResponse]:
         """
-        **NOTE:** This endpoint requires an [admin API key](../admin-api-keys).
+        **NOTE:** This endpoint requires an
+        [admin API key](https://developers.openai.com/api/reference/resources/admin/subresources/organization/subresources/admin_api_keys).
 
         Organization owners can use this endpoint to view all permissions for a
         fine-tuned model checkpoint.
@@ -248,7 +251,8 @@ class Permissions(SyncAPIResource):
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> PermissionDeleteResponse:
         """
-        **NOTE:** This endpoint requires an [admin API key](../admin-api-keys).
+        **NOTE:** This endpoint requires an
+        [admin API key](https://developers.openai.com/api/reference/resources/admin/subresources/organization/subresources/admin_api_keys).
 
         Organization owners can use this endpoint to delete a permission for a
         fine-tuned model checkpoint.
@@ -320,7 +324,8 @@ class AsyncPermissions(AsyncAPIResource):
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[PermissionCreateResponse, AsyncPage[PermissionCreateResponse]]:
         """
-        **NOTE:** Calling this endpoint requires an [admin API key](../admin-api-keys).
+        **NOTE:** Calling this endpoint requires an
+        [admin API key](https://developers.openai.com/api/reference/resources/admin/subresources/organization/subresources/admin_api_keys).
 
         This enables organization owners to share fine-tuned models with other projects
         in their organization.
@@ -375,7 +380,8 @@ class AsyncPermissions(AsyncAPIResource):
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> PermissionRetrieveResponse:
         """
-        **NOTE:** This endpoint requires an [admin API key](../admin-api-keys).
+        **NOTE:** This endpoint requires an
+        [admin API key](https://developers.openai.com/api/reference/resources/admin/subresources/organization/subresources/admin_api_keys).
 
         Organization owners can use this endpoint to view all permissions for a
         fine-tuned model checkpoint.
@@ -441,7 +447,8 @@ class AsyncPermissions(AsyncAPIResource):
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[PermissionListResponse, AsyncConversationCursorPage[PermissionListResponse]]:
         """
-        **NOTE:** This endpoint requires an [admin API key](../admin-api-keys).
+        **NOTE:** This endpoint requires an
+        [admin API key](https://developers.openai.com/api/reference/resources/admin/subresources/organization/subresources/admin_api_keys).
 
         Organization owners can use this endpoint to view all permissions for a
         fine-tuned model checkpoint.
@@ -505,7 +512,8 @@ class AsyncPermissions(AsyncAPIResource):
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> PermissionDeleteResponse:
         """
-        **NOTE:** This endpoint requires an [admin API key](../admin-api-keys).
+        **NOTE:** This endpoint requires an
+        [admin API key](https://developers.openai.com/api/reference/resources/admin/subresources/organization/subresources/admin_api_keys).
 
         Organization owners can use this endpoint to delete a permission for a
         fine-tuned model checkpoint.
@@ -549,10 +557,8 @@ class PermissionsWithRawResponse:
         self.create = _legacy_response.to_raw_response_wrapper(
             permissions.create,
         )
-        self.retrieve = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.to_raw_response_wrapper(
-                permissions.retrieve,  # pyright: ignore[reportDeprecated],
-            )
+        self.retrieve = _legacy_response.to_raw_response_wrapper(
+            permissions.retrieve,
         )
         self.list = _legacy_response.to_raw_response_wrapper(
             permissions.list,
@@ -569,10 +575,8 @@ class AsyncPermissionsWithRawResponse:
         self.create = _legacy_response.async_to_raw_response_wrapper(
             permissions.create,
         )
-        self.retrieve = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.async_to_raw_response_wrapper(
-                permissions.retrieve,  # pyright: ignore[reportDeprecated],
-            )
+        self.retrieve = _legacy_response.async_to_raw_response_wrapper(
+            permissions.retrieve,
         )
         self.list = _legacy_response.async_to_raw_response_wrapper(
             permissions.list,
@@ -589,10 +593,8 @@ class PermissionsWithStreamingResponse:
         self.create = to_streamed_response_wrapper(
             permissions.create,
         )
-        self.retrieve = (  # pyright: ignore[reportDeprecated]
-            to_streamed_response_wrapper(
-                permissions.retrieve,  # pyright: ignore[reportDeprecated],
-            )
+        self.retrieve = to_streamed_response_wrapper(
+            permissions.retrieve,
         )
         self.list = to_streamed_response_wrapper(
             permissions.list,
@@ -609,10 +611,8 @@ class AsyncPermissionsWithStreamingResponse:
         self.create = async_to_streamed_response_wrapper(
             permissions.create,
         )
-        self.retrieve = (  # pyright: ignore[reportDeprecated]
-            async_to_streamed_response_wrapper(
-                permissions.retrieve,  # pyright: ignore[reportDeprecated],
-            )
+        self.retrieve = async_to_streamed_response_wrapper(
+            permissions.retrieve,
         )
         self.list = async_to_streamed_response_wrapper(
             permissions.list,

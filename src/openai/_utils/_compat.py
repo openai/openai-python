@@ -9,7 +9,7 @@ from typing_extensions import get_args as _get_args, get_origin as _get_origin
 from .._types import StrBytesIntFloat
 from ._datetime_parse import parse_date as _parse_date, parse_datetime as _parse_datetime
 
-_LITERAL_TYPES = {Literal, typing_extensions.Literal}
+_LITERAL_TYPES: set[object] = {Literal, typing_extensions.Literal}
 
 
 def get_args(tp: type[Any]) -> tuple[Any, ...]:
@@ -22,11 +22,11 @@ def get_origin(tp: type[Any]) -> type[Any] | None:
 
 def is_union(tp: Optional[Type[Any]]) -> bool:
     if sys.version_info < (3, 10):
-        return tp is Union  # type: ignore[comparison-overlap]
+        return tp is Union
     else:
         import types
 
-        return tp is Union or tp is types.UnionType  # type: ignore[comparison-overlap]
+        return tp is Union or tp is types.UnionType
 
 
 def is_typeddict(tp: Type[Any]) -> bool:

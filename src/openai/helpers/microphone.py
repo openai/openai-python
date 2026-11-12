@@ -1,11 +1,10 @@
-# mypy: ignore-errors
 from __future__ import annotations
 
 import io
 import time
 import wave
 import asyncio
-from typing import Any, Type, Union, Generic, TypeVar, Callable, overload
+from typing import Any, Type, Union, Generic, TypeVar, Callable, cast, overload
 from typing_extensions import TYPE_CHECKING, Literal
 
 from .._types import FileTypes, FileContent
@@ -23,7 +22,8 @@ class Microphone(Generic[DType]):
     def __init__(
         self,
         channels: int = 1,
-        dtype: Type[DType] = np.int16,
+        # The historical generic default is int16; callers may select another dtype.
+        dtype: Type[DType] = np.int16,  # ty: ignore[invalid-parameter-default]
         should_record: Union[Callable[[], bool], None] = None,
         timeout: Union[float, None] = None,
     ):
@@ -35,12 +35,22 @@ class Microphone(Generic[DType]):
         self.has_record_function = callable(should_record)
 
     def _ndarray_to_wav(self, audio_data: npt.NDArray[DType]) -> FileTypes:
+        if audio_data.dtype == np.float32:
+            # Convert normalized floats to the signed 16-bit PCM written by wave.
+            float_data = cast("npt.NDArray[np.float32]", audio_data)
+            wav_data = (np.clip(float_data, -1, 1) * np.iinfo(np.int16).max).astype(np.int16)
+        elif audio_data.dtype == np.int8:
+            # Shift signed samples [-128, 127] to unsigned WAV samples [0, 255].
+            wav_data = (audio_data.astype(np.int16) + 128).astype(np.uint8)
+        else:
+            wav_data = audio_data
+
         buffer: FileContent = io.BytesIO()
         with wave.open(buffer, "w") as wav_file:
             wav_file.setnchannels(self.channels)
-            wav_file.setsampwidth(np.dtype(self.dtype).itemsize)
+            wav_file.setsampwidth(wav_data.dtype.itemsize)
             wav_file.setframerate(SAMPLE_RATE)
-            wav_file.writeframes(audio_data.tobytes())
+            wav_file.writeframes(wav_data.tobytes())
         buffer.seek(0)
         return ("audio.wav", buffer, "audio/wav")
 
@@ -54,7 +64,7 @@ class Microphone(Generic[DType]):
     async def record(self, return_ndarray: None = ...) -> FileTypes: ...
 
     async def record(self, return_ndarray: Union[bool, None] = False) -> Union[npt.NDArray[DType], FileTypes]:
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         event = asyncio.Event()
         self.buffer_chunks: list[npt.NDArray[DType]] = []
         start_time = time.perf_counter()

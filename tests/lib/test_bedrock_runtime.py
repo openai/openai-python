@@ -485,7 +485,7 @@ def test_legacy_bedrock_accepts_loaded_httpx_urls(
     legacy_httpx = SimpleNamespace(URL=LegacyURL)
     monkeypatch.setitem(sys.modules, "httpx", legacy_httpx)
 
-    client = client_cls(base_url=LegacyURL(), api_key="bedrock-token")  # type: ignore[arg-type]
+    client = client_cls(base_url=LegacyURL(), api_key="bedrock-token")  # ty: ignore[invalid-argument-type]
 
     assert client.base_url == httpx2.URL(f"{base_url}/")
 

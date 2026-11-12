@@ -45,7 +45,7 @@ def validate_metadata(wheel: Path) -> None:
 
     if metadata["Requires-Python"] != ">=3.10":
         raise RuntimeError(f"Expected Python >=3.10, found: {metadata['Requires-Python']}")
-    for expected in ("httpx2<3,>=2.7.0", "anyio<5,>=4.10.0"):
+    for expected in ("httpx2<3,>=2.12.0", "anyio<5,>=4.10.0"):
         if not any(value.startswith(expected) for value in base):
             raise RuntimeError(f"Expected the base wheel to require {expected}: {base}")
     if any(requirement_name(value) == "httpx" for value in requirements):
@@ -54,8 +54,9 @@ def validate_metadata(wheel: Path) -> None:
         raise RuntimeError(f"The aiohttp extra must not install the legacy adapter package: {requirements}")
     if {"httpx", "httpx2"} & extras:
         raise RuntimeError(f"HTTP client selection must not require or expose an SDK extra: {extras}")
-    if not any(value.startswith("aiohttp>=3.14.3") for value in aiohttp):
-        raise RuntimeError(f"Expected the aiohttp extra to require a patched aiohttp release: {aiohttp}")
+    for expected in ("aiohttp>=3.14.4", "multidict>=6.9.1", "yarl>=1.25.1"):
+        if not any(value.startswith(expected + ";") for value in aiohttp):
+            raise RuntimeError(f"Expected the aiohttp extra to require {expected}: {aiohttp}")
 
 
 def run_case(
@@ -89,6 +90,13 @@ def run_case(
             test_environment.pop(name, None)
         if legacy:
             test_environment["OPENAI_TEST_LEGACY_HTTPX"] = "1"
+        if extra is None and not legacy:
+            subprocess.run(
+                [str(python), "-I", "-B", str(ROOT / "scripts/fixtures/computer_use_smoke.py")],
+                cwd=directory,
+                env=test_environment,
+                check=True,
+            )
         subprocess.run(
             [str(python), "-m", "pytest", "-o", "addopts=", *(str(test) for test in tests)],
             cwd=directory,

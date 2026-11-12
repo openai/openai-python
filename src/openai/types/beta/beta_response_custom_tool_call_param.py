@@ -29,7 +29,16 @@ class CallerProgram(TypedDict, total=False):
 Caller: TypeAlias = Union[CallerDirect, CallerProgram]
 
 
-class BetaResponseCustomToolCallParam(TypedDict, total=False):
+_BetaResponseCustomToolCallParamReservedKeywords = TypedDict(
+    "_BetaResponseCustomToolCallParamReservedKeywords",
+    {
+        "async": bool,
+    },
+    total=False,
+)
+
+
+class BetaResponseCustomToolCallParam(_BetaResponseCustomToolCallParamReservedKeywords, total=False):
     """A call to a custom tool created by the model."""
 
     call_id: Required[str]

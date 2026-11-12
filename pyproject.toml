@@ -1,6 +1,6 @@
 [project]
 name = "openai"
-version = "3.5.0"
+version = "3.49.0"
 description = "The official Python library for the openai API"
 dynamic = ["readme"]
 license = "Apache-2.0"
@@ -9,7 +9,7 @@ authors = [
 ]
 
 dependencies = [
-  "httpx2>=2.7.0, <3",
+  "httpx2>=2.12.0, <3",
   "pydantic>=1.10.13, <3, !=2.0.*, !=2.1.*, !=2.2.*, !=2.3.*",
   "typing-extensions>=4.14, <5",
   "anyio>=4.10.0, <5",
@@ -41,7 +41,9 @@ Repository = "https://github.com/openai/openai-python"
 
 [project.optional-dependencies]
 aiohttp = [
-  "aiohttp>=3.14.3",
+  "aiohttp>=3.14.4",
+  "multidict>=6.9.1",
+  "yarl>=1.25.1",
 ]
 realtime = ["websockets >= 13, < 16"]
 datalib = ["numpy >= 1", "pandas >= 1.2.3"]
@@ -50,32 +52,38 @@ bedrock = [
   "botocore>=1.40.0,<2",
   "urllib3>=2.7.0,<3",
 ]
+vertex = ["google-auth[requests]>=2.36,<3"]
 
 [dependency-groups]
 dev = [
-    "mypy==1.17",
+    "ty==0.0.95",
     "pytest>=9.0.3",
     "pytest-asyncio>=1.4.0",
+    "Pillow==12.3.0",
     "ruff",
     "rich>=13.7.1",
     "inline-snapshot>=0.28.0",
     "azure-identity >=1.14.1",
-    "botocore==1.42.97",
+    "botocore==1.43.123",
     "pandas-stubs >= 1.1.0.11",
     "trio >=0.22.2",
     "pytest-xdist>=3.6.1",
     "griffe>=1",
+    "types-requests>=2.33.0.20261006",
 ]
 pydantic-v1 = ["pydantic>=1.10.26,<2"]
 pydantic-v2 = ["pydantic>=2,<3"]
+provider-computer = ["Pillow==12.3.0"]
+provider-browser = ["playwright==1.64.1"]
+browser-demo = ["playwright==1.64.1"]
 # Isolated build requirements are exported with hashes by scripts/build.
 build = [
-    "hatchling==1.27.0",
+    "hatchling==1.33.0",
     "packaging==26.3",
     "pathspec==1.1.1",
-    "pluggy==1.6.0",
+    "pluggy==1.7.0",
     "tomli==2.4.1; python_version < '3.11'",
-    "trove-classifiers==2026.6.1.19",
+    "trove-classifiers==2026.9.21.13",
 ]
 
 [tool.uv]
@@ -83,30 +91,34 @@ build = [
 required-version = ">=0.12.1"
 exclude-newer = "8 days"
 default-groups = ["dev", "pydantic-v2"]
-conflicts = [[{ group = "pydantic-v1" }, { group = "pydantic-v2" }]]
-# Security floors for transitive development dependencies. Constraints do not
+conflicts = [
+    [{ group = "pydantic-v1" }, { group = "pydantic-v2" }],
+]
+# Security floors for transitive dependencies. Constraints do not
 # install these packages into the SDK's runtime environment.
 constraint-dependencies = [
+    # HTTPX2 also publishes an exact pin to its matching httpcore2 release.
+    "httpcore2>=2.12.0",
     "azure-core>=1.38.0",
     "cryptography>=50.0.0",
     "msal>=1.37.0",
     "pygments>=2.20.0",
-    "pyjwt>=2.13.0",
+    "pyjwt>=2.15.0",
     "requests>=2.33.0",
 ]
 # Also constrain editable/source builds performed by uv sync.
 build-constraint-dependencies = [
-    "hatchling==1.27.0",
+    "hatchling==1.33.0",
     "packaging==26.3",
     "pathspec==1.1.1",
-    "pluggy==1.6.0",
+    "pluggy==1.7.0",
     "tomli==2.4.1; python_version < '3.11'",
-    "trove-classifiers==2026.6.1.19",
+    "trove-classifiers==2026.9.21.13",
 ]
 
 
 [build-system]
-requires = ["hatchling==1.27.0"]
+requires = ["hatchling==1.33.0"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build]
@@ -127,7 +139,6 @@ include = [
   "/.node-version",
   "/pnpm-lock.yaml",
   "/pnpm-workspace.yaml",
-  "/mypy.ini",
   "bin/*",
   "examples/*",
   "scripts/*",
@@ -140,7 +151,7 @@ path = "scripts/hatch_metadata.py"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "--tb=short -n auto"
+addopts = "--tb=short -n auto --durations=20"
 xfail_strict = true
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "session"
@@ -151,103 +162,55 @@ filterwarnings = [
 [tool.inline-snapshot]
 format-command="ruff format --stdin-filename {filename}"
 
-[tool.pyright]
-# this enables practically every flag given by pyright.
-# there are a couple of flags that are still disabled by
-# default in strict mode as they are experimental and niche.
-typeCheckingMode = "strict"
-pythonVersion = "3.10"
+# Repository checks use ty; published annotations remain checker-independent.
+[tool.ty.environment]
+python-version = "3.10"
 
+[tool.ty.src]
 exclude = [
-    "_dev",
-    "node_modules",
-    ".pnpm-store",
-    ".venv",
-    ".venv-pydantic-v1",
-    # Contributors may still have an environment from before the uv migration.
-    ".nox",
-    ".git",
-    "tests/respx2",
-    "src/openai/_vendor",
-    # Loaded in Hatchling's isolated build environment.
-    "scripts/hatch_metadata.py",
-
-    # uses inline `uv` script dependencies
-    # which means it can't be type checked
-    "examples/realtime/audio_util.py",
-    "examples/realtime/push_to_talk_app.py"
+    "examples/browser/",
+    "examples/browser-use-demo/",
+    "examples/computer-desktop/",
+    "_dev", "node_modules", ".pnpm-store", ".venv", ".venv-pydantic-v1", ".nox",
+    "tests/respx2", "src/openai/_vendor", "scripts/hatch_metadata.py",
+    "examples/realtime/audio_util.py", "examples/realtime/push_to_talk_app.py",
 ]
 
-reportImplicitOverride = true
-reportOverlappingOverload = false
+[tool.ty.rules]
+unused-type-ignore-comment = "error"
+unused-ignore-comment = "error"
+redundant-cast = "error"
 
-reportImportCycles = false
-reportPrivateUsage = false
+[[tool.ty.overrides]]
+include = ["tests/test_lazy_imports.py"]
+[tool.ty.overrides.rules]
+# Reexports retain callable/class subtypes that assert_type cannot spell exactly.
+assert-type-unspellable-subtype = "ignore"
 
-[tool.mypy]
-pretty = true
-show_error_codes = true
-
-# Exclude _files.py because mypy isn't smart enough to apply
-# the correct type narrowing and as this is an internal module
-# it's fine to just use Pyright.
-#
-# We also exclude our `tests` as mypy doesn't always infer
-# types correctly and Pyright will still catch any type errors.
-#
-# realtime examples use inline `uv` script dependencies
-# which means it can't be type checked
-exclude = [
-  'src/openai/_files.py',
-  'node_modules/.*',
-  '\.pnpm-store/.*',
-  'src/openai/_vendor/.*',
-  'scripts/hatch_metadata.py',
-  '_dev/.*.py',
-  'tests/.*',
-  'src/openai/_utils/_logs.py',
-  'examples/realtime/audio_util.py',
-  'examples/realtime/push_to_talk_app.py',
+[[tool.ty.overrides]]
+include = [
+    "src/openai/_exceptions.py",
+    "src/openai/lib/streaming/responses/_events.py",
+    "src/openai/types/chat/parsed_chat_completion.py",
+    "src/openai/types/chat/parsed_function_tool_call.py",
+    "src/openai/types/evals/runs/output_item_list_response.py",
+    "src/openai/types/evals/runs/output_item_retrieve_response.py",
+    "tests/test_models.py",
 ]
+[tool.ty.overrides.rules]
+# These Pydantic models and HTTP exceptions intentionally narrow mutable fields.
+# Preserve their existing contract without suppressing unrelated overrides.
+invalid-mutable-override = "ignore"
 
-strict_equality = true
-implicit_reexport = true
-check_untyped_defs = true
-no_implicit_optional = true
+[[tool.ty.overrides]]
+include = [
+    "tests/**", "src/openai/resources/**",
+    "src/openai/lib/_assistants_*.py",
+]
+[tool.ty.overrides.rules]
+# Tests exercise deprecated entrypoints; their implementations and reexports must remain available.
+deprecated = "ignore"
 
-warn_return_any = true
-warn_unreachable = true
-warn_unused_configs = true
-
-# Turn these options off as it could cause conflicts
-# with the Pyright options.
-warn_unused_ignores = false
-warn_redundant_casts = false
-
-disallow_any_generics = true
-disallow_untyped_defs = true
-disallow_untyped_calls = true
-disallow_subclassing_any = true
-disallow_incomplete_defs = true
-disallow_untyped_decorators = true
-cache_fine_grained = true
-
-# By default, mypy reports an error if you assign a value to the result
-# of a function call that doesn't return anything. We do this in our test
-# cases:
-# ```
-# result = ...
-# assert result is None
-# ```
-# Changing this codegen to make mypy happy would increase complexity
-# and would not be worth it.
-disable_error_code = "func-returns-value,overload-cannot-match"
-
-# https://github.com/python/mypy/issues/12162
-[[tool.mypy.overrides]]
-module = "black.files.*"
-ignore_errors = true
-ignore_missing_imports = true
 
 [tool.ruff]
 extend-exclude = ["tests/respx2", "src/openai/_vendor"]

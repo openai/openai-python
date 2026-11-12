@@ -12,17 +12,20 @@ __all__ = ["ResponseInputImageContent", "PromptCacheBreakpoint"]
 class PromptCacheBreakpoint(BaseModel):
     """Marks the exact end of a reusable prompt prefix.
 
-    The breakpoint inherits its TTL from the request's `prompt_cache_options.ttl`; the boundary is not rounded to a token block.
+    When `ttl` is omitted, the breakpoint inherits the request's `prompt_cache_options.ttl`; the boundary is not rounded to a token block.
     """
 
     mode: Literal["explicit"]
     """The breakpoint mode. Always `explicit`."""
 
+    ttl: Optional[Literal["30m", "12h"]] = None
+    """The minimum lifetime of this cache breakpoint. Defaults to the request TTL."""
+
 
 class ResponseInputImageContent(BaseModel):
     """An image input to the model.
 
-    Learn about [image inputs](https://platform.openai.com/docs/guides/vision)
+    Learn about [image inputs](https://developers.openai.com/api/docs/guides/images-vision)
     """
 
     type: Literal["input_image"]
@@ -46,6 +49,6 @@ class ResponseInputImageContent(BaseModel):
     prompt_cache_breakpoint: Optional[PromptCacheBreakpoint] = None
     """Marks the exact end of a reusable prompt prefix.
 
-    The breakpoint inherits its TTL from the request's `prompt_cache_options.ttl`;
-    the boundary is not rounded to a token block.
+    When `ttl` is omitted, the breakpoint inherits the request's
+    `prompt_cache_options.ttl`; the boundary is not rounded to a token block.
     """

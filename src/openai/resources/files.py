@@ -82,20 +82,20 @@ class Files(SyncAPIResource):
 
         - The Assistants API supports files up to 2 million tokens and of specific file
           types. See the
-          [Assistants Tools guide](https://platform.openai.com/docs/assistants/tools)
+          [Assistants Tools guide](https://developers.openai.com/api/docs/guides/tools)
           for details.
         - The Fine-tuning API only supports `.jsonl` files. The input also has certain
           required formats for fine-tuning
-          [chat](https://platform.openai.com/docs/api-reference/fine-tuning/chat-input)
+          [chat](https://developers.openai.com/api/docs/guides/supervised-fine-tuning#formatting-your-data)
           or
-          [completions](https://platform.openai.com/docs/api-reference/fine-tuning/completions-input)
+          [completions](https://developers.openai.com/api/docs/guides/supervised-fine-tuning#formatting-your-data)
           models.
         - The Batch API only supports `.jsonl` files up to 200 MB in size. The input
           also has a specific required
-          [format](https://platform.openai.com/docs/api-reference/batch/request-input).
+          [format](https://developers.openai.com/api/docs/guides/batch#1-prepare-your-batch-file).
         - For Retrieval or `file_search` ingestion, upload files here first. If you need
           to attach multiple uploaded files to the same vector store, use
-          [`/vector_stores/{vector_store_id}/file_batches`](https://platform.openai.com/docs/api-reference/vector-stores-file-batches/createBatch)
+          [`/vector_stores/{vector_store_id}/file_batches`](https://developers.openai.com/api/reference/resources/vector_stores/subresources/file_batches/methods/create)
           instead of attaching them one by one. Vector store attachment has separate
           limits from file upload, including 2,000 attached files per minute per
           organization.
@@ -373,7 +373,7 @@ class Files(SyncAPIResource):
         poll_interval: float = 5.0,
         max_wait_seconds: float = 30 * 60,
     ) -> FileObject:
-        """Waits for the given file to be processed, default timeout is 30 mins."""
+        "Waits for the given file to be processed, default timeout is 30 mins."
         return _wait_for_file_processing(self, id, poll_interval=poll_interval, max_wait_seconds=max_wait_seconds)
 
 
@@ -423,20 +423,20 @@ class AsyncFiles(AsyncAPIResource):
 
         - The Assistants API supports files up to 2 million tokens and of specific file
           types. See the
-          [Assistants Tools guide](https://platform.openai.com/docs/assistants/tools)
+          [Assistants Tools guide](https://developers.openai.com/api/docs/guides/tools)
           for details.
         - The Fine-tuning API only supports `.jsonl` files. The input also has certain
           required formats for fine-tuning
-          [chat](https://platform.openai.com/docs/api-reference/fine-tuning/chat-input)
+          [chat](https://developers.openai.com/api/docs/guides/supervised-fine-tuning#formatting-your-data)
           or
-          [completions](https://platform.openai.com/docs/api-reference/fine-tuning/completions-input)
+          [completions](https://developers.openai.com/api/docs/guides/supervised-fine-tuning#formatting-your-data)
           models.
         - The Batch API only supports `.jsonl` files up to 200 MB in size. The input
           also has a specific required
-          [format](https://platform.openai.com/docs/api-reference/batch/request-input).
+          [format](https://developers.openai.com/api/docs/guides/batch#1-prepare-your-batch-file).
         - For Retrieval or `file_search` ingestion, upload files here first. If you need
           to attach multiple uploaded files to the same vector store, use
-          [`/vector_stores/{vector_store_id}/file_batches`](https://platform.openai.com/docs/api-reference/vector-stores-file-batches/createBatch)
+          [`/vector_stores/{vector_store_id}/file_batches`](https://developers.openai.com/api/reference/resources/vector_stores/subresources/file_batches/methods/create)
           instead of attaching them one by one. Vector store attachment has separate
           limits from file upload, including 2,000 attached files per minute per
           organization.
@@ -714,7 +714,7 @@ class AsyncFiles(AsyncAPIResource):
         poll_interval: float = 5.0,
         max_wait_seconds: float = 30 * 60,
     ) -> FileObject:
-        """Waits for the given file to be processed, default timeout is 30 mins."""
+        "Waits for the given file to be processed, default timeout is 30 mins."
         return await _async_wait_for_file_processing(
             self, id, poll_interval=poll_interval, max_wait_seconds=max_wait_seconds
         )
@@ -739,10 +739,8 @@ class FilesWithRawResponse:
         self.content = _legacy_response.to_raw_response_wrapper(
             files.content,
         )
-        self.retrieve_content = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.to_raw_response_wrapper(
-                files.retrieve_content,  # pyright: ignore[reportDeprecated],
-            )
+        self.retrieve_content = _legacy_response.to_raw_response_wrapper(
+            files.retrieve_content,
         )
 
 
@@ -765,10 +763,8 @@ class AsyncFilesWithRawResponse:
         self.content = _legacy_response.async_to_raw_response_wrapper(
             files.content,
         )
-        self.retrieve_content = (  # pyright: ignore[reportDeprecated]
-            _legacy_response.async_to_raw_response_wrapper(
-                files.retrieve_content,  # pyright: ignore[reportDeprecated],
-            )
+        self.retrieve_content = _legacy_response.async_to_raw_response_wrapper(
+            files.retrieve_content,
         )
 
 
@@ -792,10 +788,8 @@ class FilesWithStreamingResponse:
             files.content,
             StreamedBinaryAPIResponse,
         )
-        self.retrieve_content = (  # pyright: ignore[reportDeprecated]
-            to_streamed_response_wrapper(
-                files.retrieve_content,  # pyright: ignore[reportDeprecated],
-            )
+        self.retrieve_content = to_streamed_response_wrapper(
+            files.retrieve_content,
         )
 
 
@@ -819,8 +813,6 @@ class AsyncFilesWithStreamingResponse:
             files.content,
             AsyncStreamedBinaryAPIResponse,
         )
-        self.retrieve_content = (  # pyright: ignore[reportDeprecated]
-            async_to_streamed_response_wrapper(
-                files.retrieve_content,  # pyright: ignore[reportDeprecated],
-            )
+        self.retrieve_content = async_to_streamed_response_wrapper(
+            files.retrieve_content,
         )

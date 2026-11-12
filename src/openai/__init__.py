@@ -10,14 +10,18 @@ from . import types
 from ._types import NOT_GIVEN, Omit, NoneType, NotGiven, Transport, ProxiesTypes, omit, not_given
 from ._utils import file_from_path
 from ._client import Client, OpenAI, Stream, Timeout, Transport, AsyncClient, AsyncOpenAI, AsyncStream, RequestOptions
-from ._httpx2 import DefaultHttpx2Client, DefaultAsyncHttpx2Client, normalize_httpx_url as _normalize_httpx_url
+from ._httpx2 import (
+    DefaultHttpx2Client as DefaultHttpx2Client,
+    DefaultAsyncHttpx2Client as DefaultAsyncHttpx2Client,
+    normalize_httpx_url as _normalize_httpx_url,
+)
 from ._models import BaseModel
 from ._version import __title__, __version__
 from ._response import APIResponse as APIResponse, AsyncAPIResponse as AsyncAPIResponse
 from ._constants import DEFAULT_TIMEOUT, DEFAULT_MAX_RETRIES, DEFAULT_CONNECTION_LIMITS
 from ._exceptions import (
     APIError,
-    OAuthError,
+    OAuthError as OAuthError,
     OpenAIError,
     ConflictError,
     NotFoundError,
@@ -29,12 +33,12 @@ from ._exceptions import (
     AuthenticationError,
     InternalServerError,
     PermissionDeniedError,
-    LengthFinishReasonError,
+    LengthFinishReasonError as LengthFinishReasonError,
     WebSocketQueueFullError,
     UnprocessableEntityError,
     APIResponseValidationError,
-    InvalidWebhookSignatureError,
-    ContentFilterFinishReasonError,
+    InvalidWebhookSignatureError as InvalidWebhookSignatureError,
+    ContentFilterFinishReasonError as ContentFilterFinishReasonError,
     WebSocketConnectionClosedError,
 )
 from ._base_client import DefaultHttpxClient, DefaultAioHttpClient, DefaultAsyncHttpxClient
@@ -103,15 +107,59 @@ __all__ = [
 if not _t.TYPE_CHECKING:
     from ._utils._resources_proxy import resources as resources
 
-from .lib import azure as _azure, bedrock as _bedrock, pydantic_function_tool as pydantic_function_tool
+from .lib import (
+    azure as _azure,
+    bedrock as _bedrock,
+    pydantic_function_tool as pydantic_function_tool,
+    pydantic_responses_function_tool as pydantic_responses_function_tool,
+)
 from .version import VERSION as VERSION
 from .lib.azure import AzureOpenAI as AzureOpenAI, AsyncAzureOpenAI as AsyncAzureOpenAI
 from .lib.bedrock import BedrockOpenAI as BedrockOpenAI, AsyncBedrockOpenAI as AsyncBedrockOpenAI
 from .lib._old_api import *
-from .lib.streaming import (
-    AssistantEventHandler as AssistantEventHandler,
-    AsyncAssistantEventHandler as AsyncAssistantEventHandler,
+
+_COMPUTER_EXPORTS = (
+    "ComputerToolset",
+    "AsyncComputerToolset",
+    "ComputerDriver",
+    "AsyncComputerDriver",
 )
+_STREAMING_EXPORTS = (
+    "AssistantEventHandler",
+    "AsyncAssistantEventHandler",
+)
+
+if _t.TYPE_CHECKING:
+    from .lib.computer import (
+        ComputerDriver as ComputerDriver,
+        ComputerToolset as ComputerToolset,
+        AsyncComputerDriver as AsyncComputerDriver,
+        AsyncComputerToolset as AsyncComputerToolset,
+    )
+    from .lib.streaming import (
+        AssistantEventHandler as AssistantEventHandler,
+        AsyncAssistantEventHandler as AsyncAssistantEventHandler,
+    )
+else:
+
+    def __getattr__(name: str) -> _t.Any:
+        if name in _COMPUTER_EXPORTS:
+            from importlib import import_module
+
+            value = getattr(import_module(".lib.computer", __name__), name)
+            globals()[name] = value
+            return value
+        if name in _STREAMING_EXPORTS:
+            from importlib import import_module
+
+            value = getattr(import_module(".lib.streaming", __name__), name)
+            globals()[name] = value
+            return value
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+    def __dir__() -> list[str]:
+        return sorted(set(globals()) | set(_COMPUTER_EXPORTS) | set(_STREAMING_EXPORTS))
+
 
 _setup_logging()
 
@@ -128,9 +176,9 @@ for __name in __all__:
             # Some of our exported symbols are builtins which we can't set attributes for.
             pass
 
+__all__ += ["ComputerToolset", "AsyncComputerToolset", "ComputerDriver", "AsyncComputerDriver"]
 # ------ Module level client ------
 import typing as _t
-import typing_extensions as _te
 
 import httpx2 as _httpx
 
@@ -158,7 +206,8 @@ default_query: _t.Mapping[str, object] | None = None
 
 http_client: _httpx.Client | None = None
 
-_ApiType = _te.Literal["openai", "azure", "amazon-bedrock"]
+
+_ApiType = _t.Literal["openai", "azure", "amazon-bedrock"]
 
 api_type: _ApiType | None = _t.cast(_ApiType, _os.environ.get("OPENAI_API_TYPE"))
 
@@ -166,7 +215,6 @@ api_version: str | None = _os.environ.get("OPENAI_API_VERSION")
 
 azure_endpoint: str | None = _os.environ.get("AZURE_OPENAI_ENDPOINT")
 
-# Keep explicit module configuration separate from Azure's environment fallback.
 azure_ad_token: str | None = None
 
 azure_ad_token_provider: _azure.AzureADTokenProvider | None = None
@@ -177,60 +225,57 @@ bedrock_token_provider: _bedrock.BedrockTokenProvider | None = None
 
 
 class _ModuleClient(OpenAI):
-    # Note: we have to use type: ignores here as overriding class members
-    # with properties is technically unsafe but it is fine for our use case
-
-    @property  # type: ignore
+    @property
     @override
     def api_key(self) -> str | None:
         return api_key
 
-    @api_key.setter  # type: ignore
-    def api_key(self, value: str | None) -> None:  # type: ignore
-        global api_key
+    @api_key.setter
+    def api_key(self, value: str | None) -> None:  # ty: ignore[invalid-property-type-override]
+        global api_key  # ty: ignore[invalid-property-type-override]
 
         api_key = value
 
-    @property  # type: ignore
+    @property
     @override
     def admin_api_key(self) -> str | None:
         return admin_api_key
 
-    @admin_api_key.setter  # type: ignore
-    def admin_api_key(self, value: str | None) -> None:  # type: ignore
+    @admin_api_key.setter
+    def admin_api_key(self, value: str | None) -> None:
         global admin_api_key
 
         admin_api_key = value
 
-    @property  # type: ignore
+    @property
     @override
     def organization(self) -> str | None:
         return organization
 
-    @organization.setter  # type: ignore
-    def organization(self, value: str | None) -> None:  # type: ignore
+    @organization.setter
+    def organization(self, value: str | None) -> None:
         global organization
 
         organization = value
 
-    @property  # type: ignore
+    @property
     @override
     def project(self) -> str | None:
         return project
 
-    @project.setter  # type: ignore
-    def project(self, value: str | None) -> None:  # type: ignore
+    @project.setter
+    def project(self, value: str | None) -> None:
         global project
 
         project = value
 
-    @property  # type: ignore
+    @property
     @override
     def webhook_secret(self) -> str | None:
         return webhook_secret
 
-    @webhook_secret.setter  # type: ignore
-    def webhook_secret(self, value: str | None) -> None:  # type: ignore
+    @webhook_secret.setter
+    def webhook_secret(self, value: str | None) -> None:
         global webhook_secret
 
         webhook_secret = value
@@ -245,198 +290,147 @@ class _ModuleClient(OpenAI):
 
     @base_url.setter
     def base_url(self, url: _httpx.URL | str) -> None:
-        super().base_url = url  # type: ignore[misc]
+        # The module proxy forwards to the existing base property setter.
+        super().base_url = url  # ty: ignore[invalid-assignment]
 
-    @property  # type: ignore
+    @property
     @override
     def timeout(self) -> float | Timeout | None:
         return timeout
 
-    @timeout.setter  # type: ignore
-    def timeout(self, value: float | Timeout | None) -> None:  # type: ignore
+    @timeout.setter
+    def timeout(self, value: float | Timeout | None) -> None:
         global timeout
 
         timeout = value
 
-    @property  # type: ignore
+    @property
     @override
     def max_retries(self) -> int:
         return max_retries
 
-    @max_retries.setter  # type: ignore
-    def max_retries(self, value: int) -> None:  # type: ignore
+    @max_retries.setter
+    def max_retries(self, value: int) -> None:
         global max_retries
 
         max_retries = value
 
-    @property  # type: ignore
+    @property
     @override
     def _custom_headers(self) -> _t.Mapping[str, str] | None:
         return default_headers
 
-    @_custom_headers.setter  # type: ignore
-    def _custom_headers(self, value: _t.Mapping[str, str] | None) -> None:  # type: ignore
+    @_custom_headers.setter
+    def _custom_headers(self, value: _t.Mapping[str, str] | None) -> None:
         global default_headers
 
         default_headers = value
 
-    @property  # type: ignore
+    @property
     @override
     def _custom_query(self) -> _t.Mapping[str, object] | None:
         return default_query
 
-    @_custom_query.setter  # type: ignore
-    def _custom_query(self, value: _t.Mapping[str, object] | None) -> None:  # type: ignore
+    @_custom_query.setter
+    def _custom_query(self, value: _t.Mapping[str, object] | None) -> None:
         global default_query
 
         default_query = value
 
-    @property  # type: ignore
+    @property
     @override
     def _client(self) -> _httpx.Client:
         return http_client or super()._client
 
-    @_client.setter  # type: ignore
-    def _client(self, value: _httpx.Client) -> None:  # type: ignore
+    @_client.setter
+    def _client(self, value: _httpx.Client) -> None:
         global http_client
 
         http_client = value
 
 
-class _AzureModuleClient(_ModuleClient, AzureOpenAI):  # type: ignore
-    ...
+class _AzureModuleClient(_ModuleClient, AzureOpenAI): ...
 
 
-class _BedrockModuleClient(_ModuleClient, BedrockOpenAI):  # type: ignore
-    @property  # type: ignore
+class _BedrockModuleClient(_ModuleClient, BedrockOpenAI):
+    @property
     @override
-    def api_key(self) -> str | None:
-        return api_key if api_key is not None else _bedrock_api_key
+    def api_key(
+        self,
+    ) -> str | None:
+        from .lib._module_runtime import BedrockModuleClient_api_key
 
-    @api_key.setter  # type: ignore
-    def api_key(self, value: str | None) -> None:  # type: ignore
-        global _bedrock_api_key
+        return BedrockModuleClient_api_key(self)
 
-        _bedrock_api_key = value
+    @api_key.setter
+    def api_key(
+        self,
+        value: str | None,
+    ) -> None:
+        from .lib._module_runtime import BedrockModuleClient_api_key_setter
+
+        return BedrockModuleClient_api_key_setter(self, value)
 
     @override
-    def _refresh_api_key(self) -> str:
-        if api_key is not None:
-            return api_key
+    def _refresh_api_key(
+        self,
+    ) -> str:
+        from typing import Any as _RuntimeAny, cast as _runtime_cast
 
-        return super()._refresh_api_key()
+        from .lib._module_runtime import BedrockModuleClient_refresh_api_key
+
+        return BedrockModuleClient_refresh_api_key(_runtime_cast(_RuntimeAny, super()).__thisclass__, self)
 
     @override
-    def _legacy_auth_configuration(self) -> _bedrock._LegacyAuthConfiguration:
-        if api_key is not None:
-            return ("bearer", api_key)
-        return super()._legacy_auth_configuration()
+    def _legacy_auth_configuration(
+        self,
+    ) -> _bedrock._LegacyAuthConfiguration:
+        from typing import Any as _RuntimeAny, cast as _runtime_cast
+
+        from .lib._module_runtime import BedrockModuleClient_legacy_auth_configuration
+
+        return BedrockModuleClient_legacy_auth_configuration(_runtime_cast(_RuntimeAny, super()).__thisclass__, self)
 
 
 class _AmbiguousModuleClientUsageError(OpenAIError):
-    def __init__(self) -> None:
-        super().__init__(
-            "Ambiguous use of module client; please set `openai.api_type` or the `OPENAI_API_TYPE` environment variable to `openai`, `azure`, or `amazon-bedrock`"
-        )
+    def __init__(
+        self,
+    ) -> None:
+        from typing import Any as _RuntimeAny, cast as _runtime_cast
+
+        from .lib._module_runtime import AmbiguousModuleClientUsageError_init
+
+        return AmbiguousModuleClientUsageError_init(_runtime_cast(_RuntimeAny, super()).__thisclass__, self)
 
 
 def _has_openai_credentials() -> bool:
-    return _os.environ.get("OPENAI_API_KEY") is not None
+    from .lib._module_runtime import has_openai_credentials
+
+    return has_openai_credentials()
 
 
 def _has_azure_credentials() -> bool:
-    return azure_endpoint is not None or _os.environ.get("AZURE_OPENAI_API_KEY") is not None
+    from .lib._module_runtime import has_azure_credentials
+
+    return has_azure_credentials()
 
 
 def _has_azure_ad_credentials() -> bool:
-    return (
-        _os.environ.get("AZURE_OPENAI_AD_TOKEN") is not None
-        or azure_ad_token is not None
-        or azure_ad_token_provider is not None
-    )
+    from .lib._module_runtime import has_azure_ad_credentials
+
+    return has_azure_ad_credentials()
 
 
 _client: OpenAI | None = None
 
 
-def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
-    global _client
+def _load_client() -> OpenAI:
+    from .lib._module_runtime import load_client
 
-    if _client is None:
-        global api_type, azure_endpoint, api_version
-
-        if azure_endpoint is None:
-            azure_endpoint = _os.environ.get("AZURE_OPENAI_ENDPOINT")
-
-        if api_version is None:
-            api_version = _os.environ.get("OPENAI_API_VERSION")
-
-        if api_type is None:
-            has_openai = _has_openai_credentials()
-            has_azure = _has_azure_credentials()
-            has_azure_ad = _has_azure_ad_credentials()
-
-            if has_openai and (has_azure or has_azure_ad):
-                raise _AmbiguousModuleClientUsageError()
-
-            if has_azure or has_azure_ad:
-                api_type = "azure"
-            else:
-                api_type = "openai"
-
-        if api_type == "azure":
-            _client = _AzureModuleClient(  # type: ignore
-                api_version=api_version,
-                azure_endpoint=azure_endpoint,
-                api_key=api_key,
-                azure_ad_token=azure_ad_token,
-                azure_ad_token_provider=azure_ad_token_provider,
-                organization=organization,
-                base_url=base_url,
-                timeout=timeout,
-                max_retries=max_retries,
-                default_headers=default_headers,
-                default_query=default_query,
-                http_client=http_client,
-            )
-            return _client
-
-        if api_type == "amazon-bedrock":
-            _client = _BedrockModuleClient(  # type: ignore
-                api_key=api_key,
-                bedrock_token_provider=bedrock_token_provider,
-                organization=organization,
-                project=project,
-                webhook_secret=webhook_secret,
-                base_url=base_url,
-                timeout=timeout,
-                max_retries=max_retries,
-                default_headers=default_headers,
-                default_query=default_query,
-                http_client=http_client,
-            )
-            return _client
-
-        _client = _ModuleClient(
-            api_key=api_key,
-            admin_api_key=admin_api_key,
-            organization=organization,
-            project=project,
-            webhook_secret=webhook_secret,
-            base_url=base_url,
-            timeout=timeout,
-            max_retries=max_retries,
-            default_headers=default_headers,
-            default_query=default_query,
-            http_client=http_client,
-            _enforce_credentials=False,
-        )
-        return _client
-
-    return _client
+    return load_client()
 
 
-def _reset_client() -> None:  # type: ignore[reportUnusedFunction]
+def _reset_client() -> None:
     global _client
 
     _client = None
@@ -445,18 +439,21 @@ def _reset_client() -> None:  # type: ignore[reportUnusedFunction]
 from ._module_client import (
     beta as beta,
     chat as chat,
+    live as live,
     admin as admin,
     audio as audio,
     evals as evals,
     files as files,
     images as images,
     models as models,
+    safety as safety,
     skills as skills,
     videos as videos,
     batches as batches,
     uploads as uploads,
     realtime as realtime,
     webhooks as webhooks,
+    decisions as decisions,
     responses as responses,
     containers as containers,
     embeddings as embeddings,

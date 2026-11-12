@@ -1,3 +1,22 @@
+# Contributing
+
+## Contribution policy
+
+We welcome bug reports, feature requests, minimal reproductions, and root-cause
+analysis through [GitHub issues](https://github.com/openai/openai-python/issues).
+
+**Pull requests are limited to repository collaborators. We do not accept pull
+requests from non-collaborators**, including documentation or example changes.
+If you are not a collaborator, please open an issue instead of preparing a pull
+request. Include the affected version, expected and actual behavior, and a small,
+sanitized reproduction when applicable.
+
+Report suspected security vulnerabilities privately as described in
+[SECURITY.md](SECURITY.md), rather than in issues or pull requests.
+
+The development and pull request instructions below are for maintainers and
+repository collaborators.
+
 ## Setting up the environment
 
 The minimum supported runtime, contributor toolchain, CI matrix, and release
@@ -8,31 +27,34 @@ must include a release note naming the final compatible SDK release.
 ### With uv
 
 We use [uv](https://docs.astral.sh/uv/) to manage Python, dependencies, and builds.
-Install uv 0.12.1 or newer, Node.js at the version in `.node-version`, and
-the exact pnpm version in `package.json` (`npm install --global pnpm@11.19.0`).
-The Node toolchain is for repository development only, not SDK users or builds.
-Then run:
+Install uv 0.12.1 or newer. To run the runtime tests, also install Node.js at
+the version in `.node-version` for the mock-server tooling. Then run:
 
 ```sh
 $ ./scripts/bootstrap
 ```
 
-This installs all SDK extras and Python development tools from `uv.lock`, plus
-the contributor tools from `pnpm-lock.yaml`. Bootstrap requires an already
-installed Node.js and pnpm; it does not download or switch those tools for you.
-Run a
-command with `uv run --locked --all-extras`, or activate `.venv` in your shell.
+This installs all SDK extras and Python development tools from `uv.lock`.
+Run a command with `uv run --locked --all-extras`, or activate `.venv` in your shell.
 Use `uv lock` after changing dependencies, and commit the updated `uv.lock`.
 It is the authoritative lockfile; `uv export` can produce a requirements file
 for tools that need one.
 
-For Node tooling updates, edit `package.json`, run
-`pnpm install --lockfile-only --ignore-scripts`, review the dependency and
-integrity changes, and commit `pnpm-lock.yaml`. Normal bootstrap uses a frozen
-lockfile. pnpm rejects releases that have not cleared the eight-day cooldown,
-including packages whose registry metadata omits their publication date.
-Pyright runs the local Microsoft package and never invokes npm or
-downloads a runtime. Do not use `npx`, `pnpm dlx`, or Corepack auto-downloads.
+The separate breaking-change CI job checks previous-version callers with Pyright.
+To run that compatibility gate locally, install Node.js at the version in
+`.node-version` and the exact pnpm version in `package.json`, then run
+`./scripts/bootstrap-node`. Pyright and pnpm are not required for normal bootstrap or lint. Runtime tests
+still require Node.js for the Steady mock-server tooling. Before running them, install
+the pinned mock server and runtime:
+
+```sh
+$ ./scripts/steady/install
+```
+
+Node tooling uses the frozen `pnpm-lock.yaml`, an eight-day release cooldown,
+and disabled lifecycle scripts. Update it with `pnpm install --lockfile-only
+--ignore-scripts` and review the integrity changes. Do not use `npx`, `pnpm dlx`,
+or Corepack auto-downloads to run compatibility checks.
 
 The default environment uses Pydantic v2. `./scripts/test` also runs the
 Pydantic-v1 suite in a separate, locked environment. To run that lane alone,
@@ -40,7 +62,7 @@ use `./scripts/test-pydantic-v1`.
 
 ### Dependency update policy
 
-Routine Python, Node-tooling, and GitHub Actions updates have an eight-day cooldown. uv also
+Routine Python, compatibility-checker, and GitHub Actions updates have an eight-day cooldown. uv also
 excludes Python distribution artifacts uploaded within the last eight days.
 Dependabot security updates remain enabled and are exempt from Dependabot's
 version-update cooldown.
@@ -77,26 +99,13 @@ and [Dependabot's cooldown policy](https://docs.github.com/en/code-security/refe
 
 ## Modifying/Adding code
 
-Most of the SDK is generated code. Modifications to code will be persisted between generations, but may
-result in merge conflicts between manual patches and changes from the generator. The generator will never
-modify the contents of the `src/openai/lib/` and `examples/` directories.
+Look up the repository-relative path in the [Castiron generated-file inventory](scripts/castiron/generated-files.json). To [report a bug](#contribution-policy), include the SDK version, affected call, and a small, sanitized reproduction.
 
-## Custom-code budget
+- **Incorrect API field.** If the API schema gives a field the wrong type or marks it required incorrectly, fix the schema and regenerate the SDK.
+- **Incorrect generated code.** If the schema is correct but the SDK exposes the wrong type or sends the wrong value, fix the generation configuration or compiler and regenerate. Verify the fix with a regression test that calls the public SDK.
+- **Handwritten helper or example.** Keep SDK-specific extensions in handwritten files and test them directly. For instance, [_realtime.py](src/openai/lib/_realtime.py) is handwritten. The [examples directory](examples/) contains handwritten examples.
 
-The custom-code budget counts additions plus deletions in the remaining patch
-against verified generated output. `.castiron-ratchet.json` defines this repository's
-ceiling. CI uses the checker and budget on main, not the PR's proposed versions.
-
-Budget changes must be in a separate PR modifying **only `.castiron-ratchet.json`**.
-Justify the current usage, proposed ceiling, and why fixing generation is not
-appropriate in the PR description. Increases require a **human approving review**
-and must merge before an SDK change relies on them. Agents may draft proposals,
-but must not approve increases or bypass the gate. Keep default CODEOWNERS.
-Lower the ceiling after cleanup while retaining headroom; decreases must still
-fit the measured usage.
-
-See [custom-code technical details](scripts/castiron/CUSTOM_CODE.md) for accounting,
-local checks, trusted CI, and activation instructions.
+Regeneration replaces owned files, including generated tests, docs, and workflows, and removes retired paths. Review the output and inventory together. Resolve ownership collisions before regenerating. Never hand-edit generated output or its inventory. Maintainers enforce this policy in code review.
 
 ## Security requirements for contributions
 
@@ -172,12 +181,28 @@ $ pip install ./path-to-wheel-file.whl
 
 ## Running tests
 
-Most tests require you to [set up a mock server](https://github.com/dgellow/steady) against the OpenAPI spec to run the tests.
+The mock server uses [the OpenAI Steady fork](https://github.com/openai-oss-forks/steady).
+`scripts/steady/manifest.json` is the single source of dependency pins: the
+Steady Git commit and source digest, plus the Deno version and runtime checksums. `./scripts/steady/install` fetches that source, verifies the runtime,
+and caches dependencies using the fork's frozen Deno lockfile. It requires
+Git, Node.js, curl, unzip, and sha256sum or shasum. The installation supports
+macOS and Linux on x64/ARM64, and Windows x64 through Git Bash.
 
-`./scripts/bootstrap` installs the locked Steady package and its platform
-binary. `./scripts/test` starts it automatically when no mock server is running.
-Neither `./scripts/test` nor `./scripts/mock` downloads Node tools. If the local
-tool is missing, rerun bootstrap. `TEST_API_BASE_URL` and an already-running
+`./scripts/run-steady` verifies the local source and runtime, then runs without
+downloading dependencies. Pass a local OpenAPI specification path. To update
+Steady, review the fork commit and run
+`node scripts/steady/update.cjs <full-commit-sha>`. This updates the manifest
+with the commit and its source digest; no launcher or test edits are needed.
+Then run `./scripts/steady/install`. Review the release checksums when changing Deno.
+Run `node scripts/steady/test.cjs` to check the
+installation, integrity checks, and mock-server lifecycle.
+
+
+Most tests require you to [set up a mock server](https://github.com/openai-oss-forks/steady) against the OpenAPI spec to run the tests.
+
+`./scripts/steady/install` installs the pinned Steady source and Deno runtime. `./scripts/test` starts it automatically when no mock server is running.
+Neither `./scripts/test` nor `./scripts/mock` downloads mock tooling. If the local
+tool is missing, rerun `./scripts/steady/install`. `TEST_API_BASE_URL` and an already-running
 mock server remain supported. To start the server yourself:
 
 ```sh
@@ -190,7 +215,13 @@ $ ./scripts/test
 
 ## Linting and formatting
 
-This repository uses [Ruff](https://github.com/astral-sh/ruff) to lint and format Python code.
+This repository uses [Ruff](https://github.com/astral-sh/ruff) to lint and format Python code,
+and [ty](https://docs.astral.sh/ty/) to typecheck it. These are development tools;
+installing the SDK does not install a typechecker or require consumers to switch checkers.
+Consumers use their own checker and configuration. Keep public annotations, overloads,
+exports, and `py.typed` compatible across checkers; repository-only checker settings
+are not part of that contract. Preserve compatibility with both supported Pydantic
+major versions and the Python versions covered by CI.
 
 To lint:
 

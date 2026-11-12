@@ -5,6 +5,7 @@ import math
 import time
 import email.utils
 from typing import Any, NoReturn, cast
+from contextvars import ContextVar
 from typing_extensions import TypeIs, override
 
 import anyio
@@ -29,6 +30,20 @@ _REPLAY_POSITION_EXTENSION = "openai_x509_replay_position"
 _REPLAY_FILE_POSITIONS_EXTENSION = "openai_x509_replay_file_positions"
 _ALLOWED_IDENTITY_FIELDS = {"type", "identity_provider_id", "service_account_id", "refresh_buffer_seconds"}
 _BEARER_ACCESS_TOKEN = re.compile(r"[A-Za-z0-9._~+/-]+=*")
+_MTLS_REGIONAL_BASE_URLS = {
+    "global": MTLS_API_BASE_URL,
+    "us": "https://mtls-us.api.openai.com/v1",
+    "eu": "https://mtls-eu.api.openai.com/v1",
+}
+_OPENAI_MTLS_HOSTS = {httpx2.URL(url).host for url in _MTLS_REGIONAL_BASE_URLS.values()}
+_EXCHANGE_REQUEST_TIMEOUT: ContextVar[dict[str, float | None] | None] = ContextVar(
+    "openai_x509_exchange_request_timeout", default=None
+)
+
+
+class _TransientTokenExchangeError(Exception):
+    def __init__(self, error: OpenAIError) -> None:
+        self.error = error
 
 
 def validate_x509_api_url(url: httpx2.URL | str, *, expected_origin: httpx2.URL | None = None) -> None:
@@ -88,6 +103,15 @@ def _validate_transport_request(
 ) -> None:
     validate_x509_api_url(request.url, expected_origin=expected_origin)
     validate_x509_request_authority(request)
+
+    target = request.extensions.get("target")
+    if target is not None and target != request.url.raw_path:
+        raise OpenAIError("X.509 workload identity request target must match the request URL")
+
+    sni_hostname = request.extensions.get("sni_hostname")
+    if request.url.host in _OPENAI_MTLS_HOSTS and sni_hostname is not None:
+        if not isinstance(sni_hostname, str) or sni_hostname.lower() != expected_origin.host.lower():
+            raise OpenAIError("X.509 workload identity TLS hostname must match the configured origin")
 
     if token_exchange:
         if str(request.url) != _X509_TOKEN_EXCHANGE_URL:
@@ -189,6 +213,7 @@ def _scoped_sync_client(
         transport=transport,
         timeout=http_client.timeout,
         event_hooks=None if token_exchange else http_client.event_hooks,
+        default_encoding=http_client._default_encoding,
         trust_env=False,
     )
     if not token_exchange:
@@ -217,6 +242,7 @@ def _scoped_async_client(
         transport=transport,
         timeout=http_client.timeout,
         event_hooks=None if token_exchange else http_client.event_hooks,
+        default_encoding=http_client._default_encoding,
         trust_env=False,
     )
     if not token_exchange:
@@ -240,6 +266,26 @@ def is_x509_workload_identity(
     return identity is not None and identity.get("type") == "x509"
 
 
+def x509_data_residency_base_url(
+    base_url: httpx2.URL | str | None,
+    data_residency: str | None,
+    workload_identity: WorkloadIdentity | X509WorkloadIdentity | None,
+) -> httpx2.URL | str | None:
+    if data_residency is None or not is_x509_workload_identity(workload_identity):
+        return base_url
+    if data_residency not in _MTLS_REGIONAL_BASE_URLS:
+        raise OpenAIError("X.509 workload identity requires a supported regional mTLS endpoint")
+    return _MTLS_REGIONAL_BASE_URLS[data_residency]
+
+
+def x509_safe_environment_headers(
+    headers: dict[str, str], workload_identity: X509WorkloadIdentity | None
+) -> dict[str, str]:
+    if workload_identity is None:
+        return headers
+    return {name: value for name, value in headers.items() if name.lower() != "authorization"}
+
+
 def _validate_identity(identity: X509WorkloadIdentity) -> None:
     if "provider" in identity or "client_id" in identity:
         raise OpenAIError("X.509 workload identity does not accept a subject-token provider or client ID")
@@ -247,7 +293,13 @@ def _validate_identity(identity: X509WorkloadIdentity) -> None:
     if set(identity) - _ALLOWED_IDENTITY_FIELDS:
         raise OpenAIError("X.509 workload identity accepts only identity IDs and an optional refresh buffer")
 
-    if not identity.get("identity_provider_id") or not identity.get("service_account_id"):
+    if any(
+        not isinstance(identity.get(field), str) or not identity.get(field)
+        for field in (
+            "identity_provider_id",
+            "service_account_id",
+        )
+    ):
         raise OpenAIError("X.509 workload identity requires identity-provider and service-account IDs")
 
     refresh_buffer = cast(object, identity.get("refresh_buffer_seconds"))
@@ -276,20 +328,39 @@ def _token_exchange_request(
     if legacy_httpx is not None and not isinstance(cast(object, http_client), (httpx2.Client, httpx2.AsyncClient)):
         request_type = cast(type[httpx2.Request], cast(Any, legacy_httpx).Request)
 
+    configured_timeout = _EXCHANGE_REQUEST_TIMEOUT.get()
+    timeout = {
+        phase: min(value, 10.0) if value is not None else 10.0
+        for phase, value in (configured_timeout or httpx2.Timeout(10.0).as_dict()).items()
+    }
     return request_type(
         "POST",
         _X509_TOKEN_EXCHANGE_URL,
         json=_exchange_payload(identity),
-        extensions={"timeout": httpx2.Timeout(10.0).as_dict()},
+        extensions={"timeout": timeout},
     )
 
 
 def _retry_delay(response: httpx2.Response | None, attempt: int) -> float | None:
     if response is not None:
-        if response.status_code not in (408, 409, 429) and response.status_code < 500:
+        should_retry = response.headers.get("x-should-retry")
+        if response.status_code in (400, 401, 403) or should_retry == "false":
+            return None
+        if should_retry != "true" and response.status_code not in (408, 409, 429) and response.status_code < 500:
             return None
 
+        retry_after_ms = response.headers.get("retry-after-ms")
         retry_after = response.headers.get("retry-after")
+        if retry_after_ms is not None:
+            try:
+                millisecond_delay = float(retry_after_ms) / 1000
+            except ValueError:
+                pass
+            else:
+                if math.isfinite(millisecond_delay) and 0 <= millisecond_delay <= MAX_RETRY_AFTER_DELAY:
+                    return millisecond_delay
+                if millisecond_delay > MAX_RETRY_AFTER_DELAY:
+                    return None
         if retry_after is not None:
             try:
                 delay = float(retry_after)
@@ -323,9 +394,12 @@ def _is_replayable_request(request: httpx2.Request) -> bool:
             seekable = getattr(file, "seekable", None)
             seek = getattr(file, "seek", None)
             tell = getattr(file, "tell", None)
-            if not callable(seekable) or not seekable() or not callable(seek) or not callable(tell):
+            try:
+                if not callable(seekable) or not seekable() or not callable(seek) or not callable(tell):
+                    return False
+                position = tell()
+            except (OSError, ValueError):
                 return False
-            position = tell()
             if not isinstance(position, int):
                 return False
             file_positions.append((file, position))
@@ -336,9 +410,12 @@ def _is_replayable_request(request: httpx2.Request) -> bool:
     seekable = getattr(source, "seekable", None)
     seek = getattr(source, "seek", None)
     tell = getattr(source, "tell", None)
-    if not callable(seekable) or not seekable() or not callable(seek) or not callable(tell):
+    try:
+        if not callable(seekable) or not seekable() or not callable(seek) or not callable(tell):
+            return False
+        request.extensions[_REPLAY_POSITION_EXTENSION] = tell()
+    except (OSError, ValueError):
         return False
-    request.extensions[_REPLAY_POSITION_EXTENSION] = tell()
     return True
 
 
@@ -350,10 +427,7 @@ def _transport_errors() -> tuple[type[Exception], ...]:
     return (httpx2.TransportError, legacy_transport_error)
 
 
-def _raise_transport_error(error: Exception) -> NoReturn:
-    request = cast(httpx2.Request | None, getattr(error, "request", None))
-    if request is None:
-        raise OpenAIError("X.509 token exchange connection failed") from error
+def _raise_transport_error(error: Exception, *, request: httpx2.Request) -> NoReturn:
     if isinstance(error, timeout_exceptions()):
         raise APITimeoutError(request=request) from error
     raise APIConnectionError(request=request) from error
@@ -416,8 +490,37 @@ class _X509WorkloadIdentityAuth(_WorkloadIdentityAuth[X509WorkloadIdentity]):
         if callable(seek):
             seek(position)
 
+    def _usable_token_after_transient_failure(self) -> str | None:
+        with self._lock:
+            if self._token_unusable():
+                return None
+            self._cached_token_refresh_at_monotonic = time.monotonic() + INITIAL_RETRY_DELAY
+            return self._cached_token
+
+    @override
+    def _perform_refresh(self) -> None:
+        try:
+            super()._perform_refresh()
+        except (APIConnectionError, _TransientTokenExchangeError):
+            if self._usable_token_after_transient_failure() is None:
+                raise
+
+    def _handle_exchange_response(self, response: httpx2.Response) -> dict[str, Any]:
+        try:
+            return self._handle_token_response(response)
+        except OpenAIError as error:
+            if (
+                response.status_code in (408, 409, 429)
+                or response.status_code >= 500
+                or (response.status_code not in (400, 401, 403) and response.headers.get("x-should-retry") == "true")
+            ):
+                raise _TransientTokenExchangeError(error) from error
+            raise
+
 
 class SyncX509WorkloadIdentityAuth(_X509WorkloadIdentityAuth):
+    _http_client: httpx2.Client
+
     def __init__(
         self, *, workload_identity: X509WorkloadIdentity, http_client: httpx2.Client, max_retries: int
     ) -> None:
@@ -434,15 +537,30 @@ class SyncX509WorkloadIdentityAuth(_X509WorkloadIdentityAuth):
         **kwargs: Any,
     ) -> httpx2.Response:
         with _scoped_sync_client(
-            self._http_client,
-            expected_origin=expected_origin,
-            expected_authorization=expected_authorization,
+            self._http_client, expected_origin=expected_origin, expected_authorization=expected_authorization
         ) as scoped_client:
+            kwargs.setdefault("auth", None)
             return scoped_client.send(request, stream=stream, **kwargs)
+
+    def get_token_for_request(self, request: httpx2.Request) -> str:
+        timeout_token = _EXCHANGE_REQUEST_TIMEOUT.set(request.extensions.get("timeout"))
+        try:
+            try:
+                return self.get_token()
+            except (APIConnectionError, _TransientTokenExchangeError) as error:
+                token = self._usable_token_after_transient_failure()
+                if token is None:
+                    if isinstance(error, _TransientTokenExchangeError):
+                        raise error.error from None
+                    raise
+                return token
+        finally:
+            _EXCHANGE_REQUEST_TIMEOUT.reset(timeout_token)
 
     @override
     def _fetch_token_from_exchange(self) -> dict[str, Any]:
         for attempt in range(self._max_exchange_retries + 1):
+            exchange_request = _token_exchange_request(self.workload_identity, http_client=self._http_client)
             try:
                 with _scoped_sync_client(
                     self._http_client,
@@ -450,18 +568,18 @@ class SyncX509WorkloadIdentityAuth(_X509WorkloadIdentityAuth):
                     token_exchange=True,
                 ) as scoped_client:
                     response = scoped_client.send(
-                        _token_exchange_request(self.workload_identity, http_client=self._http_client),
+                        exchange_request,
                         auth=None,
                         follow_redirects=False,
                     )
             except _transport_errors() as error:
                 if attempt >= self._max_exchange_retries:
-                    _raise_transport_error(error)
+                    _raise_transport_error(error, request=exchange_request)
                 delay = _retry_delay(None, attempt)
             else:
                 delay = _retry_delay(response, attempt)
                 if attempt >= self._max_exchange_retries or delay is None:
-                    return self._handle_token_response(response)
+                    return self._handle_exchange_response(response)
 
             if delay is not None:
                 time.sleep(delay)
@@ -470,6 +588,8 @@ class SyncX509WorkloadIdentityAuth(_X509WorkloadIdentityAuth):
 
 
 class AsyncX509WorkloadIdentityAuth(_X509WorkloadIdentityAuth):
+    _http_client: httpx2.AsyncClient
+
     def __init__(
         self, *, workload_identity: X509WorkloadIdentity, http_client: httpx2.AsyncClient, max_retries: int
     ) -> None:
@@ -487,11 +607,25 @@ class AsyncX509WorkloadIdentityAuth(_X509WorkloadIdentityAuth):
         **kwargs: Any,
     ) -> httpx2.Response:
         async with _scoped_async_client(
-            self._http_client,
-            expected_origin=expected_origin,
-            expected_authorization=expected_authorization,
+            self._http_client, expected_origin=expected_origin, expected_authorization=expected_authorization
         ) as scoped_client:
+            kwargs.setdefault("auth", None)
             return await scoped_client.send(request, stream=stream, **kwargs)
+
+    async def get_token_for_request(self, request: httpx2.Request) -> str:
+        timeout_token = _EXCHANGE_REQUEST_TIMEOUT.set(request.extensions.get("timeout"))
+        try:
+            try:
+                return await self.get_token_async()
+            except (APIConnectionError, _TransientTokenExchangeError) as error:
+                token = self._usable_token_after_transient_failure()
+                if token is None:
+                    if isinstance(error, _TransientTokenExchangeError):
+                        raise error.error from None
+                    raise
+                return token
+        finally:
+            _EXCHANGE_REQUEST_TIMEOUT.reset(timeout_token)
 
     @override
     async def get_token_async(self) -> str:
@@ -500,13 +634,20 @@ class AsyncX509WorkloadIdentityAuth(_X509WorkloadIdentityAuth):
                 if not self._token_unusable() and not self._needs_refresh():
                     return cast(str, self._cached_token)
 
-            token_data = await self._fetch_token_from_exchange_async()
+            try:
+                token_data = await self._fetch_token_from_exchange_async()
+            except (APIConnectionError, _TransientTokenExchangeError):
+                token = self._usable_token_after_transient_failure()
+                if token is None:
+                    raise
+                return token
             self._store_token(token_data)
             with self._lock:
                 return cast(str, self._cached_token)
 
     async def _fetch_token_from_exchange_async(self) -> dict[str, Any]:
         for attempt in range(self._max_exchange_retries + 1):
+            exchange_request = _token_exchange_request(self.workload_identity, http_client=self._http_client)
             try:
                 async with _scoped_async_client(
                     self._http_client,
@@ -514,18 +655,18 @@ class AsyncX509WorkloadIdentityAuth(_X509WorkloadIdentityAuth):
                     token_exchange=True,
                 ) as scoped_client:
                     response = await scoped_client.send(
-                        _token_exchange_request(self.workload_identity, http_client=self._http_client),
+                        exchange_request,
                         auth=None,
                         follow_redirects=False,
                     )
             except _transport_errors() as error:
                 if attempt >= self._max_exchange_retries:
-                    _raise_transport_error(error)
+                    _raise_transport_error(error, request=exchange_request)
                 delay = _retry_delay(None, attempt)
             else:
                 delay = _retry_delay(response, attempt)
                 if attempt >= self._max_exchange_retries or delay is None:
-                    return self._handle_token_response(response)
+                    return self._handle_exchange_response(response)
 
             if delay is not None:
                 await anyio.sleep(delay)
