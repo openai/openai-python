@@ -8,7 +8,7 @@ from typing_extensions import Literal, Required, TypedDict
 from .._types import FileTypes, SequenceNotStr
 from .image_model import ImageModel
 
-__all__ = ["ImageEditParamsBase", "ImageEditParamsNonStreaming", "ImageEditParamsStreaming"]
+__all__ = ["ImageEditParamsBase", "Svg", "SvgReasoning", "ImageEditParamsNonStreaming", "ImageEditParamsStreaming"]
 
 
 class ImageEditParamsBase(TypedDict, total=False):
@@ -120,11 +120,11 @@ class ImageEditParamsBase(TypedDict, total=False):
     `jpeg` output formats, and defaults to 100.
     """
 
-    output_format: Optional[Literal["png", "jpeg", "webp", "gif"]]
+    output_format: Optional[Literal["png", "webp", "jpeg", "gif", "svg"]]
     """The format in which the generated images are returned.
 
     This parameter is only supported for the GPT image models. The default value is
-    `png`.
+    `png`. SVG output requires a supported image model and project access.
     """
 
     partial_images: Optional[int]
@@ -187,12 +187,45 @@ class ImageEditParamsBase(TypedDict, total=False):
       compatibility. Check the selected GPT image model's supported sizes.
     """
 
+    svg: Optional[Svg]
+    """Selects the author model and reasoning effort for `output_format=svg`.
+
+    Supply `svg.model` when SVG model selection is enabled. Otherwise, omit this
+    object. SVG output requires `n=1` and cannot use streaming, partial images, or
+    output compression. Use multipart fields such as `svg[model]`.
+    """
+
     user: str
     """Deprecated: use `safety_identifier` instead.
 
     This parameter remains accepted for backward compatibility and is used when
     `safety_identifier` is omitted, null, or empty.
     [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
+    """
+
+
+class SvgReasoning(TypedDict, total=False):
+    """Reasoning effort for SVG authoring.
+
+    When omitted, uses the author model's default in both Images and Responses.
+    """
+
+    effort: Literal["none", "minimal", "low", "medium", "high", "xhigh", "max"]
+    """Controls how much effort the model should spend on reasoning for this request."""
+
+
+class Svg(TypedDict, total=False):
+    """Selects the author model and reasoning effort for `output_format=svg`.
+
+    Supply `svg.model` when SVG model selection is enabled. Otherwise, omit this object. SVG output requires `n=1` and cannot use streaming, partial images, or output compression. Use multipart fields such as `svg[model]`.
+    """
+
+    model: str
+
+    reasoning: Optional[SvgReasoning]
+    """Reasoning effort for SVG authoring.
+
+    When omitted, uses the author model's default in both Images and Responses.
     """
 
 

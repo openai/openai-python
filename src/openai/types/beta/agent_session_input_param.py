@@ -13,12 +13,41 @@ from .agent_browser_authentication_submit_param_param import AgentBrowserAuthent
 
 __all__ = [
     "AgentSessionInputParam",
+    "SessionInputParamAgentSessionInputMcpApprovalRequestResult",
+    "SessionInputParamAgentSessionInputMcpApprovalRequestResultResponse",
     "SessionInputParamAgentSessionInputComputerUseApprovalRequestResult",
     "SessionInputParamAgentSessionInputComputerUseApprovalRequestResultResponse",
     "SessionInputParamAgentSessionInputMessage",
     "SessionInputParamAgentSessionInputCancel",
     "SessionInputParamAgentSessionInputToolResult",
 ]
+
+
+class SessionInputParamAgentSessionInputMcpApprovalRequestResultResponse(TypedDict, total=False):
+    """The user's decision for a pending MCP tool call."""
+
+    decision: Required[Literal["approve", "deny", "cancel"]]
+    """Cancel dismisses this request without cancelling the session or turn."""
+
+    type: Required[Literal["mcp_tool_call"]]
+    """The type of the object. Always `mcp_tool_call`."""
+
+
+class SessionInputParamAgentSessionInputMcpApprovalRequestResult(TypedDict, total=False):
+    """Responds to a pending MCP tool-call approval request."""
+
+    request_id: Required[str]
+    """The opaque approval ID from the required action."""
+
+    response: Required[SessionInputParamAgentSessionInputMcpApprovalRequestResultResponse]
+    """The user's decision for a pending MCP tool call."""
+
+    type: Required[Literal["agent.session.input.mcp_approval_request_result"]]
+    """The type of the object.
+
+    Always `agent.session.input.mcp_approval_request_result`.
+    """
+
 
 SessionInputParamAgentSessionInputComputerUseApprovalRequestResultResponse: TypeAlias = Union[
     AgentBrowserAuthenticationSubmitParamParam,
@@ -83,6 +112,7 @@ class SessionInputParamAgentSessionInputToolResult(TypedDict, total=False):
 
 
 AgentSessionInputParam: TypeAlias = Union[
+    SessionInputParamAgentSessionInputMcpApprovalRequestResult,
     SessionInputParamAgentSessionInputComputerUseApprovalRequestResult,
     SessionInputParamAgentSessionInputMessage,
     SessionInputParamAgentSessionInputCancel,

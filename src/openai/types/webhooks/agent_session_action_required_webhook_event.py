@@ -10,7 +10,7 @@ __all__ = ["AgentSessionActionRequiredWebhookEvent", "Data", "DataRequiredAction
 class DataRequiredAction(BaseModel):
     """The action type. Retrieve the session for action details."""
 
-    type: Literal["computer_use_approval_request", "function_call", "environment_connection"]
+    type: Literal["computer_use_approval_request", "mcp_approval_request", "function_call", "environment_connection"]
 
 
 class Data(BaseModel):

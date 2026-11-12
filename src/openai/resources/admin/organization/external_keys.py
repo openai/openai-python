@@ -187,6 +187,48 @@ class ExternalKeys(SyncAPIResource):
         """
         ...
 
+    @overload
+    def create(
+        self,
+        *,
+        key_ocid: str,
+        name: str,
+        region: str,
+        type: Literal["oci"],
+        vault_ocid: str,
+        key_version_ocid: str | Omit = omit,
+        purpose: Union[Literal["ekm"], Literal["psp_decryption"]] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> ExternalKey:
+        """
+        Add an external key config for an organization
+
+        Args:
+          key_ocid: The OCI Vault key OCID
+
+          name: A friendly name to identify this config
+
+          region: The OCI region containing the vault
+
+          vault_ocid: The customer OCI Vault OCID
+
+          key_version_ocid: The exact OCI key version OCID for PSP decryption.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
     @required_args(
         ["external_id", "kms_arn", "name", "role_arn", "type"],
         [
@@ -202,6 +244,7 @@ class ExternalKeys(SyncAPIResource):
             "workload_identity_provider_id",
         ],
         ["key_name", "name", "tenant_id", "type", "vault_uri"],
+        ["key_ocid", "name", "region", "type", "vault_ocid"],
     )
     def create(
         self,
@@ -210,7 +253,7 @@ class ExternalKeys(SyncAPIResource):
         kms_arn: str | Omit = omit,
         name: str,
         role_arn: str | Omit = omit,
-        type: Literal["aws"] | Literal["gcp"] | Literal["azure"],
+        type: Literal["aws"] | Literal["gcp"] | Literal["azure"] | Literal["oci"],
         purpose: Union[Literal["ekm"], Literal["psp_decryption"]] | Omit = omit,
         audience: str | Omit = omit,
         kms_key_location: str | Omit = omit,
@@ -225,6 +268,10 @@ class ExternalKeys(SyncAPIResource):
         tenant_id: str | Omit = omit,
         vault_uri: str | Omit = omit,
         key_version: str | Omit = omit,
+        key_ocid: str | Omit = omit,
+        region: str | Omit = omit,
+        vault_ocid: str | Omit = omit,
+        key_version_ocid: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -255,6 +302,10 @@ class ExternalKeys(SyncAPIResource):
                     "tenant_id": tenant_id,
                     "vault_uri": vault_uri,
                     "key_version": key_version,
+                    "key_ocid": key_ocid,
+                    "region": region,
+                    "vault_ocid": vault_ocid,
+                    "key_version_ocid": key_version_ocid,
                 },
                 external_key_create_params.ExternalKeyCreateParams,
             ),
@@ -595,6 +646,48 @@ class AsyncExternalKeys(AsyncAPIResource):
         """
         ...
 
+    @overload
+    async def create(
+        self,
+        *,
+        key_ocid: str,
+        name: str,
+        region: str,
+        type: Literal["oci"],
+        vault_ocid: str,
+        key_version_ocid: str | Omit = omit,
+        purpose: Union[Literal["ekm"], Literal["psp_decryption"]] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> ExternalKey:
+        """
+        Add an external key config for an organization
+
+        Args:
+          key_ocid: The OCI Vault key OCID
+
+          name: A friendly name to identify this config
+
+          region: The OCI region containing the vault
+
+          vault_ocid: The customer OCI Vault OCID
+
+          key_version_ocid: The exact OCI key version OCID for PSP decryption.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
     @required_args(
         ["external_id", "kms_arn", "name", "role_arn", "type"],
         [
@@ -610,6 +703,7 @@ class AsyncExternalKeys(AsyncAPIResource):
             "workload_identity_provider_id",
         ],
         ["key_name", "name", "tenant_id", "type", "vault_uri"],
+        ["key_ocid", "name", "region", "type", "vault_ocid"],
     )
     async def create(
         self,
@@ -618,7 +712,7 @@ class AsyncExternalKeys(AsyncAPIResource):
         kms_arn: str | Omit = omit,
         name: str,
         role_arn: str | Omit = omit,
-        type: Literal["aws"] | Literal["gcp"] | Literal["azure"],
+        type: Literal["aws"] | Literal["gcp"] | Literal["azure"] | Literal["oci"],
         purpose: Union[Literal["ekm"], Literal["psp_decryption"]] | Omit = omit,
         audience: str | Omit = omit,
         kms_key_location: str | Omit = omit,
@@ -633,6 +727,10 @@ class AsyncExternalKeys(AsyncAPIResource):
         tenant_id: str | Omit = omit,
         vault_uri: str | Omit = omit,
         key_version: str | Omit = omit,
+        key_ocid: str | Omit = omit,
+        region: str | Omit = omit,
+        vault_ocid: str | Omit = omit,
+        key_version_ocid: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -663,6 +761,10 @@ class AsyncExternalKeys(AsyncAPIResource):
                     "tenant_id": tenant_id,
                     "vault_uri": vault_uri,
                     "key_version": key_version,
+                    "key_ocid": key_ocid,
+                    "region": region,
+                    "vault_ocid": vault_ocid,
+                    "key_version_ocid": key_version_ocid,
                 },
                 external_key_create_params.ExternalKeyCreateParams,
             ),

@@ -29,7 +29,11 @@ class ExternalKey(BaseModel):
 
     key_name: Optional[str] = None
 
+    key_ocid: Optional[str] = None
+
     key_version: Optional[str] = None
+
+    key_version_ocid: Optional[str] = None
 
     kms_arn: Optional[str] = None
 
@@ -45,9 +49,13 @@ class ExternalKey(BaseModel):
 
     purpose: Optional[Literal["ekm", "psp_decryption"]] = None
 
+    region: Optional[str] = None
+
     role_arn: Optional[str] = None
 
     tenant_id: Optional[str] = None
+
+    vault_ocid: Optional[str] = None
 
     vault_uri: Optional[str] = None
 

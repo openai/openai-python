@@ -193,6 +193,9 @@ class APIKeyDeleted(BaseModel):
 class APIKeyUpdatedChangesRequested(BaseModel):
     """The payload used to update the API key."""
 
+    expires_in_seconds: Optional[int] = None
+    """Number of seconds from the update request until the API key expires."""
+
     scopes: Optional[List[str]] = None
     """A list of scopes allowed for the API key, e.g. `["api.model.request"]`"""
 

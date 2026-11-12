@@ -152,7 +152,7 @@ class Images(SyncAPIResource):
         model: Union[str, ImageModel, None] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp", "gif"]] | Omit = omit,
+        output_format: Optional[Literal["png", "webp", "jpeg", "gif", "svg"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
@@ -160,6 +160,7 @@ class Images(SyncAPIResource):
         size: Union[str, Literal["1024x1024", "1536x1024", "1024x1536", "auto", "256x256", "512x512"], None]
         | Omit = omit,
         stream: Optional[Literal[False]] | Omit = omit,
+        svg: Optional[image_edit_params.Svg] | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -247,7 +248,8 @@ class Images(SyncAPIResource):
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for the GPT image models. The default value is `png`.
+              supported for the GPT image models. The default value is `png`. SVG output
+              requires a supported image model and project access.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
               responses that return partial images. Value must be between 0 and 3. When set to
@@ -297,6 +299,11 @@ class Images(SyncAPIResource):
               [Image generation guide](https://developers.openai.com/api/docs/guides/image-generation)
               for more information.
 
+          svg: Selects the author model and reasoning effort for `output_format=svg`. Supply
+              `svg.model` when SVG model selection is enabled. Otherwise, omit this object.
+              SVG output requires `n=1` and cannot use streaming, partial images, or output
+              compression. Use multipart fields such as `svg[model]`.
+
           user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
               backward compatibility and is used when `safety_identifier` is omitted, null, or
               empty.
@@ -329,13 +336,14 @@ class Images(SyncAPIResource):
         model: Union[str, ImageModel, None] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp", "gif"]] | Omit = omit,
+        output_format: Optional[Literal["png", "webp", "jpeg", "gif", "svg"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
         size: Union[str, Literal["1024x1024", "1536x1024", "1024x1536", "auto", "256x256", "512x512"], None]
         | Omit = omit,
+        svg: Optional[image_edit_params.Svg] | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -427,7 +435,8 @@ class Images(SyncAPIResource):
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for the GPT image models. The default value is `png`.
+              supported for the GPT image models. The default value is `png`. SVG output
+              requires a supported image model and project access.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
               responses that return partial images. Value must be between 0 and 3. When set to
@@ -473,6 +482,11 @@ class Images(SyncAPIResource):
               - "256x256", "512x512": This legacy size suggestion is retained for SDK
                 compatibility. Check the selected GPT image model's supported sizes.
 
+          svg: Selects the author model and reasoning effort for `output_format=svg`. Supply
+              `svg.model` when SVG model selection is enabled. Otherwise, omit this object.
+              SVG output requires `n=1` and cannot use streaming, partial images, or output
+              compression. Use multipart fields such as `svg[model]`.
+
           user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
               backward compatibility and is used when `safety_identifier` is omitted, null, or
               empty.
@@ -505,13 +519,14 @@ class Images(SyncAPIResource):
         model: Union[str, ImageModel, None] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp", "gif"]] | Omit = omit,
+        output_format: Optional[Literal["png", "webp", "jpeg", "gif", "svg"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
         size: Union[str, Literal["1024x1024", "1536x1024", "1024x1536", "auto", "256x256", "512x512"], None]
         | Omit = omit,
+        svg: Optional[image_edit_params.Svg] | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -603,7 +618,8 @@ class Images(SyncAPIResource):
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for the GPT image models. The default value is `png`.
+              supported for the GPT image models. The default value is `png`. SVG output
+              requires a supported image model and project access.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
               responses that return partial images. Value must be between 0 and 3. When set to
@@ -649,6 +665,11 @@ class Images(SyncAPIResource):
               - "256x256", "512x512": This legacy size suggestion is retained for SDK
                 compatibility. Check the selected GPT image model's supported sizes.
 
+          svg: Selects the author model and reasoning effort for `output_format=svg`. Supply
+              `svg.model` when SVG model selection is enabled. Otherwise, omit this object.
+              SVG output requires `n=1` and cannot use streaming, partial images, or output
+              compression. Use multipart fields such as `svg[model]`.
+
           user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
               backward compatibility and is used when `safety_identifier` is omitted, null, or
               empty.
@@ -680,7 +701,7 @@ class Images(SyncAPIResource):
         model: Union[str, ImageModel, None] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp", "gif"]] | Omit = omit,
+        output_format: Optional[Literal["png", "webp", "jpeg", "gif", "svg"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
@@ -688,6 +709,7 @@ class Images(SyncAPIResource):
         size: Union[str, Literal["1024x1024", "1536x1024", "1024x1536", "auto", "256x256", "512x512"], None]
         | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
+        svg: Optional[image_edit_params.Svg] | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -717,6 +739,7 @@ class Images(SyncAPIResource):
                 "safety_identifier": safety_identifier,
                 "size": size,
                 "stream": stream,
+                "svg": svg,
                 "user": user,
             },
             [["image"], ["image", "<array>"], ["markup"], ["mask"]],
@@ -760,7 +783,7 @@ class Images(SyncAPIResource):
         moderation: Optional[Literal["low", "auto"]] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp", "gif", "svg"]] | Omit = omit,
+        output_format: Optional[Literal["png", "webp", "jpeg", "gif", "svg"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard", "hd"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
@@ -903,7 +926,7 @@ class Images(SyncAPIResource):
               enabled, supply svg.model. When model selection is disabled, omit this object.
               The top-level model selects the image model that creates the reference image.
               SVG generation requires n=1 and does not support streaming, partial images,
-              prompt_rewriter, or output_compression. SVG edits are not supported.
+              prompt_rewriter, or output_compression.
 
           user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
               backward compatibility and is used when `safety_identifier` is omitted, null, or
@@ -934,7 +957,7 @@ class Images(SyncAPIResource):
         moderation: Optional[Literal["low", "auto"]] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp", "gif", "svg"]] | Omit = omit,
+        output_format: Optional[Literal["png", "webp", "jpeg", "gif", "svg"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard", "hd"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
@@ -1076,7 +1099,7 @@ class Images(SyncAPIResource):
               enabled, supply svg.model. When model selection is disabled, omit this object.
               The top-level model selects the image model that creates the reference image.
               SVG generation requires n=1 and does not support streaming, partial images,
-              prompt_rewriter, or output_compression. SVG edits are not supported.
+              prompt_rewriter, or output_compression.
 
           user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
               backward compatibility and is used when `safety_identifier` is omitted, null, or
@@ -1107,7 +1130,7 @@ class Images(SyncAPIResource):
         moderation: Optional[Literal["low", "auto"]] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp", "gif", "svg"]] | Omit = omit,
+        output_format: Optional[Literal["png", "webp", "jpeg", "gif", "svg"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard", "hd"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
@@ -1249,7 +1272,7 @@ class Images(SyncAPIResource):
               enabled, supply svg.model. When model selection is disabled, omit this object.
               The top-level model selects the image model that creates the reference image.
               SVG generation requires n=1 and does not support streaming, partial images,
-              prompt_rewriter, or output_compression. SVG edits are not supported.
+              prompt_rewriter, or output_compression.
 
           user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
               backward compatibility and is used when `safety_identifier` is omitted, null, or
@@ -1279,7 +1302,7 @@ class Images(SyncAPIResource):
         moderation: Optional[Literal["low", "auto"]] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp", "gif", "svg"]] | Omit = omit,
+        output_format: Optional[Literal["png", "webp", "jpeg", "gif", "svg"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard", "hd"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
@@ -1468,7 +1491,7 @@ class AsyncImages(AsyncAPIResource):
         model: Union[str, ImageModel, None] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp", "gif"]] | Omit = omit,
+        output_format: Optional[Literal["png", "webp", "jpeg", "gif", "svg"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
@@ -1476,6 +1499,7 @@ class AsyncImages(AsyncAPIResource):
         size: Union[str, Literal["1024x1024", "1536x1024", "1024x1536", "auto", "256x256", "512x512"], None]
         | Omit = omit,
         stream: Optional[Literal[False]] | Omit = omit,
+        svg: Optional[image_edit_params.Svg] | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1563,7 +1587,8 @@ class AsyncImages(AsyncAPIResource):
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for the GPT image models. The default value is `png`.
+              supported for the GPT image models. The default value is `png`. SVG output
+              requires a supported image model and project access.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
               responses that return partial images. Value must be between 0 and 3. When set to
@@ -1613,6 +1638,11 @@ class AsyncImages(AsyncAPIResource):
               [Image generation guide](https://developers.openai.com/api/docs/guides/image-generation)
               for more information.
 
+          svg: Selects the author model and reasoning effort for `output_format=svg`. Supply
+              `svg.model` when SVG model selection is enabled. Otherwise, omit this object.
+              SVG output requires `n=1` and cannot use streaming, partial images, or output
+              compression. Use multipart fields such as `svg[model]`.
+
           user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
               backward compatibility and is used when `safety_identifier` is omitted, null, or
               empty.
@@ -1645,13 +1675,14 @@ class AsyncImages(AsyncAPIResource):
         model: Union[str, ImageModel, None] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp", "gif"]] | Omit = omit,
+        output_format: Optional[Literal["png", "webp", "jpeg", "gif", "svg"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
         size: Union[str, Literal["1024x1024", "1536x1024", "1024x1536", "auto", "256x256", "512x512"], None]
         | Omit = omit,
+        svg: Optional[image_edit_params.Svg] | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1743,7 +1774,8 @@ class AsyncImages(AsyncAPIResource):
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for the GPT image models. The default value is `png`.
+              supported for the GPT image models. The default value is `png`. SVG output
+              requires a supported image model and project access.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
               responses that return partial images. Value must be between 0 and 3. When set to
@@ -1789,6 +1821,11 @@ class AsyncImages(AsyncAPIResource):
               - "256x256", "512x512": This legacy size suggestion is retained for SDK
                 compatibility. Check the selected GPT image model's supported sizes.
 
+          svg: Selects the author model and reasoning effort for `output_format=svg`. Supply
+              `svg.model` when SVG model selection is enabled. Otherwise, omit this object.
+              SVG output requires `n=1` and cannot use streaming, partial images, or output
+              compression. Use multipart fields such as `svg[model]`.
+
           user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
               backward compatibility and is used when `safety_identifier` is omitted, null, or
               empty.
@@ -1821,13 +1858,14 @@ class AsyncImages(AsyncAPIResource):
         model: Union[str, ImageModel, None] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp", "gif"]] | Omit = omit,
+        output_format: Optional[Literal["png", "webp", "jpeg", "gif", "svg"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
         size: Union[str, Literal["1024x1024", "1536x1024", "1024x1536", "auto", "256x256", "512x512"], None]
         | Omit = omit,
+        svg: Optional[image_edit_params.Svg] | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1919,7 +1957,8 @@ class AsyncImages(AsyncAPIResource):
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for the GPT image models. The default value is `png`.
+              supported for the GPT image models. The default value is `png`. SVG output
+              requires a supported image model and project access.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
               responses that return partial images. Value must be between 0 and 3. When set to
@@ -1965,6 +2004,11 @@ class AsyncImages(AsyncAPIResource):
               - "256x256", "512x512": This legacy size suggestion is retained for SDK
                 compatibility. Check the selected GPT image model's supported sizes.
 
+          svg: Selects the author model and reasoning effort for `output_format=svg`. Supply
+              `svg.model` when SVG model selection is enabled. Otherwise, omit this object.
+              SVG output requires `n=1` and cannot use streaming, partial images, or output
+              compression. Use multipart fields such as `svg[model]`.
+
           user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
               backward compatibility and is used when `safety_identifier` is omitted, null, or
               empty.
@@ -1996,7 +2040,7 @@ class AsyncImages(AsyncAPIResource):
         model: Union[str, ImageModel, None] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp", "gif"]] | Omit = omit,
+        output_format: Optional[Literal["png", "webp", "jpeg", "gif", "svg"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
@@ -2004,6 +2048,7 @@ class AsyncImages(AsyncAPIResource):
         size: Union[str, Literal["1024x1024", "1536x1024", "1024x1536", "auto", "256x256", "512x512"], None]
         | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
+        svg: Optional[image_edit_params.Svg] | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -2033,6 +2078,7 @@ class AsyncImages(AsyncAPIResource):
                 "safety_identifier": safety_identifier,
                 "size": size,
                 "stream": stream,
+                "svg": svg,
                 "user": user,
             },
             [["image"], ["image", "<array>"], ["markup"], ["mask"]],
@@ -2076,7 +2122,7 @@ class AsyncImages(AsyncAPIResource):
         moderation: Optional[Literal["low", "auto"]] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp", "gif", "svg"]] | Omit = omit,
+        output_format: Optional[Literal["png", "webp", "jpeg", "gif", "svg"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard", "hd"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
@@ -2219,7 +2265,7 @@ class AsyncImages(AsyncAPIResource):
               enabled, supply svg.model. When model selection is disabled, omit this object.
               The top-level model selects the image model that creates the reference image.
               SVG generation requires n=1 and does not support streaming, partial images,
-              prompt_rewriter, or output_compression. SVG edits are not supported.
+              prompt_rewriter, or output_compression.
 
           user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
               backward compatibility and is used when `safety_identifier` is omitted, null, or
@@ -2250,7 +2296,7 @@ class AsyncImages(AsyncAPIResource):
         moderation: Optional[Literal["low", "auto"]] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp", "gif", "svg"]] | Omit = omit,
+        output_format: Optional[Literal["png", "webp", "jpeg", "gif", "svg"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard", "hd"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
@@ -2392,7 +2438,7 @@ class AsyncImages(AsyncAPIResource):
               enabled, supply svg.model. When model selection is disabled, omit this object.
               The top-level model selects the image model that creates the reference image.
               SVG generation requires n=1 and does not support streaming, partial images,
-              prompt_rewriter, or output_compression. SVG edits are not supported.
+              prompt_rewriter, or output_compression.
 
           user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
               backward compatibility and is used when `safety_identifier` is omitted, null, or
@@ -2423,7 +2469,7 @@ class AsyncImages(AsyncAPIResource):
         moderation: Optional[Literal["low", "auto"]] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp", "gif", "svg"]] | Omit = omit,
+        output_format: Optional[Literal["png", "webp", "jpeg", "gif", "svg"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard", "hd"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
@@ -2565,7 +2611,7 @@ class AsyncImages(AsyncAPIResource):
               enabled, supply svg.model. When model selection is disabled, omit this object.
               The top-level model selects the image model that creates the reference image.
               SVG generation requires n=1 and does not support streaming, partial images,
-              prompt_rewriter, or output_compression. SVG edits are not supported.
+              prompt_rewriter, or output_compression.
 
           user: Deprecated: use `safety_identifier` instead. This parameter remains accepted for
               backward compatibility and is used when `safety_identifier` is omitted, null, or
@@ -2595,7 +2641,7 @@ class AsyncImages(AsyncAPIResource):
         moderation: Optional[Literal["low", "auto"]] | Omit = omit,
         n: Optional[int] | Omit = omit,
         output_compression: Optional[int] | Omit = omit,
-        output_format: Optional[Literal["png", "jpeg", "webp", "gif", "svg"]] | Omit = omit,
+        output_format: Optional[Literal["png", "webp", "jpeg", "gif", "svg"]] | Omit = omit,
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["low", "medium", "high", "xhigh", "max", "auto", "standard", "hd"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,

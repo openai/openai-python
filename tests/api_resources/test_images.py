@@ -96,6 +96,10 @@ class TestImages:
             safety_identifier="user-1234",
             size="1024x1024",
             stream=False,
+            svg={
+                "model": "x",
+                "reasoning": {"effort": "none"},
+            },
             user="user-1234",
         )
         assert_matches_type(ImagesResponse, image, path=["response"])
@@ -157,6 +161,10 @@ class TestImages:
             response_format="url",
             safety_identifier="user-1234",
             size="1024x1024",
+            svg={
+                "model": "x",
+                "reasoning": {"effort": "none"},
+            },
             user="user-1234",
         )
         image_stream.response.close()
@@ -397,6 +405,10 @@ class TestAsyncImages:
             safety_identifier="user-1234",
             size="1024x1024",
             stream=False,
+            svg={
+                "model": "x",
+                "reasoning": {"effort": "none"},
+            },
             user="user-1234",
         )
         assert_matches_type(ImagesResponse, image, path=["response"])
@@ -458,6 +470,10 @@ class TestAsyncImages:
             response_format="url",
             safety_identifier="user-1234",
             size="1024x1024",
+            svg={
+                "model": "x",
+                "reasoning": {"effort": "none"},
+            },
             user="user-1234",
         )
         await image_stream.response.aclose()
