@@ -31,6 +31,7 @@ __all__ = [
     "ToolChoiceBetaSpecificProgrammaticToolCallingParam",
     "Conversation",
     "Image",
+    "InputTransformation",
     "Moderation",
     "ModerationInput",
     "ModerationInputModerationResult",
@@ -102,6 +103,17 @@ class Conversation(BaseModel):
 class Image(BaseModel):
     context_compression: Literal["enabled", "disabled"]
     """Effective image context optimization policy."""
+
+
+class InputTransformation(BaseModel):
+    id: str
+    """The original reasoning item ID."""
+
+    action: Literal["removed"]
+
+    reason: Literal["organization_mismatch", "end_user_mismatch", "model_mismatch", "prefix_mismatch", "turn_boundary"]
+
+    type: Literal["reasoning"]
 
 
 class ModerationInputModerationResult(BaseModel):
@@ -725,6 +737,9 @@ class BetaResponse(BaseModel):
 
     image: Optional[Image] = None
 
+    input_transformations: Optional[List[InputTransformation]] = None
+    """Reasoning inputs withheld from the model, in input order."""
+
     max_output_tokens: Optional[int] = None
     """
     An upper bound for the number of tokens that can be generated for a response,
@@ -885,7 +900,9 @@ class BetaResponse(BaseModel):
 
     - `auto`: If the input to this Response exceeds the model's context window size,
       the model will truncate the response to fit the context window by dropping
-      items from the beginning of the conversation.
+      items from the beginning of the conversation. On some models, trimming can
+      begin earlier because the API subtracts the model's maximum output allowance
+      from its input limit, even if you set a lower `max_output_tokens`.
     - `disabled` (default): If the input size will exceed the context window size
       for a model, the request will fail with a 400 error.
     """

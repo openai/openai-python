@@ -60,6 +60,7 @@ class TestSessions:
                     }
                 ],
                 "instructions": "instructions",
+                "safety_identifier": "safety_identifier",
                 "store": True,
                 "triggers": [
                     {
@@ -446,6 +447,7 @@ class TestAsyncSessions:
                     }
                 ],
                 "instructions": "instructions",
+                "safety_identifier": "safety_identifier",
                 "store": True,
                 "triggers": [
                     {

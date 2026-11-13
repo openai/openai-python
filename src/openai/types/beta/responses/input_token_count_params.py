@@ -105,9 +105,11 @@ class InputTokenCountParams(TypedDict, total=False):
 
     - `auto`: If the input to this Response exceeds the model's context window size,
       the model will truncate the response to fit the context window by dropping
-      items from the beginning of the conversation. - `disabled` (default): If the
-      input size will exceed the context window size for a model, the request will
-      fail with a 400 error.
+      items from the beginning of the conversation. On some models, trimming can
+      begin earlier because the API subtracts the model's maximum output allowance
+      from its input limit before counting tokens.
+    - `disabled` (default): If the input size will exceed the context window size
+      for a model, the request will fail with a 400 error.
     """
 
     betas: Annotated[List[Literal["responses_multi_agent=v1"]], PropertyInfo(alias="openai-beta")]

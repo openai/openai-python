@@ -51,9 +51,10 @@ class VideoCreateError(BaseModel):
     """A human-readable description of the error that was returned."""
 
     headers: Optional[Dict[str, str]] = None
-    """
-    The Retry-After and Retry-After-Ms headers returned with the original error, if
-    any.
+    """Headers returned with the original error.
+
+    These can include Retry-After, Retry-After-Ms, and, on opted-in deployments,
+    x-openai-inference-capacity-reason.
     """
 
     misalignment: Optional[Misalignment] = None

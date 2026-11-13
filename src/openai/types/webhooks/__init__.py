@@ -42,6 +42,9 @@ from .live_transport_incoming_webhook_event import (
 from .agent_environment_failed_webhook_event import (
     AgentEnvironmentFailedWebhookEvent as AgentEnvironmentFailedWebhookEvent,
 )
+from .live_transport_connected_webhook_event import (
+    LiveTransportConnectedWebhookEvent as LiveTransportConnectedWebhookEvent,
+)
 from .safety_org_alert_created_webhook_event import (
     SafetyOrgAlertCreatedWebhookEvent as SafetyOrgAlertCreatedWebhookEvent,
 )

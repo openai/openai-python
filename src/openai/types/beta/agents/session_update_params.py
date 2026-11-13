@@ -7,7 +7,7 @@ from typing_extensions import Literal, Required, TypedDict
 
 from ..agent_tool_param import AgentToolParam
 
-__all__ = ["SessionUpdateParams", "Agent", "AgentReasoning", "SpendControl"]
+__all__ = ["SessionUpdateParams", "Agent", "AgentReasoning", "PromptCacheOptions", "SpendControl"]
 
 
 class SessionUpdateParams(TypedDict, total=False):
@@ -19,6 +19,12 @@ class SessionUpdateParams(TypedDict, total=False):
 
     Omit to leave unchanged, or pass null or {} to clear it. Up to 16 string
     key-value pairs, with keys up to 64 and values up to 512 characters.
+    """
+
+    prompt_cache_options: Optional[PromptCacheOptions]
+    """Default prompt cache lifetime for future turns.
+
+    Send null to clear the session default.
     """
 
     review: Literal["none", "auto_review"]
@@ -72,6 +78,16 @@ class Agent(TypedDict, total=False):
     by the next turn. Omit to keep the current tools, or pass null or an empty array
     to clear them.
     """
+
+
+class PromptCacheOptions(TypedDict, total=False):
+    """Default prompt cache lifetime for future turns.
+
+    Send null to clear the session default.
+    """
+
+    ttl: Literal["30m", "12h"]
+    """Minimum lifetime for new prompt cache entries. Defaults to 30 minutes."""
 
 
 class SpendControl(TypedDict, total=False):

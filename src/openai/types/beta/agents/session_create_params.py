@@ -19,6 +19,7 @@ __all__ = [
     "Agent",
     "AgentCompaction",
     "AgentExperimental",
+    "PromptCacheOptions",
     "SpendControl",
     "StreamOptions",
     "SessionCreateParamsNonStreaming",
@@ -56,6 +57,12 @@ class SessionCreateParamsBase(TypedDict, total=False):
     """
     Up to 16 string key-value pairs, with keys up to 64 and values up to 512
     characters. Omission or null defaults to an empty map.
+    """
+
+    prompt_cache_options: Optional[PromptCacheOptions]
+    """Default prompt cache lifetime for turns in this session.
+
+    Omit to use the model default.
     """
 
     review: Literal["none", "auto_review"]
@@ -164,6 +171,16 @@ class Agent(TypedDict, total=False):
     Omit to inherit, or pass null to clear them. The resolved tool list must fit
     within 3 MiB (3,145,728 bytes) of compact UTF-8 JSON.
     """
+
+
+class PromptCacheOptions(TypedDict, total=False):
+    """Default prompt cache lifetime for turns in this session.
+
+    Omit to use the model default.
+    """
+
+    ttl: Literal["30m", "12h"]
+    """Minimum lifetime for new prompt cache entries. Defaults to 30 minutes."""
 
 
 class SpendControl(TypedDict, total=False):
