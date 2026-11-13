@@ -42,7 +42,7 @@ class EventHandlerRegistry:
             handlers = self._handlers.get(event_type)
             if handlers is not None:
                 for index, registration in enumerate(handlers):
-                    if registration.handler == handler:
+                    if registration.handler is handler or registration.handler == handler:
                         del handlers[index]
                         break
         finally:
