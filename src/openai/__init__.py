@@ -340,7 +340,7 @@ class _ModuleClient(OpenAI):
     @property
     @override
     def _client(self) -> _httpx.Client:
-        return http_client or super()._client
+        return http_client if http_client is not None else super()._client
 
     @_client.setter
     def _client(self, value: _httpx.Client) -> None:
