@@ -85,6 +85,24 @@ async def test_poll_interval_and_headers(
         sleep.assert_called_once_with(seconds)
 
 
+async def test_server_poll_interval_is_read_from_each_response(resource: PollResource) -> None:
+    terminal = raw_response(resource)
+    with (
+        mock.patch.object(
+            resource.with_raw_response,
+            "retrieve",
+            side_effect=[
+                raw_response(resource, pending=True, headers={"openai-poll-after-ms": "100"}),
+                raw_response(resource, pending=True, headers={"openai-poll-after-ms": "2000"}),
+                terminal,
+            ],
+        ),
+        mock.patch.object(resource, "_sleep") as sleep,
+    ):
+        assert await poll(resource) is terminal.parse.return_value
+        assert sleep.call_args_list == [mock.call(0.1), mock.call(2.0)]
+
+
 async def test_retrieve_error_propagates(resource: PollResource) -> None:
     error = RuntimeError("synthetic retrieval failure")
     with mock.patch.object(resource.with_raw_response, "retrieve", side_effect=error):
