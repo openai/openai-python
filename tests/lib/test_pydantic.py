@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 from enum import Enum
+from typing import Tuple
+from typing_extensions import Annotated
 
+import pytest
 from pydantic import Field, BaseModel
 from inline_snapshot import snapshot
 
@@ -167,6 +170,78 @@ def test_most_types() -> None:
                 },
             }
         )
+
+
+class Location(BaseModel):
+    lat: float
+    long: float
+
+
+class Route(BaseModel):
+    endpoints: Tuple[
+        Annotated[Location, Field(description="The starting point.")],
+        Annotated[Location, Field(description="The ending point.")],
+    ]
+
+
+@pytest.mark.skipif(PYDANTIC_V1, reason="`prefixItems` is only emitted by pydantic v2")
+def test_tuple_prefix_items_ref_expansion() -> None:
+    # tuple elements are emitted under `prefixItems`; the strict transform must
+    # recurse into them the same way it does for `items`, otherwise a `$ref` that
+    # carries sibling keys (e.g. a field description) is left un-expanded and the
+    # API rejects the resulting schema.
+    assert to_strict_json_schema(Route) == snapshot(
+        {
+            "$defs": {
+                "Location": {
+                    "properties": {
+                        "lat": {"title": "Lat", "type": "number"},
+                        "long": {"title": "Long", "type": "number"},
+                    },
+                    "required": ["lat", "long"],
+                    "title": "Location",
+                    "type": "object",
+                    "additionalProperties": False,
+                }
+            },
+            "properties": {
+                "endpoints": {
+                    "maxItems": 2,
+                    "minItems": 2,
+                    "prefixItems": [
+                        {
+                            "description": "The starting point.",
+                            "properties": {
+                                "lat": {"title": "Lat", "type": "number"},
+                                "long": {"title": "Long", "type": "number"},
+                            },
+                            "required": ["lat", "long"],
+                            "title": "Location",
+                            "type": "object",
+                            "additionalProperties": False,
+                        },
+                        {
+                            "description": "The ending point.",
+                            "properties": {
+                                "lat": {"title": "Lat", "type": "number"},
+                                "long": {"title": "Long", "type": "number"},
+                            },
+                            "required": ["lat", "long"],
+                            "title": "Location",
+                            "type": "object",
+                            "additionalProperties": False,
+                        },
+                    ],
+                    "title": "Endpoints",
+                    "type": "array",
+                }
+            },
+            "required": ["endpoints"],
+            "title": "Route",
+            "type": "object",
+            "additionalProperties": False,
+        }
+    )
 
 
 class Color(Enum):
