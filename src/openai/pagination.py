@@ -152,7 +152,7 @@ class SyncConversationCursorPage(BaseSyncPage[_T], BasePage[_T], Generic[_T]):
         if has_more is not None and has_more is False:
             return False
 
-        return super().has_next_page()
+        return self.next_page_info() is not None
 
     @override
     def next_page_info(self) -> Optional[PageInfo]:
@@ -181,7 +181,7 @@ class AsyncConversationCursorPage(BaseAsyncPage[_T], BasePage[_T], Generic[_T]):
         if has_more is not None and has_more is False:
             return False
 
-        return super().has_next_page()
+        return self.next_page_info() is not None
 
     @override
     def next_page_info(self) -> Optional[PageInfo]:
@@ -210,7 +210,7 @@ class SyncNextCursorPage(BaseSyncPage[_T], BasePage[_T], Generic[_T]):
         if has_more is not None and has_more is False:
             return False
 
-        return super().has_next_page()
+        return self.next_page_info() is not None
 
     @override
     def next_page_info(self) -> Optional[PageInfo]:
@@ -239,7 +239,7 @@ class AsyncNextCursorPage(BaseAsyncPage[_T], BasePage[_T], Generic[_T]):
         if has_more is not None and has_more is False:
             return False
 
-        return super().has_next_page()
+        return self.next_page_info() is not None
 
     @override
     def next_page_info(self) -> Optional[PageInfo]:
@@ -268,7 +268,7 @@ class SyncTokenPage(BaseSyncPage[_T], BasePage[_T], Generic[_T]):
         if has_more is not None and has_more is False:
             return False
 
-        return super().has_next_page()
+        return self.next_page_info() is not None
 
     @override
     def next_page_info(self) -> Optional[PageInfo]:
@@ -297,7 +297,7 @@ class AsyncTokenPage(BaseAsyncPage[_T], BasePage[_T], Generic[_T]):
         if has_more is not None and has_more is False:
             return False
 
-        return super().has_next_page()
+        return self.next_page_info() is not None
 
     @override
     def next_page_info(self) -> Optional[PageInfo]:
