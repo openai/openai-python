@@ -3,3 +3,4 @@ from ._tools import (
     pydantic_responses_function_tool as pydantic_responses_function_tool,
 )
 from ._parsing import ResponseFormatT as ResponseFormatT, type_to_response_format_param as type_to_response_format_param
+from ._responses import raise_for_status as raise_for_status
