@@ -96,6 +96,11 @@ class AgentSessionStream(Generic[OutputT]):
     end of the connection raises RuntimeError. Closing the stream does not cancel
     the backend turn.
 
+    Raw session creation and event subscriptions yield type="error" events as
+    values. Handle them in your loop to receive later lifecycle events. HTTP
+    failures, connection failures, and malformed JSON still raise exceptions.
+    get_final_result() still raises if it cannot collect a completed turn.
+
     Optional tool handlers run sequentially during iteration, after their call
     event is yielded. Unregistered tools are left for the caller to handle. A
     handler exception submits a generic failure result without exception text.
