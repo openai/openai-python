@@ -21,6 +21,24 @@ def require(condition: bool, message: str) -> None:
         raise RuntimeError(message)
 
 
+def require_unmarked_dependency(project_metadata: str, requirement: str) -> None:
+    name, bounds = re.split(r"(?=[<>=!~])", requirement, maxsplit=1)
+    expected = {bound.strip() for bound in bounds.split(",")}
+    unmarked = False
+    for candidate in re.findall(rf'"{re.escape(name)}([^"\n]*)"', project_metadata):
+        bounds, separator, marker = candidate.partition(";")
+        # Bound order and surrounding whitespace do not change a requirement.
+        # Keep every bound and the marker separate so neither can be discarded.
+        if {bound.strip() for bound in bounds.split(",")} != expected:
+            continue
+        require(
+            re.search(r"\bpython_version\b", marker) is None,
+            f"Package metadata still contains a Python marker for {requirement!r}",
+        )
+        unmarked = unmarked or not separator
+    require(unmarked, f"Package metadata does not contain the unmarked requirement {requirement!r}")
+
+
 def workflow_job(workflow: str, name: str) -> str:
     match = re.search(
         rf"^  {re.escape(name)}:\n(?P<body>.*?)(?=^  [A-Za-z0-9_-]+:\n|\Z)",
@@ -127,14 +145,7 @@ def main() -> None:
 
     project_metadata = pyproject.split("[dependency-groups]", 1)[0]
     for requirement in UNMARKED_DEPENDENCIES:
-        require(
-            f'"{requirement}"' in project_metadata,
-            f"Package metadata does not contain the unmarked requirement {requirement!r}",
-        )
-        require(
-            re.search(rf'"{re.escape(requirement)};\s*python_version\b', project_metadata) is None,
-            f"Package metadata still contains a Python marker for {requirement!r}",
-        )
+        require_unmarked_dependency(project_metadata, requirement)
 
     print(
         f"Python policy is synchronized: minimum {MINIMUM}, "
