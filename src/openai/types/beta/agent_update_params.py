@@ -19,7 +19,7 @@ class AgentUpdateParams(TypedDict, total=False):
     """Context compaction settings.
 
     Omit to keep the current settings. A supplied object replaces the settings; null
-    or an empty object enables background compaction.
+    or an empty object uses blocking compaction.
     """
 
     experimental: Experimental
@@ -82,13 +82,13 @@ class AgentUpdateParams(TypedDict, total=False):
 class Compaction(TypedDict, total=False):
     """Context compaction settings.
 
-    Omit to keep the current settings. A supplied object replaces the settings; null or an empty object enables background compaction.
+    Omit to keep the current settings. A supplied object replaces the settings; null or an empty object uses blocking compaction.
     """
 
     async_: Annotated[Optional[bool], PropertyInfo(alias="async")]
     """Whether to compact context in the background.
 
-    Omission or null defaults to true. Set to false to use blocking compaction.
+    Omission or null defaults to false. Set to true to enable background compaction.
     Background compaction may increase token usage.
     """
 

@@ -123,7 +123,7 @@ class Agents(SyncAPIResource):
         Args:
           model: The model to use for the agent. The requested model name is preserved.
 
-          compaction: Context compaction settings. Omission or null enables background compaction.
+          compaction: Context compaction settings. Omission or null uses blocking compaction.
 
           experimental: Experimental agent settings. All experimental features default to disabled.
 
@@ -261,8 +261,7 @@ class Agents(SyncAPIResource):
 
         Args:
           compaction: Context compaction settings. Omit to keep the current settings. A supplied
-              object replaces the settings; null or an empty object enables background
-              compaction.
+              object replaces the settings; null or an empty object uses blocking compaction.
 
           experimental: Experimental settings to merge by key. Omitted settings keep their current
               values.
@@ -500,7 +499,7 @@ class AsyncAgents(AsyncAPIResource):
         Args:
           model: The model to use for the agent. The requested model name is preserved.
 
-          compaction: Context compaction settings. Omission or null enables background compaction.
+          compaction: Context compaction settings. Omission or null uses blocking compaction.
 
           experimental: Experimental agent settings. All experimental features default to disabled.
 
@@ -638,8 +637,7 @@ class AsyncAgents(AsyncAPIResource):
 
         Args:
           compaction: Context compaction settings. Omit to keep the current settings. A supplied
-              object replaces the settings; null or an empty object enables background
-              compaction.
+              object replaces the settings; null or an empty object uses blocking compaction.
 
           experimental: Experimental settings to merge by key. Omitted settings keep their current
               values.

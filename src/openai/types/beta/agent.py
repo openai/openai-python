@@ -18,7 +18,7 @@ class Compaction(BaseModel):
     """The effective context compaction settings."""
 
     async_: bool = FieldInfo(alias="async")
-    """Whether context is compacted in the background. Defaults to true."""
+    """Whether context is compacted in the background. Defaults to false."""
 
 
 class Experimental(BaseModel):
