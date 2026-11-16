@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
-from typing import Dict
+from typing import Dict, Optional
 from typing_extensions import Literal
 
 from ...._models import BaseModel
@@ -42,3 +42,6 @@ class OneTimeAutomation(BaseModel):
 
     type: Literal["once"]
     """The type of the object. Always `once`."""
+
+    pause_reason: Optional[Literal["target_session_failed"]] = None
+    """Why the service paused this schedule, or null for other schedules."""
