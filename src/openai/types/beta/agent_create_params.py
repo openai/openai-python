@@ -19,7 +19,7 @@ class AgentCreateParams(TypedDict, total=False):
     """The model to use for the agent. The requested model name is preserved."""
 
     compaction: Optional[Compaction]
-    """Context compaction settings. Omission or null enables background compaction."""
+    """Context compaction settings. Omission or null uses blocking compaction."""
 
     experimental: Experimental
     """Experimental agent settings. All experimental features default to disabled."""
@@ -74,12 +74,12 @@ class AgentCreateParams(TypedDict, total=False):
 
 
 class Compaction(TypedDict, total=False):
-    """Context compaction settings. Omission or null enables background compaction."""
+    """Context compaction settings. Omission or null uses blocking compaction."""
 
     async_: Annotated[Optional[bool], PropertyInfo(alias="async")]
     """Whether to compact context in the background.
 
-    Omission or null defaults to true. Set to false to use blocking compaction.
+    Omission or null defaults to false. Set to true to enable background compaction.
     Background compaction may increase token usage.
     """
 
