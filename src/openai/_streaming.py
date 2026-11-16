@@ -65,6 +65,7 @@ class Stream(Generic[_T]):
         response = self.response
         process_data = self._client._process_response_data
         iterator = self._iter_events()
+        legacy = self._options is None or self._options.stream_mode == "legacy"
 
         try:
             for sse in iterator:
@@ -72,7 +73,7 @@ class Stream(Generic[_T]):
                     break
 
                 # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
-                if sse.event and sse.event.startswith("thread."):
+                if legacy and sse.event and sse.event.startswith("thread."):
                     data = sse.json()
 
                     if sse.event == "error" and is_mapping(data) and data.get("error"):
@@ -92,7 +93,7 @@ class Stream(Generic[_T]):
                     yield process_data(data={"data": data, "event": sse.event}, cast_to=cast_to, response=response)
                 else:
                     data = sse.json()
-                    if is_mapping(data) and data.get("error"):
+                    if legacy and is_mapping(data) and data.get("error"):
                         message = None
                         error = data.get("error")
                         if is_mapping(error):
@@ -180,6 +181,7 @@ class AsyncStream(Generic[_T]):
         response = self.response
         process_data = self._client._process_response_data
         iterator = self._iter_events()
+        legacy = self._options is None or self._options.stream_mode == "legacy"
 
         try:
             async for sse in iterator:
@@ -192,7 +194,7 @@ class AsyncStream(Generic[_T]):
                     break
 
                 # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
-                if sse.event and sse.event.startswith("thread."):
+                if legacy and sse.event and sse.event.startswith("thread."):
                     data = sse.json()
 
                     if sse.event == "error" and is_mapping(data) and data.get("error"):
@@ -212,7 +214,7 @@ class AsyncStream(Generic[_T]):
                     yield process_data(data={"data": data, "event": sse.event}, cast_to=cast_to, response=response)
                 else:
                     data = sse.json()
-                    if is_mapping(data) and data.get("error"):
+                    if legacy and is_mapping(data) and data.get("error"):
                         message = None
                         error = data.get("error")
                         if is_mapping(error):

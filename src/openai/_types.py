@@ -127,6 +127,7 @@ class RequestOptions(TypedDict, total=False):
     follow_redirects: bool
     security: SecurityOptions
     synthesize_event_and_data: bool
+    stream_mode: Literal["legacy", "events"]
 
 
 # Sentinel class used until PEP 0661 is accepted

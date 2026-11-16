@@ -136,6 +136,7 @@ class Events(SyncAPIResource):
                     {"include_obfuscation": include_obfuscation}, event_stream_params.EventStreamParams
                 ),
                 security={"bearer_auth": True},
+                stream_mode="events",
             ),
             cast_to=cast(Any, AgentSessionEvent),  # Union types cannot be passed in as arguments in the type system
             stream=True,
@@ -258,6 +259,7 @@ class AsyncEvents(AsyncAPIResource):
                     {"include_obfuscation": include_obfuscation}, event_stream_params.EventStreamParams
                 ),
                 security={"bearer_auth": True},
+                stream_mode="events",
             ),
             cast_to=cast(Any, AgentSessionEvent),  # Union types cannot be passed in as arguments in the type system
             stream=True,
