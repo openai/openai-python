@@ -148,6 +148,12 @@ class SessionConfigParam(TypedDict, total=False):
     server defaults. Immutable after startup.
     """
 
+    safety_identifier: Optional[str]
+    """
+    A stable identifier for your end user, used for safety monitoring and abuse
+    detection.
+    """
+
     store: bool
     """Whether to store the session for later forking and recording download.
 
