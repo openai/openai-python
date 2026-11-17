@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.54.0](https://github.com/openai/openai-python/compare/v3.53.0...v3.54.0) (2026-11-17)
+
+
+### Features
+
+* **api:** type Managed Agents budget events ([#4284](https://github.com/openai/openai-python/issues/4284)) ([c5da68a](https://github.com/openai/openai-python/commit/c5da68ac74ad2a4bf89c1248f6403b3123e568db))
+
 ## [3.53.0](https://github.com/openai/openai-python/compare/v3.52.0...v3.53.0) (2026-11-17)
 
 
