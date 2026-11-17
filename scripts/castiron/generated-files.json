@@ -5051,19 +5051,19 @@
     },
     "src/openai/types/live/responses_delegation_config.py": {
       "mode": "100644",
-      "sha256": "9acf81a3c59c90ea84fa44ae0623bda33c7c8b55b814713ec45242c5027a7c0f"
+      "sha256": "cecbecc89143eb9484f1d550cd16602270e4488c88bc114b22555ada9147e899"
     },
     "src/openai/types/live/responses_delegation_config_param.py": {
       "mode": "100644",
-      "sha256": "033eb7569fa9975bd2adb584f645581067b068f8ff70bf93f5848278c3b02d75"
+      "sha256": "ae629693e0c0208368edd560257892b330d84f2df35738c582675ba8c5e0a573"
     },
     "src/openai/types/live/responses_delegation_update_config.py": {
       "mode": "100644",
-      "sha256": "c0e958d70b97fe6fe67c5ae0c8bfb8b89d0a56cfccb36d0e1573faafa9334112"
+      "sha256": "3f5bd2717ab74e33c2d31f4925a8241643b0bf3b2d8019823238089d02ee579d"
     },
     "src/openai/types/live/responses_delegation_update_config_param.py": {
       "mode": "100644",
-      "sha256": "5a13bebcc51dff57350011a07333209ce359c9e47e7f219f8c8d0ec6ecf1dfbc"
+      "sha256": "6b07ccfbbaa66b0f5641e12e511130abd162bdbb7a3ee6e5c6c6613c06b54bde"
     },
     "src/openai/types/live/server_event.py": {
       "mode": "100644",
