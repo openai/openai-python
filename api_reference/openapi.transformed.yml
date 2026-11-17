@@ -92967,11 +92967,13 @@ components:
       - in_progress
       - requires_action
       - failed
+      - budget_reached
       x-enumDescriptions:
       - The session has no turn in progress and is ready for input. A hosted environment may still be provisioning.
       - The session is processing a turn.
       - The session is waiting for one or more required actions.
       - The session failed.
+      - The session is paused because its spending limit was reached.
       description: The current status of a session.
     McpApprovalRequestResourceMcpToolCall:
       type: object
@@ -93498,8 +93500,8 @@ components:
           - type: 'null'
           description: Best-effort token usage for the session, or null if unknown. Recorded usage may change.
         spend_control:
-          $ref: '#/components/schemas/SessionSpendControlResource'
-          description: Configured spending limit and best-effort consumption, in USD cents. Unlimited sessions omit this object.
+          $ref: '#/components/schemas/SessionBudgetControlResource'
+          description: Spending limit and best-effort consumption, in USD cents. Present when spending-control visibility is enabled; limit is null without a cap. Older server responses may omit this object.
       required:
       - metadata
       - id
@@ -93660,7 +93662,7 @@ components:
           description: Options for the event stream. Only allowed when `stream` is `true`.
         spend_control:
           anyOf:
-          - $ref: '#/components/schemas/SessionSpendControlParam'
+          - $ref: '#/components/schemas/SessionBudgetControlParams'
           - type: 'null'
           description: Optional spending limit in USD cents. Omission or null creates an unlimited session.
       required:
@@ -95304,6 +95306,7 @@ components:
           agent.session.turn.output_text.delta: '#/components/schemas/SessionEventAgentSessionTurnOutputTextDelta'
           agent.session.turn.output_text.done: '#/components/schemas/SessionEventAgentSessionTurnOutputTextDone'
           agent.session.turn.reasoning_summary_part.added: '#/components/schemas/SessionEventAgentSessionTurnReasoningSummaryPartAdded'
+          agent.session.budget_reached: '#/components/schemas/SessionEventAgentSessionBudgetReached'
       x-oai-discriminator-values:
       - error
       - agent.session.environment.ready
@@ -95319,6 +95322,7 @@ components:
       - agent.session.turn.cancelled
       - agent.session.turn.item.added
       - agent.session.idle
+      - agent.session.budget_reached
       - agent.session.in_progress
       - agent.session.requires_action
       - agent.session.failed
@@ -95353,6 +95357,7 @@ components:
       - $ref: '#/components/schemas/SessionEventAgentSessionTurnCancelled'
       - $ref: '#/components/schemas/SessionEventAgentSessionTurnItemAdded'
       - $ref: '#/components/schemas/SessionEventAgentSessionIdle'
+      - $ref: '#/components/schemas/SessionEventAgentSessionBudgetReached'
       - $ref: '#/components/schemas/SessionEventAgentSessionInProgress'
       - $ref: '#/components/schemas/SessionEventAgentSessionRequiresAction'
       - $ref: '#/components/schemas/SessionEventAgentSessionFailed'
@@ -95442,7 +95447,7 @@ components:
           description: Replaces all metadata. Omit to leave unchanged, or pass null or {} to clear it. Up to 16 string key-value pairs, with keys up to 64 and values up to 512 characters.
         spend_control:
           anyOf:
-          - $ref: '#/components/schemas/SessionSpendControlParam'
+          - $ref: '#/components/schemas/SessionBudgetControlParams'
           - type: 'null'
           description: Omit to retain the limit; null or a null limit removes it without resetting spend.
       additionalProperties: false
@@ -113292,27 +113297,34 @@ components:
       - soonest
       - 2h
       - 8h
-    SessionSpendControlResource:
+    SessionEventAgentSessionBudgetReached:
       type: object
       properties:
-        limit:
-          type: integer
-          format: int64
-          minimum: 1
-          maximum: 4503599627370495
-          description: The configured positive limit in USD cents.
-        consumed:
-          type:
-          - integer
-          - 'null'
-          minimum: 0
-          description: Best-effort recorded spend floored to whole USD cents, or null when unavailable.
+        type:
+          type: string
+          enum:
+          - agent.session.budget_reached
+          default: agent.session.budget_reached
+          x-stainless-const: true
+          description: The type of the object. Always `agent.session.budget_reached`.
+        event_id:
+          type: string
+          minLength: 0
+          description: The unique ID of the event.
+        session:
+          $ref: '#/components/schemas/SessionResource'
+          description: The paused session.
+        obfuscation:
+          type: string
+          minLength: 0
+          description: Random alphanumeric padding. Present when stream obfuscation is enabled.
       required:
-      - limit
-      - consumed
+      - type
+      - event_id
+      - session
       additionalProperties: false
-      description: Session-wide spending control, present only when a limit is configured.
-    SessionSpendControlParam:
+      description: Emitted when a session pauses because its spending limit was reached.
+    SessionBudgetControlParams:
       type: object
       properties:
         limit:
@@ -113327,6 +113339,28 @@ components:
       - limit
       additionalProperties: false
       description: Sets the session-wide limit without changing recorded spend.
+    SessionBudgetControlResource:
+      type: object
+      properties:
+        limit:
+          type:
+          - integer
+          - 'null'
+          format: int64
+          minimum: 1
+          maximum: 4503599627370495
+          description: The configured positive limit in USD cents, or null when unlimited.
+        consumed:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          description: Best-effort recorded spend floored to whole USD cents, or null when unavailable.
+      required:
+      - limit
+      - consumed
+      additionalProperties: false
+      description: Session-wide spending limit and best-effort consumption, including unlimited sessions.
     DecisionPromptCacheBreakpoint:
       type: object
       properties:

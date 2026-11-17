@@ -82,8 +82,16 @@ class _TurnState:
                 self.turn_ended = True
         return True
 
-    def terminal(self, event: AgentSessionEvent) -> bool:
-        return event.type == "agent.session.failed" or (event.type == "agent.session.idle" and self.turn_ended)
+    def terminal(self, event: AgentSessionEvent, session_id: str) -> bool:
+        return (
+            event.type == "agent.session.failed"
+            or (
+                event.type == "agent.session.budget_reached"
+                and event.session.id == session_id
+                and (self.turn_id is None or self.turn_ended)
+            )
+            or (event.type == "agent.session.idle" and self.turn_ended)
+        )
 
 
 class AgentSessionStream(Generic[OutputT]):
@@ -220,7 +228,7 @@ class AgentSessionStream(Generic[OutputT]):
                 if not self._state.accept(event):
                     continue
                 self._collection.accept(event)
-                terminal = self._state.terminal(event)
+                terminal = self._state.terminal(event, self._session_id)
                 if terminal:
                     self.close()
                 pending = self._dispatcher.prepare(event)
@@ -358,7 +366,7 @@ class AsyncAgentSessionStream(Generic[OutputT]):
                 if not self._state.accept(event):
                     continue
                 self._collection.accept(event)
-                terminal = self._state.terminal(event)
+                terminal = self._state.terminal(event, self._session_id)
                 if terminal:
                     await self.close()
                 pending = self._dispatcher.prepare(event)

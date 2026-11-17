@@ -550,6 +550,7 @@ from openai.types.beta import (
     AgentSendSubagentInputCallItem,
     AgentSession,
     AgentSessionAssistantMessage,
+    AgentSessionBudgetReachedEvent,
     AgentSessionCreatedEvent,
     AgentSessionDeleted,
     AgentSessionEnvironmentConnectedEvent,

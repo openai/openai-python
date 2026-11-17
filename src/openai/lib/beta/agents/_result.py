@@ -174,7 +174,13 @@ class AgentTurnResultCollector:
             self.session_id = event.session.id
             self.session_failed = True
             self.boundary = True
-        elif event.type == "agent.session.idle":
+        elif event.type == "agent.session.budget_reached" and self.turn is None:
+            if self.session_id in (None, event.session.id):
+                self.session_id = event.session.id
+                self.boundary = True
+        elif event.type == "agent.session.idle" or (
+            event.type == "agent.session.budget_reached" and event.session.id == self.session_id
+        ):
             if self.turn is not None and self.turn.status in ("completed", "failed", "cancelled"):
                 self.required_actions = []
                 self.boundary = True
