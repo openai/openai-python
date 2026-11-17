@@ -164,6 +164,12 @@ class SessionResource(BaseModel):
     server defaults. Immutable after startup.
     """
 
+    safety_identifier: Optional[str] = None
+    """
+    A stable identifier for your end user, used for safety monitoring and abuse
+    detection.
+    """
+
     store: Optional[bool] = None
     """Whether to store the session for later forking and recording download.
 

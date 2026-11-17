@@ -2187,6 +2187,7 @@ def make_request_options(
     post_parser: PostParser | NotGiven = not_given,
     security: SecurityOptions | None = None,
     synthesize_event_and_data: bool | None = None,
+    stream_mode: Literal["legacy", "events"] | None = None,
 ) -> RequestOptions:
     """Create a dict of type RequestOptions without keys of NotGiven values."""
     options: RequestOptions = {}
@@ -2217,6 +2218,9 @@ def make_request_options(
 
     if synthesize_event_and_data is not None:
         options["synthesize_event_and_data"] = synthesize_event_and_data
+
+    if stream_mode is not None:
+        options["stream_mode"] = stream_mode
 
     return options
 
