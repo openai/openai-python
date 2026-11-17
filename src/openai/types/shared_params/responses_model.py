@@ -35,5 +35,6 @@ ResponsesModel: TypeAlias = Union[
         "gpt-6-cyber",
         "gpt-rosalind-research",
         "gpt-6-rosalind",
+        "gpt-6.2-astra-law",
     ],
 ]

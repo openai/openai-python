@@ -45923,6 +45923,12 @@ components:
               type: integer
               minimum: 16
             - type: 'null'
+          background_options:
+            $ref: '#/components/schemas/BackgroundOptionsParam'
+            description: |
+              Options for background execution on HTTP requests. The `2h` and `8h`
+              completion windows require `background: true`, Standard processing,
+              and `stream: false` or omitted.
     CreateRunRequest:
       type: object
       additionalProperties: false
@@ -54002,6 +54008,7 @@ components:
         - gpt-6-cyber
         - gpt-rosalind-research
         - gpt-6-rosalind
+        - gpt-6.2-astra-law
         x-openai-enum-deprecations:
           o1-pro:
             message: 'Announced shutdown date: 2026-10-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
@@ -105993,6 +106000,7 @@ components:
         - gpt-6-cyber
         - gpt-rosalind-research
         - gpt-6-rosalind
+        - gpt-6.2-astra-law
         x-openai-enum-deprecations:
           o1-pro:
             message: 'Announced shutdown date: 2026-10-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
@@ -113041,6 +113049,12 @@ components:
             - type: 'null'
             x-openai-go-legacy-bool-fields:
             - enabled
+          background_options:
+            $ref: '#/components/schemas/BetaBackgroundOptionsParam'
+            description: |
+              Options for background execution on HTTP requests. The `2h` and `8h`
+              completion windows require `background: true`, Standard processing,
+              and `stream: false` or omitted.
     BetaMultiAgentParam:
       properties:
         enabled:
@@ -113244,6 +113258,40 @@ components:
       - $ref: '#/components/schemas/BetaResponseCustomToolCallInputDoneEvent'
       discriminator:
         propertyName: type
+    BackgroundOptionsParam:
+      properties:
+        completion_window:
+          $ref: '#/components/schemas/BackgroundCompletionWindowEnum'
+          description: The completion window for background execution. Defaults to `soonest`; `2h` and `8h` select discounted background execution.
+        continuation_id:
+          type: string
+          description: A customer-provided opaque identifier used to prioritize related background requests. It does not add prior history to the input.
+      type: object
+      required: []
+      description: Options for background execution.
+    BackgroundCompletionWindowEnum:
+      type: string
+      enum:
+      - soonest
+      - 2h
+      - 8h
+    BetaBackgroundOptionsParam:
+      properties:
+        completion_window:
+          $ref: '#/components/schemas/BetaBackgroundCompletionWindowEnum'
+          description: The completion window for background execution. Defaults to `soonest`; `2h` and `8h` select discounted background execution.
+        continuation_id:
+          type: string
+          description: A customer-provided opaque identifier used to prioritize related background requests. It does not add prior history to the input.
+      type: object
+      required: []
+      description: Options for background execution.
+    BetaBackgroundCompletionWindowEnum:
+      type: string
+      enum:
+      - soonest
+      - 2h
+      - 8h
     SessionSpendControlResource:
       type: object
       properties:
@@ -113448,7 +113496,9 @@ components:
       type: string
       enum:
       - gpt-6-astra
+      - gpt-6.2-astra
       - gpt-6.1-sol
+      - gpt-6.2-sol
       - gpt-6.1-terra
       - gpt-6-sol
       - gpt-6-luna
