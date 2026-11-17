@@ -1,5 +1,15 @@
 # Changelog
 
+## [3.53.0](https://github.com/openai/openai-python/compare/v3.52.0...v3.53.0) (2026-11-17)
+
+
+### Features
+
+* **api:** add 2-hour and 8-hour Responses background windows ([720bcb5](https://github.com/openai/openai-python/commit/720bcb501dff693e1a57af7ffddd1820e6f2075c))
+* **api:** add the GPT-6.2 Astra Law Responses model identifier ([720bcb5](https://github.com/openai/openai-python/commit/720bcb501dff693e1a57af7ffddd1820e6f2075c))
+* **api:** add the GPT-6.2 Astra model identifier ([720bcb5](https://github.com/openai/openai-python/commit/720bcb501dff693e1a57af7ffddd1820e6f2075c))
+* **api:** add the GPT-6.2 Sol model identifier ([720bcb5](https://github.com/openai/openai-python/commit/720bcb501dff693e1a57af7ffddd1820e6f2075c))
+
 ## [3.52.0](https://github.com/openai/openai-python/compare/v3.51.0...v3.52.0) (2026-11-16)
 
 
