@@ -267,9 +267,9 @@ class PromptCacheOptions(BaseModel):
 
 
 class SpendControl(BaseModel):
-    """Configured spending limit and best-effort consumption, in USD cents.
+    """Spending limit and best-effort consumption, in USD cents.
 
-    Unlimited sessions omit this object.
+    Present when spending-control visibility is enabled; limit is null without a cap. Older server responses may omit this object.
     """
 
     consumed: Optional[int] = None
@@ -277,8 +277,8 @@ class SpendControl(BaseModel):
     Best-effort recorded spend floored to whole USD cents, or null when unavailable.
     """
 
-    limit: int
-    """The configured positive limit in USD cents."""
+    limit: Optional[int] = None
+    """The configured positive limit in USD cents, or null when unlimited."""
 
 
 class AgentSession(BaseModel):
@@ -311,7 +311,7 @@ class AgentSession(BaseModel):
     required_actions: List[RequiredAction]
     """Actions that must be completed before the session can continue."""
 
-    status: Literal["idle", "in_progress", "requires_action", "failed"]
+    status: Literal["idle", "in_progress", "requires_action", "failed", "budget_reached"]
     """The current status of the session.
 
     - `idle` - The session has no turn in progress and is ready for input. A hosted
@@ -319,6 +319,8 @@ class AgentSession(BaseModel):
     - `in_progress` - The session is processing a turn.
     - `requires_action` - The session is waiting for one or more required actions.
     - `failed` - The session failed.
+    - `budget_reached` - The session is paused because its spending limit was
+      reached.
     """
 
     usage: Optional[TokenUsage] = None
@@ -341,7 +343,8 @@ class AgentSession(BaseModel):
     """
 
     spend_control: Optional[SpendControl] = None
-    """Configured spending limit and best-effort consumption, in USD cents.
+    """Spending limit and best-effort consumption, in USD cents.
 
-    Unlimited sessions omit this object.
+    Present when spending-control visibility is enabled; limit is null without a
+    cap. Older server responses may omit this object.
     """
