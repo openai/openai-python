@@ -27,6 +27,7 @@ from .response_conversation_param_param import ResponseConversationParamParam
 __all__ = [
     "ResponseCreateParamsBase",
     "AccessPrograms",
+    "BackgroundOptions",
     "ContextManagement",
     "Conversation",
     "Image",
@@ -51,6 +52,13 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     """
     Whether to run the model response in the background.
     [Learn more](https://developers.openai.com/api/docs/guides/background).
+    """
+
+    background_options: BackgroundOptions
+    """Options for background execution on HTTP requests.
+
+    The `2h` and `8h` completion windows require `background: true`, Standard
+    processing, and `stream: false` or omitted.
     """
 
     context_management: Optional[Iterable[ContextManagement]]
@@ -361,6 +369,27 @@ class AccessPrograms(TypedDict, total=False):
     require authorization. Requests that require unavailable Daybreak access
     return 403. An implicit Standard fallback is represented by null in the
     response's access_programs field, rather than an explicit Standard selection.
+    """
+
+
+class BackgroundOptions(TypedDict, total=False):
+    """Options for background execution on HTTP requests.
+
+    The `2h` and `8h`
+    completion windows require `background: true`, Standard processing,
+    and `stream: false` or omitted.
+    """
+
+    completion_window: Literal["soonest", "2h", "8h"]
+    """The completion window for background execution.
+
+    Defaults to `soonest`; `2h` and `8h` select discounted background execution.
+    """
+
+    continuation_id: str
+    """
+    A customer-provided opaque identifier used to prioritize related background
+    requests. It does not add prior history to the input.
     """
 
 

@@ -30,6 +30,10 @@ class TestResponses:
         response = client.responses.create(
             access_programs={"cyber": "standard"},
             background=True,
+            background_options={
+                "completion_window": "soonest",
+                "continuation_id": "continuation_id",
+            },
             context_management=[
                 {
                     "type": "compaction",
@@ -138,6 +142,10 @@ class TestResponses:
             stream=True,
             access_programs={"cyber": "standard"},
             background=True,
+            background_options={
+                "completion_window": "soonest",
+                "continuation_id": "continuation_id",
+            },
             context_management=[
                 {
                     "type": "compaction",
@@ -481,6 +489,10 @@ class TestAsyncResponses:
         response = await async_client.responses.create(
             access_programs={"cyber": "standard"},
             background=True,
+            background_options={
+                "completion_window": "soonest",
+                "continuation_id": "continuation_id",
+            },
             context_management=[
                 {
                     "type": "compaction",
@@ -589,6 +601,10 @@ class TestAsyncResponses:
             stream=True,
             access_programs={"cyber": "standard"},
             background=True,
+            background_options={
+                "completion_window": "soonest",
+                "continuation_id": "continuation_id",
+            },
             context_management=[
                 {
                     "type": "compaction",

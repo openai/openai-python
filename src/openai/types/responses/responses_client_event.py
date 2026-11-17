@@ -29,6 +29,7 @@ __all__ = [
     "ResponsesClientEvent",
     "ResponseCreate",
     "ResponseCreateAccessPrograms",
+    "ResponseCreateBackgroundOptions",
     "ResponseCreateContextManagement",
     "ResponseCreateConversation",
     "ResponseCreateImage",
@@ -68,6 +69,27 @@ class ResponseCreateAccessPrograms(BaseModel):
     require authorization. Requests that require unavailable Daybreak access
     return 403. An implicit Standard fallback is represented by null in the
     response's access_programs field, rather than an explicit Standard selection.
+    """
+
+
+class ResponseCreateBackgroundOptions(BaseModel):
+    """Options for background execution on HTTP requests.
+
+    The `2h` and `8h`
+    completion windows require `background: true`, Standard processing,
+    and `stream: false` or omitted.
+    """
+
+    completion_window: Optional[Literal["soonest", "2h", "8h"]] = None
+    """The completion window for background execution.
+
+    Defaults to `soonest`; `2h` and `8h` select discounted background execution.
+    """
+
+    continuation_id: Optional[str] = None
+    """
+    A customer-provided opaque identifier used to prioritize related background
+    requests. It does not add prior history to the input.
     """
 
 
@@ -222,6 +244,13 @@ class ResponseCreate(BaseModel):
     """
     Whether to run the model response in the background.
     [Learn more](https://developers.openai.com/api/docs/guides/background).
+    """
+
+    background_options: Optional[ResponseCreateBackgroundOptions] = None
+    """Options for background execution on HTTP requests.
+
+    The `2h` and `8h` completion windows require `background: true`, Standard
+    processing, and `stream: false` or omitted.
     """
 
     context_management: Optional[List[ResponseCreateContextManagement]] = None
