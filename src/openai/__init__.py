@@ -231,8 +231,8 @@ class _ModuleClient(OpenAI):
         return api_key
 
     @api_key.setter
-    def api_key(self, value: str | None) -> None:  # ty: ignore[invalid-property-type-override]
-        global api_key  # ty: ignore[invalid-property-type-override]
+    def api_key(self, value: str | None) -> None:  # ty: ignore[incompatible-property-override]
+        global api_key  # ty: ignore[incompatible-property-override]
 
         api_key = value
 

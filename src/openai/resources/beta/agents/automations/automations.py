@@ -158,31 +158,28 @@ class Automations(SyncAPIResource):
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Automation:
         extra_headers = {"OpenAI-Beta": "agents=v1", **(extra_headers or {})}
-        return cast(
-            Automation,
-            self._post(
-                "/agents/automations",
-                body=maybe_transform(
-                    {
-                        "expression": expression,
-                        "name": name,
-                        "target": target,
-                        "timezone": timezone,
-                        "type": type,
-                        "metadata": metadata,
-                        "run_at": run_at,
-                    },
-                    automation_create_params.AutomationCreateParams,
-                ),
-                options=make_request_options(
-                    extra_headers=extra_headers,
-                    extra_query=extra_query,
-                    extra_body=extra_body,
-                    timeout=timeout,
-                    security={"bearer_auth": True},
-                ),
-                cast_to=cast(Any, Automation),  # Union types cannot be passed in as arguments in the type system
+        return self._post(
+            "/agents/automations",
+            body=maybe_transform(
+                {
+                    "expression": expression,
+                    "name": name,
+                    "target": target,
+                    "timezone": timezone,
+                    "type": type,
+                    "metadata": metadata,
+                    "run_at": run_at,
+                },
+                automation_create_params.AutomationCreateParams,
             ),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+            ),
+            cast_to=cast(Any, Automation),  # Union types cannot be passed in as arguments in the type system
         )
 
     def retrieve(
@@ -211,19 +208,16 @@ class Automations(SyncAPIResource):
         if not automation_id:
             raise ValueError(f"Expected a non-empty value for `automation_id` but received {automation_id!r}")
         extra_headers = {"OpenAI-Beta": "agents=v1", **(extra_headers or {})}
-        return cast(
-            Automation,
-            self._get(
-                path_template("/agents/automations/{automation_id}", automation_id=automation_id),
-                options=make_request_options(
-                    extra_headers=extra_headers,
-                    extra_query=extra_query,
-                    extra_body=extra_body,
-                    timeout=timeout,
-                    security={"bearer_auth": True},
-                ),
-                cast_to=cast(Any, Automation),  # Union types cannot be passed in as arguments in the type system
+        return self._get(
+            path_template("/agents/automations/{automation_id}", automation_id=automation_id),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
+            cast_to=cast(Any, Automation),  # Union types cannot be passed in as arguments in the type system
         )
 
     def update(
@@ -269,30 +263,27 @@ class Automations(SyncAPIResource):
         if not automation_id:
             raise ValueError(f"Expected a non-empty value for `automation_id` but received {automation_id!r}")
         extra_headers = {"OpenAI-Beta": "agents=v1", **(extra_headers or {})}
-        return cast(
-            Automation,
-            self._post(
-                path_template("/agents/automations/{automation_id}", automation_id=automation_id),
-                body=maybe_transform(
-                    {
-                        "expression": expression,
-                        "metadata": metadata,
-                        "name": name,
-                        "run_at": run_at,
-                        "target": target,
-                        "timezone": timezone,
-                    },
-                    automation_update_params.AutomationUpdateParams,
-                ),
-                options=make_request_options(
-                    extra_headers=extra_headers,
-                    extra_query=extra_query,
-                    extra_body=extra_body,
-                    timeout=timeout,
-                    security={"bearer_auth": True},
-                ),
-                cast_to=cast(Any, Automation),  # Union types cannot be passed in as arguments in the type system
+        return self._post(
+            path_template("/agents/automations/{automation_id}", automation_id=automation_id),
+            body=maybe_transform(
+                {
+                    "expression": expression,
+                    "metadata": metadata,
+                    "name": name,
+                    "run_at": run_at,
+                    "target": target,
+                    "timezone": timezone,
+                },
+                automation_update_params.AutomationUpdateParams,
             ),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+            ),
+            cast_to=cast(Any, Automation),  # Union types cannot be passed in as arguments in the type system
         )
 
     def list(
@@ -420,19 +411,16 @@ class Automations(SyncAPIResource):
         if not automation_id:
             raise ValueError(f"Expected a non-empty value for `automation_id` but received {automation_id!r}")
         extra_headers = {"OpenAI-Beta": "agents=v1", **(extra_headers or {})}
-        return cast(
-            Automation,
-            self._post(
-                path_template("/agents/automations/{automation_id}/pause", automation_id=automation_id),
-                options=make_request_options(
-                    extra_headers=extra_headers,
-                    extra_query=extra_query,
-                    extra_body=extra_body,
-                    timeout=timeout,
-                    security={"bearer_auth": True},
-                ),
-                cast_to=cast(Any, Automation),  # Union types cannot be passed in as arguments in the type system
+        return self._post(
+            path_template("/agents/automations/{automation_id}/pause", automation_id=automation_id),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
+            cast_to=cast(Any, Automation),  # Union types cannot be passed in as arguments in the type system
         )
 
     def resume(
@@ -462,19 +450,16 @@ class Automations(SyncAPIResource):
         if not automation_id:
             raise ValueError(f"Expected a non-empty value for `automation_id` but received {automation_id!r}")
         extra_headers = {"OpenAI-Beta": "agents=v1", **(extra_headers or {})}
-        return cast(
-            Automation,
-            self._post(
-                path_template("/agents/automations/{automation_id}/resume", automation_id=automation_id),
-                options=make_request_options(
-                    extra_headers=extra_headers,
-                    extra_query=extra_query,
-                    extra_body=extra_body,
-                    timeout=timeout,
-                    security={"bearer_auth": True},
-                ),
-                cast_to=cast(Any, Automation),  # Union types cannot be passed in as arguments in the type system
+        return self._post(
+            path_template("/agents/automations/{automation_id}/resume", automation_id=automation_id),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
+            cast_to=cast(Any, Automation),  # Union types cannot be passed in as arguments in the type system
         )
 
 
@@ -600,31 +585,28 @@ class AsyncAutomations(AsyncAPIResource):
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Automation:
         extra_headers = {"OpenAI-Beta": "agents=v1", **(extra_headers or {})}
-        return cast(
-            Automation,
-            await self._post(
-                "/agents/automations",
-                body=await async_maybe_transform(
-                    {
-                        "expression": expression,
-                        "name": name,
-                        "target": target,
-                        "timezone": timezone,
-                        "type": type,
-                        "metadata": metadata,
-                        "run_at": run_at,
-                    },
-                    automation_create_params.AutomationCreateParams,
-                ),
-                options=make_request_options(
-                    extra_headers=extra_headers,
-                    extra_query=extra_query,
-                    extra_body=extra_body,
-                    timeout=timeout,
-                    security={"bearer_auth": True},
-                ),
-                cast_to=cast(Any, Automation),  # Union types cannot be passed in as arguments in the type system
+        return await self._post(
+            "/agents/automations",
+            body=await async_maybe_transform(
+                {
+                    "expression": expression,
+                    "name": name,
+                    "target": target,
+                    "timezone": timezone,
+                    "type": type,
+                    "metadata": metadata,
+                    "run_at": run_at,
+                },
+                automation_create_params.AutomationCreateParams,
             ),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+            ),
+            cast_to=cast(Any, Automation),  # Union types cannot be passed in as arguments in the type system
         )
 
     async def retrieve(
@@ -653,19 +635,16 @@ class AsyncAutomations(AsyncAPIResource):
         if not automation_id:
             raise ValueError(f"Expected a non-empty value for `automation_id` but received {automation_id!r}")
         extra_headers = {"OpenAI-Beta": "agents=v1", **(extra_headers or {})}
-        return cast(
-            Automation,
-            await self._get(
-                path_template("/agents/automations/{automation_id}", automation_id=automation_id),
-                options=make_request_options(
-                    extra_headers=extra_headers,
-                    extra_query=extra_query,
-                    extra_body=extra_body,
-                    timeout=timeout,
-                    security={"bearer_auth": True},
-                ),
-                cast_to=cast(Any, Automation),  # Union types cannot be passed in as arguments in the type system
+        return await self._get(
+            path_template("/agents/automations/{automation_id}", automation_id=automation_id),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
+            cast_to=cast(Any, Automation),  # Union types cannot be passed in as arguments in the type system
         )
 
     async def update(
@@ -711,30 +690,27 @@ class AsyncAutomations(AsyncAPIResource):
         if not automation_id:
             raise ValueError(f"Expected a non-empty value for `automation_id` but received {automation_id!r}")
         extra_headers = {"OpenAI-Beta": "agents=v1", **(extra_headers or {})}
-        return cast(
-            Automation,
-            await self._post(
-                path_template("/agents/automations/{automation_id}", automation_id=automation_id),
-                body=await async_maybe_transform(
-                    {
-                        "expression": expression,
-                        "metadata": metadata,
-                        "name": name,
-                        "run_at": run_at,
-                        "target": target,
-                        "timezone": timezone,
-                    },
-                    automation_update_params.AutomationUpdateParams,
-                ),
-                options=make_request_options(
-                    extra_headers=extra_headers,
-                    extra_query=extra_query,
-                    extra_body=extra_body,
-                    timeout=timeout,
-                    security={"bearer_auth": True},
-                ),
-                cast_to=cast(Any, Automation),  # Union types cannot be passed in as arguments in the type system
+        return await self._post(
+            path_template("/agents/automations/{automation_id}", automation_id=automation_id),
+            body=await async_maybe_transform(
+                {
+                    "expression": expression,
+                    "metadata": metadata,
+                    "name": name,
+                    "run_at": run_at,
+                    "target": target,
+                    "timezone": timezone,
+                },
+                automation_update_params.AutomationUpdateParams,
             ),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+            ),
+            cast_to=cast(Any, Automation),  # Union types cannot be passed in as arguments in the type system
         )
 
     def list(
@@ -862,19 +838,16 @@ class AsyncAutomations(AsyncAPIResource):
         if not automation_id:
             raise ValueError(f"Expected a non-empty value for `automation_id` but received {automation_id!r}")
         extra_headers = {"OpenAI-Beta": "agents=v1", **(extra_headers or {})}
-        return cast(
-            Automation,
-            await self._post(
-                path_template("/agents/automations/{automation_id}/pause", automation_id=automation_id),
-                options=make_request_options(
-                    extra_headers=extra_headers,
-                    extra_query=extra_query,
-                    extra_body=extra_body,
-                    timeout=timeout,
-                    security={"bearer_auth": True},
-                ),
-                cast_to=cast(Any, Automation),  # Union types cannot be passed in as arguments in the type system
+        return await self._post(
+            path_template("/agents/automations/{automation_id}/pause", automation_id=automation_id),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
+            cast_to=cast(Any, Automation),  # Union types cannot be passed in as arguments in the type system
         )
 
     async def resume(
@@ -904,19 +877,16 @@ class AsyncAutomations(AsyncAPIResource):
         if not automation_id:
             raise ValueError(f"Expected a non-empty value for `automation_id` but received {automation_id!r}")
         extra_headers = {"OpenAI-Beta": "agents=v1", **(extra_headers or {})}
-        return cast(
-            Automation,
-            await self._post(
-                path_template("/agents/automations/{automation_id}/resume", automation_id=automation_id),
-                options=make_request_options(
-                    extra_headers=extra_headers,
-                    extra_query=extra_query,
-                    extra_body=extra_body,
-                    timeout=timeout,
-                    security={"bearer_auth": True},
-                ),
-                cast_to=cast(Any, Automation),  # Union types cannot be passed in as arguments in the type system
+        return await self._post(
+            path_template("/agents/automations/{automation_id}/resume", automation_id=automation_id),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
+            cast_to=cast(Any, Automation),  # Union types cannot be passed in as arguments in the type system
         )
 
 

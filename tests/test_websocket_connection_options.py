@@ -39,7 +39,7 @@ if TYPE_CHECKING:
             "max_size": None,
             "max_queue": (8, 2),
         }
-        invalid_sync: SyncWebSocketConnectionOptions = {"write_limit": 65536}  # ty: ignore[invalid-key]
+        invalid_sync: SyncWebSocketConnectionOptions = {"write_limit": 65536}  # ty: ignore[unknown-typed-dict-constructor-key]
 
         # The existing names still support async write limits on all supported
         # websocket versions, including through the generated public entrypoint.
@@ -51,7 +51,7 @@ if TYPE_CHECKING:
 
     def beta_realtime_options_contract(client: OpenAI, async_client: AsyncOpenAI) -> None:
         client.beta.realtime.connect(model="test", websocket_connection_options={"max_size": 512})
-        client.beta.realtime.connect(model="test", websocket_connection_options={"write_limit": 65536})  # ty: ignore[invalid-argument-type, invalid-key]
+        client.beta.realtime.connect(model="test", websocket_connection_options={"write_limit": 65536})  # ty: ignore[unknown-typed-dict-constructor-key, invalid-argument-type]
         async_client.beta.realtime.connect(model="test", websocket_connection_options={"write_limit": 65536})
 
     def translation_options_contract(
@@ -63,7 +63,7 @@ if TYPE_CHECKING:
         invalid_sync = TranslationSession(
             client.realtime.translations,
             model="test",
-            websocket_connection_options={"write_limit": 65536},  # ty: ignore[invalid-argument-type, invalid-key]
+            websocket_connection_options={"write_limit": 65536},  # ty: ignore[unknown-typed-dict-constructor-key, invalid-argument-type]
         )
         valid_async = AsyncTranslationSession(
             async_client.realtime.translations, model="test", websocket_connection_options={"write_limit": 65536}
@@ -77,13 +77,13 @@ if TYPE_CHECKING:
         client.live.connect(websocket_connection_options={"extensions": None, "subprotocols": None})
 
         # Native sync clients do not implement write_limit on any supported version.
-        client.realtime.connect(model="test", websocket_connection_options={"write_limit": 65536})  # ty: ignore[invalid-argument-type, invalid-key]
-        client.responses.connect(websocket_connection_options={"write_limit": 65536})  # ty: ignore[invalid-argument-type, invalid-key]
-        client.beta.responses.connect(websocket_connection_options={"write_limit": 65536})  # ty: ignore[invalid-argument-type, invalid-key]
-        client.live.connect(websocket_connection_options={"write_limit": 65536})  # ty: ignore[invalid-argument-type, invalid-key]
-        client.live.sideband.connect(session_id="live_1", websocket_connection_options={"write_limit": 65536})  # ty: ignore[invalid-argument-type, invalid-key]
-        client.live.forks.connect(session_id="live_1", websocket_connection_options={"write_limit": 65536})  # ty: ignore[invalid-argument-type, invalid-key]
-        client.realtime.translations.connect("test", websocket_connection_options={"write_limit": 65536})  # ty: ignore[invalid-argument-type, invalid-key]
+        client.realtime.connect(model="test", websocket_connection_options={"write_limit": 65536})  # ty: ignore[unknown-typed-dict-constructor-key, invalid-argument-type]
+        client.responses.connect(websocket_connection_options={"write_limit": 65536})  # ty: ignore[unknown-typed-dict-constructor-key, invalid-argument-type]
+        client.beta.responses.connect(websocket_connection_options={"write_limit": 65536})  # ty: ignore[unknown-typed-dict-constructor-key, invalid-argument-type]
+        client.live.connect(websocket_connection_options={"write_limit": 65536})  # ty: ignore[unknown-typed-dict-constructor-key, invalid-argument-type]
+        client.live.sideband.connect(session_id="live_1", websocket_connection_options={"write_limit": 65536})  # ty: ignore[unknown-typed-dict-constructor-key, invalid-argument-type]
+        client.live.forks.connect(session_id="live_1", websocket_connection_options={"write_limit": 65536})  # ty: ignore[unknown-typed-dict-constructor-key, invalid-argument-type]
+        client.realtime.translations.connect("test", websocket_connection_options={"write_limit": 65536})  # ty: ignore[unknown-typed-dict-constructor-key, invalid-argument-type]
 
     def asynchronous_options_contract(client: AsyncOpenAI) -> None:
         original: types.WebSocketConnectionOptions = {"write_limit": 65536, "max_queue": 8}

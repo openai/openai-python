@@ -171,7 +171,7 @@ async def test_uninspectable_sync_wrapper_closes_accidental_coroutine_without_su
             },
         )
     )
-    payload = json.loads(result["output"][0]["text"])  # ty: ignore[invalid-argument-type, invalid-key]
+    payload = json.loads(result["output"][0]["text"])  # ty: ignore[invalid-argument-type, invalid-typed-dict-key]
     assert payload["error"] == "Browser action failed."
     gc.collect()
     assert not [warning for warning in recwarn if "never awaited" in str(warning.message)]
@@ -206,4 +206,4 @@ def test_inherited_capability_protocol_cannot_advertise_a_stub() -> None:
             return {"tabs": []}
 
     with pytest.raises(TypeError, match="abstract"):
-        MissingRead()  # ty: ignore[call-non-callable]
+        MissingRead()  # ty: ignore[abstract-class-instantiation]

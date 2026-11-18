@@ -127,22 +127,19 @@ class Items(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `conversation_id` but received {conversation_id!r}")
         if not item_id:
             raise ValueError(f"Expected a non-empty value for `item_id` but received {item_id!r}")
-        return cast(
-            ConversationItem,
-            self._get(
-                path_template(
-                    "/conversations/{conversation_id}/items/{item_id}", conversation_id=conversation_id, item_id=item_id
-                ),
-                options=make_request_options(
-                    extra_headers=extra_headers,
-                    extra_query=extra_query,
-                    extra_body=extra_body,
-                    timeout=timeout,
-                    query=maybe_transform({"include": include}, item_retrieve_params.ItemRetrieveParams),
-                    security={"bearer_auth": True},
-                ),
-                cast_to=cast(Any, ConversationItem),  # Union types cannot be passed in as arguments in the type system
+        return self._get(
+            path_template(
+                "/conversations/{conversation_id}/items/{item_id}", conversation_id=conversation_id, item_id=item_id
             ),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                query=maybe_transform({"include": include}, item_retrieve_params.ItemRetrieveParams),
+                security={"bearer_auth": True},
+            ),
+            cast_to=cast(Any, ConversationItem),  # Union types cannot be passed in as arguments in the type system
         )
 
     def list(
@@ -370,22 +367,19 @@ class AsyncItems(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `conversation_id` but received {conversation_id!r}")
         if not item_id:
             raise ValueError(f"Expected a non-empty value for `item_id` but received {item_id!r}")
-        return cast(
-            ConversationItem,
-            await self._get(
-                path_template(
-                    "/conversations/{conversation_id}/items/{item_id}", conversation_id=conversation_id, item_id=item_id
-                ),
-                options=make_request_options(
-                    extra_headers=extra_headers,
-                    extra_query=extra_query,
-                    extra_body=extra_body,
-                    timeout=timeout,
-                    query=await async_maybe_transform({"include": include}, item_retrieve_params.ItemRetrieveParams),
-                    security={"bearer_auth": True},
-                ),
-                cast_to=cast(Any, ConversationItem),  # Union types cannot be passed in as arguments in the type system
+        return await self._get(
+            path_template(
+                "/conversations/{conversation_id}/items/{item_id}", conversation_id=conversation_id, item_id=item_id
             ),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                query=await async_maybe_transform({"include": include}, item_retrieve_params.ItemRetrieveParams),
+                security={"bearer_auth": True},
+            ),
+            cast_to=cast(Any, ConversationItem),  # Union types cannot be passed in as arguments in the type system
         )
 
     def list(

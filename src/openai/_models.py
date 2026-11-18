@@ -1017,7 +1017,7 @@ class FinalRequestOptions(pydantic.BaseModel):
 
     # type ignore required because we're adding explicit types to `**values`
     @classmethod
-    def construct(  # ty: ignore[invalid-method-override]
+    def construct(  # ty: ignore[incompatible-method-override]
         cls,
         _fields_set: set[str] | None = None,
         **values: Unpack[FinalRequestOptionsInput],

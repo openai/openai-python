@@ -297,9 +297,7 @@ class AsyncRealtimeConnection:
 
         This is helpful if you're using `.recv_bytes()`.
         """
-        return cast(
-            RealtimeServerEvent, construct_type_unchecked(value=json.loads(data), type_=cast(Any, RealtimeServerEvent))
-        )
+        return construct_type_unchecked(value=json.loads(data), type_=cast(Any, RealtimeServerEvent))
 
 
 class AsyncRealtimeConnectionManager:
@@ -487,9 +485,7 @@ class RealtimeConnection:
 
         This is helpful if you're using `.recv_bytes()`.
         """
-        return cast(
-            RealtimeServerEvent, construct_type_unchecked(value=json.loads(data), type_=cast(Any, RealtimeServerEvent))
-        )
+        return construct_type_unchecked(value=json.loads(data), type_=cast(Any, RealtimeServerEvent))
 
 
 class RealtimeConnectionManager:

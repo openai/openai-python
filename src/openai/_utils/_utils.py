@@ -269,7 +269,7 @@ def required_args(*variants: Sequence[str]) -> Callable[[CallableT], CallableT]:
                     given_params.add(positional[i])
                 except IndexError:
                     raise TypeError(
-                        f"{func.__name__}() takes {len(positional)} argument(s) but {len(args)} were given"  # ty: ignore[unresolved-attribute]
+                        f"{func.__name__}() takes {len(positional)} argument(s) but {len(args)} were given"  # ty: ignore[missing-attribute]
                     ) from None
 
             for key in kwargs.keys():

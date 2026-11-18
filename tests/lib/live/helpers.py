@@ -12,7 +12,7 @@ from openai.types.live import ServerEvent
 
 def event(data: dict[str, Any]) -> ServerEvent:
     # Exercise the same unchecked construction used by the generated transport.
-    return cast(ServerEvent, construct_type_unchecked(value=data, type_=cast(Any, ServerEvent)))
+    return construct_type_unchecked(value=data, type_=cast(Any, ServerEvent))
 
 
 def text(

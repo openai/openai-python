@@ -282,7 +282,7 @@ def test_bound_class_namespaces() -> None:
         pass
 
     class ShadowedCatalog(Catalog):
-        class Product(BaseModel):  # ty: ignore[invalid-attribute-override]
+        class Product(BaseModel):  # ty: ignore[incompatible-attribute-override]
             sku: int
 
     for callback in (
@@ -589,7 +589,7 @@ def test_wrapped_override_uses_defining_namespace(wrap_base: bool) -> None:
             return product.name
 
     class Child(Catalog):
-        class Product(BaseModel):  # ty: ignore[invalid-attribute-override]
+        class Product(BaseModel):  # ty: ignore[incompatible-attribute-override]
             sku: int
 
         @wraps(Catalog.lookup)
@@ -611,7 +611,7 @@ def test_bound_alias_keeps_lexical_annotation_owner(delete_original: bool) -> No
         reserve = lookup
 
     class Child(Catalog):
-        class Product(BaseModel):  # ty: ignore[invalid-attribute-override]
+        class Product(BaseModel):  # ty: ignore[incompatible-attribute-override]
             sku: int
 
         alias = Catalog.lookup

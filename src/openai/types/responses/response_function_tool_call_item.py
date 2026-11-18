@@ -15,10 +15,10 @@ class ResponseFunctionToolCallItem(ResponseFunctionToolCall):
     [function calling guide](https://developers.openai.com/api/docs/guides/function-calling) for more information.
     """
 
-    id: str  # ty: ignore[invalid-mutable-override]
+    id: str  # ty: ignore[incompatible-mutable-override]
     """The unique ID of the function tool call."""
 
-    status: Literal["in_progress", "completed", "incomplete"]  # ty: ignore[invalid-mutable-override]
+    status: Literal["in_progress", "completed", "incomplete"]  # ty: ignore[incompatible-mutable-override]
     """The status of the item.
 
     One of `in_progress`, `completed`, or `incomplete`. Populated when items are
