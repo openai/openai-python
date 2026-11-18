@@ -20,7 +20,6 @@ __all__ = [
     "AgentCompaction",
     "AgentExperimental",
     "PromptCacheOptions",
-    "SpendControl",
     "StreamOptions",
     "SessionCreateParamsNonStreaming",
     "SessionCreateParamsStreaming",
@@ -71,12 +70,6 @@ class SessionCreateParamsBase(TypedDict, total=False):
     - `none` - Keep the existing execution behavior without automatic action review.
     - `auto_review` - Review eligible actions automatically. Deny manual approval
       fallbacks.
-    """
-
-    spend_control: Optional[SpendControl]
-    """Optional spending limit in USD cents.
-
-    Omission or null creates an unlimited session.
     """
 
     stream_options: StreamOptions
@@ -181,16 +174,6 @@ class PromptCacheOptions(TypedDict, total=False):
 
     ttl: Literal["30m", "12h"]
     """Minimum lifetime for new prompt cache entries. Defaults to 30 minutes."""
-
-
-class SpendControl(TypedDict, total=False):
-    """Optional spending limit in USD cents.
-
-    Omission or null creates an unlimited session.
-    """
-
-    limit: Required[Optional[int]]
-    """Positive USD cents, or null to remove the limit."""
 
 
 class StreamOptions(TypedDict, total=False):

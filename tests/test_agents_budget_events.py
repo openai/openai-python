@@ -6,7 +6,7 @@ from typing_extensions import override
 import pytest
 
 from openai import OpenAI, AsyncOpenAI
-from openai.types.beta import AgentSessionErrorEvent, AgentSessionBudgetReachedEvent
+from openai.types.beta import AgentSessionErrorEvent
 from openai.lib.beta.agents import AgentTurnResultError
 from tests.lib.streaming.agents.test_results import ResultServer, collect, message, creation as creation
 from tests.lib.streaming.agents.test_streams import EventBody, sdk as sdk, session, turn_event
@@ -15,6 +15,12 @@ from tests.lib.streaming.agents.test_streams import EventBody, sdk as sdk, sessi
 @pytest.fixture
 def server() -> ResultServer:
     return ResultServer()
+
+
+@pytest.fixture(autouse=True)
+def private_wire_events(sdk: OpenAI | AsyncOpenAI) -> None:
+    # Match default client behavior for private frames outside the public union.
+    sdk._strict_response_validation = False
 
 
 def budget(session_id: str = "session_test") -> dict[str, object]:
@@ -33,26 +39,23 @@ class NamedEventBody(EventBody):
 @pytest.mark.parametrize("creation", [False, True])
 @pytest.mark.parametrize("named", [False, True])
 @pytest.mark.parametrize("preceding_error", [False, True])
-@pytest.mark.parametrize("limit", [None, 731])
-async def test_typed_budget_on_agents_entrypoints(
+async def test_private_budget_on_agents_entrypoints(
     sdk: OpenAI | AsyncOpenAI,
     server: ResultServer,
     creation: bool,
     named: bool,
     preceding_error: bool,
-    limit: int | None,
 ) -> None:
     error_payload = {
-        "type": "budget_exceeded",
-        "code": "session_budget_reached",
-        "message": "Synthetic session spending limit reached",
-        "param": "spend_control",
+        "type": "server_error",
+        "code": "internal_error",
+        "message": "Synthetic domain failure",
+        "param": "input",
     }
     events: list[dict[str, object]] = []
     if preceding_error:
         events.append({"type": "error", "session_id": "session_test", "error": error_payload})
     resource = session("budget_reached")
-    resource["spend_control"] = {"limit": limit, "consumed": 419}
     events.append({"type": "agent.session.budget_reached", "session": resource})
     server.body = (NamedEventBody if named else EventBody)(events)
     if isinstance(sdk, AsyncOpenAI):
@@ -84,14 +87,9 @@ async def test_typed_budget_on_agents_entrypoints(
         assert isinstance(error, AgentSessionErrorEvent)
         assert error.session_id == "session_test"
         assert error.error.model_dump() == error_payload
-    assert isinstance(received[-1], AgentSessionBudgetReachedEvent)
-    assert received[-1].session.id == "session_test"
-    assert received[-1].session.status == "budget_reached"
-    spend_control = received[-1].session.spend_control
-    assert spend_control is not None
-    assert spend_control.limit == limit
-    assert "limit" in spend_control.model_fields_set
-    assert spend_control.consumed == 419
+    snapshot = getattr(received[-1], "session", None)
+    assert snapshot is not None
+    assert (snapshot["id"] if isinstance(snapshot, dict) else snapshot.id) == "session_test"
     assert server.body.read_count == len(events)
     assert server.body.closed
 
@@ -161,7 +159,7 @@ async def test_budget_before_root_turn_stops_result_collection(
             {
                 "type": "error",
                 "session_id": "session_test",
-                "error": {"type": "budget_exceeded", "message": "Budget exceeded"},
+                "error": {"type": "server_error", "message": "Budget exceeded"},
             },
             budget(),
             {"type": "agent.session.failed", "session": session("failed")},
@@ -174,4 +172,22 @@ async def test_budget_before_root_turn_stops_result_collection(
     assert exc.value.session_id == "session_test"
     assert exc.value.turn is None
     assert server.body.read_count == len(events) - 1
+    assert server.body.closed
+
+
+@pytest.mark.parametrize("snapshot", [None, {}, {"id": None}, {"id": ""}, {"id": 123}])
+async def test_malformed_private_budget_snapshot_is_not_a_boundary(
+    sdk: OpenAI | AsyncOpenAI, server: ResultServer, creation: bool, snapshot: object
+) -> None:
+    server.body = EventBody(
+        [
+            {"type": "agent.session.budget_reached", "session": snapshot},
+            {"type": "agent.session.failed", "session": session("failed")},
+        ]
+    )
+    with pytest.raises(AgentTurnResultError) as exc:
+        await collect(sdk, creation)
+    assert exc.value.reason == "failed"
+    assert exc.value.session_id == "session_test"
+    assert server.body.read_count == 2
     assert server.body.closed

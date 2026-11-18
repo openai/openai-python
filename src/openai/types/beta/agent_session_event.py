@@ -11,7 +11,6 @@ from .agent_session_created_event import AgentSessionCreatedEvent
 from .agent_session_in_progress_event import AgentSessionInProgressEvent
 from .agent_session_turn_failed_event import AgentSessionTurnFailedEvent
 from .agent_session_turn_created_event import AgentSessionTurnCreatedEvent
-from .agent_session_budget_reached_event import AgentSessionBudgetReachedEvent
 from .agent_session_turn_cancelled_event import AgentSessionTurnCancelledEvent
 from .agent_session_turn_completed_event import AgentSessionTurnCompletedEvent
 from .agent_session_turn_item_done_event import AgentSessionTurnItemDoneEvent
@@ -57,7 +56,6 @@ AgentSessionEvent: TypeAlias = Annotated[
         AgentSessionTurnCancelledEvent,
         AgentSessionTurnItemAddedEvent,
         AgentSessionIdleEvent,
-        AgentSessionBudgetReachedEvent,
         AgentSessionInProgressEvent,
         AgentSessionRequiresActionEvent,
         AgentSessionFailedEvent,
