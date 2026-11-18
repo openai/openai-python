@@ -135,6 +135,61 @@ async def test_responses_helpers_forward_image_options(
     assert [json.loads(call.request.content)["image"] for call in route.calls] == [image, image]
 
 
+@pytest.mark.respx2(base_url=base_url)
+@pytest.mark.parametrize("client,async_client", [(False, False)], indirect=True)
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+@pytest.mark.parametrize("explicit_options", [False, True], ids=["omitted", "explicit"])
+async def test_responses_helpers_forward_background_options(
+    client: OpenAI, async_client: AsyncOpenAI, respx2_mock: MockRouter, sync: bool, explicit_options: bool
+) -> None:
+    parse_options: response_create_params.BackgroundOptions = {"completion_window": "8h", "continuation_id": "workflow"}
+    stream_options: response_create_params.BackgroundOptions = {"completion_window": "soonest"}
+    route = respx2_mock.post("/responses").respond(json={"status": "queued", "output": []})
+
+    if sync:
+        parsed = client.responses.parse(
+            model="test-model",
+            input="test",
+            background=True,
+            background_options=parse_options if explicit_options else omit,
+        )
+    else:
+        parsed = await async_client.responses.parse(
+            model="test-model",
+            input="test",
+            background=True,
+            background_options=parse_options if explicit_options else omit,
+        )
+    assert parsed.status == "queued"
+
+    route.respond(content="data: [DONE]\n\n", headers={"content-type": "text/event-stream"})
+    if sync:
+        with client.responses.stream(
+            model="test-model",
+            input="test",
+            background=True,
+            background_options=stream_options if explicit_options else omit,
+        ) as stream:
+            assert list(stream) == []
+    else:
+        async with async_client.responses.stream(
+            model="test-model",
+            input="test",
+            background=True,
+            background_options=stream_options if explicit_options else omit,
+        ) as stream:
+            assert [event async for event in stream] == []
+
+    parse_request, stream_request = [json.loads(call.request.content) for call in route.calls]
+    assert stream_request["stream"] is True
+    if explicit_options:
+        assert parse_request["background_options"] == parse_options
+        assert stream_request["background_options"] == stream_options
+    else:
+        assert "background_options" not in parse_request
+        assert "background_options" not in stream_request
+
+
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
 def test_stream_method_definition_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
     checking_client: OpenAI | AsyncOpenAI = client if sync else async_client

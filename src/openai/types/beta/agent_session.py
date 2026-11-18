@@ -31,7 +31,6 @@ __all__ = [
     "RequiredActionSessionRequiredActionResourceFunctionCall",
     "RequiredActionSessionRequiredActionResourceEnvironmentConnection",
     "PromptCacheOptions",
-    "SpendControl",
 ]
 
 
@@ -266,21 +265,6 @@ class PromptCacheOptions(BaseModel):
     ttl: Literal["30m", "12h"]
 
 
-class SpendControl(BaseModel):
-    """Configured spending limit and best-effort consumption, in USD cents.
-
-    Unlimited sessions omit this object.
-    """
-
-    consumed: Optional[int] = None
-    """
-    Best-effort recorded spend floored to whole USD cents, or null when unavailable.
-    """
-
-    limit: int
-    """The configured positive limit in USD cents."""
-
-
 class AgentSession(BaseModel):
     """A Managed Agents session."""
 
@@ -338,10 +322,4 @@ class AgentSession(BaseModel):
 
     Omitted when review is none and automatic review is not enabled. Omission means
     none.
-    """
-
-    spend_control: Optional[SpendControl] = None
-    """Configured spending limit and best-effort consumption, in USD cents.
-
-    Unlimited sessions omit this object.
     """

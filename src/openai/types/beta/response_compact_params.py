@@ -16,7 +16,9 @@ class ResponseCompactParams(TypedDict, total=False):
         Union[
             Literal[
                 "gpt-6-astra",
+                "gpt-6.2-astra",
                 "gpt-6.1-sol",
+                "gpt-6.2-sol",
                 "gpt-6.1-terra",
                 "gpt-6-sol",
                 "gpt-6-luna",
@@ -127,6 +129,7 @@ class ResponseCompactParams(TypedDict, total=False):
                 "gpt-6-cyber",
                 "gpt-rosalind-research",
                 "gpt-6-rosalind",
+                "gpt-6.2-astra-law",
             ],
             str,
             None,

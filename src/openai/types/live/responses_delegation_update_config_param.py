@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Union, Iterable, Optional
+from typing import Dict, List, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from ..._types import SequenceNotStr
@@ -58,6 +58,12 @@ __all__ = [
     "ToolShellEnvironmentLocalSkill",
     "ToolImageGeneration",
     "ToolMcp",
+    "ToolMcpAllowedTools",
+    "ToolMcpAllowedToolsLiveMCPToolFilterParam",
+    "ToolMcpRequireApproval",
+    "ToolMcpRequireApprovalLiveMCPRequireApprovalFilterParam",
+    "ToolMcpRequireApprovalLiveMCPRequireApprovalFilterParamAlways",
+    "ToolMcpRequireApprovalLiveMCPRequireApprovalFilterParamNever",
     "ToolCustom",
     "ToolNamespace",
     "ToolSearch",
@@ -421,8 +427,90 @@ class ToolImageGeneration(TypedDict, total=False):
     type: Required[Literal["image_generation"]]
 
 
+class ToolMcpAllowedToolsLiveMCPToolFilterParam(TypedDict, total=False):
+    read_only: Optional[bool]
+    """Whether to allow only read-only tools for matching entries."""
+
+    tool_names: Optional[SequenceNotStr[str]]
+    """A list of tool names to match against."""
+
+
+ToolMcpAllowedTools: TypeAlias = Union[SequenceNotStr[str], ToolMcpAllowedToolsLiveMCPToolFilterParam]
+
+
+class ToolMcpRequireApprovalLiveMCPRequireApprovalFilterParamAlways(TypedDict, total=False):
+    """A filter that forces approval for matching tools."""
+
+    read_only: Optional[bool]
+    """Whether to allow only read-only tools for matching entries."""
+
+    tool_names: Optional[SequenceNotStr[str]]
+    """A list of tool names to match against."""
+
+
+class ToolMcpRequireApprovalLiveMCPRequireApprovalFilterParamNever(TypedDict, total=False):
+    """A filter that skips approval for matching tools."""
+
+    read_only: Optional[bool]
+    """Whether to allow only read-only tools for matching entries."""
+
+    tool_names: Optional[SequenceNotStr[str]]
+    """A list of tool names to match against."""
+
+
+class ToolMcpRequireApprovalLiveMCPRequireApprovalFilterParam(TypedDict, total=False):
+    always: Optional[ToolMcpRequireApprovalLiveMCPRequireApprovalFilterParamAlways]
+    """A filter that forces approval for matching tools."""
+
+    never: Optional[ToolMcpRequireApprovalLiveMCPRequireApprovalFilterParamNever]
+    """A filter that skips approval for matching tools."""
+
+
+ToolMcpRequireApproval: TypeAlias = Union[
+    ToolMcpRequireApprovalLiveMCPRequireApprovalFilterParam, Literal["always", "never"]
+]
+
+
 class ToolMcp(TypedDict, total=False):
     type: Required[Literal["mcp"]]
+
+    allowed_callers: Optional[List[Literal["direct", "programmatic"]]]
+    """The tool invocation context(s)."""
+
+    allowed_tools: Optional[ToolMcpAllowedTools]
+    """A list of MCP tool names that are allowed for this server."""
+
+    authorization: Optional[str]
+    """This value is omitted from returned Live session data."""
+
+    connector_id: Optional[str]
+    """The ID of a built-in MCP connector.
+
+    This field is deprecated for models released after September 1, 2026. Use
+    `server_url` to connect to a remote MCP server, or `tunnel_id` to connect to a
+    local MCP server.
+    """
+
+    defer_loading: Optional[bool]
+    """Whether this MCP tool should be deferred and discovered via tool search."""
+
+    headers: Optional[Dict[str, str]]
+    """Optional HTTP headers to send when connecting to the MCP server."""
+
+    require_approval: Optional[ToolMcpRequireApproval]
+    """Controls which MCP tools require explicit user approval before execution."""
+
+    server_description: Optional[str]
+    """An optional human-readable description of the MCP server."""
+
+    server_label: str
+    """A label used to identify the MCP server."""
+
+    server_url: Optional[str]
+    """The URL of the MCP server to connect to."""
+
+    tunnel_id: Optional[str]
+    """The Secure MCP Tunnel ID to use instead of a direct server URL."""
 
 
 class ToolCustom(TypedDict, total=False):

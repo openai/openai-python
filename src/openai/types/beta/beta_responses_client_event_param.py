@@ -27,6 +27,7 @@ __all__ = [
     "BetaResponsesClientEventParam",
     "ResponseCreate",
     "ResponseCreateAccessPrograms",
+    "ResponseCreateBackgroundOptions",
     "ResponseCreateContextManagement",
     "ResponseCreateConversation",
     "ResponseCreateImage",
@@ -58,6 +59,27 @@ class ResponseCreateAccessPrograms(TypedDict, total=False):
     require authorization. Requests that require unavailable Daybreak access
     return 403. An implicit Standard fallback is represented by null in the
     response's access_programs field, rather than an explicit Standard selection.
+    """
+
+
+class ResponseCreateBackgroundOptions(TypedDict, total=False):
+    """Options for background execution on HTTP requests.
+
+    The `2h` and `8h`
+    completion windows require `background: true`, Standard processing,
+    and `stream: false` or omitted.
+    """
+
+    completion_window: Literal["soonest", "2h", "8h"]
+    """The completion window for background execution.
+
+    Defaults to `soonest`; `2h` and `8h` select discounted background execution.
+    """
+
+    continuation_id: str
+    """
+    A customer-provided opaque identifier used to prioritize related background
+    requests. It does not add prior history to the input.
     """
 
 
@@ -283,6 +305,13 @@ class ResponseCreate(TypedDict, total=False):
     [Learn more](https://developers.openai.com/api/docs/guides/background).
     """
 
+    background_options: ResponseCreateBackgroundOptions
+    """Options for background execution on HTTP requests.
+
+    The `2h` and `8h` completion windows require `background: true`, Standard
+    processing, and `stream: false` or omitted.
+    """
+
     context_management: Optional[Iterable[ResponseCreateContextManagement]]
     """Context management configuration for this request."""
 
@@ -375,7 +404,9 @@ class ResponseCreate(TypedDict, total=False):
     model: Union[
         Literal[
             "gpt-6-astra",
+            "gpt-6.2-astra",
             "gpt-6.1-sol",
+            "gpt-6.2-sol",
             "gpt-6.1-terra",
             "gpt-6-sol",
             "gpt-6-luna",
@@ -486,6 +517,7 @@ class ResponseCreate(TypedDict, total=False):
             "gpt-6-cyber",
             "gpt-rosalind-research",
             "gpt-6-rosalind",
+            "gpt-6.2-astra-law",
         ],
         str,
     ]

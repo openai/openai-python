@@ -27,6 +27,7 @@ __all__ = [
     "BetaResponsesClientEvent",
     "ResponseCreate",
     "ResponseCreateAccessPrograms",
+    "ResponseCreateBackgroundOptions",
     "ResponseCreateContextManagement",
     "ResponseCreateConversation",
     "ResponseCreateImage",
@@ -58,6 +59,27 @@ class ResponseCreateAccessPrograms(BaseModel):
     require authorization. Requests that require unavailable Daybreak access
     return 403. An implicit Standard fallback is represented by null in the
     response's access_programs field, rather than an explicit Standard selection.
+    """
+
+
+class ResponseCreateBackgroundOptions(BaseModel):
+    """Options for background execution on HTTP requests.
+
+    The `2h` and `8h`
+    completion windows require `background: true`, Standard processing,
+    and `stream: false` or omitted.
+    """
+
+    completion_window: Optional[Literal["soonest", "2h", "8h"]] = None
+    """The completion window for background execution.
+
+    Defaults to `soonest`; `2h` and `8h` select discounted background execution.
+    """
+
+    continuation_id: Optional[str] = None
+    """
+    A customer-provided opaque identifier used to prioritize related background
+    requests. It does not add prior history to the input.
     """
 
 
@@ -283,6 +305,13 @@ class ResponseCreate(BaseModel):
     [Learn more](https://developers.openai.com/api/docs/guides/background).
     """
 
+    background_options: Optional[ResponseCreateBackgroundOptions] = None
+    """Options for background execution on HTTP requests.
+
+    The `2h` and `8h` completion windows require `background: true`, Standard
+    processing, and `stream: false` or omitted.
+    """
+
     context_management: Optional[List[ResponseCreateContextManagement]] = None
     """Context management configuration for this request."""
 
@@ -375,7 +404,9 @@ class ResponseCreate(BaseModel):
     model: Union[
         Literal[
             "gpt-6-astra",
+            "gpt-6.2-astra",
             "gpt-6.1-sol",
+            "gpt-6.2-sol",
             "gpt-6.1-terra",
             "gpt-6-sol",
             "gpt-6-luna",
@@ -486,6 +517,7 @@ class ResponseCreate(BaseModel):
             "gpt-6-cyber",
             "gpt-rosalind-research",
             "gpt-6-rosalind",
+            "gpt-6.2-astra-law",
         ],
         str,
         None,

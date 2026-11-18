@@ -123,6 +123,7 @@ class Responses(SyncAPIResource):
         *,
         access_programs: response_create_params.AccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
+        background_options: response_create_params.BackgroundOptions | Omit = omit,
         context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
         image: response_create_params.Image | Omit = omit,
@@ -135,7 +136,9 @@ class Responses(SyncAPIResource):
         model: Union[
             Literal[
                 "gpt-6-astra",
+                "gpt-6.2-astra",
                 "gpt-6.1-sol",
+                "gpt-6.2-sol",
                 "gpt-6.1-terra",
                 "gpt-6-sol",
                 "gpt-6-luna",
@@ -246,6 +249,7 @@ class Responses(SyncAPIResource):
                 "gpt-6-cyber",
                 "gpt-rosalind-research",
                 "gpt-6-rosalind",
+                "gpt-6.2-astra-law",
             ],
             str,
         ]
@@ -299,6 +303,10 @@ class Responses(SyncAPIResource):
 
           background: Whether to run the model response in the background.
               [Learn more](https://developers.openai.com/api/docs/guides/background).
+
+          background_options: Options for background execution on HTTP requests. The `2h` and `8h` completion
+              windows require `background: true`, Standard processing, and `stream: false` or
+              omitted.
 
           context_management: Context management configuration for this request.
 
@@ -619,6 +627,7 @@ class Responses(SyncAPIResource):
         stream: Literal[True],
         access_programs: response_create_params.AccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
+        background_options: response_create_params.BackgroundOptions | Omit = omit,
         context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
         image: response_create_params.Image | Omit = omit,
@@ -631,7 +640,9 @@ class Responses(SyncAPIResource):
         model: Union[
             Literal[
                 "gpt-6-astra",
+                "gpt-6.2-astra",
                 "gpt-6.1-sol",
+                "gpt-6.2-sol",
                 "gpt-6.1-terra",
                 "gpt-6-sol",
                 "gpt-6-luna",
@@ -742,6 +753,7 @@ class Responses(SyncAPIResource):
                 "gpt-6-cyber",
                 "gpt-rosalind-research",
                 "gpt-6-rosalind",
+                "gpt-6.2-astra-law",
             ],
             str,
         ]
@@ -801,6 +813,10 @@ class Responses(SyncAPIResource):
 
           background: Whether to run the model response in the background.
               [Learn more](https://developers.openai.com/api/docs/guides/background).
+
+          background_options: Options for background execution on HTTP requests. The `2h` and `8h` completion
+              windows require `background: true`, Standard processing, and `stream: false` or
+              omitted.
 
           context_management: Context management configuration for this request.
 
@@ -1114,6 +1130,7 @@ class Responses(SyncAPIResource):
         stream: bool,
         access_programs: response_create_params.AccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
+        background_options: response_create_params.BackgroundOptions | Omit = omit,
         context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
         image: response_create_params.Image | Omit = omit,
@@ -1126,7 +1143,9 @@ class Responses(SyncAPIResource):
         model: Union[
             Literal[
                 "gpt-6-astra",
+                "gpt-6.2-astra",
                 "gpt-6.1-sol",
+                "gpt-6.2-sol",
                 "gpt-6.1-terra",
                 "gpt-6-sol",
                 "gpt-6-luna",
@@ -1237,6 +1256,7 @@ class Responses(SyncAPIResource):
                 "gpt-6-cyber",
                 "gpt-rosalind-research",
                 "gpt-6-rosalind",
+                "gpt-6.2-astra-law",
             ],
             str,
         ]
@@ -1296,6 +1316,10 @@ class Responses(SyncAPIResource):
 
           background: Whether to run the model response in the background.
               [Learn more](https://developers.openai.com/api/docs/guides/background).
+
+          background_options: Options for background execution on HTTP requests. The `2h` and `8h` completion
+              windows require `background: true`, Standard processing, and `stream: false` or
+              omitted.
 
           context_management: Context management configuration for this request.
 
@@ -1607,6 +1631,7 @@ class Responses(SyncAPIResource):
         *,
         access_programs: response_create_params.AccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
+        background_options: response_create_params.BackgroundOptions | Omit = omit,
         context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
         image: response_create_params.Image | Omit = omit,
@@ -1619,7 +1644,9 @@ class Responses(SyncAPIResource):
         model: Union[
             Literal[
                 "gpt-6-astra",
+                "gpt-6.2-astra",
                 "gpt-6.1-sol",
+                "gpt-6.2-sol",
                 "gpt-6.1-terra",
                 "gpt-6-sol",
                 "gpt-6-luna",
@@ -1730,6 +1757,7 @@ class Responses(SyncAPIResource):
                 "gpt-6-cyber",
                 "gpt-rosalind-research",
                 "gpt-6-rosalind",
+                "gpt-6.2-astra-law",
             ],
             str,
         ]
@@ -1777,6 +1805,7 @@ class Responses(SyncAPIResource):
                     "service_tier": service_tier,
                     "access_programs": access_programs,
                     "background": background,
+                    "background_options": background_options,
                     "context_management": context_management,
                     "conversation": conversation,
                     "image": image,
@@ -2112,7 +2141,9 @@ class Responses(SyncAPIResource):
         model: Union[
             Literal[
                 "gpt-6-astra",
+                "gpt-6.2-astra",
                 "gpt-6.1-sol",
+                "gpt-6.2-sol",
                 "gpt-6.1-terra",
                 "gpt-6-sol",
                 "gpt-6-luna",
@@ -2223,6 +2254,7 @@ class Responses(SyncAPIResource):
                 "gpt-6-cyber",
                 "gpt-rosalind-research",
                 "gpt-6-rosalind",
+                "gpt-6.2-astra-law",
             ],
             str,
             None,
@@ -2485,6 +2517,7 @@ class AsyncResponses(AsyncAPIResource):
         *,
         access_programs: response_create_params.AccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
+        background_options: response_create_params.BackgroundOptions | Omit = omit,
         context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
         image: response_create_params.Image | Omit = omit,
@@ -2497,7 +2530,9 @@ class AsyncResponses(AsyncAPIResource):
         model: Union[
             Literal[
                 "gpt-6-astra",
+                "gpt-6.2-astra",
                 "gpt-6.1-sol",
+                "gpt-6.2-sol",
                 "gpt-6.1-terra",
                 "gpt-6-sol",
                 "gpt-6-luna",
@@ -2608,6 +2643,7 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-6-cyber",
                 "gpt-rosalind-research",
                 "gpt-6-rosalind",
+                "gpt-6.2-astra-law",
             ],
             str,
         ]
@@ -2661,6 +2697,10 @@ class AsyncResponses(AsyncAPIResource):
 
           background: Whether to run the model response in the background.
               [Learn more](https://developers.openai.com/api/docs/guides/background).
+
+          background_options: Options for background execution on HTTP requests. The `2h` and `8h` completion
+              windows require `background: true`, Standard processing, and `stream: false` or
+              omitted.
 
           context_management: Context management configuration for this request.
 
@@ -2981,6 +3021,7 @@ class AsyncResponses(AsyncAPIResource):
         stream: Literal[True],
         access_programs: response_create_params.AccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
+        background_options: response_create_params.BackgroundOptions | Omit = omit,
         context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
         image: response_create_params.Image | Omit = omit,
@@ -2993,7 +3034,9 @@ class AsyncResponses(AsyncAPIResource):
         model: Union[
             Literal[
                 "gpt-6-astra",
+                "gpt-6.2-astra",
                 "gpt-6.1-sol",
+                "gpt-6.2-sol",
                 "gpt-6.1-terra",
                 "gpt-6-sol",
                 "gpt-6-luna",
@@ -3104,6 +3147,7 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-6-cyber",
                 "gpt-rosalind-research",
                 "gpt-6-rosalind",
+                "gpt-6.2-astra-law",
             ],
             str,
         ]
@@ -3163,6 +3207,10 @@ class AsyncResponses(AsyncAPIResource):
 
           background: Whether to run the model response in the background.
               [Learn more](https://developers.openai.com/api/docs/guides/background).
+
+          background_options: Options for background execution on HTTP requests. The `2h` and `8h` completion
+              windows require `background: true`, Standard processing, and `stream: false` or
+              omitted.
 
           context_management: Context management configuration for this request.
 
@@ -3476,6 +3524,7 @@ class AsyncResponses(AsyncAPIResource):
         stream: bool,
         access_programs: response_create_params.AccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
+        background_options: response_create_params.BackgroundOptions | Omit = omit,
         context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
         image: response_create_params.Image | Omit = omit,
@@ -3488,7 +3537,9 @@ class AsyncResponses(AsyncAPIResource):
         model: Union[
             Literal[
                 "gpt-6-astra",
+                "gpt-6.2-astra",
                 "gpt-6.1-sol",
+                "gpt-6.2-sol",
                 "gpt-6.1-terra",
                 "gpt-6-sol",
                 "gpt-6-luna",
@@ -3599,6 +3650,7 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-6-cyber",
                 "gpt-rosalind-research",
                 "gpt-6-rosalind",
+                "gpt-6.2-astra-law",
             ],
             str,
         ]
@@ -3658,6 +3710,10 @@ class AsyncResponses(AsyncAPIResource):
 
           background: Whether to run the model response in the background.
               [Learn more](https://developers.openai.com/api/docs/guides/background).
+
+          background_options: Options for background execution on HTTP requests. The `2h` and `8h` completion
+              windows require `background: true`, Standard processing, and `stream: false` or
+              omitted.
 
           context_management: Context management configuration for this request.
 
@@ -3969,6 +4025,7 @@ class AsyncResponses(AsyncAPIResource):
         *,
         access_programs: response_create_params.AccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
+        background_options: response_create_params.BackgroundOptions | Omit = omit,
         context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
         image: response_create_params.Image | Omit = omit,
@@ -3981,7 +4038,9 @@ class AsyncResponses(AsyncAPIResource):
         model: Union[
             Literal[
                 "gpt-6-astra",
+                "gpt-6.2-astra",
                 "gpt-6.1-sol",
+                "gpt-6.2-sol",
                 "gpt-6.1-terra",
                 "gpt-6-sol",
                 "gpt-6-luna",
@@ -4092,6 +4151,7 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-6-cyber",
                 "gpt-rosalind-research",
                 "gpt-6-rosalind",
+                "gpt-6.2-astra-law",
             ],
             str,
         ]
@@ -4139,6 +4199,7 @@ class AsyncResponses(AsyncAPIResource):
                     "service_tier": service_tier,
                     "access_programs": access_programs,
                     "background": background,
+                    "background_options": background_options,
                     "context_management": context_management,
                     "conversation": conversation,
                     "image": image,
@@ -4474,7 +4535,9 @@ class AsyncResponses(AsyncAPIResource):
         model: Union[
             Literal[
                 "gpt-6-astra",
+                "gpt-6.2-astra",
                 "gpt-6.1-sol",
+                "gpt-6.2-sol",
                 "gpt-6.1-terra",
                 "gpt-6-sol",
                 "gpt-6-luna",
@@ -4585,6 +4648,7 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-6-cyber",
                 "gpt-rosalind-research",
                 "gpt-6-rosalind",
+                "gpt-6.2-astra-law",
             ],
             str,
             None,
@@ -5596,6 +5660,7 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
         *,
         access_programs: beta_responses_client_event_param.ResponseCreateAccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
+        background_options: beta_responses_client_event_param.ResponseCreateBackgroundOptions | Omit = omit,
         context_management: Optional[Iterable[beta_responses_client_event_param.ResponseCreateContextManagement]]
         | Omit = omit,
         conversation: Optional[beta_responses_client_event_param.ResponseCreateConversation] | Omit = omit,
@@ -5610,7 +5675,9 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
         model: Union[
             Literal[
                 "gpt-6-astra",
+                "gpt-6.2-astra",
                 "gpt-6.1-sol",
+                "gpt-6.2-sol",
                 "gpt-6.1-terra",
                 "gpt-6-sol",
                 "gpt-6-luna",
@@ -5721,6 +5788,7 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
                 "gpt-6-cyber",
                 "gpt-rosalind-research",
                 "gpt-6-rosalind",
+                "gpt-6.2-astra-law",
             ],
             str,
         ]
@@ -5767,6 +5835,7 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
                         "type": "response.create",
                         "access_programs": access_programs,
                         "background": background,
+                        "background_options": background_options,
                         "context_management": context_management,
                         "conversation": conversation,
                         "generate": generate,
@@ -5860,6 +5929,7 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
         *,
         access_programs: beta_responses_client_event_param.ResponseCreateAccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
+        background_options: beta_responses_client_event_param.ResponseCreateBackgroundOptions | Omit = omit,
         context_management: Optional[Iterable[beta_responses_client_event_param.ResponseCreateContextManagement]]
         | Omit = omit,
         conversation: Optional[beta_responses_client_event_param.ResponseCreateConversation] | Omit = omit,
@@ -5874,7 +5944,9 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
         model: Union[
             Literal[
                 "gpt-6-astra",
+                "gpt-6.2-astra",
                 "gpt-6.1-sol",
+                "gpt-6.2-sol",
                 "gpt-6.1-terra",
                 "gpt-6-sol",
                 "gpt-6-luna",
@@ -5985,6 +6057,7 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
                 "gpt-6-cyber",
                 "gpt-rosalind-research",
                 "gpt-6-rosalind",
+                "gpt-6.2-astra-law",
             ],
             str,
         ]
@@ -6031,6 +6104,7 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
                         "type": "response.create",
                         "access_programs": access_programs,
                         "background": background,
+                        "background_options": background_options,
                         "context_management": context_management,
                         "conversation": conversation,
                         "generate": generate,

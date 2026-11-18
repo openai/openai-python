@@ -45923,6 +45923,12 @@ components:
               type: integer
               minimum: 16
             - type: 'null'
+          background_options:
+            $ref: '#/components/schemas/BackgroundOptionsParam'
+            description: |
+              Options for background execution on HTTP requests. The `2h` and `8h`
+              completion windows require `background: true`, Standard processing,
+              and `stream: false` or omitted.
     CreateRunRequest:
       type: object
       additionalProperties: false
@@ -54002,6 +54008,7 @@ components:
         - gpt-6-cyber
         - gpt-rosalind-research
         - gpt-6-rosalind
+        - gpt-6.2-astra-law
         x-openai-enum-deprecations:
           o1-pro:
             message: 'Announced shutdown date: 2026-10-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
@@ -79995,8 +80002,83 @@ components:
           type: string
           enum:
           - mcp
+        server_label:
+          description: A label used to identify the MCP server.
+          type: string
+          maxLength: 128
+          pattern: ^[A-Za-z][A-Za-z0-9_-]*$
+        server_url:
+          anyOf:
+          - description: The URL of the MCP server to connect to.
+            type: string
+            format: uri
+          - type: 'null'
+        server_description:
+          anyOf:
+          - description: An optional human-readable description of the MCP server.
+            type: string
+          - type: 'null'
+        authorization:
+          description: This value is omitted from returned Live session data.
+          writeOnly: true
+          anyOf:
+          - description: The authorization token to use when connecting to the MCP server or connector.
+            type: string
+          - type: 'null'
+        headers:
+          description: This value is omitted from returned Live session data.
+          writeOnly: true
+          anyOf:
+          - description: Optional HTTP headers to send when connecting to the MCP server.
+            type: object
+            additionalProperties:
+              type: string
+          - type: 'null'
+        allowed_tools:
+          anyOf:
+          - description: A list of MCP tool names that are allowed for this server.
+            anyOf:
+            - type: array
+              items:
+                type: string
+            - $ref: '#/components/schemas/LiveMCPToolFilterParam'
+          - type: 'null'
+        require_approval:
+          anyOf:
+          - description: Controls which MCP tools require explicit user approval before execution.
+            anyOf:
+            - $ref: '#/components/schemas/LiveMCPRequireApprovalFilterParam'
+            - description: Default approval behavior for MCP tool calls.
+              $ref: '#/components/schemas/LiveMCPRequireApprovalApiEnum'
+          - type: 'null'
+        connector_id:
+          anyOf:
+          - description: The ID of a built-in MCP connector. This field is deprecated for models released after September 1, 2026. Use `server_url` to connect to a remote MCP server, or `tunnel_id` to connect to a local MCP server.
+            deprecated: true
+            type: string
+          - type: 'null'
+        tunnel_id:
+          anyOf:
+          - description: The Secure MCP Tunnel ID to use instead of a direct server URL.
+            type: string
+            pattern: ^tunnel_[a-z0-9]{32}$
+          - type: 'null'
+        allowed_callers:
+          anyOf:
+          - description: The tool invocation context(s).
+            type: array
+            items:
+              $ref: '#/components/schemas/LiveCallableToolAllowedCaller'
+            minItems: 1
+          - type: 'null'
+        defer_loading:
+          anyOf:
+          - description: Whether this MCP tool should be deferred and discovered via tool search.
+            type: boolean
+          - type: 'null'
       required:
       - type
+      x-stainless-go-constant-constructor: true
     LiveCustomToolInputParam:
       type: object
       properties:
@@ -91428,7 +91510,6 @@ components:
       enum:
       - context_length_exceeded
       - max_output_tokens
-      - session_budget_exceeded
       - usage_limit_exceeded
       - project_spend_limit_exceeded
       - organization_spend_limit_exceeded
@@ -91453,7 +91534,6 @@ components:
       x-enumDescriptions:
       - The request exceeds the model's context window.
       - The model reached its output token limit before finishing the response.
-      - The session has reached its usage budget.
       - The organization has reached a usage, plan, or billing limit.
       - The project has reached its enforced spend limit.
       - The organization has reached its enforced spend limit.
@@ -93490,9 +93570,6 @@ components:
           - $ref: '#/components/schemas/TokenUsageResource'
           - type: 'null'
           description: Best-effort token usage for the session, or null if unknown. Recorded usage may change.
-        spend_control:
-          $ref: '#/components/schemas/SessionSpendControlResource'
-          description: Configured spending limit and best-effort consumption, in USD cents. Unlimited sessions omit this object.
       required:
       - metadata
       - id
@@ -93651,11 +93728,6 @@ components:
         stream_options:
           $ref: '#/components/schemas/SessionStreamOptionsParam'
           description: Options for the event stream. Only allowed when `stream` is `true`.
-        spend_control:
-          anyOf:
-          - $ref: '#/components/schemas/SessionSpendControlParam'
-          - type: 'null'
-          description: Optional spending limit in USD cents. Omission or null creates an unlimited session.
       required:
       - environment
       additionalProperties: false
@@ -95433,11 +95505,6 @@ components:
           minProperties: 0
           maxProperties: 16
           description: Replaces all metadata. Omit to leave unchanged, or pass null or {} to clear it. Up to 16 string key-value pairs, with keys up to 64 and values up to 512 characters.
-        spend_control:
-          anyOf:
-          - $ref: '#/components/schemas/SessionSpendControlParam'
-          - type: 'null'
-          description: Omit to retain the limit; null or a null limit removes it without resetting spend.
       additionalProperties: false
       description: Fields to update on an existing session.
     DeletedSessionResource:
@@ -105993,6 +106060,7 @@ components:
         - gpt-6-cyber
         - gpt-rosalind-research
         - gpt-6-rosalind
+        - gpt-6.2-astra-law
         x-openai-enum-deprecations:
           o1-pro:
             message: 'Announced shutdown date: 2026-10-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
@@ -113041,6 +113109,12 @@ components:
             - type: 'null'
             x-openai-go-legacy-bool-fields:
             - enabled
+          background_options:
+            $ref: '#/components/schemas/BetaBackgroundOptionsParam'
+            description: |
+              Options for background execution on HTTP requests. The `2h` and `8h`
+              completion windows require `background: true`, Standard processing,
+              and `stream: false` or omitted.
     BetaMultiAgentParam:
       properties:
         enabled:
@@ -113244,41 +113318,176 @@ components:
       - $ref: '#/components/schemas/BetaResponseCustomToolCallInputDoneEvent'
       discriminator:
         propertyName: type
-    SessionSpendControlResource:
+    BackgroundOptionsParam:
+      properties:
+        completion_window:
+          $ref: '#/components/schemas/BackgroundCompletionWindowEnum'
+          description: The completion window for background execution. Defaults to `soonest`; `2h` and `8h` select discounted background execution.
+        continuation_id:
+          type: string
+          description: A customer-provided opaque identifier used to prioritize related background requests. It does not add prior history to the input.
+      type: object
+      required: []
+      description: Options for background execution.
+    BackgroundCompletionWindowEnum:
+      type: string
+      enum:
+      - soonest
+      - 2h
+      - 8h
+    BetaBackgroundOptionsParam:
+      properties:
+        completion_window:
+          $ref: '#/components/schemas/BetaBackgroundCompletionWindowEnum'
+          description: The completion window for background execution. Defaults to `soonest`; `2h` and `8h` select discounted background execution.
+        continuation_id:
+          type: string
+          description: A customer-provided opaque identifier used to prioritize related background requests. It does not add prior history to the input.
+      type: object
+      required: []
+      description: Options for background execution.
+    BetaBackgroundCompletionWindowEnum:
+      type: string
+      enum:
+      - soonest
+      - 2h
+      - 8h
+    LiveMCPToolFilterParam:
       type: object
       properties:
-        limit:
-          type: integer
-          format: int64
-          minimum: 1
-          maximum: 4503599627370495
-          description: The configured positive limit in USD cents.
-        consumed:
-          type:
-          - integer
-          - 'null'
-          minimum: 0
-          description: Best-effort recorded spend floored to whole USD cents, or null when unavailable.
-      required:
-      - limit
-      - consumed
-      additionalProperties: false
-      description: Session-wide spending control, present only when a limit is configured.
-    SessionSpendControlParam:
+        tool_names:
+          anyOf:
+          - description: A list of tool names to match against.
+            type: array
+            items:
+              type: string
+          - type: 'null'
+        read_only:
+          anyOf:
+          - description: Whether to allow only read-only tools for matching entries.
+            type: boolean
+          - type: 'null'
+      required: []
+    LiveMCPRequireApprovalFilterParam:
       type: object
       properties:
-        limit:
-          type:
-          - integer
-          - 'null'
-          format: int64
-          minimum: 1
-          maximum: 4503599627370495
-          description: Positive USD cents, or null to remove the limit.
-      required:
-      - limit
+        always:
+          anyOf:
+          - description: A filter that forces approval for matching tools.
+            $ref: '#/components/schemas/LiveMCPToolFilterParam'
+          - type: 'null'
+        never:
+          anyOf:
+          - description: A filter that skips approval for matching tools.
+            $ref: '#/components/schemas/LiveMCPToolFilterParam'
+          - type: 'null'
+      required: []
+    LiveMCPRequireApprovalApiEnum:
+      type: string
+      enum:
+      - always
+      - never
+    LiveCallableToolAllowedCaller:
+      type: string
+      enum:
+      - direct
+      - programmatic
+    CSAMCategoryAppliedInputTypes:
       additionalProperties: false
-      description: Sets the session-wide limit without changing recorded spend.
+      properties:
+        likely-csam:
+          items:
+            const: image
+            type: string
+          maxItems: 1
+          minItems: 1
+          title: Likely-Csam
+          type: array
+        likely-csam/gen-ai:
+          items:
+            const: image
+            type: string
+          maxItems: 1
+          minItems: 1
+          title: Likely-Csam/Gen-Ai
+          type: array
+      required:
+      - likely-csam
+      - likely-csam/gen-ai
+      title: CSAMCategoryAppliedInputTypes
+      type: object
+    CSAMCategoryFlags:
+      additionalProperties: false
+      properties:
+        likely-csam:
+          title: Likely-Csam
+          type: boolean
+        likely-csam/gen-ai:
+          title: Likely-Csam/Gen-Ai
+          type: boolean
+      required:
+      - likely-csam
+      - likely-csam/gen-ai
+      title: CSAMCategoryFlags
+      type: object
+    CSAMCategoryScores:
+      additionalProperties: false
+      properties:
+        likely-csam:
+          title: Likely-Csam
+          type: number
+        likely-csam/gen-ai:
+          title: Likely-Csam/Gen-Ai
+          type: number
+      required:
+      - likely-csam
+      - likely-csam/gen-ai
+      title: CSAMCategoryScores
+      type: object
+    CSAMModerationResult:
+      properties:
+        flagged:
+          description: Whether either CSAM category was flagged.
+          title: Flagged
+          type: boolean
+        categories:
+          $ref: '#/components/schemas/CSAMCategoryFlags'
+          description: Whether the image was flagged in each category.
+        category_scores:
+          $ref: '#/components/schemas/CSAMCategoryScores'
+          description: The classifier score for each category.
+        category_applied_input_types:
+          $ref: '#/components/schemas/CSAMCategoryAppliedInputTypes'
+          description: The input types evaluated for each category.
+      required:
+      - flagged
+      - categories
+      - category_scores
+      - category_applied_input_types
+      title: CSAMModerationResult
+      type: object
+    CreateCSAMModerationResponse:
+      properties:
+        id:
+          title: Id
+          type: string
+        model:
+          const: omni-moderation-csam-latest
+          title: Model
+          type: string
+        results:
+          items:
+            $ref: '#/components/schemas/CSAMModerationResult'
+          maxItems: 1
+          minItems: 1
+          title: Results
+          type: array
+      required:
+      - id
+      - model
+      - results
+      title: CreateCSAMModerationResponse
+      type: object
     DecisionPromptCacheBreakpoint:
       type: object
       properties:
@@ -113448,7 +113657,9 @@ components:
       type: string
       enum:
       - gpt-6-astra
+      - gpt-6.2-astra
       - gpt-6.1-sol
+      - gpt-6.2-sol
       - gpt-6.1-terra
       - gpt-6-sol
       - gpt-6-luna

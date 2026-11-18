@@ -174,6 +174,20 @@ class AgentTurnResultCollector:
             self.session_id = event.session.id
             self.session_failed = True
             self.boundary = True
+        elif getattr(event, "type", None) == "agent.session.budget_reached":
+            snapshot = getattr(event, "session", None)
+            snapshot_id = snapshot.get("id") if isinstance(snapshot, dict) else getattr(snapshot, "id", None)
+            if isinstance(snapshot_id, str) and snapshot_id:
+                if self.turn is None and self.session_id in (None, snapshot_id):
+                    self.session_id = snapshot_id
+                    self.boundary = True
+                elif (
+                    self.turn is not None
+                    and snapshot_id == self.session_id
+                    and self.turn.status in ("completed", "failed", "cancelled")
+                ):
+                    self.required_actions = []
+                    self.boundary = True
         elif event.type == "agent.session.idle":
             if self.turn is not None and self.turn.status in ("completed", "failed", "cancelled"):
                 self.required_actions = []

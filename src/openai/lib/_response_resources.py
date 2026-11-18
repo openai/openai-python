@@ -73,6 +73,7 @@ def parse(
     parse_as: type[TextFormatT] | None | Omit = omit,
     access_programs: response_create_params.AccessPrograms | Omit = omit,
     background: Optional[bool] | Omit = omit,
+    background_options: response_create_params.BackgroundOptions | Omit = omit,
     context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
     conversation: Optional[response_create_params.Conversation] | Omit = omit,
     image: response_create_params.Image | Omit = omit,
@@ -145,6 +146,7 @@ def parse(
                 "service_tier": service_tier,
                 "access_programs": access_programs,
                 "background": background,
+                "background_options": background_options,
                 "context_management": context_management,
                 "conversation": conversation,
                 "image": image,
@@ -198,6 +200,7 @@ async def async_parse(
     parse_as: type[TextFormatT] | None | Omit = omit,
     access_programs: response_create_params.AccessPrograms | Omit = omit,
     background: Optional[bool] | Omit = omit,
+    background_options: response_create_params.BackgroundOptions | Omit = omit,
     context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
     conversation: Optional[response_create_params.Conversation] | Omit = omit,
     image: response_create_params.Image | Omit = omit,
@@ -270,6 +273,7 @@ async def async_parse(
                 "service_tier": service_tier,
                 "access_programs": access_programs,
                 "background": background,
+                "background_options": background_options,
                 "context_management": context_management,
                 "conversation": conversation,
                 "image": image,
@@ -324,6 +328,7 @@ def stream(
     model: ResponsesModel | Omit = omit,
     access_programs: response_create_params.AccessPrograms | Omit = omit,
     background: Optional[bool] | Omit = omit,
+    background_options: response_create_params.BackgroundOptions | Omit = omit,
     context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
     text_format: type[TextFormatT] | Omit = omit,
     tools: Iterable[ParseableToolParam] | Omit = omit,
@@ -393,6 +398,7 @@ def stream(
         "truncation": truncation,
         "user": user,
         "background": background,
+        "background_options": background_options,
     }
     new_response_args_names = [k for k, v in new_response_args.items() if is_given(v)]
 
@@ -454,6 +460,7 @@ def stream(
             truncation=truncation,
             user=user,
             background=background,
+            background_options=background_options,
             extra_headers=extra_headers,
             extra_query=extra_query,
             extra_body=extra_body,
@@ -495,6 +502,7 @@ def async_stream(
     model: ResponsesModel | Omit = omit,
     access_programs: response_create_params.AccessPrograms | Omit = omit,
     background: Optional[bool] | Omit = omit,
+    background_options: response_create_params.BackgroundOptions | Omit = omit,
     context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
     text_format: type[TextFormatT] | Omit = omit,
     tools: Iterable[ParseableToolParam] | Omit = omit,
@@ -564,6 +572,7 @@ def async_stream(
         "truncation": truncation,
         "user": user,
         "background": background,
+        "background_options": background_options,
     }
     new_response_args_names = [k for k, v in new_response_args.items() if is_given(v)]
 
@@ -624,6 +633,7 @@ def async_stream(
             truncation=truncation,
             user=user,
             background=background,
+            background_options=background_options,
             extra_headers=extra_headers,
             extra_query=extra_query,
             extra_body=extra_body,
