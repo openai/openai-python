@@ -3535,7 +3535,7 @@
     },
     "src/openai/types/beta/session_turn_error.py": {
       "mode": "100644",
-      "sha256": "0509a933cb578c18a49dd1abf2d689bf4da1c6e8bb8b7e80d5d024c22b41042e"
+      "sha256": "5c001662a8a2ba24efe4d7d42a4c37ba70e9c45e095ebfd3c973fa32af48ad7e"
     },
     "src/openai/types/beta/setup_command_param.py": {
       "mode": "100644",

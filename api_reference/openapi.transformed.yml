@@ -91510,7 +91510,6 @@ components:
       enum:
       - context_length_exceeded
       - max_output_tokens
-      - session_budget_exceeded
       - usage_limit_exceeded
       - project_spend_limit_exceeded
       - organization_spend_limit_exceeded
@@ -91535,7 +91534,6 @@ components:
       x-enumDescriptions:
       - The request exceeds the model's context window.
       - The model reached its output token limit before finishing the response.
-      - The session has reached its usage budget.
       - The organization has reached a usage, plan, or billing limit.
       - The project has reached its enforced spend limit.
       - The organization has reached its enforced spend limit.
