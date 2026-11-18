@@ -305,7 +305,9 @@ async def test_phase_selection_preserves_content(sync: bool, streaming: bool, ph
     for actual, expected in zip(response.output, output, strict=True):
         assert actual.type == "message"
         assert actual.phase == expected["phase"]
-        for content, raw in zip(actual.content, expected["content"], strict=True):
+        expected_content = expected["content"]
+        assert isinstance(expected_content, list)
+        for content, raw in zip(actual.content, expected_content, strict=True):
             if content.type == "output_text":
                 assert content.text == raw["text"]
                 assert content.parsed == (Result(answer="final") if actual.phase == "final_answer" else None)

@@ -202,7 +202,7 @@ include = [
 [tool.ty.overrides.rules]
 # These Pydantic models and HTTP exceptions intentionally narrow mutable fields.
 # Preserve their existing contract without suppressing unrelated overrides.
-invalid-mutable-override = "ignore"
+incompatible-mutable-override = "ignore"
 
 [[tool.ty.overrides]]
 include = [

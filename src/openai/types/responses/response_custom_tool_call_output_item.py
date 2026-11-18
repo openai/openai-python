@@ -11,7 +11,7 @@ __all__ = ["ResponseCustomToolCallOutputItem"]
 class ResponseCustomToolCallOutputItem(ResponseCustomToolCallOutput):
     """The output of a custom tool call from your code, being sent back to the model."""
 
-    id: str  # ty: ignore[invalid-mutable-override]
+    id: str  # ty: ignore[incompatible-mutable-override]
     """The unique ID of the custom tool call output item."""
 
     status: Literal["in_progress", "completed", "incomplete"]

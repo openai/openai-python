@@ -362,7 +362,7 @@ class ResponseStreamState(Generic[TextFormatT]):
 
             events.append(
                 build(
-                    ResponseCompletedEvent,
+                    cast("type[ResponseCompletedEvent[TextFormatT]]", ResponseCompletedEvent),
                     sequence_number=event.sequence_number,
                     type="response.completed",
                     response=response,

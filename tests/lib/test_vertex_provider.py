@@ -604,5 +604,5 @@ def test_google_auth_lock_wait_uses_pool_timeout() -> None:
         finally:
             release.set()
         # Executor submission loses the non-streaming overload in ty.
-        assert first.result(timeout=2).id == "resp_test"  # ty: ignore[unresolved-attribute]
+        assert first.result(timeout=2).id == "resp_test"  # ty: ignore[missing-union-attribute]
     assert credentials.before_request.call_count == 1
