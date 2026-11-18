@@ -428,9 +428,7 @@ class AsyncRealtimeConnection(AsyncWebSocketConnectionBase):
 
         This is helpful if you're using `.recv_bytes()`.
         """
-        return cast(
-            RealtimeServerEvent, construct_type_unchecked(value=json.loads(data), type_=cast(Any, RealtimeServerEvent))
-        )
+        return construct_type_unchecked(value=json.loads(data), type_=cast(Any, RealtimeServerEvent))
 
     def on(
         self, event_type: str, handler: Callable[..., Any] | None = None
@@ -893,9 +891,7 @@ class RealtimeConnection(WebSocketConnectionBase):
 
         This is helpful if you're using `.recv_bytes()`.
         """
-        return cast(
-            RealtimeServerEvent, construct_type_unchecked(value=json.loads(data), type_=cast(Any, RealtimeServerEvent))
-        )
+        return construct_type_unchecked(value=json.loads(data), type_=cast(Any, RealtimeServerEvent))
 
     def on(
         self, event_type: str, handler: Callable[..., Any] | None = None

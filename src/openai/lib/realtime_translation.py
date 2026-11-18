@@ -78,10 +78,7 @@ def _parse(data: str | bytes) -> RealtimeTranslationServerEvent:
     # forward-compatible parsing, including unknown server events, elsewhere.
     if is_dict(value) and value.get("type") == "session.closed":
         return validate_type(type_=RealtimeTranslationSessionClosedEvent, value=value)
-    return cast(
-        RealtimeTranslationServerEvent,
-        construct_type_unchecked(value=value, type_=cast(Any, RealtimeTranslationServerEvent)),
-    )
+    return construct_type_unchecked(value=value, type_=cast(Any, RealtimeTranslationServerEvent))
 
 
 class TranslationConnection:

@@ -61,7 +61,7 @@ ParsedContent: TypeAlias = Annotated[
 
 class ParsedResponseOutputMessage(ResponseOutputMessage, GenericModel, Generic[ContentType]):
     if TYPE_CHECKING:
-        content: List[ParsedContent[ContentType]]  # ty: ignore[invalid-attribute-override]
+        content: List[ParsedContent[ContentType]]  # ty: ignore[incompatible-attribute-override]
     else:
         content: List[ParsedContent]
 
@@ -125,7 +125,7 @@ ParsedResponseOutputItem: TypeAlias = Annotated[
 
 class ParsedResponse(Response, GenericModel, Generic[ContentType]):
     if TYPE_CHECKING:
-        output: List[ParsedResponseOutputItem[ContentType]]  # ty: ignore[invalid-attribute-override]
+        output: List[ParsedResponseOutputItem[ContentType]]  # ty: ignore[incompatible-attribute-override]
     else:
         output: List[ParsedResponseOutputItem]
 

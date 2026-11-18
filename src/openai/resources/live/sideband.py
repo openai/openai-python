@@ -235,9 +235,7 @@ class AsyncSidebandConnection(AsyncWebSocketConnectionBase):
 
         This is helpful if you're using `.recv_bytes()`.
         """
-        return cast(
-            ConnectServerEvent, construct_type_unchecked(value=json.loads(data), type_=cast(Any, ConnectServerEvent))
-        )
+        return construct_type_unchecked(value=json.loads(data), type_=cast(Any, ConnectServerEvent))
 
     def on(
         self, event_type: str, handler: Callable[..., Any] | None = None
@@ -676,9 +674,7 @@ class SidebandConnection(WebSocketConnectionBase):
 
         This is helpful if you're using `.recv_bytes()`.
         """
-        return cast(
-            ConnectServerEvent, construct_type_unchecked(value=json.loads(data), type_=cast(Any, ConnectServerEvent))
-        )
+        return construct_type_unchecked(value=json.loads(data), type_=cast(Any, ConnectServerEvent))
 
     def on(
         self, event_type: str, handler: Callable[..., Any] | None = None

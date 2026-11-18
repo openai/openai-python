@@ -230,7 +230,7 @@ class AsyncForksConnection(AsyncWebSocketConnectionBase):
 
         This is helpful if you're using `.recv_bytes()`.
         """
-        return cast(ForkServerEvent, construct_type_unchecked(value=json.loads(data), type_=cast(Any, ForkServerEvent)))
+        return construct_type_unchecked(value=json.loads(data), type_=cast(Any, ForkServerEvent))
 
     def on(
         self, event_type: str, handler: Callable[..., Any] | None = None
@@ -662,7 +662,7 @@ class ForksConnection(WebSocketConnectionBase):
 
         This is helpful if you're using `.recv_bytes()`.
         """
-        return cast(ForkServerEvent, construct_type_unchecked(value=json.loads(data), type_=cast(Any, ForkServerEvent)))
+        return construct_type_unchecked(value=json.loads(data), type_=cast(Any, ForkServerEvent))
 
     def on(
         self, event_type: str, handler: Callable[..., Any] | None = None

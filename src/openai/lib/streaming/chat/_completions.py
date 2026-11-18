@@ -662,7 +662,7 @@ class ChoiceEventState:
 
             events_to_fire.append(
                 build(
-                    ContentDoneEvent,
+                    cast("type[ContentDoneEvent[ResponseFormatT]]", ContentDoneEvent),
                     type="content.done",
                     content=choice_snapshot.message.content,
                     parsed=parsed,

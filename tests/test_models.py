@@ -349,7 +349,7 @@ def test_nested_union_invalid_data() -> None:
         assert m.foo.name == "3"
     else:
         assert isinstance(m.foo, Submodel1)
-        assert m.foo.name == 3  # ty: ignore[unresolved-attribute]
+        assert m.foo.name == 3  # ty: ignore[missing-attribute]
 
 
 def test_list_of_unions() -> None:

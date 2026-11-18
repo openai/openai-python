@@ -1417,8 +1417,8 @@ async def test_rich_read_snapshots_before_post_handler_cancellation_callback(lan
     class AsyncIssuing(AsyncRichReads):
         @override
         # This test driver deliberately returns unvalidated observations.
-        async def find(self, args: object) -> object:  # ty: ignore[invalid-method-override]
-            return self.driver.find(args)
+        async def find(self, _args: object) -> object:
+            return self.driver.find(_args)
 
     driver = Issuing(report)
 

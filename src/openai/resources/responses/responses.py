@@ -4254,10 +4254,7 @@ class AsyncResponsesConnection(AsyncWebSocketConnectionBase):
 
         This is helpful if you're using `.recv_bytes()`.
         """
-        return cast(
-            ResponsesServerEvent,
-            construct_type_unchecked(value=json.loads(data), type_=cast(Any, ResponsesServerEvent)),
-        )
+        return construct_type_unchecked(value=json.loads(data), type_=cast(Any, ResponsesServerEvent))
 
     def on(
         self, event_type: str, handler: Callable[..., Any] | None = None
@@ -4585,10 +4582,7 @@ class ResponsesConnection(WebSocketConnectionBase):
 
         This is helpful if you're using `.recv_bytes()`.
         """
-        return cast(
-            ResponsesServerEvent,
-            construct_type_unchecked(value=json.loads(data), type_=cast(Any, ResponsesServerEvent)),
-        )
+        return construct_type_unchecked(value=json.loads(data), type_=cast(Any, ResponsesServerEvent))
 
     def on(
         self, event_type: str, handler: Callable[..., Any] | None = None

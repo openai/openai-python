@@ -301,7 +301,7 @@ async def test_candidate_mapping_cannot_fabricate_missing_fields(lane: str) -> N
     class MissingID(dict[str, object]):
         @override
         # This adversarial mapping tests that validation does not trust get().
-        def get(self, key: str, default: object = None) -> Any:  # ty: ignore[invalid-method-override]
+        def get(self, key: str, default: object = None) -> Any:  # ty: ignore[incompatible-method-override]
             reads.append(key)
             if key == "id":
                 return "invented"

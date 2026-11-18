@@ -312,10 +312,7 @@ class AsyncTranslationsConnection(AsyncWebSocketConnectionBase):
 
         This is helpful if you're using `.recv_bytes()`.
         """
-        return cast(
-            RealtimeTranslationServerEvent,
-            construct_type_unchecked(value=json.loads(data), type_=cast(Any, RealtimeTranslationServerEvent)),
-        )
+        return construct_type_unchecked(value=json.loads(data), type_=cast(Any, RealtimeTranslationServerEvent))
 
     def on(
         self, event_type: str, handler: Callable[..., Any] | None = None
@@ -742,10 +739,7 @@ class TranslationsConnection(WebSocketConnectionBase):
 
         This is helpful if you're using `.recv_bytes()`.
         """
-        return cast(
-            RealtimeTranslationServerEvent,
-            construct_type_unchecked(value=json.loads(data), type_=cast(Any, RealtimeTranslationServerEvent)),
-        )
+        return construct_type_unchecked(value=json.loads(data), type_=cast(Any, RealtimeTranslationServerEvent))
 
     def on(
         self, event_type: str, handler: Callable[..., Any] | None = None

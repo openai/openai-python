@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import sys
 import json
-from typing import cast
 
 import httpx2
 import pytest
@@ -10,7 +9,6 @@ from websockets.sync.server import ServerConnection
 
 from openai import OpenAI, AsyncOpenAI, omit
 from openai._compat import PYDANTIC_V1, model_copy
-from openai.types.responses import ResponseStreamEvent
 from openai.lib.responses_websocket import ResponsesWebSocketError, ResponsesWebSocketAccumulator
 from openai.lib.streaming.responses import ResponseStreamState
 from openai.types.responses.responses_server_event import ResponseTextWsDelta
@@ -110,11 +108,11 @@ async def test_opt_in_accumulation_exact_terminals(mode: str, terminal: str, out
             # cannot collect the same valid WS text event, then retain that
             # untouched typed event for the caller-fed helper.
             sse: ResponseStreamState[object] = ResponseStreamState(input_tools=omit, text_format=omit)
-            sse.handle_event(cast(ResponseStreamEvent, model_copy(initial, deep=True)))
+            sse.handle_event(model_copy(initial, deep=True))
             first = await driver.call(lane, "recv")
             before = first.to_dict()
             with pytest.raises(RuntimeError, match="before receiving its output item"):
-                sse.handle_event(cast(ResponseStreamEvent, model_copy(first, deep=True)))
+                sse.handle_event(model_copy(first, deep=True))
             acc.add_event(first)
             saved = acc.snapshot()
             assert saved.output_text == "pre"

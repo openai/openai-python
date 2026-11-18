@@ -330,7 +330,7 @@ def function_tool(
     return pydantic_function_tool(
         model,
         handler=invoke_async if inspect.iscoroutinefunction(function) else invoke,
-        name=function.__name__ if name is None else name,  # ty: ignore[unresolved-attribute]
+        name=function.__name__ if name is None else name,  # ty: ignore[missing-attribute]
         description=(inspect.getdoc(function) or "") if description is None else description,
         defer_loading=defer_loading,
     )
