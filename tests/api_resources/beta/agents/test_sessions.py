@@ -63,7 +63,6 @@ class TestSessions:
             metadata={"foo": "string"},
             prompt_cache_options={"ttl": "30m"},
             review="none",
-            spend_control={"limit": 1},
             stream=False,
             stream_options={"include_obfuscation": True},
             vault_ids=["string"],
@@ -141,7 +140,6 @@ class TestSessions:
             metadata={"foo": "string"},
             prompt_cache_options={"ttl": "30m"},
             review="none",
-            spend_control={"limit": 1},
             stream_options={"include_obfuscation": True},
             vault_ids=["string"],
         )
@@ -241,7 +239,6 @@ class TestSessions:
             metadata={"foo": "string"},
             prompt_cache_options={"ttl": "30m"},
             review="none",
-            spend_control={"limit": 1},
         )
         assert_matches_type(AgentSession, session, path=["response"])
 
@@ -401,7 +398,6 @@ class TestAsyncSessions:
             metadata={"foo": "string"},
             prompt_cache_options={"ttl": "30m"},
             review="none",
-            spend_control={"limit": 1},
             stream=False,
             stream_options={"include_obfuscation": True},
             vault_ids=["string"],
@@ -479,7 +475,6 @@ class TestAsyncSessions:
             metadata={"foo": "string"},
             prompt_cache_options={"ttl": "30m"},
             review="none",
-            spend_control={"limit": 1},
             stream_options={"include_obfuscation": True},
             vault_ids=["string"],
         )
@@ -579,7 +574,6 @@ class TestAsyncSessions:
             metadata={"foo": "string"},
             prompt_cache_options={"ttl": "30m"},
             review="none",
-            spend_control={"limit": 1},
         )
         assert_matches_type(AgentSession, session, path=["response"])
 

@@ -83,15 +83,17 @@ class _TurnState:
         return True
 
     def terminal(self, event: AgentSessionEvent, session_id: str) -> bool:
-        return (
-            event.type == "agent.session.failed"
-            or (
-                event.type == "agent.session.budget_reached"
-                and event.session.id == session_id
+        # Private lifecycle frames can outlive their generated public union variant.
+        if getattr(event, "type", None) == "agent.session.budget_reached":
+            snapshot = getattr(event, "session", None)
+            snapshot_id = snapshot.get("id") if isinstance(snapshot, dict) else getattr(snapshot, "id", None)
+            return (
+                isinstance(snapshot_id, str)
+                and bool(snapshot_id)
+                and snapshot_id == session_id
                 and (self.turn_id is None or self.turn_ended)
             )
-            or (event.type == "agent.session.idle" and self.turn_ended)
-        )
+        return event.type == "agent.session.failed" or (event.type == "agent.session.idle" and self.turn_ended)
 
 
 class AgentSessionStream(Generic[OutputT]):

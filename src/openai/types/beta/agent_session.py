@@ -31,7 +31,6 @@ __all__ = [
     "RequiredActionSessionRequiredActionResourceFunctionCall",
     "RequiredActionSessionRequiredActionResourceEnvironmentConnection",
     "PromptCacheOptions",
-    "SpendControl",
 ]
 
 
@@ -266,21 +265,6 @@ class PromptCacheOptions(BaseModel):
     ttl: Literal["30m", "12h"]
 
 
-class SpendControl(BaseModel):
-    """Spending limit and best-effort consumption, in USD cents.
-
-    Present when spending-control visibility is enabled; limit is null without a cap. Older server responses may omit this object.
-    """
-
-    consumed: Optional[int] = None
-    """
-    Best-effort recorded spend floored to whole USD cents, or null when unavailable.
-    """
-
-    limit: Optional[int] = None
-    """The configured positive limit in USD cents, or null when unlimited."""
-
-
 class AgentSession(BaseModel):
     """A Managed Agents session."""
 
@@ -311,7 +295,7 @@ class AgentSession(BaseModel):
     required_actions: List[RequiredAction]
     """Actions that must be completed before the session can continue."""
 
-    status: Literal["idle", "in_progress", "requires_action", "failed", "budget_reached"]
+    status: Literal["idle", "in_progress", "requires_action", "failed"]
     """The current status of the session.
 
     - `idle` - The session has no turn in progress and is ready for input. A hosted
@@ -319,8 +303,6 @@ class AgentSession(BaseModel):
     - `in_progress` - The session is processing a turn.
     - `requires_action` - The session is waiting for one or more required actions.
     - `failed` - The session failed.
-    - `budget_reached` - The session is paused because its spending limit was
-      reached.
     """
 
     usage: Optional[TokenUsage] = None
@@ -340,11 +322,4 @@ class AgentSession(BaseModel):
 
     Omitted when review is none and automatic review is not enabled. Omission means
     none.
-    """
-
-    spend_control: Optional[SpendControl] = None
-    """Spending limit and best-effort consumption, in USD cents.
-
-    Present when spending-control visibility is enabled; limit is null without a
-    cap. Older server responses may omit this object.
     """
