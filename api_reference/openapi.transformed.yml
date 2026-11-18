@@ -113392,6 +113392,102 @@ components:
       enum:
       - direct
       - programmatic
+    CSAMCategoryAppliedInputTypes:
+      additionalProperties: false
+      properties:
+        likely-csam:
+          items:
+            const: image
+            type: string
+          maxItems: 1
+          minItems: 1
+          title: Likely-Csam
+          type: array
+        likely-csam/gen-ai:
+          items:
+            const: image
+            type: string
+          maxItems: 1
+          minItems: 1
+          title: Likely-Csam/Gen-Ai
+          type: array
+      required:
+      - likely-csam
+      - likely-csam/gen-ai
+      title: CSAMCategoryAppliedInputTypes
+      type: object
+    CSAMCategoryFlags:
+      additionalProperties: false
+      properties:
+        likely-csam:
+          title: Likely-Csam
+          type: boolean
+        likely-csam/gen-ai:
+          title: Likely-Csam/Gen-Ai
+          type: boolean
+      required:
+      - likely-csam
+      - likely-csam/gen-ai
+      title: CSAMCategoryFlags
+      type: object
+    CSAMCategoryScores:
+      additionalProperties: false
+      properties:
+        likely-csam:
+          title: Likely-Csam
+          type: number
+        likely-csam/gen-ai:
+          title: Likely-Csam/Gen-Ai
+          type: number
+      required:
+      - likely-csam
+      - likely-csam/gen-ai
+      title: CSAMCategoryScores
+      type: object
+    CSAMModerationResult:
+      properties:
+        flagged:
+          description: Whether either CSAM category was flagged.
+          title: Flagged
+          type: boolean
+        categories:
+          $ref: '#/components/schemas/CSAMCategoryFlags'
+          description: Whether the image was flagged in each category.
+        category_scores:
+          $ref: '#/components/schemas/CSAMCategoryScores'
+          description: The classifier score for each category.
+        category_applied_input_types:
+          $ref: '#/components/schemas/CSAMCategoryAppliedInputTypes'
+          description: The input types evaluated for each category.
+      required:
+      - flagged
+      - categories
+      - category_scores
+      - category_applied_input_types
+      title: CSAMModerationResult
+      type: object
+    CreateCSAMModerationResponse:
+      properties:
+        id:
+          title: Id
+          type: string
+        model:
+          const: omni-moderation-csam-latest
+          title: Model
+          type: string
+        results:
+          items:
+            $ref: '#/components/schemas/CSAMModerationResult'
+          maxItems: 1
+          minItems: 1
+          title: Results
+          type: array
+      required:
+      - id
+      - model
+      - results
+      title: CreateCSAMModerationResponse
+      type: object
     DecisionPromptCacheBreakpoint:
       type: object
       properties:
