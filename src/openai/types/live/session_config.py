@@ -105,7 +105,7 @@ class SessionConfig(BaseModel):
     Initial configuration for a Live session, including its model, conversation instructions, audio, and delegated task handling.
     """
 
-    model: Union[str, Literal["gpt-live-1"]]
+    model: Union[str, Literal["gpt-live-1", "gpt-live-1.1"]]
     """The Live model.
 
     Required in the session configuration for every transport; do not pass it as a
