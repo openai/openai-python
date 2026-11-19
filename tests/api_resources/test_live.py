@@ -44,6 +44,7 @@ class TestLive:
                     "type": "client",
                     "acknowledgement_delay_ms": 0,
                 },
+                "idle_timeout_s": 5,
                 "input": [
                     {
                         "content": [
@@ -86,6 +87,10 @@ class TestLive:
                         "type": "decisions",
                     }
                 ],
+                "wake_policy": {
+                    "type": "speech",
+                    "vad_threshold": 0,
+                },
             },
             transport={
                 "sdp": "x",
@@ -159,6 +164,7 @@ class TestAsyncLive:
                     "type": "client",
                     "acknowledgement_delay_ms": 0,
                 },
+                "idle_timeout_s": 5,
                 "input": [
                     {
                         "content": [
@@ -201,6 +207,10 @@ class TestAsyncLive:
                         "type": "decisions",
                     }
                 ],
+                "wake_policy": {
+                    "type": "speech",
+                    "vad_threshold": 0,
+                },
             },
             transport={
                 "sdp": "x",
