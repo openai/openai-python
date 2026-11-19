@@ -8,7 +8,7 @@ from typing_extensions import Self, override
 import httpx2
 
 from ..auth import WorkloadIdentity, X509WorkloadIdentity
-from .._types import NOT_GIVEN, Omit, Query, Headers, Timeout, NotGiven
+from .._types import NOT_GIVEN, Omit, Query, Headers, Timeout, NotGiven, ResponseT
 from .._utils import is_given, is_mapping, path_template
 from .._client import OpenAI, AsyncOpenAI
 from .._compat import model_copy
@@ -46,6 +46,7 @@ _DefaultStreamT = TypeVar("_DefaultStreamT", bound=Union[Stream[Any], AsyncStrea
 # as we don't want to make the `api_key` in the main client Optional
 # and Azure AD tokens may be retrieved on a per-request basis
 API_KEY_SENTINEL = "".join(["<", "missing API key", ">"])
+_AZURE_RESPONSES_SERVED_MODEL_HEADER = "x-ms-served-model"
 
 
 def _has_header(headers: Headers, header: str) -> bool:
@@ -78,6 +79,41 @@ def _strip_azure_api_key_on_redirect(request: httpx2.Request) -> None:
 
 async def _async_strip_azure_api_key_on_redirect(request: httpx2.Request) -> None:
     _strip_azure_api_key_on_redirect(request)
+
+
+def _is_responses_request(response: httpx2.Response) -> bool:
+    # Keep encoded slashes within deployment names rather than treating them as route separators.
+    path = response.request.url.raw_path.split(b"?", 1)[0].rstrip(b"/")
+    if b"/deployments/" in path:
+        path = b"/" + path.split(b"/deployments/", 1)[1].partition(b"/")[2]
+
+    return path.endswith(b"/responses") or b"/responses/" in path
+
+
+def _served_model_from_response(response: httpx2.Response) -> str | None:
+    if not _is_responses_request(response):
+        return None
+
+    served_model = response.headers.get(_AZURE_RESPONSES_SERVED_MODEL_HEADER)
+    if served_model is None:
+        return None
+
+    served_model = served_model.strip()
+    return served_model or None
+
+
+def _replace_response_model(data: object, served_model: str | None) -> object:
+    if served_model is None or not is_mapping(data):
+        return data
+
+    nested_response = data.get("response")
+    if is_mapping(nested_response):
+        return {**data, "response": {**nested_response, "model": served_model}}
+
+    if "model" in data:
+        return {**data, "model": served_model}
+
+    return data
 
 
 class MutuallyExclusiveAuthError(OpenAIError):
@@ -147,6 +183,20 @@ class BaseAzureClient(BaseClient[_HttpxClientT, _DefaultStreamT]):
         # WebSocket upgrades use this legacy accessor before prepared options.
         # Reuse Azure's HTTP policy; prepared options own token refresh.
         return self._auth_headers({"bearer_auth": True})
+
+    @override
+    def _process_response_data(
+        self,
+        *,
+        data: object,
+        cast_to: type[ResponseT],
+        response: httpx2.Response,
+    ) -> ResponseT:
+        return super()._process_response_data(
+            data=_replace_response_model(data, _served_model_from_response(response)),
+            cast_to=cast_to,
+            response=response,
+        )
 
     @override
     def _build_request(
