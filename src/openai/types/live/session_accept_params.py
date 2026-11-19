@@ -111,7 +111,7 @@ class Session(TypedDict, total=False):
     Model and startup configuration for the Live session that answers the incoming SIP call.
     """
 
-    model: Required[Union[str, Literal["gpt-live-1"]]]
+    model: Required[Union[str, Literal["gpt-live-1", "gpt-live-1.1"]]]
     """The Live model to use for the accepted call."""
 
     type: Required[Literal["live"]]

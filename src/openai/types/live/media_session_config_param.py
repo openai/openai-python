@@ -103,7 +103,7 @@ class MediaSessionConfigParam(TypedDict, total=False):
     Follow the [Live prompting guide](https://developers.openai.com/api/docs/guides/live-prompting) when writing frontend instructions and the backend prompt under delegation.responses.instructions.
     """
 
-    model: Required[Union[str, Literal["gpt-live-1"]]]
+    model: Required[Union[str, Literal["gpt-live-1", "gpt-live-1.1"]]]
     """The Live model.
 
     Required in the session configuration for every transport; do not pass it as a
