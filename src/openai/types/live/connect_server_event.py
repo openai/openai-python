@@ -29,6 +29,8 @@ from .output_audio_fixture_playing_event import OutputAudioFixturePlayingEvent
 
 __all__ = [
     "ConnectServerEvent",
+    "SessionResumed",
+    "SessionPaused",
     "SessionInputAudioAppend",
     "TransportDtmfReceived",
     "TransportDtmfSend",
@@ -38,6 +40,41 @@ __all__ = [
     "TransportFailed",
     "TransportFailedError",
 ]
+
+
+class SessionResumed(BaseModel):
+    """
+    Sent when speech resumes paused inference and it is ready for audio in a Live WebRTC session. Delivered to the sideband and, when permitted by its event settings, the data channel.
+    """
+
+    event_id: str
+    """The unique ID of the Live server event."""
+
+    type: Literal["session.resumed"]
+
+    client_event_id: Optional[str] = None
+    """
+    The event_id of the client command associated with this server event, when
+    supplied.
+    """
+
+
+class SessionPaused(BaseModel):
+    """Sent when the idle timeout pauses inference in a Live WebRTC session.
+
+    The WebRTC connection, sideband, and session ID persist. Delivered to the sideband and, when permitted by its event settings, the data channel.
+    """
+
+    event_id: str
+    """The unique ID of the Live server event."""
+
+    type: Literal["session.paused"]
+
+    client_event_id: Optional[str] = None
+    """
+    The event_id of the client command associated with this server event, when
+    supplied.
+    """
 
 
 class SessionInputAudioAppend(BaseModel):
@@ -160,6 +197,8 @@ ConnectServerEvent: TypeAlias = Annotated[
     Union[
         SessionStartedEvent,
         SessionUpdatedEvent,
+        SessionResumed,
+        SessionPaused,
         InputAudioMutedEvent,
         InputAudioUnmutedEvent,
         OutputAudioFixturePlayingEvent,

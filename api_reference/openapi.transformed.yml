@@ -52561,6 +52561,10 @@ components:
           $ref: '#/components/schemas/input'
         client:
           $ref: '#/components/schemas/LiveClientConfigParam'
+        wake_policy:
+          $ref: '#/components/schemas/LiveSpeechWakePolicyParam'
+        idle_timeout_s:
+          $ref: '#/components/schemas/idle_timeout_s'
       required:
       - model
       additionalProperties: false
@@ -52733,6 +52737,8 @@ components:
       anyOf:
       - $ref: '#/components/schemas/LiveSessionStarted'
       - $ref: '#/components/schemas/LiveSessionUpdated'
+      - $ref: '#/components/schemas/LiveSessionResumed'
+      - $ref: '#/components/schemas/LiveSessionPaused'
       - $ref: '#/components/schemas/LiveInputAudioMuted'
       - $ref: '#/components/schemas/LiveInputAudioUnmuted'
       - $ref: '#/components/schemas/LiveOutputAudioFixturePlaying'
@@ -99860,13 +99866,92 @@ components:
             delta: An outdoor table is available at 7 PM.
             sequence_number: 3
             logprobs: []
+    LiveSpeechWakePolicyParam:
+      description: Inference starts when the Live WebRTC session connects. After an idle pause, microphone speech resumes inference.
+      type: object
+      properties:
+        type:
+          description: The wake policy type, always `speech`.
+          default: speech
+          x-stainless-const: true
+          type: string
+          enum:
+          - speech
+        vad_threshold:
+          description: The speech detection threshold for resuming paused inference, from 0 to 1 inclusive. Defaults to 0.5. Higher values require stronger evidence of speech. This setting is independent of active turn detection.
+          type: number
+      required:
+      - type
+    idle_timeout_s:
+      description: Whole seconds of inactivity after which a Live WebRTC session with a speech wake policy pauses inference. The connection and conversation history are retained. Omit to keep inference active until the session ends.
+      type: integer
+      minimum: 5
+      maximum: 60
+    LiveSessionResumed:
+      description: Sent when speech resumes paused inference and it is ready for audio in a Live WebRTC session. Delivered to the sideband and, when permitted by its event settings, the data channel.
+      example:
+        type: session.resumed
+        event_id: evt_resumed_001
+      type: object
+      properties:
+        event_id:
+          description: The unique ID of the Live server event.
+          type: string
+        client_event_id:
+          description: The event_id of the client command associated with this server event, when supplied.
+          type: string
+        type:
+          default: session.resumed
+          x-stainless-const: true
+          type: string
+          enum:
+          - session.resumed
+      required:
+      - event_id
+      - type
+      x-oaiMeta:
+        example:
+          type: session.resumed
+          event_id: evt_resumed_001
+    LiveSessionPaused:
+      description: Sent when the idle timeout pauses inference in a Live WebRTC session. The WebRTC connection, sideband, and session ID persist. Delivered to the sideband and, when permitted by its event settings, the data channel.
+      example:
+        type: session.paused
+        event_id: evt_paused_001
+      type: object
+      properties:
+        event_id:
+          description: The unique ID of the Live server event.
+          type: string
+        client_event_id:
+          description: The event_id of the client command associated with this server event, when supplied.
+          type: string
+        type:
+          default: session.paused
+          x-stainless-const: true
+          type: string
+          enum:
+          - session.paused
+      required:
+      - event_id
+      - type
+      x-oaiMeta:
+        example:
+          type: session.paused
+          event_id: evt_paused_001
     LiveSessionUsage:
-      description: Cumulative audio duration for a Live session. Values are totals for the session, not increments to sum across usage events.
+      description: Cumulative billable duration for a Live session. Eligible WebRTC sessions also report the active and paused breakdown. Do not sum values across usage events.
       type: object
       properties:
         seconds:
-          description: The cumulative Live audio duration in seconds. Do not sum this value across usage events.
+          description: The cumulative billable duration in whole seconds. When present, the active and paused breakdown adds up to this total.
           type: number
+        active_seconds:
+          description: The remaining billable seconds attributed to active audio and any unused prepaid duration.
+          type: integer
+        paused_seconds:
+          description: Billable time attributed to paused inference at the configured rate, rounded down to whole seconds.
+          type: integer
       required:
       - seconds
     LiveContextWindowUsage:
@@ -99884,7 +99969,7 @@ components:
         type: session.usage.updated
         event_id: evt_usage_001
         usage:
-          seconds: 32.5
+          seconds: 32
         context_window:
           usage_ratio: 0.12
       type: object
@@ -99917,7 +100002,7 @@ components:
           type: session.usage.updated
           event_id: evt_usage_001
           usage:
-            seconds: 32.5
+            seconds: 32
           context_window:
             usage_ratio: 0.12
     LiveSessionClosed:
@@ -99943,7 +100028,7 @@ components:
           delegation:
             type: client
         usage:
-          seconds: 45.8
+          seconds: 45
       type: object
       properties:
         event_id:
@@ -100020,7 +100105,7 @@ components:
             delegation:
               type: client
           usage:
-            seconds: 45.8
+            seconds: 45
     LiveLiveError:
       description: Details of an error encountered by the Live session, including the affected parameter or client command when available.
       type: object

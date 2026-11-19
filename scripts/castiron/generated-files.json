@@ -4719,7 +4719,7 @@
     },
     "src/openai/types/live/connect_server_event.py": {
       "mode": "100644",
-      "sha256": "0ea5b662cd3893671b1ed1f89cc49852a8db23a4591ef6694a5a789e8aa253ed"
+      "sha256": "669f61ab1b156aff57c7a2985c98cdb93333441a0703327293fe6259d3e3aa06"
     },
     "src/openai/types/live/custom_voice.py": {
       "mode": "100644",
@@ -4995,7 +4995,7 @@
     },
     "src/openai/types/live/media_session_config_param.py": {
       "mode": "100644",
-      "sha256": "581b543695e390907763450ee79a55fa1580f3b51bbbccfa3f984a33d0fe7653"
+      "sha256": "4223c10e64b7afa8819c2bd18f9b318cf0c3ededb9b8f44e5d9c00ae288e2846"
     },
     "src/openai/types/live/media_session_fork_config_param.py": {
       "mode": "100644",
@@ -5151,7 +5151,7 @@
     },
     "src/openai/types/live/session_usage.py": {
       "mode": "100644",
-      "sha256": "2d7daa6c7287fc4ed6d8b4565bb761600ac040465ed9213cd8eca0ac4cb8f81e"
+      "sha256": "ee12ecd797a9b1c5cbd16508efe2839c804ab50309af4cf6efb73c846f4ea534"
     },
     "src/openai/types/live/session_usage_updated_event.py": {
       "mode": "100644",
@@ -8099,7 +8099,7 @@
     },
     "tests/api_resources/test_live.py": {
       "mode": "100644",
-      "sha256": "df1491b18f95cdee8c7eb8cebe9fa06f84d580b724917fde7af905b2bbadae6b"
+      "sha256": "2660b2d145ab51239eb6a981bac7b8358f2e356598a9247e4049ecfc1c156efe"
     },
     "tests/api_resources/test_models.py": {
       "mode": "100644",
