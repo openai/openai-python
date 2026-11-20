@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.57.1](https://github.com/openai/openai-python/compare/v3.57.0...v3.57.1) (2026-11-20)
+
+
+### Bug Fixes
+
+* **api:** clarify when to omit completion choice count ([#4298](https://github.com/openai/openai-python/issues/4298)) ([f63f14b](https://github.com/openai/openai-python/commit/f63f14b34754fa77fc839ac2cf95da3ef42e1f6a))
+
 ## [3.57.0](https://github.com/openai/openai-python/compare/v3.56.0...v3.57.0) (2026-11-19)
 
 
