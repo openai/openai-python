@@ -234,8 +234,9 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     n: Optional[int]
     """How many chat completion choices to generate for each input message.
 
-    Note that you will be charged based on the number of generated tokens across all
-    of the choices. Keep `n` as `1` to minimize costs.
+    Omit `n` to generate one choice. Newer models reject an explicit `n`, even
+    `n=1`. When requesting multiple choices, you are billed for generated tokens
+    across all choices.
     """
 
     parallel_tool_calls: bool

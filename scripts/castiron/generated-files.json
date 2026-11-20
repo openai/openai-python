@@ -435,7 +435,7 @@
     },
     "src/openai/resources/chat/completions/completions.py": {
       "mode": "100644",
-      "sha256": "2dbef784c86b1082cdb969f8a6fc3ba860bf805f8247afc6ca2edf52eb230710"
+      "sha256": "f5d33a1f78b39bdb0d6080a6ccbd0e8b6d9d3abc94906401c3273ea3078ba3a2"
     },
     "src/openai/resources/chat/completions/messages.py": {
       "mode": "100644",
@@ -443,7 +443,7 @@
     },
     "src/openai/resources/completions.py": {
       "mode": "100644",
-      "sha256": "291814bfdc1a2bc561e46b553d5a9e237cb00762e41cd22baf3dd33545dfd52f"
+      "sha256": "8ac45e637006268bbc0005041169abaacf55ca28f5c0ad1b2df414ecc85d1aa5"
     },
     "src/openai/resources/containers/__init__.py": {
       "mode": "100644",
@@ -4015,7 +4015,7 @@
     },
     "src/openai/types/chat/completion_create_params.py": {
       "mode": "100644",
-      "sha256": "a27e422737a8998c1a35b3d0e004828281839e5449fcdbf3d1eb66f8821b8023"
+      "sha256": "ab7ee3efb068b45dbc71d5393191747a168052b6a22f89375f6154c0f39de706"
     },
     "src/openai/types/chat/completion_list_params.py": {
       "mode": "100644",
@@ -4051,7 +4051,7 @@
     },
     "src/openai/types/completion_create_params.py": {
       "mode": "100644",
-      "sha256": "9c2f91eb36cb3df67d6fe4a4e9160ece6291b5fca52fdc0c8c1dc0208145c33d"
+      "sha256": "9069215ed2e70bc0af6356ea912fd22f580a1925d509b36577270b3f77fdd17c"
     },
     "src/openai/types/completion_usage.py": {
       "mode": "100644",
