@@ -22,6 +22,7 @@ __all__ = [
     "Delegation",
     "DelegationResponses",
     "DelegationDecisions",
+    "WakePolicy",
 ]
 
 AudioOutputVoice: TypeAlias = Union[str, BuiltInVoice, CustomVoiceParam]
@@ -97,13 +98,30 @@ class DelegationDecisions(TypedDict, total=False):
 Delegation: TypeAlias = Union[ClientDelegationParam, DelegationResponses, DelegationDecisions]
 
 
+class WakePolicy(TypedDict, total=False):
+    """Inference starts when the Live WebRTC session connects.
+
+    After an idle pause, microphone speech resumes inference.
+    """
+
+    type: Required[Literal["speech"]]
+    """The wake policy type, always `speech`."""
+
+    vad_threshold: float
+    """
+    The speech detection threshold for resuming paused inference, from 0 to 1
+    inclusive. Defaults to 0.5. Higher values require stronger evidence of speech.
+    This setting is independent of active turn detection.
+    """
+
+
 class MediaSessionConfigParam(TypedDict, total=False):
     """Startup configuration for a Live media session.
 
     Follow the [Live prompting guide](https://developers.openai.com/api/docs/guides/live-prompting) when writing frontend instructions and the backend prompt under delegation.responses.instructions.
     """
 
-    model: Required[Union[str, Literal["gpt-live-1"]]]
+    model: Required[Union[str, Literal["gpt-live-1", "gpt-live-1.1"]]]
     """The Live model.
 
     Required in the session configuration for every transport; do not pass it as a
@@ -127,6 +145,13 @@ class MediaSessionConfigParam(TypedDict, total=False):
 
     Omitted or null selects your application; use `responses` or `decisions` to
     delegate to the corresponding API.
+    """
+
+    idle_timeout_s: int
+    """
+    Whole seconds of inactivity after which a Live WebRTC session with a speech wake
+    policy pauses inference. The connection and conversation history are retained.
+    Omit to keep inference active until the session ends.
     """
 
     input: Iterable[InitialItemParam]
@@ -165,4 +190,10 @@ class MediaSessionConfigParam(TypedDict, total=False):
     Triggers run independently of delegation. On update, omit triggers to keep the
     current configuration, send a list to replace it, or send an empty list to
     disable triggers.
+    """
+
+    wake_policy: WakePolicy
+    """Inference starts when the Live WebRTC session connects.
+
+    After an idle pause, microphone speech resumes inference.
     """

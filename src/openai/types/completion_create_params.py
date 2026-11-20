@@ -97,6 +97,8 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     n: Optional[int]
     """How many completions to generate for each prompt.
 
+    Omit `n` to generate one completion per prompt.
+
     **Note:** Because this parameter generates many completions, it can quickly
     consume your token quota. Use carefully and ensure that you have reasonable
     settings for `max_tokens` and `stop`.

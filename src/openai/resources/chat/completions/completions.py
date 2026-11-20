@@ -554,9 +554,10 @@ class Completions(SyncAPIResource):
 
           moderation: Configuration for running moderation on the request input and generated output.
 
-          n: How many chat completion choices to generate for each input message. Note that
-              you will be charged based on the number of generated tokens across all of the
-              choices. Keep `n` as `1` to minimize costs.
+          n: How many chat completion choices to generate for each input message. Omit `n` to
+              generate one choice. Newer models reject an explicit `n`, even `n=1`. When
+              requesting multiple choices, you are billed for generated tokens across all
+              choices.
 
           parallel_tool_calls: Whether to enable
               [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
@@ -974,9 +975,10 @@ class Completions(SyncAPIResource):
 
           moderation: Configuration for running moderation on the request input and generated output.
 
-          n: How many chat completion choices to generate for each input message. Note that
-              you will be charged based on the number of generated tokens across all of the
-              choices. Keep `n` as `1` to minimize costs.
+          n: How many chat completion choices to generate for each input message. Omit `n` to
+              generate one choice. Newer models reject an explicit `n`, even `n=1`. When
+              requesting multiple choices, you are billed for generated tokens across all
+              choices.
 
           parallel_tool_calls: Whether to enable
               [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
@@ -1385,9 +1387,10 @@ class Completions(SyncAPIResource):
 
           moderation: Configuration for running moderation on the request input and generated output.
 
-          n: How many chat completion choices to generate for each input message. Note that
-              you will be charged based on the number of generated tokens across all of the
-              choices. Keep `n` as `1` to minimize costs.
+          n: How many chat completion choices to generate for each input message. Omit `n` to
+              generate one choice. Newer models reject an explicit `n`, even `n=1`. When
+              requesting multiple choices, you are billed for generated tokens across all
+              choices.
 
           parallel_tool_calls: Whether to enable
               [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
@@ -2357,9 +2360,10 @@ class AsyncCompletions(AsyncAPIResource):
 
           moderation: Configuration for running moderation on the request input and generated output.
 
-          n: How many chat completion choices to generate for each input message. Note that
-              you will be charged based on the number of generated tokens across all of the
-              choices. Keep `n` as `1` to minimize costs.
+          n: How many chat completion choices to generate for each input message. Omit `n` to
+              generate one choice. Newer models reject an explicit `n`, even `n=1`. When
+              requesting multiple choices, you are billed for generated tokens across all
+              choices.
 
           parallel_tool_calls: Whether to enable
               [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
@@ -2777,9 +2781,10 @@ class AsyncCompletions(AsyncAPIResource):
 
           moderation: Configuration for running moderation on the request input and generated output.
 
-          n: How many chat completion choices to generate for each input message. Note that
-              you will be charged based on the number of generated tokens across all of the
-              choices. Keep `n` as `1` to minimize costs.
+          n: How many chat completion choices to generate for each input message. Omit `n` to
+              generate one choice. Newer models reject an explicit `n`, even `n=1`. When
+              requesting multiple choices, you are billed for generated tokens across all
+              choices.
 
           parallel_tool_calls: Whether to enable
               [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
@@ -3188,9 +3193,10 @@ class AsyncCompletions(AsyncAPIResource):
 
           moderation: Configuration for running moderation on the request input and generated output.
 
-          n: How many chat completion choices to generate for each input message. Note that
-              you will be charged based on the number of generated tokens across all of the
-              choices. Keep `n` as `1` to minimize costs.
+          n: How many chat completion choices to generate for each input message. Omit `n` to
+              generate one choice. Newer models reject an explicit `n`, even `n=1`. When
+              requesting multiple choices, you are billed for generated tokens across all
+              choices.
 
           parallel_tool_calls: Whether to enable
               [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)

@@ -27,7 +27,7 @@ class TestSessions:
         session = client.live.sessions.accept(
             session_id="session_id",
             session={
-                "model": "gpt-live-1",
+                "model": "gpt-live-1.1",
                 "type": "live",
             },
         )
@@ -96,7 +96,7 @@ class TestSessions:
         response = client.live.sessions.with_raw_response.accept(
             session_id="session_id",
             session={
-                "model": "gpt-live-1",
+                "model": "gpt-live-1.1",
                 "type": "live",
             },
         )
@@ -111,7 +111,7 @@ class TestSessions:
         with client.live.sessions.with_streaming_response.accept(
             session_id="session_id",
             session={
-                "model": "gpt-live-1",
+                "model": "gpt-live-1.1",
                 "type": "live",
             },
         ) as response:
@@ -129,7 +129,7 @@ class TestSessions:
             client.live.sessions.with_raw_response.accept(
                 session_id="",
                 session={
-                    "model": "gpt-live-1",
+                    "model": "gpt-live-1.1",
                     "type": "live",
                 },
             )
@@ -414,7 +414,7 @@ class TestAsyncSessions:
         session = await async_client.live.sessions.accept(
             session_id="session_id",
             session={
-                "model": "gpt-live-1",
+                "model": "gpt-live-1.1",
                 "type": "live",
             },
         )
@@ -483,7 +483,7 @@ class TestAsyncSessions:
         response = await async_client.live.sessions.with_raw_response.accept(
             session_id="session_id",
             session={
-                "model": "gpt-live-1",
+                "model": "gpt-live-1.1",
                 "type": "live",
             },
         )
@@ -498,7 +498,7 @@ class TestAsyncSessions:
         async with async_client.live.sessions.with_streaming_response.accept(
             session_id="session_id",
             session={
-                "model": "gpt-live-1",
+                "model": "gpt-live-1.1",
                 "type": "live",
             },
         ) as response:
@@ -516,7 +516,7 @@ class TestAsyncSessions:
             await async_client.live.sessions.with_raw_response.accept(
                 session_id="",
                 session={
-                    "model": "gpt-live-1",
+                    "model": "gpt-live-1.1",
                     "type": "live",
                 },
             )

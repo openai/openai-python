@@ -112,7 +112,7 @@ class SessionResource(BaseModel):
     expires_at: int
     """The Unix timestamp, in seconds, at which the Live session expires."""
 
-    model: Union[str, Literal["gpt-live-1"]]
+    model: Union[str, Literal["gpt-live-1", "gpt-live-1.1"]]
     """The Live model.
 
     Required in the session configuration for every transport; do not pass it as a

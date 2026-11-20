@@ -20,7 +20,7 @@ class TestLive:
     @parametrize
     def test_method_create(self, client: OpenAI) -> None:
         live = client.live.create(
-            session={"model": "gpt-live-1"},
+            session={"model": "gpt-live-1.1"},
             transport={
                 "sdp": "x",
                 "type": "webrtc",
@@ -44,6 +44,7 @@ class TestLive:
                     "type": "client",
                     "acknowledgement_delay_ms": 0,
                 },
+                "idle_timeout_s": 5,
                 "input": [
                     {
                         "content": [
@@ -86,6 +87,10 @@ class TestLive:
                         "type": "decisions",
                     }
                 ],
+                "wake_policy": {
+                    "type": "speech",
+                    "vad_threshold": 0,
+                },
             },
             transport={
                 "sdp": "x",
@@ -97,7 +102,7 @@ class TestLive:
     @parametrize
     def test_raw_response_create(self, client: OpenAI) -> None:
         response = client.live.with_raw_response.create(
-            session={"model": "gpt-live-1"},
+            session={"model": "gpt-live-1.1"},
             transport={
                 "sdp": "x",
                 "type": "webrtc",
@@ -112,7 +117,7 @@ class TestLive:
     @parametrize
     def test_streaming_response_create(self, client: OpenAI) -> None:
         with client.live.with_streaming_response.create(
-            session={"model": "gpt-live-1"},
+            session={"model": "gpt-live-1.1"},
             transport={
                 "sdp": "x",
                 "type": "webrtc",
@@ -135,7 +140,7 @@ class TestAsyncLive:
     @parametrize
     async def test_method_create(self, async_client: AsyncOpenAI) -> None:
         live = await async_client.live.create(
-            session={"model": "gpt-live-1"},
+            session={"model": "gpt-live-1.1"},
             transport={
                 "sdp": "x",
                 "type": "webrtc",
@@ -159,6 +164,7 @@ class TestAsyncLive:
                     "type": "client",
                     "acknowledgement_delay_ms": 0,
                 },
+                "idle_timeout_s": 5,
                 "input": [
                     {
                         "content": [
@@ -201,6 +207,10 @@ class TestAsyncLive:
                         "type": "decisions",
                     }
                 ],
+                "wake_policy": {
+                    "type": "speech",
+                    "vad_threshold": 0,
+                },
             },
             transport={
                 "sdp": "x",
@@ -212,7 +222,7 @@ class TestAsyncLive:
     @parametrize
     async def test_raw_response_create(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.live.with_raw_response.create(
-            session={"model": "gpt-live-1"},
+            session={"model": "gpt-live-1.1"},
             transport={
                 "sdp": "x",
                 "type": "webrtc",
@@ -227,7 +237,7 @@ class TestAsyncLive:
     @parametrize
     async def test_streaming_response_create(self, async_client: AsyncOpenAI) -> None:
         async with async_client.live.with_streaming_response.create(
-            session={"model": "gpt-live-1"},
+            session={"model": "gpt-live-1.1"},
             transport={
                 "sdp": "x",
                 "type": "webrtc",
