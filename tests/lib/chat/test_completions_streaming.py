@@ -30,6 +30,7 @@ from openai.lib.streaming.chat import (
     ParsedChatCompletionSnapshot,
 )
 from openai.lib._parsing._completions import ResponseFormatT
+from openai.types.chat.chat_completion_chunk import Choice as ChunkChoice, ChoiceDelta
 
 from ..utils import print_obj
 from ...conftest import base_url
@@ -1108,6 +1109,55 @@ recommend checking a reliable weather website or a weather app.",
 ]
 """
     )
+
+
+def _chunk(delta: ChoiceDelta, finish_reason: str | None) -> ChatCompletionChunk:
+    return ChatCompletionChunk.construct(
+        id="chatcmpl-test",
+        object="chat.completion.chunk",
+        created=0,
+        model="gpt-4o-2024-08-06",
+        choices=[ChunkChoice.construct(index=0, delta=delta, finish_reason=finish_reason)],
+    )
+
+
+def _content_chunk(text: str) -> ChatCompletionChunk:
+    return _chunk(ChoiceDelta.construct(role="assistant", content=text), finish_reason=None)
+
+
+def _finish_chunk(finish_reason: str) -> ChatCompletionChunk:
+    return _chunk(ChoiceDelta.construct(), finish_reason=finish_reason)
+
+
+@pytest.mark.parametrize("finish_reason", ["length", "content_filter"])
+def test_non_parse_stream_terminal_finish_reason_does_not_raise(finish_reason: str) -> None:
+    # A plain stream (no `response_format` and no parseable tools) has nothing to parse,
+    # so a `length` / `content_filter` finish reason must not raise from
+    # `get_final_completion()` — matching `chat.completions.create()` and the
+    # streaming accumulator, which already suppresses these for non-parse streams.
+    state: ChatCompletionStreamState[None] = ChatCompletionStreamState()
+
+    # accumulating the chunks must not raise
+    state.handle_chunk(_content_chunk("partial answer that got cut o"))
+    state.handle_chunk(_finish_chunk(finish_reason))
+
+    completion = state.get_final_completion()
+    assert completion.choices[0].finish_reason == finish_reason
+    assert completion.choices[0].message.content == "partial answer that got cut o"
+    assert completion.choices[0].message.parsed is None
+
+
+def test_parse_stream_length_finish_still_raises() -> None:
+    # When a `response_format` is given there *is* something to parse, so the terminal
+    # `length` finish reason must still raise (unchanged behavior).
+    class Location(BaseModel):
+        city: str
+
+    state: ChatCompletionStreamState[Location] = ChatCompletionStreamState(response_format=Location)
+    state.handle_chunk(_content_chunk('{"city":"San Francisc'))
+
+    with pytest.raises(openai.LengthFinishReasonError):
+        state.handle_chunk(_finish_chunk("length"))
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
