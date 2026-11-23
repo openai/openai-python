@@ -297,17 +297,14 @@ jobs:
           version: '0.12.5'
           enable-cache: true
       - name: Install dependencies
-        run: |
-          uv sync --locked --all-extras
+        run: uv sync --locked --no-default-groups
 
       - env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: |
-            uv run --locked --all-extras python examples/demo.py
+        run: .venv/bin/python examples/demo.py
       - env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: |
-            uv run --locked --all-extras python examples/async_demo.py
+        run: .venv/bin/python examples/async_demo.py
 
   python-policy:
     timeout-minutes: 5
