@@ -40,6 +40,7 @@ def session(status: str = "idle") -> dict[str, object]:
         "required_actions": [],
         "status": status,
         "vault_ids": [],
+        "spend_control": {"limit": None, "consumed": None},
     }
 
 
