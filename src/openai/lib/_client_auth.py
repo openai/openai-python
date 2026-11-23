@@ -84,14 +84,14 @@ def _set_request_api_key(
 
 
 def syncbase_url(self: _sdk_client.OpenAI) -> httpx2.URL:
-    return self._base_url
+    return self._configured_base_url
 
 
 def syncbase_url_set(self: _sdk_client.OpenAI, url: httpx2.URL | str) -> None:
     normalized_url = _sdk_client.normalize_httpx_url(url)
     if _sdk_client.is_x509_workload_identity(self.workload_identity):
         _sdk_client.validate_x509_api_url(normalized_url)
-    self._base_url = self._enforce_trailing_slash(normalized_url)
+    self._configured_base_url = self._enforce_trailing_slash(normalized_url)
     self._base_url_was_default = False
     self._data_residency = None
 
@@ -550,14 +550,14 @@ def synccopy(
 
 
 def asyncbase_url(self: _sdk_client.AsyncOpenAI) -> httpx2.URL:
-    return self._base_url
+    return self._configured_base_url
 
 
 def asyncbase_url_set(self: _sdk_client.AsyncOpenAI, url: httpx2.URL | str) -> None:
     normalized_url = _sdk_client.normalize_httpx_url(url)
     if _sdk_client.is_x509_workload_identity(self.workload_identity):
         _sdk_client.validate_x509_api_url(normalized_url)
-    self._base_url = self._enforce_trailing_slash(normalized_url)
+    self._configured_base_url = self._enforce_trailing_slash(normalized_url)
     self._base_url_was_default = False
     self._data_residency = None
 

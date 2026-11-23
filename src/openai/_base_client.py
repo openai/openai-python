@@ -442,7 +442,7 @@ _DefaultStreamT = TypeVar("_DefaultStreamT", bound=Union[Stream[Any], AsyncStrea
 class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
     _client: _HttpxClientT
     _version: str
-    _base_url: URL
+    _configured_base_url: URL
     max_retries: int
     timeout: Union[float, Timeout, None]
     _strict_response_validation: bool
@@ -461,7 +461,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         custom_query: Mapping[str, object] | None = None,
     ) -> None:
         self._version = version
-        self._base_url = self._enforce_trailing_slash(normalize_httpx_url(base_url))
+        self._configured_base_url = self._enforce_trailing_slash(normalize_httpx_url(base_url))
         self.max_retries = max_retries
         self.timeout = timeout
         self._custom_headers = custom_headers or {}
@@ -833,12 +833,17 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         return f"{self.__class__.__name__}/Python {self._version}"
 
     @property
+    def _base_url(self) -> URL:
+        # Generated WebSocket clients must honor the same module overrides as HTTP.
+        return self.base_url
+
+    @property
     def base_url(self) -> URL:
-        return self._base_url
+        return self._configured_base_url
 
     @base_url.setter
     def base_url(self, url: URL | str) -> None:
-        self._base_url = self._enforce_trailing_slash(normalize_httpx_url(url))
+        self._configured_base_url = self._enforce_trailing_slash(normalize_httpx_url(url))
 
     def platform_headers(self) -> Dict[str, str]:
         # the actual implementation is in a separate `lru_cache` decorated

@@ -3,6 +3,7 @@ from __future__ import annotations
 import os as _os
 import sys
 import subprocess
+from unittest.mock import patch
 
 import httpx2
 import pytest
@@ -48,6 +49,24 @@ def test_base_url_option() -> None:
 
     assert openai.base_url == URL("http://foo.com")
     assert openai.completions._client.base_url == URL("http://foo.com")
+
+
+@pytest.mark.parametrize("resource", ["realtime", "responses"])
+def test_websocket_uses_current_module_base_url(resource: str) -> None:
+    openai.base_url = "https://first.invalid/v1"
+    openai.api_key = "fake-first"
+    connect = getattr(openai, resource).connect
+
+    openai.base_url = "https://second.invalid/v2"
+    openai.api_key = "fake-second"
+    options = {"model": "fake"} if resource == "realtime" else {}
+    with patch("websockets.sync.client.connect") as handshake:
+        with connect(**options):
+            pass
+
+    url = URL(handshake.call_args.args[0])
+    assert (url.scheme, url.host, url.path) == ("wss", "second.invalid", f"/v2/{resource}")
+    assert handshake.call_args.kwargs["additional_headers"]["Authorization"] == "Bearer fake-second"
 
 
 def test_timeout_option() -> None:
