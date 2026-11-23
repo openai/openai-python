@@ -13,6 +13,7 @@ class SessionTurnError(BaseModel):
     code: Literal[
         "context_length_exceeded",
         "max_output_tokens",
+        "session_budget_exceeded",
         "usage_limit_exceeded",
         "project_spend_limit_exceeded",
         "organization_spend_limit_exceeded",
@@ -40,6 +41,7 @@ class SessionTurnError(BaseModel):
     - `context_length_exceeded` - The request exceeds the model's context window.
     - `max_output_tokens` - The model reached its output token limit before
       finishing the response.
+    - `session_budget_exceeded` - The session has reached its usage budget.
     - `usage_limit_exceeded` - The organization has reached a usage, plan, or
       billing limit.
     - `project_spend_limit_exceeded` - The project has reached its enforced spend
