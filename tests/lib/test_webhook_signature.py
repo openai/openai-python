@@ -52,21 +52,16 @@ def webhook_resource(request: pytest.FixtureRequest) -> Webhooks | AsyncWebhooks
     return AsyncWebhooks(cast(openai.AsyncOpenAI, client))
 
 
-@pytest.mark.parametrize(
-    ("secret", "key"),
-    [(RAW_SECRET, RAW_SECRET.encode()), (PREFIXED_SECRET, RAW_SECRET.encode()), ("", b"")],
-    ids=["raw", "prefixed", "empty"],
-)
+@pytest.mark.parametrize("secret", [RAW_SECRET, PREFIXED_SECRET], ids=["raw", "prefixed"])
 @pytest.mark.parametrize("payload", [PAYLOAD, PAYLOAD.encode()], ids=["text", "bytes"])
 @pytest.mark.parametrize("signature_form", ["prefixed", "bare", "multiple"])
 def test_signature_forms_and_secret_encodings(
     webhook_resource: Webhooks | AsyncWebhooks,
     secret: str,
-    key: bytes,
     payload: str | bytes,
     signature_form: str,
 ) -> None:
-    headers = signed_headers(payload, secret=key)
+    headers = signed_headers(payload)
     signature = headers["webhook-signature"][3:]
     if signature_form == "bare":
         headers["webhook-signature"] = signature
@@ -135,12 +130,14 @@ def test_required_header_order(
         webhook_resource.verify_signature(PAYLOAD, headers, secret=RAW_SECRET)
 
 
-def test_client_secret_fallback_preserves_explicit_empty_secret(
-    webhook_resource: Webhooks | AsyncWebhooks,
+@pytest.mark.parametrize("secret", ["", "whsec_", "whsec_!!!"])
+def test_rejects_empty_signing_key_even_with_client_secret(
+    webhook_resource: Webhooks | AsyncWebhooks, secret: str
 ) -> None:
     webhook_resource._client.webhook_secret = PREFIXED_SECRET
     webhook_resource.verify_signature(PAYLOAD, signed_headers())
-    webhook_resource.verify_signature(PAYLOAD, signed_headers(secret=b""), secret="")
+    with pytest.raises(ValueError, match="webhook secret must not be empty"):
+        webhook_resource.verify_signature(PAYLOAD, signed_headers(secret=b""), secret=secret)
 
 
 def test_missing_secret_preserves_wrapper_exception_chaining(
