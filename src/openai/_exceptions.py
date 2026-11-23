@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from copy import copy
 from typing import TYPE_CHECKING, Any, Optional, cast
 from typing_extensions import Literal, override
 
@@ -7,6 +8,7 @@ import httpx2
 
 from ._utils import is_dict
 from ._models import construct_type
+from ._utils._logs import SENSITIVE_HEADERS
 from .types.shared.oauth_error_code import OAuthErrorCode
 
 if TYPE_CHECKING:
@@ -43,6 +45,36 @@ class SubjectTokenProviderError(OpenAIError):
         self.response = response
 
 
+def _error_request(request: httpx2.Request) -> httpx2.Request:
+    if not any(name in request.headers for name in SENSITIVE_HEADERS):
+        return request
+
+    safe = copy(request)
+    # HTTPX omits the stream and extensions when copying. Never read a streaming upload here.
+    safe.stream = request.stream
+    safe.extensions = request.extensions.copy()
+    safe.headers = request.headers.copy()
+    for name in SENSITIVE_HEADERS:
+        safe.headers.pop(name, None)
+    return safe
+
+
+def _error_response(response: httpx2.Response, request: httpx2.Request) -> httpx2.Response:
+    if request is response.request and not response.history and response.next_request is None:
+        return response
+
+    history: list[httpx2.Response] = []
+    for hop in [*response.history, response]:
+        safe = copy(hop)
+        safe.extensions = hop.extensions.copy()
+        safe.request = request if hop is response else _error_request(hop.request)
+        if hop.next_request is not None:
+            safe.next_request = _error_request(hop.next_request)
+        safe.history = history.copy()
+        history.append(safe)
+    return history[-1]
+
+
 class APIError(OpenAIError):
     message: str
     request: httpx2.Request
@@ -64,7 +96,7 @@ class APIError(OpenAIError):
 
     def __init__(self, message: str, request: httpx2.Request, *, body: object | None) -> None:
         super().__init__(message)
-        self.request = request
+        self.request = _error_request(request)
         self.message = message
         self.body = body
 
@@ -85,7 +117,7 @@ class APIResponseValidationError(APIError):
 
     def __init__(self, response: httpx2.Response, body: object | None, *, message: str | None = None) -> None:
         super().__init__(message or "Data returned by API invalid for expected schema.", response.request, body=body)
-        self.response = response
+        self.response = _error_response(response, self.request)
         self.status_code = response.status_code
 
 
@@ -98,7 +130,7 @@ class APIStatusError(APIError):
 
     def __init__(self, message: str, *, response: httpx2.Response, body: object | None) -> None:
         super().__init__(message, response.request, body=body)
-        self.response = response
+        self.response = _error_response(response, self.request)
         self.status_code = response.status_code
         self.request_id = response.headers.get("x-request-id")
 
