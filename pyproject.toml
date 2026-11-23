@@ -45,7 +45,7 @@ aiohttp = [
   "multidict>=6.9.1",
   "yarl>=1.25.1",
 ]
-realtime = ["websockets >= 13, < 16"]
+realtime = ["websockets>=13,<17"]
 datalib = ["numpy >= 1", "pandas >= 1.2.3"]
 voice_helpers = ["sounddevice>=0.5.1", "numpy>=2.0.2"]
 bedrock = [
