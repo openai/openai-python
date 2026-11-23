@@ -264,7 +264,9 @@ async def test_request_errors_are_wrapped(
 
     assert received == (["hello"] if delivered else [])
     assert len(requests) == 1
-    assert caught.value.request is requests[0]
+    assert caught.value.request.content == requests[0].content
+    assert "authorization" not in caught.value.request.headers
+    assert "authorization" in requests[0].headers
     assert caught.value.__cause__ is error
 
 
