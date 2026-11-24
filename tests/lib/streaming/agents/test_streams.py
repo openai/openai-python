@@ -289,6 +289,20 @@ async def test_missing_handler_does_not_submit_result(sdk: OpenAI | AsyncOpenAI,
     assert len(server.inputs()) == 1
 
 
+@pytest.mark.parametrize(
+    "arguments",
+    ['{"values":[NaN]}', '{"values":[-Infinity]}', '{"values":[1e999]}', {"values": [float("inf")]}],
+)
+async def test_non_finite_arguments_skip_handler(sdk: OpenAI | AsyncOpenAI, server: Server, arguments: object) -> None:
+    called: list[object] = []
+    server.body = EventBody([turn_event("created"), call(arguments), turn_event("completed"), idle()])
+    await consume(sdk, input="Hello", tool_handlers={"search": called.append})
+    assert not called
+    result = server.inputs()[1]
+    assert result["success"] is False
+    assert result["error"] == "Tool handler failed."
+
+
 async def test_handler_error_is_redacted(sdk: OpenAI | AsyncOpenAI, server: Server) -> None:
     def handler(_arguments: dict[str, object]) -> object:
         raise ValueError("synthetic-sensitive-value")
