@@ -36,12 +36,19 @@ def call(member: str, **args: object) -> ResponseFunctionToolCall:
 
 
 @pytest.mark.parametrize("lane", ["sync", "async"])
-@pytest.mark.parametrize("stage", ["confirm", "read", "url", "throwing_read"])
+@pytest.mark.parametrize("stage", ["confirm", "read", "url", "throwing_read", "action_diagnostic", "read_diagnostic"])
 async def test_browser_approval_cooperative_cancellation(lane: str, stage: str) -> None:
     effects: list[str] = []
     diagnostics: list[ToolDiagnostic] = []
     seen: list[Callable[[], bool] | None] = []
     stopped = False
+    cancel_on_diagnostic = stage in ("action_diagnostic", "read_diagnostic")
+
+    def observe(event: ToolDiagnostic) -> None:
+        nonlocal stopped
+        diagnostics.append(event)
+        if cancel_on_diagnostic and event["stage"] == "approval" and event["reason"] == "completed":
+            stopped = True
 
     def probe() -> bool:
         return stopped
@@ -66,7 +73,7 @@ async def test_browser_approval_cooperative_cancellation(lane: str, stage: str) 
         nonlocal stopped
         if stage != "url":
             seen.append(cancelled)
-            stopped = cancelled is probe
+            stopped = cancelled is probe and not cancel_on_diagnostic
         if stage == "throwing_read":
             raise RuntimeError("private confirmation details")
         return True
@@ -86,7 +93,7 @@ async def test_browser_approval_cooperative_cancellation(lane: str, stage: str) 
     async def aurl_policy(ctx: BrowserConfirmContext, url: str, *, cancelled: Callable[[], bool] | None = None) -> bool:
         return url_policy(ctx, url, cancelled=cancelled)
 
-    reading = stage in ("read", "throwing_read")
+    reading = stage in ("read", "throwing_read", "read_diagnostic")
     driver = SimpleNamespace(
         state=state if lane == "sync" else astate,
         navigate=effect if lane == "sync" else aeffect,
@@ -105,7 +112,7 @@ async def test_browser_approval_cooperative_cancellation(lane: str, stage: str) 
                 confirm_reads=["get_page_text"] if reading else [],
                 confirm=confirm,
                 url_policy=url_policy,
-            ).execute(request, cancelled=probe, on_diagnostic=diagnostics.append)
+            ).execute(request, cancelled=probe, on_diagnostic=observe)
         else:
             await AsyncBrowserToolset(
                 cast(AsyncBrowserDriver, driver),
@@ -113,10 +120,10 @@ async def test_browser_approval_cooperative_cancellation(lane: str, stage: str) 
                 confirm_reads=["get_page_text"] if reading else [],
                 confirm=aconfirm,
                 url_policy=aurl_policy,
-            ).execute(request, cancelled=probe, on_diagnostic=diagnostics.append)
+            ).execute(request, cancelled=probe, on_diagnostic=observe)
     assert seen == [probe]
     assert effects == ([] if reading else ["state"])
-    if reading:
+    if reading and not cancel_on_diagnostic:
         assert [(entry["stage"], entry["reason"]) for entry in diagnostics] == [("approval", "cancelled")]
 
 

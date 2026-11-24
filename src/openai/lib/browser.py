@@ -1534,6 +1534,7 @@ class BrowserToolset(_BrowserBase):
             )
             if not approved:
                 return _read_refused(call)
+            _check_cancelled(cancelled)
         try:
             confirm = self.confirm if member is not None and member not in _READ_ONLY else None
             url_policy = self.url_policy if member in {"navigate", "new_tab"} else None
@@ -1578,6 +1579,7 @@ class BrowserToolset(_BrowserBase):
             stage = "action"
             started = monotonic()
             if ctx["member"] != "list_tabs":
+                _check_cancelled(cancelled)
                 result = invoke(self._handlers[call.name], ctx["arguments"], cancelled=cancelled)
                 _reject_sync_awaitable(result, ctx["member"])
         except BrowserCancelledError:
@@ -1793,6 +1795,7 @@ class AsyncBrowserToolset(_BrowserBase):
             )
             if not approved:
                 return _read_refused(call)
+            _check_cancelled(cancelled)
         try:
             confirm = self.confirm if member is not None and member not in _READ_ONLY else None
             url_policy = self.url_policy if member in {"navigate", "new_tab"} else None
@@ -1842,6 +1845,7 @@ class AsyncBrowserToolset(_BrowserBase):
             stage = "action"
             started = monotonic()
             if ctx["member"] != "list_tabs":
+                _check_cancelled(cancelled)
                 result = await cast(
                     Awaitable[object], invoke(self._handlers[call.name], ctx["arguments"], cancelled=cancelled)
                 )
