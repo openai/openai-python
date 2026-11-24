@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from io import IOBase
 from os import PathLike, fstat
-from stat import S_ISREG
+from stat import S_ISDIR, S_ISREG
 from typing import TYPE_CHECKING, Mapping, BinaryIO, Sequence, Generator, cast
+from os.path import samestat
 from pathlib import Path, PurePosixPath
 from contextlib import ExitStack, contextmanager
 from dataclasses import field, dataclass
@@ -118,10 +119,16 @@ def directory_files(root: str | PathLike[str], destination: str, include: Sequen
     directory = Path(root).absolute()
     if isinstance(include, str) or not include:
         raise ValueError("Select directory files with explicit include patterns")
-    if directory.is_symlink() or not directory.is_dir():
+    try:
+        root_stat = directory.lstat()
+    except (FileNotFoundError, NotADirectoryError):
+        root_stat = None
+    if root_stat is None or not S_ISDIR(root_stat.st_mode):
         raise ValueError("The selected directory must be a directory, not a symlink")
-    directory = directory.resolve()
     # System aliases such as macOS /tmp are allowed above the chosen root.
+    directory = directory.resolve()
+    if not samestat(root_stat, directory.lstat()):
+        raise ValueError("The selected directory changed during path resolution")
     _destination(destination + "/a")  # Validate with the shortest possible filename.
     for pattern in include:
         if not pattern or PurePosixPath(pattern).is_absolute() or ".." in PurePosixPath(pattern).parts:

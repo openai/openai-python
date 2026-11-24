@@ -544,6 +544,28 @@ async def test_directory_selection_follows_glob_unreadable_subtree_semantics(
     assert server.uploads == 1
 
 
+async def test_directory_root_changed_during_resolution_prevents_upload(
+    sdk: OpenAI | AsyncOpenAI, server: FilesServer, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = tmp_path / "chosen"
+    root.mkdir()
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "other.txt").write_text("outside")
+    resolve = Path.resolve
+
+    def replace_root(path: Path, strict: bool = False) -> Path:
+        if path == root:
+            root.rename(tmp_path / "original")
+            root.symlink_to(outside, target_is_directory=True)
+        return resolve(path, strict=strict)
+
+    monkeypatch.setattr(Path, "resolve", replace_root)
+    with pytest.raises(ValueError, match="directory changed"):
+        await prepare_directory(sdk, root)
+    assert not server.requests
+
+
 async def test_selected_directory_cannot_be_replaced_by_symlink(
     sdk: OpenAI | AsyncOpenAI, server: FilesServer, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
