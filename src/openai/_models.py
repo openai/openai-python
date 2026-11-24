@@ -549,7 +549,7 @@ def _get_extra_fields_type(cls: type[pydantic.BaseModel]) -> type | None:
             extras = fields.get("extras_schema")
             if extras and "cls" in extras:
                 # Pydantic core-schema metadata stores the model class as an object.
-                return extras["cls"]  # ty: ignore[invalid-return-type]
+                return extras["cls"]  # ty: ignore[invalid-explicit-return]
 
     return None
 

@@ -244,7 +244,7 @@ class BaseAPIResponse(Generic[R]):
                     log.debug("Could not read JSON from response data due to %s", type(exc).__name__)
                 else:
                     # cast_to is validated above and preserves the response generic through dynamic parsing.
-                    return self._client._process_response_data(  # ty: ignore[invalid-return-type]
+                    return self._client._process_response_data(  # ty: ignore[invalid-explicit-return]
                         data=data,
                         cast_to=cast_to,
                         response=response,
@@ -260,12 +260,12 @@ class BaseAPIResponse(Generic[R]):
             # If the API responds with content that isn't JSON then we just return
             # the (decoded) text without performing any parsing so that you can still
             # handle the response however you need to.
-            return response.text  # ty: ignore[invalid-return-type]
+            return response.text  # ty: ignore[invalid-explicit-return]
 
         data = response.json()
 
         # cast_to is validated above and preserves the response generic through dynamic parsing.
-        return self._client._process_response_data(  # ty: ignore[invalid-return-type]
+        return self._client._process_response_data(  # ty: ignore[invalid-explicit-return]
             data=data,
             cast_to=cast_to,
             response=response,
