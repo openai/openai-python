@@ -1062,7 +1062,10 @@ class TestOpenAI:
                 )
             except APIStatusError as exc:
                 assert rewind_fails
-                assert exc.response is original_response
+                assert exc.response.status_code == original_response.status_code
+                assert exc.response.request is exc.request
+                assert "authorization" not in exc.request.headers
+                assert "authorization" in original_response.request.headers
             else:
                 assert not rewind_fails
                 assert response.status_code == 200
@@ -1334,6 +1337,8 @@ class TestOpenAI:
             client.get("/foo", cast_to=Model)
 
         assert isinstance(exc.value.__cause__, ValidationError)
+        assert exc.value.response.request is exc.value.request
+        assert "authorization" not in exc.value.request.headers
 
     def test_client_max_retries_validation(self) -> None:
         with pytest.raises(TypeError, match=r"max_retries cannot be None"):
@@ -2476,7 +2481,10 @@ class TestAsyncOpenAI:
                 )
             except APIStatusError as exc:
                 assert rewind_fails
-                assert exc.response is original_response
+                assert exc.response.status_code == original_response.status_code
+                assert exc.response.request is exc.request
+                assert "authorization" not in exc.request.headers
+                assert "authorization" in original_response.request.headers
             else:
                 assert not rewind_fails
                 assert response.status_code == 200
@@ -2727,6 +2735,8 @@ class TestAsyncOpenAI:
             await async_client.get("/foo", cast_to=Model)
 
         assert isinstance(exc.value.__cause__, ValidationError)
+        assert exc.value.response.request is exc.value.request
+        assert "authorization" not in exc.value.request.headers
 
     async def test_client_max_retries_validation(self) -> None:
         with pytest.raises(TypeError, match=r"max_retries cannot be None"):
@@ -3585,7 +3595,9 @@ async def test_unmapped_transport_errors(
             except APIConnectionError as exc:
                 assert failures > max_retries
                 assert exc.__cause__ is error
-                assert exc.request is requests[-1]
+                assert exc.request.url == requests[-1].url
+                assert "authorization" not in exc.request.headers
+                assert "authorization" in requests[-1].headers
             else:
                 assert failures <= max_retries
                 assert result == {"recovered": True}

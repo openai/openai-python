@@ -268,3 +268,29 @@ async def test_prepare_hook_can_supply_missing_callable_auth(mode: str) -> None:
             await async_client.models.list()
 
     assert received == [["Bearer fake-hook-value"]]
+
+
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+@pytest.mark.parametrize("resource_name", ["sessions", "transcription_sessions"])
+@pytest.mark.parametrize("api_key", ["", "fake-project-key"], ids=["admin-only", "both-keys"])
+async def test_beta_realtime_session_credentials(sync: bool, resource_name: str, api_key: str) -> None:
+    received: list[str] = []
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        received.append(request.headers["Authorization"])
+        return httpx2.Response(200, json={})
+
+    transport = httpx2.MockTransport(handler)
+    with nullcontext() if api_key else pytest.raises(TypeError, match="Could not resolve authentication"):
+        if sync:
+            with OpenAI(
+                api_key=api_key, admin_api_key="fake-admin", http_client=httpx2.Client(transport=transport)
+            ) as client:
+                getattr(client.beta.realtime, resource_name).create()
+        else:
+            async with AsyncOpenAI(
+                api_key=api_key, admin_api_key="fake-admin", http_client=httpx2.AsyncClient(transport=transport)
+            ) as async_client:
+                await getattr(async_client.beta.realtime, resource_name).create()
+
+    assert received == (["Bearer fake-project-key"] if api_key else [])

@@ -30,6 +30,7 @@ __all__ = [
     "RequiredActionSessionRequiredActionResourceComputerUseApprovalRequestRequestComputerUseApprovalRequestKindResourceBrowserOriginAccess",
     "RequiredActionSessionRequiredActionResourceFunctionCall",
     "RequiredActionSessionRequiredActionResourceEnvironmentConnection",
+    "SpendControl",
     "PromptCacheOptions",
 ]
 
@@ -259,6 +260,21 @@ RequiredAction: TypeAlias = Annotated[
 ]
 
 
+class SpendControl(BaseModel):
+    """Spending limit and best-effort consumption, in USD cents.
+
+    The limit is null for an unlimited session. Consumption is null when unavailable.
+    """
+
+    consumed: Optional[int] = None
+    """
+    Best-effort recorded spend floored to whole USD cents, or null when unavailable.
+    """
+
+    limit: Optional[int] = None
+    """The configured positive limit in USD cents, or null when unlimited."""
+
+
 class PromptCacheOptions(BaseModel):
     """Default prompt cache lifetime for turns in this session, when configured."""
 
@@ -295,7 +311,14 @@ class AgentSession(BaseModel):
     required_actions: List[RequiredAction]
     """Actions that must be completed before the session can continue."""
 
-    status: Literal["idle", "in_progress", "requires_action", "failed"]
+    spend_control: SpendControl
+    """Spending limit and best-effort consumption, in USD cents.
+
+    The limit is null for an unlimited session. Consumption is null when
+    unavailable.
+    """
+
+    status: Literal["idle", "in_progress", "requires_action", "failed", "budget_reached"]
     """The current status of the session.
 
     - `idle` - The session has no turn in progress and is ready for input. A hosted
@@ -303,6 +326,8 @@ class AgentSession(BaseModel):
     - `in_progress` - The session is processing a turn.
     - `requires_action` - The session is waiting for one or more required actions.
     - `failed` - The session failed.
+    - `budget_reached` - The session is paused because its spending limit was
+      reached.
     """
 
     usage: Optional[TokenUsage] = None

@@ -52,6 +52,9 @@ def webhook_signature_matches(
     else:
         decoded_secret = secret.encode()
 
+    if not decoded_secret:
+        raise ValueError("The webhook secret must not be empty after decoding")
+
     body = payload.decode("utf-8") if isinstance(payload, bytes) else payload
 
     # Prepare the signed payload (OpenAI uses webhookId.timestamp.payload format)

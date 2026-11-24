@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 from typing import Dict, Iterable, Optional
-from typing_extensions import Literal, TypedDict
+from typing_extensions import Literal, Required, TypedDict
 
 from ..agent_tool_param import AgentToolParam
 
-__all__ = ["SessionUpdateParams", "Agent", "AgentReasoning", "PromptCacheOptions"]
+__all__ = ["SessionUpdateParams", "Agent", "AgentReasoning", "PromptCacheOptions", "SpendControl"]
 
 
 class SessionUpdateParams(TypedDict, total=False):
@@ -35,6 +35,12 @@ class SessionUpdateParams(TypedDict, total=False):
     - `none` - Keep the existing execution behavior without automatic action review.
     - `auto_review` - Review eligible actions automatically. Deny manual approval
       fallbacks.
+    """
+
+    spend_control: Optional[SpendControl]
+    """
+    Omit to retain the limit; null or a null limit removes it without resetting
+    spend.
     """
 
 
@@ -82,3 +88,12 @@ class PromptCacheOptions(TypedDict, total=False):
 
     ttl: Literal["30m", "12h"]
     """Minimum lifetime for new prompt cache entries. Defaults to 30 minutes."""
+
+
+class SpendControl(TypedDict, total=False):
+    """
+    Omit to retain the limit; null or a null limit removes it without resetting spend.
+    """
+
+    limit: Required[Optional[int]]
+    """Positive USD cents, or null to remove the limit."""

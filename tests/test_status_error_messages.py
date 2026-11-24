@@ -54,3 +54,22 @@ async def test_status_error_message(
     logging.getLogger(__name__).error("Request failed", exc_info=(type(error), error, error.__traceback__))
     assert expected_message in caplog.text
     assert "extra-response-data" not in caplog.text
+
+
+@pytest.mark.respx2(base_url=base_url)
+def test_status_error_request_headers(client: OpenAI, respx2_mock: MockRouter) -> None:
+    respx2_mock.get("/start").mock(return_value=httpx2.Response(307, headers={"Location": "/end"}))
+    respx2_mock.get("/end").mock(return_value=httpx2.Response(500, headers={"x-request-id": "req_test"}))
+    headers = {"Api-Key": "fake", "X-Amz-Security-Token": "fake", "X-Trace": "trace"}
+
+    with pytest.raises(InternalServerError) as exc:
+        client.with_options(max_retries=0, default_headers=headers).get("/start", cast_to=object)
+
+    error = exc.value
+    assert error.request_id == "req_test"
+    assert error.response.request is error.request
+    for request in (error.request, error.response.history[0].request):
+        assert "authorization" not in request.headers
+        assert "api-key" not in request.headers
+        assert "x-amz-security-token" not in request.headers
+        assert request.headers["x-trace"] == "trace"
