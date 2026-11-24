@@ -596,6 +596,8 @@ The async client uses the exact same interface. If you pass a [`PathLike`](https
 
 Verifying webhook signatures is _optional but encouraged_.
 
+After verifying the signature, use the `webhook-id` header as an idempotency key to avoid processing the same event twice.
+
 For more information about webhooks, see [the API docs](https://platform.openai.com/docs/guides/webhooks).
 
 ### Parsing webhook payloads
