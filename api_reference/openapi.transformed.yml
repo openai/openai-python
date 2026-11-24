@@ -54016,6 +54016,10 @@ components:
         - gpt-rosalind-research
         - gpt-6-rosalind
         - gpt-6.2-astra-law
+        - gpt-6-astra-healthcare
+        - gpt-6.1-sol-healthcare
+        - gpt-6.2-astra-healthcare
+        - gpt-6.2-sol-healthcare
         x-openai-enum-deprecations:
           o1-pro:
             message: 'Announced shutdown date: 2026-10-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
@@ -106232,6 +106236,10 @@ components:
         - gpt-rosalind-research
         - gpt-6-rosalind
         - gpt-6.2-astra-law
+        - gpt-6-astra-healthcare
+        - gpt-6.1-sol-healthcare
+        - gpt-6.2-astra-healthcare
+        - gpt-6.2-sol-healthcare
         x-openai-enum-deprecations:
           o1-pro:
             message: 'Announced shutdown date: 2026-10-23. See https://developers.openai.com/api/docs/deprecations for details and recommended replacements.'
