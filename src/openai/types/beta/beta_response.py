@@ -567,6 +567,10 @@ class BetaResponse(BaseModel):
             "gpt-rosalind-research",
             "gpt-6-rosalind",
             "gpt-6.2-astra-law",
+            "gpt-6-astra-healthcare",
+            "gpt-6.1-sol-healthcare",
+            "gpt-6.2-astra-healthcare",
+            "gpt-6.2-sol-healthcare",
         ],
         str,
     ]
