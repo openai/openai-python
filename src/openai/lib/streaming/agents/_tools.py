@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import json
 from copy import deepcopy
+from math import isfinite
 from typing import Any, Dict, Mapping, cast
 
 from ._types import ToolOutput, ToolHandler, AsyncToolHandler
-from ...._utils import maybe_transform
+from ...._utils import is_dict, is_list, maybe_transform
 from ...._exceptions import BadRequestError
 from ...._utils._json import openapi_dumps
 from ...beta.agents._tool_error import AgentToolError, ToolErrorStage
@@ -14,10 +15,22 @@ from ....types.beta.agent_session_input_param import SessionInputParamAgentSessi
 from ....types.beta.agent_function_call_output_param import AgentFunctionCallOutputParam
 
 
+def _check_finite_numbers(value: object) -> None:
+    if isinstance(value, float) and not isfinite(value):
+        raise ValueError("Numbers in function arguments must be finite")
+    if is_dict(value):
+        for item in value.values():
+            _check_finite_numbers(item)
+    elif is_list(value):
+        for item in value:
+            _check_finite_numbers(item)
+
+
 def arguments(call: AgentFunctionCallItem) -> Dict[str, Any]:
     value = json.loads(call.arguments) if isinstance(call.arguments, str) else deepcopy(call.arguments)
     if not isinstance(value, dict):
         raise ValueError("Function arguments must be a JSON object")
+    _check_finite_numbers(value)
     return cast(Dict[str, Any], value)
 
 
