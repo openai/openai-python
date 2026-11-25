@@ -34730,7 +34730,7 @@ paths:
           type: string
           minLength: 1
           maxLength: 256
-        description: An optional client-generated key that makes retries of submitted messages idempotent.
+        description: An optional client-generated key for message submissions. Retry the same message with the same key and identical input within the 24-hour replay window; a retry replays the original outcome if it is available. After the window expires, a key whose outcome is unavailable may return 409. After a timeout or server error, inspect the session history and items before resubmitting. Use a new key for a new message, or only after confirming the earlier message did not execute.
       requestBody:
         content:
           application/json:
@@ -43028,7 +43028,10 @@ components:
           - /v1/images/generations
           - /v1/images/edits
           - /v1/videos
-          description: The endpoint to be used for all requests in the batch. Currently `/v1/responses`, `/v1/chat/completions`, `/v1/embeddings`, `/v1/completions`, `/v1/moderations`, `/v1/images/generations`, `/v1/images/edits`, and `/v1/videos` are supported. Note that `/v1/embeddings` batches are also restricted to a maximum of 50,000 embedding inputs across all requests in the batch.
+          x-openai-enum-deprecations:
+            /v1/videos:
+              message: The Videos API shut down on September 24, 2026. Batch creation no longer accepts this endpoint.
+          description: The endpoint to be used for all requests in the batch. Currently `/v1/responses`, `/v1/chat/completions`, `/v1/embeddings`, `/v1/completions`, `/v1/moderations`, `/v1/images/generations`, and `/v1/images/edits` are supported. Note that `/v1/embeddings` batches are also restricted to a maximum of 50,000 embedding inputs across all requests in the batch.
         completion_window:
           type: string
           enum:

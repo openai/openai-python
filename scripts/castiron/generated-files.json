@@ -243,7 +243,7 @@
     },
     "src/openai/resources/batches.py": {
       "mode": "100644",
-      "sha256": "715ef943de791127d13af848dab09b0fde3547d626a906e0134a6e201809cbb0"
+      "sha256": "7c695043e313c88713bd03412db54e68dc5a80c7eb2a3ae883832ee5029a9431"
     },
     "src/openai/resources/beta/__init__.py": {
       "mode": "100644",
@@ -1639,7 +1639,7 @@
     },
     "src/openai/types/batch_create_params.py": {
       "mode": "100644",
-      "sha256": "23fc1262117596c65ef580650baac25fbbfe4d3f90f1c8074827b8e927d64994"
+      "sha256": "c1fa3fede922b38e744eae8b69637ce843484627439e0313d2ba2db27e88b318"
     },
     "src/openai/types/batch_error.py": {
       "mode": "100644",

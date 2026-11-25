@@ -77,10 +77,14 @@ class Batches(SyncAPIResource):
 
           endpoint: The endpoint to be used for all requests in the batch. Currently
               `/v1/responses`, `/v1/chat/completions`, `/v1/embeddings`, `/v1/completions`,
-              `/v1/moderations`, `/v1/images/generations`, `/v1/images/edits`, and
-              `/v1/videos` are supported. Note that `/v1/embeddings` batches are also
-              restricted to a maximum of 50,000 embedding inputs across all requests in the
-              batch.
+              `/v1/moderations`, `/v1/images/generations`, and `/v1/images/edits` are
+              supported. Note that `/v1/embeddings` batches are also restricted to a maximum
+              of 50,000 embedding inputs across all requests in the batch.
+
+              Deprecated values:
+
+              - "/v1/videos": The Videos API shut down on September 24, 2026. Batch creation
+                no longer accepts this endpoint.
 
           input_file_id: The ID of an uploaded file that contains requests for the new batch.
 
@@ -318,10 +322,14 @@ class AsyncBatches(AsyncAPIResource):
 
           endpoint: The endpoint to be used for all requests in the batch. Currently
               `/v1/responses`, `/v1/chat/completions`, `/v1/embeddings`, `/v1/completions`,
-              `/v1/moderations`, `/v1/images/generations`, `/v1/images/edits`, and
-              `/v1/videos` are supported. Note that `/v1/embeddings` batches are also
-              restricted to a maximum of 50,000 embedding inputs across all requests in the
-              batch.
+              `/v1/moderations`, `/v1/images/generations`, and `/v1/images/edits` are
+              supported. Note that `/v1/embeddings` batches are also restricted to a maximum
+              of 50,000 embedding inputs across all requests in the batch.
+
+              Deprecated values:
+
+              - "/v1/videos": The Videos API shut down on September 24, 2026. Batch creation
+                no longer accepts this endpoint.
 
           input_file_id: The ID of an uploaded file that contains requests for the new batch.
 
