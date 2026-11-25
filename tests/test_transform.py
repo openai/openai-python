@@ -524,3 +524,57 @@ async def test_not_required_transforms(use_async: bool) -> None:
     assert await transform({"items": [{"this_thing": 1}]}, DateDictWithNotRequiredAlias, use_async) == {
         "items": [{"this__thing": 1}]
     }
+
+
+class ScalarFields(TypedDict, total=False):
+    text: Required[Annotated[Union[str, List[str]], PropertyInfo(alias="wireText")]]
+    count: Annotated[int, PropertyInfo(alias="wireCount")]
+    ratio: float
+    flag: bool
+    nullable: Optional[str]
+    when: Annotated[Union[datetime, str], PropertyInfo(format="iso8601")]
+    attachment: Annotated[Union[Base64FileInput, str], PropertyInfo(format="base64")]
+    nested: Foo1
+
+
+@parametrize
+@pytest.mark.asyncio
+async def test_scalar_fields_keep_aliases_and_nested_conversions(use_async: bool) -> None:
+    payload = {
+        "text": "hello",
+        "count": 0,
+        "ratio": 0.5,
+        "flag": False,
+        "nullable": None,
+        "when": datetime(2025, 1, 2),
+        "attachment": io.BytesIO(b"abc"),
+        "nested": {"foo_bar": "alias"},
+        "extra": "kept",
+        "missing": omit,
+    }
+    assert await transform(payload, ScalarFields, use_async) == {
+        "wireText": "hello",
+        "wireCount": 0,
+        "ratio": 0.5,
+        "flag": False,
+        "nullable": None,
+        "when": "2025-01-02T00:00:00",
+        "attachment": "YWJj",
+        "nested": {"fooBar": "alias"},
+        "extra": "kept",
+    }
+
+
+class IterableInt(int):
+    def __iter__(self) -> Iterable[int]:
+        yield int(self)
+
+
+class IterableField(TypedDict):
+    values: Iterable[int]
+
+
+@parametrize
+@pytest.mark.asyncio
+async def test_scalar_subclass_keeps_iterable_conversion(use_async: bool) -> None:
+    assert await transform({"values": IterableInt(7)}, IterableField, use_async) == {"values": [7]}
