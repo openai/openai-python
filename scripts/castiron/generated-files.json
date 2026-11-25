@@ -5423,11 +5423,11 @@
     },
     "src/openai/types/realtime/realtime_audio_config_input.py": {
       "mode": "100644",
-      "sha256": "5ffafdd1d8d7e04c8b9a46c54444496944c8c7055d766c51e18b8929b35fb5ab"
+      "sha256": "72492757c43223ba28a596025d8eaed2199528e3e46b4021f07171d36a7769b2"
     },
     "src/openai/types/realtime/realtime_audio_config_input_param.py": {
       "mode": "100644",
-      "sha256": "dc9f18cbc51e5dd6ab035550cb4193432b7b9b9cd680dd728247b0bef9f38b1b"
+      "sha256": "92fcc9a66e58152dcfac8ff124e1172d9cb7260a95cb38caf373a3ca43d14984"
     },
     "src/openai/types/realtime/realtime_audio_config_output.py": {
       "mode": "100644",
