@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import json
 from enum import Enum
+from typing_extensions import Annotated
 
+import pytest
 from pydantic import Field, BaseModel
 from inline_snapshot import snapshot
 
@@ -236,6 +239,80 @@ def test_enums() -> None:
                 },
             }
         )
+
+
+def test_recursive_field_description() -> None:
+    class Node(BaseModel):
+        label: str
+        child: Node | None = Field(default=None, description="A child node")
+
+    tool = openai.pydantic_function_tool(Node)
+    schema = json.loads(json.dumps(tool))["function"]["parameters"]
+    node = schema["definitions" if PYDANTIC_V1 else "$defs"]["Node"]
+    child = node["properties"]["child"]
+
+    assert node["required"] == ["label", "child"]
+    assert node["additionalProperties"] is False
+    assert child["description"] == "A child node"
+    assert "default" not in child
+    assert child["anyOf"][0] == {"$ref": "#/definitions/Node" if PYDANTIC_V1 else "#/$defs/Node"}
+
+
+@pytest.mark.skipif(PYDANTIC_V1, reason="Pydantic v1 does not emit annotations on list items")
+def test_recursive_annotated_ref() -> None:
+    class Node(BaseModel):
+        label: str
+        children: list[Annotated["Node", Field(description="A child node")]]
+        alternatives: list[Annotated["Node", Field(description="An alternative node")]]
+
+    tool = openai.pydantic_function_tool(Node)
+    schema = json.loads(json.dumps(tool))["function"]["parameters"]
+    node = schema["$defs"]["Node"]
+
+    assert schema["type"] == "object"
+    assert schema["required"] == node["required"] == ["label", "children", "alternatives"]
+    assert schema["additionalProperties"] is node["additionalProperties"] is False
+    assert "description" not in node
+    assert node["properties"]["children"]["items"] == {
+        "description": "A child node",
+        "anyOf": [{"$ref": "#/$defs/Node"}],
+    }
+    assert node["properties"]["alternatives"]["items"] == {
+        "description": "An alternative node",
+        "anyOf": [{"$ref": "#/$defs/Node"}],
+    }
+
+
+@pytest.mark.skipif(PYDANTIC_V1, reason="Pydantic v1 does not emit annotations on list items")
+def test_mutually_recursive_annotated_refs() -> None:
+    class Branch(BaseModel):
+        leaves: list[Annotated["Leaf", Field(description="A leaf")]]
+
+    class Leaf(BaseModel):
+        branches: list[Annotated[Branch, Field(description="A branch")]]
+
+    Branch.model_rebuild()
+
+    class Tree(BaseModel):
+        branch: Branch = Field(description="The root branch")
+
+    tool = openai.pydantic_function_tool(Tree)
+    schema = json.loads(json.dumps(tool))["function"]["parameters"]
+    branch = schema["properties"]["branch"]
+    leaf = branch["properties"]["leaves"]["items"]
+
+    assert branch["description"] == "The root branch"
+    assert branch["required"] == ["leaves"]
+    assert branch["additionalProperties"] is False
+    assert leaf["description"] == "A leaf"
+    assert leaf["required"] == ["branches"]
+    assert leaf["additionalProperties"] is False
+    assert leaf["properties"]["branches"]["items"] == {
+        "description": "A branch",
+        "anyOf": [{"$ref": "#/$defs/Branch"}],
+    }
+    assert schema["$defs"]["Branch"]["additionalProperties"] is False
+    assert schema["$defs"]["Leaf"]["additionalProperties"] is False
 
 
 class Star(BaseModel):
