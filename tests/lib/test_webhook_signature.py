@@ -4,6 +4,7 @@ import hmac
 import base64
 import hashlib
 import binascii
+import tracemalloc
 from typing import Iterator, cast
 from unittest import mock
 
@@ -180,9 +181,25 @@ def test_malformed_secret_keeps_base64_error(webhook_resource: Webhooks | AsyncW
         webhook_resource.verify_signature(PAYLOAD, signed_headers(), secret="whsec_a")
 
 
-def test_invalid_utf8_payload_keeps_decode_error(webhook_resource: Webhooks | AsyncWebhooks) -> None:
+@pytest.mark.parametrize("payload", [b"\xff", b"\xc3"])
+def test_invalid_utf8_payload_keeps_decode_error(webhook_resource: Webhooks | AsyncWebhooks, payload: bytes) -> None:
     with pytest.raises(UnicodeDecodeError):
-        webhook_resource.verify_signature(b"\xff", signed_headers(), secret=RAW_SECRET)
+        webhook_resource.verify_signature(payload, signed_headers(), secret=RAW_SECRET)
+
+
+@pytest.mark.parametrize("as_bytes", [False, True], ids=["text", "bytes"])
+def test_large_signature_without_full_body_copies(webhook_resource: Webhooks | AsyncWebhooks, as_bytes: bool) -> None:
+    # The leading ASCII byte splits a UTF-8 character across each even byte boundary.
+    text = "a" + "é" * (2 * 1024 * 1024)
+    payload = text.encode() if as_bytes else text
+    headers = signed_headers(payload)
+    tracemalloc.start()
+    try:
+        webhook_resource.verify_signature(payload, headers, secret=RAW_SECRET)
+        _, peak = tracemalloc.get_traced_memory()
+    finally:
+        tracemalloc.stop()
+    assert peak < len(payload)
 
 
 def test_non_ascii_signature_keeps_compare_error(webhook_resource: Webhooks | AsyncWebhooks) -> None:

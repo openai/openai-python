@@ -3,6 +3,7 @@ from __future__ import annotations
 import hmac
 import time
 import base64
+import codecs
 import hashlib
 
 from .._types import HeadersLike
@@ -55,13 +56,20 @@ def webhook_signature_matches(
     if not decoded_secret:
         raise ValueError("The webhook secret must not be empty after decoding")
 
-    body = payload.decode("utf-8") if isinstance(payload, bytes) else payload
-
-    # Prepare the signed payload (OpenAI uses webhookId.timestamp.payload format)
-    signed_payload = f"{webhook_id}.{timestamp}.{body}"
-    expected_signature = base64.b64encode(
-        hmac.new(decoded_secret, signed_payload.encode(), hashlib.sha256).digest()
-    ).decode()
+    mac = hmac.new(decoded_secret, f"{webhook_id}.{timestamp}.".encode(), hashlib.sha256)
+    chunk_size = 64 * 1024
+    if isinstance(payload, bytes):
+        # Validate UTF-8 across chunk boundaries while signing the original bytes.
+        decoder = codecs.getincrementaldecoder("utf-8")()
+        for start in range(0, len(payload), chunk_size):
+            chunk = payload[start : start + chunk_size]
+            decoder.decode(chunk)
+            mac.update(chunk)
+        decoder.decode(b"", final=True)
+    else:
+        for start in range(0, len(payload), chunk_size):
+            mac.update(payload[start : start + chunk_size].encode())
+    expected_signature = base64.b64encode(mac.digest()).decode()
 
     # Accept if any signature matches
     return any(hmac.compare_digest(expected_signature, sig) for sig in signatures)
