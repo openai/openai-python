@@ -34183,7 +34183,7 @@ paths:
     post:
       operationId: updateAgentSession
       summary: Update an agent session
-      description: Updates session tools, metadata, model, reasoning effort, service tier, or the default prompt cache lifetime. Model settings apply to subsequent turns. Omitted fields are unchanged. See [managing sessions](https://developers.openai.com/api/docs/guides/agents-api/sessions/manage).
+      description: Updates session tools, vaults, metadata, model, reasoning effort, service tier, or the default prompt cache lifetime. Model settings apply to subsequent turns. Omitted fields are unchanged. See [managing sessions](https://developers.openai.com/api/docs/guides/agents-api/sessions/manage).
       tags:
       - Agents
       parameters:
@@ -95605,6 +95605,17 @@ components:
           minProperties: 0
           maxProperties: 16
           description: Replaces all metadata. Omit to leave unchanged, or pass null or {} to clear it. Up to 16 string key-value pairs, with keys up to 64 and values up to 512 characters.
+        vault_ids:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+            minLength: 0
+            maxLength: 1048576
+          minItems: 0
+          maxItems: 16384
+          description: Replaces the session's referenced vaults. Omit to retain them; null or [] clears them.
       additionalProperties: false
       description: Fields to update on an existing session.
     DeletedSessionResource:

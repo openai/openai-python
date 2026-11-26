@@ -242,6 +242,7 @@ class TestSessions:
             prompt_cache_options={"ttl": "30m"},
             review="none",
             spend_control={"limit": 1},
+            vault_ids=["string"],
         )
         assert_matches_type(AgentSession, session, path=["response"])
 
@@ -580,6 +581,7 @@ class TestAsyncSessions:
             prompt_cache_options={"ttl": "30m"},
             review="none",
             spend_control={"limit": 1},
+            vault_ids=["string"],
         )
         assert_matches_type(AgentSession, session, path=["response"])
 
