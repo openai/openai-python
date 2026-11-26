@@ -43,12 +43,12 @@ class TestResponses:
             conversation="string",
             image={"context_compression": "auto"},
             include=["file_search_call.results"],
-            input="string",
+            input="Write a one-sentence bedtime story about a unicorn.",
             instructions="instructions",
             max_output_tokens=16,
             max_tool_calls=0,
             metadata={"foo": "string"},
-            model="gpt-6-astra",
+            model="gpt-6.2-astra",
             moderation={
                 "model": "model",
                 "policy": {
@@ -160,12 +160,12 @@ class TestResponses:
             conversation="string",
             image={"context_compression": "auto"},
             include=["file_search_call.results"],
-            input="string",
+            input="Write a one-sentence bedtime story about a unicorn.",
             instructions="instructions",
             max_output_tokens=16,
             max_tool_calls=0,
             metadata={"foo": "string"},
-            model="gpt-6-astra",
+            model="gpt-6.2-astra",
             moderation={
                 "model": "model",
                 "policy": {
@@ -473,6 +473,7 @@ class TestResponses:
                 "ttl": "30m",
             },
             prompt_cache_retention="in_memory",
+            safety_identifier="safety_identifier",
             service_tier="auto",
             betas=["responses_multi_agent=v1"],
         )
@@ -531,12 +532,12 @@ class TestAsyncResponses:
             conversation="string",
             image={"context_compression": "auto"},
             include=["file_search_call.results"],
-            input="string",
+            input="Write a one-sentence bedtime story about a unicorn.",
             instructions="instructions",
             max_output_tokens=16,
             max_tool_calls=0,
             metadata={"foo": "string"},
-            model="gpt-6-astra",
+            model="gpt-6.2-astra",
             moderation={
                 "model": "model",
                 "policy": {
@@ -648,12 +649,12 @@ class TestAsyncResponses:
             conversation="string",
             image={"context_compression": "auto"},
             include=["file_search_call.results"],
-            input="string",
+            input="Write a one-sentence bedtime story about a unicorn.",
             instructions="instructions",
             max_output_tokens=16,
             max_tool_calls=0,
             metadata={"foo": "string"},
-            model="gpt-6-astra",
+            model="gpt-6.2-astra",
             moderation={
                 "model": "model",
                 "policy": {
@@ -961,6 +962,7 @@ class TestAsyncResponses:
                 "ttl": "30m",
             },
             prompt_cache_retention="in_memory",
+            safety_identifier="safety_identifier",
             service_tier="auto",
             betas=["responses_multi_agent=v1"],
         )

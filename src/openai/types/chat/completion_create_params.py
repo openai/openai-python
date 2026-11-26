@@ -51,7 +51,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     """
 
     model: Required[Union[str, ChatModel]]
-    """Model ID used to generate the response, like `gpt-6-astra` or `o3`.
+    """Model ID used to generate the response, like `gpt-6.2-astra`.
 
     OpenAI offers a wide range of models with different capabilities, performance
     characteristics, and price points. Refer to the
@@ -372,7 +372,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     """
 
     stop: Union[str, SequenceNotStr[str], None]
-    """Not supported with latest reasoning models `o3` and `o4-mini`.
+    """Not supported with reasoning models `o3` and `o4-mini`.
 
     Up to 4 sequences where the API will stop generating further tokens. The
     returned text will not contain the stop sequence.

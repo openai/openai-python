@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+from typing import Optional
 from typing_extensions import Literal
 
 import httpx2
 
 from ..... import _legacy_response
-from ....._types import Body, Query, Headers, NotGiven, not_given
+from ....._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
 from ....._utils import path_template, maybe_transform, async_maybe_transform
 from ....._compat import cached_property
 from ....._resource import SyncAPIResource, AsyncAPIResource
@@ -84,6 +85,7 @@ class SpendLimit(SyncAPIResource):
         currency: Literal["USD"],
         interval: Literal["month"],
         threshold_amount: int,
+        notification_channel: Optional[spend_limit_update_params.NotificationChannel] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -102,6 +104,9 @@ class SpendLimit(SyncAPIResource):
 
           threshold_amount: The hard spend limit amount, in cents.
 
+          notification_channel: Configure email notifications when the spend limit is reached. Leave this out to
+              keep the current settings, or send null to reset to owner-only notifications.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -119,6 +124,7 @@ class SpendLimit(SyncAPIResource):
                     "currency": currency,
                     "interval": interval,
                     "threshold_amount": threshold_amount,
+                    "notification_channel": notification_channel,
                 },
                 spend_limit_update_params.SpendLimitUpdateParams,
             ),
@@ -234,6 +240,7 @@ class AsyncSpendLimit(AsyncAPIResource):
         currency: Literal["USD"],
         interval: Literal["month"],
         threshold_amount: int,
+        notification_channel: Optional[spend_limit_update_params.NotificationChannel] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -252,6 +259,9 @@ class AsyncSpendLimit(AsyncAPIResource):
 
           threshold_amount: The hard spend limit amount, in cents.
 
+          notification_channel: Configure email notifications when the spend limit is reached. Leave this out to
+              keep the current settings, or send null to reset to owner-only notifications.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -269,6 +279,7 @@ class AsyncSpendLimit(AsyncAPIResource):
                     "currency": currency,
                     "interval": interval,
                     "threshold_amount": threshold_amount,
+                    "notification_channel": notification_channel,
                 },
                 spend_limit_update_params.SpendLimitUpdateParams,
             ),

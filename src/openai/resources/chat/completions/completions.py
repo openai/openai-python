@@ -404,9 +404,9 @@ class Completions(SyncAPIResource):
               [images](https://developers.openai.com/api/docs/guides/images-vision), and
               [audio](https://developers.openai.com/api/docs/guides/audio).
 
-          model: Model ID used to generate the response, like `gpt-6-astra` or `o3`. OpenAI
-              offers a wide range of models with different capabilities, performance
-              characteristics, and price points. Refer to the
+          model: Model ID used to generate the response, like `gpt-6.2-astra`. OpenAI offers a
+              wide range of models with different capabilities, performance characteristics,
+              and price points. Refer to the
               [model guide](https://developers.openai.com/api/docs/models) to browse and
               compare available models.
 
@@ -658,7 +658,7 @@ class Completions(SyncAPIResource):
               request. This response value may be different from the value set in the
               parameter.
 
-          stop: Not supported with latest reasoning models `o3` and `o4-mini`.
+          stop: Not supported with reasoning models `o3` and `o4-mini`.
 
               Up to 4 sequences where the API will stop generating further tokens. The
               returned text will not contain the stop sequence.
@@ -815,9 +815,9 @@ class Completions(SyncAPIResource):
               [images](https://developers.openai.com/api/docs/guides/images-vision), and
               [audio](https://developers.openai.com/api/docs/guides/audio).
 
-          model: Model ID used to generate the response, like `gpt-6-astra` or `o3`. OpenAI
-              offers a wide range of models with different capabilities, performance
-              characteristics, and price points. Refer to the
+          model: Model ID used to generate the response, like `gpt-6.2-astra`. OpenAI offers a
+              wide range of models with different capabilities, performance characteristics,
+              and price points. Refer to the
               [model guide](https://developers.openai.com/api/docs/models) to browse and
               compare available models.
 
@@ -1078,7 +1078,7 @@ class Completions(SyncAPIResource):
               request. This response value may be different from the value set in the
               parameter.
 
-          stop: Not supported with latest reasoning models `o3` and `o4-mini`.
+          stop: Not supported with reasoning models `o3` and `o4-mini`.
 
               Up to 4 sequences where the API will stop generating further tokens. The
               returned text will not contain the stop sequence.
@@ -1226,9 +1226,9 @@ class Completions(SyncAPIResource):
               [images](https://developers.openai.com/api/docs/guides/images-vision), and
               [audio](https://developers.openai.com/api/docs/guides/audio).
 
-          model: Model ID used to generate the response, like `gpt-6-astra` or `o3`. OpenAI
-              offers a wide range of models with different capabilities, performance
-              characteristics, and price points. Refer to the
+          model: Model ID used to generate the response, like `gpt-6.2-astra`. OpenAI offers a
+              wide range of models with different capabilities, performance characteristics,
+              and price points. Refer to the
               [model guide](https://developers.openai.com/api/docs/models) to browse and
               compare available models.
 
@@ -1489,7 +1489,7 @@ class Completions(SyncAPIResource):
               request. This response value may be different from the value set in the
               parameter.
 
-          stop: Not supported with latest reasoning models `o3` and `o4-mini`.
+          stop: Not supported with reasoning models `o3` and `o4-mini`.
 
               Up to 4 sequences where the API will stop generating further tokens. The
               returned text will not contain the stop sequence.
@@ -2206,9 +2206,9 @@ class AsyncCompletions(AsyncAPIResource):
               [images](https://developers.openai.com/api/docs/guides/images-vision), and
               [audio](https://developers.openai.com/api/docs/guides/audio).
 
-          model: Model ID used to generate the response, like `gpt-6-astra` or `o3`. OpenAI
-              offers a wide range of models with different capabilities, performance
-              characteristics, and price points. Refer to the
+          model: Model ID used to generate the response, like `gpt-6.2-astra`. OpenAI offers a
+              wide range of models with different capabilities, performance characteristics,
+              and price points. Refer to the
               [model guide](https://developers.openai.com/api/docs/models) to browse and
               compare available models.
 
@@ -2460,7 +2460,7 @@ class AsyncCompletions(AsyncAPIResource):
               request. This response value may be different from the value set in the
               parameter.
 
-          stop: Not supported with latest reasoning models `o3` and `o4-mini`.
+          stop: Not supported with reasoning models `o3` and `o4-mini`.
 
               Up to 4 sequences where the API will stop generating further tokens. The
               returned text will not contain the stop sequence.
@@ -2617,9 +2617,9 @@ class AsyncCompletions(AsyncAPIResource):
               [images](https://developers.openai.com/api/docs/guides/images-vision), and
               [audio](https://developers.openai.com/api/docs/guides/audio).
 
-          model: Model ID used to generate the response, like `gpt-6-astra` or `o3`. OpenAI
-              offers a wide range of models with different capabilities, performance
-              characteristics, and price points. Refer to the
+          model: Model ID used to generate the response, like `gpt-6.2-astra`. OpenAI offers a
+              wide range of models with different capabilities, performance characteristics,
+              and price points. Refer to the
               [model guide](https://developers.openai.com/api/docs/models) to browse and
               compare available models.
 
@@ -2880,7 +2880,7 @@ class AsyncCompletions(AsyncAPIResource):
               request. This response value may be different from the value set in the
               parameter.
 
-          stop: Not supported with latest reasoning models `o3` and `o4-mini`.
+          stop: Not supported with reasoning models `o3` and `o4-mini`.
 
               Up to 4 sequences where the API will stop generating further tokens. The
               returned text will not contain the stop sequence.
@@ -3028,9 +3028,9 @@ class AsyncCompletions(AsyncAPIResource):
               [images](https://developers.openai.com/api/docs/guides/images-vision), and
               [audio](https://developers.openai.com/api/docs/guides/audio).
 
-          model: Model ID used to generate the response, like `gpt-6-astra` or `o3`. OpenAI
-              offers a wide range of models with different capabilities, performance
-              characteristics, and price points. Refer to the
+          model: Model ID used to generate the response, like `gpt-6.2-astra`. OpenAI offers a
+              wide range of models with different capabilities, performance characteristics,
+              and price points. Refer to the
               [model guide](https://developers.openai.com/api/docs/models) to browse and
               compare available models.
 
@@ -3291,7 +3291,7 @@ class AsyncCompletions(AsyncAPIResource):
               request. This response value may be different from the value set in the
               parameter.
 
-          stop: Not supported with latest reasoning models `o3` and `o4-mini`.
+          stop: Not supported with reasoning models `o3` and `o4-mini`.
 
               Up to 4 sequences where the API will stop generating further tokens. The
               returned text will not contain the stop sequence.

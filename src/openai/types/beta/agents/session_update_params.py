@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Dict, Iterable, Optional
 from typing_extensions import Literal, Required, TypedDict
 
+from ...._types import SequenceNotStr
 from ..agent_tool_param import AgentToolParam
 
 __all__ = ["SessionUpdateParams", "Agent", "AgentReasoning", "PromptCacheOptions", "SpendControl"]
@@ -41,6 +42,12 @@ class SessionUpdateParams(TypedDict, total=False):
     """
     Omit to retain the limit; null or a null limit removes it without resetting
     spend.
+    """
+
+    vault_ids: Optional[SequenceNotStr[str]]
+    """Replaces the session's referenced vaults.
+
+    Omit to retain them; null or [] clears them.
     """
 
 

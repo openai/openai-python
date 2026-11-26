@@ -99,18 +99,15 @@ Delegation: TypeAlias = Union[ClientDelegationParam, DelegationResponses, Delega
 
 
 class WakePolicy(TypedDict, total=False):
-    """Inference starts when the Live WebRTC session connects.
-
-    After an idle pause, microphone speech resumes inference.
-    """
+    """Starts inference when microphone speech is detected."""
 
     type: Required[Literal["speech"]]
     """The wake policy type, always `speech`."""
 
     vad_threshold: float
     """
-    The speech detection threshold for resuming paused inference, from 0 to 1
-    inclusive. Defaults to 0.5. Higher values require stronger evidence of speech.
+    The speech detection threshold for the first wake and each later wake, from 0 to
+    1 inclusive. Defaults to 0.5. Higher values require stronger evidence of speech.
     This setting is independent of active turn detection.
     """
 
@@ -149,9 +146,10 @@ class MediaSessionConfigParam(TypedDict, total=False):
 
     idle_timeout_s: int
     """
-    Whole seconds of inactivity after which a Live WebRTC session with a speech wake
-    policy pauses inference. The connection and conversation history are retained.
-    Omit to keep inference active until the session ends.
+    Whole seconds of inactivity after which a Live WebRTC or SIP session with a
+    speech wake policy pauses inference. The connection and conversation history are
+    retained. Omit to keep inference active after the first wake until the session
+    ends.
     """
 
     input: Iterable[InitialItemParam]
@@ -193,7 +191,4 @@ class MediaSessionConfigParam(TypedDict, total=False):
     """
 
     wake_policy: WakePolicy
-    """Inference starts when the Live WebRTC session connects.
-
-    After an idle pause, microphone speech resumes inference.
-    """
+    """Starts inference when microphone speech is detected."""

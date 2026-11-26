@@ -27,3 +27,6 @@ class ConversationCreateParams(TypedDict, total=False):
     Keys are strings with a maximum length of 64 characters. Values are strings with
     a maximum length of 512 characters.
     """
+
+    safety_identifier: Optional[str]
+    """A stable identifier used for safety monitoring and abuse detection."""

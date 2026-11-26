@@ -124,7 +124,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     """
 
     stop: Union[str, SequenceNotStr[str], None]
-    """Not supported with latest reasoning models `o3` and `o4-mini`.
+    """Not supported with reasoning models `o3` and `o4-mini`.
 
     Up to 4 sequences where the API will stop generating further tokens. The
     returned text will not contain the stop sequence.

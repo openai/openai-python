@@ -525,7 +525,7 @@ class ResponseCreate(TypedDict, total=False):
         ],
         str,
     ]
-    """Model ID used to generate the response, like `gpt-6-astra`.
+    """Model ID used to generate the response, like `gpt-6.2-astra`.
 
     OpenAI offers a wide range of models with different capabilities, performance
     characteristics, and price points. Refer to the

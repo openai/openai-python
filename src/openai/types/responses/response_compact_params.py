@@ -138,7 +138,7 @@ class ResponseCompactParams(TypedDict, total=False):
             None,
         ]
     ]
-    """Model ID used to generate the response, like `gpt-6-astra`.
+    """Model ID used to generate the response, like `gpt-6.2-astra`.
 
     OpenAI offers a wide range of models with different capabilities, performance
     characteristics, and price points. Refer to the
@@ -264,6 +264,9 @@ class ResponseCompactParams(TypedDict, total=False):
 
     prompt_cache_retention: Optional[Literal["in_memory", "24h"]]
     """How long to retain a prompt cache entry created by this request."""
+
+    safety_identifier: Optional[str]
+    """A stable identifier used for safety monitoring and abuse detection."""
 
     service_tier: Optional[Literal["auto", "default", "fast", "flex", "priority"]]
     """Specifies the processing type used for serving the request.
