@@ -298,7 +298,7 @@ def required_args(*variants: Sequence[str]) -> Callable[[CallableT], CallableT]:
             return func(*args, **kwargs)
 
         # The decorator forwards the original callable, including its runtime argument validation.
-        return wrapper  # ty: ignore[invalid-return-type]
+        return wrapper  # ty: ignore[invalid-explicit-return]
 
     return inner
 

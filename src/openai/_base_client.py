@@ -273,7 +273,7 @@ class BasePage(GenericModel, Generic[_T]):
     def next_page_info(self) -> Optional[PageInfo]: ...
 
     # Concrete page subclasses supply the items; preserve the existing base-class behavior.
-    def _get_page_items(self) -> Iterable[_T]:  # ty: ignore[empty-body]
+    def _get_page_items(self) -> Iterable[_T]:  # ty: ignore[invalid-implicit-return-in-function-with-stub-body]
         ...
 
     def _params_from_url(self, url: URL) -> httpx2.QueryParams:
