@@ -330,7 +330,7 @@ class DataSourceResponses(BaseModel):
     """
 
     model: Optional[str] = None
-    """The name of the model to use for generating completions (e.g. "o3-mini")."""
+    """The model to use to sample outputs with the Responses API."""
 
     sampling_params: Optional[DataSourceResponsesSamplingParams] = None
 

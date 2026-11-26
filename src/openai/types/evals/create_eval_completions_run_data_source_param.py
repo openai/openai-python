@@ -84,7 +84,7 @@ class SourceStoredCompletions(TypedDict, total=False):
     """
 
     model: Optional[str]
-    """An optional model to filter by (e.g., 'gpt-6-astra')."""
+    """An optional model to filter by (e.g., 'gpt-4.1-mini-2025-04-14')."""
 
 
 Source: TypeAlias = Union[SourceFileContent, SourceFileID, SourceStoredCompletions]
@@ -243,6 +243,6 @@ class CreateEvalCompletionsRunDataSourceParam(TypedDict, total=False):
     """
 
     model: str
-    """The name of the model to use for generating completions (e.g. "o3-mini")."""
+    """The model to use to sample outputs with the Chat Completions API."""
 
     sampling_params: SamplingParams

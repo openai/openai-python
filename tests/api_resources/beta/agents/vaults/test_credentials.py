@@ -180,7 +180,7 @@ class TestCredentials:
                     },
                 },
             },
-            metadata={},
+            metadata={"environment": "staging"},
         )
         assert_matches_type(Credential, credential, path=["response"])
 
@@ -487,7 +487,7 @@ class TestAsyncCredentials:
                     },
                 },
             },
-            metadata={},
+            metadata={"environment": "staging"},
         )
         assert_matches_type(Credential, credential, path=["response"])
 

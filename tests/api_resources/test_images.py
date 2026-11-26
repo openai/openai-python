@@ -70,7 +70,7 @@ class TestImages:
     def test_method_edit_overload_1(self, client: OpenAI) -> None:
         image = client.images.edit(
             image=b"Example data",
-            prompt="A cute baby sea otter wearing a beret",
+            prompt="Add a watercolor effect to this image",
         )
         assert_matches_type(ImagesResponse, image, path=["response"])
 
@@ -78,7 +78,7 @@ class TestImages:
     def test_method_edit_with_all_params_overload_1(self, client: OpenAI) -> None:
         image = client.images.edit(
             image=b"Example data",
-            prompt="A cute baby sea otter wearing a beret",
+            prompt="Add a watercolor effect to this image",
             background="transparent",
             complexity="low",
             frame_count=2,
@@ -86,7 +86,7 @@ class TestImages:
             input_fidelity="high",
             markup=b"Example data",
             mask=b"Example data",
-            model="gpt-image-1.5",
+            model="gpt-image-2.6-flare",
             n=1,
             output_compression=100,
             output_format="png",
@@ -108,7 +108,7 @@ class TestImages:
     def test_raw_response_edit_overload_1(self, client: OpenAI) -> None:
         response = client.images.with_raw_response.edit(
             image=b"Example data",
-            prompt="A cute baby sea otter wearing a beret",
+            prompt="Add a watercolor effect to this image",
         )
 
         assert response.is_closed is True
@@ -120,7 +120,7 @@ class TestImages:
     def test_streaming_response_edit_overload_1(self, client: OpenAI) -> None:
         with client.images.with_streaming_response.edit(
             image=b"Example data",
-            prompt="A cute baby sea otter wearing a beret",
+            prompt="Add a watercolor effect to this image",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -134,7 +134,7 @@ class TestImages:
     def test_method_edit_overload_2(self, client: OpenAI) -> None:
         image_stream = client.images.edit(
             image=b"Example data",
-            prompt="A cute baby sea otter wearing a beret",
+            prompt="Add a watercolor effect to this image",
             stream=True,
         )
         image_stream.response.close()
@@ -143,7 +143,7 @@ class TestImages:
     def test_method_edit_with_all_params_overload_2(self, client: OpenAI) -> None:
         image_stream = client.images.edit(
             image=b"Example data",
-            prompt="A cute baby sea otter wearing a beret",
+            prompt="Add a watercolor effect to this image",
             stream=True,
             background="transparent",
             complexity="low",
@@ -152,7 +152,7 @@ class TestImages:
             input_fidelity="high",
             markup=b"Example data",
             mask=b"Example data",
-            model="gpt-image-1.5",
+            model="gpt-image-2.6-flare",
             n=1,
             output_compression=100,
             output_format="png",
@@ -173,7 +173,7 @@ class TestImages:
     def test_raw_response_edit_overload_2(self, client: OpenAI) -> None:
         response = client.images.with_raw_response.edit(
             image=b"Example data",
-            prompt="A cute baby sea otter wearing a beret",
+            prompt="Add a watercolor effect to this image",
             stream=True,
         )
 
@@ -186,7 +186,7 @@ class TestImages:
     def test_streaming_response_edit_overload_2(self, client: OpenAI) -> None:
         with client.images.with_streaming_response.edit(
             image=b"Example data",
-            prompt="A cute baby sea otter wearing a beret",
+            prompt="Add a watercolor effect to this image",
             stream=True,
         ) as response:
             assert not response.is_closed
@@ -213,7 +213,7 @@ class TestImages:
             complexity="low",
             frame_count=2,
             frame_duration_ms=20,
-            model="gpt-image-2.5-flare",
+            model="gpt-image-2.6-flare",
             moderation="low",
             n=1,
             output_compression=100,
@@ -274,7 +274,7 @@ class TestImages:
             complexity="low",
             frame_count=2,
             frame_duration_ms=20,
-            model="gpt-image-2.5-flare",
+            model="gpt-image-2.6-flare",
             moderation="low",
             n=1,
             output_compression=100,
@@ -379,7 +379,7 @@ class TestAsyncImages:
     async def test_method_edit_overload_1(self, async_client: AsyncOpenAI) -> None:
         image = await async_client.images.edit(
             image=b"Example data",
-            prompt="A cute baby sea otter wearing a beret",
+            prompt="Add a watercolor effect to this image",
         )
         assert_matches_type(ImagesResponse, image, path=["response"])
 
@@ -387,7 +387,7 @@ class TestAsyncImages:
     async def test_method_edit_with_all_params_overload_1(self, async_client: AsyncOpenAI) -> None:
         image = await async_client.images.edit(
             image=b"Example data",
-            prompt="A cute baby sea otter wearing a beret",
+            prompt="Add a watercolor effect to this image",
             background="transparent",
             complexity="low",
             frame_count=2,
@@ -395,7 +395,7 @@ class TestAsyncImages:
             input_fidelity="high",
             markup=b"Example data",
             mask=b"Example data",
-            model="gpt-image-1.5",
+            model="gpt-image-2.6-flare",
             n=1,
             output_compression=100,
             output_format="png",
@@ -417,7 +417,7 @@ class TestAsyncImages:
     async def test_raw_response_edit_overload_1(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.images.with_raw_response.edit(
             image=b"Example data",
-            prompt="A cute baby sea otter wearing a beret",
+            prompt="Add a watercolor effect to this image",
         )
 
         assert response.is_closed is True
@@ -429,7 +429,7 @@ class TestAsyncImages:
     async def test_streaming_response_edit_overload_1(self, async_client: AsyncOpenAI) -> None:
         async with async_client.images.with_streaming_response.edit(
             image=b"Example data",
-            prompt="A cute baby sea otter wearing a beret",
+            prompt="Add a watercolor effect to this image",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -443,7 +443,7 @@ class TestAsyncImages:
     async def test_method_edit_overload_2(self, async_client: AsyncOpenAI) -> None:
         image_stream = await async_client.images.edit(
             image=b"Example data",
-            prompt="A cute baby sea otter wearing a beret",
+            prompt="Add a watercolor effect to this image",
             stream=True,
         )
         await image_stream.response.aclose()
@@ -452,7 +452,7 @@ class TestAsyncImages:
     async def test_method_edit_with_all_params_overload_2(self, async_client: AsyncOpenAI) -> None:
         image_stream = await async_client.images.edit(
             image=b"Example data",
-            prompt="A cute baby sea otter wearing a beret",
+            prompt="Add a watercolor effect to this image",
             stream=True,
             background="transparent",
             complexity="low",
@@ -461,7 +461,7 @@ class TestAsyncImages:
             input_fidelity="high",
             markup=b"Example data",
             mask=b"Example data",
-            model="gpt-image-1.5",
+            model="gpt-image-2.6-flare",
             n=1,
             output_compression=100,
             output_format="png",
@@ -482,7 +482,7 @@ class TestAsyncImages:
     async def test_raw_response_edit_overload_2(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.images.with_raw_response.edit(
             image=b"Example data",
-            prompt="A cute baby sea otter wearing a beret",
+            prompt="Add a watercolor effect to this image",
             stream=True,
         )
 
@@ -495,7 +495,7 @@ class TestAsyncImages:
     async def test_streaming_response_edit_overload_2(self, async_client: AsyncOpenAI) -> None:
         async with async_client.images.with_streaming_response.edit(
             image=b"Example data",
-            prompt="A cute baby sea otter wearing a beret",
+            prompt="Add a watercolor effect to this image",
             stream=True,
         ) as response:
             assert not response.is_closed
@@ -522,7 +522,7 @@ class TestAsyncImages:
             complexity="low",
             frame_count=2,
             frame_duration_ms=20,
-            model="gpt-image-2.5-flare",
+            model="gpt-image-2.6-flare",
             moderation="low",
             n=1,
             output_compression=100,
@@ -583,7 +583,7 @@ class TestAsyncImages:
             complexity="low",
             frame_count=2,
             frame_duration_ms=20,
-            model="gpt-image-2.5-flare",
+            model="gpt-image-2.6-flare",
             moderation="low",
             n=1,
             output_compression=100,

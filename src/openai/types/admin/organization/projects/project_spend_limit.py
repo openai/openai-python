@@ -1,11 +1,11 @@
 # File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
-from typing import Union
+from typing import List, Union, Optional
 from typing_extensions import Literal
 
 from ....._models import BaseModel
 
-__all__ = ["ProjectSpendLimit", "Enforcement"]
+__all__ = ["ProjectSpendLimit", "Enforcement", "NotificationChannel"]
 
 
 class Enforcement(BaseModel):
@@ -13,6 +13,16 @@ class Enforcement(BaseModel):
 
     status: Union[str, Literal["inactive", "enforcing"]]
     """Whether the hard spend limit is currently enforcing."""
+
+
+class NotificationChannel(BaseModel):
+    """Email notifications sent when the hard spend limit is reached."""
+
+    recipients: List[str]
+
+    type: Literal["email"]
+
+    subject_prefix: Optional[str] = None
 
 
 class ProjectSpendLimit(BaseModel):
@@ -35,3 +45,6 @@ class ProjectSpendLimit(BaseModel):
 
     threshold_amount: int
     """The hard spend limit amount, in cents."""
+
+    notification_channel: Optional[NotificationChannel] = None
+    """Email notifications sent when the hard spend limit is reached."""
