@@ -12,6 +12,7 @@ import logging
 import platform
 import warnings
 import email.utils
+import importlib.util
 from types import TracebackType
 from random import random
 from typing import (
@@ -1571,6 +1572,8 @@ class _DefaultAsyncHttpxClient(httpx2.AsyncClient):
 _DefaultAioHttpClient: type[httpx2.AsyncClient]
 
 try:
+    if sys.modules.get("aiohttp") is None and importlib.util.find_spec("aiohttp") is None:
+        raise ImportError("The aiohttp extra is not installed")
     from ._vendor.httpx_aiohttp import Httpx2AiohttpClient
 except ImportError:
 
@@ -1583,6 +1586,12 @@ else:
 
     class _InstalledAioHttpClient(Httpx2AiohttpClient):
         def __init__(self, **kwargs: Any) -> None:
+            try:
+                importlib.import_module("._vendor.httpx_aiohttp.transport", package=__package__)
+            except ImportError as exc:
+                raise RuntimeError(
+                    "To use the aiohttp client you must have installed the package with the `aiohttp` extra"
+                ) from exc
             kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
             kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
             kwargs.setdefault("follow_redirects", True)

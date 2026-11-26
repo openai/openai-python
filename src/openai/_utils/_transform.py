@@ -262,6 +262,13 @@ def _format_data(data: object, format_: PropertyFormat, format_template: str | N
     return data
 
 
+def _is_plain_json_scalar(value: object) -> bool:
+    # Only exact built-ins can bypass value conversion. A subclass may also be
+    # a file input, a model, or an iterable with its own transformation rules.
+    kind = type(value)
+    return value is None or kind is str or kind is int or kind is float or kind is bool
+
+
 def _transform_typeddict(
     data: Mapping[str, object],
     expected_type: type,
@@ -278,6 +285,8 @@ def _transform_typeddict(
         if type_ is None:
             # we do not have a type annotation for this field, leave it as is
             result[key] = value
+        elif _is_plain_json_scalar(value):
+            result[_maybe_transform_key(key, type_)] = value
         else:
             result[_maybe_transform_key(key, type_)] = _transform_recursive(value, annotation=type_)
     return result
@@ -446,6 +455,8 @@ async def _async_transform_typeddict(
         if type_ is None:
             # we do not have a type annotation for this field, leave it as is
             result[key] = value
+        elif _is_plain_json_scalar(value):
+            result[_maybe_transform_key(key, type_)] = value
         else:
             result[_maybe_transform_key(key, type_)] = await _async_transform_recursive(value, annotation=type_)
     return result
