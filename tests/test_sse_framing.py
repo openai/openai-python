@@ -46,6 +46,14 @@ async def test_every_chunk_boundary(sync: bool, ending: bytes) -> None:
 
 
 @pytest.mark.parametrize("sync", [True, False])
+@pytest.mark.parametrize("fragment_size", [1, 2, 100000])
+async def test_leading_utf8_bom(sync: bool, fragment_size: int) -> None:
+    frame = b"\xef\xbb\xbfdata:first\n\ndata:second\n\n"
+    events = await _decode(SSEDecoder(), _fragment(frame, fragment_size), sync)
+    assert [event.data for event in events] == ["first", "second"]
+
+
+@pytest.mark.parametrize("sync", [True, False])
 async def test_many_complete_events(sync: bool) -> None:
     events = await _decode(SSEDecoder(), [b"data:ok\n\n" * 2000], sync)
     assert [event.data for event in events] == ["ok"] * 2000
