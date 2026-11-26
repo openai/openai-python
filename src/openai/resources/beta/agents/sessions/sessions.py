@@ -337,6 +337,7 @@ class Sessions(SyncAPIResource):
         prompt_cache_options: Optional[session_update_params.PromptCacheOptions] | Omit = omit,
         review: Literal["none", "auto_review"] | Omit = omit,
         spend_control: Optional[session_update_params.SpendControl] | Omit = omit,
+        vault_ids: Optional[SequenceNotStr[str]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -345,9 +346,9 @@ class Sessions(SyncAPIResource):
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AgentSession:
         """
-        Updates session tools, metadata, model, reasoning effort, service tier, or the
-        default prompt cache lifetime. Model settings apply to subsequent turns. Omitted
-        fields are unchanged. See
+        Updates session tools, vaults, metadata, model, reasoning effort, service tier,
+        or the default prompt cache lifetime. Model settings apply to subsequent turns.
+        Omitted fields are unchanged. See
         [managing sessions](https://developers.openai.com/api/docs/guides/agents-api/sessions/manage).
 
         Args:
@@ -370,6 +371,9 @@ class Sessions(SyncAPIResource):
           spend_control: Omit to retain the limit; null or a null limit removes it without resetting
               spend.
 
+          vault_ids: Replaces the session's referenced vaults. Omit to retain them; null or [] clears
+              them.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -390,6 +394,7 @@ class Sessions(SyncAPIResource):
                     "prompt_cache_options": prompt_cache_options,
                     "review": review,
                     "spend_control": spend_control,
+                    "vault_ids": vault_ids,
                 },
                 session_update_params.SessionUpdateParams,
             ),
@@ -776,6 +781,7 @@ class AsyncSessions(AsyncAPIResource):
         prompt_cache_options: Optional[session_update_params.PromptCacheOptions] | Omit = omit,
         review: Literal["none", "auto_review"] | Omit = omit,
         spend_control: Optional[session_update_params.SpendControl] | Omit = omit,
+        vault_ids: Optional[SequenceNotStr[str]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -784,9 +790,9 @@ class AsyncSessions(AsyncAPIResource):
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AgentSession:
         """
-        Updates session tools, metadata, model, reasoning effort, service tier, or the
-        default prompt cache lifetime. Model settings apply to subsequent turns. Omitted
-        fields are unchanged. See
+        Updates session tools, vaults, metadata, model, reasoning effort, service tier,
+        or the default prompt cache lifetime. Model settings apply to subsequent turns.
+        Omitted fields are unchanged. See
         [managing sessions](https://developers.openai.com/api/docs/guides/agents-api/sessions/manage).
 
         Args:
@@ -809,6 +815,9 @@ class AsyncSessions(AsyncAPIResource):
           spend_control: Omit to retain the limit; null or a null limit removes it without resetting
               spend.
 
+          vault_ids: Replaces the session's referenced vaults. Omit to retain them; null or [] clears
+              them.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -829,6 +838,7 @@ class AsyncSessions(AsyncAPIResource):
                     "prompt_cache_options": prompt_cache_options,
                     "review": review,
                     "spend_control": spend_control,
+                    "vault_ids": vault_ids,
                 },
                 session_update_params.SessionUpdateParams,
             ),
