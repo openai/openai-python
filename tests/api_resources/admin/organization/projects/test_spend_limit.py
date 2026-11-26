@@ -69,6 +69,21 @@ class TestSpendLimit:
         assert_matches_type(ProjectSpendLimit, spend_limit, path=["response"])
 
     @parametrize
+    def test_method_update_with_all_params(self, client: OpenAI) -> None:
+        spend_limit = client.admin.organization.projects.spend_limit.update(
+            project_id="proj_123",
+            currency="USD",
+            interval="month",
+            threshold_amount=1,
+            notification_channel={
+                "type": "email",
+                "recipients": ["string"],
+                "subject_prefix": "subject_prefix",
+            },
+        )
+        assert_matches_type(ProjectSpendLimit, spend_limit, path=["response"])
+
+    @parametrize
     def test_raw_response_update(self, client: OpenAI) -> None:
         response = client.admin.organization.projects.spend_limit.with_raw_response.update(
             project_id="proj_123",
@@ -197,6 +212,21 @@ class TestAsyncSpendLimit:
             currency="USD",
             interval="month",
             threshold_amount=1,
+        )
+        assert_matches_type(ProjectSpendLimit, spend_limit, path=["response"])
+
+    @parametrize
+    async def test_method_update_with_all_params(self, async_client: AsyncOpenAI) -> None:
+        spend_limit = await async_client.admin.organization.projects.spend_limit.update(
+            project_id="proj_123",
+            currency="USD",
+            interval="month",
+            threshold_amount=1,
+            notification_channel={
+                "type": "email",
+                "recipients": ["string"],
+                "subject_prefix": "subject_prefix",
+            },
         )
         assert_matches_type(ProjectSpendLimit, spend_limit, path=["response"])
 

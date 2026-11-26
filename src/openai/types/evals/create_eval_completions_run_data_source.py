@@ -84,7 +84,7 @@ class SourceStoredCompletions(BaseModel):
     """
 
     model: Optional[str] = None
-    """An optional model to filter by (e.g., 'gpt-6-astra')."""
+    """An optional model to filter by (e.g., 'gpt-4.1-mini-2025-04-14')."""
 
 
 Source: TypeAlias = Annotated[
@@ -247,6 +247,6 @@ class CreateEvalCompletionsRunDataSource(BaseModel):
     """
 
     model: Optional[str] = None
-    """The name of the model to use for generating completions (e.g. "o3-mini")."""
+    """The model to use to sample outputs with the Chat Completions API."""
 
     sampling_params: Optional[SamplingParams] = None

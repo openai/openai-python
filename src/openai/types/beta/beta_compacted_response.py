@@ -38,3 +38,9 @@ class BetaCompactedResponse(BaseModel):
     """
 
     image: Optional[Image] = None
+
+    safety_identifier: Optional[str] = None
+    """A stable identifier that was used for safety monitoring and abuse detection."""
+
+    service_tier: Optional[str] = None
+    """The service tier used for compaction, when reported."""

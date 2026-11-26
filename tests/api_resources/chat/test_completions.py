@@ -24,13 +24,13 @@ class TestCompletions:
     @parametrize
     def test_method_create_overload_1(self, client: OpenAI) -> None:
         completion = client.chat.completions.create(
+            model="gpt-6.2-astra",
             messages=[
                 {
-                    "content": "string",
-                    "role": "developer",
+                    "content": "Say hello in one sentence.",
+                    "role": "user",
                 }
             ],
-            model="gpt-6-astra",
         )
         assert_matches_type(ChatCompletion, completion, path=["response"])
 
@@ -39,12 +39,12 @@ class TestCompletions:
         completion = client.chat.completions.create(
             messages=[
                 {
-                    "content": "string",
-                    "role": "developer",
+                    "content": "Say hello in one sentence.",
+                    "role": "user",
                     "name": "name",
                 }
             ],
-            model="gpt-6-astra",
+            model="gpt-6.2-astra",
             audio={
                 "format": "wav",
                 "voice": "alloy",
@@ -131,13 +131,13 @@ class TestCompletions:
     @parametrize
     def test_raw_response_create_overload_1(self, client: OpenAI) -> None:
         response = client.chat.completions.with_raw_response.create(
+            model="gpt-6.2-astra",
             messages=[
                 {
-                    "content": "string",
-                    "role": "developer",
+                    "content": "Say hello in one sentence.",
+                    "role": "user",
                 }
             ],
-            model="gpt-6-astra",
         )
 
         assert response.is_closed is True
@@ -148,13 +148,13 @@ class TestCompletions:
     @parametrize
     def test_streaming_response_create_overload_1(self, client: OpenAI) -> None:
         with client.chat.completions.with_streaming_response.create(
+            model="gpt-6.2-astra",
             messages=[
                 {
-                    "content": "string",
-                    "role": "developer",
+                    "content": "Say hello in one sentence.",
+                    "role": "user",
                 }
             ],
-            model="gpt-6-astra",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -167,13 +167,13 @@ class TestCompletions:
     @parametrize
     def test_method_create_overload_2(self, client: OpenAI) -> None:
         completion_stream = client.chat.completions.create(
+            model="gpt-6.2-astra",
             messages=[
                 {
-                    "content": "string",
-                    "role": "developer",
+                    "content": "Say hello in one sentence.",
+                    "role": "user",
                 }
             ],
-            model="gpt-6-astra",
             stream=True,
         )
         completion_stream.response.close()
@@ -181,14 +181,14 @@ class TestCompletions:
     @parametrize
     def test_method_create_with_all_params_overload_2(self, client: OpenAI) -> None:
         completion_stream = client.chat.completions.create(
+            model="gpt-6.2-astra",
             messages=[
                 {
-                    "content": "string",
-                    "role": "developer",
+                    "content": "Say hello in one sentence.",
+                    "role": "user",
                     "name": "name",
                 }
             ],
-            model="gpt-6-astra",
             stream=True,
             audio={
                 "format": "wav",
@@ -275,13 +275,13 @@ class TestCompletions:
     @parametrize
     def test_raw_response_create_overload_2(self, client: OpenAI) -> None:
         response = client.chat.completions.with_raw_response.create(
+            model="gpt-6.2-astra",
             messages=[
                 {
-                    "content": "string",
-                    "role": "developer",
+                    "content": "Say hello in one sentence.",
+                    "role": "user",
                 }
             ],
-            model="gpt-6-astra",
             stream=True,
         )
 
@@ -293,13 +293,13 @@ class TestCompletions:
     @parametrize
     def test_streaming_response_create_overload_2(self, client: OpenAI) -> None:
         with client.chat.completions.with_streaming_response.create(
+            model="gpt-6.2-astra",
             messages=[
                 {
-                    "content": "string",
-                    "role": "developer",
+                    "content": "Say hello in one sentence.",
+                    "role": "user",
                 }
             ],
-            model="gpt-6-astra",
             stream=True,
         ) as response:
             assert not response.is_closed
@@ -474,13 +474,13 @@ class TestAsyncCompletions:
     @parametrize
     async def test_method_create_overload_1(self, async_client: AsyncOpenAI) -> None:
         completion = await async_client.chat.completions.create(
+            model="gpt-6.2-astra",
             messages=[
                 {
-                    "content": "string",
-                    "role": "developer",
+                    "content": "Say hello in one sentence.",
+                    "role": "user",
                 }
             ],
-            model="gpt-6-astra",
         )
         assert_matches_type(ChatCompletion, completion, path=["response"])
 
@@ -489,12 +489,12 @@ class TestAsyncCompletions:
         completion = await async_client.chat.completions.create(
             messages=[
                 {
-                    "content": "string",
-                    "role": "developer",
+                    "content": "Say hello in one sentence.",
+                    "role": "user",
                     "name": "name",
                 }
             ],
-            model="gpt-6-astra",
+            model="gpt-6.2-astra",
             audio={
                 "format": "wav",
                 "voice": "alloy",
@@ -581,13 +581,13 @@ class TestAsyncCompletions:
     @parametrize
     async def test_raw_response_create_overload_1(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.chat.completions.with_raw_response.create(
+            model="gpt-6.2-astra",
             messages=[
                 {
-                    "content": "string",
-                    "role": "developer",
+                    "content": "Say hello in one sentence.",
+                    "role": "user",
                 }
             ],
-            model="gpt-6-astra",
         )
 
         assert response.is_closed is True
@@ -598,13 +598,13 @@ class TestAsyncCompletions:
     @parametrize
     async def test_streaming_response_create_overload_1(self, async_client: AsyncOpenAI) -> None:
         async with async_client.chat.completions.with_streaming_response.create(
+            model="gpt-6.2-astra",
             messages=[
                 {
-                    "content": "string",
-                    "role": "developer",
+                    "content": "Say hello in one sentence.",
+                    "role": "user",
                 }
             ],
-            model="gpt-6-astra",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -617,13 +617,13 @@ class TestAsyncCompletions:
     @parametrize
     async def test_method_create_overload_2(self, async_client: AsyncOpenAI) -> None:
         completion_stream = await async_client.chat.completions.create(
+            model="gpt-6.2-astra",
             messages=[
                 {
-                    "content": "string",
-                    "role": "developer",
+                    "content": "Say hello in one sentence.",
+                    "role": "user",
                 }
             ],
-            model="gpt-6-astra",
             stream=True,
         )
         await completion_stream.response.aclose()
@@ -631,14 +631,14 @@ class TestAsyncCompletions:
     @parametrize
     async def test_method_create_with_all_params_overload_2(self, async_client: AsyncOpenAI) -> None:
         completion_stream = await async_client.chat.completions.create(
+            model="gpt-6.2-astra",
             messages=[
                 {
-                    "content": "string",
-                    "role": "developer",
+                    "content": "Say hello in one sentence.",
+                    "role": "user",
                     "name": "name",
                 }
             ],
-            model="gpt-6-astra",
             stream=True,
             audio={
                 "format": "wav",
@@ -725,13 +725,13 @@ class TestAsyncCompletions:
     @parametrize
     async def test_raw_response_create_overload_2(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.chat.completions.with_raw_response.create(
+            model="gpt-6.2-astra",
             messages=[
                 {
-                    "content": "string",
-                    "role": "developer",
+                    "content": "Say hello in one sentence.",
+                    "role": "user",
                 }
             ],
-            model="gpt-6-astra",
             stream=True,
         )
 
@@ -743,13 +743,13 @@ class TestAsyncCompletions:
     @parametrize
     async def test_streaming_response_create_overload_2(self, async_client: AsyncOpenAI) -> None:
         async with async_client.chat.completions.with_streaming_response.create(
+            model="gpt-6.2-astra",
             messages=[
                 {
-                    "content": "string",
-                    "role": "developer",
+                    "content": "Say hello in one sentence.",
+                    "role": "user",
                 }
             ],
-            model="gpt-6-astra",
             stream=True,
         ) as response:
             assert not response.is_closed

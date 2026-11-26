@@ -37,6 +37,7 @@ class TestConversations:
                 }
             ],
             metadata={"foo": "string"},
+            safety_identifier="safety_identifier",
         )
         assert_matches_type(Conversation, conversation, path=["response"])
 
@@ -201,6 +202,7 @@ class TestAsyncConversations:
                 }
             ],
             metadata={"foo": "string"},
+            safety_identifier="safety_identifier",
         )
         assert_matches_type(Conversation, conversation, path=["response"])
 

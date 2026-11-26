@@ -586,9 +586,9 @@ class Responses(SyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: Model ID used to generate the response, like `gpt-6-astra`. OpenAI offers a wide
-              range of models with different capabilities, performance characteristics, and
-              price points. Refer to the
+          model: Model ID used to generate the response, like `gpt-6.2-astra`. OpenAI offers a
+              wide range of models with different capabilities, performance characteristics,
+              and price points. Refer to the
               [model guide](https://developers.openai.com/api/docs/models) to browse and
               compare available models.
 
@@ -894,9 +894,9 @@ class Responses(SyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: Model ID used to generate the response, like `gpt-6-astra`. OpenAI offers a wide
-              range of models with different capabilities, performance characteristics, and
-              price points. Refer to the
+          model: Model ID used to generate the response, like `gpt-6.2-astra`. OpenAI offers a
+              wide range of models with different capabilities, performance characteristics,
+              and price points. Refer to the
               [model guide](https://developers.openai.com/api/docs/models) to browse and
               compare available models.
 
@@ -1195,9 +1195,9 @@ class Responses(SyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: Model ID used to generate the response, like `gpt-6-astra`. OpenAI offers a wide
-              range of models with different capabilities, performance characteristics, and
-              price points. Refer to the
+          model: Model ID used to generate the response, like `gpt-6.2-astra`. OpenAI offers a
+              wide range of models with different capabilities, performance characteristics,
+              and price points. Refer to the
               [model guide](https://developers.openai.com/api/docs/models) to browse and
               compare available models.
 
@@ -1860,6 +1860,7 @@ class Responses(SyncAPIResource):
         prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: Optional[response_compact_params.PromptCacheOptions] | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "fast", "flex", "priority"]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1878,9 +1879,9 @@ class Responses(SyncAPIResource):
         [Compaction (advanced)](https://developers.openai.com/api/docs/guides/conversation-state#compaction-advanced).
 
         Args:
-          model: Model ID used to generate the response, like `gpt-6-astra`. OpenAI offers a wide
-              range of models with different capabilities, performance characteristics, and
-              price points. Refer to the
+          model: Model ID used to generate the response, like `gpt-6.2-astra`. OpenAI offers a
+              wide range of models with different capabilities, performance characteristics,
+              and price points. Refer to the
               [model guide](https://developers.openai.com/api/docs/models) to browse and
               compare available models.
 
@@ -1989,6 +1990,8 @@ class Responses(SyncAPIResource):
 
           prompt_cache_retention: How long to retain a prompt cache entry created by this request.
 
+          safety_identifier: A stable identifier used for safety monitoring and abuse detection.
+
           service_tier: Specifies the processing type used for serving the request. - If set to 'auto',
               then the request will be processed with the service tier configured in the
               Project settings. Unless otherwise configured, the Project will use 'default'. -
@@ -2027,6 +2030,7 @@ class Responses(SyncAPIResource):
                     "prompt_cache_key": prompt_cache_key,
                     "prompt_cache_options": prompt_cache_options,
                     "prompt_cache_retention": prompt_cache_retention,
+                    "safety_identifier": safety_identifier,
                 },
                 response_compact_params.ResponseCompactParams,
             ),
@@ -2562,9 +2566,9 @@ class AsyncResponses(AsyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: Model ID used to generate the response, like `gpt-6-astra`. OpenAI offers a wide
-              range of models with different capabilities, performance characteristics, and
-              price points. Refer to the
+          model: Model ID used to generate the response, like `gpt-6.2-astra`. OpenAI offers a
+              wide range of models with different capabilities, performance characteristics,
+              and price points. Refer to the
               [model guide](https://developers.openai.com/api/docs/models) to browse and
               compare available models.
 
@@ -2870,9 +2874,9 @@ class AsyncResponses(AsyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: Model ID used to generate the response, like `gpt-6-astra`. OpenAI offers a wide
-              range of models with different capabilities, performance characteristics, and
-              price points. Refer to the
+          model: Model ID used to generate the response, like `gpt-6.2-astra`. OpenAI offers a
+              wide range of models with different capabilities, performance characteristics,
+              and price points. Refer to the
               [model guide](https://developers.openai.com/api/docs/models) to browse and
               compare available models.
 
@@ -3171,9 +3175,9 @@ class AsyncResponses(AsyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: Model ID used to generate the response, like `gpt-6-astra`. OpenAI offers a wide
-              range of models with different capabilities, performance characteristics, and
-              price points. Refer to the
+          model: Model ID used to generate the response, like `gpt-6.2-astra`. OpenAI offers a
+              wide range of models with different capabilities, performance characteristics,
+              and price points. Refer to the
               [model guide](https://developers.openai.com/api/docs/models) to browse and
               compare available models.
 
@@ -3836,6 +3840,7 @@ class AsyncResponses(AsyncAPIResource):
         prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: Optional[response_compact_params.PromptCacheOptions] | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "fast", "flex", "priority"]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -3854,9 +3859,9 @@ class AsyncResponses(AsyncAPIResource):
         [Compaction (advanced)](https://developers.openai.com/api/docs/guides/conversation-state#compaction-advanced).
 
         Args:
-          model: Model ID used to generate the response, like `gpt-6-astra`. OpenAI offers a wide
-              range of models with different capabilities, performance characteristics, and
-              price points. Refer to the
+          model: Model ID used to generate the response, like `gpt-6.2-astra`. OpenAI offers a
+              wide range of models with different capabilities, performance characteristics,
+              and price points. Refer to the
               [model guide](https://developers.openai.com/api/docs/models) to browse and
               compare available models.
 
@@ -3965,6 +3970,8 @@ class AsyncResponses(AsyncAPIResource):
 
           prompt_cache_retention: How long to retain a prompt cache entry created by this request.
 
+          safety_identifier: A stable identifier used for safety monitoring and abuse detection.
+
           service_tier: Specifies the processing type used for serving the request. - If set to 'auto',
               then the request will be processed with the service tier configured in the
               Project settings. Unless otherwise configured, the Project will use 'default'. -
@@ -4003,6 +4010,7 @@ class AsyncResponses(AsyncAPIResource):
                     "prompt_cache_key": prompt_cache_key,
                     "prompt_cache_options": prompt_cache_options,
                     "prompt_cache_retention": prompt_cache_retention,
+                    "safety_identifier": safety_identifier,
                 },
                 response_compact_params.ResponseCompactParams,
             ),
