@@ -466,7 +466,7 @@ def synccopy(
         params = {**params, **default_query}
     elif set_default_query is not None:
         params = set_default_query
-    http_client = http_client or self._client
+    http_client = http_client if http_client is not None else self._client
     next_provider = self._provider if isinstance(provider, _sdk_client.NotGiven) else provider
     explicit_base_url = base_url is not None and (not isinstance(base_url, _sdk_client.NotGiven))
     next_workload_identity = workload_identity if workload_identity is not None else self.workload_identity
@@ -939,7 +939,7 @@ def asynccopy(
         params = {**params, **default_query}
     elif set_default_query is not None:
         params = set_default_query
-    http_client = http_client or self._client
+    http_client = http_client if http_client is not None else self._client
     next_provider = self._provider if isinstance(provider, _sdk_client.NotGiven) else provider
     explicit_base_url = base_url is not None and (not isinstance(base_url, _sdk_client.NotGiven))
     next_workload_identity = workload_identity if workload_identity is not None else self.workload_identity
